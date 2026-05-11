@@ -92,7 +92,7 @@ namespace BimboPesaje.Formularios.Productos
 
         private void rbDeshabilitados_CheckedChanged(object sender, EventArgs e)
         {
-            if (rbHabilitados.Checked)
+            if (rbDeshabilitados.Checked)
                 FiltrarPorEstado("Inactivo");
         }
 

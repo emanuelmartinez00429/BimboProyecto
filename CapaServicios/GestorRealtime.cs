@@ -42,22 +42,26 @@ namespace CapaServicios
 
                 _productosChannel = await _client.From<Productos>().On(ListenType.All, (sender, change) =>
                 {
-                    try { OnProductosChanged?.Invoke(change); } catch { }
+                    try { OnProductosChanged?.Invoke(change); }
+                    catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"[Realtime] productos: {ex.Message}"); }
                 });
 
                 _categoriasChannel = await _client.From<Categoria>().On(ListenType.All, (sender, change) =>
                 {
-                    try { OnCategoriasChanged?.Invoke(change);} catch { }
+                    try { OnCategoriasChanged?.Invoke(change); }
+                    catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"[Realtime] categorias: {ex.Message}"); }
                 });
 
                 _empleadosChannel = await _client.From<Empleados>().On(ListenType.All, (sender, change) =>
                 {
-                    try { OnEmpleadosChanged?.Invoke(change); } catch { }
+                    try { OnEmpleadosChanged?.Invoke(change); }
+                    catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"[Realtime] empleados: {ex.Message}"); }
                 });
 
                 _usuariosChannel = await _client.From<Usuarios>().On(ListenType.All, (sender, change) =>
                 {
-                    try { OnUsuariosChanged?.Invoke(change); } catch { }
+                    try { OnUsuariosChanged?.Invoke(change); }
+                    catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"[Realtime] usuarios: {ex.Message}"); }
                 });
 
                 _iniciado = true;
@@ -81,11 +85,10 @@ namespace CapaServicios
 
             try
             {
-                if (_productosChannel != null)
-                {
-                    _productosChannel.Unsubscribe();
-                    _productosChannel = null;
-                }
+                if (_productosChannel  != null) { _productosChannel.Unsubscribe();  _productosChannel  = null; }
+                if (_categoriasChannel != null) { _categoriasChannel.Unsubscribe(); _categoriasChannel = null; }
+                if (_empleadosChannel  != null) { _empleadosChannel.Unsubscribe();  _empleadosChannel  = null; }
+                if (_usuariosChannel   != null) { _usuariosChannel.Unsubscribe();   _usuariosChannel   = null; }
 
                 _iniciado = false;
                 System.Diagnostics.Debug.WriteLine("GestorRealtime detenido correctamente.");

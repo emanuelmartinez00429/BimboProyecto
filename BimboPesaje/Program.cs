@@ -17,20 +17,29 @@ namespace BimboPesaje
             Application.SetHighDpiMode(HighDpiMode.PerMonitorV2);
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Task.Run(async () =>
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+            try
             {
-                try
+                Task.Run(async () =>
                 {
-                    var client = await ConexionSupabase.GetClientAsync();
+                    await ConexionSupabase.GetClientAsync();
                     await GestorRealtime.IniciarAsync();
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show("Error al conectar: " + ex.Message, "Error",
-                                    MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    Environment.Exit(0); // Si falla, cierra el sistema
-                }
-            }).GetAwaiter().GetResult(); // Bloquea hasta que termine
+                }, cts.Token).GetAwaiter().GetResult();
+            }
+            catch (OperationCanceledException)
+            {
+                MessageBox.Show(
+                    "No se pudo conectar a Supabase en 15 segundos.\nVerifique su conexión a internet e intente de nuevo.",
+                    "Sin conexión", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"Error al iniciar la aplicación:\n{ex.Message}",
+                    "Error de inicio", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
 
 
             Application.Run(new MenuPrincipal());

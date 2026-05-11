@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using CapaServicios;
 
 namespace BimboPesaje.Formularios.Productos
 {
@@ -83,15 +84,15 @@ namespace BimboPesaje.Formularios.Productos
 
         private void CalcularDiferencia()
         {
-            if (double.TryParse(txtPesoBruto.Text, out double bruto) &&
-                double.TryParse(txtPesoNeto.Text, out double neto))
+            if (decimal.TryParse(txtPesoBruto.Text, out decimal bruto) &&
+                decimal.TryParse(txtPesoNeto.Text, out decimal neto))
             {
                 if (bruto > 0)
                 {
-                    double diferencia = ((neto - bruto) / bruto) * 100;
+                    // Diferencia: (neto - bruto) / bruto × 100
+                    // Negativo = faltante, positivo = excedente
+                    decimal diferencia = PesoCalculator.DiferenciaPct(neto, bruto);
                     lblDiferencia.Text = $"{diferencia:F3}%";
-
-                    // Color según si es positivo o negativo
                     lblDiferencia.ForeColor = diferencia >= 0 ? Color.Green : Color.Red;
                 }
             }
