@@ -31,7 +31,7 @@ namespace BimboPesaje
         private async void MenuPrincipal_Load(object sender, EventArgs e)
         {
             this.AutoScaleMode = AutoScaleMode.Dpi;
-            lblHeader.Text = "Menú principal";
+            lblHeader.Text = "Menï¿½ principal";
             await cerraSubmenu();
             //recibiendo los nombres de los botones para guardarlos en la variable
             foreach (Control ctrl in menuVertical.Controls)
@@ -126,7 +126,7 @@ namespace BimboPesaje
             _formHijo.Show();
         }
         /// <summary>
-        /// Aquí lo que estoy haciendo es que estoy comprobando que el submenu este abierto, si esta cerrado, se cierra
+        /// Aquï¿½ lo que estoy haciendo es que estoy comprobando que el submenu este abierto, si esta cerrado, se cierra
         /// cualquiera que haya estado abierto y se abre
         /// </summary>
         /// <param name="subMenu"></param>
@@ -155,7 +155,7 @@ namespace BimboPesaje
             if (menuExpandido)
             {
                 await ColapsarMenu();
-                cerraSubmenu();
+                await cerraSubmenu();
             }
             else
                 ExpandirMenu();
@@ -220,8 +220,8 @@ namespace BimboPesaje
         #region navegacion_entre_forms
         private async void btnGestionEmpleados_Click(object sender, EventArgs e)
         {
-            await abrirFormHijo(new GestiónEmpleados());
-            lblHeader.Text = "Gestión de empleados";
+            await abrirFormHijo(new GestiÃ³nEmpleados());
+            lblHeader.Text = "Gestiï¿½n de empleados";
             await ColapsarMenu();
         }
 
@@ -248,14 +248,14 @@ namespace BimboPesaje
         private async void btnGestionProveedores_Click(object sender, EventArgs e)
         {
             await abrirFormHijo(new GestionProveedores());
-            lblHeader.Text = "Gestión de proveedores";
+            lblHeader.Text = "Gestiï¿½n de proveedores";
             await ColapsarMenu();
         }
 
         private async void btnGestionFabricantes_Click(object sender, EventArgs e)
         {
             await abrirFormHijo(new GestionFabricantes());
-            lblHeader.Text = "Gestión de fabricantes";
+            lblHeader.Text = "Gestiï¿½n de fabricantes";
             await ColapsarMenu();
         }
 
@@ -280,8 +280,8 @@ namespace BimboPesaje
         private async void btnCategorias_Click(object sender, EventArgs e)
         {
             await abrirFormHijo(new GestionCategorias());
-            lblHeader.Text = "Gestión de categorías";
-            ColapsarMenu();
+            lblHeader.Text = "Gestiï¿½n de categorï¿½as";
+            await ColapsarMenu();
         }
     }
 }

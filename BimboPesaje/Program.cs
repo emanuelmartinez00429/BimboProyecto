@@ -1,5 +1,5 @@
 using CapaServicios;
-using ServicioConexión.Conexion;
+using ServicioConexiÃ³n.Conexion;
 
 namespace BimboPesaje
 {
