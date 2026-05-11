@@ -1,0 +1,25 @@
+using CapaDatos.Modelados.Pesajes;
+using ServicioConexión.Conexion;
+
+namespace CapaDatos.Repositorios
+{
+    public class RepositorioTara
+    {
+        public static async Task<List<Tara>> ObtenerTodosAsync()
+        {
+            try
+            {
+                var client = await ConexionSupabase.GetClientAsync();
+                var resultado = await client
+                    .From<Tara>()
+                    .Get();
+                return resultado?.Models ?? new List<Tara>();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al obtener taras: {ex.Message}");
+                throw;
+            }
+        }
+    }
+}
