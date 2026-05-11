@@ -1,3 +1,4 @@
+using BimboPesaje.Formularios.Usuarios;
 using CapaServicios;
 using ServicioConexión.Conexion;
 
@@ -17,6 +18,7 @@ namespace BimboPesaje
             Application.SetHighDpiMode(HighDpiMode.PerMonitorV2);
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
+
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
             try
             {
@@ -41,6 +43,9 @@ namespace BimboPesaje
                 return;
             }
 
+            using var login = new FrmLogin();
+            if (login.ShowDialog() != DialogResult.OK)
+                return;
 
             Application.Run(new MenuPrincipal());
         }

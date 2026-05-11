@@ -1,3 +1,4 @@
+using Newtonsoft.Json;
 using Supabase.Postgrest.Attributes;
 using Supabase.Postgrest.Models;
 
@@ -28,8 +29,13 @@ namespace CapaDatos.Modelados.Pesajes
         public string? observaciones { get; set; }
 
         // Navigation — se carga con Select("*, proveedores(*)")
+        // JsonProperty mapea la clave JSON de PostgREST y NullValueHandling.Ignore
+        // evita que se incluya en el INSERT cuando es null
+        [JsonProperty("proveedores", NullValueHandling = NullValueHandling.Ignore)]
         public Proveedores? proveedor { get; set; }
 
+        // Excluida del INSERT — calculada en memoria
+        [JsonIgnore]
         public string nombreProveedor => proveedor?.nombreProveedor ?? "";
     }
 }

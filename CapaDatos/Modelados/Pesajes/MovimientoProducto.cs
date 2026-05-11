@@ -1,3 +1,4 @@
+using Newtonsoft.Json;
 using Supabase.Postgrest.Attributes;
 using Supabase.Postgrest.Models;
 using ProdModel = CapaDatos.Modelados.Productos.Productos;
@@ -29,9 +30,13 @@ namespace CapaDatos.Modelados.Pesajes
         public string? observaciones { get; set; }
 
         // Navigation — se carga con Select("*, productos(*)")
+        [JsonProperty("productos", NullValueHandling = NullValueHandling.Ignore)]
         public ProdModel? producto { get; set; }
 
+        [JsonIgnore]
         public string nombreProducto => producto?.nombreProducto ?? "";
+
+        [JsonIgnore]
         public string codigoProducto => producto?.codigoProducto ?? "";
     }
 }

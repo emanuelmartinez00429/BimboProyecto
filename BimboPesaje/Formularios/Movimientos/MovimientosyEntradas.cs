@@ -1,257 +1,531 @@
-﻿using BimboPesaje.Formularios.Productos;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
+using CapaDatos.Modelados.Pesajes;
+using CapaDatos.Repositorios;
+using CapaServicios;
+using Supabase.Realtime.PostgresChanges;
+using BimboPesaje.Formularios.Productos;
 
 namespace BimboPesaje.Formularios.Movimientos
 {
     public partial class MovimientosyEntradas : Form
     {
-        private DataTable _tablaCamiones;
-        private DataTable _tablaMateriaPrima;
-        private DataTable _tablaEntradas;
+        // Estado de selección actual
+        private int     _idMovimientoSeleccionado  = 0;
+        private int     _idMovProductoSeleccionado = 0;
+        private int     _idProductoSeleccionado    = 0;
+        private decimal _pesoManifestadoActual     = 0;
+        private int     _bultosTeóricosActual      = 0;
 
-        private Dictionary<int, DataTable> _productosPorCamion = new Dictionary<int, DataTable>();
-        private int _contadorCamion = 0;
-        private const int MAX_CAMIONES = 3;
+        // Bandera para evitar reload recursivo al asignar DataSource
+        private bool _cargandoCamiones  = false;
+        private bool _cargandoProductos = false;
+        private bool _cerrando          = false;
+
+        // Handlers de realtime (guardados para poder desuscribir)
+        private Action<PostgresChangesResponse>? _handlerMov;
+        private Action<PostgresChangesResponse>? _handlerMovProd;
+
         public MovimientosyEntradas()
         {
             InitializeComponent();
 
+            // Eventos no conectados en el Designer
+            button4.Click                    += Button4_Click;
+            btnDescargar.Click               += BtnDescargar_Click;
+            btnQuitarMovimiento.Click        += BtnQuitarMovimiento_Click;
+            btnEditarMoviento.Click          += BtnEditarMovimento_Click;
+            btnEditar.Click                  += BtnEditarCamion_Click;
+            btnQuitarEntrada.Click           += btnQuitarEntrada_Click;
+            dgvMateriaPrima.SelectionChanged += DgvMateriaPrima_SelectionChanged;
         }
 
-        private void MovimientosyEntradas_Load(object sender, EventArgs e)
+        // ── Carga inicial ─────────────────────────────────────────────────────
+
+        private async void MovimientosyEntradas_Load(object sender, EventArgs e)
         {
-            _tablaCamiones = new DataTable();
-            _tablaCamiones.Columns.Add("IdEntrada");
-            _tablaCamiones.Columns.Add("PlacaCamion");
-
-
-            dgvCamiones.AutoGenerateColumns = false;
-            dgvCamiones.DataSource = _tablaCamiones;
-            dgvMateriaPrima.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            dgvMateriaPrima.MultiSelect = false;
-            dgvMateriaPrima.ReadOnly = true; // opcional pero recomendado
-            dgvMateriaPrima.AllowUserToAddRows = false;
-            _tablaEntradas = new DataTable();
-            _tablaEntradas = new DataTable();
-            _tablaEntradas.Columns.Add("Codigo");
-            _tablaEntradas.Columns.Add("Producto");
-            _tablaEntradas.Columns.Add("Proveedor");
-            _tablaEntradas.Columns.Add("PesoNeto", typeof(double));
-            
-
-            dgvEntradas.DataSource = _tablaEntradas;
-            dgvMateriaPrima.Visible = false;
-            // Estilo Fill para que llenen el DGV
-            dgvEntradas.Columns["Codigo"].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            dgvEntradas.Columns["Producto"].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            dgvEntradas.Columns["Proveedor"].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            dgvEntradas.Columns["PesoNeto"].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            ConfigurarGrids();
+            await CargarMovimientosAsync();
+            ConfigurarRealtime();
         }
-        private void btnAgregar_Click(object sender, EventArgs e)
-        {
 
-            if (_contadorCamion >= MAX_CAMIONES)
+        private void ConfigurarGrids()
+        {
+            // dgvEntradas: columnas programáticas (no están en el Designer)
+            dgvEntradas.AutoGenerateColumns = false;
+            dgvEntradas.Columns.Clear();
+            dgvEntradas.Columns.Add(ColTexto("IdPesaje",     "IdPesaje",     "Id",          55));
+            dgvEntradas.Columns.Add(ColTexto("PesoBruto",    "PesoBruto",    "Bruto (kg)",  95));
+            dgvEntradas.Columns.Add(ColTexto("TaraTotal",    "TaraTotal",    "Tara (kg)",   90));
+            dgvEntradas.Columns.Add(ColTextoFill("PesoNeto", "PesoNeto",     "Neto (kg)"));
+            dgvEntradas.Columns.Add(ColTexto("NoBultos",     "NoBultos",     "Bultos",      65));
+            dgvEntradas.Columns.Add(ColTexto("FechaEntrada", "FechaEntrada", "Fecha",       100));
+            dgvEntradas.Columns.Add(ColTexto("HoraEntrada",  "HoraEntrada",  "Hora",        75));
+
+            // dgvMateriaPrima: agregar columnas de indicadores en tiempo real
+            dgvMateriaPrima.Columns.Add(new DataGridViewTextBoxColumn
             {
-                MessageBox.Show("Ya se alcanzó el máximo de 3 camiones.", "Advertencia",
-                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-
-            AgregarVehiculo form = new AgregarVehiculo();
-            //ShowDialog(form);
-
-            if (form.ShowDialog() == DialogResult.OK)
+                Name             = "BultosRestantes",
+                DataPropertyName = "BultosRestantes",
+                HeaderText       = "Bultos Rest.",
+                Width            = 95,
+                ReadOnly         = true
+            });
+            dgvMateriaPrima.Columns.Add(new DataGridViewTextBoxColumn
             {
-                _contadorCamion++;
+                Name             = "PctPesoRestante",
+                DataPropertyName = "PctPesoRestante",
+                HeaderText       = "% Restante",
+                Width            = 95,
+                ReadOnly         = true
+            });
 
-                _tablaCamiones.Rows.Add(_contadorCamion.ToString(), form.PlacaIngresada);
-
-
-                _productosPorCamion[_contadorCamion] = CrearTablaMateriaPrima();
-
-
-                dgvMateriaPrima.DataSource = _productosPorCamion[_contadorCamion];
-
-                dgvCamiones.Refresh();
-                ActualizarVisibilidadEntradas();
-            }
-
-        }
-        private void dgvCamiones_SelectionChanged(object sender, EventArgs e)
-        {
-            if (dgvCamiones.CurrentRow == null) return;
-
-            if (dgvCamiones.CurrentRow.Cells["IdEntrada"].Value == null) return;
-
-            int idCamion = Convert.ToInt32(dgvCamiones.CurrentRow.Cells["IdEntrada"].Value);
-
-            if (_productosPorCamion.ContainsKey(idCamion))
+            // dgvCamiones: agregar columna NombreProveedor
+            dgvCamiones.Columns.Add(new DataGridViewTextBoxColumn
             {
-                dgvMateriaPrima.DataSource = _productosPorCamion[idCamion];
-                dgvMateriaPrima.ClearSelection();
+                Name             = "NombreProveedor",
+                DataPropertyName = "NombreProveedor",
+                HeaderText       = "Proveedor",
+                AutoSizeMode     = DataGridViewAutoSizeColumnMode.Fill,
+                ReadOnly         = true
+            });
+        }
+
+        private static DataGridViewTextBoxColumn ColTexto(string name, string prop, string header, int width)
+            => new() { Name = name, DataPropertyName = prop, HeaderText = header, Width = width, ReadOnly = true };
+
+        private static DataGridViewTextBoxColumn ColTextoFill(string name, string prop, string header)
+            => new() { Name = name, DataPropertyName = prop, HeaderText = header,
+                       AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill, ReadOnly = true };
+
+        // ── Realtime ─────────────────────────────────────────────────────────
+
+        private void ConfigurarRealtime()
+        {
+            _handlerMov     = _ => RecargarMovimientosSafe();
+            _handlerMovProd = _ => RecargarProductosSafe();
+            GestorRealtime.OnMovimientosChanged  += _handlerMov;
+            GestorRealtime.OnMovProductosChanged += _handlerMovProd;
+        }
+
+        private void RecargarMovimientosSafe()
+        {
+            if (_cerrando || IsDisposed || !IsHandleCreated) return;
+            try
+            {
+                BeginInvoke((MethodInvoker)(async () =>
+                {
+                    if (!_cerrando) await CargarMovimientosAsync();
+                }));
+            }
+            catch { }
+        }
+
+        private void RecargarProductosSafe()
+        {
+            if (_cerrando || IsDisposed || !IsHandleCreated || _idMovimientoSeleccionado == 0) return;
+            try
+            {
+                BeginInvoke((MethodInvoker)(async () =>
+                {
+                    if (!_cerrando) await CargarProductosAsync(_idMovimientoSeleccionado);
+                }));
+            }
+            catch { }
+        }
+
+        // ── Carga de datos ───────────────────────────────────────────────────
+
+        private async Task CargarMovimientosAsync()
+        {
+            _cargandoCamiones = true;
+            try
+            {
+                var lista = await RepositorioMovimiento.ObtenerAbiertosAsync();
+
+                var tabla = new DataTable();
+                tabla.Columns.Add("IdEntrada",       typeof(int));
+                tabla.Columns.Add("PlacaCamion");
+                tabla.Columns.Add("NombreProveedor");
+                tabla.Columns.Add("FechaAsignacion");
+
+                foreach (var m in lista)
+                    tabla.Rows.Add(
+                        m.idMovimiento,
+                        m.placaVehiculo ?? "",
+                        m.nombreProveedor,
+                        m.fechaAsignacion.ToString("dd/MM/yyyy")
+                    );
+
+                dgvCamiones.AutoGenerateColumns = false;
+                dgvCamiones.DataSource          = tabla;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[MYE] CargarMovimientos: {ex.Message}");
+            }
+            finally
+            {
+                _cargandoCamiones = false;
             }
         }
 
-        private void ActualizarVisibilidadEntradas()
+        private async Task CargarProductosAsync(int idMovimiento)
         {
-            dgvMateriaPrima.Visible = dgvCamiones.Rows.Count > 0;
-        }
-        private DataTable CrearTablaMateriaPrima()
-        {
-            DataTable dt = new DataTable();
-            dt.Columns.Add("CodigoInternoProducto");
-            dt.Columns.Add("NombreProducto");
-            dt.Columns.Add("Proveedor_Producto");
-            dt.Columns.Add("EstadoProceso").DefaultValue = "En proceso";
-            return dt;
+            _cargandoProductos      = true;
+            _idMovProductoSeleccionado = 0;
+            dgvEntradas.DataSource  = null;
+
+            try
+            {
+                // Vista de resumen (indicadores) + tabla base (para idProducto)
+                var resumen   = await RepositorioMovimientoProducto.ObtenerResumenPorMovimientoAsync(idMovimiento);
+                var productos = await RepositorioMovimientoProducto.ObtenerPorMovimientoAsync(idMovimiento);
+                var idProdLookup = productos.ToDictionary(p => p.idMovProducto, p => p.idProducto);
+
+                var tabla = new DataTable();
+                tabla.Columns.Add("IdMovProducto",     typeof(int));
+                tabla.Columns.Add("IdProducto",        typeof(int));
+                tabla.Columns.Add("CodigoInternoProducto");
+                tabla.Columns.Add("NombreProducto");
+                tabla.Columns.Add("Proveedor_Producto");
+                tabla.Columns.Add("EstadoProceso");
+                tabla.Columns.Add("BultosRestantes",   typeof(decimal));
+                tabla.Columns.Add("PctPesoRestante",   typeof(decimal));
+                tabla.Columns.Add("PesoManifestado",   typeof(decimal));
+                tabla.Columns.Add("BultosTeóricos",    typeof(int));
+
+                foreach (var r in resumen)
+                {
+                    int idProd = idProdLookup.TryGetValue(r.idMovProducto, out var pid) ? pid : 0;
+                    tabla.Rows.Add(
+                        r.idMovProducto,
+                        idProd,
+                        r.codigoProducto,
+                        r.nombreProducto,
+                        r.nombreProveedor,
+                        r.estado,
+                        r.bultosRestantes,
+                        r.pctPesoRestante,
+                        r.pesoManifestado,
+                        r.bultosTeóricos
+                    );
+                }
+
+                dgvMateriaPrima.AutoGenerateColumns = false;
+                dgvMateriaPrima.DataSource          = tabla;
+                dgvMateriaPrima.Visible             = true;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[MYE] CargarProductos: {ex.Message}");
+            }
+            finally
+            {
+                _cargandoProductos = false;
+            }
         }
 
-        private void btnAgregarMovimiento_Click(object sender, EventArgs e)
+        private async Task CargarEntradasAsync(int idMovProducto)
         {
-            if (dgvCamiones.CurrentRow == null)
+            try
+            {
+                var lista = await RepositorioEntrada.ObtenerPorMovProductoAsync(idMovProducto);
+
+                var tabla = new DataTable();
+                tabla.Columns.Add("IdPesaje",     typeof(int));
+                tabla.Columns.Add("PesoBruto",    typeof(decimal));
+                tabla.Columns.Add("TaraTotal",    typeof(decimal));
+                tabla.Columns.Add("PesoNeto",     typeof(decimal));
+                tabla.Columns.Add("NoBultos",     typeof(int));
+                tabla.Columns.Add("FechaEntrada");
+                tabla.Columns.Add("HoraEntrada");
+
+                foreach (var ep in lista)
+                    tabla.Rows.Add(
+                        ep.idPesaje,
+                        ep.pesoBruto,
+                        ep.pesoTaraTotal,
+                        ep.pesoNeto,
+                        ep.numeroBultosRecibido ?? 0,
+                        ep.fechaEntrada.ToString("dd/MM/yyyy"),
+                        ep.horaEntrada.ToString("HH:mm")
+                    );
+
+                dgvEntradas.DataSource = tabla;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[MYE] CargarEntradas: {ex.Message}");
+            }
+        }
+
+        // ── Selección de camión ───────────────────────────────────────────────
+
+        private async void dgvCamiones_SelectionChanged(object sender, EventArgs e)
+        {
+            if (_cargandoCamiones || dgvCamiones.CurrentRow == null) return;
+
+            var drv = dgvCamiones.CurrentRow.DataBoundItem as DataRowView;
+            if (drv == null) return;
+
+            int id = Convert.ToInt32(drv["IdEntrada"]);
+            if (id == _idMovimientoSeleccionado) return;
+
+            _idMovimientoSeleccionado  = id;
+            _idMovProductoSeleccionado = 0;
+            _idProductoSeleccionado    = 0;
+            dgvEntradas.DataSource     = null;
+
+            await CargarProductosAsync(id);
+        }
+
+        // ── Selección de producto ─────────────────────────────────────────────
+
+        private async void DgvMateriaPrima_SelectionChanged(object sender, EventArgs e)
+        {
+            if (_cargandoProductos || dgvMateriaPrima.CurrentRow == null) return;
+
+            var drv = dgvMateriaPrima.CurrentRow.DataBoundItem as DataRowView;
+            if (drv == null) return;
+
+            int idMovProd = Convert.ToInt32(drv["IdMovProducto"]);
+            if (idMovProd == _idMovProductoSeleccionado) return;
+
+            _idMovProductoSeleccionado = idMovProd;
+            _idProductoSeleccionado    = Convert.ToInt32(drv["IdProducto"]);
+            _pesoManifestadoActual     = Convert.ToDecimal(drv["PesoManifestado"]);
+            _bultosTeóricosActual      = Convert.ToInt32(drv["BultosTeóricos"]);
+
+            await CargarEntradasAsync(idMovProd);
+        }
+
+        // ── Botones de camión (pnVehiculo) ───────────────────────────────────
+
+        // Agregar nuevo camión
+        private async void btnAgregar_Click(object sender, EventArgs e)
+        {
+            using var form = new FrmCrearMovimiento();
+            if (form.ShowDialog(this) == DialogResult.OK)
+                await CargarMovimientosAsync();
+        }
+
+        // Descargar = cerrar el movimiento completo
+        private async void BtnDescargar_Click(object sender, EventArgs e)
+        {
+            if (_idMovimientoSeleccionado == 0)
             {
                 MessageBox.Show("Seleccione un camión.", "Advertencia",
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
+            if (MessageBox.Show(
+                    "¿Cerrar el movimiento completo de este camión?\nTodos sus productos deben estar cerrados.",
+                    "Confirmar cierre",
+                    MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes) return;
 
-            int idCamion = Convert.ToInt32(dgvCamiones.CurrentRow.Cells["IdEntrada"].Value);
-            GestionProductos form = new GestionProductos();
-
-            if (form.ShowDialog(this) == DialogResult.OK) // ← Solo UNA vez
+            try
             {
-                // Usar el DataTable del camión actual en lugar de _tablaMateriaPrima
-                _productosPorCamion[idCamion].Rows.Add(
-                        form.CodigoSeleccionado,
-                        form.ProductoSeleccionado,
-                        form.ProveedorSeleccionado
-                //form.EstadoSeleccionado
-                );
+                await RepositorioMovimiento.CerrarAsync(_idMovimientoSeleccionado);
+                _idMovimientoSeleccionado  = 0;
+                _idMovProductoSeleccionado = 0;
+                dgvMateriaPrima.DataSource = null;
+                dgvEntradas.DataSource     = null;
+                await CargarMovimientosAsync();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error al cerrar movimiento: " + ex.Message, "Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
-        private void btnGuardarEntrada_Click(object sender, EventArgs e)
+        // Quitar = anular movimiento
+        private async void Button4_Click(object sender, EventArgs e)
         {
-
-        }
-
-        private void btnGuardarMovimiento_Click(object sender, EventArgs e)
-        {
-            if (dgvCamiones.CurrentRow == null)
+            if (_idMovimientoSeleccionado == 0)
             {
                 MessageBox.Show("Seleccione un camión.", "Advertencia",
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
+            if (MessageBox.Show(
+                    "¿Anular este movimiento?\nEsta acción no se puede deshacer.",
+                    "Confirmar anulación",
+                    MessageBoxButtons.YesNo, MessageBoxIcon.Warning) != DialogResult.Yes) return;
 
-            int idCamion = Convert.ToInt32(dgvCamiones.CurrentRow.Cells["IdEntrada"].Value);
-
-            if (!_productosPorCamion.ContainsKey(idCamion) ||
-                 _productosPorCamion[idCamion].Rows.Count == 0)
+            try
             {
-                MessageBox.Show("El camión no tiene productos registrados.", "Advertencia",
+                await RepositorioMovimiento.AnularAsync(_idMovimientoSeleccionado);
+                _idMovimientoSeleccionado  = 0;
+                _idMovProductoSeleccionado = 0;
+                dgvMateriaPrima.DataSource = null;
+                dgvEntradas.DataSource     = null;
+                await CargarMovimientosAsync();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error al anular movimiento: " + ex.Message, "Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        // Editar camión (sin funcionalidad aún)
+        private void BtnEditarCamion_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show("Edición de camión no disponible en esta versión.",
+                "Información", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        // ── Botones de producto (pnMovimiento) ───────────────────────────────
+
+        // Agregar producto al camión seleccionado
+        private async void btnAgregarMovimiento_Click(object sender, EventArgs e)
+        {
+            if (_idMovimientoSeleccionado == 0)
+            {
+                MessageBox.Show("Seleccione un camión primero.", "Advertencia",
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            // Cambiar EstadoProceso a "Completado"
-            foreach (DataRow fila in _productosPorCamion[idCamion].Rows)
-            {
-                fila["EstadoProceso"] = "Completado";
-            }
-
-            // Refrescar el DGV
-            dgvMateriaPrima.DataSource = null;
-            dgvMateriaPrima.DataSource = _productosPorCamion[idCamion];
-
-            MessageBox.Show("Movimiento guardado, estado actualizado a Completado.", "Éxito",
-                MessageBoxButtons.OK, MessageBoxIcon.Information);
+            using var form = new FrmAgregarProductoMovimiento(_idMovimientoSeleccionado);
+            if (form.ShowDialog(this) == DialogResult.OK)
+                await CargarProductosAsync(_idMovimientoSeleccionado);
         }
 
-        private void btnPesar_Click(object sender, EventArgs e)
+        // Pesar producto seleccionado
+        private async void btnPesar_Click(object sender, EventArgs e)
         {
-            if (dgvMateriaPrima.CurrentRow == null)
+            if (_idMovProductoSeleccionado == 0)
+            {
+                MessageBox.Show("Seleccione un producto para pesar.", "Advertencia",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            string placa    = (dgvCamiones.CurrentRow?.DataBoundItem as DataRowView)?["PlacaCamion"]?.ToString()    ?? "";
+            string producto = (dgvMateriaPrima.CurrentRow?.DataBoundItem as DataRowView)?["NombreProducto"]?.ToString() ?? "";
+            string proveedor = (dgvMateriaPrima.CurrentRow?.DataBoundItem as DataRowView)?["Proveedor_Producto"]?.ToString() ?? "";
+
+            // Bucle sin recursión
+            bool continuar = true;
+            while (continuar)
+            {
+                using var form = new RegistrarPesos(
+                    _idMovProductoSeleccionado,
+                    _idProductoSeleccionado,
+                    placa, producto, proveedor,
+                    _pesoManifestadoActual,
+                    _bultosTeóricosActual);
+
+                if (form.ShowDialog(this) == DialogResult.OK)
+                    continuar = form.SeguirPesando;
+                else
+                    break;
+            }
+
+            await CargarEntradasAsync(_idMovProductoSeleccionado);
+            await CargarProductosAsync(_idMovimientoSeleccionado);
+        }
+
+        // Cerrar pesaje del producto seleccionado
+        private async void btnGuardarMovimiento_Click(object sender, EventArgs e)
+        {
+            await CerrarProductoActualAsync();
+        }
+
+        // Quitar producto (solo si sin entradas aún)
+        private void BtnQuitarMovimiento_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show("Para quitar un producto, primero elimine todos sus pesajes.",
+                "Información", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        // Editar movimiento-producto (sin funcionalidad aún)
+        private void BtnEditarMovimento_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show("Edición de producto no disponible en esta versión.",
+                "Información", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        // ── Botones de entradas (panel1 en pnDgv) ────────────────────────────
+
+        // Guardar Entrada = cerrar el producto (mismo que btnGuardarMovimiento)
+        private async void btnGuardarEntrada_Click(object sender, EventArgs e)
+        {
+            await CerrarProductoActualAsync();
+        }
+
+        // Eliminar pesaje seleccionado
+        private async void btnQuitarEntrada_Click(object sender, EventArgs e)
+        {
+            var drv = dgvEntradas.CurrentRow?.DataBoundItem as DataRowView;
+            if (drv == null)
+            {
+                MessageBox.Show("Seleccione un pesaje.", "Advertencia",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            if (MessageBox.Show("¿Eliminar este pesaje?", "Confirmar eliminación",
+                    MessageBoxButtons.YesNo, MessageBoxIcon.Warning) != DialogResult.Yes) return;
+
+            try
+            {
+                int idPesaje = Convert.ToInt32(drv["IdPesaje"]);
+                await RepositorioEntrada.EliminarAsync(idPesaje);
+                await CargarEntradasAsync(_idMovProductoSeleccionado);
+                await CargarProductosAsync(_idMovimientoSeleccionado);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error al eliminar pesaje: " + ex.Message, "Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        // Editar pesaje (sin funcionalidad en esta versión)
+        private void btnEditarEntrada_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show("La edición de pesajes no está disponible en esta versión.",
+                "Información", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        // ── Helpers ──────────────────────────────────────────────────────────
+
+        private async Task CerrarProductoActualAsync()
+        {
+            if (_idMovProductoSeleccionado == 0)
             {
                 MessageBox.Show("Seleccione un producto.", "Advertencia",
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
+            if (MessageBox.Show("¿Cerrar el pesaje de este producto?", "Confirmar cierre",
+                    MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes) return;
 
-            string codigo = dgvMateriaPrima.CurrentRow.Cells[0].Value?.ToString();
-            string producto = dgvMateriaPrima.CurrentRow.Cells[1].Value?.ToString();
-            string proveedor = dgvMateriaPrima.CurrentRow.Cells[2].Value?.ToString();
-            string placa = dgvCamiones.CurrentRow?.Cells["PlacaCamion"].Value?.ToString();
-
-            RegistrarPesos form = new RegistrarPesos(placa, producto, proveedor);
-
-            if (form.ShowDialog(this) == DialogResult.OK)
+            try
             {
-                // 🔥 AGREGA O ACUMULA PESO
-                AgregarOActualizarEntrada(
-                    codigo,
-                    producto,
-                    proveedor,
-                    form.PesoIngresado
-                );
-
-                // 🔁 Si el usuario quiere seguir pesando
-                if (form.SeguirPesando)
-                {
-                    btnPesar_Click(sender, e);
-                }
+                await RepositorioMovimientoProducto.CerrarAsync(_idMovProductoSeleccionado);
+                await CargarProductosAsync(_idMovimientoSeleccionado);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error al cerrar producto: " + ex.Message, "Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-        private void btnEditarEntrada_Click(object sender, EventArgs e)
+
+        protected override void OnFormClosed(FormClosedEventArgs e)
         {
-            if (dgvEntradas.CurrentRow == null)
+            _cerrando = true;
+            try
             {
-                MessageBox.Show("Seleccione una entrada", "Advertencia",
-                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
+                if (_handlerMov     != null) GestorRealtime.OnMovimientosChanged  -= _handlerMov;
+                if (_handlerMovProd != null) GestorRealtime.OnMovProductosChanged -= _handlerMovProd;
             }
-
-            string codigo = dgvEntradas.CurrentRow.Cells[0].Value.ToString();
-            string producto = dgvEntradas.CurrentRow.Cells[1].Value.ToString();
-            string proveedor = dgvEntradas.CurrentRow.Cells[2].Value.ToString();
-            double pesoNeto = Convert.ToDouble(dgvEntradas.CurrentRow.Cells[3].Value);
-            //double pesoBruto = Convert.ToDouble(dgvEntradas.CurrentRow.Cells[4].Value);
-
-            RegistrarPesos form = new RegistrarPesos(
-                codigo,
-                producto,
-                proveedor,
-                pesoNeto
-                //pesoBruto
-            );
-
-            form.ShowDialog(this);
+            catch { }
+            base.OnFormClosed(e);
         }
-        private void AgregarOActualizarEntrada(string codigo, string producto, string proveedor, double peso)
-        {
-            var filaExistente = _tablaEntradas.AsEnumerable()
-                .FirstOrDefault(row => row["Codigo"].ToString() == codigo);
-
-            if (filaExistente != null)
-            {
-                double pesoActual = Convert.ToDouble(filaExistente["PesoNeto"]);
-                filaExistente["PesoNeto"] = pesoActual + peso;
-            }
-            else
-            {
-                _tablaEntradas.Rows.Add(codigo, producto, proveedor, peso);
-            }
-
-            dgvEntradas.Refresh();
-        }
-
     }
 }

@@ -17,10 +17,11 @@ namespace BimboPesaje.Formularios.Productos
         private Action<PostgresChangesResponse> _handlerProductos;
         private bool _cerrando = false;
 
-        public string CodigoSeleccionado { get; private set; }
-        public string ProductoSeleccionado { get; private set; }
-        public string ProveedorSeleccionado { get; private set; }
-        public string EstadoSeleccionado { get; private set; }
+        public int    IdProductoSeleccionado { get; private set; }
+        public string CodigoSeleccionado     { get; private set; }
+        public string ProductoSeleccionado   { get; private set; }
+        public string ProveedorSeleccionado  { get; private set; }
+        public string EstadoSeleccionado     { get; private set; }
 
         public GestionProductos()
         {
@@ -99,7 +100,10 @@ namespace BimboPesaje.Formularios.Productos
         {
             if (dgvProductos.SelectedRows.Count == 0) return;
 
-            CodigoSeleccionado  = dgvProductos.SelectedRows[0].Cells["Codigo"].Value?.ToString();
+            if (dgvProductos.SelectedRows[0].DataBoundItem is productosLista p)
+                IdProductoSeleccionado = p.idProducto;
+
+            CodigoSeleccionado   = dgvProductos.SelectedRows[0].Cells["Codigo"].Value?.ToString();
             ProductoSeleccionado = dgvProductos.SelectedRows[0].Cells["Producto"].Value?.ToString();
             ProveedorSeleccionado = dgvProductos.SelectedRows[0].Cells["Fabricante"].Value?.ToString();
 

@@ -26,6 +26,9 @@ namespace CapaDatos.Modelados.Usuarios
         [Column("id_estado")]
         public int idEstado { get; set; }
 
+        [Column("uuid_usuario")]
+        public string? uuidUsuario { get; set; }
+
         [Column("ultimo_acceso")]
         public DateTime ultimoAcceso { get; set; }
 
