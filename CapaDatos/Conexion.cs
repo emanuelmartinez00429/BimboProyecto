@@ -27,6 +27,7 @@ namespace ServicioConexión.Conexion
                     {
                         AutoConnectRealtime = true,
                         AutoRefreshToken = true,
+                        
                     };
 
                     _client = new Client(url, key, options);

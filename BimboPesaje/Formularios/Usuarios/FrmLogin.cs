@@ -1,6 +1,8 @@
+using CapaDatos.Modelados.Usuarios;
 using CapaDatos.Repositorios.Usuario;
 using CapaServicios;
 using ServicioConexión.Conexion;
+using Usuario = CapaDatos.Modelados.Usuarios.Usuarios;  
 
 namespace BimboPesaje.Formularios.Usuarios
 {
@@ -74,6 +76,8 @@ namespace BimboPesaje.Formularios.Usuarios
             {
                 var client  = await ConexionSupabase.GetClientAsync();
                 var session = await client.Auth.SignInWithPassword(email, password);
+
+               
 
                 if (session?.User == null)
                 {

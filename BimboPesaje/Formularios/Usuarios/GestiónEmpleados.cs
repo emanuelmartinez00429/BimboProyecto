@@ -112,23 +112,21 @@ namespace BimboPesaje.Formularios.Usuarios
             }
         }
 
-        private void btnCrearUsuario_Click(object sender, EventArgs e)
+        private async void btnCrearUsuario_Click(object sender, EventArgs e)
         {
             try
             {
 
                 var seleccionado = dgvEmpleados.CurrentRow?.DataBoundItem as empleadosLista;
-                
                 if (seleccionado == null) return;
 
-                if(seleccionado.idEstado == 0)
+                if (seleccionado.idEstado == 0)
                 {
-                    MessageBox.Show("No se puede crear un usuario para un empleado inactivo. Por favor, edite el empleado y cambie su estado a activo antes de crear un usuario.",
-                                    "Empleado Inactivo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show("No se puede crear un usuario para un empleado inactivo.",
+                        "Empleado Inactivo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
 
-                
                 using var formEditar = new agregarEditarUsuario(seleccionado);
                 formEditar.ShowDialog(this);
             }

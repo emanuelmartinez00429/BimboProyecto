@@ -1,5 +1,6 @@
 using CapaDatos.Modelados.Usuarios;
 using ServicioConexión.Conexion;
+using Supabase.Gotrue.Exceptions;
 
 namespace CapaDatos.Repositorios.Usuario
 {
@@ -24,22 +25,50 @@ namespace CapaDatos.Repositorios.Usuario
                 throw;
             }
         }
-        /*
-        public static async Task<Usuarios> registrarUsuario(string email, string pass)
+
+        public static async Task<List<Roles>> obtenerRoles()
         {
             try
             {
                 var client = await ConexionSupabase.GetClientAsync();
-                var resultado = await client.Auth.SignUp(email,pass);
-                    
-
-                //return resultado?.Models ?? new List<Usuarios>();
+                var resultado = await client
+                    .From<Roles>()
+                    .Get();
+                return resultado?.Models ?? new List<Roles>();
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error al registrar usuario: {ex.Message}");
+                Console.WriteLine("Error al obtener roles: " + ex.Message);
                 throw;
             }
-        }*/
+        }
+        
+        public static async Task registrarUsuario(string email, string pass)
+        {
+            try
+            {
+                var client = await ConexionSupabase.GetClientAsync();
+                await client.Auth.SignUp(email, pass);
+                //return session;
+            }
+            catch (GotrueException ex)
+            {
+
+                throw new Exception($"Error de registro: {ex.Message}", ex);
+            }
+            catch (System.Net.WebException ex)
+            {
+                throw new Exception("Error de red al intentar registrarse: " + ex.Message, ex);
+            }
+            catch (TimeoutException ex)
+            {
+                throw new Exception("El servidor de registro tardó demasiado en responder.", ex);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error inesperado en Registro: {ex.Message}");
+                throw;
+            }
+        }
     }
 }

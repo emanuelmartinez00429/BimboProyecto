@@ -125,6 +125,7 @@
             btnGuardar.TabIndex = 0;
             btnGuardar.Text = "Guardar";
             btnGuardar.UseVisualStyleBackColor = false;
+            btnGuardar.Click += btnGuardar_Click;
             // 
             // rbActivo
             // 
