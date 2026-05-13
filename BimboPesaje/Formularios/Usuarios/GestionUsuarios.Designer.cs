@@ -37,14 +37,7 @@
             btnSalir = new Button();
             btnEditar = new Button();
             pnDgv = new Panel();
-            dgvEmpleados = new DataGridView();
-            Codigo = new DataGridViewTextBoxColumn();
-            nombreEmpleado = new DataGridViewTextBoxColumn();
-            apellidoEmpleado = new DataGridViewTextBoxColumn();
-            correoEmpleado = new DataGridViewTextBoxColumn();
-            numeroIdentidad = new DataGridViewTextBoxColumn();
-            telefonoEmpleado = new DataGridViewTextBoxColumn();
-            estadoEmpleado = new DataGridViewCheckBoxColumn();
+            dgvUsuarios = new DataGridView();
             pnFiltro = new Panel();
             btnLimpiar = new Button();
             pnBuscar = new Panel();
@@ -54,10 +47,15 @@
             rbHabilitados = new RadioButton();
             rbDeshabilitados = new RadioButton();
             rbTodos = new RadioButton();
+            Codigo = new DataGridViewTextBoxColumn();
+            Usuario = new DataGridViewTextBoxColumn();
+            idEmpleado = new DataGridViewTextBoxColumn();
+            idRol = new DataGridViewTextBoxColumn();
+            estadoEmpleado = new DataGridViewCheckBoxColumn();
             panel1.SuspendLayout();
             tableLayoutPanel1.SuspendLayout();
             pnDgv.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)dgvEmpleados).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)dgvUsuarios).BeginInit();
             pnFiltro.SuspendLayout();
             pnBuscar.SuspendLayout();
             pnFiltros.SuspendLayout();
@@ -127,29 +125,29 @@
             // pnDgv
             // 
             pnDgv.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            pnDgv.Controls.Add(dgvEmpleados);
+            pnDgv.Controls.Add(dgvUsuarios);
             pnDgv.Location = new Point(12, 163);
             pnDgv.Name = "pnDgv";
             pnDgv.Size = new Size(890, 399);
             pnDgv.TabIndex = 11;
             // 
-            // dgvEmpleados
+            // dgvUsuarios
             // 
-            dgvEmpleados.AllowUserToAddRows = false;
-            dgvEmpleados.AllowUserToDeleteRows = false;
-            dgvEmpleados.AllowUserToResizeColumns = false;
-            dgvEmpleados.AllowUserToResizeRows = false;
+            dgvUsuarios.AllowUserToAddRows = false;
+            dgvUsuarios.AllowUserToDeleteRows = false;
+            dgvUsuarios.AllowUserToResizeColumns = false;
+            dgvUsuarios.AllowUserToResizeRows = false;
             dataGridViewCellStyle1.BackColor = Color.FromArgb(220, 230, 241);
             dataGridViewCellStyle1.Font = new Font("Itim", 12F);
             dataGridViewCellStyle1.ForeColor = Color.Black;
             dataGridViewCellStyle1.SelectionBackColor = Color.FromArgb(31, 60, 136);
             dataGridViewCellStyle1.SelectionForeColor = Color.White;
-            dgvEmpleados.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle1;
-            dgvEmpleados.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCellsExceptHeaders;
-            dgvEmpleados.BackgroundColor = Color.White;
-            dgvEmpleados.BorderStyle = BorderStyle.None;
-            dgvEmpleados.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
-            dgvEmpleados.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.None;
+            dgvUsuarios.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle1;
+            dgvUsuarios.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCellsExceptHeaders;
+            dgvUsuarios.BackgroundColor = Color.White;
+            dgvUsuarios.BorderStyle = BorderStyle.None;
+            dgvUsuarios.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
+            dgvUsuarios.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.None;
             dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleCenter;
             dataGridViewCellStyle2.BackColor = Color.FromArgb(31, 60, 136);
             dataGridViewCellStyle2.Font = new Font("Itim", 12F);
@@ -157,10 +155,10 @@
             dataGridViewCellStyle2.SelectionBackColor = Color.FromArgb(31, 60, 136);
             dataGridViewCellStyle2.SelectionForeColor = Color.White;
             dataGridViewCellStyle2.WrapMode = DataGridViewTriState.False;
-            dgvEmpleados.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle2;
-            dgvEmpleados.ColumnHeadersHeight = 36;
-            dgvEmpleados.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
-            dgvEmpleados.Columns.AddRange(new DataGridViewColumn[] { Codigo, nombreEmpleado, apellidoEmpleado, correoEmpleado, numeroIdentidad, telefonoEmpleado, estadoEmpleado });
+            dgvUsuarios.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle2;
+            dgvUsuarios.ColumnHeadersHeight = 36;
+            dgvUsuarios.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
+            dgvUsuarios.Columns.AddRange(new DataGridViewColumn[] { Codigo, Usuario, idEmpleado, idRol, estadoEmpleado });
             dataGridViewCellStyle3.Alignment = DataGridViewContentAlignment.MiddleCenter;
             dataGridViewCellStyle3.BackColor = Color.White;
             dataGridViewCellStyle3.Font = new Font("Itim", 12F);
@@ -168,15 +166,15 @@
             dataGridViewCellStyle3.SelectionBackColor = Color.FromArgb(31, 60, 136);
             dataGridViewCellStyle3.SelectionForeColor = SystemColors.HighlightText;
             dataGridViewCellStyle3.WrapMode = DataGridViewTriState.False;
-            dgvEmpleados.DefaultCellStyle = dataGridViewCellStyle3;
-            dgvEmpleados.Dock = DockStyle.Fill;
-            dgvEmpleados.EnableHeadersVisualStyles = false;
-            dgvEmpleados.GridColor = Color.White;
-            dgvEmpleados.Location = new Point(0, 0);
-            dgvEmpleados.Margin = new Padding(4);
-            dgvEmpleados.Name = "dgvEmpleados";
-            dgvEmpleados.ReadOnly = true;
-            dgvEmpleados.RowHeadersBorderStyle = DataGridViewHeaderBorderStyle.None;
+            dgvUsuarios.DefaultCellStyle = dataGridViewCellStyle3;
+            dgvUsuarios.Dock = DockStyle.Fill;
+            dgvUsuarios.EnableHeadersVisualStyles = false;
+            dgvUsuarios.GridColor = Color.White;
+            dgvUsuarios.Location = new Point(0, 0);
+            dgvUsuarios.Margin = new Padding(4);
+            dgvUsuarios.Name = "dgvUsuarios";
+            dgvUsuarios.ReadOnly = true;
+            dgvUsuarios.RowHeadersBorderStyle = DataGridViewHeaderBorderStyle.None;
             dataGridViewCellStyle4.Alignment = DataGridViewContentAlignment.MiddleLeft;
             dataGridViewCellStyle4.BackColor = Color.FromArgb(31, 60, 136);
             dataGridViewCellStyle4.Font = new Font("Itim", 12F);
@@ -184,80 +182,13 @@
             dataGridViewCellStyle4.SelectionBackColor = Color.FromArgb(31, 60, 136);
             dataGridViewCellStyle4.SelectionForeColor = Color.Transparent;
             dataGridViewCellStyle4.WrapMode = DataGridViewTriState.False;
-            dgvEmpleados.RowHeadersDefaultCellStyle = dataGridViewCellStyle4;
-            dgvEmpleados.RowHeadersWidth = 30;
-            dgvEmpleados.RowHeadersWidthSizeMode = DataGridViewRowHeadersWidthSizeMode.DisableResizing;
-            dgvEmpleados.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            dgvEmpleados.Size = new Size(890, 399);
-            dgvEmpleados.TabIndex = 2;
-            dgvEmpleados.UseWaitCursor = true;
-            // 
-            // Codigo
-            // 
-            Codigo.AutoSizeMode = DataGridViewAutoSizeColumnMode.DisplayedCells;
-            Codigo.DataPropertyName = "idEmpleado";
-            Codigo.HeaderText = "Código";
-            Codigo.MinimumWidth = 6;
-            Codigo.Name = "Codigo";
-            Codigo.ReadOnly = true;
-            Codigo.Visible = false;
-            Codigo.Width = 125;
-            // 
-            // nombreEmpleado
-            // 
-            nombreEmpleado.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            nombreEmpleado.DataPropertyName = "nombreEmpleado";
-            nombreEmpleado.HeaderText = "Nombre";
-            nombreEmpleado.MinimumWidth = 6;
-            nombreEmpleado.Name = "nombreEmpleado";
-            nombreEmpleado.ReadOnly = true;
-            // 
-            // apellidoEmpleado
-            // 
-            apellidoEmpleado.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            apellidoEmpleado.DataPropertyName = "apellidoEmpleado";
-            apellidoEmpleado.HeaderText = "Apellido";
-            apellidoEmpleado.MinimumWidth = 6;
-            apellidoEmpleado.Name = "apellidoEmpleado";
-            apellidoEmpleado.ReadOnly = true;
-            // 
-            // correoEmpleado
-            // 
-            correoEmpleado.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            correoEmpleado.DataPropertyName = "correoEmpleado";
-            correoEmpleado.HeaderText = "Correo";
-            correoEmpleado.MinimumWidth = 6;
-            correoEmpleado.Name = "correoEmpleado";
-            correoEmpleado.ReadOnly = true;
-            // 
-            // numeroIdentidad
-            // 
-            numeroIdentidad.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            numeroIdentidad.DataPropertyName = "numeroIdentidad";
-            numeroIdentidad.HeaderText = "Identidad";
-            numeroIdentidad.MinimumWidth = 6;
-            numeroIdentidad.Name = "numeroIdentidad";
-            numeroIdentidad.ReadOnly = true;
-            // 
-            // telefonoEmpleado
-            // 
-            telefonoEmpleado.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            telefonoEmpleado.DataPropertyName = "telefonoEmpleado";
-            telefonoEmpleado.HeaderText = "Telefóno";
-            telefonoEmpleado.MinimumWidth = 6;
-            telefonoEmpleado.Name = "telefonoEmpleado";
-            telefonoEmpleado.ReadOnly = true;
-            // 
-            // estadoEmpleado
-            // 
-            estadoEmpleado.AutoSizeMode = DataGridViewAutoSizeColumnMode.DisplayedCells;
-            estadoEmpleado.DataPropertyName = "idEstado";
-            estadoEmpleado.HeaderText = "Estado";
-            estadoEmpleado.MinimumWidth = 6;
-            estadoEmpleado.Name = "estadoEmpleado";
-            estadoEmpleado.ReadOnly = true;
-            estadoEmpleado.Resizable = DataGridViewTriState.True;
-            estadoEmpleado.Width = 72;
+            dgvUsuarios.RowHeadersDefaultCellStyle = dataGridViewCellStyle4;
+            dgvUsuarios.RowHeadersWidth = 30;
+            dgvUsuarios.RowHeadersWidthSizeMode = DataGridViewRowHeadersWidthSizeMode.DisableResizing;
+            dgvUsuarios.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            dgvUsuarios.Size = new Size(890, 399);
+            dgvUsuarios.TabIndex = 2;
+            dgvUsuarios.UseWaitCursor = true;
             // 
             // pnFiltro
             // 
@@ -310,7 +241,7 @@
             txtBusqueda.Location = new Point(40, 0);
             txtBusqueda.Multiline = true;
             txtBusqueda.Name = "txtBusqueda";
-            txtBusqueda.PlaceholderText = "Buscar empleado...";
+            txtBusqueda.PlaceholderText = "Buscar usuario...";
             txtBusqueda.Size = new Size(473, 32);
             txtBusqueda.TabIndex = 3;
             // 
@@ -377,6 +308,55 @@
             rbTodos.Text = "Todos";
             rbTodos.UseVisualStyleBackColor = true;
             // 
+            // Codigo
+            // 
+            Codigo.AutoSizeMode = DataGridViewAutoSizeColumnMode.DisplayedCells;
+            Codigo.DataPropertyName = "idUsuario";
+            Codigo.HeaderText = "Código";
+            Codigo.MinimumWidth = 6;
+            Codigo.Name = "Codigo";
+            Codigo.ReadOnly = true;
+            Codigo.Visible = false;
+            Codigo.Width = 96;
+            // 
+            // Usuario
+            // 
+            Usuario.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            Usuario.DataPropertyName = "correoUsuario";
+            Usuario.HeaderText = "Usuario";
+            Usuario.MinimumWidth = 6;
+            Usuario.Name = "Usuario";
+            Usuario.ReadOnly = true;
+            // 
+            // idEmpleado
+            // 
+            idEmpleado.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            idEmpleado.DataPropertyName = "nombre_Empleado";
+            idEmpleado.HeaderText = "Nombre empleado";
+            idEmpleado.MinimumWidth = 6;
+            idEmpleado.Name = "idEmpleado";
+            idEmpleado.ReadOnly = true;
+            // 
+            // idRol
+            // 
+            idRol.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            idRol.DataPropertyName = "nombre_Rol";
+            idRol.HeaderText = "Rol";
+            idRol.MinimumWidth = 6;
+            idRol.Name = "idRol";
+            idRol.ReadOnly = true;
+            // 
+            // estadoEmpleado
+            // 
+            estadoEmpleado.AutoSizeMode = DataGridViewAutoSizeColumnMode.DisplayedCells;
+            estadoEmpleado.DataPropertyName = "idEstado";
+            estadoEmpleado.HeaderText = "Estado";
+            estadoEmpleado.MinimumWidth = 6;
+            estadoEmpleado.Name = "estadoEmpleado";
+            estadoEmpleado.ReadOnly = true;
+            estadoEmpleado.Resizable = DataGridViewTriState.True;
+            estadoEmpleado.Width = 72;
+            // 
             // GestionUsuarios
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
@@ -385,10 +365,11 @@
             Controls.Add(panel1);
             Name = "GestionUsuarios";
             Text = "GestionUsuarios";
+            Load += GestionUsuarios_Load;
             panel1.ResumeLayout(false);
             tableLayoutPanel1.ResumeLayout(false);
             pnDgv.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)dgvEmpleados).EndInit();
+            ((System.ComponentModel.ISupportInitialize)dgvUsuarios).EndInit();
             pnFiltro.ResumeLayout(false);
             pnBuscar.ResumeLayout(false);
             pnBuscar.PerformLayout();
@@ -404,14 +385,7 @@
         private Button btnSalir;
         private Button btnEditar;
         private Panel pnDgv;
-        private DataGridView dgvEmpleados;
-        private DataGridViewTextBoxColumn Codigo;
-        private DataGridViewTextBoxColumn nombreEmpleado;
-        private DataGridViewTextBoxColumn apellidoEmpleado;
-        private DataGridViewTextBoxColumn correoEmpleado;
-        private DataGridViewTextBoxColumn numeroIdentidad;
-        private DataGridViewTextBoxColumn telefonoEmpleado;
-        private DataGridViewCheckBoxColumn estadoEmpleado;
+        private DataGridView dgvUsuarios;
         private Panel pnFiltro;
         private Button btnLimpiar;
         private Panel pnBuscar;
@@ -421,5 +395,10 @@
         private RadioButton rbHabilitados;
         private RadioButton rbDeshabilitados;
         private RadioButton rbTodos;
+        private DataGridViewTextBoxColumn Codigo;
+        private DataGridViewTextBoxColumn Usuario;
+        private DataGridViewTextBoxColumn idEmpleado;
+        private DataGridViewTextBoxColumn idRol;
+        private DataGridViewCheckBoxColumn estadoEmpleado;
     }
 }

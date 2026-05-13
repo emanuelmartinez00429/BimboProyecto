@@ -31,5 +31,7 @@ namespace CapaDatos.Modelados.Usuarios
 
         [Column("id_estado")]
         public int idEstado { get; set; }
+
+        
     }
 }

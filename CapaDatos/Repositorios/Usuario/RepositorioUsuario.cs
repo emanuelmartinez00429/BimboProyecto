@@ -26,6 +26,25 @@ namespace CapaDatos.Repositorios.Usuario
             }
         }
 
+        public static async Task<List<usuarioVista>> obtenerUsuarios()
+        {
+            try
+            {
+                var client = await ConexionSupabase.GetClientAsync();
+                var resultado = await client
+                                           .From<usuarioVista>()
+                                           .Select("*, roles(*), empleados(*)")
+                                           .Order("id_usuario", Supabase.Postgrest.Constants.Ordering.Ascending)
+                                           .Get();
+                return resultado?.Models ?? new List<usuarioVista>();
+            }
+            catch (Exception ex) 
+            {
+                Console.WriteLine($"Error al obtener usuarios: {ex.Message}");
+                throw;
+            }
+        }
+
         public static async Task<List<Roles>> obtenerRoles()
         {
             try

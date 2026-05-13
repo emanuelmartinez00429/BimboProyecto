@@ -221,12 +221,14 @@ namespace BimboPesaje
         private async void btnGestionEmpleados_Click(object sender, EventArgs e)
         {
             await abrirFormHijo(new GestiónEmpleados());
-            lblHeader.Text = "Gesti�n de empleados";
+            lblHeader.Text = "Gestión de empleados";
             await ColapsarMenu();
         }
 
         private async void btnGestionUsuarios_Click(object sender, EventArgs e)
         {
+            await abrirFormHijo(new GestionUsuarios());
+            lblHeader.Text = "Gestión de usuarios";
             await ColapsarMenu();
         }
 
@@ -240,7 +242,7 @@ namespace BimboPesaje
         private async void btnGestionProductos_Click(object sender, EventArgs e)
         {
             await abrirFormHijo(new GestionProductos());
-            lblHeader.Text = "Gestion de productos";
+            lblHeader.Text = "Gestión de productos";
             await ColapsarMenu();
 
         }
@@ -248,14 +250,14 @@ namespace BimboPesaje
         private async void btnGestionProveedores_Click(object sender, EventArgs e)
         {
             await abrirFormHijo(new GestionProveedores());
-            lblHeader.Text = "Gesti�n de proveedores";
+            lblHeader.Text = "Gestión de proveedores";
             await ColapsarMenu();
         }
 
         private async void btnGestionFabricantes_Click(object sender, EventArgs e)
         {
             await abrirFormHijo(new GestionFabricantes());
-            lblHeader.Text = "Gesti�n de fabricantes";
+            lblHeader.Text = "Gestión de fabricantes";
             await ColapsarMenu();
         }
 
@@ -280,7 +282,7 @@ namespace BimboPesaje
         private async void btnCategorias_Click(object sender, EventArgs e)
         {
             await abrirFormHijo(new GestionCategorias());
-            lblHeader.Text = "Gesti�n de categor�as";
+            lblHeader.Text = "Gestión de categorías";
             await ColapsarMenu();
         }
     }

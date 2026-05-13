@@ -83,6 +83,7 @@
             pnContenedorHijo.Name = "pnContenedorHijo";
             pnContenedorHijo.Size = new Size(914, 726);
             pnContenedorHijo.TabIndex = 0;
+            pnContenedorHijo.Paint += pnContenedorHijo_Paint;
             // 
             // pnBuscar
             // 

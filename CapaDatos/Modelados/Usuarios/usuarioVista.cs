@@ -8,12 +8,13 @@ using System.Threading.Tasks;
 
 namespace CapaDatos.Modelados.Usuarios
 {
-    internal class usuarioVista : BaseModel
+    [Table("usuarios")]
+    public class usuarioVista : BaseModel
     {
         [PrimaryKey("id_usuario")]
         public int idUsuario { get; set; }
 
-        [Column("alias_usuarios")]
+        [Column("alias_usuario")]
         public string correoUsuario { get; set; }
 
         [Column("id_empleado")]
@@ -33,6 +34,9 @@ namespace CapaDatos.Modelados.Usuarios
 
         public Roles roles { get; set; }
 
-        public string nombreRol => roles?.nombreRol ?? "Sin rol";
+        public Empleados empleados { get; set; }
+
+        public string nombre_Rol => roles?.nombreRol ?? "Sin rol";
+        public string nombre_Empleado => empleados?.nombreEmpleado ?? "Sin empleado";
     }
 }
