@@ -49,10 +49,6 @@
             btnAgregarMovimiento = new Button();
             label1 = new Label();
             dgvMateriaPrima = new DataGridView();
-            CodigoInterno = new DataGridViewTextBoxColumn();
-            Nombre = new DataGridViewTextBoxColumn();
-            ProveedorProducto = new DataGridViewTextBoxColumn();
-            Estado = new DataGridViewTextBoxColumn();
             pnVehiculo = new Panel();
             pnBotones = new Panel();
             button4 = new Button();
@@ -70,6 +66,10 @@
             btnEditarEntrada = new Button();
             dgvEntradas = new DataGridView();
             label3 = new Label();
+            CodigoInterno = new DataGridViewTextBoxColumn();
+            Nombre = new DataGridViewTextBoxColumn();
+            ProveedorProducto = new DataGridViewTextBoxColumn();
+            Estado = new DataGridViewTextBoxColumn();
             pnMovimiento.SuspendLayout();
             pnBotonesMovimiento.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dgvMateriaPrima).BeginInit();
@@ -247,45 +247,6 @@
             dgvMateriaPrima.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             dgvMateriaPrima.Size = new Size(444, 206);
             dgvMateriaPrima.TabIndex = 1;
-            // 
-            // CodigoInterno
-            // 
-            CodigoInterno.AutoSizeMode = DataGridViewAutoSizeColumnMode.DisplayedCells;
-            CodigoInterno.DataPropertyName = "CodigoInternoProducto";
-            CodigoInterno.HeaderText = "Código";
-            CodigoInterno.MinimumWidth = 6;
-            CodigoInterno.Name = "CodigoInterno";
-            CodigoInterno.ReadOnly = true;
-            CodigoInterno.Width = 96;
-            // 
-            // Nombre
-            // 
-            Nombre.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            Nombre.DataPropertyName = "NombreProducto";
-            Nombre.HeaderText = "Producto";
-            Nombre.MinimumWidth = 6;
-            Nombre.Name = "Nombre";
-            Nombre.ReadOnly = true;
-            // 
-            // ProveedorProducto
-            // 
-            ProveedorProducto.AutoSizeMode = DataGridViewAutoSizeColumnMode.DisplayedCells;
-            ProveedorProducto.DataPropertyName = "Proveedor_Producto";
-            ProveedorProducto.HeaderText = "Proveedor";
-            ProveedorProducto.MinimumWidth = 6;
-            ProveedorProducto.Name = "ProveedorProducto";
-            ProveedorProducto.ReadOnly = true;
-            ProveedorProducto.Width = 124;
-            // 
-            // Estado
-            // 
-            Estado.AutoSizeMode = DataGridViewAutoSizeColumnMode.DisplayedCells;
-            Estado.DataPropertyName = "EstadoProceso";
-            Estado.HeaderText = "Estado";
-            Estado.MinimumWidth = 6;
-            Estado.Name = "Estado";
-            Estado.ReadOnly = true;
-            Estado.Width = 95;
             // 
             // pnVehiculo
             // 
@@ -604,6 +565,44 @@
             label3.Size = new Size(241, 24);
             label3.TabIndex = 2;
             label3.Text = "Entradas de materia prima";
+            // 
+            // CodigoInterno
+            // 
+            CodigoInterno.AutoSizeMode = DataGridViewAutoSizeColumnMode.DisplayedCells;
+            CodigoInterno.DataPropertyName = "CodigoInternoProducto";
+            CodigoInterno.HeaderText = "Código";
+            CodigoInterno.MinimumWidth = 6;
+            CodigoInterno.Name = "CodigoInterno";
+            CodigoInterno.ReadOnly = true;
+            CodigoInterno.Width = 96;
+            // 
+            // Nombre
+            // 
+            Nombre.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            Nombre.DataPropertyName = "NombreProducto";
+            Nombre.HeaderText = "Producto";
+            Nombre.MinimumWidth = 6;
+            Nombre.Name = "Nombre";
+            Nombre.ReadOnly = true;
+            // 
+            // ProveedorProducto
+            // 
+            ProveedorProducto.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            ProveedorProducto.DataPropertyName = "Proveedor_Producto";
+            ProveedorProducto.HeaderText = "Proveedor";
+            ProveedorProducto.MinimumWidth = 6;
+            ProveedorProducto.Name = "ProveedorProducto";
+            ProveedorProducto.ReadOnly = true;
+            // 
+            // Estado
+            // 
+            Estado.AutoSizeMode = DataGridViewAutoSizeColumnMode.DisplayedCells;
+            Estado.DataPropertyName = "EstadoProceso";
+            Estado.HeaderText = "Estado";
+            Estado.MinimumWidth = 6;
+            Estado.Name = "Estado";
+            Estado.ReadOnly = true;
+            Estado.Width = 95;
             // 
             // MovimientosyEntradas
             // 

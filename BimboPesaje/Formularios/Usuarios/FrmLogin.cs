@@ -1,4 +1,4 @@
-using CapaDatos.Repositorios;
+using CapaDatos.Repositorios.Usuario;
 using CapaServicios;
 using ServicioConexión.Conexion;
 

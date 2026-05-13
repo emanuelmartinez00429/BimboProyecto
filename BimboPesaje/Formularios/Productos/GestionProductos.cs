@@ -1,5 +1,4 @@
-﻿using CapaDatos.Repositorios;
-using CapaServicios;
+﻿using CapaServicios;
 using Supabase.Realtime.PostgresChanges;
 using System;
 using System.Collections.Generic;
@@ -8,6 +7,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using productosLista = CapaDatos.Modelados.Productos.Productos;
 using CapaDatos.Modelados.Productos;
+using CapaDatos.Repositorios.productos_movimientos;
 
 namespace BimboPesaje.Formularios.Productos
 {

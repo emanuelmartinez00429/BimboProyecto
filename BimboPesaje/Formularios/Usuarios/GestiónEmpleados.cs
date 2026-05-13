@@ -1,4 +1,5 @@
-﻿using CapaDatos.Repositorios;
+﻿using CapaDatos.Modelados.Usuarios;
+using CapaDatos.Repositorios.Usuario;
 using CapaServicios;
 using Supabase.Realtime.PostgresChanges;
 using System;
@@ -90,6 +91,52 @@ namespace BimboPesaje.Formularios.Usuarios
         {
             agregarEditarEmpleado formAgregar = new agregarEditarEmpleado();
             formAgregar.ShowDialog();
+        }
+
+        private void btnEditar_Click(object sender, EventArgs e)
+        {
+            try
+            {
+
+                var seleccionado = dgvEmpleados.CurrentRow?.DataBoundItem as empleadosLista;
+                if (seleccionado == null) return;
+
+                // Ya no necesitas construir el objeto — seleccionado ES el empleado
+                using var formEditar = new agregarEditarEmpleado(seleccionado);
+                formEditar.ShowDialog(this);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error al abrir el formulario de edición: " + ex.Message,
+                                "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void btnCrearUsuario_Click(object sender, EventArgs e)
+        {
+            try
+            {
+
+                var seleccionado = dgvEmpleados.CurrentRow?.DataBoundItem as empleadosLista;
+                
+                if (seleccionado == null) return;
+
+                if(seleccionado.idEstado == 0)
+                {
+                    MessageBox.Show("No se puede crear un usuario para un empleado inactivo. Por favor, edite el empleado y cambie su estado a activo antes de crear un usuario.",
+                                    "Empleado Inactivo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                
+                using var formEditar = new agregarEditarUsuario(seleccionado);
+                formEditar.ShowDialog(this);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error al abrir el formulario de creación de usuario: " + ex.Message,
+                                "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
     }
 }

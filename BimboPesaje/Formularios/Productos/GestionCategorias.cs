@@ -1,5 +1,5 @@
 ﻿using CapaDatos.Modelados.Productos;
-using CapaDatos.Repositorios;
+using CapaDatos.Repositorios.productos_movimientos;
 using CapaServicios;
 using Supabase.Realtime.PostgresChanges;
 using System;

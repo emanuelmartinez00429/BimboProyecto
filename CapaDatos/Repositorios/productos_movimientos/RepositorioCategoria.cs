@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using CapaDatos.Modelados.Productos;
 using ServicioConexión.Conexion;
 
-namespace CapaDatos.Repositorios
+namespace CapaDatos.Repositorios.productos_movimientos
 {
     public class RepositorioCategoria
     {

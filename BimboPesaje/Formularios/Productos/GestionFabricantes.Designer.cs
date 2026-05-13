@@ -443,7 +443,7 @@
             txtBusqueda.ForeColor = Color.Black;
             txtBusqueda.Location = new Point(40, 0);
             txtBusqueda.Name = "txtBusqueda";
-            txtBusqueda.PlaceholderText = "Buscar Fabricante...";
+            txtBusqueda.PlaceholderText = "Buscar fabricante...";
             txtBusqueda.Size = new Size(473, 28);
             txtBusqueda.TabIndex = 3;
             // 

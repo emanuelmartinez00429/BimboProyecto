@@ -1,25 +1,24 @@
-﻿using System;
+﻿using Supabase.Postgrest.Attributes;
+using Supabase.Postgrest.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Supabase.Postgrest.Attributes;
-using Supabase.Postgrest.Models;
 
 namespace CapaDatos.Modelados.Usuarios
 {
-    [Table("usuarios")]
-    public class Usuarios : BaseModel
+    internal class usuarioVista : BaseModel
     {
         [PrimaryKey("id_usuario")]
         public int idUsuario { get; set; }
-        
+
         [Column("alias_usuarios")]
         public string correoUsuario { get; set; }
-        
+
         [Column("id_empleado")]
         public int idEmpleado { get; set; }
-            
+
         [Column("id_rol")]
         public int idRol { get; set; }
 
@@ -32,6 +31,8 @@ namespace CapaDatos.Modelados.Usuarios
         [Column("ultimo_acceso")]
         public DateTime ultimoAcceso { get; set; }
 
+        public Roles roles { get; set; }
 
+        public string nombreRol => roles?.nombreRol ?? "Sin rol";
     }
 }

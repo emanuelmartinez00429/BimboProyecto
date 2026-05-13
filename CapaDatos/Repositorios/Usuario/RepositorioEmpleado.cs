@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CapaDatos.Repositorios
+namespace CapaDatos.Repositorios.Usuario
 {
     public class RepositorioEmpleado
     {
@@ -28,22 +28,20 @@ namespace CapaDatos.Repositorios
                 throw;
             }
         }
-
-        public static async Task<Empleados> ingresarEmpleado(Empleados datos)
+        public static async Task<List<Empleados>> actualizarEmpleados(Empleados empleado)
         {
-            try
+            try 
             {
                 var client = await ConexionSupabase.GetClientAsync();
-                var response = await client.From<Empleados>()
-                                            .Insert(datos);
-                return response.Model ?? null;
+                var resultado = await client.From<Empleados>()
+                                            .Update(empleado);
+                return resultado?.Models ?? new List<Empleados>();
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error al ingresar empleado: {ex.Message}");
+                Console.WriteLine($"Error al obtener categorías: {ex.Message}");
                 throw;
             }
         }
-
     }
 }

@@ -46,14 +46,14 @@
             label3 = new Label();
             txtDNI = new TextBox();
             label2 = new Label();
-            pictureBox1 = new PictureBox();
             panel1 = new Panel();
-            label1 = new Label();
+            lblTitulo = new Label();
+            pictureBox1 = new PictureBox();
             pnFill.SuspendLayout();
             panel2.SuspendLayout();
             panel4.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
             panel1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
             SuspendLayout();
             // 
             // pnFill
@@ -66,10 +66,12 @@
             pnFill.Name = "pnFill";
             pnFill.Size = new Size(678, 569);
             pnFill.TabIndex = 0;
+            pnFill.Paint += pnFill_Paint;
             // 
             // panel2
             // 
             panel2.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            panel2.Controls.Add(pictureBox1);
             panel2.Controls.Add(panel4);
             panel2.Controls.Add(rbInactivo);
             panel2.Controls.Add(rbActivo);
@@ -84,7 +86,6 @@
             panel2.Controls.Add(label3);
             panel2.Controls.Add(txtDNI);
             panel2.Controls.Add(label2);
-            panel2.Controls.Add(pictureBox1);
             panel2.Location = new Point(3, 139);
             panel2.Name = "panel2";
             panel2.Size = new Size(672, 427);
@@ -253,37 +254,36 @@
             label2.TabIndex = 1;
             label2.Text = "DNI";
             // 
-            // pictureBox1
-            // 
-            pictureBox1.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            pictureBox1.Image = Properties.Resources.bimbo_no_bg;
-            pictureBox1.Location = new Point(-3, 336);
-            pictureBox1.Name = "pictureBox1";
-            pictureBox1.Size = new Size(135, 88);
-            pictureBox1.SizeMode = PictureBoxSizeMode.Zoom;
-            pictureBox1.TabIndex = 0;
-            pictureBox1.TabStop = false;
-            // 
             // panel1
             // 
             panel1.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             panel1.BackColor = Color.FromArgb(31, 60, 136);
-            panel1.Controls.Add(label1);
+            panel1.Controls.Add(lblTitulo);
             panel1.Location = new Point(0, 35);
             panel1.Name = "panel1";
             panel1.Size = new Size(678, 106);
             panel1.TabIndex = 0;
             // 
-            // label1
+            // lblTitulo
             // 
-            label1.AutoSize = true;
-            label1.Font = new Font("Microsoft Sans Serif", 24F, FontStyle.Bold);
-            label1.ForeColor = Color.White;
-            label1.Location = new Point(181, 28);
-            label1.Name = "label1";
-            label1.Size = new Size(324, 46);
-            label1.TabIndex = 0;
-            label1.Text = "Crear Empleado";
+            lblTitulo.AutoSize = true;
+            lblTitulo.Font = new Font("Microsoft Sans Serif", 24F, FontStyle.Bold);
+            lblTitulo.ForeColor = Color.White;
+            lblTitulo.Location = new Point(181, 28);
+            lblTitulo.Name = "lblTitulo";
+            lblTitulo.Size = new Size(324, 46);
+            lblTitulo.TabIndex = 0;
+            lblTitulo.Text = "Crear Empleado";
+            // 
+            // pictureBox1
+            // 
+            pictureBox1.Image = Properties.Resources.bimbo_no_bg;
+            pictureBox1.Location = new Point(-3, 337);
+            pictureBox1.Name = "pictureBox1";
+            pictureBox1.Size = new Size(153, 93);
+            pictureBox1.SizeMode = PictureBoxSizeMode.Zoom;
+            pictureBox1.TabIndex = 9;
+            pictureBox1.TabStop = false;
             // 
             // agregarEditarEmpleado
             // 
@@ -295,13 +295,14 @@
             Name = "agregarEditarEmpleado";
             StartPosition = FormStartPosition.CenterParent;
             Text = "agregarEditarEmpleado";
+            Load += agregarEditarEmpleado_Load;
             pnFill.ResumeLayout(false);
             panel2.ResumeLayout(false);
             panel2.PerformLayout();
             panel4.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
             panel1.ResumeLayout(false);
             panel1.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
             ResumeLayout(false);
         }
 
@@ -312,8 +313,7 @@
         private Panel panel2;
         private TextBox txtDNI;
         private Label label2;
-        private PictureBox pictureBox1;
-        private Label label1;
+        private Label lblTitulo;
         private TextBox txtCorreo;
         private Label label6;
         private TextBox txtTelefono;
@@ -328,5 +328,6 @@
         private Panel panel4;
         private Button btnVolver;
         private Button btnGuardar;
+        private PictureBox pictureBox1;
     }
 }

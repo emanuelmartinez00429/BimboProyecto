@@ -1,26 +1,22 @@
 using CapaDatos.Modelados.Pesajes;
-using CapaDatos.Repositorios;
 using CapaServicios;
 using BimboPesaje.Formularios.Productos;
+using CapaDatos.Repositorios.productos_movimientos;
 
 namespace BimboPesaje.Formularios.Movimientos
 {
-    /// <summary>
-    /// Modal para agregar un producto a un camión (movimiento_producto).
-    /// Usa GestionProductos como selector y persiste vía RepositorioMovimientoProducto.
-    /// </summary>
     public class FrmAgregarProductoMovimiento : Form
     {
-        private readonly int     _idMovimiento;
-        private int              _idProductoSeleccionado = 0;
+        private readonly int _idMovimiento;
+        private int _idProductoSeleccionado = 0;
 
-        private readonly Label           _lblProducto;
-        private readonly Button          _btnSeleccionar;
-        private readonly NumericUpDown   _nudPesoManifestado;
-        private readonly NumericUpDown   _nudBultosTeóricos;
-        private readonly TextBox         _txtObservaciones;
-        private readonly Button          _btnGuardar;
-        private readonly Button          _btnCancelar;
+        private readonly Label _lblProducto;
+        private readonly Button _btnSeleccionar;
+        private readonly NumericUpDown _nudPesoManifestado;
+        private readonly NumericUpDown _nudBultosTeóricos;
+        private readonly TextBox _txtObservaciones;
+        private readonly Button _btnGuardar;
+        private readonly Button _btnCancelar;
 
         public MovimientoProducto? MovProductoCreado { get; private set; }
 
@@ -28,112 +24,153 @@ namespace BimboPesaje.Formularios.Movimientos
         {
             _idMovimiento = idMovimiento;
 
-            Text            = "Agregar Producto al Camión";
-            ClientSize      = new Size(460, 355);
-            StartPosition   = FormStartPosition.CenterParent;
+            Text = "Agregar Producto al Camión";
+            StartPosition = FormStartPosition.CenterParent;
             FormBorderStyle = FormBorderStyle.FixedDialog;
-            MaximizeBox     = false;
-            MinimizeBox     = false;
-            BackColor       = Color.FromArgb(233, 238, 247);
+            MaximizeBox = false;
+            MinimizeBox = false;
+            BackColor = Color.FromArgb(233, 238, 247);
+            AutoScaleMode = AutoScaleMode.Dpi;
+            AutoScaleDimensions = new SizeF(96F, 96F);
+            Padding = new Padding(12);
 
-            int lx = 20, cx = 185, y = 20, rh = 54;
+            // ── TableLayoutPanel principal ──────────────────────────────
+            var table = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                ColumnCount = 2,
+                RowCount = 6,
+                AutoSize = true,
+                AutoSizeMode = AutoSizeMode.GrowAndShrink,
+            };
 
-            // Producto selector
-            AddLabel("Producto:", lx, y);
+            table.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+            table.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+
+            for (int i = 0; i < 5; i++)
+                table.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            table.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // fila botones
+
+            // ── Fila 0: label Producto ──────────────────────────────────
+            table.Controls.Add(MakeLabel("Producto:"), 0, 0);
+
             _lblProducto = new Label
             {
-                Text     = "(ninguno seleccionado)",
-                Location = new Point(cx, y + 4),
-                Size     = new Size(240, 22),
+                Text = "(ninguno seleccionado)",
                 ForeColor = Color.Gray,
-                Font     = new Font("Segoe UI", 9f)
+                Font = new Font("Segoe UI", 9f),
+                AutoSize = true,
+                Anchor = AnchorStyles.Left | AnchorStyles.Top,
+                Margin = new Padding(3, 8, 3, 2)
             };
-            Controls.Add(_lblProducto);
-            y += 28;
+            table.Controls.Add(_lblProducto, 1, 0);
+
+            // ── Fila 1: botón Seleccionar ───────────────────────────────
+            table.Controls.Add(new Label(), 0, 1); // celda vacía
 
             _btnSeleccionar = new Button
             {
-                Text      = "Seleccionar Producto...",
-                Location  = new Point(cx, y),
-                Size      = new Size(240, 30),
+                Text = "Seleccionar Producto...",
+                Dock = DockStyle.Fill,
+                MinimumSize = new Size(200, 32),
                 BackColor = Color.FromArgb(46, 90, 172),
                 ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat
+                FlatStyle = FlatStyle.Flat,
+                Margin = new Padding(3, 2, 3, 10)
             };
             _btnSeleccionar.FlatAppearance.BorderSize = 0;
             _btnSeleccionar.Click += BtnSeleccionar_Click;
-            Controls.Add(_btnSeleccionar);
-            y += rh;
+            table.Controls.Add(_btnSeleccionar, 1, 1);
 
-            // Peso manifestado
-            AddLabel("Peso manifestado (kg):", lx, y);
+            // ── Fila 2: Peso manifestado ────────────────────────────────
+            table.Controls.Add(MakeLabel("Peso manifestado (kg):"), 0, 2);
+
             _nudPesoManifestado = new NumericUpDown
             {
-                Location      = new Point(cx, y),
-                Size          = new Size(160, 28),
+                Dock = DockStyle.Fill,
                 DecimalPlaces = 2,
-                Minimum       = 0,
-                Maximum       = 999999,
-                Increment     = 100
+                Minimum = 0,
+                Maximum = 999999,
+                Increment = 100,
+                Margin = new Padding(3, 6, 3, 6)
             };
-            Controls.Add(_nudPesoManifestado);
-            y += rh;
+            table.Controls.Add(_nudPesoManifestado, 1, 2);
 
-            // Bultos teóricos
-            AddLabel("Bultos teóricos:", lx, y);
+            // ── Fila 3: Bultos teóricos ─────────────────────────────────
+            table.Controls.Add(MakeLabel("Bultos teóricos:"), 0, 3);
+
             _nudBultosTeóricos = new NumericUpDown
             {
-                Location      = new Point(cx, y),
-                Size          = new Size(160, 28),
+                Dock = DockStyle.Fill,
                 DecimalPlaces = 0,
-                Minimum       = 0,
-                Maximum       = 9999,
-                Increment     = 1
+                Minimum = 0,
+                Maximum = 9999,
+                Increment = 1,
+                Margin = new Padding(3, 6, 3, 6)
             };
-            Controls.Add(_nudBultosTeóricos);
-            y += rh;
+            table.Controls.Add(_nudBultosTeóricos, 1, 3);
 
-            // Observaciones
-            AddLabel("Observaciones:", lx, y);
+            // ── Fila 4: Observaciones ───────────────────────────────────
+            table.Controls.Add(MakeLabel("Observaciones:"), 0, 4);
+
             _txtObservaciones = new TextBox
             {
-                Location  = new Point(cx, y),
-                Size      = new Size(240, 55),
-                Multiline = true
+                Dock = DockStyle.Fill,
+                Multiline = true,
+                MinimumSize = new Size(0, 60),
+                Margin = new Padding(3, 6, 3, 6)
             };
-            Controls.Add(_txtObservaciones);
-            y += 65;
+            table.Controls.Add(_txtObservaciones, 1, 4);
 
-            _btnCancelar = CreateButton("Cancelar", lx,  y, Color.Gray);
-            _btnCancelar.Click += (s, e) => { DialogResult = DialogResult.Cancel; Close(); };
-            Controls.Add(_btnCancelar);
-
-            _btnGuardar = CreateButton("Agregar", 320, y, Color.FromArgb(12, 92, 92));
-            _btnGuardar.Click += BtnGuardar_Click;
-            Controls.Add(_btnGuardar);
-        }
-
-        private void AddLabel(string text, int x, int y)
-        {
-            Controls.Add(new Label
+            // ── Fila 5: Botones (ocupa ambas columnas) ──────────────────
+            var panelBotones = new FlowLayoutPanel
             {
-                Text     = text,
-                Location = new Point(x, y + 4),
+                Dock = DockStyle.Fill,
+                FlowDirection = FlowDirection.RightToLeft,
                 AutoSize = true,
-                Font     = new Font("Segoe UI", 10f)
-            });
+                Margin = new Padding(3, 10, 3, 3)
+            };
+
+            _btnGuardar = CreateButton("Agregar", Color.FromArgb(12, 92, 92));
+            _btnGuardar.Click += BtnGuardar_Click;
+
+            _btnCancelar = CreateButton("Cancelar", Color.Gray);
+            _btnCancelar.Click += (s, e) => { DialogResult = DialogResult.Cancel; Close(); };
+
+            panelBotones.Controls.Add(_btnGuardar);
+            panelBotones.Controls.Add(_btnCancelar);
+
+            table.SetColumnSpan(panelBotones, 2);
+            table.Controls.Add(panelBotones, 0, 5);
+
+            Controls.Add(table);
+
+            // Tamaño mínimo — el form crece con el contenido
+            MinimumSize = new Size(400, 0);
+            AutoSize = true;
+            AutoSizeMode = AutoSizeMode.GrowAndShrink;
         }
 
-        private static Button CreateButton(string text, int x, int y, Color back)
+        private static Label MakeLabel(string text) => new Label
+        {
+            Text = text,
+            AutoSize = true,
+            Font = new Font("Segoe UI", 10f),
+            Anchor = AnchorStyles.Left | AnchorStyles.Top,
+            Margin = new Padding(3, 10, 8, 3)
+        };
+
+        private static Button CreateButton(string text, Color back)
         {
             var btn = new Button
             {
-                Text      = text,
-                Location  = new Point(x, y),
-                Size      = new Size(115, 36),
+                Text = text,
+                MinimumSize = new Size(115, 36),
+                AutoSize = true,
                 BackColor = back,
                 ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat
+                FlatStyle = FlatStyle.Flat,
+                Margin = new Padding(6, 0, 0, 0)
             };
             btn.FlatAppearance.BorderSize = 0;
             return btn;
@@ -144,9 +181,9 @@ namespace BimboPesaje.Formularios.Movimientos
             using var form = new GestionProductos();
             if (form.ShowDialog(this) == DialogResult.OK)
             {
-                _idProductoSeleccionado  = form.IdProductoSeleccionado;
-                _lblProducto.Text        = form.ProductoSeleccionado ?? "";
-                _lblProducto.ForeColor   = Color.Black;
+                _idProductoSeleccionado = form.IdProductoSeleccionado;
+                _lblProducto.Text = form.ProductoSeleccionado ?? "";
+                _lblProducto.ForeColor = Color.Black;
             }
         }
 
@@ -170,12 +207,12 @@ namespace BimboPesaje.Formularios.Movimientos
             {
                 var mp = new MovimientoProducto
                 {
-                    idMovimiento    = _idMovimiento,
-                    idProducto      = _idProductoSeleccionado,
+                    idMovimiento = _idMovimiento,
+                    idProducto = _idProductoSeleccionado,
                     pesoManifestado = _nudPesoManifestado.Value,
-                    bultosTeóricos  = (int)_nudBultosTeóricos.Value,
-                    idEstado        = EstadosPesaje.Abierto,
-                    observaciones   = _txtObservaciones.Text.Trim()
+                    bultosTeóricos = (int)_nudBultosTeóricos.Value,
+                    idEstado = EstadosPesaje.Abierto,
+                    observaciones = _txtObservaciones.Text.Trim()
                 };
 
                 MovProductoCreado = await RepositorioMovimientoProducto.CrearAsync(mp);

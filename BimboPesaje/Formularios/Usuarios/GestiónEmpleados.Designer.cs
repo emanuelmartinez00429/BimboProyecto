@@ -40,6 +40,13 @@
             btnEditar = new Button();
             pnDgv = new Panel();
             dgvEmpleados = new DataGridView();
+            Codigo = new DataGridViewTextBoxColumn();
+            nombreEmpleado = new DataGridViewTextBoxColumn();
+            apellidoEmpleado = new DataGridViewTextBoxColumn();
+            correoEmpleado = new DataGridViewTextBoxColumn();
+            numeroIdentidad = new DataGridViewTextBoxColumn();
+            telefonoEmpleado = new DataGridViewTextBoxColumn();
+            estadoEmpleado = new DataGridViewCheckBoxColumn();
             pnFiltro = new Panel();
             btnLimpiar = new Button();
             pnBuscar = new Panel();
@@ -49,13 +56,6 @@
             rbHabilitados = new RadioButton();
             rbDeshabilitados = new RadioButton();
             rbTodos = new RadioButton();
-            Codigo = new DataGridViewTextBoxColumn();
-            nombreEmpleado = new DataGridViewTextBoxColumn();
-            apellidoEmpleado = new DataGridViewTextBoxColumn();
-            correoEmpleado = new DataGridViewTextBoxColumn();
-            numeroIdentidad = new DataGridViewTextBoxColumn();
-            telefonoEmpleado = new DataGridViewTextBoxColumn();
-            estadoEmpleado = new DataGridViewCheckBoxColumn();
             panel1.SuspendLayout();
             tableLayoutPanel1.SuspendLayout();
             pnDgv.SuspendLayout();
@@ -129,6 +129,7 @@
             btnCrearUsuario.TabIndex = 2;
             btnCrearUsuario.Text = "Crear Usuario";
             btnCrearUsuario.UseVisualStyleBackColor = false;
+            btnCrearUsuario.Click += btnCrearUsuario_Click;
             // 
             // btnNuevo
             // 
@@ -161,6 +162,7 @@
             btnEditar.TabIndex = 1;
             btnEditar.Text = "Editar";
             btnEditar.UseVisualStyleBackColor = false;
+            btnEditar.Click += btnEditar_Click;
             // 
             // pnDgv
             // 
@@ -230,6 +232,73 @@
             dgvEmpleados.TabIndex = 2;
             dgvEmpleados.UseWaitCursor = true;
             // 
+            // Codigo
+            // 
+            Codigo.AutoSizeMode = DataGridViewAutoSizeColumnMode.DisplayedCells;
+            Codigo.DataPropertyName = "idEmpleado";
+            Codigo.HeaderText = "Código";
+            Codigo.MinimumWidth = 6;
+            Codigo.Name = "Codigo";
+            Codigo.ReadOnly = true;
+            Codigo.Visible = false;
+            Codigo.Width = 125;
+            // 
+            // nombreEmpleado
+            // 
+            nombreEmpleado.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            nombreEmpleado.DataPropertyName = "nombreEmpleado";
+            nombreEmpleado.HeaderText = "Nombre";
+            nombreEmpleado.MinimumWidth = 6;
+            nombreEmpleado.Name = "nombreEmpleado";
+            nombreEmpleado.ReadOnly = true;
+            // 
+            // apellidoEmpleado
+            // 
+            apellidoEmpleado.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            apellidoEmpleado.DataPropertyName = "apellidoEmpleado";
+            apellidoEmpleado.HeaderText = "Apellido";
+            apellidoEmpleado.MinimumWidth = 6;
+            apellidoEmpleado.Name = "apellidoEmpleado";
+            apellidoEmpleado.ReadOnly = true;
+            // 
+            // correoEmpleado
+            // 
+            correoEmpleado.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            correoEmpleado.DataPropertyName = "correoEmpleado";
+            correoEmpleado.HeaderText = "Correo";
+            correoEmpleado.MinimumWidth = 6;
+            correoEmpleado.Name = "correoEmpleado";
+            correoEmpleado.ReadOnly = true;
+            // 
+            // numeroIdentidad
+            // 
+            numeroIdentidad.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            numeroIdentidad.DataPropertyName = "numeroIdentidad";
+            numeroIdentidad.HeaderText = "Identidad";
+            numeroIdentidad.MinimumWidth = 6;
+            numeroIdentidad.Name = "numeroIdentidad";
+            numeroIdentidad.ReadOnly = true;
+            // 
+            // telefonoEmpleado
+            // 
+            telefonoEmpleado.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            telefonoEmpleado.DataPropertyName = "telefonoEmpleado";
+            telefonoEmpleado.HeaderText = "Telefóno";
+            telefonoEmpleado.MinimumWidth = 6;
+            telefonoEmpleado.Name = "telefonoEmpleado";
+            telefonoEmpleado.ReadOnly = true;
+            // 
+            // estadoEmpleado
+            // 
+            estadoEmpleado.AutoSizeMode = DataGridViewAutoSizeColumnMode.DisplayedCells;
+            estadoEmpleado.DataPropertyName = "idEstado";
+            estadoEmpleado.HeaderText = "Estado";
+            estadoEmpleado.MinimumWidth = 6;
+            estadoEmpleado.Name = "estadoEmpleado";
+            estadoEmpleado.ReadOnly = true;
+            estadoEmpleado.Resizable = DataGridViewTriState.True;
+            estadoEmpleado.Width = 72;
+            // 
             // pnFiltro
             // 
             pnFiltro.Anchor = AnchorStyles.Top | AnchorStyles.Right;
@@ -281,7 +350,7 @@
             txtBusqueda.Location = new Point(40, 0);
             txtBusqueda.Multiline = true;
             txtBusqueda.Name = "txtBusqueda";
-            txtBusqueda.PlaceholderText = "Buscar categoria...";
+            txtBusqueda.PlaceholderText = "Buscar empleado...";
             txtBusqueda.Size = new Size(473, 32);
             txtBusqueda.TabIndex = 3;
             // 
@@ -347,78 +416,6 @@
             rbTodos.TabIndex = 11;
             rbTodos.Text = "Todos";
             rbTodos.UseVisualStyleBackColor = true;
-            // 
-            // Codigo
-            // 
-            Codigo.AutoSizeMode = DataGridViewAutoSizeColumnMode.DisplayedCells;
-            Codigo.DataPropertyName = "idEmpleado";
-            Codigo.HeaderText = "Código";
-            Codigo.MinimumWidth = 6;
-            Codigo.Name = "Codigo";
-            Codigo.ReadOnly = true;
-            Codigo.Visible = false;
-            Codigo.Width = 96;
-            // 
-            // nombreEmpleado
-            // 
-            nombreEmpleado.AutoSizeMode = DataGridViewAutoSizeColumnMode.DisplayedCells;
-            nombreEmpleado.DataPropertyName = "nombreEmpleado";
-            nombreEmpleado.HeaderText = "Nombre";
-            nombreEmpleado.MinimumWidth = 6;
-            nombreEmpleado.Name = "nombreEmpleado";
-            nombreEmpleado.ReadOnly = true;
-            nombreEmpleado.Width = 106;
-            // 
-            // apellidoEmpleado
-            // 
-            apellidoEmpleado.AutoSizeMode = DataGridViewAutoSizeColumnMode.DisplayedCells;
-            apellidoEmpleado.DataPropertyName = "apellidoEmpleado";
-            apellidoEmpleado.HeaderText = "Apellido";
-            apellidoEmpleado.MinimumWidth = 6;
-            apellidoEmpleado.Name = "apellidoEmpleado";
-            apellidoEmpleado.ReadOnly = true;
-            apellidoEmpleado.Width = 109;
-            // 
-            // correoEmpleado
-            // 
-            correoEmpleado.AutoSizeMode = DataGridViewAutoSizeColumnMode.DisplayedCells;
-            correoEmpleado.DataPropertyName = "correoEmpleado";
-            correoEmpleado.HeaderText = "Correo";
-            correoEmpleado.MinimumWidth = 6;
-            correoEmpleado.Name = "correoEmpleado";
-            correoEmpleado.ReadOnly = true;
-            correoEmpleado.Width = 96;
-            // 
-            // numeroIdentidad
-            // 
-            numeroIdentidad.AutoSizeMode = DataGridViewAutoSizeColumnMode.DisplayedCells;
-            numeroIdentidad.DataPropertyName = "numeroIdentidad";
-            numeroIdentidad.HeaderText = "Identidad";
-            numeroIdentidad.MinimumWidth = 6;
-            numeroIdentidad.Name = "numeroIdentidad";
-            numeroIdentidad.ReadOnly = true;
-            numeroIdentidad.Width = 121;
-            // 
-            // telefonoEmpleado
-            // 
-            telefonoEmpleado.AutoSizeMode = DataGridViewAutoSizeColumnMode.DisplayedCells;
-            telefonoEmpleado.DataPropertyName = "telefonoEmpleado";
-            telefonoEmpleado.HeaderText = "Telefóno";
-            telefonoEmpleado.MinimumWidth = 6;
-            telefonoEmpleado.Name = "telefonoEmpleado";
-            telefonoEmpleado.ReadOnly = true;
-            telefonoEmpleado.Width = 111;
-            // 
-            // estadoEmpleado
-            // 
-            estadoEmpleado.AutoSizeMode = DataGridViewAutoSizeColumnMode.DisplayedCells;
-            estadoEmpleado.DataPropertyName = "idEstado";
-            estadoEmpleado.HeaderText = "Estado";
-            estadoEmpleado.MinimumWidth = 6;
-            estadoEmpleado.Name = "estadoEmpleado";
-            estadoEmpleado.ReadOnly = true;
-            estadoEmpleado.Resizable = DataGridViewTriState.True;
-            estadoEmpleado.Width = 72;
             // 
             // GestiónEmpleados
             // 

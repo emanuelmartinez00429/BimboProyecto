@@ -28,10 +28,10 @@
         /// </summary>
         private void InitializeComponent()
         {
-            DataGridViewCellStyle dataGridViewCellStyle5 = new DataGridViewCellStyle();
-            DataGridViewCellStyle dataGridViewCellStyle6 = new DataGridViewCellStyle();
-            DataGridViewCellStyle dataGridViewCellStyle7 = new DataGridViewCellStyle();
-            DataGridViewCellStyle dataGridViewCellStyle8 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle3 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle4 = new DataGridViewCellStyle();
             pnContenedorHijo = new Panel();
             pnBuscar = new Panel();
             txtBusqueda = new TextBox();
@@ -59,7 +59,7 @@
             Contenido = new DataGridViewTextBoxColumn();
             Presentacion = new DataGridViewTextBoxColumn();
             Categoria = new DataGridViewTextBoxColumn();
-            EstadoProducto = new DataGridViewTextBoxColumn();
+            EstadoProducto = new DataGridViewCheckBoxColumn();
             CodigoInterno = new DataGridViewTextBoxColumn();
             pnContenedorHijo.SuspendLayout();
             pnBuscar.SuspendLayout();
@@ -340,36 +340,36 @@
             dgvProductos.AllowUserToDeleteRows = false;
             dgvProductos.AllowUserToResizeColumns = false;
             dgvProductos.AllowUserToResizeRows = false;
-            dataGridViewCellStyle5.BackColor = Color.FromArgb(220, 230, 241);
-            dataGridViewCellStyle5.Font = new Font("Itim", 12F);
-            dataGridViewCellStyle5.ForeColor = Color.Black;
-            dataGridViewCellStyle5.SelectionBackColor = Color.FromArgb(31, 60, 136);
-            dataGridViewCellStyle5.SelectionForeColor = Color.White;
-            dgvProductos.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle5;
+            dataGridViewCellStyle1.BackColor = Color.FromArgb(220, 230, 241);
+            dataGridViewCellStyle1.Font = new Font("Itim", 12F);
+            dataGridViewCellStyle1.ForeColor = Color.Black;
+            dataGridViewCellStyle1.SelectionBackColor = Color.FromArgb(31, 60, 136);
+            dataGridViewCellStyle1.SelectionForeColor = Color.White;
+            dgvProductos.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle1;
             dgvProductos.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCellsExceptHeaders;
             dgvProductos.BackgroundColor = Color.White;
             dgvProductos.BorderStyle = BorderStyle.None;
             dgvProductos.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
             dgvProductos.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.None;
-            dataGridViewCellStyle6.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            dataGridViewCellStyle6.BackColor = Color.FromArgb(31, 60, 136);
-            dataGridViewCellStyle6.Font = new Font("Itim", 12F);
-            dataGridViewCellStyle6.ForeColor = Color.White;
-            dataGridViewCellStyle6.SelectionBackColor = Color.FromArgb(31, 60, 136);
-            dataGridViewCellStyle6.SelectionForeColor = Color.White;
-            dataGridViewCellStyle6.WrapMode = DataGridViewTriState.False;
-            dgvProductos.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle6;
+            dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle2.BackColor = Color.FromArgb(31, 60, 136);
+            dataGridViewCellStyle2.Font = new Font("Itim", 12F);
+            dataGridViewCellStyle2.ForeColor = Color.White;
+            dataGridViewCellStyle2.SelectionBackColor = Color.FromArgb(31, 60, 136);
+            dataGridViewCellStyle2.SelectionForeColor = Color.White;
+            dataGridViewCellStyle2.WrapMode = DataGridViewTriState.False;
+            dgvProductos.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle2;
             dgvProductos.ColumnHeadersHeight = 36;
             dgvProductos.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
             dgvProductos.Columns.AddRange(new DataGridViewColumn[] { Codigo, Producto, Fabricante, Pais, Contenido, Presentacion, Categoria, EstadoProducto, CodigoInterno });
-            dataGridViewCellStyle7.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            dataGridViewCellStyle7.BackColor = Color.White;
-            dataGridViewCellStyle7.Font = new Font("Itim", 12F);
-            dataGridViewCellStyle7.ForeColor = Color.Black;
-            dataGridViewCellStyle7.SelectionBackColor = Color.FromArgb(31, 60, 136);
-            dataGridViewCellStyle7.SelectionForeColor = SystemColors.HighlightText;
-            dataGridViewCellStyle7.WrapMode = DataGridViewTriState.False;
-            dgvProductos.DefaultCellStyle = dataGridViewCellStyle7;
+            dataGridViewCellStyle3.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle3.BackColor = Color.White;
+            dataGridViewCellStyle3.Font = new Font("Itim", 12F);
+            dataGridViewCellStyle3.ForeColor = Color.Black;
+            dataGridViewCellStyle3.SelectionBackColor = Color.FromArgb(31, 60, 136);
+            dataGridViewCellStyle3.SelectionForeColor = SystemColors.HighlightText;
+            dataGridViewCellStyle3.WrapMode = DataGridViewTriState.False;
+            dgvProductos.DefaultCellStyle = dataGridViewCellStyle3;
             dgvProductos.Dock = DockStyle.Fill;
             dgvProductos.EnableHeadersVisualStyles = false;
             dgvProductos.GridColor = Color.White;
@@ -378,14 +378,14 @@
             dgvProductos.Name = "dgvProductos";
             dgvProductos.ReadOnly = true;
             dgvProductos.RowHeadersBorderStyle = DataGridViewHeaderBorderStyle.None;
-            dataGridViewCellStyle8.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle8.BackColor = Color.FromArgb(31, 60, 136);
-            dataGridViewCellStyle8.Font = new Font("Itim", 12F);
-            dataGridViewCellStyle8.ForeColor = Color.Transparent;
-            dataGridViewCellStyle8.SelectionBackColor = Color.FromArgb(31, 60, 136);
-            dataGridViewCellStyle8.SelectionForeColor = Color.Transparent;
-            dataGridViewCellStyle8.WrapMode = DataGridViewTriState.False;
-            dgvProductos.RowHeadersDefaultCellStyle = dataGridViewCellStyle8;
+            dataGridViewCellStyle4.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle4.BackColor = Color.FromArgb(31, 60, 136);
+            dataGridViewCellStyle4.Font = new Font("Itim", 12F);
+            dataGridViewCellStyle4.ForeColor = Color.Transparent;
+            dataGridViewCellStyle4.SelectionBackColor = Color.FromArgb(31, 60, 136);
+            dataGridViewCellStyle4.SelectionForeColor = Color.Transparent;
+            dataGridViewCellStyle4.WrapMode = DataGridViewTriState.False;
+            dgvProductos.RowHeadersDefaultCellStyle = dataGridViewCellStyle4;
             dgvProductos.RowHeadersWidth = 30;
             dgvProductos.RowHeadersWidthSizeMode = DataGridViewRowHeadersWidthSizeMode.DisableResizing;
             dgvProductos.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
@@ -469,6 +469,8 @@
             EstadoProducto.MinimumWidth = 6;
             EstadoProducto.Name = "EstadoProducto";
             EstadoProducto.ReadOnly = true;
+            EstadoProducto.Resizable = DataGridViewTriState.True;
+            EstadoProducto.SortMode = DataGridViewColumnSortMode.Automatic;
             EstadoProducto.Width = 125;
             // 
             // CodigoInterno
@@ -532,7 +534,7 @@
         private DataGridViewTextBoxColumn Contenido;
         private DataGridViewTextBoxColumn Presentacion;
         private DataGridViewTextBoxColumn Categoria;
-        private DataGridViewTextBoxColumn EstadoProducto;
+        private DataGridViewCheckBoxColumn EstadoProducto;
         private DataGridViewTextBoxColumn CodigoInterno;
     }
 }

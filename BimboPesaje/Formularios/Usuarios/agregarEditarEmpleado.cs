@@ -1,23 +1,56 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using CapaDatos.Modelados.Usuarios;
+﻿using CapaDatos.Modelados.Usuarios;
 using CapaDatos.Repositorios;
+using CapaDatos.Repositorios.Usuario;
+using CapaServicios;
 using ServicioConexión.Conexion;
+using System;
+using System.Windows.Forms;
 
 namespace BimboPesaje.Formularios.Usuarios
 {
     public partial class agregarEditarEmpleado : Form
     {
+        // Guarda el empleado recibido — null significa modo agregar
+        private readonly Empleados? _empleadoEditar = null;
+
         public agregarEditarEmpleado()
         {
             InitializeComponent();
+        }
+
+        public agregarEditarEmpleado(Empleados empleado)
+        {
+            InitializeComponent();
+
+            _empleadoEditar = empleado;
+
+            txtDNI.Text = empleado.numeroIdentidad;
+            txtNombre.Text = empleado.nombreEmpleado;
+            txtApellido.Text = empleado.apellidoEmpleado;
+            txtTelefono.Text = empleado.telefonoEmpleado;
+            txtCorreo.Text = empleado.correoEmpleado;
+
+            rbActivo.Enabled = true;
+            rbInactivo.Enabled = true;
+
+            if (empleado.idEstado == 1)
+                rbActivo.Checked = true;
+            else
+                rbInactivo.Checked = true;
+
+            lblTitulo.Text = "Editar Empleado";
+        }
+
+        private void agregarEditarEmpleado_Load(object sender, EventArgs e)
+        {
+            // Solo aplica en modo agregar — en edición ya se cargaron los valores
+            if (_empleadoEditar == null)
+            {
+                rbActivo.Checked = true;
+                rbActivo.Enabled = false;
+                rbInactivo.Checked = false;
+                rbInactivo.Enabled = false;
+            }
         }
 
         private void btnVolver_Click(object sender, EventArgs e)
@@ -29,28 +62,34 @@ namespace BimboPesaje.Formularios.Usuarios
         {
             try
             {
-                ///<summary>
-                ///Este de aquí solo se usa cuando se va a usar el repositorio para ingresar un empleado / algo 
-                ///nuevo a la base de datos.
-                /// </summary>
-                Empleados nuevoEmpleado = new Empleados
+                btnGuardar.Enabled = false;
+
+                // ── MODO EDITAR ──────────────────────────────────────────
+                if (_empleadoEditar != null)
                 {
-                    numeroIdentidad = txtDNI.Text.Trim(),
-                    nombreEmpleado = txtNombre.Text.Trim(),
-                    apellidoEmpleado = txtApellido.Text.Trim(),
-                    telefonoEmpleado = txtTelefono.Text.Trim(),
-                    correoEmpleado = txtCorreo.Text.Trim(),
-                    idEstado = rbActivo.Checked ? 1 : 2
-                };
+                    // Obtener id_usuario de la sesión actual
+                    var client = await ConexionSupabase.GetClientAsync();
+                    var idUsuario = SesionActual.IdUsuario; // <- tu servicio de sesión
 
-                //await RepositorioEmpleado.ingresarEmpleado(nuevoEmpleado);
+                    // Actualiza los campos del empleado recibido
+                    _empleadoEditar.nombreEmpleado = txtNombre.Text.Trim();
+                    _empleadoEditar.apellidoEmpleado = txtApellido.Text.Trim();
+                    _empleadoEditar.telefonoEmpleado = txtTelefono.Text.Trim();
+                    _empleadoEditar.correoEmpleado = txtCorreo.Text.Trim();
+                    _empleadoEditar.numeroIdentidad = txtDNI.Text.Trim();
+                    _empleadoEditar.idEstado = rbActivo.Checked ? 1 : 2;
 
-                // y se llama a la conexion para obtener el cliente de supabase, y se le asigna a una variable llamada insert, que es la que se va a usar para llamar a la función de la base de datos.
+                    await RepositorioEmpleado.actualizarEmpleados(_empleadoEditar);
+
+                    MessageBox.Show("Empleado actualizado exitosamente",
+                        "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    this.Close();
+                    return;
+                }
+
+                // ── MODO AGREGAR ─────────────────────────────────────────
                 var insert = await ConexionSupabase.GetClientAsync();
-                
-                ///<summary>
-                ///Y esto se hace por que cada nombre de aqui es el mismo que el de la función en la base de datos, y se le asigna el valor del textbox correspondiente.
-                /// </summary>
+
                 await insert.Rpc("ingresar_empleado_tabla_bitacora", new
                 {
                     p_dni = txtDNI.Text.Trim(),
@@ -60,13 +99,22 @@ namespace BimboPesaje.Formularios.Usuarios
                     p_correo_empleado = txtCorreo.Text.Trim(),
                     p_estado_empleado = rbActivo.Checked ? 1 : 2
                 });
-                MessageBox.Show("Empleado guardado exitosamente", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                MessageBox.Show("Empleado guardado exitosamente",
+                    "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 this.Close();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                MessageBox.Show($"Error al guardar el empleado {ex.Message}","Error",MessageBoxButtons.OKCancel,MessageBoxIcon.Error);
+                MessageBox.Show($"Error al guardar el empleado: {ex.Message}",
+                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                btnGuardar.Enabled = true;
             }
         }
+
+        private void pnFill_Paint(object sender, PaintEventArgs e) { }
     }
 }

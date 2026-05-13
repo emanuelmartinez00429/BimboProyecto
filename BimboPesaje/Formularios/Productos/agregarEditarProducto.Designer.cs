@@ -59,13 +59,16 @@
             label2 = new Label();
             pnTitulo = new Panel();
             label1 = new Label();
+            pictureBox1 = new PictureBox();
             pnFill.SuspendLayout();
             pnTitulo.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
             SuspendLayout();
             // 
             // pnFill
             // 
             pnFill.BackColor = Color.FromArgb(79, 125, 209);
+            pnFill.Controls.Add(pictureBox1);
             pnFill.Controls.Add(btnCat);
             pnFill.Controls.Add(btnFab);
             pnFill.Controls.Add(btnPre);
@@ -442,6 +445,16 @@
             label1.TabIndex = 0;
             label1.Text = "CREAR PRODUCTO";
             // 
+            // pictureBox1
+            // 
+            pictureBox1.Image = Properties.Resources.bimbo_no_bg;
+            pictureBox1.Location = new Point(0, 637);
+            pictureBox1.Name = "pictureBox1";
+            pictureBox1.Size = new Size(153, 93);
+            pictureBox1.SizeMode = PictureBoxSizeMode.Zoom;
+            pictureBox1.TabIndex = 34;
+            pictureBox1.TabStop = false;
+            // 
             // agregarEditarProducto
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
@@ -457,6 +470,7 @@
             pnFill.PerformLayout();
             pnTitulo.ResumeLayout(false);
             pnTitulo.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
             ResumeLayout(false);
         }
 
@@ -494,5 +508,6 @@
         private Button btnPre;
         private Button btnCat;
         private Button btnFab;
+        private PictureBox pictureBox1;
     }
 }

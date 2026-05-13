@@ -1,7 +1,7 @@
 using CapaDatos.Modelados.Pesajes;
 using ServicioConexión.Conexion;
 
-namespace CapaDatos.Repositorios
+namespace CapaDatos.Repositorios.productos_movimientos
 {
     public class RepositorioProveedor
     {

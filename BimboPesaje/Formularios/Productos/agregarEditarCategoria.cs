@@ -1,5 +1,5 @@
 ﻿using CapaDatos.Modelados.Productos;
-using CapaDatos.Repositorios;
+using CapaDatos.Repositorios.productos_movimientos;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;

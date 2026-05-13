@@ -66,7 +66,7 @@
             pictureBox1.Image = Properties.Resources.bimbo_no_bg;
             pictureBox1.Location = new Point(0, 377);
             pictureBox1.Name = "pictureBox1";
-            pictureBox1.Size = new Size(144, 93);
+            pictureBox1.Size = new Size(153, 93);
             pictureBox1.SizeMode = PictureBoxSizeMode.Zoom;
             pictureBox1.TabIndex = 8;
             pictureBox1.TabStop = false;
@@ -129,7 +129,7 @@
             btnGuardar.TabIndex = 0;
             btnGuardar.Text = "Guardar";
             btnGuardar.UseVisualStyleBackColor = false;
-            btnGuardar.Click += this.btnGuardar_Click;
+            btnGuardar.Click += btnGuardar_Click;
             // 
             // rbInactivo
             // 

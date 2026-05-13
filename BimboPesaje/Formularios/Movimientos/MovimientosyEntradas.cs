@@ -1,9 +1,9 @@
 using System.Data;
 using CapaDatos.Modelados.Pesajes;
-using CapaDatos.Repositorios;
 using CapaServicios;
 using Supabase.Realtime.PostgresChanges;
 using BimboPesaje.Formularios.Productos;
+using CapaDatos.Repositorios.productos_movimientos;
 
 namespace BimboPesaje.Formularios.Movimientos
 {
@@ -50,53 +50,65 @@ namespace BimboPesaje.Formularios.Movimientos
 
         private void ConfigurarGrids()
         {
-            // dgvEntradas: columnas programáticas (no están en el Designer)
+            // dgvEntradas
             dgvEntradas.AutoGenerateColumns = false;
             dgvEntradas.Columns.Clear();
-            dgvEntradas.Columns.Add(ColTexto("IdPesaje",     "IdPesaje",     "Id",          55));
-            dgvEntradas.Columns.Add(ColTexto("PesoBruto",    "PesoBruto",    "Bruto (kg)",  95));
-            dgvEntradas.Columns.Add(ColTexto("TaraTotal",    "TaraTotal",    "Tara (kg)",   90));
-            dgvEntradas.Columns.Add(ColTextoFill("PesoNeto", "PesoNeto",     "Neto (kg)"));
-            dgvEntradas.Columns.Add(ColTexto("NoBultos",     "NoBultos",     "Bultos",      65));
-            dgvEntradas.Columns.Add(ColTexto("FechaEntrada", "FechaEntrada", "Fecha",       100));
-            dgvEntradas.Columns.Add(ColTexto("HoraEntrada",  "HoraEntrada",  "Hora",        75));
+            dgvEntradas.Columns.Add(ColTexto("IdPesaje", "IdPesaje", "Id"));
+            dgvEntradas.Columns.Add(ColTexto("PesoBruto", "PesoBruto", "Bruto (kg)"));
+            dgvEntradas.Columns.Add(ColTexto("TaraTotal", "TaraTotal", "Tara (kg)"));
+            dgvEntradas.Columns.Add(ColTexto("PesoNeto", "PesoNeto", "Neto (kg)"));
+            dgvEntradas.Columns.Add(ColTexto("NoBultos", "NoBultos", "Bultos"));
+            dgvEntradas.Columns.Add(ColTexto("FechaEntrada", "FechaEntrada", "Fecha"));
+            dgvEntradas.Columns.Add(ColTexto("HoraEntrada", "HoraEntrada", "Hora"));
 
-            // dgvMateriaPrima: agregar columnas de indicadores en tiempo real
+            // dgvMateriaPrima
             dgvMateriaPrima.Columns.Add(new DataGridViewTextBoxColumn
             {
-                Name             = "BultosRestantes",
+                Name = "BultosRestantes",
                 DataPropertyName = "BultosRestantes",
-                HeaderText       = "Bultos Rest.",
-                Width            = 95,
-                ReadOnly         = true
+                HeaderText = "Bultos Rest.",
+                AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill,
+                ReadOnly = true
             });
             dgvMateriaPrima.Columns.Add(new DataGridViewTextBoxColumn
             {
-                Name             = "PctPesoRestante",
+                Name = "PctPesoRestante",
                 DataPropertyName = "PctPesoRestante",
-                HeaderText       = "% Restante",
-                Width            = 95,
-                ReadOnly         = true
+                HeaderText = "% Restante",
+                AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill,
+                ReadOnly = true
             });
 
-            // dgvCamiones: agregar columna NombreProveedor
+            // dgvCamiones
             dgvCamiones.Columns.Add(new DataGridViewTextBoxColumn
             {
-                Name             = "NombreProveedor",
+                Name = "NombreProveedor",
                 DataPropertyName = "NombreProveedor",
-                HeaderText       = "Proveedor",
-                AutoSizeMode     = DataGridViewAutoSizeColumnMode.Fill,
-                ReadOnly         = true
+                HeaderText = "Proveedor",
+                AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill,
+                ReadOnly = true
             });
         }
 
+        // Helper único — Fill en todas las columnas
+        private static DataGridViewTextBoxColumn ColTexto(string name, string prop, string header)
+            => new()
+            {
+                Name = name,
+                DataPropertyName = prop,
+                HeaderText = header,
+                AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill,
+                MinimumWidth = 60,
+                ReadOnly = true
+            };
+        /*
         private static DataGridViewTextBoxColumn ColTexto(string name, string prop, string header, int width)
             => new() { Name = name, DataPropertyName = prop, HeaderText = header, Width = width, ReadOnly = true };
 
         private static DataGridViewTextBoxColumn ColTextoFill(string name, string prop, string header)
             => new() { Name = name, DataPropertyName = prop, HeaderText = header,
                        AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill, ReadOnly = true };
-
+        */
         // ── Realtime ─────────────────────────────────────────────────────────
 
         private void ConfigurarRealtime()
