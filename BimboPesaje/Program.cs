@@ -1,4 +1,4 @@
-using BimboPesaje.Formularios.Usuarios;
+using BimboPesaje.Formularios.InicioSesion;
 using CapaServicios;
 using ServicioConexión.Conexion;
 
@@ -26,6 +26,8 @@ namespace BimboPesaje
                 {
                     await ConexionSupabase.GetClientAsync();
                     await GestorRealtime.IniciarAsync();
+                    // Descargar/actualizar logo de empresa en caché local
+                    await ServicioLogo.ObtenerRutaLocalAsync();
                 }, cts.Token).GetAwaiter().GetResult();
             }
             catch (OperationCanceledException)
@@ -43,7 +45,7 @@ namespace BimboPesaje
                 return;
             }
 
-            using var login = new FrmLogin();
+            using var login = new FrmInicioSesion();
             if (login.ShowDialog() != DialogResult.OK)
                 return;
 
