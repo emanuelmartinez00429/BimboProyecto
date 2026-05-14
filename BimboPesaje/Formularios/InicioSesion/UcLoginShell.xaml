@@ -29,7 +29,9 @@
                 <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="32">
                     <Image x:Name="LogoImage"
                            Source="pack://application:,,,/BimboPesaje;component/Resources/bimbo_no_bg.png"
-                           Width="140" Height="140" Stretch="Uniform" Margin="0,0,0,28"/>
+                           Width="200" Height="200" Stretch="Uniform" Margin="0,0,0,28"
+                           RenderOptions.BitmapScalingMode="HighQuality"
+                           SnapsToDevicePixels="True"/>
                     <TextBlock Text="Portal Interno"
                                FontFamily="Segoe UI" FontSize="22" FontWeight="Bold"
                                Foreground="White" TextAlignment="Center" Margin="0,0,0,10"/>
