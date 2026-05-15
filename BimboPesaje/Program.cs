@@ -1,4 +1,5 @@
 using BimboPesaje.Formularios.InicioSesion;
+using BimboPesaje.Formularios.MenuPrincipal;
 using CapaServicios;
 using ServicioConexión.Conexion;
 
@@ -49,7 +50,10 @@ namespace BimboPesaje
             if (login.ShowDialog() != DialogResult.OK)
                 return;
 
-            Application.Run(new MenuPrincipal());
+            // Cargar perfil completo del usuario para el menú principal
+            Task.Run(async () => await ServicioPerfilUsuario.CargarAsync()).GetAwaiter().GetResult();
+
+            Application.Run(new FrmMenuPrincipal());
         }
     }
 }
