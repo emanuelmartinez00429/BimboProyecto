@@ -1,10 +1,12 @@
 using CapaServicios;
-using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Animation;
 using System.Windows.Media;
 using WinForms = System.Windows.Forms;
+using WpfColor = System.Windows.Media.Color;
+using WpfColorConverter = System.Windows.Media.ColorConverter;
+using WpfBrushes = System.Windows.Media.Brushes;
 
 namespace BimboPesaje.Formularios.MenuPrincipal
 {
@@ -30,14 +32,15 @@ namespace BimboPesaje.Formularios.MenuPrincipal
 
         private const double SidebarExpanded  = 226;
         private const double SidebarCollapsed = 72;
-        private const int    SubItemHeight    = 48; // px por sub-item
+        private const int    SubItemHeight    = 48;
 
-        // Map: moduleId → (subMenuBorder, chevronRotate, indicadorBorder, labels[])
+        // Map: moduleId → (subMenuBorder, chevronRotate, indicadorBorder, expandedView, collapsedIcon)
         private record ModuleEntry(
-            Border SubMenu,
+            Border          SubMenu,
             RotateTransform Chevron,
-            Border Indicator,
-            System.Windows.Controls.TextBlock[] Labels);
+            Border          Indicator,
+            FrameworkElement ExpandedView,
+            UIElement        CollapsedIcon);
 
         private Dictionary<string, ModuleEntry> _moduleMap = new();
 
@@ -56,21 +59,21 @@ namespace BimboPesaje.Formularios.MenuPrincipal
 
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
-            // Registrar módulos
-            _moduleMap["usuarios"]   = new(SubUsuarios,  ChevronUsuariosRot,  IndUsuarios,  new[] { LblUsuarios  });
-            _moduleMap["productos"]  = new(SubProductos, ChevronProductosRot, IndProductos, new[] { LblProductos });
-            _moduleMap["pesajes"]    = new(SubPesajes,   ChevronPesajesRot,   IndPesajes,   new[] { LblPesajes   });
+            // Registrar módulos (expandedView = DockPanel, collapsedIcon = TextBlock centrado)
+            _moduleMap["usuarios"]  = new(SubUsuarios,  ChevUsuariosRot,  IndUsuarios,  ExpUsuarios,  IcoUsuarios);
+            _moduleMap["productos"] = new(SubProductos, ChevProductosRot, IndProductos, ExpProductos, IcoProductos);
+            _moduleMap["pesajes"]   = new(SubPesajes,   ChevPesajesRot,   IndPesajes,   ExpPesajes,   IcoPesajes);
 
             // Registrar sub-items
-            _subMap["empleados"]       = new(DotEmpleados,       LblEmpleados,       "usuarios");
-            _subMap["usuarios-sub"]    = new(DotUsuariosSub,     LblUsuariosSub,     "usuarios");
-            _subMap["roles"]           = new(DotRoles,           LblRoles,           "usuarios");
-            _subMap["bitacora"]        = new(DotBitacora,        LblBitacora,        "usuarios");
-            _subMap["prod-productos"]  = new(DotProdProductos,   LblProdProductos,   "productos");
-            _subMap["prod-proveedores"]= new(DotProdProveedores, LblProdProveedores, "productos");
-            _subMap["prod-fabricantes"]= new(DotProdFabricantes, LblProdFabricantes, "productos");
-            _subMap["prod-categorias"] = new(DotProdCategorias,  LblProdCategorias,  "productos");
-            _subMap["pes-movs"]        = new(DotPesMov,          LblPesMov,          "pesajes");
+            _subMap["empleados"]        = new(DotEmpleados,       LblEmpleados,       "usuarios");
+            _subMap["usuarios-sub"]     = new(DotUsuariosSub,     LblUsuariosSub,     "usuarios");
+            _subMap["roles"]            = new(DotRoles,           LblRoles,           "usuarios");
+            _subMap["bitacora"]         = new(DotBitacora,        LblBitacora,        "usuarios");
+            _subMap["prod-productos"]   = new(DotProdProductos,   LblProdProductos,   "productos");
+            _subMap["prod-proveedores"] = new(DotProdProveedores, LblProdProveedores, "productos");
+            _subMap["prod-fabricantes"] = new(DotProdFabricantes, LblProdFabricantes, "productos");
+            _subMap["prod-categorias"]  = new(DotProdCategorias,  LblProdCategorias,  "productos");
+            _subMap["pes-movs"]         = new(DotPesMov,          LblPesMov,          "pesajes");
 
             CargarPerfil();
         }
@@ -97,10 +100,10 @@ namespace BimboPesaje.Formularios.MenuPrincipal
             DragMoveRequested?.Invoke();
         }
 
-        private void BtnMinimize_Click(object sender, RoutedEventArgs e)  => MinimizeRequested?.Invoke();
-        private void BtnMaximize_Click(object sender, RoutedEventArgs e)  => MaximizeRequested?.Invoke();
-        private void BtnClose_Click(object sender, RoutedEventArgs e)     => CloseRequested?.Invoke();
-        private void BtnLogout_Click(object sender, RoutedEventArgs e)    => LogoutRequested?.Invoke();
+        private void BtnMinimize_Click(object sender, RoutedEventArgs e) => MinimizeRequested?.Invoke();
+        private void BtnMaximize_Click(object sender, RoutedEventArgs e) => MaximizeRequested?.Invoke();
+        private void BtnClose_Click(object sender, RoutedEventArgs e)    => CloseRequested?.Invoke();
+        private void BtnLogout_Click(object sender, RoutedEventArgs e)   => LogoutRequested?.Invoke();
 
         // ══════════════════════════════════════════════════════════════
         //  HAMBURGER: animar sidebar
@@ -115,28 +118,29 @@ namespace BimboPesaje.Formularios.MenuPrincipal
         {
             _collapsed = true;
 
-            // Cerrar todos los submenús abiertos
+            // Cerrar todos los submenús
             foreach (var entry in _moduleMap.Values)
                 AnimateSubMenu(entry.SubMenu, false, 0);
 
-            // Animar ancho sidebar
+            // Animar ancho sidebar (la columna del topbar sigue automáticamente con Width="Auto")
             AnimateWidth(Sidebar, SidebarCollapsed, 200);
-            // Sincronizar columna del topbar
-            AnimateColumnWidth(TopLeftCol, SidebarCollapsed, 200);
 
-            // Ocultar etiquetas de módulos y nav label
-            NavLabel.Visibility         = Visibility.Collapsed;
-            HomeButtonContainer.Visibility = Visibility.Collapsed;
-            UserCardButton.Visibility   = Visibility.Collapsed;
-            CompactUserCard.Visibility  = Visibility.Visible;
-
+            // Ocultar vistas expandidas, mostrar íconos centrados
             foreach (var entry in _moduleMap.Values)
             {
-                foreach (var lbl in entry.Labels) lbl.Visibility = Visibility.Collapsed;
+                entry.ExpandedView.Visibility  = Visibility.Collapsed;
+                entry.CollapsedIcon.Visibility = Visibility.Visible;
                 entry.Chevron.Angle = 0;
             }
-            LblReporteria.Visibility = Visibility.Collapsed;
-            LogoContainer.Visibility = Visibility.Collapsed;
+            // Reportería (módulo directo, sin submenú)
+            ExpReporteria.Visibility = Visibility.Collapsed;
+            IcoReporteria.Visibility = Visibility.Visible;
+
+            NavLabel.Visibility             = Visibility.Collapsed;
+            HomeButtonContainer.Visibility  = Visibility.Collapsed;
+            UserCardButton.Visibility       = Visibility.Collapsed;
+            CompactUserCard.Visibility      = Visibility.Visible;
+            LogoContainer.Visibility        = Visibility.Collapsed;
         }
 
         private void ExpandSidebar()
@@ -144,18 +148,21 @@ namespace BimboPesaje.Formularios.MenuPrincipal
             _collapsed = false;
 
             AnimateWidth(Sidebar, SidebarExpanded, 200);
-            AnimateColumnWidth(TopLeftCol, SidebarExpanded, 200);
 
-            NavLabel.Visibility         = Visibility.Visible;
-            HomeButtonContainer.Visibility = Visibility.Visible;
-            UserCardButton.Visibility   = Visibility.Visible;
-            CompactUserCard.Visibility  = Visibility.Collapsed;
-
+            // Mostrar vistas expandidas, ocultar íconos centrados
             foreach (var entry in _moduleMap.Values)
-                foreach (var lbl in entry.Labels) lbl.Visibility = Visibility.Visible;
+            {
+                entry.ExpandedView.Visibility  = Visibility.Visible;
+                entry.CollapsedIcon.Visibility = Visibility.Collapsed;
+            }
+            ExpReporteria.Visibility = Visibility.Visible;
+            IcoReporteria.Visibility = Visibility.Collapsed;
 
-            LblReporteria.Visibility = Visibility.Visible;
-            LogoContainer.Visibility = Visibility.Visible;
+            NavLabel.Visibility             = Visibility.Visible;
+            HomeButtonContainer.Visibility  = Visibility.Visible;
+            UserCardButton.Visibility       = Visibility.Visible;
+            CompactUserCard.Visibility      = Visibility.Collapsed;
+            LogoContainer.Visibility        = Visibility.Visible;
 
             // Re-abrir módulo activo si había uno
             if (!string.IsNullOrEmpty(_activeModuleId) && _moduleMap.TryGetValue(_activeModuleId, out var active))
@@ -181,7 +188,6 @@ namespace BimboPesaje.Formularios.MenuPrincipal
                 return;
             }
 
-            // Si está abierto, lo cierra; si no, cierra los demás y abre éste
             bool isOpen = _activeModuleId == id && GetCurrentSubMenuHeight(id) > 0;
             CloseAllModules();
             if (!isOpen) OpenModule(id);
@@ -215,8 +221,8 @@ namespace BimboPesaje.Formularios.MenuPrincipal
             string id = (string)btn.Tag;
 
             ClearActiveStates();
-            _activeModuleId = id;
-            _activeSubId    = id;
+            _activeModuleId          = id;
+            _activeSubId             = id;
             IndReporteria.Visibility = Visibility.Visible;
 
             ShowWinFormsContent();
@@ -238,27 +244,25 @@ namespace BimboPesaje.Formularios.MenuPrincipal
             var btn = (System.Windows.Controls.Button)sender;
             string subId = (string)btn.Tag;
 
-            // Limpiar estado anterior de sub-items
             foreach (var kv in _subMap)
             {
-                kv.Value.Dot.Visibility = Visibility.Collapsed;
+                kv.Value.Dot.Visibility   = Visibility.Collapsed;
                 kv.Value.Label.FontWeight = FontWeights.Normal;
-                kv.Value.Label.Foreground = new System.Windows.Media.SolidColorBrush(
-                    (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#D9FFFFFF"));
+                kv.Value.Label.Foreground = new SolidColorBrush(
+                    (WpfColor)WpfColorConverter.ConvertFromString("#D9FFFFFF"));
             }
-            // Limpiar indicadores de módulos
             foreach (var kv in _moduleMap)
                 kv.Value.Indicator.Visibility = Visibility.Collapsed;
 
-            _activeSubId = subId;
+            _activeSubId   = subId;
             _showingMyUser = false;
 
             if (_subMap.TryGetValue(subId, out var sub))
             {
-                sub.Dot.Visibility = Visibility.Visible;
+                sub.Dot.Visibility   = Visibility.Visible;
                 sub.Label.FontWeight = FontWeights.SemiBold;
-                sub.Label.Foreground = new System.Windows.Media.SolidColorBrush(
-                    (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#6EE7B7"));
+                sub.Label.Foreground = new SolidColorBrush(
+                    (WpfColor)WpfColorConverter.ConvertFromString("#6EE7B7"));
                 _activeModuleId = sub.ParentModule;
                 if (_moduleMap.TryGetValue(sub.ParentModule, out var parentEntry))
                     parentEntry.Indicator.Visibility = Visibility.Visible;
@@ -276,14 +280,13 @@ namespace BimboPesaje.Formularios.MenuPrincipal
             ClearActiveStates();
             _showingMyUser = true;
 
-            var miUsuario = new UcMiUsuario();
-            WpfContent.Content  = miUsuario;
+            WpfContent.Content    = new UcMiUsuario();
             WpfContent.Visibility = Visibility.Visible;
-            WfHost.Visibility   = Visibility.Collapsed;
+            WfHost.Visibility     = Visibility.Collapsed;
         }
 
         // ══════════════════════════════════════════════════════════════
-        //  Panel WinForms (center content)
+        //  Panel WinForms (centro)
         // ══════════════════════════════════════════════════════════════
         public void SetContentPanel(WinForms.Panel panel)
         {
@@ -292,49 +295,39 @@ namespace BimboPesaje.Formularios.MenuPrincipal
 
         private void ShowWinFormsContent()
         {
-            _showingMyUser = false;
-            WfHost.Visibility   = Visibility.Visible;
+            _showingMyUser        = false;
+            WfHost.Visibility     = Visibility.Visible;
             WpfContent.Visibility = Visibility.Collapsed;
-            WpfContent.Content  = null;
+            WpfContent.Content    = null;
         }
 
         private void ClearActiveStates()
         {
             foreach (var kv in _subMap)
             {
-                kv.Value.Dot.Visibility = Visibility.Collapsed;
+                kv.Value.Dot.Visibility   = Visibility.Collapsed;
                 kv.Value.Label.FontWeight = FontWeights.Normal;
-                kv.Value.Label.Foreground = new System.Windows.Media.SolidColorBrush(
-                    (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#D9FFFFFF"));
+                kv.Value.Label.Foreground = new SolidColorBrush(
+                    (WpfColor)WpfColorConverter.ConvertFromString("#D9FFFFFF"));
             }
             foreach (var kv in _moduleMap)
                 kv.Value.Indicator.Visibility = Visibility.Collapsed;
+
             IndReporteria.Visibility = Visibility.Collapsed;
-            _activeSubId    = "";
-            _showingMyUser  = false;
+            _activeSubId             = "";
+            _showingMyUser           = false;
         }
 
         // ══════════════════════════════════════════════════════════════
         //  Animaciones
         // ══════════════════════════════════════════════════════════════
-        private static void AnimateWidth(System.Windows.FrameworkElement target, double to, int ms)
+        private static void AnimateWidth(FrameworkElement target, double to, int ms)
         {
             var anim = new DoubleAnimation(to, TimeSpan.FromMilliseconds(ms))
             {
                 EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
             };
-            target.BeginAnimation(System.Windows.FrameworkElement.WidthProperty, anim);
-        }
-
-        private static void AnimateColumnWidth(ColumnDefinition col, double to, int ms)
-        {
-            var anim = new GridLengthAnimation
-            {
-                To       = new GridLength(to),
-                Duration = TimeSpan.FromMilliseconds(ms),
-                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
-            };
-            col.BeginAnimation(ColumnDefinition.WidthProperty, anim);
+            target.BeginAnimation(FrameworkElement.WidthProperty, anim);
         }
 
         private static void AnimateSubMenu(Border border, bool open, int itemCount)
@@ -376,44 +369,18 @@ namespace BimboPesaje.Formularios.MenuPrincipal
 
         private void TxtSearch_GotFocus(object sender, RoutedEventArgs e)
         {
-            SearchBorder.Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Colors.White);
+            SearchBorder.Background   = new SolidColorBrush(WpfColor.FromRgb(255, 255, 255));
             SearchBorder.CornerRadius = new CornerRadius(12, 12, 0, 0);
-            if (TxtSearch.Foreground is System.Windows.Media.SolidColorBrush)
-                TxtSearch.Foreground = new System.Windows.Media.SolidColorBrush(
-                    (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#1A1F2E"));
+            if (TxtSearch.Foreground is SolidColorBrush)
+                TxtSearch.Foreground = new SolidColorBrush(
+                    (WpfColor)WpfColorConverter.ConvertFromString("#1A1F2E"));
         }
 
         private void TxtSearch_LostFocus(object sender, RoutedEventArgs e)
         {
-            SearchBorder.Background = new System.Windows.Media.SolidColorBrush(
-                System.Windows.Media.Color.FromArgb(0x1F, 0xFF, 0xFF, 0xFF));
+            SearchBorder.Background   = new SolidColorBrush(WpfColor.FromArgb(0x1F, 0xFF, 0xFF, 0xFF));
             SearchBorder.CornerRadius = new CornerRadius(22);
-            TxtSearch.Foreground = System.Windows.Media.Brushes.White;
-        }
-    }
-
-    // ══════════════════════════════════════════════════════════════
-    //  GridLengthAnimation helper (para animar ColumnDefinition.Width)
-    // ══════════════════════════════════════════════════════════════
-    public class GridLengthAnimation : AnimationTimeline
-    {
-        public GridLength To { get; set; }
-
-        public IEasingFunction? EasingFunction { get; set; }
-
-        public override Type TargetPropertyType => typeof(GridLength);
-
-        protected override System.Windows.Freezable CreateInstanceCore() => new GridLengthAnimation();
-
-        public override object GetCurrentValue(object defaultOriginValue, object defaultDestinationValue, AnimationClock animationClock)
-        {
-            double progress = animationClock.CurrentProgress ?? 0;
-            if (EasingFunction != null)
-                progress = EasingFunction.Ease(progress);
-
-            double from = ((GridLength)defaultOriginValue).Value;
-            double to   = To.Value;
-            return new GridLength(from + (to - from) * progress);
+            TxtSearch.Foreground      = WpfBrushes.White;
         }
     }
 }

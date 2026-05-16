@@ -1,7 +1,6 @@
 <UserControl x:Class="BimboPesaje.Formularios.MenuPrincipal.UcMenuShell"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:wf="clr-namespace:System.Windows.Forms;assembly=System.Windows.Forms"
              xmlns:wfi="clr-namespace:System.Windows.Forms.Integration;assembly=WindowsFormsIntegration">
 
     <UserControl.Resources>
@@ -18,199 +17,160 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- ══════════════════════════════════════════
-             TOP BAR
-        ══════════════════════════════════════════ -->
+        <!-- ══════ TOP BAR ══════ -->
         <Border Grid.Row="0"
                 Background="{StaticResource TopBarBrush}"
                 MouseLeftButtonDown="TopBar_MouseLeftButtonDown">
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <!-- Col0: hamburger + logo, sincronizado con sidebar -->
-                    <ColumnDefinition x:Name="TopLeftCol" Width="226"/>
-                    <!-- Col1: search -->
+                    <!-- Bug fix: Width="Auto" → sigue el ancho del sidebar automáticamente -->
+                    <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
-                    <!-- Col2: acciones derecha -->
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <!-- Hamburger + Logo -->
+                <!-- Hamburger + Logo (se sincroniza con sidebar por Width="Auto") -->
                 <Border Grid.Column="0"
                         BorderBrush="#2DFFFFFF" BorderThickness="0,0,1,0">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
 
-                        <Button Grid.Column="0"
-                                Style="{StaticResource TopBarIconButton}"
+                        <!-- Hamburger: siempre visible, TextBlock Segoe MDL2 (confiable) -->
+                        <Button Style="{StaticResource TopBarIconButton}"
                                 Margin="8,0,4,0"
                                 Click="BtnHamburger_Click"
-                                ToolTip="Colapsar menú">
-                            <Path Data="{StaticResource MenuIcon}"
-                                  Stroke="White" StrokeThickness="1.8"
-                                  StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                                  Width="20" Height="20" Stretch="Uniform"/>
+                                ToolTip="Colapsar / expandir menú">
+                            <TextBlock Text="&#xE700;"
+                                       FontFamily="Segoe MDL2 Assets" FontSize="18"
+                                       Foreground="White"
+                                       VerticalAlignment="Center" HorizontalAlignment="Center"/>
                         </Button>
 
-                        <!-- Logo (se oculta al colapsar sidebar) -->
+                        <!-- Logo (se oculta al colapsar) -->
                         <Border x:Name="LogoContainer"
-                                Grid.Column="1"
                                 Background="White" CornerRadius="8"
-                                Padding="8,4"
-                                HorizontalAlignment="Center" VerticalAlignment="Center"
-                                Visibility="Visible">
+                                Padding="8,4" Margin="4,0,12,0"
+                                VerticalAlignment="Center">
                             <Border.Effect>
-                                <DropShadowEffect Color="Black" BlurRadius="6" ShadowDepth="1" Opacity="0.15"/>
+                                <DropShadowEffect Color="Black" BlurRadius="6" ShadowDepth="1" Opacity="0.12"/>
                             </Border.Effect>
                             <Image x:Name="TopLogoImage"
                                    Source="pack://application:,,,/BimboPesaje;component/Resources/bimbo_no_bg.png"
                                    Height="32" Stretch="Uniform"
                                    RenderOptions.BitmapScalingMode="HighQuality"/>
                         </Border>
-                    </Grid>
+                    </StackPanel>
                 </Border>
 
-                <!-- Search Box -->
-                <Grid Grid.Column="1" VerticalAlignment="Center" Margin="24,0">
-                    <Border x:Name="SearchBorder"
-                            Background="#1FFFFFFF"
-                            BorderBrush="#14FFFFFF" BorderThickness="1"
-                            CornerRadius="22" Padding="14,9">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <Path Grid.Column="0"
-                                  Data="{StaticResource SearchIcon}"
-                                  Stroke="#D9FFFFFF" StrokeThickness="1.8"
-                                  StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                                  Width="16" Height="16" Stretch="Uniform"
-                                  Margin="0,0,10,0"/>
-                            <TextBox x:Name="TxtSearch"
-                                     Grid.Column="1"
-                                     Background="Transparent"
-                                     BorderThickness="0"
-                                     Foreground="White"
-                                     CaretBrush="White"
-                                     FontFamily="Segoe UI" FontSize="14"
-                                     VerticalAlignment="Center"
-                                     Text=""
-                                     GotFocus="TxtSearch_GotFocus"
-                                     LostFocus="TxtSearch_LostFocus">
-                                <TextBox.Style>
-                                    <Style TargetType="TextBox">
-                                        <Setter Property="Template">
-                                            <Setter.Value>
-                                                <ControlTemplate TargetType="TextBox">
-                                                    <Grid>
-                                                        <TextBlock x:Name="Placeholder"
-                                                                   Text="Buscar módulo o ajuste…"
-                                                                   Foreground="#AAFFFFFF"
-                                                                   FontFamily="Segoe UI" FontSize="14"
-                                                                   VerticalAlignment="Center"
-                                                                   IsHitTestVisible="False"/>
-                                                        <ScrollViewer x:Name="PART_ContentHost" VerticalAlignment="Center"/>
-                                                    </Grid>
-                                                    <ControlTemplate.Triggers>
-                                                        <Trigger Property="Text" Value="">
-                                                            <Setter TargetName="Placeholder" Property="Visibility" Value="Visible"/>
-                                                        </Trigger>
-                                                        <Trigger Property="Text" Value="{x:Null}">
-                                                            <Setter TargetName="Placeholder" Property="Visibility" Value="Visible"/>
-                                                        </Trigger>
-                                                        <MultiTrigger>
-                                                            <MultiTrigger.Conditions>
-                                                                <Condition Property="Text" Value=""/>
-                                                                <Condition Property="IsFocused" Value="False"/>
-                                                            </MultiTrigger.Conditions>
-                                                            <Setter TargetName="Placeholder" Property="Visibility" Value="Visible"/>
-                                                        </MultiTrigger>
-                                                    </ControlTemplate.Triggers>
-                                                </ControlTemplate>
-                                            </Setter.Value>
-                                        </Setter>
-                                    </Style>
-                                </TextBox.Style>
-                            </TextBox>
-                            <Border Grid.Column="2"
-                                    Background="#26FFFFFF" BorderBrush="#33FFFFFF" BorderThickness="1"
-                                    CornerRadius="4" Padding="5,1">
-                                <TextBlock Text="Ctrl K"
-                                           FontFamily="Consolas" FontSize="10"
-                                           Foreground="#CCFFFFFF" VerticalAlignment="Center"/>
-                            </Border>
-                        </Grid>
-                    </Border>
-                </Grid>
+                <!-- Search -->
+                <Border Grid.Column="1"
+                        x:Name="SearchBorder"
+                        Background="#1FFFFFFF"
+                        BorderBrush="#14FFFFFF" BorderThickness="1"
+                        CornerRadius="22"
+                        Margin="24,10,24,10"
+                        VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal" Margin="14,8">
+                        <TextBlock Text="&#xE721;"
+                                   FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                   Foreground="#AAFFFFFF"
+                                   VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <TextBox x:Name="TxtSearch"
+                                 Background="Transparent" BorderThickness="0"
+                                 Foreground="White" CaretBrush="White"
+                                 FontFamily="Segoe UI" FontSize="14"
+                                 VerticalAlignment="Center" MinWidth="200"
+                                 GotFocus="TxtSearch_GotFocus"
+                                 LostFocus="TxtSearch_LostFocus">
+                            <TextBox.Style>
+                                <Style TargetType="TextBox">
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="TextBox">
+                                                <Grid>
+                                                    <TextBlock x:Name="Ph" Text="Buscar módulo…"
+                                                               Foreground="#88FFFFFF"
+                                                               FontFamily="Segoe UI" FontSize="14"
+                                                               VerticalAlignment="Center"
+                                                               IsHitTestVisible="False"/>
+                                                    <ScrollViewer x:Name="PART_ContentHost" VerticalAlignment="Center"/>
+                                                </Grid>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="Text" Value="">
+                                                        <Setter TargetName="Ph" Property="Visibility" Value="Visible"/>
+                                                    </Trigger>
+                                                    <Trigger Property="IsFocused" Value="True">
+                                                        <Setter TargetName="Ph" Property="Visibility" Value="Hidden"/>
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </TextBox.Style>
+                        </TextBox>
+                        <Border Background="#26FFFFFF" BorderBrush="#33FFFFFF" BorderThickness="1"
+                                CornerRadius="4" Padding="5,1" Margin="8,0,0,0">
+                            <TextBlock Text="Ctrl K" FontFamily="Consolas" FontSize="10"
+                                       Foreground="#CCFFFFFF" VerticalAlignment="Center"/>
+                        </Border>
+                    </StackPanel>
+                </Border>
 
                 <!-- Acciones derecha -->
                 <StackPanel Grid.Column="2" Orientation="Horizontal"
                             VerticalAlignment="Center" Margin="0,0,12,0">
 
-                    <!-- Bell -->
+                    <!-- Bell con badge -->
                     <Grid>
                         <Button Style="{StaticResource TopBarIconButton}" ToolTip="Notificaciones">
-                            <Path Data="{StaticResource BellIcon}"
-                                  Stroke="White" StrokeThickness="1.9"
-                                  StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                                  Width="20" Height="20" Stretch="Uniform"/>
+                            <TextBlock Text="&#xEA8F;" FontFamily="Segoe MDL2 Assets" FontSize="18"
+                                       Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Button>
-                        <!-- Badge -->
                         <Border Background="#EF4444" CornerRadius="7"
-                                MinWidth="14" Height="14"
-                                HorizontalAlignment="Right" VerticalAlignment="Top"
-                                Margin="0,4,4,0" Padding="3,0"
+                                MinWidth="14" Height="14" Padding="3,0"
+                                HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,4,4,0"
                                 BorderBrush="{StaticResource TopBarBrush}" BorderThickness="1.5">
-                            <TextBlock Text="3" Foreground="White"
-                                       FontSize="9" FontWeight="Bold"
+                            <TextBlock Text="3" Foreground="White" FontSize="9" FontWeight="Bold"
                                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                     </Grid>
 
                     <!-- Settings -->
                     <Button Style="{StaticResource TopBarIconButton}" ToolTip="Configuración">
-                        <Path Data="{StaticResource SettingsIcon}"
-                              Stroke="White" StrokeThickness="1.5"
-                              StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                              Width="18" Height="18" Stretch="Uniform"/>
+                        <TextBlock Text="&#xE713;" FontFamily="Segoe MDL2 Assets" FontSize="18"
+                                   Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Button>
 
                     <!-- Separador -->
-                    <Border Width="1" Height="24" Background="#26FFFFFF" Margin="8,0"/>
+                    <Border Width="1" Height="24" Background="#26FFFFFF" Margin="6,0"/>
 
-                    <!-- Min / Max / Close (chrome) -->
-                    <Button Style="{StaticResource TopBarIconButton}"
-                            ToolTip="Minimizar" Click="BtnMinimize_Click">
-                        <TextBlock Text="&#x2014;" FontSize="11" Foreground="White"/>
+                    <!-- Chrome: Minimize / Maximize / Close -->
+                    <Button Style="{StaticResource TopBarIconButton}" ToolTip="Minimizar"
+                            Click="BtnMinimize_Click">
+                        <TextBlock Text="&#xE921;" FontFamily="Segoe MDL2 Assets" FontSize="10"
+                                   Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Button>
-                    <Button Style="{StaticResource TopBarIconButton}"
-                            ToolTip="Maximizar/Restaurar" Click="BtnMaximize_Click">
-                        <TextBlock x:Name="MaxIcon" Text="&#x26F6;" FontSize="10" Foreground="White"/>
+                    <Button Style="{StaticResource TopBarIconButton}" ToolTip="Maximizar / Restaurar"
+                            Click="BtnMaximize_Click">
+                        <TextBlock x:Name="MaxIcon" Text="&#xE922;" FontFamily="Segoe MDL2 Assets" FontSize="10"
+                                   Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Button>
-                    <Button Style="{StaticResource TopBarIconButton}"
-                            ToolTip="Cerrar" Click="BtnClose_Click">
-                        <TextBlock Text="&#x2715;" FontSize="11" Foreground="White"/>
+                    <Button Style="{StaticResource TopBarIconButton}" ToolTip="Cerrar"
+                            Click="BtnClose_Click">
+                        <TextBlock Text="&#xE8BB;" FontFamily="Segoe MDL2 Assets" FontSize="11"
+                                   Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Button>
 
                     <!-- Separador -->
-                    <Border Width="1" Height="24" Background="#26FFFFFF" Margin="8,0"/>
+                    <Border Width="1" Height="24" Background="#26FFFFFF" Margin="6,0"/>
 
-                    <!-- Cerrar sesión -->
-                    <Button Style="{StaticResource LogoutButton}"
-                            Click="BtnLogout_Click" Margin="8,0,0,0">
+                    <!-- Logout -->
+                    <Button Style="{StaticResource LogoutButton}" Click="BtnLogout_Click" Margin="6,0,0,0">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                            <Path Data="{StaticResource LogoutIcon}"
-                                  Stroke="{Binding RelativeSource={RelativeSource AncestorType=Button}, Path=Foreground}"
-                                  StrokeThickness="1.6"
-                                  StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                                  Width="15" Height="15" Stretch="Uniform"
-                                  Margin="0,0,6,0"/>
-                            <TextBlock Text="Cerrar sesión"
-                                       FontFamily="Segoe UI" FontSize="13" FontWeight="SemiBold"
+                            <TextBlock Text="&#xF3B1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                       Foreground="{Binding RelativeSource={RelativeSource AncestorType=Button}, Path=Foreground}"
+                                       VerticalAlignment="Center" Margin="0,0,6,0"/>
+                            <TextBlock Text="Cerrar sesión" FontFamily="Segoe UI" FontSize="13" FontWeight="SemiBold"
                                        Foreground="{Binding RelativeSource={RelativeSource AncestorType=Button}, Path=Foreground}"/>
                         </StackPanel>
                     </Button>
@@ -218,9 +178,7 @@
             </Grid>
         </Border>
 
-        <!-- ══════════════════════════════════════════
-             BODY: SIDEBAR + CONTENIDO
-        ══════════════════════════════════════════ -->
+        <!-- ══════ BODY ══════ -->
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
@@ -228,8 +186,7 @@
             </Grid.ColumnDefinitions>
 
             <!-- ══════ SIDEBAR ══════ -->
-            <Border x:Name="Sidebar"
-                    Grid.Column="0"
+            <Border x:Name="Sidebar" Grid.Column="0"
                     Width="226"
                     Background="{StaticResource SidebarGradient}"
                     ClipToBounds="True">
@@ -240,77 +197,68 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
-                    <!-- Sección label "NAVEGACIÓN" -->
-                    <TextBlock x:Name="NavLabel"
-                               Grid.Row="0"
+                    <!-- "NAVEGACIÓN" label -->
+                    <TextBlock x:Name="NavLabel" Grid.Row="0"
                                Text="NAVEGACIÓN"
                                Foreground="#80FFFFFF"
                                FontFamily="Segoe UI" FontSize="10" FontWeight="Bold"
-                              
-                               Margin="16,20,16,10"
-                               Visibility="Visible"/>
+                               Margin="16,20,16,10"/>
 
                     <!-- Módulos -->
                     <ScrollViewer Grid.Row="1"
-                                  Style="{StaticResource HiddenScrollViewer}"
-                                  VerticalScrollBarVisibility="Auto">
-                        <StackPanel x:Name="NavPanel">
+                                  VerticalScrollBarVisibility="Auto"
+                                  HorizontalScrollBarVisibility="Hidden">
+                        <StackPanel>
 
                             <!-- ── USUARIOS ── -->
                             <StackPanel>
-                                <Button x:Name="BtnUsuarios"
+                                <Button x:Name="BtnUsuarios" Tag="usuarios"
                                         Style="{StaticResource SidebarModuleButton}"
-                                        Click="BtnModulo_Click" Tag="usuarios">
+                                        Click="BtnModulo_Click">
                                     <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="20"/>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                        </Grid.ColumnDefinitions>
                                         <!-- Indicador activo -->
                                         <Border x:Name="IndUsuarios"
-                                                Grid.Column="0" Grid.ColumnSpan="3"
-                                                HorizontalAlignment="Left"
-                                                Width="3" Margin="-12,8,0,8"
+                                                Width="3" HorizontalAlignment="Left"
+                                                Margin="-12,0,0,0"
                                                 Background="{StaticResource AccentGreen}"
                                                 CornerRadius="0,2,2,0"
                                                 Visibility="Collapsed"/>
-                                        <Path Grid.Column="0"
-                                              Data="{StaticResource UsersIcon}"
-                                              Stroke="White" StrokeThickness="1.6"
-                                              StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                                              Width="20" Height="20" Stretch="Uniform"/>
-                                        <TextBlock x:Name="LblUsuarios"
-                                                   Grid.Column="1"
-                                                   Text="Usuarios"
+                                        <!-- Estado expandido (icono + label + chevron) -->
+                                        <DockPanel x:Name="ExpUsuarios" HorizontalAlignment="Stretch">
+                                            <TextBlock DockPanel.Dock="Left"
+                                                       Text="&#xE716;" FontFamily="Segoe MDL2 Assets" FontSize="16"
+                                                       Foreground="White" VerticalAlignment="Center"/>
+                                            <TextBlock x:Name="ChevUsuarios" DockPanel.Dock="Right"
+                                                       Text="&#xE70D;" FontFamily="Segoe MDL2 Assets" FontSize="10"
+                                                       Foreground="#B3FFFFFF" VerticalAlignment="Center"
+                                                       HorizontalAlignment="Right"
+                                                       RenderTransformOrigin="0.5,0.5">
+                                                <TextBlock.RenderTransform>
+                                                    <RotateTransform x:Name="ChevUsuariosRot" Angle="0"/>
+                                                </TextBlock.RenderTransform>
+                                            </TextBlock>
+                                            <TextBlock x:Name="LblUsuarios" DockPanel.Dock="Left"
+                                                       Text="Usuarios" Foreground="White"
+                                                       FontFamily="Segoe UI" FontSize="14" FontWeight="Medium"
+                                                       VerticalAlignment="Center" Margin="12,0,0,0"/>
+                                        </DockPanel>
+                                        <!-- Estado colapsado (solo icono centrado) -->
+                                        <TextBlock x:Name="IcoUsuarios"
+                                                   Text="&#xE716;" FontFamily="Segoe MDL2 Assets" FontSize="16"
                                                    Foreground="White"
-                                                   FontFamily="Segoe UI" FontSize="14" FontWeight="Medium"
-                                                   Margin="12,0,0,0" VerticalAlignment="Center"/>
-                                        <Path x:Name="ChevronUsuarios"
-                                              Grid.Column="2"
-                                              Data="{StaticResource ChevronDownIcon}"
-                                              Stroke="#B3FFFFFF" StrokeThickness="2"
-                                              StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                                              Width="16" Height="16" Stretch="Uniform"
-                                              RenderTransformOrigin="0.5,0.5">
-                                            <Path.RenderTransform>
-                                                <RotateTransform x:Name="ChevronUsuariosRot" Angle="0"/>
-                                            </Path.RenderTransform>
-                                        </Path>
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                   Visibility="Collapsed"/>
                                     </Grid>
                                 </Button>
-                                <!-- Submenú Usuarios -->
-                                <Border x:Name="SubUsuarios"
-                                        MaxHeight="0" ClipToBounds="True"
+                                <Border x:Name="SubUsuarios" MaxHeight="0" ClipToBounds="True"
                                         Background="#2E000000">
-                                    <StackPanel Margin="0,4,0,4">
+                                    <StackPanel Margin="0,4">
                                         <Button Style="{StaticResource SidebarSubButton}" Tag="empleados"
                                                 Padding="48,10,16,10" Click="BtnSub_Click">
                                             <Grid>
-                                                <Border x:Name="DotEmpleados" Width="4" Height="4"
+                                                <Border x:Name="DotEmpleados" Width="4" Height="4" CornerRadius="2"
                                                         Background="{StaticResource AccentGreen}"
-                                                        CornerRadius="2" HorizontalAlignment="Left"
-                                                        Margin="-16,0,0,0" Visibility="Collapsed"/>
+                                                        HorizontalAlignment="Left" Margin="-16,0,0,0" Visibility="Collapsed"/>
                                                 <TextBlock x:Name="LblEmpleados" Text="Gestión de Empleados"
                                                            Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="13"/>
                                             </Grid>
@@ -318,10 +266,9 @@
                                         <Button Style="{StaticResource SidebarSubButton}" Tag="usuarios-sub"
                                                 Padding="48,10,16,10" Click="BtnSub_Click">
                                             <Grid>
-                                                <Border x:Name="DotUsuariosSub" Width="4" Height="4"
+                                                <Border x:Name="DotUsuariosSub" Width="4" Height="4" CornerRadius="2"
                                                         Background="{StaticResource AccentGreen}"
-                                                        CornerRadius="2" HorizontalAlignment="Left"
-                                                        Margin="-16,0,0,0" Visibility="Collapsed"/>
+                                                        HorizontalAlignment="Left" Margin="-16,0,0,0" Visibility="Collapsed"/>
                                                 <TextBlock x:Name="LblUsuariosSub" Text="Gestión de Usuarios"
                                                            Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="13"/>
                                             </Grid>
@@ -329,10 +276,9 @@
                                         <Button Style="{StaticResource SidebarSubButton}" Tag="roles"
                                                 Padding="48,10,16,10" Click="BtnSub_Click">
                                             <Grid>
-                                                <Border x:Name="DotRoles" Width="4" Height="4"
+                                                <Border x:Name="DotRoles" Width="4" Height="4" CornerRadius="2"
                                                         Background="{StaticResource AccentGreen}"
-                                                        CornerRadius="2" HorizontalAlignment="Left"
-                                                        Margin="-16,0,0,0" Visibility="Collapsed"/>
+                                                        HorizontalAlignment="Left" Margin="-16,0,0,0" Visibility="Collapsed"/>
                                                 <TextBlock x:Name="LblRoles" Text="Gestión de Roles"
                                                            Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="13"/>
                                             </Grid>
@@ -340,10 +286,9 @@
                                         <Button Style="{StaticResource SidebarSubButton}" Tag="bitacora"
                                                 Padding="48,10,16,10" Click="BtnSub_Click">
                                             <Grid>
-                                                <Border x:Name="DotBitacora" Width="4" Height="4"
+                                                <Border x:Name="DotBitacora" Width="4" Height="4" CornerRadius="2"
                                                         Background="{StaticResource AccentGreen}"
-                                                        CornerRadius="2" HorizontalAlignment="Left"
-                                                        Margin="-16,0,0,0" Visibility="Collapsed"/>
+                                                        HorizontalAlignment="Left" Margin="-16,0,0,0" Visibility="Collapsed"/>
                                                 <TextBlock x:Name="LblBitacora" Text="Bitácora"
                                                            Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="13"/>
                                             </Grid>
@@ -354,55 +299,47 @@
 
                             <!-- ── PRODUCTOS ── -->
                             <StackPanel>
-                                <Button x:Name="BtnProductos"
+                                <Button x:Name="BtnProductos" Tag="productos"
                                         Style="{StaticResource SidebarModuleButton}"
-                                        Click="BtnModulo_Click" Tag="productos">
+                                        Click="BtnModulo_Click">
                                     <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="20"/>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                        </Grid.ColumnDefinitions>
                                         <Border x:Name="IndProductos"
-                                                Grid.Column="0" Grid.ColumnSpan="3"
-                                                HorizontalAlignment="Left"
-                                                Width="3" Margin="-12,8,0,8"
+                                                Width="3" HorizontalAlignment="Left" Margin="-12,0,0,0"
                                                 Background="{StaticResource AccentGreen}"
-                                                CornerRadius="0,2,2,0"
-                                                Visibility="Collapsed"/>
-                                        <Path Grid.Column="0"
-                                              Data="{StaticResource BoxIcon}"
-                                              Stroke="White" StrokeThickness="1.6"
-                                              StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                                              Width="20" Height="20" Stretch="Uniform"/>
-                                        <TextBlock x:Name="LblProductos"
-                                                   Grid.Column="1"
-                                                   Text="Productos"
+                                                CornerRadius="0,2,2,0" Visibility="Collapsed"/>
+                                        <DockPanel x:Name="ExpProductos" HorizontalAlignment="Stretch">
+                                            <TextBlock DockPanel.Dock="Left"
+                                                       Text="&#xE7B8;" FontFamily="Segoe MDL2 Assets" FontSize="16"
+                                                       Foreground="White" VerticalAlignment="Center"/>
+                                            <TextBlock x:Name="ChevProductos" DockPanel.Dock="Right"
+                                                       Text="&#xE70D;" FontFamily="Segoe MDL2 Assets" FontSize="10"
+                                                       Foreground="#B3FFFFFF" VerticalAlignment="Center"
+                                                       HorizontalAlignment="Right"
+                                                       RenderTransformOrigin="0.5,0.5">
+                                                <TextBlock.RenderTransform>
+                                                    <RotateTransform x:Name="ChevProductosRot" Angle="0"/>
+                                                </TextBlock.RenderTransform>
+                                            </TextBlock>
+                                            <TextBlock x:Name="LblProductos" DockPanel.Dock="Left"
+                                                       Text="Productos" Foreground="White"
+                                                       FontFamily="Segoe UI" FontSize="14" FontWeight="Medium"
+                                                       VerticalAlignment="Center" Margin="12,0,0,0"/>
+                                        </DockPanel>
+                                        <TextBlock x:Name="IcoProductos"
+                                                   Text="&#xE7B8;" FontFamily="Segoe MDL2 Assets" FontSize="16"
                                                    Foreground="White"
-                                                   FontFamily="Segoe UI" FontSize="14" FontWeight="Medium"
-                                                   Margin="12,0,0,0" VerticalAlignment="Center"/>
-                                        <Path x:Name="ChevronProductos"
-                                              Grid.Column="2"
-                                              Data="{StaticResource ChevronDownIcon}"
-                                              Stroke="#B3FFFFFF" StrokeThickness="2"
-                                              StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                                              Width="16" Height="16" Stretch="Uniform"
-                                              RenderTransformOrigin="0.5,0.5">
-                                            <Path.RenderTransform>
-                                                <RotateTransform x:Name="ChevronProductosRot" Angle="0"/>
-                                            </Path.RenderTransform>
-                                        </Path>
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                   Visibility="Collapsed"/>
                                     </Grid>
                                 </Button>
-                                <Border x:Name="SubProductos"
-                                        MaxHeight="0" ClipToBounds="True"
+                                <Border x:Name="SubProductos" MaxHeight="0" ClipToBounds="True"
                                         Background="#2E000000">
-                                    <StackPanel Margin="0,4,0,4">
+                                    <StackPanel Margin="0,4">
                                         <Button Style="{StaticResource SidebarSubButton}" Tag="prod-productos"
                                                 Padding="48,10,16,10" Click="BtnSub_Click">
                                             <Grid>
-                                                <Border x:Name="DotProdProductos" Width="4" Height="4"
-                                                        Background="{StaticResource AccentGreen}" CornerRadius="2"
+                                                <Border x:Name="DotProdProductos" Width="4" Height="4" CornerRadius="2"
+                                                        Background="{StaticResource AccentGreen}"
                                                         HorizontalAlignment="Left" Margin="-16,0,0,0" Visibility="Collapsed"/>
                                                 <TextBlock x:Name="LblProdProductos" Text="Gestión de Productos"
                                                            Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="13"/>
@@ -411,8 +348,8 @@
                                         <Button Style="{StaticResource SidebarSubButton}" Tag="prod-proveedores"
                                                 Padding="48,10,16,10" Click="BtnSub_Click">
                                             <Grid>
-                                                <Border x:Name="DotProdProveedores" Width="4" Height="4"
-                                                        Background="{StaticResource AccentGreen}" CornerRadius="2"
+                                                <Border x:Name="DotProdProveedores" Width="4" Height="4" CornerRadius="2"
+                                                        Background="{StaticResource AccentGreen}"
                                                         HorizontalAlignment="Left" Margin="-16,0,0,0" Visibility="Collapsed"/>
                                                 <TextBlock x:Name="LblProdProveedores" Text="Gestión de Proveedores"
                                                            Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="13"/>
@@ -421,8 +358,8 @@
                                         <Button Style="{StaticResource SidebarSubButton}" Tag="prod-fabricantes"
                                                 Padding="48,10,16,10" Click="BtnSub_Click">
                                             <Grid>
-                                                <Border x:Name="DotProdFabricantes" Width="4" Height="4"
-                                                        Background="{StaticResource AccentGreen}" CornerRadius="2"
+                                                <Border x:Name="DotProdFabricantes" Width="4" Height="4" CornerRadius="2"
+                                                        Background="{StaticResource AccentGreen}"
                                                         HorizontalAlignment="Left" Margin="-16,0,0,0" Visibility="Collapsed"/>
                                                 <TextBlock x:Name="LblProdFabricantes" Text="Gestión de Fabricantes"
                                                            Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="13"/>
@@ -431,8 +368,8 @@
                                         <Button Style="{StaticResource SidebarSubButton}" Tag="prod-categorias"
                                                 Padding="48,10,16,10" Click="BtnSub_Click">
                                             <Grid>
-                                                <Border x:Name="DotProdCategorias" Width="4" Height="4"
-                                                        Background="{StaticResource AccentGreen}" CornerRadius="2"
+                                                <Border x:Name="DotProdCategorias" Width="4" Height="4" CornerRadius="2"
+                                                        Background="{StaticResource AccentGreen}"
                                                         HorizontalAlignment="Left" Margin="-16,0,0,0" Visibility="Collapsed"/>
                                                 <TextBlock x:Name="LblProdCategorias" Text="Gestión de Categorías"
                                                            Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="13"/>
@@ -444,55 +381,47 @@
 
                             <!-- ── PESAJES ── -->
                             <StackPanel>
-                                <Button x:Name="BtnPesajes"
+                                <Button x:Name="BtnPesajes" Tag="pesajes"
                                         Style="{StaticResource SidebarModuleButton}"
-                                        Click="BtnModulo_Click" Tag="pesajes">
+                                        Click="BtnModulo_Click">
                                     <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="20"/>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                        </Grid.ColumnDefinitions>
                                         <Border x:Name="IndPesajes"
-                                                Grid.Column="0" Grid.ColumnSpan="3"
-                                                HorizontalAlignment="Left"
-                                                Width="3" Margin="-12,8,0,8"
+                                                Width="3" HorizontalAlignment="Left" Margin="-12,0,0,0"
                                                 Background="{StaticResource AccentGreen}"
-                                                CornerRadius="0,2,2,0"
-                                                Visibility="Collapsed"/>
-                                        <Path Grid.Column="0"
-                                              Data="{StaticResource ScaleIcon}"
-                                              Stroke="White" StrokeThickness="1.6"
-                                              StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                                              Width="20" Height="20" Stretch="Uniform"/>
-                                        <TextBlock x:Name="LblPesajes"
-                                                   Grid.Column="1"
-                                                   Text="Pesajes"
+                                                CornerRadius="0,2,2,0" Visibility="Collapsed"/>
+                                        <DockPanel x:Name="ExpPesajes" HorizontalAlignment="Stretch">
+                                            <TextBlock DockPanel.Dock="Left"
+                                                       Text="&#xE9D9;" FontFamily="Segoe MDL2 Assets" FontSize="16"
+                                                       Foreground="White" VerticalAlignment="Center"/>
+                                            <TextBlock x:Name="ChevPesajes" DockPanel.Dock="Right"
+                                                       Text="&#xE70D;" FontFamily="Segoe MDL2 Assets" FontSize="10"
+                                                       Foreground="#B3FFFFFF" VerticalAlignment="Center"
+                                                       HorizontalAlignment="Right"
+                                                       RenderTransformOrigin="0.5,0.5">
+                                                <TextBlock.RenderTransform>
+                                                    <RotateTransform x:Name="ChevPesajesRot" Angle="0"/>
+                                                </TextBlock.RenderTransform>
+                                            </TextBlock>
+                                            <TextBlock x:Name="LblPesajes" DockPanel.Dock="Left"
+                                                       Text="Pesajes" Foreground="White"
+                                                       FontFamily="Segoe UI" FontSize="14" FontWeight="Medium"
+                                                       VerticalAlignment="Center" Margin="12,0,0,0"/>
+                                        </DockPanel>
+                                        <TextBlock x:Name="IcoPesajes"
+                                                   Text="&#xE9D9;" FontFamily="Segoe MDL2 Assets" FontSize="16"
                                                    Foreground="White"
-                                                   FontFamily="Segoe UI" FontSize="14" FontWeight="Medium"
-                                                   Margin="12,0,0,0" VerticalAlignment="Center"/>
-                                        <Path x:Name="ChevronPesajes"
-                                              Grid.Column="2"
-                                              Data="{StaticResource ChevronDownIcon}"
-                                              Stroke="#B3FFFFFF" StrokeThickness="2"
-                                              StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                                              Width="16" Height="16" Stretch="Uniform"
-                                              RenderTransformOrigin="0.5,0.5">
-                                            <Path.RenderTransform>
-                                                <RotateTransform x:Name="ChevronPesajesRot" Angle="0"/>
-                                            </Path.RenderTransform>
-                                        </Path>
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                   Visibility="Collapsed"/>
                                     </Grid>
                                 </Button>
-                                <Border x:Name="SubPesajes"
-                                        MaxHeight="0" ClipToBounds="True"
+                                <Border x:Name="SubPesajes" MaxHeight="0" ClipToBounds="True"
                                         Background="#2E000000">
-                                    <StackPanel Margin="0,4,0,4">
+                                    <StackPanel Margin="0,4">
                                         <Button Style="{StaticResource SidebarSubButton}" Tag="pes-movs"
                                                 Padding="48,10,16,10" Click="BtnSub_Click">
                                             <Grid>
-                                                <Border x:Name="DotPesMov" Width="4" Height="4"
-                                                        Background="{StaticResource AccentGreen}" CornerRadius="2"
+                                                <Border x:Name="DotPesMov" Width="4" Height="4" CornerRadius="2"
+                                                        Background="{StaticResource AccentGreen}"
                                                         HorizontalAlignment="Left" Margin="-16,0,0,0" Visibility="Collapsed"/>
                                                 <TextBlock x:Name="LblPesMov" Text="Movimientos y Entradas"
                                                            Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="13"/>
@@ -503,32 +432,28 @@
                             </StackPanel>
 
                             <!-- ── REPORTERÍA (directo) ── -->
-                            <Button x:Name="BtnReporteria"
+                            <Button x:Name="BtnReporteria" Tag="reporteria"
                                     Style="{StaticResource SidebarModuleButton}"
-                                    Click="BtnModuloDirect_Click" Tag="reporteria">
+                                    Click="BtnModuloDirect_Click">
                                 <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="20"/>
-                                        <ColumnDefinition Width="*"/>
-                                    </Grid.ColumnDefinitions>
                                     <Border x:Name="IndReporteria"
-                                            Grid.Column="0" Grid.ColumnSpan="2"
-                                            HorizontalAlignment="Left"
-                                            Width="3" Margin="-12,8,0,8"
+                                            Width="3" HorizontalAlignment="Left" Margin="-12,0,0,0"
                                             Background="{StaticResource AccentGreen}"
-                                            CornerRadius="0,2,2,0"
-                                            Visibility="Collapsed"/>
-                                    <Path Grid.Column="0"
-                                          Data="{StaticResource ChartIcon}"
-                                          Stroke="White" StrokeThickness="1.6"
-                                          StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                                          Width="20" Height="20" Stretch="Uniform"/>
-                                    <TextBlock x:Name="LblReporteria"
-                                               Grid.Column="1"
-                                               Text="Reportería"
+                                            CornerRadius="0,2,2,0" Visibility="Collapsed"/>
+                                    <DockPanel x:Name="ExpReporteria" HorizontalAlignment="Stretch">
+                                        <TextBlock DockPanel.Dock="Left"
+                                                   Text="&#xE9D2;" FontFamily="Segoe MDL2 Assets" FontSize="16"
+                                                   Foreground="White" VerticalAlignment="Center"/>
+                                        <TextBlock x:Name="LblReporteria" DockPanel.Dock="Left"
+                                                   Text="Reportería" Foreground="White"
+                                                   FontFamily="Segoe UI" FontSize="14" FontWeight="Medium"
+                                                   VerticalAlignment="Center" Margin="12,0,0,0"/>
+                                    </DockPanel>
+                                    <TextBlock x:Name="IcoReporteria"
+                                               Text="&#xE9D2;" FontFamily="Segoe MDL2 Assets" FontSize="16"
                                                Foreground="White"
-                                               FontFamily="Segoe UI" FontSize="14" FontWeight="Medium"
-                                               Margin="12,0,0,0" VerticalAlignment="Center"/>
+                                               HorizontalAlignment="Center" VerticalAlignment="Center"
+                                               Visibility="Collapsed"/>
                                 </Grid>
                             </Button>
 
@@ -538,8 +463,6 @@
                                     BorderBrush="#1AFFFFFF" BorderThickness="0,1,0,0">
                                 <Button Background="Transparent"
                                         BorderBrush="#33FFFFFF" BorderThickness="1"
-                                        Foreground="#D9FFFFFF"
-                                        FontFamily="Segoe UI" FontSize="12"
                                         Padding="12,8" Cursor="Hand"
                                         HorizontalAlignment="Stretch"
                                         FocusVisualStyle="{x:Null}"
@@ -550,8 +473,7 @@
                                                     Background="{TemplateBinding Background}"
                                                     BorderBrush="{TemplateBinding BorderBrush}"
                                                     BorderThickness="{TemplateBinding BorderThickness}"
-                                                    CornerRadius="6"
-                                                    Padding="{TemplateBinding Padding}">
+                                                    CornerRadius="6" Padding="{TemplateBinding Padding}">
                                                 <ContentPresenter HorizontalAlignment="Center"/>
                                             </Border>
                                             <ControlTemplate.Triggers>
@@ -561,20 +483,21 @@
                                             </ControlTemplate.Triggers>
                                         </ControlTemplate>
                                     </Button.Template>
-                                    <TextBlock Text="← Volver a inicio" HorizontalAlignment="Center"
-                                               FontFamily="Segoe UI" FontSize="12" Foreground="#D9FFFFFF"/>
+                                    <TextBlock Text="← Volver a inicio"
+                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="12"
+                                               HorizontalAlignment="Center"/>
                                 </Button>
                             </Border>
                         </StackPanel>
                     </ScrollViewer>
 
-                    <!-- User Card (bottom) -->
-                    <Button x:Name="UserCardButton"
-                            Grid.Row="2"
-                            Style="{StaticResource GhostButton}"
-                            HorizontalAlignment="Stretch"
+                    <!-- User Card (expanded) -->
+                    <Button x:Name="UserCardButton" Grid.Row="2"
+                            Background="Transparent"
+                            BorderBrush="#1FFFFFFF" BorderThickness="0,1,0,0"
                             Padding="14,12"
-                            BorderThickness="0,1,0,0" BorderBrush="#1FFFFFFF"
+                            HorizontalAlignment="Stretch"
+                            Cursor="Hand" FocusVisualStyle="{x:Null}"
                             Click="BtnMiUsuario_Click">
                         <Button.Template>
                             <ControlTemplate TargetType="Button">
@@ -584,13 +507,10 @@
                                         BorderThickness="{TemplateBinding BorderThickness}"
                                         Padding="{TemplateBinding Padding}">
                                     <Grid>
-                                        <!-- Indicador activo Mi Usuario -->
                                         <Border x:Name="IndMiUsuario"
-                                                HorizontalAlignment="Left"
-                                                Width="3" Margin="-14,12,0,12"
+                                                Width="3" HorizontalAlignment="Left" Margin="-14,12,0,12"
                                                 Background="{StaticResource AccentGreen}"
-                                                CornerRadius="0,2,2,0"
-                                                Visibility="Collapsed"/>
+                                                CornerRadius="0,2,2,0" Visibility="Collapsed"/>
                                         <ContentPresenter/>
                                     </Grid>
                                 </Border>
@@ -602,63 +522,48 @@
                             </ControlTemplate>
                         </Button.Template>
                         <StackPanel>
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-                                <!-- Avatar -->
-                                <Border Grid.Column="0"
-                                        Width="36" Height="36" CornerRadius="18"
-                                        Background="{StaticResource AvatarGradient}"
-                                        Margin="0,0,10,0">
-                                    <TextBlock x:Name="AvatarInitials"
-                                               Text="??"
-                                               Foreground="White"
-                                               FontFamily="Segoe UI" FontSize="13" FontWeight="Bold"
+                            <StackPanel Orientation="Horizontal">
+                                <Border Width="36" Height="36" CornerRadius="18"
+                                        Background="{StaticResource AvatarGradient}" Margin="0,0,10,0">
+                                    <TextBlock x:Name="AvatarInitials" Text="??"
+                                               Foreground="White" FontFamily="Segoe UI"
+                                               FontSize="13" FontWeight="Bold"
                                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 </Border>
-                                <!-- Nombre + Rol -->
-                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                    <TextBlock x:Name="UserCardName"
-                                               Text="Cargando…"
-                                               Foreground="White"
-                                               FontFamily="Segoe UI" FontSize="13" FontWeight="SemiBold"
-                                               TextTrimming="CharacterEllipsis"/>
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock x:Name="UserCardName" Text="Cargando…"
+                                               Foreground="White" FontFamily="Segoe UI"
+                                               FontSize="13" FontWeight="SemiBold"
+                                               TextTrimming="CharacterEllipsis" MaxWidth="130"/>
                                     <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
                                         <Border Width="5" Height="5" CornerRadius="3"
                                                 Background="{StaticResource AccentGreen}"
                                                 Margin="0,0,4,0" VerticalAlignment="Center"/>
-                                        <TextBlock x:Name="UserCardRole"
-                                                   Text="—"
-                                                   Foreground="#B3FFFFFF"
-                                                   FontFamily="Segoe UI" FontSize="11"/>
+                                        <TextBlock x:Name="UserCardRole" Text="—"
+                                                   Foreground="#B3FFFFFF" FontFamily="Segoe UI" FontSize="11"/>
                                     </StackPanel>
                                 </StackPanel>
-                            </Grid>
-                            <!-- Footer version -->
+                            </StackPanel>
                             <Border BorderBrush="#0FFFFFFF" BorderThickness="0,1,0,0" Margin="0,10,0,0" Padding="0,4,0,0">
                                 <Grid>
                                     <TextBlock Text="v1.0.0" Foreground="#66FFFFFF" FontSize="10" HorizontalAlignment="Left"/>
-                                    <TextBlock Text="© 2026"  Foreground="#66FFFFFF" FontSize="10" HorizontalAlignment="Right"/>
+                                    <TextBlock Text="© 2026" Foreground="#66FFFFFF" FontSize="10" HorizontalAlignment="Right"/>
                                 </Grid>
                             </Border>
                         </StackPanel>
                     </Button>
 
-                    <!-- Avatar compacto (solo sidebar colapsado) -->
-                    <Border x:Name="CompactUserCard"
-                            Grid.Row="2"
+                    <!-- Avatar compacto (sidebar colapsado) -->
+                    <Border x:Name="CompactUserCard" Grid.Row="2"
                             Visibility="Collapsed"
                             BorderBrush="#1FFFFFFF" BorderThickness="0,1,0,0"
                             Padding="0,12">
                         <Border Width="32" Height="32" CornerRadius="16"
                                 Background="{StaticResource AvatarGradient}"
                                 HorizontalAlignment="Center">
-                            <TextBlock x:Name="CompactInitials"
-                                       Text="??"
-                                       Foreground="White"
-                                       FontFamily="Segoe UI" FontSize="11" FontWeight="Bold"
+                            <TextBlock x:Name="CompactInitials" Text="??"
+                                       Foreground="White" FontFamily="Segoe UI"
+                                       FontSize="11" FontWeight="Bold"
                                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                     </Border>
@@ -667,10 +572,7 @@
 
             <!-- ══════ CONTENIDO CENTRAL ══════ -->
             <Grid Grid.Column="1">
-                <!-- Capa 1: WindowsFormsHost para formularios WinForms existentes -->
-                <wfi:WindowsFormsHost x:Name="WfHost" Visibility="Visible"/>
-
-                <!-- Capa 2: Pantalla WPF "Mi Usuario" -->
+                <wfi:WindowsFormsHost x:Name="WfHost"/>
                 <ContentControl x:Name="WpfContent" Visibility="Collapsed"/>
             </Grid>
         </Grid>

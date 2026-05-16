@@ -151,10 +151,48 @@ namespace BimboPesaje.Formularios.MenuPrincipal
         // ══════════════════════════════════════════════════════════════
         private void OnDragMoveRequested()
         {
-            // Solo arrastrar cuando no está maximizado
             if (WindowState == FormWindowState.Maximized) return;
             ReleaseCapture();
             SendMessage(Handle, 0xA1, 0x2, 0);
+        }
+
+        // ══════════════════════════════════════════════════════════════
+        //  Resize nativo (Bug 2: borderless no tiene asas de redimensión)
+        // ══════════════════════════════════════════════════════════════
+        private const int WM_NCHITTEST   = 0x0084;
+        private const int HTLEFT         = 10;
+        private const int HTRIGHT        = 11;
+        private const int HTTOP          = 12;
+        private const int HTTOPLEFT      = 13;
+        private const int HTTOPRIGHT     = 14;
+        private const int HTBOTTOM       = 15;
+        private const int HTBOTTOMLEFT   = 16;
+        private const int HTBOTTOMRIGHT  = 17;
+        private const int ResizeBorder   = 8;
+
+        protected override void WndProc(ref Message m)
+        {
+            if (m.Msg == WM_NCHITTEST && WindowState == FormWindowState.Normal)
+            {
+                int x  = (short)(m.LParam.ToInt32() & 0xFFFF);
+                int y  = (short)(m.LParam.ToInt32() >> 16);
+                var pt = PointToClient(new Point(x, y));
+
+                bool l = pt.X < ResizeBorder;
+                bool r = pt.X >= ClientSize.Width  - ResizeBorder;
+                bool t = pt.Y < ResizeBorder;
+                bool b = pt.Y >= ClientSize.Height - ResizeBorder;
+
+                if (t && l) { m.Result = (IntPtr)HTTOPLEFT;     return; }
+                if (t && r) { m.Result = (IntPtr)HTTOPRIGHT;    return; }
+                if (b && l) { m.Result = (IntPtr)HTBOTTOMLEFT;  return; }
+                if (b && r) { m.Result = (IntPtr)HTBOTTOMRIGHT; return; }
+                if (l)      { m.Result = (IntPtr)HTLEFT;        return; }
+                if (r)      { m.Result = (IntPtr)HTRIGHT;       return; }
+                if (t)      { m.Result = (IntPtr)HTTOP;         return; }
+                if (b)      { m.Result = (IntPtr)HTBOTTOM;      return; }
+            }
+            base.WndProc(ref m);
         }
     }
 }
