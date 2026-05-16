@@ -157,42 +157,23 @@ namespace BimboPesaje.Formularios.MenuPrincipal
         }
 
         // ══════════════════════════════════════════════════════════════
-        //  Resize nativo (Bug 2: borderless no tiene asas de redimensión)
+        //  Resize nativo via WS_THICKFRAME
+        //  ElementHost captura los mensajes de mouse, por lo que WndProc
+        //  no recibe WM_NCHITTEST a tiempo. Agregar WS_THICKFRAME en
+        //  CreateParams delega el resize al sistema operativo antes de
+        //  que WPF/ElementHost intervenga.
         // ══════════════════════════════════════════════════════════════
-        private const int WM_NCHITTEST   = 0x0084;
-        private const int HTLEFT         = 10;
-        private const int HTRIGHT        = 11;
-        private const int HTTOP          = 12;
-        private const int HTTOPLEFT      = 13;
-        private const int HTTOPRIGHT     = 14;
-        private const int HTBOTTOM       = 15;
-        private const int HTBOTTOMLEFT   = 16;
-        private const int HTBOTTOMRIGHT  = 17;
-        private const int ResizeBorder   = 8;
-
-        protected override void WndProc(ref Message m)
+        protected override CreateParams CreateParams
         {
-            if (m.Msg == WM_NCHITTEST && WindowState == FormWindowState.Normal)
+            get
             {
-                int x  = (short)(m.LParam.ToInt32() & 0xFFFF);
-                int y  = (short)(m.LParam.ToInt32() >> 16);
-                var pt = PointToClient(new Point(x, y));
-
-                bool l = pt.X < ResizeBorder;
-                bool r = pt.X >= ClientSize.Width  - ResizeBorder;
-                bool t = pt.Y < ResizeBorder;
-                bool b = pt.Y >= ClientSize.Height - ResizeBorder;
-
-                if (t && l) { m.Result = (IntPtr)HTTOPLEFT;     return; }
-                if (t && r) { m.Result = (IntPtr)HTTOPRIGHT;    return; }
-                if (b && l) { m.Result = (IntPtr)HTBOTTOMLEFT;  return; }
-                if (b && r) { m.Result = (IntPtr)HTBOTTOMRIGHT; return; }
-                if (l)      { m.Result = (IntPtr)HTLEFT;        return; }
-                if (r)      { m.Result = (IntPtr)HTRIGHT;       return; }
-                if (t)      { m.Result = (IntPtr)HTTOP;         return; }
-                if (b)      { m.Result = (IntPtr)HTBOTTOM;      return; }
+                const int WS_THICKFRAME  = 0x00040000;
+                const int WS_MINIMIZEBOX = 0x00020000;
+                const int WS_MAXIMIZEBOX = 0x00010000;
+                var cp = base.CreateParams;
+                cp.Style |= WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX;
+                return cp;
             }
-            base.WndProc(ref m);
         }
     }
 }

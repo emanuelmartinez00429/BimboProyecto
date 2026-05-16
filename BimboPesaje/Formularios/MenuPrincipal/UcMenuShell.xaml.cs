@@ -1,12 +1,15 @@
 using CapaServicios;
+using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media.Animation;
+using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using WinForms = System.Windows.Forms;
 using WpfColor = System.Windows.Media.Color;
 using WpfColorConverter = System.Windows.Media.ColorConverter;
 using WpfBrushes = System.Windows.Media.Brushes;
+using WpfFontFamily = System.Windows.Media.FontFamily;
 
 namespace BimboPesaje.Formularios.MenuPrincipal
 {
@@ -48,13 +51,19 @@ namespace BimboPesaje.Formularios.MenuPrincipal
         private record SubEntry(Border Dot, System.Windows.Controls.TextBlock Label, string ParentModule);
         private Dictionary<string, SubEntry> _subMap = new();
 
+        // ── Búsqueda ──────────────────────────────────────────────────
+        private readonly ObservableCollection<EntradaBusqueda> _searchResults = new();
+
         // ══════════════════════════════════════════════════════════════
         //  Constructor
         // ══════════════════════════════════════════════════════════════
         public UcMenuShell()
         {
             InitializeComponent();
-            Loaded += OnLoaded;
+            SearchResultsList.ItemsSource = _searchResults;
+            Loaded    += OnLoaded;
+            Unloaded  += OnUnloaded;
+            PreviewKeyDown += OnPreviewKeyDown;
         }
 
         private void OnLoaded(object sender, RoutedEventArgs e)
@@ -76,6 +85,13 @@ namespace BimboPesaje.Formularios.MenuPrincipal
             _subMap["pes-movs"]         = new(DotPesMov,          LblPesMov,          "pesajes");
 
             CargarPerfil();
+            SuscribirNotificaciones();
+            ActualizarBadge();
+        }
+
+        private void OnUnloaded(object sender, RoutedEventArgs e)
+        {
+            ServicioNotificaciones.Actualizado -= OnNotificacionesActualizadas;
         }
 
         // ══════════════════════════════════════════════════════════════
@@ -95,7 +111,7 @@ namespace BimboPesaje.Formularios.MenuPrincipal
         // ══════════════════════════════════════════════════════════════
         //  TOP BAR: drag + chrome
         // ══════════════════════════════════════════════════════════════
-        private void TopBar_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        private void TopBar_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             DragMoveRequested?.Invoke();
         }
@@ -319,6 +335,300 @@ namespace BimboPesaje.Formularios.MenuPrincipal
         }
 
         // ══════════════════════════════════════════════════════════════
+        //  BÚSQUEDA
+        // ══════════════════════════════════════════════════════════════
+        private void TxtSearch_GotFocus(object sender, RoutedEventArgs e)
+        {
+            SearchBorder.Background   = new SolidColorBrush(WpfColor.FromRgb(255, 255, 255));
+            SearchBorder.CornerRadius = new CornerRadius(12, 12, 0, 0);
+            TxtSearch.Foreground      = new SolidColorBrush(
+                (WpfColor)WpfColorConverter.ConvertFromString("#1A1F2E"));
+            TxtSearch.CaretBrush      = new SolidColorBrush(
+                (WpfColor)WpfColorConverter.ConvertFromString("#1A1F2E"));
+
+            RefrescarResultados(TxtSearch.Text);
+            PopupBusqueda.IsOpen = true;
+        }
+
+        private void TxtSearch_LostFocus(object sender, RoutedEventArgs e)
+        {
+            // Pequeño delay para permitir clic en los resultados antes de cerrar
+            Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Input, () =>
+            {
+                if (!PopupBusqueda.IsKeyboardFocusWithin)
+                {
+                    CerrarBuscador();
+                }
+            });
+        }
+
+        private void TxtSearch_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            RefrescarResultados(TxtSearch.Text);
+            PopupBusqueda.IsOpen = true;
+        }
+
+        private void TxtSearch_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (e.Key == Key.Escape)
+            {
+                CerrarBuscador();
+                e.Handled = true;
+            }
+            else if (e.Key == Key.Enter && _searchResults.Count > 0)
+            {
+                NavegaA(_searchResults[0].Id);
+                e.Handled = true;
+            }
+        }
+
+        // Ctrl+K global en el UserControl
+        private void OnPreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (e.Key == Key.K &&
+                (Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control)
+            {
+                TxtSearch.Focus();
+                TxtSearch.SelectAll();
+                e.Handled = true;
+            }
+        }
+
+        private void PopupBusqueda_Opened(object sender, EventArgs e)
+        {
+            RefrescarResultados(TxtSearch.Text);
+        }
+
+        private void SearchResult_Click(object sender, RoutedEventArgs e)
+        {
+            var btn = (System.Windows.Controls.Button)sender;
+            if (btn.Tag is string id)
+                NavegaA(id);
+        }
+
+        private void RefrescarResultados(string texto)
+        {
+            _searchResults.Clear();
+            foreach (var entrada in ServicioBuscador.Buscar(texto))
+                _searchResults.Add(entrada);
+
+            PopupBusqueda.IsOpen = _searchResults.Count > 0;
+        }
+
+        private void NavegaA(string id)
+        {
+            CerrarBuscador();
+
+            // Abrir módulo padre si es un sub-item
+            if (_subMap.TryGetValue(id, out var sub))
+            {
+                CloseAllModules();
+                OpenModule(sub.ParentModule);
+                BtnSub_ActivarSinNavegar(id);
+                NavigationRequested?.Invoke(id);
+            }
+            else if (id == "reporteria")
+            {
+                ClearActiveStates();
+                _activeModuleId          = id;
+                _activeSubId             = id;
+                IndReporteria.Visibility = Visibility.Visible;
+                ShowWinFormsContent();
+                NavigationRequested?.Invoke(id);
+            }
+        }
+
+        private void BtnSub_ActivarSinNavegar(string subId)
+        {
+            foreach (var kv in _subMap)
+            {
+                kv.Value.Dot.Visibility   = Visibility.Collapsed;
+                kv.Value.Label.FontWeight = FontWeights.Normal;
+                kv.Value.Label.Foreground = new SolidColorBrush(
+                    (WpfColor)WpfColorConverter.ConvertFromString("#D9FFFFFF"));
+            }
+            if (_subMap.TryGetValue(subId, out var sub))
+            {
+                sub.Dot.Visibility   = Visibility.Visible;
+                sub.Label.FontWeight = FontWeights.SemiBold;
+                sub.Label.Foreground = new SolidColorBrush(
+                    (WpfColor)WpfColorConverter.ConvertFromString("#6EE7B7"));
+                _activeSubId    = subId;
+                _activeModuleId = sub.ParentModule;
+                if (_moduleMap.TryGetValue(sub.ParentModule, out var parentEntry))
+                    parentEntry.Indicator.Visibility = Visibility.Visible;
+            }
+            ShowWinFormsContent();
+        }
+
+        private void CerrarBuscador()
+        {
+            PopupBusqueda.IsOpen      = false;
+            SearchBorder.Background   = new SolidColorBrush(WpfColor.FromArgb(0x1F, 0xFF, 0xFF, 0xFF));
+            SearchBorder.CornerRadius = new CornerRadius(22);
+            TxtSearch.Foreground      = WpfBrushes.White;
+            TxtSearch.CaretBrush      = WpfBrushes.White;
+            TxtSearch.Text            = "";
+            Keyboard.ClearFocus();
+        }
+
+        // ══════════════════════════════════════════════════════════════
+        //  NOTIFICACIONES
+        // ══════════════════════════════════════════════════════════════
+        private void SuscribirNotificaciones()
+        {
+            ServicioNotificaciones.Actualizado += OnNotificacionesActualizadas;
+        }
+
+        private void OnNotificacionesActualizadas()
+        {
+            // Se puede llamar desde otro hilo (Realtime / Task)
+            Dispatcher.InvokeAsync(ActualizarBadge);
+        }
+
+        private void ActualizarBadge()
+        {
+            int sinLeer = ServicioNotificaciones.SinLeer;
+
+            BadgeCount.Text         = sinLeer > 99 ? "99+" : sinLeer.ToString();
+            BadgeNotif.Visibility   = sinLeer > 0 ? Visibility.Visible : Visibility.Collapsed;
+
+            // Si el popup está abierto, refresca su contenido también
+            if (PopupNotificaciones.IsOpen)
+                RefrescarPanelNotificaciones();
+        }
+
+        private void BtnBell_Click(object sender, RoutedEventArgs e)
+        {
+            if (PopupNotificaciones.IsOpen)
+            {
+                PopupNotificaciones.IsOpen = false;
+                return;
+            }
+
+            RefrescarPanelNotificaciones();
+            PopupNotificaciones.IsOpen = true;
+        }
+
+        private void BtnMarcarTodas_Click(object sender, RoutedEventArgs e)
+        {
+            ServicioNotificaciones.MarcarTodasLeidas();
+            RefrescarPanelNotificaciones();
+            ActualizarBadge();
+        }
+
+        private void RefrescarPanelNotificaciones()
+        {
+            NotifPanel.Children.Clear();
+
+            var recientes = ServicioNotificaciones.Recientes.ToList();
+
+            if (recientes.Count == 0)
+            {
+                NotifVacia.Visibility = Visibility.Visible;
+
+                // Actualizar badge del encabezado del popup
+                NotifBadgeHeader.Visibility = Visibility.Collapsed;
+                return;
+            }
+
+            NotifVacia.Visibility = Visibility.Collapsed;
+
+            int sinLeer = recientes.Count(n => !n.Leida);
+            if (sinLeer > 0)
+            {
+                NotifBadgeHeader.Visibility         = Visibility.Visible;
+                NotifBadgeHeaderCount.Text          = $"{sinLeer} nueva{(sinLeer > 1 ? "s" : "")}";
+            }
+            else
+            {
+                NotifBadgeHeader.Visibility = Visibility.Collapsed;
+            }
+
+            foreach (var notif in recientes)
+                NotifPanel.Children.Add(CrearItemNotif(notif));
+        }
+
+        private UIElement CrearItemNotif(Notificacion notif)
+        {
+            var colorPunto = (WpfColor)WpfColorConverter.ConvertFromString(notif.ColorPunto);
+
+            var btn = new System.Windows.Controls.Button
+            {
+                Style = (Style)FindResource("NotifItemButton"),
+                Tag   = notif.Id,
+            };
+            btn.Click += (_, __) =>
+            {
+                ServicioNotificaciones.MarcarLeida(notif.Id);
+                RefrescarPanelNotificaciones();
+                ActualizarBadge();
+            };
+
+            var grid = new Grid();
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+
+            // Punto de color
+            var punto = new Border
+            {
+                Width             = 8,
+                Height            = 8,
+                CornerRadius      = new CornerRadius(4),
+                Background        = new SolidColorBrush(colorPunto),
+                VerticalAlignment = VerticalAlignment.Top,
+                Margin            = new Thickness(0, 4, 12, 0),
+            };
+            Grid.SetColumn(punto, 0);
+
+            // Texto
+            var sp = new StackPanel();
+            sp.Children.Add(new TextBlock
+            {
+                Text       = notif.Titulo,
+                FontFamily = new WpfFontFamily("Segoe UI"),
+                FontSize   = 13,
+                FontWeight = notif.Leida ? FontWeights.Normal : FontWeights.SemiBold,
+                Foreground = new SolidColorBrush(
+                    (WpfColor)WpfColorConverter.ConvertFromString(notif.Leida ? "#6B7280" : "#1A1F2E")),
+                TextWrapping = TextWrapping.Wrap,
+            });
+            if (!string.IsNullOrEmpty(notif.Descripcion))
+                sp.Children.Add(new TextBlock
+                {
+                    Text       = notif.Descripcion,
+                    FontFamily = new WpfFontFamily("Segoe UI"),
+                    FontSize   = 12,
+                    Foreground = new SolidColorBrush(
+                        (WpfColor)WpfColorConverter.ConvertFromString("#6B7280")),
+                    TextWrapping = TextWrapping.Wrap,
+                    Margin     = new Thickness(0, 2, 0, 0),
+                });
+            Grid.SetColumn(sp, 1);
+
+            // Tiempo relativo
+            var tiempo = new TextBlock
+            {
+                Text           = notif.TiempoRelativo,
+                FontFamily     = new WpfFontFamily("Segoe UI"),
+                FontSize       = 11,
+                Foreground     = new SolidColorBrush(
+                    (WpfColor)WpfColorConverter.ConvertFromString("#9CA3AF")),
+                VerticalAlignment = VerticalAlignment.Top,
+                Margin         = new Thickness(8, 2, 0, 0),
+            };
+            Grid.SetColumn(tiempo, 2);
+
+            grid.Children.Add(punto);
+            grid.Children.Add(sp);
+            grid.Children.Add(tiempo);
+
+            btn.Content = grid;
+            return btn;
+        }
+
+        // ══════════════════════════════════════════════════════════════
         //  Animaciones
         // ══════════════════════════════════════════════════════════════
         private static void AnimateWidth(FrameworkElement target, double to, int ms)
@@ -365,22 +675,6 @@ namespace BimboPesaje.Formularios.MenuPrincipal
             if (_moduleMap.TryGetValue(moduleId, out var entry))
                 return entry.SubMenu.MaxHeight;
             return 0;
-        }
-
-        private void TxtSearch_GotFocus(object sender, RoutedEventArgs e)
-        {
-            SearchBorder.Background   = new SolidColorBrush(WpfColor.FromRgb(255, 255, 255));
-            SearchBorder.CornerRadius = new CornerRadius(12, 12, 0, 0);
-            if (TxtSearch.Foreground is SolidColorBrush)
-                TxtSearch.Foreground = new SolidColorBrush(
-                    (WpfColor)WpfColorConverter.ConvertFromString("#1A1F2E"));
-        }
-
-        private void TxtSearch_LostFocus(object sender, RoutedEventArgs e)
-        {
-            SearchBorder.Background   = new SolidColorBrush(WpfColor.FromArgb(0x1F, 0xFF, 0xFF, 0xFF));
-            SearchBorder.CornerRadius = new CornerRadius(22);
-            TxtSearch.Foreground      = WpfBrushes.White;
         }
     }
 }

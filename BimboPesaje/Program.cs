@@ -27,6 +27,7 @@ namespace BimboPesaje
                 {
                     await ConexionSupabase.GetClientAsync();
                     await GestorRealtime.IniciarAsync();
+                    GestorNotificaciones.Iniciar();
                     // Descargar/actualizar logo de empresa en caché local
                     await ServicioLogo.ObtenerRutaLocalAsync();
                 }, cts.Token).GetAwaiter().GetResult();

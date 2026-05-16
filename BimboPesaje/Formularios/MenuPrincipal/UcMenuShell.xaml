@@ -31,7 +31,7 @@
 
                 <!-- Hamburger + Logo (se sincroniza con sidebar por Width="Auto") -->
                 <Border Grid.Column="0"
-                        BorderBrush="#2DFFFFFF" BorderThickness="0,0,1,0">
+                        BorderBrush="#2DFFFFFF" BorderThickness="0,0,1,0" HorizontalAlignment="Left" Width="131">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
 
                         <!-- Hamburger: siempre visible, TextBlock Segoe MDL2 (confiable) -->
@@ -80,7 +80,9 @@
                                  FontFamily="Segoe UI" FontSize="14"
                                  VerticalAlignment="Center" MinWidth="200"
                                  GotFocus="TxtSearch_GotFocus"
-                                 LostFocus="TxtSearch_LostFocus">
+                                 LostFocus="TxtSearch_LostFocus"
+                                 TextChanged="TxtSearch_TextChanged"
+                                 PreviewKeyDown="TxtSearch_PreviewKeyDown">
                             <TextBox.Style>
                                 <Style TargetType="TextBox">
                                     <Setter Property="Template">
@@ -122,15 +124,22 @@
 
                     <!-- Bell con badge -->
                     <Grid>
-                        <Button Style="{StaticResource TopBarIconButton}" ToolTip="Notificaciones">
+                        <Button x:Name="BtnBell"
+                                Style="{StaticResource TopBarIconButton}"
+                                ToolTip="Notificaciones"
+                                Click="BtnBell_Click">
                             <TextBlock Text="&#xEA8F;" FontFamily="Segoe MDL2 Assets" FontSize="18"
                                        Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Button>
-                        <Border Background="#EF4444" CornerRadius="7"
+                        <!-- Badge — visible solo cuando hay notificaciones sin leer -->
+                        <Border x:Name="BadgeNotif"
+                                Background="#EF4444" CornerRadius="7"
                                 MinWidth="14" Height="14" Padding="3,0"
                                 HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,4,4,0"
-                                BorderBrush="{StaticResource TopBarBrush}" BorderThickness="1.5">
-                            <TextBlock Text="3" Foreground="White" FontSize="9" FontWeight="Bold"
+                                BorderBrush="{StaticResource TopBarBrush}" BorderThickness="1.5"
+                                Visibility="Collapsed">
+                            <TextBlock x:Name="BadgeCount"
+                                       Text="0" Foreground="White" FontSize="9" FontWeight="Bold"
                                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                     </Grid>
@@ -139,6 +148,15 @@
                     <Button Style="{StaticResource TopBarIconButton}" ToolTip="Configuración">
                         <TextBlock Text="&#xE713;" FontFamily="Segoe MDL2 Assets" FontSize="18"
                                    Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Button>
+                    <Button Style="{StaticResource LogoutButton}" Click="BtnLogout_Click">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="&#xF3B1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                       Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"
+                                       VerticalAlignment="Center" Margin="0,0,6,0"/>
+                            <TextBlock Text="Cerrar sesión" FontFamily="Segoe UI" FontSize="13" FontWeight="SemiBold"
+                                       Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"/>
+                        </StackPanel>
                     </Button>
 
                     <!-- Separador -->
@@ -162,21 +180,160 @@
                     </Button>
 
                     <!-- Separador -->
-                    <Border Width="1" Height="24" Background="#26FFFFFF" Margin="6,0"/>
 
                     <!-- Logout -->
-                    <Button Style="{StaticResource LogoutButton}" Click="BtnLogout_Click" Margin="6,0,0,0">
-                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                            <TextBlock Text="&#xF3B1;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                       Foreground="{Binding RelativeSource={RelativeSource AncestorType=Button}, Path=Foreground}"
-                                       VerticalAlignment="Center" Margin="0,0,6,0"/>
-                            <TextBlock Text="Cerrar sesión" FontFamily="Segoe UI" FontSize="13" FontWeight="SemiBold"
-                                       Foreground="{Binding RelativeSource={RelativeSource AncestorType=Button}, Path=Foreground}"/>
-                        </StackPanel>
-                    </Button>
                 </StackPanel>
             </Grid>
         </Border>
+
+        <!-- ══════ POPUP BÚSQUEDA ══════ -->
+        <Popup x:Name="PopupBusqueda"
+               PlacementTarget="{Binding ElementName=SearchBorder}"
+               Placement="Bottom"
+               StaysOpen="False"
+               AllowsTransparency="True"
+               PopupAnimation="Fade"
+               Opened="PopupBusqueda_Opened">
+            <Border Background="White"
+                    CornerRadius="0,0,12,12"
+                    BorderBrush="#E5E7EB" BorderThickness="1"
+                    MinWidth="{Binding ActualWidth, ElementName=SearchBorder}"
+                    MaxWidth="520">
+                <Border.Effect>
+                    <DropShadowEffect Color="Black" BlurRadius="20" ShadowDepth="4" Opacity="0.10"/>
+                </Border.Effect>
+                <StackPanel>
+                    <!-- Encabezado -->
+                    <TextBlock Text="SUGERENCIAS"
+                               Foreground="#9CA3AF" FontFamily="Segoe UI"
+                               FontSize="10" FontWeight="Bold"
+                               Margin="16,12,16,4"/>
+                    <!-- Resultados -->
+                    <ItemsControl x:Name="SearchResultsList">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Button Style="{StaticResource SearchResultButton}"
+                                        Tag="{Binding Id}"
+                                        Click="SearchResult_Click">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <!-- Ícono módulo -->
+                                        <Border Grid.Column="0"
+                                                Width="32" Height="32" CornerRadius="8"
+                                                Background="#EFF6FF" Margin="0,0,12,0">
+                                            <TextBlock Text="{Binding IconoSegoe}"
+                                                       FontFamily="Segoe MDL2 Assets" FontSize="15"
+                                                       Foreground="#1E3A8A"
+                                                       HorizontalAlignment="Center"
+                                                       VerticalAlignment="Center"/>
+                                        </Border>
+                                        <!-- Título + módulo -->
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding Titulo}"
+                                                       Foreground="#1A1F2E"
+                                                       FontFamily="Segoe UI" FontSize="13"
+                                                       FontWeight="Medium"/>
+                                            <TextBlock Text="{Binding Modulo}"
+                                                       Foreground="#6B7280"
+                                                       FontFamily="Segoe UI" FontSize="11"
+                                                       Margin="0,1,0,0"/>
+                                        </StackPanel>
+                                        <!-- Flecha -->
+                                        <TextBlock Grid.Column="2"
+                                                   Text="&#xE76C;" FontFamily="Segoe MDL2 Assets" FontSize="11"
+                                                   Foreground="#9CA3AF" VerticalAlignment="Center"/>
+                                    </Grid>
+                                </Button>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <!-- Pie -->
+                    <Border BorderBrush="#F3F4F6" BorderThickness="0,1,0,0" Padding="16,8">
+                        <TextBlock Foreground="#9CA3AF" FontFamily="Segoe UI" FontSize="11">
+                            <Run Text="↵ Seleccionar"/> <Run Text="  "/> <Run Text="Esc Cerrar"/>
+                        </TextBlock>
+                    </Border>
+                </StackPanel>
+            </Border>
+        </Popup>
+
+        <!-- ══════ POPUP NOTIFICACIONES ══════ -->
+        <Popup x:Name="PopupNotificaciones"
+               PlacementTarget="{Binding ElementName=BtnBell}"
+               Placement="Bottom"
+               HorizontalOffset="-220"
+               StaysOpen="False"
+               AllowsTransparency="True"
+               PopupAnimation="Fade">
+            <Border Background="White"
+                    CornerRadius="12"
+                    BorderBrush="#E5E7EB" BorderThickness="1"
+                    Width="340">
+                <Border.Effect>
+                    <DropShadowEffect Color="Black" BlurRadius="20" ShadowDepth="4" Opacity="0.12"/>
+                </Border.Effect>
+                <StackPanel>
+                    <!-- Encabezado -->
+                    <Grid Margin="16,14,16,10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0"
+                                   Text="Notificaciones"
+                                   Foreground="#1A1F2E"
+                                   FontFamily="Segoe UI" FontSize="15" FontWeight="SemiBold"
+                                   VerticalAlignment="Center"/>
+                        <Border x:Name="NotifBadgeHeader"
+                                Grid.Column="1"
+                                Background="#EFF6FF" CornerRadius="10"
+                                Padding="7,2" Margin="8,0,0,0"
+                                VerticalAlignment="Center"
+                                Visibility="Collapsed">
+                            <TextBlock x:Name="NotifBadgeHeaderCount"
+                                       Foreground="#1E3A8A"
+                                       FontFamily="Segoe UI" FontSize="11" FontWeight="Bold"/>
+                        </Border>
+                        <Button Grid.Column="3"
+                                Content="Marcar todas"
+                                Style="{StaticResource LinkButton}"
+                                Click="BtnMarcarTodas_Click"/>
+                    </Grid>
+                    <Border BorderBrush="#F3F4F6" BorderThickness="0,1,0,0"/>
+
+                    <!-- Lista de notificaciones -->
+                    <ScrollViewer MaxHeight="320"
+                                  VerticalScrollBarVisibility="Auto"
+                                  HorizontalScrollBarVisibility="Disabled">
+                        <StackPanel x:Name="NotifPanel">
+                            <!-- Se genera dinámicamente desde code-behind -->
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!-- Estado vacío -->
+                    <StackPanel x:Name="NotifVacia" Margin="0,24,0,24" Visibility="Collapsed">
+                        <TextBlock Text="&#xEA8F;" FontFamily="Segoe MDL2 Assets" FontSize="32"
+                                   Foreground="#D1D5DB"
+                                   HorizontalAlignment="Center" Margin="0,0,0,8"/>
+                        <TextBlock Text="Sin notificaciones" Foreground="#9CA3AF"
+                                   FontFamily="Segoe UI" FontSize="13"
+                                   HorizontalAlignment="Center"/>
+                    </StackPanel>
+
+                    <!-- Pie -->
+                    <Border BorderBrush="#F3F4F6" BorderThickness="0,1,0,0" Padding="16,10">
+                        <Button Content="Ver todas las notificaciones"
+                                Style="{StaticResource LinkButton}"/>
+                    </Border>
+                </StackPanel>
+            </Border>
+        </Popup>
 
         <!-- ══════ BODY ══════ -->
         <Grid Grid.Row="1">
