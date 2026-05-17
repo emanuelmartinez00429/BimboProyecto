@@ -31,8 +31,8 @@
 
                 <!-- Hamburger + Logo (se sincroniza con sidebar por Width="Auto") -->
                 <Border Grid.Column="0"
-                        BorderBrush="#2DFFFFFF" BorderThickness="0,0,1,0" HorizontalAlignment="Left" Width="131">
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        BorderBrush="#2DFFFFFF" BorderThickness="0,0,1,0" HorizontalAlignment="Left" Width="225" Grid.ColumnSpan="2">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,-19,0">
 
                         <!-- Hamburger: siempre visible, TextBlock Segoe MDL2 (confiable) -->
                         <Button Style="{StaticResource TopBarIconButton}"
@@ -49,7 +49,7 @@
                         <Border x:Name="LogoContainer"
                                 Background="White" CornerRadius="8"
                                 Padding="8,4" Margin="4,0,12,0"
-                                VerticalAlignment="Center">
+                                VerticalAlignment="Center" Width="153">
                             <Border.Effect>
                                 <DropShadowEffect Color="Black" BlurRadius="6" ShadowDepth="1" Opacity="0.12"/>
                             </Border.Effect>
@@ -67,7 +67,7 @@
                         Background="#1FFFFFFF"
                         BorderBrush="#14FFFFFF" BorderThickness="1"
                         CornerRadius="22"
-                        Margin="24,10,24,10"
+                        Margin="230,0,24,0"
                         VerticalAlignment="Center">
                     <StackPanel Orientation="Horizontal" Margin="14,8">
                         <TextBlock Text="&#xE721;"

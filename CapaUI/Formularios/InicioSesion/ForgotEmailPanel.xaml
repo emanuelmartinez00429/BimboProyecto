@@ -1,0 +1,91 @@
+<UserControl x:Class="CapaUI.Formularios.InicioSesion.ForgotEmailPanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/CapaUI;component/Formularios/InicioSesion/LoginResources.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="56,32,56,24">
+
+            <!-- Back link -->
+            <Button Content="← Volver al inicio de sesión"
+                    Style="{StaticResource BackLinkButton}"
+                    Click="BtnBack_Click"/>
+
+            <!-- Hero icon -->
+            <Border Width="48" Height="48" CornerRadius="12"
+                    Background="{StaticResource BrandPrimarySoft}"
+                    HorizontalAlignment="Left" Margin="0,0,0,16">
+                <Viewbox Width="26" Height="26">
+                    <Canvas Width="24" Height="24">
+                        <Path Data="M20 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6C22 4.9 21.1 4 20 4ZM20 8L12 13L4 8V6L12 11L20 6V8Z"
+                              Fill="#1E3A8A"/>
+                    </Canvas>
+                </Viewbox>
+            </Border>
+
+            <!-- Title -->
+            <TextBlock Text="¿Olvidaste tu contraseña?" FontFamily="Segoe UI" FontSize="26"
+                       FontWeight="Bold" Foreground="{StaticResource TextPrimary}" Margin="0,0,0,8"/>
+
+            <!-- Description -->
+            <TextBlock TextWrapping="Wrap" FontFamily="Segoe UI" FontSize="14"
+                       Foreground="{StaticResource TextMuted}" Margin="0,0,0,22">
+                Ingresa el correo asociado a tu cuenta y te enviaremos un código de 6 dígitos para restablecerla.
+            </TextBlock>
+
+            <!-- Email field -->
+            <TextBlock Text="CORREO ELECTRÓNICO" Style="{StaticResource FieldLabel}"/>
+            <Border x:Name="EmailBorder" CornerRadius="8" BorderThickness="1.5"
+                    BorderBrush="{StaticResource BorderDefault}" Background="White"
+                    Height="44" Margin="0,0,0,18">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Viewbox Grid.Column="0" Width="18" Height="18" Margin="13,0,0,0"
+                             VerticalAlignment="Center">
+                        <Canvas Width="24" Height="24">
+                            <Path Data="M20 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6C22 4.9 21.1 4 20 4ZM20 8L12 13L4 8V6L12 11L20 6V8Z"
+                                  Fill="#9CA3AF"/>
+                        </Canvas>
+                    </Viewbox>
+                    <TextBox x:Name="TxtEmail" Grid.Column="1"
+                             Style="{StaticResource InputTextBox}"
+                             TextChanged="TxtEmail_Changed"
+                             GotFocus="Email_GotFocus" LostFocus="Email_LostFocus"/>
+                </Grid>
+            </Border>
+
+            <!-- Error -->
+            <Border x:Name="ErrorContainer" CornerRadius="6" Background="#FEE2E2"
+                    Padding="12,8" Margin="0,0,0,12" Visibility="Collapsed">
+                <TextBlock x:Name="LblError" FontFamily="Segoe UI" FontSize="13"
+                           Foreground="#B91C1C" TextWrapping="Wrap"/>
+            </Border>
+
+            <!-- Send button -->
+            <Button x:Name="BtnSend" Content="Enviar código"
+                    Style="{StaticResource PrimaryButton}"
+                    IsEnabled="False" Margin="0,0,0,16"
+                    Click="BtnSend_Click"/>
+
+            <!-- Info box -->
+            <Border CornerRadius="8" Background="{StaticResource SurfaceAlt}"
+                    Padding="16,12">
+                <TextBlock FontFamily="Segoe UI" FontSize="13"
+                           Foreground="{StaticResource TextMuted}" TextWrapping="Wrap">
+                    Si no recuerdas el correo asociado, contacta a soporte: <Bold>ext. 4090</Bold>.
+                </TextBlock>
+            </Border>
+
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

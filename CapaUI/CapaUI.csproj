@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWpf>true</UseWpf>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>CapaUI</RootNamespace>
+    <AssemblyName>CapaUI</AssemblyName>
+    <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Supabase" Version="1.1.1" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="10.0.5" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\bimbo_no_bg.png"/>
+    <Resource Include="Resources\bimbo-logo.png"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CapaDatos\CapaDatos.csproj" />
+    <ProjectReference Include="..\CapaServicios\CapaServicios.csproj" />
+  </ItemGroup>
+</Project>
