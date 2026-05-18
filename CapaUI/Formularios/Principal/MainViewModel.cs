@@ -43,6 +43,8 @@ namespace CapaUI.Formularios.Principal
         public ICommand NavContactosProveedoresCommand { get; }
         public ICommand NavContactosFabricantesCommand { get; }
         public ICommand NavReportesCommand             { get; }
+        public ICommand NavDashboardCommand            { get; }
+        public ICommand NavCrearReportesCommand        { get; }
         public ICommand NavMiUsuarioCommand            { get; }
         public ICommand NavBienvenidaCommand           { get; }
         public ICommand CerrarSesionCommand            { get; }
@@ -79,9 +81,13 @@ namespace CapaUI.Formularios.Principal
             NavContactosFabricantesCommand = new RelayCommand(() =>
                 VistaActual = new ConstructionVM("Contactos Fabricantes",  "Productos"));
 
-            // Directo
-            NavReportesCommand  = new RelayCommand(() =>
-                VistaActual = new ConstructionVM("Reportería", ""));
+            // Módulo Reportería
+            NavReportesCommand      = new RelayCommand(() =>
+                VistaActual = new ConstructionVM("Reportería",    "Reportería"));
+            NavDashboardCommand     = new RelayCommand(() =>
+                VistaActual = new Dashboard.DashboardVM());
+            NavCrearReportesCommand = new RelayCommand(() =>
+                VistaActual = new ConstructionVM("Crear Reportes","Reportería"));
             NavMiUsuarioCommand = new RelayCommand(() =>
                 VistaActual = new ConstructionVM("Mi Usuario",  ""));
             NavBienvenidaCommand = new RelayCommand(() =>

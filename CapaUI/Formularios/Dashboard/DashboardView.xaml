@@ -1,0 +1,630 @@
+<UserControl x:Class="CapaUI.Formularios.Dashboard.DashboardView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="#F4F5F7">
+
+    <UserControl.Resources>
+
+        <!-- ══ Geometrías de iconos (viewBox 24×24) ══════════════════════ -->
+        <Geometry x:Key="IcoBox">M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z M3.27 6.96L12 12.01l8.73-5.05M12 22.08V12</Geometry>
+        <Geometry x:Key="IcoUsers">M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2 M12 7a4 4 0 1 1 0 8 4 4 0 0 1 0-8z</Geometry>
+        <Geometry x:Key="IcoScale">M12 3v18M5 7l7-4 7 4 M2 11l3-8 3 8a3 3 0 1 1-6 0zM16 11l3-8 3 8a3 3 0 1 1-6 0z</Geometry>
+        <Geometry x:Key="IcoChart">M3 3v18h18 M7 14l4-4 3 3 5-5</Geometry>
+        <Geometry x:Key="IcoBadge">M12 2a6 6 0 1 1 0 12 6 6 0 0 1 0-12z M16 13l1 8-5-3-5 3 1-8</Geometry>
+        <Geometry x:Key="IcoRefresh">M21 12a9 9 0 1 1-3-6.7M21 4v5h-5</Geometry>
+        <Geometry x:Key="IcoChevronDown">M6 9l6 6 6-6</Geometry>
+
+        <!-- ══ ProgressBar de merma con gradiente ════════════════════════ -->
+        <Style x:Key="MermaBar" TargetType="ProgressBar">
+            <Setter Property="Height" Value="18"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Foreground">
+                <Setter.Value>
+                    <LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5">
+                        <GradientStop Color="#1E3A8A" Offset="0"/>
+                        <GradientStop Color="#3B82F6" Offset="1"/>
+                    </LinearGradientBrush>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Background" Value="#F3F4F6"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ProgressBar">
+                        <Grid>
+                            <Border x:Name="PART_Track"
+                                    Background="{TemplateBinding Background}"
+                                    CornerRadius="5"/>
+                            <Border x:Name="PART_Indicator"
+                                    Background="{TemplateBinding Foreground}"
+                                    CornerRadius="5"
+                                    HorizontalAlignment="Left"/>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- ══ RadioButton de período (toggle Hoy/Semana/Mes) ════════════ -->
+        <Style x:Key="PeriodBtn" TargetType="RadioButton">
+            <Setter Property="Cursor"          Value="Hand"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding"         Value="9,3"/>
+            <Setter Property="FontFamily"      Value="Segoe UI"/>
+            <Setter Property="FontSize"        Value="11"/>
+            <Setter Property="FontWeight"      Value="SemiBold"/>
+            <Setter Property="Foreground"      Value="#6B7280"/>
+            <Setter Property="Background"      Value="Transparent"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}"
+                                CornerRadius="4" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="White"/>
+                                <Setter Property="Foreground" Value="#1A1F2E"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Foreground" Value="#374151"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+    </UserControl.Resources>
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         GRID RAÍZ  (4 filas: breadcrumb, header, KPIs, chart+lista)
+    ═══════════════════════════════════════════════════════════════════════ -->
+    <Grid Margin="22,14,22,18">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>   <!-- 0: Breadcrumb  -->
+            <RowDefinition Height="Auto"/>   <!-- 1: Header      -->
+            <RowDefinition Height="Auto"/>   <!-- 2: KPIs        -->
+            <RowDefinition Height="*"/>      <!-- 3: Chart+Lista -->
+        </Grid.RowDefinitions>
+
+        <!-- ════════════════════════════════════════════════════════
+             ROW 0 — Breadcrumb
+        ════════════════════════════════════════════════════════ -->
+        <TextBlock Grid.Row="0" Margin="0,0,0,8"
+                   FontFamily="Segoe UI" FontSize="12" Foreground="#6B7280">
+            <Run Text="Inicio"/>
+            <Run Text="  /  " Foreground="#CBD5E1"/>
+            <Run Text="Reportería"/>
+            <Run Text="  /  " Foreground="#CBD5E1"/>
+            <Run Text="Dashboard" Foreground="#1A1F2E" FontWeight="SemiBold"/>
+        </TextBlock>
+
+        <!-- ════════════════════════════════════════════════════════
+             ROW 1 — Header
+        ════════════════════════════════════════════════════════ -->
+        <Grid Grid.Row="1" Margin="0,0,0,10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Título + Fecha -->
+            <StackPanel Grid.Column="0" VerticalAlignment="Bottom">
+                <TextBlock Text="Dashboard"
+                           FontFamily="Segoe UI" FontSize="22" FontWeight="ExtraBold"
+                           Foreground="#1A1F2E"/>
+                <TextBlock Text="{Binding DateLabel}"
+                           FontFamily="Segoe UI" FontSize="11.5" Foreground="#6B7280"
+                           Margin="0,2,0,0"/>
+            </StackPanel>
+
+            <!-- Acciones -->
+            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Bottom">
+                <!-- Pill "Hoy ▾" -->
+                <Border Background="White" BorderBrush="#E5E7EB" BorderThickness="1"
+                        CornerRadius="8" Padding="12,7" Margin="0,0,8,0" Cursor="Hand">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <Ellipse Width="6" Height="6" Fill="#34D399" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="Hoy" FontFamily="Segoe UI" FontSize="12.5"
+                                   FontWeight="SemiBold" Foreground="#1A1F2E" VerticalAlignment="Center"/>
+                        <Path Data="{StaticResource IcoChevronDown}" Stretch="Uniform"
+                              Stroke="#6B7280" StrokeThickness="1.8"
+                              StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                              Width="11" Height="11" Margin="5,1,0,0" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+                <!-- Botón Actualizar -->
+                <Border CornerRadius="8" Padding="14,8" Cursor="Hand">
+                    <Border.Background><SolidColorBrush Color="#1E3A8A"/></Border.Background>
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="4" ShadowDepth="1" Direction="270" Color="#1E3A8A" Opacity="0.3"/>
+                    </Border.Effect>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <Path Data="{StaticResource IcoRefresh}" Stretch="Uniform"
+                              Stroke="White" StrokeThickness="2.4"
+                              StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                              Width="13" Height="13" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="Actualizar" FontFamily="Segoe UI" FontSize="12.5"
+                                   FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </Grid>
+
+        <!-- ════════════════════════════════════════════════════════
+             ROW 2 — 6 KPIs en 2 sub-filas
+        ════════════════════════════════════════════════════════ -->
+        <StackPanel Grid.Row="2" Margin="0,0,0,10">
+
+            <!-- Section label: INVENTARIO -->
+            <TextBlock Text="INVENTARIO" FontFamily="Segoe UI" FontSize="10" FontWeight="Bold"
+                        Foreground="#9CA3AF" Margin="0,0,0,6"/>
+
+            <!-- KPIs fila A -->
+            <UniformGrid Columns="3" Margin="0,0,0,8">
+
+                <!-- ── Productos ── -->
+                <Border Background="White" BorderBrush="#E5E7EB" BorderThickness="1"
+                        CornerRadius="10" Margin="0,0,5,0" ClipToBounds="True">
+                    <Grid>
+                        <Border Height="3" VerticalAlignment="Top" Background="#1E3A8A"/>
+                        <StackPanel Margin="14,12,14,10">
+                            <DockPanel LastChildFill="True" Margin="0,0,0,5">
+                                <Border DockPanel.Dock="Left" Width="28" Height="28" CornerRadius="7"
+                                        Background="#141E3A8A" Margin="0,0,8,0" VerticalAlignment="Center">
+                                    <Path Data="{StaticResource IcoBox}" Stretch="Uniform"
+                                          Stroke="#1E3A8A" StrokeThickness="1.8"
+                                          StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                          Width="15" Height="15"/>
+                                </Border>
+                                <Border DockPanel.Dock="Right" Background="#ECFDF5" CornerRadius="999"
+                                        Padding="7,2" VerticalAlignment="Center">
+                                    <TextBlock Text="▲ +12" FontFamily="Segoe UI" FontSize="11"
+                                               FontWeight="Bold" Foreground="#047857"/>
+                                </Border>
+                                <TextBlock Text="PRODUCTOS" FontFamily="Segoe UI" FontSize="10.5"
+                                           FontWeight="Bold"                                            Foreground="#6B7280" VerticalAlignment="Center"/>
+                            </DockPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                <TextBlock Text="{Binding ProdCount}" FontFamily="Segoe UI" FontSize="24"
+                                           FontWeight="ExtraBold" Foreground="#1A1F2E"
+                                           Typography.NumeralAlignment="Tabular"/>
+                            </StackPanel>
+                            <TextBlock Text="vs. mes anterior" FontFamily="Segoe UI" FontSize="10.5" Foreground="#6B7280"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- ── Proveedores ── -->
+                <Border Background="White" BorderBrush="#E5E7EB" BorderThickness="1"
+                        CornerRadius="10" Margin="5,0,5,0" ClipToBounds="True">
+                    <Grid>
+                        <Border Height="3" VerticalAlignment="Top" Background="#7C3AED"/>
+                        <StackPanel Margin="14,12,14,10">
+                            <DockPanel LastChildFill="True" Margin="0,0,0,5">
+                                <Border DockPanel.Dock="Left" Width="28" Height="28" CornerRadius="7"
+                                        Background="#147C3AED" Margin="0,0,8,0" VerticalAlignment="Center">
+                                    <Path Data="{StaticResource IcoUsers}" Stretch="Uniform"
+                                          Stroke="#7C3AED" StrokeThickness="1.8"
+                                          StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                          Width="15" Height="15"/>
+                                </Border>
+                                <Border DockPanel.Dock="Right" Background="#ECFDF5" CornerRadius="999"
+                                        Padding="7,2" VerticalAlignment="Center">
+                                    <TextBlock Text="▲ +3" FontFamily="Segoe UI" FontSize="11"
+                                               FontWeight="Bold" Foreground="#047857"/>
+                                </Border>
+                                <TextBlock Text="PROVEEDORES" FontFamily="Segoe UI" FontSize="10.5"
+                                           FontWeight="Bold"                                            Foreground="#6B7280" VerticalAlignment="Center"/>
+                            </DockPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                <TextBlock Text="{Binding ProvCount}" FontFamily="Segoe UI" FontSize="24"
+                                           FontWeight="ExtraBold" Foreground="#1A1F2E"
+                                           Typography.NumeralAlignment="Tabular"/>
+                            </StackPanel>
+                            <TextBlock Text="2 nuevos esta semana" FontFamily="Segoe UI" FontSize="10.5" Foreground="#6B7280"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- ── Marcas (sin delta) ── -->
+                <Border Background="White" BorderBrush="#E5E7EB" BorderThickness="1"
+                        CornerRadius="10" Margin="5,0,0,0" ClipToBounds="True">
+                    <Grid>
+                        <Border Height="3" VerticalAlignment="Top" Background="#0891B2"/>
+                        <StackPanel Margin="14,12,14,10">
+                            <DockPanel LastChildFill="True" Margin="0,0,0,5">
+                                <Border DockPanel.Dock="Left" Width="28" Height="28" CornerRadius="7"
+                                        Background="#140891B2" Margin="0,0,8,0" VerticalAlignment="Center">
+                                    <Path Data="{StaticResource IcoBadge}" Stretch="Uniform"
+                                          Stroke="#0891B2" StrokeThickness="1.8"
+                                          StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                          Width="15" Height="15"/>
+                                </Border>
+                                <TextBlock Text="MARCAS" FontFamily="Segoe UI" FontSize="10.5"
+                                           FontWeight="Bold"                                            Foreground="#6B7280" VerticalAlignment="Center"/>
+                            </DockPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                <TextBlock Text="{Binding MarcaCount}" FontFamily="Segoe UI" FontSize="24"
+                                           FontWeight="ExtraBold" Foreground="#1A1F2E"
+                                           Typography.NumeralAlignment="Tabular"/>
+                            </StackPanel>
+                            <TextBlock Text="6 marcas activas hoy" FontFamily="Segoe UI" FontSize="10.5" Foreground="#6B7280"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+            </UniformGrid>
+
+            <!-- Section label: PESAJES DEL DÍA + link -->
+            <Grid Margin="0,2,0,6">
+                <TextBlock Text="PESAJES DEL DÍA" FontFamily="Segoe UI" FontSize="10"
+                           FontWeight="Bold"  Foreground="#9CA3AF"
+                           HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                <TextBlock Text="Ver bitácora completa →" FontFamily="Segoe UI" FontSize="11"
+                           FontWeight="SemiBold" Foreground="#1E3A8A"
+                           HorizontalAlignment="Right" VerticalAlignment="Center" Cursor="Hand"/>
+            </Grid>
+
+            <!-- KPIs fila B -->
+            <UniformGrid Columns="3">
+
+                <!-- ── Total Pesajes ── -->
+                <Border Background="White" BorderBrush="#E5E7EB" BorderThickness="1"
+                        CornerRadius="10" Margin="0,0,5,0" ClipToBounds="True">
+                    <Grid>
+                        <Border Height="3" VerticalAlignment="Top" Background="#1E3A8A"/>
+                        <StackPanel Margin="14,12,14,10">
+                            <DockPanel LastChildFill="True" Margin="0,0,0,5">
+                                <Border DockPanel.Dock="Left" Width="28" Height="28" CornerRadius="7"
+                                        Background="#141E3A8A" Margin="0,0,8,0" VerticalAlignment="Center">
+                                    <Path Data="{StaticResource IcoScale}" Stretch="Uniform"
+                                          Stroke="#1E3A8A" StrokeThickness="1.8"
+                                          StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                          Width="15" Height="15"/>
+                                </Border>
+                                <Border DockPanel.Dock="Right" Background="#ECFDF5" CornerRadius="999"
+                                        Padding="7,2" VerticalAlignment="Center">
+                                    <TextBlock Text="▲ +18%" FontFamily="Segoe UI" FontSize="11"
+                                               FontWeight="Bold" Foreground="#047857"/>
+                                </Border>
+                                <TextBlock Text="TOTAL PESAJES" FontFamily="Segoe UI" FontSize="10.5"
+                                           FontWeight="Bold"                                            Foreground="#6B7280" VerticalAlignment="Center"/>
+                            </DockPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                <TextBlock Text="{Binding PesajeCount}" FontFamily="Segoe UI" FontSize="24"
+                                           FontWeight="ExtraBold" Foreground="#1A1F2E"
+                                           Typography.NumeralAlignment="Tabular"/>
+                            </StackPanel>
+                            <TextBlock Text="comparado con ayer" FontFamily="Segoe UI" FontSize="10.5" Foreground="#6B7280"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- ── Total Neto (con unidad kg) ── -->
+                <Border Background="White" BorderBrush="#E5E7EB" BorderThickness="1"
+                        CornerRadius="10" Margin="5,0,5,0" ClipToBounds="True">
+                    <Grid>
+                        <Border Height="3" VerticalAlignment="Top" Background="#059669"/>
+                        <StackPanel Margin="14,12,14,10">
+                            <DockPanel LastChildFill="True" Margin="0,0,0,5">
+                                <Border DockPanel.Dock="Left" Width="28" Height="28" CornerRadius="7"
+                                        Background="#14059669" Margin="0,0,8,0" VerticalAlignment="Center">
+                                    <Path Data="{StaticResource IcoBox}" Stretch="Uniform"
+                                          Stroke="#059669" StrokeThickness="1.8"
+                                          StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                          Width="15" Height="15"/>
+                                </Border>
+                                <Border DockPanel.Dock="Right" Background="#ECFDF5" CornerRadius="999"
+                                        Padding="7,2" VerticalAlignment="Center">
+                                    <TextBlock Text="▲ +22%" FontFamily="Segoe UI" FontSize="11"
+                                               FontWeight="Bold" Foreground="#047857"/>
+                                </Border>
+                                <TextBlock Text="TOTAL NETO" FontFamily="Segoe UI" FontSize="10.5"
+                                           FontWeight="Bold"                                            Foreground="#6B7280" VerticalAlignment="Center"/>
+                            </DockPanel>
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom" Margin="0,0,0,4">
+                                <TextBlock Text="{Binding TotalNeto}" FontFamily="Segoe UI" FontSize="24"
+                                           FontWeight="ExtraBold" Foreground="#1A1F2E"
+                                           Typography.NumeralAlignment="Tabular"/>
+                                <TextBlock Text="kg" FontFamily="Segoe UI" FontSize="12"
+                                           FontWeight="SemiBold" Foreground="#9CA3AF"
+                                           Margin="5,0,0,4" VerticalAlignment="Bottom"/>
+                            </StackPanel>
+                            <TextBlock Text="meta: 35,000 kg" FontFamily="Segoe UI" FontSize="10.5" Foreground="#6B7280"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- ── % Merma (delta bad → rojo) ── -->
+                <Border Background="White" BorderBrush="#E5E7EB" BorderThickness="1"
+                        CornerRadius="10" Margin="5,0,0,0" ClipToBounds="True">
+                    <Grid>
+                        <Border Height="3" VerticalAlignment="Top" Background="#DC2626"/>
+                        <StackPanel Margin="14,12,14,10">
+                            <DockPanel LastChildFill="True" Margin="0,0,0,5">
+                                <Border DockPanel.Dock="Left" Width="28" Height="28" CornerRadius="7"
+                                        Background="#14DC2626" Margin="0,0,8,0" VerticalAlignment="Center">
+                                    <Path Data="{StaticResource IcoChart}" Stretch="Uniform"
+                                          Stroke="#DC2626" StrokeThickness="1.8"
+                                          StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                          Width="15" Height="15"/>
+                                </Border>
+                                <Border DockPanel.Dock="Right" Background="#FEF2F2" CornerRadius="999"
+                                        Padding="7,2" VerticalAlignment="Center">
+                                    <TextBlock Text="▲ +0.4" FontFamily="Segoe UI" FontSize="11"
+                                               FontWeight="Bold" Foreground="#B91C1C"/>
+                                </Border>
+                                <TextBlock Text="% MERMA" FontFamily="Segoe UI" FontSize="10.5"
+                                           FontWeight="Bold"                                            Foreground="#6B7280" VerticalAlignment="Center"/>
+                            </DockPanel>
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom" Margin="0,0,0,4">
+                                <TextBlock Text="{Binding PctMerma}" FontFamily="Segoe UI" FontSize="24"
+                                           FontWeight="ExtraBold" Foreground="#1A1F2E"
+                                           Typography.NumeralAlignment="Tabular"/>
+                                <TextBlock Text="%" FontFamily="Segoe UI" FontSize="12"
+                                           FontWeight="SemiBold" Foreground="#9CA3AF"
+                                           Margin="5,0,0,4" VerticalAlignment="Bottom"/>
+                            </StackPanel>
+                            <TextBlock Text="objetivo ≤ 3.0%" FontFamily="Segoe UI" FontSize="10.5" Foreground="#6B7280"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+            </UniformGrid>
+        </StackPanel>
+
+        <!-- ════════════════════════════════════════════════════════
+             ROW 3 — Gráfica (izq.) + Últimos pesajes (der.)
+        ════════════════════════════════════════════════════════ -->
+        <Grid Grid.Row="3">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1.55*"/>
+                <ColumnDefinition Width="10"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- ══════════════ GRÁFICA ══════════════ -->
+            <Border Grid.Column="0" Background="White" BorderBrush="#E5E7EB"
+                    BorderThickness="1" CornerRadius="10">
+                <Grid Margin="16,12,16,12">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>   <!-- header -->
+                        <RowDefinition Height="*"/>      <!-- barras -->
+                        <RowDefinition Height="Auto"/>   <!-- leyenda -->
+                    </Grid.RowDefinitions>
+
+                    <!-- Header gráfica -->
+                    <DockPanel Grid.Row="0" LastChildFill="False" Margin="0,0,0,10">
+                        <StackPanel DockPanel.Dock="Left">
+                            <TextBlock Text="Productos con más merma" FontFamily="Segoe UI"
+                                       FontSize="13" FontWeight="Bold" Foreground="#1A1F2E"/>
+                            <TextBlock Text="Top 5 — % sobre total producido" FontFamily="Segoe UI"
+                                       FontSize="10.5" Foreground="#9CA3AF" Margin="0,1,0,0"/>
+                        </StackPanel>
+
+                        <!-- Toggle Hoy / Semana / Mes -->
+                        <Border DockPanel.Dock="Right" Background="#F3F4F6" CornerRadius="6" Padding="2"
+                                VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal">
+                                <RadioButton Style="{StaticResource PeriodBtn}" Content="Hoy"
+                                             GroupName="Periodo" IsChecked="True"
+                                             Command="{Binding SelectPeriodoCommand}"
+                                             CommandParameter="Hoy"/>
+                                <RadioButton Style="{StaticResource PeriodBtn}" Content="Semana"
+                                             GroupName="Periodo"
+                                             Command="{Binding SelectPeriodoCommand}"
+                                             CommandParameter="Semana"/>
+                                <RadioButton Style="{StaticResource PeriodBtn}" Content="Mes"
+                                             GroupName="Periodo"
+                                             Command="{Binding SelectPeriodoCommand}"
+                                             CommandParameter="Mes"/>
+                            </StackPanel>
+                        </Border>
+                    </DockPanel>
+
+                    <!-- Barras de merma -->
+                    <ItemsControl Grid.Row="1" ItemsSource="{Binding TopMerma}"
+                                  VerticalAlignment="Center">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin="0,4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="110"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="46"/>
+                                        <ColumnDefinition Width="44"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <!-- Nombre producto -->
+                                    <TextBlock Grid.Column="0" Text="{Binding Name}"
+                                               FontFamily="Segoe UI" FontSize="12" FontWeight="Medium"
+                                               Foreground="#1A1F2E" VerticalAlignment="Center"
+                                               TextTrimming="CharacterEllipsis"/>
+
+                                    <!-- Barra progreso con gradiente según Tone -->
+                                    <ProgressBar Grid.Column="1" Value="{Binding BarPercent, Mode=OneTime}"
+                                                 Maximum="100" VerticalAlignment="Center"
+                                                 Style="{StaticResource MermaBar}"
+                                                 Foreground="{Binding BarBrush}"
+                                                 Margin="0,0,8,0"/>
+
+                                    <!-- % -->
+                                    <TextBlock Grid.Column="2" Text="{Binding PctText}"
+                                               FontFamily="Segoe UI" FontSize="13" FontWeight="Bold"
+                                               Foreground="#1A1F2E" TextAlignment="Right"
+                                               VerticalAlignment="Center"
+                                               Typography.NumeralAlignment="Tabular"/>
+
+                                    <!-- kg -->
+                                    <TextBlock Grid.Column="3" Text="{Binding KgText}"
+                                               FontFamily="Segoe UI" FontSize="11" Foreground="#9CA3AF"
+                                               TextAlignment="Right" VerticalAlignment="Center"
+                                               Typography.NumeralAlignment="Tabular"/>
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <!-- Leyenda -->
+                    <Border Grid.Row="2" BorderBrush="#F3F4F6" BorderThickness="0,1,0,0"
+                            Padding="0,8,0,0" Margin="0,8,0,0">
+                        <StackPanel Orientation="Horizontal">
+                            <StackPanel Orientation="Horizontal" Margin="0,0,14,0">
+                                <Border Width="8" Height="8" CornerRadius="2" Margin="0,0,5,0" VerticalAlignment="Center">
+                                    <Border.Background>
+                                        <LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5">
+                                            <GradientStop Color="#1E3A8A" Offset="0"/>
+                                            <GradientStop Color="#3B82F6" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Border.Background>
+                                </Border>
+                                <TextBlock Text="Normal &lt; 3%" FontFamily="Segoe UI" FontSize="10.5" Foreground="#6B7280" VerticalAlignment="Center"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,14,0">
+                                <Border Width="8" Height="8" CornerRadius="2" Margin="0,0,5,0" VerticalAlignment="Center">
+                                    <Border.Background>
+                                        <LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5">
+                                            <GradientStop Color="#F59E0B" Offset="0"/>
+                                            <GradientStop Color="#FBBF24" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Border.Background>
+                                </Border>
+                                <TextBlock Text="Alerta 3–4%" FontFamily="Segoe UI" FontSize="10.5" Foreground="#6B7280" VerticalAlignment="Center"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <Border Width="8" Height="8" CornerRadius="2" Margin="0,0,5,0" VerticalAlignment="Center">
+                                    <Border.Background>
+                                        <LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5">
+                                            <GradientStop Color="#DC2626" Offset="0"/>
+                                            <GradientStop Color="#F87171" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Border.Background>
+                                </Border>
+                                <TextBlock Text="Crítico ≥ 4%" FontFamily="Segoe UI" FontSize="10.5" Foreground="#6B7280" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                </Grid>
+            </Border>
+
+            <!-- ══════════════ ÚLTIMOS PESAJES ══════════════ -->
+            <Border Grid.Column="2" Background="White" BorderBrush="#E5E7EB"
+                    BorderThickness="1" CornerRadius="10" ClipToBounds="True">
+                <Grid Margin="14,12,14,12">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Header lista -->
+                    <DockPanel Grid.Row="0" LastChildFill="False" Margin="0,0,0,8">
+                        <StackPanel DockPanel.Dock="Left">
+                            <TextBlock Text="Últimos pesajes" FontFamily="Segoe UI"
+                                       FontSize="13" FontWeight="Bold" Foreground="#1A1F2E"/>
+                            <TextBlock Text="En tiempo real" FontFamily="Segoe UI"
+                                       FontSize="10.5" Foreground="#9CA3AF" Margin="0,1,0,0"/>
+                        </StackPanel>
+
+                        <!-- Chip Live pulsante -->
+                        <Border DockPanel.Dock="Right" Background="#ECFDF5" CornerRadius="999"
+                                Padding="8,2" VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Ellipse Width="6" Height="6" Fill="#10B981"
+                                         Margin="0,0,5,0" VerticalAlignment="Center"
+                                         RenderTransformOrigin="0.5,0.5">
+                                    <Ellipse.RenderTransform>
+                                        <ScaleTransform/>
+                                    </Ellipse.RenderTransform>
+                                    <Ellipse.Triggers>
+                                        <EventTrigger RoutedEvent="Loaded">
+                                            <BeginStoryboard>
+                                                <Storyboard RepeatBehavior="Forever">
+                                                    <DoubleAnimation
+                                                        Storyboard.TargetProperty="Opacity"
+                                                        From="1" To="0.4" Duration="0:0:0.75"
+                                                        AutoReverse="True"/>
+                                                    <DoubleAnimation
+                                                        Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)"
+                                                        From="1" To="0.7" Duration="0:0:0.75"
+                                                        AutoReverse="True"/>
+                                                    <DoubleAnimation
+                                                        Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)"
+                                                        From="1" To="0.7" Duration="0:0:0.75"
+                                                        AutoReverse="True"/>
+                                                </Storyboard>
+                                            </BeginStoryboard>
+                                        </EventTrigger>
+                                    </Ellipse.Triggers>
+                                </Ellipse>
+                                <TextBlock Text="Live" FontFamily="Segoe UI" FontSize="11"
+                                           FontWeight="Bold" Foreground="#047857"
+                                           VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+                    </DockPanel>
+
+                    <!-- Filas de pesajes -->
+                    <ItemsControl Grid.Row="1" ItemsSource="{Binding Ultimos}"
+                                  VerticalAlignment="Top">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border BorderBrush="#F3F4F6" BorderThickness="0,1,0,0" Padding="0,5">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="50"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <!-- Código chip -->
+                                        <Border Grid.Column="0" Background="#EFF6FF" CornerRadius="4"
+                                                Padding="5,2" HorizontalAlignment="Center"
+                                                VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding Code}" FontFamily="Consolas"
+                                                       FontSize="10" FontWeight="Bold"
+                                                       Foreground="#1E3A8A" TextAlignment="Center"/>
+                                        </Border>
+
+                                        <!-- Producto + Hora -->
+                                        <StackPanel Grid.Column="1" Margin="8,0,8,0" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding Producto}"
+                                                       FontFamily="Segoe UI" FontSize="12" FontWeight="SemiBold"
+                                                       Foreground="#1A1F2E" TextTrimming="CharacterEllipsis"/>
+                                            <TextBlock Text="{Binding Hora}"
+                                                       FontFamily="Segoe UI" FontSize="10.5" Foreground="#9CA3AF"/>
+                                        </StackPanel>
+
+                                        <!-- Dot warn + Peso kg -->
+                                        <StackPanel Grid.Column="2" Orientation="Horizontal"
+                                                    VerticalAlignment="Center">
+                                            <Ellipse Width="6" Height="6" Fill="#F59E0B"
+                                                     Margin="0,0,5,0" VerticalAlignment="Center"
+                                                     Visibility="{Binding WarnVisibility}"/>
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="{Binding Kg}"
+                                                           FontFamily="Segoe UI" FontSize="12.5" FontWeight="Bold"
+                                                           Foreground="#1A1F2E"
+                                                           Typography.NumeralAlignment="Tabular"
+                                                           VerticalAlignment="Center"/>
+                                                <TextBlock Text="kg"
+                                                           FontFamily="Segoe UI" FontSize="9.5" FontWeight="SemiBold"
+                                                           Foreground="#9CA3AF" Margin="2,0,0,0"
+                                                           VerticalAlignment="Bottom"/>
+                                            </StackPanel>
+                                        </StackPanel>
+
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                </Grid>
+            </Border>
+
+        </Grid>
+    </Grid>
+</UserControl>

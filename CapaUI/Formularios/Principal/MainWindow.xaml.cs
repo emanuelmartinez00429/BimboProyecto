@@ -86,8 +86,8 @@ namespace CapaUI.Formularios.Principal
         {
             InitializeComponent();
 
-            MinWidth  = SystemParameters.PrimaryScreenWidth  / 2;
-            MinHeight = SystemParameters.PrimaryScreenHeight / 2;
+            MinWidth  = 600;
+            MinHeight = 400;
 
             Vm.SesionCerrada += (_, _) => SesionCerrada?.Invoke(this, EventArgs.Empty);
 
@@ -130,10 +130,12 @@ namespace CapaUI.Formularios.Principal
                 var work = info.rcWork;
                 var full = info.rcMonitor;
 
-                mmi.ptMaxPosition.X = Math.Abs(work.Left - full.Left);
-                mmi.ptMaxPosition.Y = Math.Abs(work.Top  - full.Top);
-                mmi.ptMaxSize.X     = Math.Abs(work.Right  - work.Left);
-                mmi.ptMaxSize.Y     = Math.Abs(work.Bottom - work.Top);
+                mmi.ptMaxPosition.X  = Math.Abs(work.Left - full.Left);
+                mmi.ptMaxPosition.Y  = Math.Abs(work.Top  - full.Top);
+                mmi.ptMaxSize.X      = Math.Abs(work.Right  - work.Left);
+                mmi.ptMaxSize.Y      = Math.Abs(work.Bottom - work.Top);
+                mmi.ptMinTrackSize.X = 600;
+                mmi.ptMinTrackSize.Y = 400;
 
                 Marshal.StructureToPtr(mmi, lParam, true);
                 handled = true;
@@ -147,6 +149,7 @@ namespace CapaUI.Formularios.Principal
             _moduleMap["usuarios"]  = new(SubUsuarios,  ChevUsuariosRot,  IndUsuarios,  ExpUsuarios,  IcoUsuarios);
             _moduleMap["productos"] = new(SubProductos, ChevProductosRot, IndProductos, ExpProductos, IcoProductos);
             _moduleMap["pesajes"]   = new(SubPesajes,   ChevPesajesRot,   IndPesajes,   ExpPesajes,   IcoPesajes);
+            _moduleMap["reportes"]  = new(SubReportes,  ChevReportesRot,  IndReportes,  ExpReportes,  IcoReportes);
 
             // Sub-items — Usuarios
             _subMap["usuarios-sub"] = new(DotUsuariosSub, LblUsuariosSub, "usuarios");
@@ -164,6 +167,10 @@ namespace CapaUI.Formularios.Principal
 
             // Sub-items — Pesajes
             _subMap["pesajes-sub"] = new(DotPesajes, LblPesajes, "pesajes");
+
+            // Sub-items — Reportería
+            _subMap["dashboard"]      = new(DotDashboard,     LblDashboard,     "reportes");
+            _subMap["crear-reportes"] = new(DotCrearReportes, LblCrearReportes, "reportes");
         }
 
         // ══════════════════════════════════════════════════════════════════
@@ -208,6 +215,7 @@ namespace CapaUI.Formularios.Principal
 
             // Reportería
             LblModuloReportes.Visibility = Visibility.Collapsed;
+            ChevReportes.Visibility      = Visibility.Collapsed;
             ExpReportes.Visibility       = Visibility.Visible;
             IcoReportes.Visibility       = Visibility.Collapsed;
 
@@ -239,7 +247,8 @@ namespace CapaUI.Formularios.Principal
             ExpPesajes.Visibility       = Visibility.Visible;
 
             LblModuloReportes.Visibility = Visibility.Visible;
-            ExpReportes.Visibility      = Visibility.Visible;
+            ChevReportes.Visibility      = Visibility.Visible;
+            ExpReportes.Visibility       = Visibility.Visible;
             IcoReportes.Visibility       = Visibility.Collapsed;
 
             foreach (var entry in _moduleMap.Values)
@@ -290,16 +299,20 @@ namespace CapaUI.Formularios.Principal
             int count = GetSubCount(id);
             AnimateSubMenu(entry.SubMenu, true, count);
             AnimateChevron(entry.Chevron, 180);
-            entry.Indicator.Visibility = Visibility.Visible;
         }
 
         private void CloseAllModules()
         {
+            bool activeSubHasParent = _subMap.TryGetValue(_activeSubId, out var activeSub);
+
             foreach (var kv in _moduleMap)
             {
                 AnimateSubMenu(kv.Value.SubMenu, false, 0);
                 AnimateChevron(kv.Value.Chevron, 0);
-                if (kv.Key != _activeModuleId)
+
+                // Mantener el indicador del módulo que tiene el subitem activo seleccionado
+                bool ownsActiveSub = activeSubHasParent && activeSub!.ParentModule == kv.Key;
+                if (!ownsActiveSub)
                     kv.Value.Indicator.Visibility = Visibility.Collapsed;
             }
         }
@@ -386,7 +399,8 @@ namespace CapaUI.Formularios.Principal
                 case "contactos-proveedores": Vm.NavContactosProveedoresCommand.Execute(null);   break;
                 case "contactos-fabricantes": Vm.NavContactosFabricantesCommand.Execute(null);   break;
                 case "pesajes-sub":           Vm.NavPesajesCommand.Execute(null);               break;
-                case "reportes":             Vm.NavReportesCommand.Execute(null);               break;
+                case "dashboard":            Vm.NavDashboardCommand.Execute(null);              break;
+                case "crear-reportes":       Vm.NavCrearReportesCommand.Execute(null);          break;
             }
         }
 
@@ -486,6 +500,7 @@ namespace CapaUI.Formularios.Principal
             "usuarios"  => 4,
             "productos" => 6,
             "pesajes"   => 1,
+            "reportes"  => 2,
             _           => 0
         };
 

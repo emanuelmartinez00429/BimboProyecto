@@ -11,9 +11,9 @@
         <TextBlock Grid.Row="0" Margin="0,0,0,16" FontFamily="Segoe UI" FontSize="12">
             <Run Text="Inicio" Foreground="#6B7280"/>
             <Run Text="  /  " Foreground="#CBD5E1"/>
-            <Run Text="{Binding ModuloPadre}" Foreground="#6B7280"/>
+            <Run Text="{Binding ModuloPadre, Mode=OneTime}" Foreground="#6B7280"/>
             <Run Text="  /  " Foreground="#CBD5E1"/>
-            <Run Text="{Binding NombreModulo}" Foreground="#1A1F2E" FontWeight="SemiBold"/>
+            <Run Text="{Binding NombreModulo, Mode=OneTime}" Foreground="#1A1F2E" FontWeight="SemiBold"/>
         </TextBlock>
 
         <!-- Card -->
@@ -24,9 +24,10 @@
                 <!-- Diagonal-stripe overlay -->
                 <Rectangle Opacity="1">
                     <Rectangle.Fill>
-                        <DrawingBrush TileMode="Tile"
-                                      Viewport="0,0,40,40" ViewportUnits="Absolute"
-                                      Transform="rotate(45 0.5 0.5) translate(0,0)">
+                        <DrawingBrush TileMode="Tile" Viewport="0,0,40,40" ViewportUnits="Absolute">
+                            <DrawingBrush.Transform>
+                                <RotateTransform Angle="45"/>
+                            </DrawingBrush.Transform>
                             <DrawingBrush.Drawing>
                                 <GeometryDrawing Brush="#051E3A8A">
                                     <GeometryDrawing.Geometry>
