@@ -3,6 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:CapaUI.Formularios.Principal"
         xmlns:pantallas="clr-namespace:CapaUI.Formularios.Principal.Pantallas"
+        xmlns:prods="clr-namespace:CapaUI.Formularios.Principal.Pantallas.Productos"
         xmlns:dash="clr-namespace:CapaUI.Formularios.Dashboard"
         xmlns:av="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="av" x:Class="CapaUI.Formularios.Principal.MainWindow"
         Title="BimboPesaje"
@@ -27,6 +28,9 @@
             </DataTemplate>
             <DataTemplate DataType="{x:Type dash:DashboardVM}">
                 <dash:DashboardView/>
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type local:ProductosVM}">
+                <prods:ProductosView/>
             </DataTemplate>
             <DataTemplate DataType="{x:Type local:PlaceholderVM}">
                 <Grid Background="#F4F5F7">

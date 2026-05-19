@@ -73,6 +73,8 @@ namespace BimboPesaje.Formularios.MenuPrincipal
         // ══════════════════════════════════════════════════════════════
         private void OnNavigationRequested(string moduleId)
         {
+            try
+            {
             switch (moduleId)
             {
                 case "empleados":
@@ -88,7 +90,13 @@ namespace BimboPesaje.Formularios.MenuPrincipal
                     // pendiente
                     break;
                 case "prod-productos":
-                    AbrirFormHijo(new GestionProductos());
+                    var productosView = new BimboPesaje.Formularios.Productos.ProductosView();
+                    productosView.SalirSolicitado += () => {
+                        _shell.ClearWpfView();
+                        CerrarFormActual();
+                    };
+                    CerrarFormActual();
+                    _shell.ShowWpfView(productosView);
                     break;
                 case "prod-proveedores":
                     AbrirFormHijo(new GestionProveedores());
@@ -105,6 +113,12 @@ namespace BimboPesaje.Formularios.MenuPrincipal
                 case "home":
                     CerrarFormActual();
                     break;
+            }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error al abrir módulo:\n" + ex.ToString(), "Error de navegación",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 

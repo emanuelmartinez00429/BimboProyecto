@@ -309,6 +309,21 @@ namespace BimboPesaje.Formularios.MenuPrincipal
             WfHost.Child = panel;
         }
 
+        public void ShowWpfView(System.Windows.Controls.UserControl view)
+        {
+            _showingMyUser        = false;
+            WpfContent.Content    = view;
+            WpfContent.Visibility = Visibility.Visible;
+            WfHost.Visibility     = Visibility.Collapsed;
+        }
+
+        public void ClearWpfView()
+        {
+            WpfContent.Content    = null;
+            WpfContent.Visibility = Visibility.Collapsed;
+            WfHost.Visibility     = Visibility.Visible;
+        }
+
         private void ShowWinFormsContent()
         {
             _showingMyUser        = false;

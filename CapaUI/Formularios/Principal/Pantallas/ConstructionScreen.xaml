@@ -21,24 +21,6 @@
                 BorderBrush="#E5E7EB" BorderThickness="1"
                 ClipToBounds="True">
             <Grid>
-                <!-- Diagonal-stripe overlay -->
-                <Rectangle Opacity="1">
-                    <Rectangle.Fill>
-                        <DrawingBrush TileMode="Tile" Viewport="0,0,40,40" ViewportUnits="Absolute">
-                            <DrawingBrush.Transform>
-                                <RotateTransform Angle="45"/>
-                            </DrawingBrush.Transform>
-                            <DrawingBrush.Drawing>
-                                <GeometryDrawing Brush="#051E3A8A">
-                                    <GeometryDrawing.Geometry>
-                                        <RectangleGeometry Rect="0,0,20,40"/>
-                                    </GeometryDrawing.Geometry>
-                                </GeometryDrawing>
-                            </DrawingBrush.Drawing>
-                        </DrawingBrush>
-                    </Rectangle.Fill>
-                </Rectangle>
-
                 <!-- Content -->
                 <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"
                             MaxWidth="460" Margin="32">

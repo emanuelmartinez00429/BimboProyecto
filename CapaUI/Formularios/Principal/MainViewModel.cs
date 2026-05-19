@@ -69,7 +69,7 @@ namespace CapaUI.Formularios.Principal
 
             // Módulo Productos
             NavProductosCommand            = new RelayCommand(() =>
-                VistaActual = new ConstructionVM("Gestión de Productos",   "Productos"));
+                VistaActual = new ProductosVM());
             NavProveedoresCommand          = new RelayCommand(() =>
                 VistaActual = new ConstructionVM("Gestión de Proveedores", "Productos"));
             NavFabricantesCommand          = new RelayCommand(() =>
@@ -126,6 +126,8 @@ namespace CapaUI.Formularios.Principal
         public ConstructionVM(string nombre, string padre = "")
         { NombreModulo = nombre; ModuloPadre = padre; }
     }
+
+    public class ProductosVM : ViewModelBase { }
 
     /// <summary>Mantenido por compatibilidad.</summary>
     public class PlaceholderVM : ViewModelBase
