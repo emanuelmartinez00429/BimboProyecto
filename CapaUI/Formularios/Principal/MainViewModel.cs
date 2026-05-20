@@ -2,7 +2,7 @@ using System;
 using System.Windows.Input;
 using CapaUI.Core.MVVM;
 using CapaUI.Core.Permisos;
-using CapaServicios;
+using CapaDominio;
 
 namespace CapaUI.Formularios.Principal
 {

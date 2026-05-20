@@ -1,7 +1,7 @@
 using System;
 using System.Globalization;
 using System.Windows.Controls;
-using CapaServicios;
+using CapaDominio;
 
 namespace CapaUI.Formularios.Principal.Pantallas
 {
