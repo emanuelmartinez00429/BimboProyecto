@@ -1,5 +1,5 @@
 using CapaDatos.Repositorios.Usuario;
-using CapaServicios;
+using CapaDominio;
 using ServicioConexión.Conexion;
 using System.Windows;
 using System.Windows.Controls;

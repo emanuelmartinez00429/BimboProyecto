@@ -1,7 +1,7 @@
 using Supabase.Realtime.PostgresChanges;
 using static Supabase.Realtime.Constants;
 
-namespace CapaServicios
+namespace CapaDominio
 {
     // Conecta los eventos de GestorRealtime con ServicioNotificaciones.
     // Llamar Iniciar() una vez después de que GestorRealtime esté listo.

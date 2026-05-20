@@ -7,7 +7,7 @@ using CapaDatos.Modelados.Usuarios;
 using CapaDatos.Modelados.Pesajes;
 
 
-namespace CapaServicios
+namespace CapaDominio
 {
     public static class GestorRealtime
     {

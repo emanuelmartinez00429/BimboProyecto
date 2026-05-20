@@ -1,6 +1,6 @@
 using CapaDatos.Modelados.Pesajes;
 using CapaDatos.Repositorios.productos_movimientos;
-using CapaServicios;
+using CapaDominio;
 
 namespace BimboPesaje.Formularios.Productos
 {

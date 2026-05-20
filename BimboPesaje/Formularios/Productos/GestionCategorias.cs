@@ -1,6 +1,6 @@
 ﻿using CapaDatos.Modelados.Productos;
 using CapaDatos.Repositorios.productos_movimientos;
-using CapaServicios;
+using CapaDominio;
 using Supabase.Realtime.PostgresChanges;
 using System;
 using System.Collections.Generic;

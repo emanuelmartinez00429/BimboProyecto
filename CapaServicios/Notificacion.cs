@@ -1,4 +1,4 @@
-namespace CapaServicios
+namespace CapaDominio
 {
     public enum TipoNotificacion { Info, Advertencia, Error, Exito }
 

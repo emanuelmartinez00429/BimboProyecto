@@ -1,4 +1,4 @@
-namespace CapaServicios
+namespace CapaDominio
 {
     // Servicio singleton estático para notificaciones en tiempo real.
     // Cualquier módulo puede llamar Agregar(); la UI se suscribe a Actualizado.

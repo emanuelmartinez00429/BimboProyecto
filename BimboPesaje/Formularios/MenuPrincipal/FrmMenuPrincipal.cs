@@ -1,7 +1,7 @@
 using BimboPesaje.Formularios.Movimientos;
 using BimboPesaje.Formularios.Productos;
 using BimboPesaje.Formularios.Usuarios;
-using CapaServicios;
+using CapaDominio;
 using System.Runtime.InteropServices;
 using WpfIntegration = System.Windows.Forms.Integration;
 

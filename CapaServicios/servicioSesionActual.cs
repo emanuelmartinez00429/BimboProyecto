@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CapaServicios
+namespace CapaDominio
 {
     public static class servicioSesionActual
     {

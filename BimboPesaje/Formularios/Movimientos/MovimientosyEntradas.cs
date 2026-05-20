@@ -1,6 +1,6 @@
 using System.Data;
 using CapaDatos.Modelados.Pesajes;
-using CapaServicios;
+using CapaDominio;
 using Supabase.Realtime.PostgresChanges;
 using BimboPesaje.Formularios.Productos;
 using CapaDatos.Repositorios.productos_movimientos;

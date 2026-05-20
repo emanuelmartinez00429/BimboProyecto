@@ -1,7 +1,7 @@
 ﻿using CapaDatos.Modelados.Usuarios;
 using CapaDatos.Repositorios;
 using CapaDatos.Repositorios.Usuario;
-using CapaServicios;
+using CapaDominio;
 using ServicioConexión.Conexion;
 using System;
 using System.Windows.Forms;

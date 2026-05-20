@@ -1,6 +1,6 @@
 using BimboPesaje.Formularios.InicioSesion;
 using BimboPesaje.Formularios.MenuPrincipal;
-using CapaServicios;
+using CapaDominio;
 using ServicioConexión.Conexion;
 
 namespace BimboPesaje

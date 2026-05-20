@@ -1,6 +1,6 @@
 ﻿using CapaDatos.Modelados.Usuarios;
 using CapaDatos.Repositorios.Usuario;
-using CapaServicios;
+using CapaDominio;
 using ServicioConexión.Conexion;
 using Supabase.Gotrue;
 using System;

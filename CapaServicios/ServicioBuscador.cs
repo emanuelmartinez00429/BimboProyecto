@@ -1,4 +1,4 @@
-namespace CapaServicios
+namespace CapaDominio
 {
     // Representa una entrada navegable en el buscador.
     // Rellena PalabrasClave con sinónimos relevantes para tu negocio.

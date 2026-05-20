@@ -1,4 +1,4 @@
-namespace CapaServicios
+namespace CapaDominio
 {
     /// <summary>
     /// Centraliza todas las fórmulas de cálculo de pesos del negocio.

@@ -1,4 +1,4 @@
-namespace CapaServicios
+namespace CapaDominio
 {
     /// <summary>
     /// Almacena el usuario autenticado en memoria durante la sesión.

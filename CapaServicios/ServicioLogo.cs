@@ -1,7 +1,7 @@
 using CapaDatos.Repositorios;
 using ServicioConexión.Conexion;
 
-namespace CapaServicios
+namespace CapaDominio
 {
     /// <summary>
     /// Maneja la descarga y caché local del logo de empresa desde Supabase Storage.

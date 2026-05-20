@@ -1,4 +1,4 @@
-using CapaServicios;
+using CapaDominio;
 using ServicioConexión.Conexion;
 using System.Windows;
 

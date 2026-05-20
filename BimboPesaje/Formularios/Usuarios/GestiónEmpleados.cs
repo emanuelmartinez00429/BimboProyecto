@@ -1,6 +1,6 @@
 ﻿using CapaDatos.Modelados.Usuarios;
 using CapaDatos.Repositorios.Usuario;
-using CapaServicios;
+using CapaDominio;
 using Supabase.Realtime.PostgresChanges;
 using System;
 using System.Collections.Generic;

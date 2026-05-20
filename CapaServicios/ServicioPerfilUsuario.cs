@@ -1,6 +1,6 @@
 using CapaDatos.Repositorios.Usuario;
 
-namespace CapaServicios
+namespace CapaDominio
 {
     public class PerfilUsuario
     {

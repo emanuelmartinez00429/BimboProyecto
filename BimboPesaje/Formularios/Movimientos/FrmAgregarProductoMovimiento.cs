@@ -1,5 +1,5 @@
 using CapaDatos.Modelados.Pesajes;
-using CapaServicios;
+using CapaDominio;
 using BimboPesaje.Formularios.Productos;
 using CapaDatos.Repositorios.productos_movimientos;
 
