@@ -733,6 +733,7 @@
                 <DataGrid Grid.Row="0"
                           x:Name="DgProductos"
                           AutoGenerateColumns="False"
+                          CanUserAddRows="False"
                           CanUserSortColumns="False"
                           HeadersVisibility="Column"
                           GridLinesVisibility="None"

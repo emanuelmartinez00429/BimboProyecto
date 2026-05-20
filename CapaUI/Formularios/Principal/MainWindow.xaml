@@ -5,6 +5,8 @@
         xmlns:pantallas="clr-namespace:CapaUI.Formularios.Principal.Pantallas"
         xmlns:prods="clr-namespace:CapaUI.Formularios.Principal.Pantallas.Productos"
         xmlns:dash="clr-namespace:CapaUI.Formularios.Dashboard"
+        xmlns:searchVm="clr-namespace:CapaUI.ViewModels.Search"
+        xmlns:searchViews="clr-namespace:CapaUI.Formularios.Search"
         xmlns:av="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="av" x:Class="CapaUI.Formularios.Principal.MainWindow"
         Title="BimboPesaje"
         WindowStyle="None"
@@ -41,6 +43,9 @@
                                    HorizontalAlignment="Center" Margin="0,8,0,0"/>
                     </StackPanel>
                 </Grid>
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type searchVm:UniversalSearchViewModel}">
+                <searchViews:UniversalSearchView/>
             </DataTemplate>
         </ResourceDictionary>
     </Window.Resources>
@@ -160,7 +165,8 @@
                                              WindowChrome.IsHitTestVisibleInChrome="True"
                                              TextChanged="TxtSearch_Changed"
                                              GotFocus="TxtSearch_GotFocus"
-                                             LostFocus="TxtSearch_LostFocus"/>
+                                             LostFocus="TxtSearch_LostFocus"
+                                             KeyDown="TxtSearch_KeyDown"/>
                                 </Grid>
 
                                 <!-- Ctrl+K hint -->

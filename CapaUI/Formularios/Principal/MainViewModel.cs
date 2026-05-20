@@ -2,7 +2,9 @@ using System;
 using System.Windows.Input;
 using CapaUI.Core.MVVM;
 using CapaUI.Core.Permisos;
+using CapaUI.ViewModels.Search;
 using CapaDominio;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace CapaUI.Formularios.Principal
 {
@@ -47,6 +49,7 @@ namespace CapaUI.Formularios.Principal
         public ICommand NavCrearReportesCommand        { get; }
         public ICommand NavMiUsuarioCommand            { get; }
         public ICommand NavBienvenidaCommand           { get; }
+        public ICommand NavBusquedaCommand             { get; }
         public ICommand CerrarSesionCommand            { get; }
 
         public event EventHandler? SesionCerrada;
@@ -92,6 +95,14 @@ namespace CapaUI.Formularios.Principal
                 VistaActual = new ConstructionVM("Mi Usuario",  ""));
             NavBienvenidaCommand = new RelayCommand(() =>
                 VistaActual = new WelcomeVM());
+
+            NavBusquedaCommand = new RelayCommand(param =>
+            {
+                var vm = App.Services.GetRequiredService<UniversalSearchViewModel>();
+                VistaActual = vm;
+                if (param is string term && !string.IsNullOrWhiteSpace(term))
+                    vm.TriggerSearch(term);
+            });
 
             CerrarSesionCommand = new RelayCommand(async () => await CerrarSesionAsync());
 

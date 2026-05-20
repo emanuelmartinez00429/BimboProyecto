@@ -10,6 +10,8 @@
     <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
     <PackageReference Include="Supabase" Version="1.1.1" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="10.0.5" />
   </ItemGroup>
@@ -19,7 +21,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\CapaDominio\CapaDominio.csproj" />
+    <ProjectReference Include="..\CapaAplicacion4\CapaAplicacion.csproj" />
     <ProjectReference Include="..\CapaDatos\CapaDatos.csproj" />
-    <ProjectReference Include="..\CapaServicios\CapaDominio.csproj" />
+    <ProjectReference Include="..\CapaServicios\CapaServicios.csproj" />
   </ItemGroup>
 </Project>

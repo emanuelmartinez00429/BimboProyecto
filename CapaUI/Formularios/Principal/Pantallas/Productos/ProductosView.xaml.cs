@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 using System.Windows.Media.Animation;
 using WpfKey = System.Windows.Input.KeyEventArgs;
 using WpfMouse = System.Windows.Input.MouseEventArgs;
@@ -55,6 +56,8 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
                     PoblarPaises();
                 if (ev.PropertyName == nameof(ProductosViewModel.ShowSuggestions))
                     ActualizarSuggestions();
+                if (ev.PropertyName == nameof(ProductosViewModel.HighlightIndex))
+                    ActualizarHighlight();
             };
 
             DataContext = _vm;
@@ -78,22 +81,25 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
 
         private void CmbFabricante_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (_vm == null) return;
-            _vm.FabricanteFiltro = CmbFabricante.SelectedItem as string ?? "";
+            if (_vm == null || _suppressFilterChange) return;
+            var selected = CmbFabricante.SelectedItem as FiltroItem;
+            _vm.FabricanteIdFiltro = selected?.Id;
         }
 
         private void CmbPais_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (_vm == null) return;
-            _vm.PaisFiltro = CmbPais.SelectedItem as string ?? "";
+            if (_vm == null || _suppressFilterChange) return;
+            var selected = CmbPais.SelectedItem as FiltroItem;
+            _vm.PaisIdFiltro = selected?.Id;
         }
 
         private void PoblarFabricantes()
         {
             _suppressFilterChange = true;
             CmbFabricante.Items.Clear();
-            CmbFabricante.Items.Add("(Todos)");
-            foreach (var f in _vm.Fabricantes) CmbFabricante.Items.Add(f);
+            CmbFabricante.Items.Add(new FiltroItem { Id = null, Nombre = "(Todos)" });
+            foreach (var f in _vm.Fabricantes)
+                CmbFabricante.Items.Add(f);
             CmbFabricante.SelectedIndex = 0;
             _suppressFilterChange = false;
         }
@@ -102,8 +108,9 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
         {
             _suppressFilterChange = true;
             CmbPais.Items.Clear();
-            CmbPais.Items.Add("(Todos)");
-            foreach (var p in _vm.Paises) CmbPais.Items.Add(p);
+            CmbPais.Items.Add(new FiltroItem { Id = null, Nombre = "(Todos)" });
+            foreach (var p in _vm.Paises)
+                CmbPais.Items.Add(p);
             CmbPais.SelectedIndex = 0;
             _suppressFilterChange = false;
         }
@@ -155,9 +162,11 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
                 if (_vm.Suggestions.Count > 0 && _vm.HighlightIndex >= 0 && _vm.HighlightIndex < _vm.Suggestions.Count)
                 {
                     _vm.SeleccionarSugerencia(_vm.Suggestions[_vm.HighlightIndex]);
-                    DgProductos.ItemsSource = _vm.PageRows;
-                    DgProductos.SelectedItem = _vm.Seleccionado;
-                    DgProductos.ScrollIntoView(DgProductos.SelectedItem);
+                    TxtBusqueda.Text = "";
+                    BtnClearSearch.Visibility = Visibility.Collapsed;
+                    SuggestionsPopup.IsOpen = false;
+                    SearchBoxBorder.CornerRadius = new CornerRadius(8);
+                    SeleccionarEnTabla();
                 }
                 e.Handled = true;
             }
@@ -206,6 +215,33 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
             }
         }
 
+        private static readonly SolidColorBrush _highlightBrush =
+            new(Color.FromRgb(0xD1, 0xDC, 0xF5));   // azul claro
+        private static readonly SolidColorBrush _transparentBrush =
+            Brushes.Transparent;
+
+        private void ActualizarHighlight()
+        {
+            SuggestionsList.UpdateLayout();
+
+            for (int i = 0; i < SuggestionsList.Items.Count; i++)
+            {
+                var container = SuggestionsList.ItemContainerGenerator
+                    .ContainerFromIndex(i) as ContentPresenter;
+                if (container == null) continue;
+
+                // El primer hijo del ContentPresenter es el Border "SugItem"
+                var border = VisualTreeHelper.GetChildrenCount(container) > 0
+                    ? VisualTreeHelper.GetChild(container, 0) as System.Windows.Controls.Border
+                    : null;
+                if (border == null) continue;
+
+                border.Background = (i == _vm.HighlightIndex)
+                    ? _highlightBrush
+                    : _transparentBrush;
+            }
+        }
+
         private void SuggestionItem_Click(object sender, WpfMouseButton e)
         {
             if (sender is Border b && b.Tag is SuggestionItemData data)
@@ -215,10 +251,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
                 BtnClearSearch.Visibility = Visibility.Collapsed;
                 SuggestionsPopup.IsOpen = false;
                 SearchBoxBorder.CornerRadius = new CornerRadius(8);
-                DgProductos.ItemsSource = _vm.PageRows;
-                DgProductos.SelectedItem = _vm.Seleccionado;
-                if (DgProductos.SelectedItem != null)
-                    DgProductos.ScrollIntoView(DgProductos.SelectedItem);
+                SeleccionarEnTabla();
             }
         }
 
@@ -229,6 +262,13 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
                 int idx = _vm.Suggestions.IndexOf(data.Source);
                 if (idx >= 0) _vm.HighlightIndex = idx;
             }
+        }
+
+        private void SeleccionarEnTabla()
+        {
+            if (_vm.Seleccionado == null) return;
+            DgProductos.SelectedItem = _vm.Seleccionado;
+            DgProductos.ScrollIntoView(_vm.Seleccionado);
         }
 
         // ── Table ─────────────────────────────────────────────────────

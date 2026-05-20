@@ -53,6 +53,7 @@ namespace BimboPesaje.Formularios.MenuPrincipal
 
         // ── Búsqueda ──────────────────────────────────────────────────
         private readonly ObservableCollection<EntradaBusqueda> _searchResults = new();
+        private int _activeSearchIndex = -1;
 
         // ══════════════════════════════════════════════════════════════
         //  Constructor
@@ -390,10 +391,53 @@ namespace BimboPesaje.Formularios.MenuPrincipal
                 CerrarBuscador();
                 e.Handled = true;
             }
+            else if (e.Key == Key.Down && _searchResults.Count > 0)
+            {
+                _activeSearchIndex = Math.Min(_activeSearchIndex + 1, _searchResults.Count - 1);
+                UpdateSearchSelection();
+                e.Handled = true;
+            }
+            else if (e.Key == Key.Up && _searchResults.Count > 0)
+            {
+                _activeSearchIndex = Math.Max(_activeSearchIndex - 1, 0);
+                UpdateSearchSelection();
+                e.Handled = true;
+            }
             else if (e.Key == Key.Enter && _searchResults.Count > 0)
             {
-                NavegaA(_searchResults[0].Id);
+                int index = _activeSearchIndex >= 0 ? _activeSearchIndex : 0;
+                NavegaA(_searchResults[index].Id);
                 e.Handled = true;
+            }
+        }
+
+        private bool _isKeyboardNavigating;
+
+        private void UpdateSearchSelection()
+        {
+            SearchResultsList.UpdateLayout();
+            if (_activeSearchIndex >= 0 && _activeSearchIndex < _searchResults.Count)
+            {
+                _isKeyboardNavigating = true;
+                SearchResultsList.SelectedIndex = _activeSearchIndex;
+                _isKeyboardNavigating = false;
+
+                if (SearchResultsList.ItemContainerGenerator.ContainerFromIndex(_activeSearchIndex)
+                    is System.Windows.Controls.ListBoxItem item)
+                {
+                    item.Focus();
+                }
+            }
+        }
+
+        private void SearchResultsList_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+            if (_isKeyboardNavigating) return;
+
+            if (SearchResultsList.SelectedItem is EntradaBusqueda entrada)
+            {
+                NavegaA(entrada.Id);
+                SearchResultsList.SelectedIndex = -1;
             }
         }
 
@@ -485,6 +529,8 @@ namespace BimboPesaje.Formularios.MenuPrincipal
             TxtSearch.CaretBrush      = WpfBrushes.White;
             TxtSearch.Text            = "";
             Keyboard.ClearFocus();
+            _activeSearchIndex = -1;
+            SearchResultsList.SelectedIndex = -1;
         }
 
         // ══════════════════════════════════════════════════════════════

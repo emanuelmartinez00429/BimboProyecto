@@ -209,52 +209,82 @@
                                FontSize="10" FontWeight="Bold"
                                Margin="16,12,16,4"/>
                     <!-- Resultados -->
-                    <ItemsControl x:Name="SearchResultsList">
-                        <ItemsControl.ItemTemplate>
+                    <ListBox x:Name="SearchResultsList"
+                             SelectionMode="Single"
+                             Background="Transparent"
+                             BorderThickness="0"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                             SelectionChanged="SearchResultsList_SelectionChanged">
+                        <ListBox.ItemContainerStyle>
+                            <Style TargetType="ListBoxItem">
+                                <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                <Setter Property="Padding" Value="0"/>
+                                <Setter Property="Margin" Value="0"/>
+                                <Setter Property="Cursor" Value="Hand"/>
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="ListBoxItem">
+                                            <Border x:Name="Bd" Background="Transparent"
+                                                    Padding="16,10">
+                                                <ContentPresenter/>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="Bd" Property="Background" Value="#E8EDF8"/>
+                                                </Trigger>
+                                                <Trigger Property="IsSelected" Value="True">
+                                                    <Setter TargetName="Bd" Property="Background" Value="#D1DCF5"/>
+                                                </Trigger>
+                                                <Trigger Property="IsKeyboardFocused" Value="True">
+                                                    <Setter TargetName="Bd" Property="Background" Value="#D1DCF5"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </ListBox.ItemContainerStyle>
+                        <ListBox.ItemTemplate>
                             <DataTemplate>
-                                <Button Style="{StaticResource SearchResultButton}"
-                                        Tag="{Binding Id}"
-                                        Click="SearchResult_Click">
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto"/>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                        </Grid.ColumnDefinitions>
-                                        <!-- Ícono módulo -->
-                                        <Border Grid.Column="0"
-                                                Width="32" Height="32" CornerRadius="8"
-                                                Background="#EFF6FF" Margin="0,0,12,0">
-                                            <TextBlock Text="{Binding IconoSegoe}"
-                                                       FontFamily="Segoe MDL2 Assets" FontSize="15"
-                                                       Foreground="#1E3A8A"
-                                                       HorizontalAlignment="Center"
-                                                       VerticalAlignment="Center"/>
-                                        </Border>
-                                        <!-- Título + módulo -->
-                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                            <TextBlock Text="{Binding Titulo}"
-                                                       Foreground="#1A1F2E"
-                                                       FontFamily="Segoe UI" FontSize="13"
-                                                       FontWeight="Medium"/>
-                                            <TextBlock Text="{Binding Modulo}"
-                                                       Foreground="#6B7280"
-                                                       FontFamily="Segoe UI" FontSize="11"
-                                                       Margin="0,1,0,0"/>
-                                        </StackPanel>
-                                        <!-- Flecha -->
-                                        <TextBlock Grid.Column="2"
-                                                   Text="&#xE76C;" FontFamily="Segoe MDL2 Assets" FontSize="11"
-                                                   Foreground="#9CA3AF" VerticalAlignment="Center"/>
-                                    </Grid>
-                                </Button>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <!-- Ícono módulo -->
+                                    <Border Grid.Column="0"
+                                            Width="32" Height="32" CornerRadius="8"
+                                            Background="#EFF6FF" Margin="0,0,12,0">
+                                        <TextBlock Text="{Binding IconoSegoe}"
+                                                   FontFamily="Segoe MDL2 Assets" FontSize="15"
+                                                   Foreground="#1E3A8A"
+                                                   HorizontalAlignment="Center"
+                                                   VerticalAlignment="Center"/>
+                                    </Border>
+                                    <!-- Título + módulo -->
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding Titulo}"
+                                                   Foreground="#1A1F2E"
+                                                   FontFamily="Segoe UI" FontSize="13"
+                                                   FontWeight="Medium"/>
+                                        <TextBlock Text="{Binding Modulo}"
+                                                   Foreground="#6B7280"
+                                                   FontFamily="Segoe UI" FontSize="11"
+                                                   Margin="0,1,0,0"/>
+                                    </StackPanel>
+                                    <!-- Flecha -->
+                                    <TextBlock Grid.Column="2"
+                                               Text="&#xE76C;" FontFamily="Segoe MDL2 Assets" FontSize="11"
+                                               Foreground="#9CA3AF" VerticalAlignment="Center"/>
+                                </Grid>
                             </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
                     <!-- Pie -->
                     <Border BorderBrush="#F3F4F6" BorderThickness="0,1,0,0" Padding="16,8">
                         <TextBlock Foreground="#9CA3AF" FontFamily="Segoe UI" FontSize="11">
-                            <Run Text="↵ Seleccionar"/> <Run Text="  "/> <Run Text="Esc Cerrar"/>
+                            <Run Text="↑↓ Navegar"/> <Run Text="  "/> <Run Text="↵ Seleccionar"/> <Run Text="  "/> <Run Text="Esc Cerrar"/>
                         </TextBlock>
                     </Border>
                 </StackPanel>

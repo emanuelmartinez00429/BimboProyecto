@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using CapaDatos.Modelados.Productos;
@@ -27,26 +28,40 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
         public void RaiseCanExecuteChanged() => CommandManager.InvalidateRequerySuggested();
     }
 
+    /// <summary>
+    /// Item para los ComboBox de filtros: guarda Id + Nombre.
+    /// </summary>
+    public class FiltroItem
+    {
+        public int? Id { get; set; }
+        public string Nombre { get; set; } = "";
+        public override string ToString() => Nombre;
+    }
+
     public class ProductosViewModel : INotifyPropertyChanged
     {
-        private List<Producto> _todos = new();
         private string _query = "";
         private EstadoFilter _estadoFiltro = EstadoFilter.Todos;
-        private string _fabricanteFiltro = "";
-        private string _paisFiltro = "";
+        private int? _fabricanteIdFiltro;
+        private int? _paisIdFiltro;
         private int _page = 1;
         private Producto? _seleccionado;
         private bool _isLoading;
         private bool _showSuggestions;
         private int _highlightIndex = -1;
         private int _totalCount, _activosCount, _inactivosCount;
-        private List<string> _fabricantes = new();
-        private List<string> _paises = new();
+        private int _filteredCount;
 
         public const int PageSize = 50;
 
         private ObservableCollection<Producto> _pageRows = new();
         private ObservableCollection<Producto> _suggestions = new();
+
+        private List<FiltroItem> _fabricantes = new();
+        private List<FiltroItem> _paises = new();
+
+        // Debounce para búsqueda de sugerencias
+        private CancellationTokenSource? _searchCts;
 
         public ObservableCollection<Producto> PageRows { get => _pageRows; private set { _pageRows = value; OnPropertyChanged(); } }
         public ObservableCollection<Producto> Suggestions { get => _suggestions; private set { _suggestions = value; OnPropertyChanged(); } }
@@ -54,25 +69,31 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
         public string Query
         {
             get => _query;
-            set { if (_query == value) return; _query = value; OnPropertyChanged(); RefrescarSugerencias(); }
+            set
+            {
+                if (_query == value) return;
+                _query = value;
+                OnPropertyChanged();
+                _ = RefrescarSugerenciasAsync();
+            }
         }
 
         public EstadoFilter EstadoFiltro
         {
             get => _estadoFiltro;
-            set { if (_estadoFiltro == value) return; _estadoFiltro = value; OnPropertyChanged(); _page = 1; RefrescarTabla(); }
+            set { if (_estadoFiltro == value) return; _estadoFiltro = value; OnPropertyChanged(); _page = 1; _ = CargarPaginaAsync(); }
         }
 
-        public string FabricanteFiltro
+        public int? FabricanteIdFiltro
         {
-            get => _fabricanteFiltro;
-            set { if (_fabricanteFiltro == value) return; _fabricanteFiltro = value; OnPropertyChanged(); _page = 1; RefrescarTabla(); }
+            get => _fabricanteIdFiltro;
+            set { if (_fabricanteIdFiltro == value) return; _fabricanteIdFiltro = value; OnPropertyChanged(); _page = 1; _ = CargarPaginaAsync(); }
         }
 
-        public string PaisFiltro
+        public int? PaisIdFiltro
         {
-            get => _paisFiltro;
-            set { if (_paisFiltro == value) return; _paisFiltro = value; OnPropertyChanged(); _page = 1; RefrescarTabla(); }
+            get => _paisIdFiltro;
+            set { if (_paisIdFiltro == value) return; _paisIdFiltro = value; OnPropertyChanged(); _page = 1; _ = CargarPaginaAsync(); }
         }
 
         public int Page
@@ -85,7 +106,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(PageInfo));
                 OnPropertyChanged(nameof(TotalPages));
-                RefrescarTabla();
+                _ = CargarPaginaAsync();
             }
         }
 
@@ -106,22 +127,20 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
         public int ActivosCount { get => _activosCount; private set { _activosCount = value; OnPropertyChanged(); } }
         public int InactivosCount { get => _inactivosCount; private set { _inactivosCount = value; OnPropertyChanged(); } }
 
-        public List<string> Fabricantes { get => _fabricantes; private set { _fabricantes = value; OnPropertyChanged(); } }
-        public List<string> Paises { get => _paises; private set { _paises = value; OnPropertyChanged(); } }
+        public List<FiltroItem> Fabricantes { get => _fabricantes; private set { _fabricantes = value; OnPropertyChanged(); } }
+        public List<FiltroItem> Paises { get => _paises; private set { _paises = value; OnPropertyChanged(); } }
 
-        private IEnumerable<Producto> Filtrados => _todos.Where(MatchesFilters);
-        public int TotalPages => Math.Max(1, (int)Math.Ceiling(Filtrados.Count() / (double)PageSize));
-        public bool NoResults => !_isLoading && _todos.Count > 0 && !Filtrados.Any();
+        public int TotalPages => Math.Max(1, (int)Math.Ceiling(_filteredCount / (double)PageSize));
+        public bool NoResults => !_isLoading && _filteredCount == 0 && _totalCount > 0;
 
         public string PageInfo
         {
             get
             {
-                var filtered = Filtrados.Count();
-                if (filtered == 0) return "Sin resultados";
+                if (_filteredCount == 0) return "Sin resultados";
                 int from = (_page - 1) * PageSize + 1;
-                int to = Math.Min(_page * PageSize, filtered);
-                return $"Mostrando {from}–{to} de {filtered} productos";
+                int to = Math.Min(_page * PageSize, _filteredCount);
+                return $"Mostrando {from}–{to} de {_filteredCount} productos";
             }
         }
 
@@ -151,88 +170,134 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
             UltimaPaginaCommand    = new ProductosRelayCommand(_ => Page = TotalPages, _ => _page < TotalPages);
         }
 
+        /// <summary>
+        /// Carga inicial: filtros disponibles + primera página.
+        /// </summary>
         public async Task CargarDatosAsync()
         {
             IsLoading = true;
             try
             {
-                _todos = await RepositorioProducto.obtenerProductosJoin();
-                Fabricantes    = _todos.Where(p => p.Fabricante != null).Select(p => p.Fabricante!.nombreFabricante).Distinct().OrderBy(x => x).ToList();
-                Paises         = _todos.Where(p => p.Paises     != null).Select(p => p.Paises!.nombrePais).Distinct().OrderBy(x => x).ToList();
-                TotalCount     = _todos.Count;
-                ActivosCount   = _todos.Count(p => p.idEstado == 1);
-                InactivosCount = _todos.Count(p => p.idEstado != 1);
-                _page = 1;
-                RefrescarTabla();
+                // Cargar listas de filtros (fabricantes y países)
+                var (fabricantes, paises) = await RepositorioProducto.ObtenerFiltrosDisponiblesAsync();
+                Fabricantes = fabricantes.Select(f => new FiltroItem { Id = f.id, Nombre = f.nombre }).ToList();
+                Paises = paises.Select(p => new FiltroItem { Id = p.id, Nombre = p.nombre }).ToList();
+
+                // Cargar primera página
+                await CargarPaginaAsync();
             }
             finally { IsLoading = false; }
         }
 
-        public void RefrescarDatos() => _ = CargarDatosAsync();
+        public void RefrescarDatos() => _ = CargarPaginaAsync();
 
-        private void RefrescarTabla()
+        /// <summary>
+        /// Consulta a Supabase solo los items de la página actual con filtros aplicados.
+        /// </summary>
+        private async Task CargarPaginaAsync()
         {
-            var rows = Filtrados.Skip((_page - 1) * PageSize).Take(PageSize).ToList();
-            PageRows = new ObservableCollection<Producto>(rows);
-            OnPropertyChanged(nameof(TotalPages));
-            OnPropertyChanged(nameof(PageInfo));
-            OnPropertyChanged(nameof(NoResults));
+            IsLoading = true;
+            try
+            {
+                int? idEstadoDb = _estadoFiltro switch
+                {
+                    EstadoFilter.Habilitados => 1,
+                    EstadoFilter.Deshabilitados => 2,
+                    _ => null
+                };
+
+                var pagina = await RepositorioProducto.ObtenerPaginaAsync(
+                    _page, PageSize,
+                    idEstado: idEstadoDb,
+                    idFabricante: _fabricanteIdFiltro,
+                    idPais: _paisIdFiltro);
+
+                PageRows = new ObservableCollection<Producto>(pagina.Items);
+                TotalCount = pagina.TotalCount;
+                ActivosCount = pagina.ActivosCount;
+                InactivosCount = pagina.InactivosCount;
+                _filteredCount = idEstadoDb switch
+                {
+                    1 => pagina.ActivosCount,
+                    2 => pagina.InactivosCount,
+                    _ => pagina.TotalCount
+                };
+
+                OnPropertyChanged(nameof(TotalPages));
+                OnPropertyChanged(nameof(PageInfo));
+                OnPropertyChanged(nameof(NoResults));
+            }
+            finally { IsLoading = false; }
         }
 
-        private void RefrescarSugerencias()
+        /// <summary>
+        /// Busca sugerencias en Supabase con debounce de 300ms.
+        /// </summary>
+        private async Task RefrescarSugerenciasAsync()
         {
-            var q = _query.Trim().ToLower();
-            if (string.IsNullOrEmpty(q)) { Suggestions = new(); ShowSuggestions = false; return; }
-            var sugs = _todos.Where(MatchesFilters)
-                .Select(p => (p, score: Score(p, q))).Where(x => x.score >= 0)
-                .OrderByDescending(x => x.score).ThenBy(x => x.p.nombreProducto)
-                .Take(10).Select(x => x.p).ToList();
-            Suggestions = new ObservableCollection<Producto>(sugs);
-            ShowSuggestions = sugs.Count > 0;
-            HighlightIndex  = sugs.Count > 0 ? 0 : -1;
+            _searchCts?.Cancel();
+            _searchCts = new CancellationTokenSource();
+            var token = _searchCts.Token;
+
+            var q = _query.Trim();
+            if (string.IsNullOrEmpty(q))
+            {
+                Suggestions = new();
+                ShowSuggestions = false;
+                return;
+            }
+
+            try
+            {
+                await Task.Delay(300, token);
+                if (token.IsCancellationRequested) return;
+
+                int? idEstadoDb = _estadoFiltro switch
+                {
+                    EstadoFilter.Habilitados => 1,
+                    EstadoFilter.Deshabilitados => 2,
+                    _ => null
+                };
+
+                var sugs = await RepositorioProducto.BuscarSugerenciasAsync(
+                    q,
+                    idEstado: idEstadoDb,
+                    idFabricante: _fabricanteIdFiltro,
+                    idPais: _paisIdFiltro);
+
+                if (token.IsCancellationRequested) return;
+
+                Suggestions = new ObservableCollection<Producto>(sugs);
+                ShowSuggestions = sugs.Count > 0;
+                HighlightIndex = sugs.Count > 0 ? 0 : -1;
+            }
+            catch (TaskCanceledException) { }
         }
 
+        /// <summary>
+        /// Selecciona un producto de las sugerencias.
+        /// </summary>
         public void SeleccionarSugerencia(Producto p)
         {
-            Query = "";
+            _query = "";
+            OnPropertyChanged(nameof(Query));
             ShowSuggestions = false;
-            var filtered = Filtrados.ToList();
-            int idx = filtered.IndexOf(p);
-            if (idx >= 0)
-            {
-                int targetPage = (idx / PageSize) + 1;
-                if (targetPage != _page) { _page = targetPage; OnPropertyChanged(nameof(Page)); RefrescarTabla(); }
-            }
-            Seleccionado = p;
+
+            // Buscar por ID en la página actual
+            var enPagina = PageRows.FirstOrDefault(x => x.idProducto == p.idProducto);
+            Seleccionado = enPagina ?? p;
         }
 
         private void LimpiarFiltros()
         {
-            _estadoFiltro = EstadoFilter.Todos; _fabricanteFiltro = ""; _paisFiltro = "";
-            OnPropertyChanged(nameof(EstadoFiltro)); OnPropertyChanged(nameof(FabricanteFiltro)); OnPropertyChanged(nameof(PaisFiltro));
-            _page = 1; RefrescarTabla();
-        }
-
-        private bool MatchesFilters(Producto p)
-        {
-            if (_estadoFiltro == EstadoFilter.Habilitados    && p.idEstado != 1) return false;
-            if (_estadoFiltro == EstadoFilter.Deshabilitados && p.idEstado == 1) return false;
-            if (!string.IsNullOrEmpty(_fabricanteFiltro) && p.Fabricante?.nombreFabricante != _fabricanteFiltro) return false;
-            if (!string.IsNullOrEmpty(_paisFiltro)       && p.Paises?.nombrePais           != _paisFiltro)       return false;
-            return true;
-        }
-
-        private static int Score(Producto p, string q)
-        {
-            var code = (p.codigoProducto ?? "").ToLower();
-            var name = (p.nombreProducto ?? "").ToLower();
-            if (code == q || name == q)                            return 100;
-            if (code.StartsWith(q))                                return 80;
-            if (name.StartsWith(q))                                return 70;
-            if (name.Split(' ').Any(w => w.StartsWith(q)))         return 60;
-            if (code.Contains(q))                                  return 40;
-            if (name.Contains(q))                                  return 30;
-            return -1;
+            _estadoFiltro = EstadoFilter.Todos;
+            _fabricanteIdFiltro = null;
+            _paisIdFiltro = null;
+            OnPropertyChanged(nameof(EstadoFiltro));
+            OnPropertyChanged(nameof(FabricanteIdFiltro));
+            OnPropertyChanged(nameof(PaisIdFiltro));
+            _page = 1;
+            _ = CargarPaginaAsync();
         }
 
         protected void OnPropertyChanged([CallerMemberName] string? name = null)

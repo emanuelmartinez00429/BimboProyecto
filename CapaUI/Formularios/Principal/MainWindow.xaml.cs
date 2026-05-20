@@ -430,6 +430,14 @@ namespace CapaUI.Formularios.Principal
         // ══════════════════════════════════════════════════════════════════
         //  BÚSQUEDA
         // ══════════════════════════════════════════════════════════════════
+        private void TxtSearch_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key != Key.Enter) return;
+            if (string.IsNullOrWhiteSpace(TxtSearch.Text)) return;
+            (DataContext as MainViewModel)?.NavBusquedaCommand?.Execute(TxtSearch.Text);
+            e.Handled = true;
+        }
+
         private void TxtSearch_Changed(object sender, TextChangedEventArgs e)
             => SearchPlaceholder.Visibility = string.IsNullOrEmpty(TxtSearch.Text)
                ? Visibility.Visible : Visibility.Collapsed;
