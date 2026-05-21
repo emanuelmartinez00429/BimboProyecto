@@ -2,14 +2,13 @@ using CapaAplicacion.Common;
 using CapaAplicacion.Productos.Dtos;
 using CapaAplicacion.Productos.Interfaces;
 using CapaAplicacion.Productos.Queries;
-using CapaDatos.Modelados.Productos;
 using ServicioConexión.Conexion;
 using Op  = Supabase.Postgrest.Constants.Operator;
 using Ord = Supabase.Postgrest.Constants.Ordering;
 
 namespace CapaDatos.Repositories.Productos;
 
-public class ProductoCrudRepository : IProductoRepository
+public class ProductoCrudRepository : RepositorioBase, IProductoRepository
 {
     private const string Select =
         "*, presentacion_producto(*), fabricante(*), categoria(*), paises(*)";
@@ -31,12 +30,80 @@ public class ProductoCrudRepository : IProductoRepository
         IdPresentacion = p.idPresentacion,
     };
 
-    public async Task<PagedResult<ProductoDto>> GetPagedAsync(
-        int page, int size, ProductoFiltros filtros, CancellationToken ct = default)
+    // ── Lectura ───────────────────────────────────────────────────────────────
+
+    public Task<Result<PagedResult<ProductoDto>>> GetPagedAsync(
+        int page, int size, ProductoFiltros filtros, CancellationToken ct = default) =>
+        TryAsync(() => GetPagedInternal(page, size, filtros), "Cargar productos");
+
+    public Task<Result<IReadOnlyList<ProductoDto>>> BuscarSugerenciasAsync(
+        string termino, ProductoFiltros filtros, CancellationToken ct = default) =>
+        TryAsync(() => BuscarSugerenciasInternal(termino, filtros), "Buscar sugerencias");
+
+    public Task<Result<IReadOnlyList<FiltroItem>>> GetFabricantesAsync(CancellationToken ct = default) =>
+        TryAsync(GetFabricantesInternal, "Cargar fabricantes");
+
+    public Task<Result<IReadOnlyList<FiltroItem>>> GetPaisesAsync(CancellationToken ct = default) =>
+        TryAsync(GetPaisesInternal, "Cargar países");
+
+    public Task<Result<IReadOnlyList<FiltroItem>>> GetCategoriasAsync(CancellationToken ct = default) =>
+        TryAsync(GetCategoriasInternal, "Cargar categorías");
+
+    // ── Escritura ─────────────────────────────────────────────────────────────
+
+    public Task<Result<int>> CreateAsync(ProductoDto dto, CancellationToken ct = default) =>
+        TryAsync(async () =>
+        {
+            var client = await ConexionSupabase.GetClientAsync();
+            var nuevo  = new Modelados.Productos.Productos
+            {
+                codigoProducto    = dto.CodigoInterno,
+                nombreProducto    = dto.Nombre,
+                contenidoProducto = dto.Contenido,
+                idPresentacion    = dto.IdPresentacion,
+                idFabricante      = dto.IdFabricante,
+                idCategoria       = dto.IdCategoria,
+                idPais            = dto.IdPais,
+                idEstado          = dto.IdEstado,
+            };
+            var resultado = await client.From<Modelados.Productos.Productos>().Insert(nuevo);
+            return resultado.Models.First().idProducto;
+        }, "Crear producto");
+
+    public Task<Result> UpdateAsync(ProductoDto dto, CancellationToken ct = default) =>
+        TryAsync(async () =>
+        {
+            var client = await ConexionSupabase.GetClientAsync();
+            await client.From<Modelados.Productos.Productos>()
+                .Where(p => p.idProducto == dto.Id)
+                .Set(p => p.codigoProducto,    dto.CodigoInterno)
+                .Set(p => p.nombreProducto,    dto.Nombre)
+                .Set(p => p.contenidoProducto, dto.Contenido)
+                .Set(p => p.idPresentacion,    dto.IdPresentacion)
+                .Set(p => p.idFabricante,      dto.IdFabricante)
+                .Set(p => p.idCategoria,       dto.IdCategoria)
+                .Set(p => p.idPais,            dto.IdPais)
+                .Set(p => p.idEstado,          dto.IdEstado)
+                .Update();
+        }, "Actualizar producto");
+
+    public Task<Result> DeleteAsync(int id, CancellationToken ct = default) =>
+        TryAsync(async () =>
+        {
+            var client = await ConexionSupabase.GetClientAsync();
+            await client.From<Modelados.Productos.Productos>()
+                .Where(p => p.idProducto == id)
+                .Set(p => p.idEstado, 2)
+                .Update();
+        }, "Eliminar producto");
+
+    // ── Lógica interna ────────────────────────────────────────────────────────
+
+    private async Task<PagedResult<ProductoDto>> GetPagedInternal(
+        int page, int size, ProductoFiltros filtros)
     {
         var client = await ConexionSupabase.GetClientAsync();
-
-        var query = client.From<Modelados.Productos.Productos>().Select(Select);
+        var query  = client.From<Modelados.Productos.Productos>().Select(Select);
 
         if (filtros.IdEstado.HasValue)
             query = query.Filter("id_estado",     Op.Equals, filtros.IdEstado.Value.ToString());
@@ -65,8 +132,8 @@ public class ProductoCrudRepository : IProductoRepository
         };
     }
 
-    public async Task<IReadOnlyList<ProductoDto>> BuscarSugerenciasAsync(
-        string termino, ProductoFiltros filtros, CancellationToken ct = default)
+    private async Task<IReadOnlyList<ProductoDto>> BuscarSugerenciasInternal(
+        string termino, ProductoFiltros filtros)
     {
         var client = await ConexionSupabase.GetClientAsync();
         var query  = client.From<Modelados.Productos.Productos>().Select(Select);
@@ -80,14 +147,14 @@ public class ProductoCrudRepository : IProductoRepository
 
         var resultado = await query
             .Filter("nombre_producto", Op.ILike, $"%{termino}%")
-            .Order("nombre_producto", Ord.Ascending)
+            .Order("nombre_producto",  Ord.Ascending)
             .Limit(10)
             .Get();
 
         return resultado?.Models.Select(Map).ToList() ?? [];
     }
 
-    public async Task<IReadOnlyList<FiltroItem>> GetFabricantesAsync(CancellationToken ct = default)
+    private async Task<IReadOnlyList<FiltroItem>> GetFabricantesInternal()
     {
         var client    = await ConexionSupabase.GetClientAsync();
         var resultado = await client.From<Modelados.Productos.Productos>()
@@ -103,7 +170,7 @@ public class ProductoCrudRepository : IProductoRepository
             .ToList();
     }
 
-    public async Task<IReadOnlyList<FiltroItem>> GetPaisesAsync(CancellationToken ct = default)
+    private async Task<IReadOnlyList<FiltroItem>> GetPaisesInternal()
     {
         var client    = await ConexionSupabase.GetClientAsync();
         var resultado = await client.From<Modelados.Productos.Productos>()
@@ -119,7 +186,7 @@ public class ProductoCrudRepository : IProductoRepository
             .ToList();
     }
 
-    public async Task<IReadOnlyList<FiltroItem>> GetCategoriasAsync(CancellationToken ct = default)
+    private async Task<IReadOnlyList<FiltroItem>> GetCategoriasInternal()
     {
         var client    = await ConexionSupabase.GetClientAsync();
         var resultado = await client.From<Modelados.Productos.Productos>()
@@ -133,73 +200,6 @@ public class ProductoCrudRepository : IProductoRepository
             .OrderBy(x => x.nombreCategoria)
             .Select(x => new FiltroItem { Id = x.idCategoria, Nombre = x.nombreCategoria })
             .ToList();
-    }
-
-    public async Task<Result<int>> CreateAsync(ProductoDto dto, CancellationToken ct = default)
-    {
-        try
-        {
-            var client = await ConexionSupabase.GetClientAsync();
-            var nuevo  = new Modelados.Productos.Productos
-            {
-                codigoProducto    = dto.CodigoInterno,
-                nombreProducto    = dto.Nombre,
-                contenidoProducto = dto.Contenido,
-                idPresentacion    = dto.IdPresentacion,
-                idFabricante      = dto.IdFabricante,
-                idCategoria       = dto.IdCategoria,
-                idPais            = dto.IdPais,
-                idEstado          = dto.IdEstado,
-            };
-            var resultado = await client.From<Modelados.Productos.Productos>().Insert(nuevo);
-            return Result<int>.Ok(resultado.Models.First().idProducto);
-        }
-        catch (Exception ex)
-        {
-            return Result<int>.Fail($"Error al crear producto: {ex.Message}");
-        }
-    }
-
-    public async Task<Result> UpdateAsync(ProductoDto dto, CancellationToken ct = default)
-    {
-        try
-        {
-            var client = await ConexionSupabase.GetClientAsync();
-            await client.From<Modelados.Productos.Productos>()
-                .Where(p => p.idProducto == dto.Id)
-                .Set(p => p.codigoProducto,    dto.CodigoInterno)
-                .Set(p => p.nombreProducto,    dto.Nombre)
-                .Set(p => p.contenidoProducto, dto.Contenido)
-                .Set(p => p.idPresentacion,    dto.IdPresentacion)
-                .Set(p => p.idFabricante,      dto.IdFabricante)
-                .Set(p => p.idCategoria,       dto.IdCategoria)
-                .Set(p => p.idPais,            dto.IdPais)
-                .Set(p => p.idEstado,          dto.IdEstado)
-                .Update();
-            return Result.Ok();
-        }
-        catch (Exception ex)
-        {
-            return Result.Fail($"Error al actualizar producto: {ex.Message}");
-        }
-    }
-
-    public async Task<Result> DeleteAsync(int id, CancellationToken ct = default)
-    {
-        try
-        {
-            // Soft delete: marca como inactivo (id_estado = 2)
-            var client = await ConexionSupabase.GetClientAsync();
-            await client.From<Modelados.Productos.Productos>()
-                .Where(p => p.idProducto == id)
-                .Set(p => p.idEstado, 2)
-                .Update();
-            return Result.Ok();
-        }
-        catch (Exception ex)
-        {
-            return Result.Fail($"Error al eliminar producto: {ex.Message}");
-        }
     }
 
     private static async Task<(int total, int activos, int inactivos)> GetConteosAsync(

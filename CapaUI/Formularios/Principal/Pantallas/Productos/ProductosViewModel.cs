@@ -39,6 +39,7 @@ public partial class ProductosViewModel : ObservableObject
     [ObservableProperty] private int           _inactivosCount;
     [ObservableProperty] private List<FiltroItem> _fabricantes = new();
     [ObservableProperty] private List<FiltroItem> _paises      = new();
+    [ObservableProperty] private string        _errorCarga    = "";
 
     public bool   HaySeleccionado   => Seleccionado is not null;
     public string TextoSeleccionado => Seleccionado is null
@@ -135,16 +136,18 @@ public partial class ProductosViewModel : ObservableObject
 
     public async Task CargarDatosAsync()
     {
-        IsLoading = true;
-        try
-        {
-            var fabricantes = await _repo.GetFabricantesAsync();
-            var paises      = await _repo.GetPaisesAsync();
-            Fabricantes     = fabricantes.ToList();
-            Paises          = paises.ToList();
-            await CargarPaginaAsync();
-        }
-        finally { IsLoading = false; }
+        IsLoading  = true;
+        ErrorCarga = string.Empty;
+
+        var rFab = await _repo.GetFabricantesAsync();
+        if (!rFab.Success) { ErrorCarga = rFab.Error; IsLoading = false; return; }
+        Fabricantes = rFab.Value!.ToList();
+
+        var rPaises = await _repo.GetPaisesAsync();
+        if (!rPaises.Success) { ErrorCarga = rPaises.Error; IsLoading = false; return; }
+        Paises = rPaises.Value!.ToList();
+
+        await CargarPaginaAsync();
     }
 
     public void RefrescarDatos() => _ = CargarPaginaAsync();
@@ -152,28 +155,35 @@ public partial class ProductosViewModel : ObservableObject
     private async Task CargarPaginaAsync()
     {
         IsLoading = true;
-        try
+
+        var filtros = BuildFiltros();
+        var r       = await _repo.GetPagedAsync(_page, PageSize, filtros);
+
+        if (!r.Success)
         {
-            var filtros = BuildFiltros();
-            var pagina  = await _repo.GetPagedAsync(_page, PageSize, filtros);
-
-            PageRows       = new ObservableCollection<ProductoDto>(pagina.Items);
-            TotalCount     = pagina.Total;
-            ActivosCount   = pagina.Activos;
-            InactivosCount = pagina.Inactivos;
-            _filteredCount = filtros.IdEstado switch
-            {
-                1 => pagina.Activos,
-                2 => pagina.Inactivos,
-                _ => pagina.Total
-            };
-
-            OnPropertyChanged(nameof(TotalPages));
-            OnPropertyChanged(nameof(PageInfo));
-            OnPropertyChanged(nameof(NoResults));
-            NotifyPaginationCanExecuteChanged();
+            ErrorCarga = r.Error;
+            IsLoading  = false;
+            return;
         }
-        finally { IsLoading = false; }
+
+        var pagina     = r.Value!;
+        ErrorCarga     = string.Empty;
+        PageRows       = new ObservableCollection<ProductoDto>(pagina.Items);
+        TotalCount     = pagina.Total;
+        ActivosCount   = pagina.Activos;
+        InactivosCount = pagina.Inactivos;
+        _filteredCount = filtros.IdEstado switch
+        {
+            1 => pagina.Activos,
+            2 => pagina.Inactivos,
+            _ => pagina.Total
+        };
+
+        OnPropertyChanged(nameof(TotalPages));
+        OnPropertyChanged(nameof(PageInfo));
+        OnPropertyChanged(nameof(NoResults));
+        NotifyPaginationCanExecuteChanged();
+        IsLoading = false;
     }
 
     private async Task RefrescarSugerenciasAsync()
@@ -195,14 +205,16 @@ public partial class ProductosViewModel : ObservableObject
             await Task.Delay(300, token);
             if (token.IsCancellationRequested) return;
 
-            var sugs = await _repo.BuscarSugerenciasAsync(q, BuildFiltros(), token);
+            var r = await _repo.BuscarSugerenciasAsync(q, BuildFiltros(), token);
             if (token.IsCancellationRequested) return;
 
-            Suggestions     = new ObservableCollection<ProductoDto>(sugs);
-            ShowSuggestions = sugs.Count > 0;
-            HighlightIndex  = sugs.Count > 0 ? 0 : -1;
+            if (!r.Success) { ShowSuggestions = false; return; }
+
+            Suggestions     = new ObservableCollection<ProductoDto>(r.Value!);
+            ShowSuggestions = r.Value!.Count > 0;
+            HighlightIndex  = r.Value!.Count > 0 ? 0 : -1;
         }
-        catch (TaskCanceledException) { }
+        catch (OperationCanceledException) { }
     }
 
     public void SeleccionarSugerencia(ProductoDto p)

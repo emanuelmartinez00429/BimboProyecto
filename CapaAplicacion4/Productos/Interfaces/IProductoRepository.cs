@@ -7,11 +7,11 @@ namespace CapaAplicacion.Productos.Interfaces;
 public interface IProductoRepository
 {
     // Lectura
-    Task<PagedResult<ProductoDto>>   GetPagedAsync(int page, int size, ProductoFiltros filtros, CancellationToken ct = default);
-    Task<IReadOnlyList<ProductoDto>> BuscarSugerenciasAsync(string termino, ProductoFiltros filtros, CancellationToken ct = default);
-    Task<IReadOnlyList<FiltroItem>>  GetFabricantesAsync(CancellationToken ct = default);
-    Task<IReadOnlyList<FiltroItem>>  GetPaisesAsync(CancellationToken ct = default);
-    Task<IReadOnlyList<FiltroItem>>  GetCategoriasAsync(CancellationToken ct = default);
+    Task<Result<PagedResult<ProductoDto>>>   GetPagedAsync(int page, int size, ProductoFiltros filtros, CancellationToken ct = default);
+    Task<Result<IReadOnlyList<ProductoDto>>> BuscarSugerenciasAsync(string termino, ProductoFiltros filtros, CancellationToken ct = default);
+    Task<Result<IReadOnlyList<FiltroItem>>>  GetFabricantesAsync(CancellationToken ct = default);
+    Task<Result<IReadOnlyList<FiltroItem>>>  GetPaisesAsync(CancellationToken ct = default);
+    Task<Result<IReadOnlyList<FiltroItem>>>  GetCategoriasAsync(CancellationToken ct = default);
 
     // Escritura
     Task<Result<int>> CreateAsync(ProductoDto dto, CancellationToken ct = default);

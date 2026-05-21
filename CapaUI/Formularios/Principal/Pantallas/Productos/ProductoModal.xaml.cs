@@ -38,23 +38,33 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
             }
             catch { }
 
-            try
+            var rFab = await _repo.GetFabricantesAsync();
+            if (rFab.Success)
             {
-                var fabricantes = await _repo.GetFabricantesAsync();
                 CmbFabricanteModal.Items.Clear();
-                foreach (var f in fabricantes)
+                foreach (var f in rFab.Value!)
                     CmbFabricanteModal.Items.Add(new ComboBoxItem { Content = f.Nombre, Tag = f.Id });
             }
-            catch { }
-
-            try
+            else
             {
-                var categorias = await _repo.GetCategoriasAsync();
+                MessageBox.Show($"No se pudieron cargar los fabricantes.\n{rFab.Error}",
+                    "Aviso", MessageBoxButton.OK, MessageBoxImage.Warning);
+                BtnGuardar.IsEnabled = false;
+            }
+
+            var rCat = await _repo.GetCategoriasAsync();
+            if (rCat.Success)
+            {
                 CmbCategoriaModal.Items.Clear();
-                foreach (var c in categorias)
+                foreach (var c in rCat.Value!)
                     CmbCategoriaModal.Items.Add(new ComboBoxItem { Content = c.Nombre, Tag = c.Id });
             }
-            catch { }
+            else
+            {
+                MessageBox.Show($"No se pudieron cargar las categorías.\n{rCat.Error}",
+                    "Aviso", MessageBoxButton.OK, MessageBoxImage.Warning);
+                BtnGuardar.IsEnabled = false;
+            }
 
             if (!_esNuevo && _producto != null)
             {
