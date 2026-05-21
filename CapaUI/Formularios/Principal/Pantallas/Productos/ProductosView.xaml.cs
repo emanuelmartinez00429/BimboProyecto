@@ -5,21 +5,23 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
-using WpfKey = System.Windows.Input.KeyEventArgs;
-using WpfMouse = System.Windows.Input.MouseEventArgs;
+using CapaAplicacion.Productos.Dtos;
+using CapaAplicacion.Productos.Interfaces;
+using Microsoft.Extensions.DependencyInjection;
+using WpfKey         = System.Windows.Input.KeyEventArgs;
+using WpfMouse       = System.Windows.Input.MouseEventArgs;
 using WpfMouseButton = System.Windows.Input.MouseButtonEventArgs;
-using Producto = CapaDatos.Modelados.Productos.Productos;
-using Key = System.Windows.Input.Key;
+using Key            = System.Windows.Input.Key;
 
 namespace CapaUI.Formularios.Principal.Pantallas.Productos
 {
     public class SuggestionItemData
     {
-        public string Codigo { get; set; } = "";
-        public string Nombre { get; set; } = "";
-        public string Meta { get; set; } = "";
-        public bool Activo { get; set; }
-        public Producto Source { get; set; } = null!;
+        public string     Codigo { get; set; } = "";
+        public string     Nombre { get; set; } = "";
+        public string     Meta   { get; set; } = "";
+        public bool       Activo { get; set; }
+        public ProductoDto Source { get; set; } = null!;
     }
 
     public partial class ProductosView : System.Windows.Controls.UserControl
@@ -36,7 +38,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
 
         private async void UserControl_Loaded(object sender, RoutedEventArgs e)
         {
-            _vm = new ProductosViewModel();
+            _vm = App.Services.GetRequiredService<ProductosViewModel>();
             _vm.SolicitarNuevo   += AbrirModalNuevo;
             _vm.SolicitarEditar  += AbrirModalEditar;
             _vm.SolicitarSalir   += () => SalirSolicitado?.Invoke();
@@ -195,10 +197,10 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
             {
                 var items = _vm.Suggestions.Select(p => new SuggestionItemData
                 {
-                    Codigo = p.codigoProducto ?? "",
-                    Nombre = p.nombreProducto ?? "",
-                    Meta   = $"{p.nombre_Fabricante} · {p.nombre_Pais} · {p.nombre_Categoria}",
-                    Activo = p.idEstado == 1,
+                    Codigo = p.CodigoInterno,
+                    Nombre = p.Nombre,
+                    Meta   = $"{p.Fabricante} · {p.Pais} · {p.Categoria}",
+                    Activo = p.IdEstado == 1,
                     Source = p
                 }).ToList();
 
@@ -216,7 +218,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
         }
 
         private static readonly SolidColorBrush _highlightBrush =
-            new(Color.FromRgb(0xD1, 0xDC, 0xF5));   // azul claro
+            new(Color.FromRgb(0xD1, 0xDC, 0xF5));
         private static readonly SolidColorBrush _transparentBrush =
             Brushes.Transparent;
 
@@ -230,7 +232,6 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
                     .ContainerFromIndex(i) as ContentPresenter;
                 if (container == null) continue;
 
-                // El primer hijo del ContentPresenter es el Border "SugItem"
                 var border = VisualTreeHelper.GetChildrenCount(container) > 0
                     ? VisualTreeHelper.GetChild(container, 0) as System.Windows.Controls.Border
                     : null;
@@ -276,7 +277,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
         private void DgProductos_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (_vm == null) return;
-            _vm.Seleccionado = DgProductos.SelectedItem as Producto;
+            _vm.Seleccionado = DgProductos.SelectedItem as ProductoDto;
         }
 
         private void DgProductos_MouseDoubleClick(object sender, WpfMouseButton e)
@@ -293,32 +294,30 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
             DgProductos.ItemsSource = _vm.PageRows;
 
             PaginacionPanel.Items.Clear();
-            int total = _vm.TotalPages;
+            int total   = _vm.TotalPages;
             int current = _vm.Page;
 
-            var pages = CalcularPaginas(current, total);
-            foreach (var p in pages)
+            foreach (var p in CalcularPaginas(current, total))
             {
                 if (p == -1)
                 {
-                    var elipsis = new TextBlock
+                    PaginacionPanel.Items.Add(new TextBlock
                     {
                         Text = "\u2026",
                         FontFamily = new System.Windows.Media.FontFamily("Segoe UI"),
                         FontSize = 13, VerticalAlignment = VerticalAlignment.Center,
                         Margin = new Thickness(2, 0, 2, 0),
-                        Foreground = new System.Windows.Media.SolidColorBrush(
-                            (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#6B7280"))
-                    };
-                    PaginacionPanel.Items.Add(elipsis);
+                        Foreground = new SolidColorBrush(
+                            (Color)ColorConverter.ConvertFromString("#6B7280"))
+                    });
                 }
                 else
                 {
                     var btn = new System.Windows.Controls.Button
                     {
                         Content = p.ToString(),
-                        Margin = new Thickness(2, 0, 2, 0),
-                        Style = (Style)(p == current
+                        Margin  = new Thickness(2, 0, 2, 0),
+                        Style   = (Style)(p == current
                             ? FindResource("ActivePageBtn")
                             : FindResource("PageBtn")),
                         Tag = p
@@ -332,10 +331,9 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
         private static IEnumerable<int> CalcularPaginas(int current, int total)
         {
             if (total <= 7)
-                return Enumerable.Range(1, total).Select(x => x);
+                return Enumerable.Range(1, total);
 
-            var pages = new List<int>();
-            pages.Add(1);
+            var pages = new List<int> { 1 };
             if (current > 3) pages.Add(-1);
             for (int i = Math.Max(2, current - 1); i <= Math.Min(total - 1, current + 1); i++)
                 pages.Add(i);
@@ -348,17 +346,19 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
 
         private void AbrirModalNuevo()
         {
-            var modal = new ProductoModal(null);
-            modal.Cerrado    += CerrarModal;
-            modal.Guardado   += OnProductoGuardado;
+            var repo  = App.Services.GetRequiredService<IProductoRepository>();
+            var modal = new ProductoModal(repo, null);
+            modal.Cerrado  += CerrarModal;
+            modal.Guardado += OnProductoGuardado;
             MostrarModal(modal);
         }
 
-        private void AbrirModalEditar(Producto p)
+        private void AbrirModalEditar(ProductoDto p)
         {
-            var modal = new ProductoModal(p);
-            modal.Cerrado    += CerrarModal;
-            modal.Guardado   += OnProductoGuardado;
+            var repo  = App.Services.GetRequiredService<IProductoRepository>();
+            var modal = new ProductoModal(repo, p);
+            modal.Cerrado  += CerrarModal;
+            modal.Guardado += OnProductoGuardado;
             MostrarModal(modal);
         }
 
@@ -367,8 +367,9 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
             ModalContent.Content    = modal;
             ModalOverlay.Visibility = Visibility.Visible;
 
-            var sb = new Storyboard();
-            var fade = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(200)) { EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut } };
+            var sb   = new Storyboard();
+            var fade = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(200))
+                { EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut } };
             Storyboard.SetTarget(fade, ModalOverlay);
             Storyboard.SetTargetProperty(fade, new PropertyPath(UIElement.OpacityProperty));
             sb.Children.Add(fade);
@@ -377,7 +378,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
 
         private void CerrarModal()
         {
-            var sb = new Storyboard();
+            var sb   = new Storyboard();
             var fade = new DoubleAnimation(1, 0, TimeSpan.FromMilliseconds(150));
             Storyboard.SetTarget(fade, ModalOverlay);
             Storyboard.SetTargetProperty(fade, new PropertyPath(UIElement.OpacityProperty));

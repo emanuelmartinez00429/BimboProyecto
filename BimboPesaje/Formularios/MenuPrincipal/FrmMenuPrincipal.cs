@@ -1,5 +1,5 @@
 using BimboPesaje.Formularios.Movimientos;
-using BimboPesaje.Formularios.Productos;
+using CapaUI.Formularios.Principal.Pantallas.Productos;
 using BimboPesaje.Formularios.Usuarios;
 using CapaDominio;
 using System.Runtime.InteropServices;
@@ -90,7 +90,7 @@ namespace BimboPesaje.Formularios.MenuPrincipal
                     // pendiente
                     break;
                 case "prod-productos":
-                    var productosView = new BimboPesaje.Formularios.Productos.ProductosView();
+                    var productosView = new ProductosView();
                     productosView.SalirSolicitado += () => {
                         _shell.ClearWpfView();
                         CerrarFormActual();

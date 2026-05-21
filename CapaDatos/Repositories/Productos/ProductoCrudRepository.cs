@@ -1,0 +1,220 @@
+using CapaAplicacion.Common;
+using CapaAplicacion.Productos.Dtos;
+using CapaAplicacion.Productos.Interfaces;
+using CapaAplicacion.Productos.Queries;
+using CapaDatos.Modelados.Productos;
+using ServicioConexión.Conexion;
+using Op  = Supabase.Postgrest.Constants.Operator;
+using Ord = Supabase.Postgrest.Constants.Ordering;
+
+namespace CapaDatos.Repositories.Productos;
+
+public class ProductoCrudRepository : IProductoRepository
+{
+    private const string Select =
+        "*, presentacion_producto(*), fabricante(*), categoria(*), paises(*)";
+
+    private static ProductoDto Map(Modelados.Productos.Productos p) => new()
+    {
+        Id             = p.idProducto,
+        CodigoInterno  = p.codigoProducto    ?? string.Empty,
+        Nombre         = p.nombreProducto    ?? string.Empty,
+        Contenido      = p.contenidoProducto ?? string.Empty,
+        Presentacion   = p.nombre_Presentacion,
+        Fabricante     = p.nombre_Fabricante,
+        Categoria      = p.nombre_Categoria,
+        Pais           = p.nombre_Pais,
+        IdEstado       = p.idEstado,
+        IdFabricante   = p.idFabricante,
+        IdCategoria    = p.idCategoria,
+        IdPais         = p.idPais,
+        IdPresentacion = p.idPresentacion,
+    };
+
+    public async Task<PagedResult<ProductoDto>> GetPagedAsync(
+        int page, int size, ProductoFiltros filtros, CancellationToken ct = default)
+    {
+        var client = await ConexionSupabase.GetClientAsync();
+
+        var query = client.From<Modelados.Productos.Productos>().Select(Select);
+
+        if (filtros.IdEstado.HasValue)
+            query = query.Filter("id_estado",     Op.Equals, filtros.IdEstado.Value.ToString());
+        if (filtros.IdFabricante.HasValue)
+            query = query.Filter("id_fabricante", Op.Equals, filtros.IdFabricante.Value.ToString());
+        if (filtros.IdPais.HasValue)
+            query = query.Filter("id_pais",       Op.Equals, filtros.IdPais.Value.ToString());
+
+        int from = (page - 1) * size;
+        int to   = from + size - 1;
+
+        var resultado = await query
+            .Order("id_producto", Ord.Ascending)
+            .Range(from, to)
+            .Get();
+
+        var items   = resultado?.Models.Select(Map).ToList() ?? [];
+        var conteos = await GetConteosAsync(filtros, client);
+
+        return new PagedResult<ProductoDto>
+        {
+            Items     = items,
+            Total     = conteos.total,
+            Activos   = conteos.activos,
+            Inactivos = conteos.inactivos,
+        };
+    }
+
+    public async Task<IReadOnlyList<ProductoDto>> BuscarSugerenciasAsync(
+        string termino, ProductoFiltros filtros, CancellationToken ct = default)
+    {
+        var client = await ConexionSupabase.GetClientAsync();
+        var query  = client.From<Modelados.Productos.Productos>().Select(Select);
+
+        if (filtros.IdEstado.HasValue)
+            query = query.Filter("id_estado",     Op.Equals, filtros.IdEstado.Value.ToString());
+        if (filtros.IdFabricante.HasValue)
+            query = query.Filter("id_fabricante", Op.Equals, filtros.IdFabricante.Value.ToString());
+        if (filtros.IdPais.HasValue)
+            query = query.Filter("id_pais",       Op.Equals, filtros.IdPais.Value.ToString());
+
+        var resultado = await query
+            .Filter("nombre_producto", Op.ILike, $"%{termino}%")
+            .Order("nombre_producto", Ord.Ascending)
+            .Limit(10)
+            .Get();
+
+        return resultado?.Models.Select(Map).ToList() ?? [];
+    }
+
+    public async Task<IReadOnlyList<FiltroItem>> GetFabricantesAsync(CancellationToken ct = default)
+    {
+        var client    = await ConexionSupabase.GetClientAsync();
+        var resultado = await client.From<Modelados.Productos.Productos>()
+            .Select("id_fabricante, fabricante(nombre_fabricante)")
+            .Get();
+
+        return (resultado?.Models ?? [])
+            .Where(p => p.Fabricante != null)
+            .Select(p => (p.idFabricante, p.Fabricante!.nombreFabricante))
+            .DistinctBy(x => x.idFabricante)
+            .OrderBy(x => x.nombreFabricante)
+            .Select(x => new FiltroItem { Id = x.idFabricante, Nombre = x.nombreFabricante })
+            .ToList();
+    }
+
+    public async Task<IReadOnlyList<FiltroItem>> GetPaisesAsync(CancellationToken ct = default)
+    {
+        var client    = await ConexionSupabase.GetClientAsync();
+        var resultado = await client.From<Modelados.Productos.Productos>()
+            .Select("id_pais, paises(nombre_pais)")
+            .Get();
+
+        return (resultado?.Models ?? [])
+            .Where(p => p.Paises != null)
+            .Select(p => (p.idPais, p.Paises!.nombrePais))
+            .DistinctBy(x => x.idPais)
+            .OrderBy(x => x.nombrePais)
+            .Select(x => new FiltroItem { Id = x.idPais, Nombre = x.nombrePais })
+            .ToList();
+    }
+
+    public async Task<IReadOnlyList<FiltroItem>> GetCategoriasAsync(CancellationToken ct = default)
+    {
+        var client    = await ConexionSupabase.GetClientAsync();
+        var resultado = await client.From<Modelados.Productos.Productos>()
+            .Select("id_categoria, categoria(nombre_categoria)")
+            .Get();
+
+        return (resultado?.Models ?? [])
+            .Where(p => p.Categoria != null)
+            .Select(p => (p.idCategoria, p.Categoria!.nombreCategoria))
+            .DistinctBy(x => x.idCategoria)
+            .OrderBy(x => x.nombreCategoria)
+            .Select(x => new FiltroItem { Id = x.idCategoria, Nombre = x.nombreCategoria })
+            .ToList();
+    }
+
+    public async Task<Result<int>> CreateAsync(ProductoDto dto, CancellationToken ct = default)
+    {
+        try
+        {
+            var client = await ConexionSupabase.GetClientAsync();
+            var nuevo  = new Modelados.Productos.Productos
+            {
+                codigoProducto    = dto.CodigoInterno,
+                nombreProducto    = dto.Nombre,
+                contenidoProducto = dto.Contenido,
+                idPresentacion    = dto.IdPresentacion,
+                idFabricante      = dto.IdFabricante,
+                idCategoria       = dto.IdCategoria,
+                idPais            = dto.IdPais,
+                idEstado          = dto.IdEstado,
+            };
+            var resultado = await client.From<Modelados.Productos.Productos>().Insert(nuevo);
+            return Result<int>.Ok(resultado.Models.First().idProducto);
+        }
+        catch (Exception ex)
+        {
+            return Result<int>.Fail($"Error al crear producto: {ex.Message}");
+        }
+    }
+
+    public async Task<Result> UpdateAsync(ProductoDto dto, CancellationToken ct = default)
+    {
+        try
+        {
+            var client = await ConexionSupabase.GetClientAsync();
+            await client.From<Modelados.Productos.Productos>()
+                .Where(p => p.idProducto == dto.Id)
+                .Set(p => p.codigoProducto,    dto.CodigoInterno)
+                .Set(p => p.nombreProducto,    dto.Nombre)
+                .Set(p => p.contenidoProducto, dto.Contenido)
+                .Set(p => p.idPresentacion,    dto.IdPresentacion)
+                .Set(p => p.idFabricante,      dto.IdFabricante)
+                .Set(p => p.idCategoria,       dto.IdCategoria)
+                .Set(p => p.idPais,            dto.IdPais)
+                .Set(p => p.idEstado,          dto.IdEstado)
+                .Update();
+            return Result.Ok();
+        }
+        catch (Exception ex)
+        {
+            return Result.Fail($"Error al actualizar producto: {ex.Message}");
+        }
+    }
+
+    public async Task<Result> DeleteAsync(int id, CancellationToken ct = default)
+    {
+        try
+        {
+            // Soft delete: marca como inactivo (id_estado = 2)
+            var client = await ConexionSupabase.GetClientAsync();
+            await client.From<Modelados.Productos.Productos>()
+                .Where(p => p.idProducto == id)
+                .Set(p => p.idEstado, 2)
+                .Update();
+            return Result.Ok();
+        }
+        catch (Exception ex)
+        {
+            return Result.Fail($"Error al eliminar producto: {ex.Message}");
+        }
+    }
+
+    private static async Task<(int total, int activos, int inactivos)> GetConteosAsync(
+        ProductoFiltros filtros, Supabase.Client client)
+    {
+        var q = client.From<Modelados.Productos.Productos>().Select("id_producto, id_estado");
+
+        if (filtros.IdFabricante.HasValue)
+            q = q.Filter("id_fabricante", Op.Equals, filtros.IdFabricante.Value.ToString());
+        if (filtros.IdPais.HasValue)
+            q = q.Filter("id_pais",       Op.Equals, filtros.IdPais.Value.ToString());
+
+        var r      = await q.Get();
+        var models = r?.Models ?? [];
+        int activos = models.Count(p => p.idEstado == 1);
+        return (models.Count, activos, models.Count - activos);
+    }
+}

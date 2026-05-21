@@ -63,7 +63,7 @@
             </Style.Triggers>
         </Style>
 
-        <!-- DataGrid Cell Style -->
+        <!-- DataGrid Cell Style para alineacion central-->
         <Style x:Key="ProductCellStyle" TargetType="DataGridCell">
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Padding" Value="0"/>
@@ -76,6 +76,24 @@
                                 BorderThickness="0"
                                 Padding="0">
                             <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <!-- DataGrid Cell Style para alinecion a la izquierda-->
+        <Style x:Key="ProductCellStyle1" TargetType="DataGridCell">
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="DataGridCell">
+                        <Border Background="{TemplateBinding Background}"
+                          BorderThickness="0"
+                          Padding="0">
+                            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Left"/>
                         </Border>
                     </ControlTemplate>
                 </Setter.Value>
@@ -757,17 +775,17 @@
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <Border Background="#EFF6FF" CornerRadius="4" Padding="8,2" HorizontalAlignment="Center">
-                                        <TextBlock Text="{Binding codigoProducto}"
+                                        <TextBlock Text="{Binding CodigoInterno}"
                                                    FontFamily="Consolas" FontSize="12" FontWeight="Bold"
                                                    Foreground="#1E3A8A"/>
                                     </Border>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="PRODUCTO" Width="200" CellStyle="{StaticResource ProductCellStyle}">
+                        <DataGridTemplateColumn Header="PRODUCTO" Width="200" CellStyle="{StaticResource ProductCellStyle1}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding nombreProducto}"
+                                    <TextBlock Text="{Binding Nombre}"
                                                FontFamily="Segoe UI" FontSize="13.5"
                                                Foreground="#1A1F2E"
                                                TextTrimming="CharacterEllipsis"
@@ -778,7 +796,7 @@
                         <DataGridTemplateColumn Header="FABRICANTE" Width="110" CellStyle="{StaticResource ProductCellStyle}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding nombre_Fabricante}"
+                                    <TextBlock Text="{Binding Fabricante}"
                                                FontFamily="Segoe UI" FontSize="13.5"
                                                Foreground="#1A1F2E"
                                                TextTrimming="CharacterEllipsis"
@@ -786,10 +804,10 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="PA&#205;S" Width="110" CellStyle="{StaticResource ProductCellStyle}">
+                        <DataGridTemplateColumn Header="PA&#205;S" Width="110" CellStyle="{StaticResource ProductCellStyle1}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding nombre_Pais}"
+                                    <TextBlock Text="{Binding Pais}"
                                                FontFamily="Segoe UI" FontSize="13.5"
                                                Foreground="#1A1F2E"
                                                TextTrimming="CharacterEllipsis"
@@ -800,17 +818,17 @@
                         <DataGridTemplateColumn Header="CONTENIDO" Width="100" CellStyle="{StaticResource ProductCellStyle}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding contenidoProducto}"
+                                    <TextBlock Text="{Binding Contenido}"
                                                FontFamily="Segoe UI" FontSize="13.5" FontWeight="SemiBold"
                                                Foreground="#1A1F2E"
                                                HorizontalAlignment="Center"/>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="PRESENTACI&#211;N" Width="*" CellStyle="{StaticResource ProductCellStyle}">
+                        <DataGridTemplateColumn Header="PRESENTACI&#211;N" Width="*" CellStyle="{StaticResource ProductCellStyle1}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding nombre_Presentacion}"
+                                    <TextBlock Text="{Binding Presentacion}"
                                                FontFamily="Segoe UI" FontSize="13.5"
                                                Foreground="#1A1F2E"
                                                TextTrimming="CharacterEllipsis"
@@ -822,7 +840,7 @@
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <Border Background="#F0F5FB" CornerRadius="999" Padding="10,2" HorizontalAlignment="Center">
-                                        <TextBlock Text="{Binding nombre_Categoria}"
+                                        <TextBlock Text="{Binding Categoria}"
                                                    FontFamily="Segoe UI" FontSize="12" FontWeight="SemiBold"
                                                    Foreground="#1E3A8A"/>
                                     </Border>
@@ -840,7 +858,7 @@
                                                 <Style TargetType="Border">
                                                     <Setter Property="Visibility" Value="Collapsed"/>
                                                     <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding idEstado}" Value="1">
+                                                        <DataTrigger Binding="{Binding IdEstado}" Value="1">
                                                             <Setter Property="Visibility" Value="Visible"/>
                                                         </DataTrigger>
                                                     </Style.Triggers>
@@ -862,7 +880,7 @@
                                                 <Style TargetType="Border">
                                                     <Setter Property="Visibility" Value="Visible"/>
                                                     <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding idEstado}" Value="1">
+                                                        <DataTrigger Binding="{Binding IdEstado}" Value="1">
                                                             <Setter Property="Visibility" Value="Collapsed"/>
                                                         </DataTrigger>
                                                     </Style.Triggers>

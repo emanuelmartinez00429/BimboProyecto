@@ -3,6 +3,7 @@ using CapaAplicacion;
 using CapaDatos;
 using CapaUI.Formularios.InicioSesion;
 using CapaUI.Formularios.Principal;
+using CapaUI.Formularios.Principal.Pantallas.Productos;
 using CapaUI.Services.Navigation;
 using CapaUI.ViewModels.Search;
 using Microsoft.Extensions.DependencyInjection;
@@ -28,6 +29,7 @@ namespace CapaUI
             services.AddApplicationLayer();
             services.AddSingleton<INavigationService, NavigationService>();
             services.AddTransient<UniversalSearchViewModel>();
+            services.AddTransient<ProductosViewModel>();
             return services.BuildServiceProvider();
         }
 

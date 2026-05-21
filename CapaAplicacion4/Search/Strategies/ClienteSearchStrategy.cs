@@ -1,4 +1,3 @@
-using CapaAplicacion.Common.Specifications;
 using CapaAplicacion.Search.Dtos;
 using CapaDominio.Entities;
 using CapaDominio.Interfaces;
@@ -15,8 +14,7 @@ public class ClienteSearchStrategy : ISearchStrategy
 
     public async Task<IEnumerable<SearchResultDto>> SearchAsync(string term, CancellationToken ct)
     {
-        var spec     = new ClienteSearchSpecification(term);
-        var clientes = await _repo.FindAsync(spec.Criteria, ct);
+        var clientes = await _repo.SearchAsync(term, ct);
         return clientes.Select(c => new SearchResultDto
         {
             EntityType      = EntityType,

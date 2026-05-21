@@ -1,4 +1,3 @@
-using System.Linq.Expressions;
 using CapaDominio.Interfaces;
 using ServicioConexión.Conexion;
 using Supabase.Postgrest.Models;
@@ -13,19 +12,8 @@ public abstract class SupabaseRepository<TDomain, TSupabase> : IRepository<TDoma
 
     protected abstract TDomain MapToDomain(TSupabase model);
 
-    public async Task<IEnumerable<TDomain>> FindAsync(
-        Expression<Func<TDomain, bool>> predicate,
-        CancellationToken ct = default)
-    {
-        var client   = await ConexionSupabase.GetClientAsync();
-        var response = await client
-            .From<TSupabase>()
-            .Select(SelectStatement)
-            .Get();
+    public abstract Task<IEnumerable<TDomain>> SearchAsync(string term, CancellationToken ct = default);
 
-        return response.Models
-            .Select(MapToDomain)
-            .Where(predicate.Compile())
-            .ToList();
-    }
+    protected async Task<Supabase.Client> GetClientAsync()
+        => await ConexionSupabase.GetClientAsync();
 }
