@@ -36,32 +36,40 @@
             <TextBlock x:Name="SubtitleBlock" TextWrapping="Wrap" FontFamily="Segoe UI" FontSize="14"
                        Foreground="{StaticResource TextMuted}" Margin="0,0,0,24"/>
 
-            <!-- 6-digit PIN -->
+            <!-- 8-digit PIN -->
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,16">
-                <TextBox x:Name="D1" Style="{StaticResource PinDigitBox}" Margin="0,0,10,0"
+                <TextBox x:Name="D1" Style="{StaticResource PinDigitBox}" Margin="0,0,7,0"
                          PreviewTextInput="Digit_PreviewTextInput" KeyDown="Digit_KeyDown"
                          PreviewKeyDown="Digit_PreviewKeyDown" TextChanged="Digit_TextChanged"
                          DataObject.Pasting="Digit_Pasting" Tag="0"/>
-                <TextBox x:Name="D2" Style="{StaticResource PinDigitBox}" Margin="0,0,10,0"
+                <TextBox x:Name="D2" Style="{StaticResource PinDigitBox}" Margin="0,0,7,0"
                          PreviewTextInput="Digit_PreviewTextInput" KeyDown="Digit_KeyDown"
                          PreviewKeyDown="Digit_PreviewKeyDown" TextChanged="Digit_TextChanged"
                          DataObject.Pasting="Digit_Pasting" Tag="1"/>
-                <TextBox x:Name="D3" Style="{StaticResource PinDigitBox}" Margin="0,0,10,0"
+                <TextBox x:Name="D3" Style="{StaticResource PinDigitBox}" Margin="0,0,7,0"
                          PreviewTextInput="Digit_PreviewTextInput" KeyDown="Digit_KeyDown"
                          PreviewKeyDown="Digit_PreviewKeyDown" TextChanged="Digit_TextChanged"
                          DataObject.Pasting="Digit_Pasting" Tag="2"/>
-                <TextBox x:Name="D4" Style="{StaticResource PinDigitBox}" Margin="0,0,10,0"
+                <TextBox x:Name="D4" Style="{StaticResource PinDigitBox}" Margin="0,0,7,0"
                          PreviewTextInput="Digit_PreviewTextInput" KeyDown="Digit_KeyDown"
                          PreviewKeyDown="Digit_PreviewKeyDown" TextChanged="Digit_TextChanged"
                          DataObject.Pasting="Digit_Pasting" Tag="3"/>
-                <TextBox x:Name="D5" Style="{StaticResource PinDigitBox}" Margin="0,0,10,0"
+                <TextBox x:Name="D5" Style="{StaticResource PinDigitBox}" Margin="0,0,7,0"
                          PreviewTextInput="Digit_PreviewTextInput" KeyDown="Digit_KeyDown"
                          PreviewKeyDown="Digit_PreviewKeyDown" TextChanged="Digit_TextChanged"
                          DataObject.Pasting="Digit_Pasting" Tag="4"/>
-                <TextBox x:Name="D6" Style="{StaticResource PinDigitBox}"
+                <TextBox x:Name="D6" Style="{StaticResource PinDigitBox}" Margin="0,0,7,0"
                          PreviewTextInput="Digit_PreviewTextInput" KeyDown="Digit_KeyDown"
                          PreviewKeyDown="Digit_PreviewKeyDown" TextChanged="Digit_TextChanged"
                          DataObject.Pasting="Digit_Pasting" Tag="5"/>
+                <TextBox x:Name="D7" Style="{StaticResource PinDigitBox}" Margin="0,0,7,0"
+                         PreviewTextInput="Digit_PreviewTextInput" KeyDown="Digit_KeyDown"
+                         PreviewKeyDown="Digit_PreviewKeyDown" TextChanged="Digit_TextChanged"
+                         DataObject.Pasting="Digit_Pasting" Tag="6"/>
+                <TextBox x:Name="D8" Style="{StaticResource PinDigitBox}"
+                         PreviewTextInput="Digit_PreviewTextInput" KeyDown="Digit_KeyDown"
+                         PreviewKeyDown="Digit_PreviewKeyDown" TextChanged="Digit_TextChanged"
+                         DataObject.Pasting="Digit_Pasting" Tag="7"/>
             </StackPanel>
 
             <!-- Resend row -->

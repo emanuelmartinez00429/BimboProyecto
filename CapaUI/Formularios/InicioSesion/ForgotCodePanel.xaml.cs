@@ -23,14 +23,14 @@ namespace CapaUI.Formularios.InicioSesion
             InitializeComponent();
 
             SubtitleBlock.Inlines.Clear();
-            SubtitleBlock.Inlines.Add(new System.Windows.Documents.Run("Enviamos un código de 6 dígitos a "));
+            SubtitleBlock.Inlines.Add(new System.Windows.Documents.Run("Enviamos un código de 8 dígitos a "));
             SubtitleBlock.Inlines.Add(new System.Windows.Documents.Bold(
                 new System.Windows.Documents.Run(email)));
             SubtitleBlock.Inlines.Add(new System.Windows.Documents.Run(". Ingresa el código a continuación."));
 
             Loaded += (_, _) =>
             {
-                _digits = [D1, D2, D3, D4, D5, D6];
+                _digits = [D1, D2, D3, D4, D5, D6, D7, D8];
                 StartCountdown();
                 D1.Focus();
             };
@@ -61,6 +61,7 @@ namespace CapaUI.Formularios.InicioSesion
 
         private void CheckComplete()
         {
+            if (_digits == null) return;
             BtnVerify.IsEnabled = _digits.All(d => d.Text.Length == 1);
             ErrorContainer.Visibility = Visibility.Collapsed;
         }
@@ -72,17 +73,19 @@ namespace CapaUI.Formularios.InicioSesion
 
         private void Digit_TextChanged(object sender, TextChangedEventArgs e)
         {
+            if (_digits == null) return;
             var box = (TextBox)sender;
-            int idx = (int)box.Tag;
-            if (box.Text.Length == 1 && idx < 5)
+            int idx = Convert.ToInt32(box.Tag);
+            if (box.Text.Length == 1 && idx < 7)
                 _digits[idx + 1].Focus();
             CheckComplete();
         }
 
         private void Digit_PreviewKeyDown(object sender, KeyEventArgs e)
         {
+            if (_digits == null) return;
             var box = (TextBox)sender;
-            int idx = (int)box.Tag;
+            int idx = Convert.ToInt32(box.Tag);
 
             if (e.Key == Key.Back && box.Text.Length == 0 && idx > 0)
             {
@@ -94,7 +97,7 @@ namespace CapaUI.Formularios.InicioSesion
             {
                 _digits[idx - 1].Focus(); e.Handled = true;
             }
-            else if (e.Key == Key.Right && idx < 5)
+            else if (e.Key == Key.Right && idx < 7)
             {
                 _digits[idx + 1].Focus(); e.Handled = true;
             }
@@ -111,11 +114,11 @@ namespace CapaUI.Formularios.InicioSesion
             if (e.DataObject.GetDataPresent(typeof(string)))
             {
                 string text = ((string)e.DataObject.GetData(typeof(string))).Trim();
-                if (text.Length == 6 && text.All(char.IsDigit))
+                if (text.Length == 8 && text.All(char.IsDigit))
                 {
-                    for (int i = 0; i < 6; i++)
+                    for (int i = 0; i < 8; i++)
                         _digits[i].Text = text[i].ToString();
-                    _digits[5].Focus();
+                    _digits[7].Focus();
                     CheckComplete();
                     e.CancelCommand();
                     return;
@@ -154,7 +157,13 @@ namespace CapaUI.Formularios.InicioSesion
 
             try
             {
-                await Task.Delay(800);
+                string otp    = GetCode();
+                var client    = await ServicioConexión.Conexion.ConexionSupabase.GetClientAsync();
+                var session   = await client.Auth.VerifyOTP(
+                    _email, otp, Supabase.Gotrue.Constants.EmailOtpType.Recovery);
+
+                if (session?.User == null)
+                    throw new Exception("Código inválido o expirado.");
 
                 _timer?.Stop();
                 _win.NavigateTo(new ForgotNewPanel(_win, _email), "Nueva contraseña");

@@ -1,6 +1,7 @@
 using BimboPesaje.Formularios.Movimientos;
-using CapaUI.Formularios.Principal.Pantallas.Productos;
 using BimboPesaje.Formularios.Usuarios;
+using CapaUI.Formularios.Principal.Pantallas.Productos;
+using BimboPesajeProductos = BimboPesaje.Formularios.Productos;
 using CapaDominio;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
@@ -101,13 +102,13 @@ namespace BimboPesaje.Formularios.MenuPrincipal
                     _shell.ShowWpfView(productosView);
                     break;
                 case "prod-proveedores":
-                    AbrirFormHijo(new GestionProveedores());
+                    AbrirFormHijo(new BimboPesajeProductos.GestionProveedores());
                     break;
                 case "prod-fabricantes":
-                    AbrirFormHijo(new GestionFabricantes());
+                    AbrirFormHijo(new BimboPesajeProductos.GestionFabricantes());
                     break;
                 case "prod-categorias":
-                    AbrirFormHijo(new GestionCategorias());
+                    AbrirFormHijo(new BimboPesajeProductos.GestionCategorias());
                     break;
                 case "pes-movs":
                     AbrirFormHijo(new MovimientosyEntradas());

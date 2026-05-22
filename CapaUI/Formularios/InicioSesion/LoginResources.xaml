@@ -222,10 +222,10 @@
 
     <!-- ═══════════════════ PIN DIGIT ═══════════════════ -->
     <Style x:Key="PinDigitBox" TargetType="TextBox">
-        <Setter Property="Width"                    Value="56"/>
-        <Setter Property="Height"                   Value="64"/>
+        <Setter Property="Width"                    Value="44"/>
+        <Setter Property="Height"                   Value="52"/>
         <Setter Property="FontFamily"               Value="Segoe UI"/>
-        <Setter Property="FontSize"                 Value="26"/>
+        <Setter Property="FontSize"                 Value="20"/>
         <Setter Property="FontWeight"               Value="Bold"/>
         <Setter Property="TextAlignment"            Value="Center"/>
         <Setter Property="VerticalContentAlignment" Value="Center"/>

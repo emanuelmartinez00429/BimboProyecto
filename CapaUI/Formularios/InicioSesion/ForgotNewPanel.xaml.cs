@@ -165,6 +165,7 @@ namespace CapaUI.Formularios.InicioSesion
             {
                 var client = await ServicioConexión.Conexion.ConexionSupabase.GetClientAsync();
                 await client.Auth.Update(new Supabase.Gotrue.UserAttributes { Password = NewPassword });
+                await client.Auth.SignOut();
                 ShowSuccess();
             }
             catch (Exception ex)
