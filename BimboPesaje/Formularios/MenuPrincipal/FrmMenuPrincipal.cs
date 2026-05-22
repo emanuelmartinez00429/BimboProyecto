@@ -2,6 +2,7 @@ using BimboPesaje.Formularios.Movimientos;
 using CapaUI.Formularios.Principal.Pantallas.Productos;
 using BimboPesaje.Formularios.Usuarios;
 using CapaDominio;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using WpfIntegration = System.Windows.Forms.Integration;
 
@@ -24,6 +25,7 @@ namespace BimboPesaje.Formularios.MenuPrincipal
         private readonly UcMenuShell                _shell;
         private readonly Panel                      _contenedor;
         private Form?                               _formActual;
+        private bool                                _cerrando = false;
 
         // ══════════════════════════════════════════════════════════════
         //  Constructor
@@ -50,7 +52,7 @@ namespace BimboPesaje.Formularios.MenuPrincipal
 
             // Suscribir eventos del shell
             _shell.NavigationRequested += OnNavigationRequested;
-            _shell.LogoutRequested     += OnLogoutRequested;
+            _shell.LogoutRequested     += () => Close();
             _shell.DragMoveRequested   += OnDragMoveRequested;
             _shell.MinimizeRequested   += () => WindowState = FormWindowState.Minimized;
             _shell.MaximizeRequested   += () => WindowState = WindowState == FormWindowState.Maximized
@@ -143,21 +145,58 @@ namespace BimboPesaje.Formularios.MenuPrincipal
         }
 
         // ══════════════════════════════════════════════════════════════
-        //  Logout
+        //  Cierre — punto único para X, Alt+F4, botón de logout y
+        //  cualquier llamada programática a Close()
         // ══════════════════════════════════════════════════════════════
-        private void OnLogoutRequested()
+        protected override void OnFormClosing(FormClosingEventArgs e)
         {
-            var result = MessageBox.Show(
-                "¿Deseas cerrar sesión?",
-                "Cerrar sesión",
-                MessageBoxButtons.YesNo,
-                MessageBoxIcon.Question);
+            // Segunda pasada (re-entry): ya hicimos cleanup, dejar pasar
+            if (_cerrando) { base.OnFormClosing(e); return; }
 
-            if (result != DialogResult.Yes) return;
+            // Apagado de Windows: cleanup sincrónico, sin diálogos
+            if (e.CloseReason == CloseReason.WindowsShutDown)
+            {
+                servicioSesionActual.Cerrar();
+                ServicioPerfilUsuario.Limpiar();
+                base.OnFormClosing(e);
+                return;
+            }
 
-            servicioSesionActual.Cerrar();
-            ServicioPerfilUsuario.Limpiar();
-            Application.Exit();
+            // Primera pasada: cancelar el cierre y delegar al flujo async
+            e.Cancel = true;
+            HandleCierreAsync();
+        }
+
+        private async void HandleCierreAsync()
+        {
+            var confirmar = MessageBox.Show(
+                "¿Deseas cerrar sesión?", "Cerrar sesión",
+                MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+            if (confirmar != DialogResult.Yes) return;
+
+            try
+            {
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+                var client = await ServicioConexión.Conexion.ConexionSupabase.GetClientAsync();
+                await client.Auth.SignOut();
+            }
+            catch (OperationCanceledException)
+            {
+                Debug.WriteLine("[Cierre] SignOut timeout — continuando de todas formas");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[Cierre] Error en SignOut: {ex.Message}");
+            }
+            finally
+            {
+                servicioSesionActual.Cerrar();
+                ServicioPerfilUsuario.Limpiar();
+                _cerrando = true;
+                Close();
+                Application.Exit();
+            }
         }
 
         // ══════════════════════════════════════════════════════════════

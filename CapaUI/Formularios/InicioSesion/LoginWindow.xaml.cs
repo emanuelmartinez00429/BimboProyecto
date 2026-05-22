@@ -118,6 +118,16 @@ namespace CapaUI.Formularios.InicioSesion
             LoginPanel.Visibility  = Visibility.Collapsed;
             LoadingPanel.Visibility = Visibility.Visible;
             TitleBarText.Text       = "Iniciando sesión…";
+            TxtProgress.Text  = "0%";
+            ProgressBar.Width = 0;
+            foreach (var (dot, label) in new[] { (S1Dot, S1Text), (S2Dot, S2Text), (S3Dot, S3Text), (S4Dot, S4Text) })
+            {
+                dot.Background   = Brushes.Transparent;
+                dot.BorderBrush  = new SolidColorBrush(Color.FromRgb(0xD1, 0xD5, 0xDB));
+                label.Foreground = new SolidColorBrush(Color.FromRgb(0x9C, 0xA3, 0xAF));
+                label.FontWeight = FontWeights.Normal;
+                if (dot.Child is TextBlock check) check.Visibility = Visibility.Collapsed;
+            }
 
             // Iniciar spinner
             var spinAnim = new DoubleAnimation(0, 360, new Duration(TimeSpan.FromSeconds(1)))
@@ -197,6 +207,7 @@ namespace CapaUI.Formularios.InicioSesion
             dot.BorderBrush  = _successBrush;
             label.Foreground = _successBrush;
             label.FontWeight = FontWeights.Normal;
+            if (dot.Child is TextBlock check) check.Visibility = Visibility.Visible;
         }
 
         private void SetProgress(int pct)
@@ -222,6 +233,7 @@ namespace CapaUI.Formularios.InicioSesion
                 dot.BorderBrush  = new SolidColorBrush(Color.FromRgb(0xD1, 0xD5, 0xDB));
                 label.Foreground = new SolidColorBrush(Color.FromRgb(0x9C, 0xA3, 0xAF));
                 label.FontWeight = FontWeights.Normal;
+                if (dot.Child is TextBlock check) check.Visibility = Visibility.Collapsed;
             }
         }
 
