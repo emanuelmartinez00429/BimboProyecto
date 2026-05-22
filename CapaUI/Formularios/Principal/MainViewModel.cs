@@ -53,6 +53,7 @@ namespace CapaUI.Formularios.Principal
         public ICommand CerrarSesionCommand            { get; }
 
         public event EventHandler? SesionCerrada;
+        public event EventHandler? CierreRequerido;
 
         public MainViewModel()
         {
@@ -104,27 +105,12 @@ namespace CapaUI.Formularios.Principal
                     vm.TriggerSearch(term);
             });
 
-            CerrarSesionCommand = new RelayCommand(async () => await CerrarSesionAsync());
+            CerrarSesionCommand = new RelayCommand(() => CierreRequerido?.Invoke(this, EventArgs.Empty));
 
             // Vista inicial
             VistaActual = new WelcomeVM();
         }
 
-        private async System.Threading.Tasks.Task CerrarSesionAsync()
-        {
-            try
-            {
-                var client = await ServicioConexión.Conexion.ConexionSupabase.GetClientAsync();
-                await client.Auth.SignOut();
-            }
-            catch { }
-            finally
-            {
-                SesionPermisos.Limpiar();
-                ServicioPerfilUsuario.Limpiar();
-                SesionCerrada?.Invoke(this, EventArgs.Empty);
-            }
-        }
     }
 
     // ── VMs de pantalla ──────────────────────────────────────────────────

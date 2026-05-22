@@ -170,6 +170,7 @@ namespace BimboPesaje.Formularios.MenuPrincipal
         private async void HandleCierreAsync()
         {
             var confirmar = MessageBox.Show(
+                this,
                 "¿Deseas cerrar sesión?", "Cerrar sesión",
                 MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 

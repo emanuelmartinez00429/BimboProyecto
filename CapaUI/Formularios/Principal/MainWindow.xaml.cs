@@ -1,4 +1,6 @@
 using System;
+using System.ComponentModel;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
@@ -6,6 +8,7 @@ using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using CapaDominio;
 using WpfColor = System.Windows.Media.Color;
 using WpfColorConverter = System.Windows.Media.ColorConverter;
 
@@ -16,6 +19,7 @@ namespace CapaUI.Formularios.Principal
         public event EventHandler? SesionCerrada;
 
         private MainViewModel Vm => (MainViewModel)DataContext;
+        private bool _cerrando = false;
 
         // ── Estado del sidebar ────────────────────────────────────────────
         private bool   _collapsed      = false;
@@ -89,7 +93,7 @@ namespace CapaUI.Formularios.Principal
             MinWidth  = 600;
             MinHeight = 400;
 
-            Vm.SesionCerrada += (_, _) => SesionCerrada?.Invoke(this, EventArgs.Empty);
+            Vm.CierreRequerido += (_, _) => Close();
 
             Loaded            += OnLoaded;
             SourceInitialized += OnSourceInitialized;
@@ -466,8 +470,51 @@ namespace CapaUI.Formularios.Principal
                            ? WindowState.Normal
                            : WindowState.Maximized;
 
-        private void BtnCerrarVentana_Click(object sender, RoutedEventArgs e)
-            => Application.Current.Shutdown();
+        private void BtnCerrarVentana_Click(object sender, RoutedEventArgs e) => Close();
+
+        // ══════════════════════════════════════════════════════════════════
+        //  Cierre — punto único para X, botón de logout y Alt+F4
+        // ══════════════════════════════════════════════════════════════════
+        protected override void OnClosing(CancelEventArgs e)
+        {
+            if (_cerrando) { base.OnClosing(e); return; }
+
+            e.Cancel = true;
+            HandleCierreAsync();
+        }
+
+        private async void HandleCierreAsync()
+        {
+            var resultado = MessageBox.Show(
+                "¿Deseas cerrar sesión?", "Cerrar sesión",
+                MessageBoxButton.YesNo, MessageBoxImage.Question);
+
+            if (resultado != MessageBoxResult.Yes) return;
+
+            try
+            {
+                using var cts = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(5));
+                var client = await ServicioConexión.Conexion.ConexionSupabase.GetClientAsync();
+                await client.Auth.SignOut();
+            }
+            catch (OperationCanceledException)
+            {
+                Debug.WriteLine("[Cierre] SignOut timeout — continuando de todas formas");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[Cierre] Error en SignOut: {ex.Message}");
+            }
+            finally
+            {
+                CapaUI.Core.Permisos.SesionPermisos.Limpiar();
+                ServicioPerfilUsuario.Limpiar();
+                servicioSesionActual.Cerrar();
+                _cerrando = true;
+                SesionCerrada?.Invoke(this, EventArgs.Empty);
+                Close();
+            }
+        }
 
         // ══════════════════════════════════════════════════════════════════
         //  Animaciones
