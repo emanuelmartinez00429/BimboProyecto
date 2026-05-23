@@ -4,7 +4,7 @@ using CapaDatos;
 using CapaUI.Formularios.InicioSesion;
 using CapaUI.Formularios.Principal;
 using CapaUI.Formularios.Principal.Pantallas.Productos;
-using CapaUI.Services.Navigation;
+using CapaUI.Services.Picker;
 using CapaUI.ViewModels.Search;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -27,7 +27,7 @@ namespace CapaUI
             var services = new ServiceCollection();
             services.AddDataLayer();
             services.AddApplicationLayer();
-            services.AddSingleton<INavigationService, NavigationService>();
+            services.AddSingleton<IPickerService, PickerService>();
             services.AddTransient<UniversalSearchViewModel>();
             services.AddTransient<ProductosViewModel>();
             services.AddTransient<LoginWindow>();

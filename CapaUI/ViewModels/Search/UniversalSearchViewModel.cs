@@ -1,8 +1,6 @@
 using System.Collections.ObjectModel;
-using System.Windows;
 using CapaAplicacion.Search.Dtos;
 using CapaAplicacion.Search.Queries;
-using CapaUI.Services.Navigation;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MediatR;
@@ -11,9 +9,8 @@ namespace CapaUI.ViewModels.Search;
 
 public partial class UniversalSearchViewModel : ObservableObject
 {
-    private readonly IMediator          _mediator;
-    private readonly INavigationService _navigation;
-    private CancellationTokenSource?    _cts;
+    private readonly IMediator         _mediator;
+    private CancellationTokenSource?   _cts;
 
     [ObservableProperty] private string _searchTerm = string.Empty;
     [ObservableProperty] private bool   _isLoading;
@@ -22,10 +19,15 @@ public partial class UniversalSearchViewModel : ObservableObject
 
     public ObservableCollection<SearchResultDto> Results { get; } = [];
 
-    public UniversalSearchViewModel(IMediator mediator, INavigationService navigation)
+    /// <summary>
+    /// Se dispara cuando el usuario selecciona un resultado.
+    /// El consumidor (MainViewModel) decide cómo navegar según EntityType.
+    /// </summary>
+    public event Action<SearchResultDto>? ResultSelected;
+
+    public UniversalSearchViewModel(IMediator mediator)
     {
-        _mediator   = mediator;
-        _navigation = navigation;
+        _mediator = mediator;
     }
 
     public void TriggerSearch(string term)
@@ -70,7 +72,7 @@ public partial class UniversalSearchViewModel : ObservableObject
 
     [RelayCommand]
     private void SelectResult(SearchResultDto result)
-        => _navigation.NavigateTo(result.EntityType, result.NavigationParam);
+        => ResultSelected?.Invoke(result);
 
     partial void OnSearchTermChanged(string value)
     {

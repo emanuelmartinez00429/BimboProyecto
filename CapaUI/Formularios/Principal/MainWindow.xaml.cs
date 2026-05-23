@@ -10,6 +10,7 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using CapaAplicacion.Perfil;
 using CapaDominio;
+using CapaUI.Navigation;
 using WpfColor = System.Windows.Media.Color;
 using WpfColorConverter = System.Windows.Media.ColorConverter;
 
@@ -336,7 +337,7 @@ namespace CapaUI.Formularios.Principal
             _activeSubId           = id;
             IndReportes.Visibility = Visibility.Visible;
 
-            Navigate(id);
+            Vm.NavigateCommand.Execute(id);
         }
 
         // ══════════════════════════════════════════════════════════════════
@@ -370,7 +371,7 @@ namespace CapaUI.Formularios.Principal
                     parent.Indicator.Visibility = Visibility.Visible;
             }
 
-            Navigate(subId);
+            Vm.NavigateCommand.Execute(subId);
         }
 
         private void ClearActiveStates()
@@ -390,43 +391,20 @@ namespace CapaUI.Formularios.Principal
         }
 
         // ══════════════════════════════════════════════════════════════════
-        //  Navegación
-        // ══════════════════════════════════════════════════════════════════
-        private void Navigate(string id)
-        {
-            switch (id)
-            {
-                case "usuarios-sub":          Vm.NavUsuariosCommand.Execute(null);               break;
-                case "empleados":             Vm.NavEmpleadosCommand.Execute(null);              break;
-                case "roles":                 Vm.NavRolesCommand.Execute(null);                  break;
-                case "bitacora":              Vm.NavBitacoraCommand.Execute(null);               break;
-                case "productos-sub":         Vm.NavProductosCommand.Execute(null);              break;
-                case "proveedores":           Vm.NavProveedoresCommand.Execute(null);            break;
-                case "fabricantes":           Vm.NavFabricantesCommand.Execute(null);            break;
-                case "categorias":            Vm.NavCategoriasCommand.Execute(null);             break;
-                case "contactos-proveedores": Vm.NavContactosProveedoresCommand.Execute(null);   break;
-                case "contactos-fabricantes": Vm.NavContactosFabricantesCommand.Execute(null);   break;
-                case "pesajes-sub":           Vm.NavPesajesCommand.Execute(null);               break;
-                case "dashboard":            Vm.NavDashboardCommand.Execute(null);              break;
-                case "crear-reportes":       Vm.NavCrearReportesCommand.Execute(null);          break;
-            }
-        }
-
-        // ══════════════════════════════════════════════════════════════════
         //  HOME / MI USUARIO
         // ══════════════════════════════════════════════════════════════════
         private void BtnHome_Click(object sender, RoutedEventArgs e)
         {
             ClearActiveStates();
             _activeModuleId = "";
-            Vm.NavBienvenidaCommand.Execute(null);
+            Vm.NavigateCommand.Execute(Routes.Bienvenida);
         }
 
         private void UserCard_Click(object sender, MouseButtonEventArgs e)
         {
             ClearActiveStates();
-            _activeModuleId = "mi-usuario";
-            Vm.NavMiUsuarioCommand.Execute(null);
+            _activeModuleId = Routes.MiUsuario;
+            Vm.NavigateCommand.Execute(Routes.MiUsuario);
         }
 
         // ══════════════════════════════════════════════════════════════════
@@ -442,7 +420,7 @@ namespace CapaUI.Formularios.Principal
         {
             if (e.Key != Key.Enter) return;
             if (string.IsNullOrWhiteSpace(TxtSearch.Text)) return;
-            (DataContext as MainViewModel)?.NavBusquedaCommand?.Execute(TxtSearch.Text);
+            Vm.BuscarCommand.Execute(TxtSearch.Text);
             e.Handled = true;
         }
 
