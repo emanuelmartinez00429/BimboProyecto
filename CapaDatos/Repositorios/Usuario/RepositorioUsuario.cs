@@ -26,6 +26,25 @@ namespace CapaDatos.Repositorios.Usuario
             }
         }
 
+        public static async Task<usuarioVista?> ObtenerPorIdAsync(int idUsuario)
+        {
+            try
+            {
+                var client = await ConexionSupabase.GetClientAsync();
+                var resultado = await client
+                    .From<usuarioVista>()
+                    .Select("*, roles(*), empleados(*)")
+                    .Filter("id_usuario", Supabase.Postgrest.Constants.Operator.Equals, idUsuario.ToString())
+                    .Get();
+                return resultado?.Models?.FirstOrDefault();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al obtener usuario por id: {ex.Message}");
+                throw;
+            }
+        }
+
         public static async Task<List<usuarioVista>> obtenerUsuarios()
         {
             try

@@ -1,5 +1,6 @@
 using System;
 using System.Windows.Input;
+using CapaAplicacion.Perfil;
 using CapaUI.Core.MVVM;
 using CapaUI.Core.Permisos;
 using CapaUI.ViewModels.Search;
@@ -10,6 +11,8 @@ namespace CapaUI.Formularios.Principal
 {
     public class MainViewModel : ViewModelBase
     {
+        private readonly IPerfilUsuarioService _perfilService;
+
         // ── Vista actual ─────────────────────────────────────────────────
         private object? _vistaActual;
         public object? VistaActual
@@ -19,10 +22,10 @@ namespace CapaUI.Formularios.Principal
         }
 
         // ── Info de usuario ──────────────────────────────────────────────
-        public string NombreUsuario => ServicioPerfilUsuario.PerfilActual?.NombreCompleto
-                                       ?? SesionActual.NombreUsuario;
-        public string Iniciales     => ServicioPerfilUsuario.PerfilActual?.Iniciales ?? "??";
-        public string NombreRol     => ServicioPerfilUsuario.PerfilActual?.NombreRol  ?? "";
+        public string NombreUsuario => _perfilService.PerfilActual?.NombreCompleto
+                                       ?? servicioSesionActual.NombreUsuario;
+        public string Iniciales     => _perfilService.PerfilActual?.Iniciales ?? "??";
+        public string NombreRol     => _perfilService.PerfilActual?.NombreRol  ?? "";
 
         // ── Visibilidad de módulos ───────────────────────────────────────
         public bool VerPesajes      => SesionPermisos.TieneAlguno(Permiso.Pesajes_Ver,    Permiso.Pesajes_Crear,    Permiso.Pesajes_Modificar);
@@ -55,8 +58,9 @@ namespace CapaUI.Formularios.Principal
         public event EventHandler? SesionCerrada;
         public event EventHandler? CierreRequerido;
 
-        public MainViewModel()
+        public MainViewModel(IPerfilUsuarioService perfilService)
         {
+            _perfilService = perfilService;
             // Módulo Pesajes
             NavPesajesCommand = new RelayCommand(() =>
                 VistaActual = new ConstructionVM("Movimientos y Entradas", "Pesajes"));

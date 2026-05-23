@@ -8,6 +8,7 @@ using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using CapaAplicacion.Perfil;
 using CapaDominio;
 using WpfColor = System.Windows.Media.Color;
 using WpfColorConverter = System.Windows.Media.ColorConverter;
@@ -20,6 +21,7 @@ namespace CapaUI.Formularios.Principal
 
         private MainViewModel Vm => (MainViewModel)DataContext;
         private bool _cerrando = false;
+        private readonly IPerfilUsuarioService _perfilService;
 
         // ── Estado del sidebar ────────────────────────────────────────────
         private bool   _collapsed      = false;
@@ -86,8 +88,10 @@ namespace CapaUI.Formularios.Principal
         }
         // ─────────────────────────────────────────────────────────────────
 
-        public MainWindow()
+        public MainWindow(MainViewModel vm, IPerfilUsuarioService perfilService)
         {
+            _perfilService = perfilService;
+            DataContext    = vm;
             InitializeComponent();
 
             MinWidth  = 600;
@@ -508,7 +512,7 @@ namespace CapaUI.Formularios.Principal
             finally
             {
                 CapaUI.Core.Permisos.SesionPermisos.Limpiar();
-                ServicioPerfilUsuario.Limpiar();
+                _perfilService.Limpiar();
                 servicioSesionActual.Cerrar();
                 _cerrando = true;
                 SesionCerrada?.Invoke(this, EventArgs.Empty);

@@ -1,4 +1,8 @@
+using CapaAplicacion.Auth.Interfaces;
+using CapaAplicacion.Perfil;
 using CapaAplicacion.Productos.Interfaces;
+using CapaDatos.Auth;
+using CapaDatos.Perfil;
 using CapaDatos.Repositories.Productos;
 using CapaDatos.Repositories.Search;
 using CapaDominio.Entities;
@@ -11,6 +15,12 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddDataLayer(this IServiceCollection services)
     {
+        // Autenticación
+        services.AddTransient<IAuthService, AuthService>();
+
+        // Perfil del usuario — singleton porque mantiene estado entre login y logout
+        services.AddSingleton<IPerfilUsuarioService, PerfilUsuarioService>();
+
         // Buscador universal (entidad de dominio)
         services.AddScoped<IRepository<Producto>, ProductoSearchRepository>();
         services.AddScoped<IRepository<Empleado>, EmpleadoRepository>();

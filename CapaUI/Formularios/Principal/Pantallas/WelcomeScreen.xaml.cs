@@ -1,7 +1,8 @@
 using System;
 using System.Globalization;
 using System.Windows.Controls;
-using CapaDominio;
+using CapaAplicacion.Perfil;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace CapaUI.Formularios.Principal.Pantallas
 {
@@ -19,7 +20,8 @@ namespace CapaUI.Formularios.Principal.Pantallas
                 .ToString("dddd, d 'de' MMMM 'de' yyyy", new CultureInfo("es-MX"))
                 .ToUpper();
 
-            var nombre = ServicioPerfilUsuario.PerfilActual?.NombreCompleto ?? "";
+            var perfil = App.Services.GetRequiredService<IPerfilUsuarioService>();
+            var nombre = perfil.PerfilActual?.NombreCompleto ?? "";
             RunNombre.Text = nombre.Split(' ')[0];
         }
     }

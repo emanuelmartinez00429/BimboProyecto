@@ -158,7 +158,7 @@ namespace BimboPesaje.Formularios.MenuPrincipal
             if (e.CloseReason == CloseReason.WindowsShutDown)
             {
                 servicioSesionActual.Cerrar();
-                ServicioPerfilUsuario.Limpiar();
+                //ServicioPerfilUsuario.Limpiar();
                 base.OnFormClosing(e);
                 return;
             }
@@ -194,7 +194,7 @@ namespace BimboPesaje.Formularios.MenuPrincipal
             finally
             {
                 servicioSesionActual.Cerrar();
-                ServicioPerfilUsuario.Limpiar();
+                //ServicioPerfilUsuario.Limpiar();
                 _cerrando = true;
                 Close();
                 Application.Exit();

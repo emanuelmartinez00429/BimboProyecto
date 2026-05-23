@@ -57,10 +57,6 @@
                       NonClientFrameEdges="None"/>
     </WindowChrome.WindowChrome>
 
-    <Window.DataContext>
-        <local:MainViewModel/>
-    </Window.DataContext>
-
     <Border Background="White">
         <Grid>
             <Grid.RowDefinitions>

@@ -138,13 +138,21 @@ namespace CapaUI.Formularios.InicioSesion
         {
             BtnResend.Visibility    = Visibility.Collapsed;
             TxtCountdown.Visibility = Visibility.Visible;
+            ErrorContainer.Visibility = Visibility.Collapsed;
             try
             {
                 var client = await ServicioConexión.Conexion.ConexionSupabase.GetClientAsync();
                 await client.Auth.ResetPasswordForEmail(_email);
+                StartCountdown();
             }
-            catch { /* silent */ }
-            StartCountdown();
+            catch
+            {
+                // #9: Informar al usuario si el reenvío falló
+                TxtCountdown.Visibility = Visibility.Collapsed;
+                BtnResend.Visibility    = Visibility.Visible;
+                LblError.Text = "No se pudo reenviar el código. Verifica tu conexión.";
+                ErrorContainer.Visibility = Visibility.Visible;
+            }
         }
 
         private void BtnVerify_Click(object sender, RoutedEventArgs e) => _ = VerifyAsync();

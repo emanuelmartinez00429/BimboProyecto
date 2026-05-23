@@ -1,4 +1,4 @@
-﻿using ServicioConexión.Conexion;
+using ServicioConexión.Conexion;
 using Supabase.Realtime;
 using Supabase.Realtime.PostgresChanges;
 using static Supabase.Realtime.PostgresChanges.PostgresChangesOptions;

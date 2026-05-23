@@ -30,12 +30,15 @@ namespace CapaUI
             services.AddSingleton<INavigationService, NavigationService>();
             services.AddTransient<UniversalSearchViewModel>();
             services.AddTransient<ProductosViewModel>();
+            services.AddTransient<LoginWindow>();
+            services.AddTransient<MainViewModel>();
+            services.AddTransient<MainWindow>();
             return services.BuildServiceProvider();
         }
 
         public static void MostrarLogin()
         {
-            var login = new LoginWindow();
+            var login = Services.GetRequiredService<LoginWindow>();
             login.LoginExitoso += (_, _) =>
             {
                 login.Close();
@@ -46,7 +49,7 @@ namespace CapaUI
 
         private static void MostrarPrincipal()
         {
-            var main = new MainWindow();
+            var main = Services.GetRequiredService<MainWindow>();
             main.SesionCerrada += (_, _) =>
             {
                 main.Close();

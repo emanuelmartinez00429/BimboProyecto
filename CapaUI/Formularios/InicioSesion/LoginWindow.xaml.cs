@@ -4,8 +4,9 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using CapaAplicacion.Auth.Interfaces;
+using CapaAplicacion.Perfil;
 using CapaUI.Core.Permisos;
-using CapaDatos.Repositorios.Usuario;
 using CapaDominio;
 
 namespace CapaUI.Formularios.InicioSesion
@@ -14,6 +15,8 @@ namespace CapaUI.Formularios.InicioSesion
     {
         public event EventHandler? LoginExitoso;
 
+        private readonly IAuthService _authService;
+        private readonly IPerfilUsuarioService _perfilService;
         private bool _pwdVisible = false;
 
         private static readonly SolidColorBrush _brandBrush   = new(Color.FromRgb(0x1E, 0x3A, 0x8A));
@@ -21,8 +24,10 @@ namespace CapaUI.Formularios.InicioSesion
         private static readonly SolidColorBrush _successBrush = new(Color.FromRgb(0x10, 0xB9, 0x81));
         private static readonly SolidColorBrush _primaryBrush = new(Color.FromRgb(0x1A, 0x1F, 0x2E));
 
-        public LoginWindow()
+        public LoginWindow(IAuthService authService, IPerfilUsuarioService perfilService)
         {
+            _authService   = authService;
+            _perfilService = perfilService;
             InitializeComponent();
         }
 
@@ -138,43 +143,27 @@ namespace CapaUI.Formularios.InicioSesion
             {
                 // Step 1: Verificar credenciales
                 await AnimarStep(S1Dot, S1Text, 0, 25);
-
-                var client  = await ServicioConexión.Conexion.ConexionSupabase.GetClientAsync();
-                var session = await client.Auth.SignInWithPassword(email, password);
-
-                if (session?.User == null)
+                var result = await _authService.LoginAsync(email, password);
+                if (!result.Success)
                 {
-                    VolverAlLogin("Credenciales incorrectas.");
+                    VolverAlLogin(result.Error);
                     return;
                 }
-
                 CompletarStep(S1Dot, S1Text);
 
-                // Step 2: Cargar perfil
+                // Step 2: Establecer sesión
                 await AnimarStep(S2Dot, S2Text, 25, 55);
-
-                var usuario = await RepositorioUsuario.ObtenerPorUuidAsync(session.User.Id!);
-                if (usuario == null)
-                {
-                    await client.Auth.SignOut();
-                    VolverAlLogin("Usuario no registrado en el sistema.");
-                    return;
-                }
-
-                SesionActual.IdUsuario         = usuario.idUsuario;
-                SesionActual.NombreUsuario      = email;
-                servicioSesionActual.IdUsuario  = usuario.idUsuario;
-
+                servicioSesionActual.Iniciar(result.Value!.IdUsuario, email);
                 CompletarStep(S2Dot, S2Text);
 
                 // Step 3: Sincronizar módulos / permisos
                 await AnimarStep(S3Dot, S3Text, 55, 80);
-                await SesionPermisos.CargarAsync(usuario.idRol);
+                await SesionPermisos.CargarAsync(result.Value.IdRol);
                 CompletarStep(S3Dot, S3Text);
 
-                // Step 4: Preparar espacio
+                // Step 4: Preparar espacio de trabajo
                 await AnimarStep(S4Dot, S4Text, 80, 100);
-                await ServicioPerfilUsuario.CargarAsync();
+                await _perfilService.CargarAsync(result.Value!.IdUsuario);
                 CompletarStep(S4Dot, S4Text);
 
                 await System.Threading.Tasks.Task.Delay(300);
