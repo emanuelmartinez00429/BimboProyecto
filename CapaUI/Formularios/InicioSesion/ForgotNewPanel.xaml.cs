@@ -168,7 +168,7 @@ namespace CapaUI.Formularios.InicioSesion
                 await client.Auth.SignOut();
                 ShowSuccess();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 LblError.Text = "No se pudo actualizar la contraseña. Inténtalo de nuevo.";
                 ErrorContainer.Visibility = Visibility.Visible;

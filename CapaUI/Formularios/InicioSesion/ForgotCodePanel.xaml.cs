@@ -178,7 +178,7 @@ namespace CapaUI.Formularios.InicioSesion
                 _timer?.Stop();
                 _win.NavigateTo(new ForgotNewPanel(_win, _email), "Nueva contraseña");
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 LblError.Text = "Código incorrecto o expirado. Inténtalo de nuevo.";
                 ErrorContainer.Visibility = Visibility.Visible;
