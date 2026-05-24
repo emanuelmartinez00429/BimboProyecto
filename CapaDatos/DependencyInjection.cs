@@ -1,8 +1,10 @@
 using CapaAplicacion.Auth.Interfaces;
 using CapaAplicacion.Perfil;
 using CapaAplicacion.Productos.Interfaces;
+using CapaAplicacion.Realtime;
 using CapaDatos.Auth;
 using CapaDatos.Perfil;
+using CapaDatos.Realtime;
 using CapaDatos.Repositories.Productos;
 using CapaDatos.Repositories.Search;
 using CapaDominio.Entities;
@@ -20,6 +22,9 @@ public static class DependencyInjection
 
         // Perfil del usuario — singleton porque mantiene estado entre login y logout
         services.AddSingleton<IPerfilUsuarioService, PerfilUsuarioService>();
+
+        // Realtime — singleton: una sola conexión WebSocket, canales on-demand
+        services.AddSingleton<IRealtimeService, RealtimeService>();
 
         // Buscador universal (entidad de dominio)
         services.AddScoped<IRepository<Producto>, ProductoSearchRepository>();

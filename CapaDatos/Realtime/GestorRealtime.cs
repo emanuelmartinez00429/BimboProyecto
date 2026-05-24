@@ -9,6 +9,7 @@ using CapaDatos.Modelados.Pesajes;
 
 namespace CapaDominio
 {
+    [Obsolete("Usar IRealtimeService (CapaAplicacion.Realtime) en su lugar. GestorRealtime será eliminado en una versión futura.")]
     public static class GestorRealtime
     {
         private static Supabase.Client? _client;

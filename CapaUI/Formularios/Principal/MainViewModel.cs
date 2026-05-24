@@ -72,6 +72,15 @@ namespace CapaUI.Formularios.Principal
             VistaActual = new WelcomeVM();
         }
 
+        /// <summary>
+        /// Dispone el ViewModel anterior al cambiar de vista,
+        /// permitiendo que los VMs liberen suscripciones Realtime.
+        /// </summary>
+        partial void OnVistaActualChanging(object? oldValue)
+        {
+            (oldValue as IDisposable)?.Dispose();
+        }
+
         // ── Navegación ───────────────────────────────────────────────────
         [RelayCommand]
         private void Navigate(string? routeId)

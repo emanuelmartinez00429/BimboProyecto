@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using CapaAplicacion.Productos.Dtos;
 using CapaAplicacion.Productos.Interfaces;
 using CapaAplicacion.Productos.Queries;
+using CapaAplicacion.Realtime;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
@@ -9,10 +10,12 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos;
 
 public enum EstadoFilter { Habilitados, Deshabilitados, Todos }
 
-public partial class ProductosViewModel : ObservableObject
+public partial class ProductosViewModel : ObservableObject, IDisposable
 {
     private readonly IProductoRepository _repo;
+    private readonly IRealtimeService    _realtime;
     private CancellationTokenSource? _searchCts;
+    private bool _disposed;
 
     private string       _query              = "";
     private EstadoFilter _estadoFiltro       = EstadoFilter.Habilitados;
@@ -130,9 +133,10 @@ public partial class ProductosViewModel : ObservableObject
     public event Action?              SolicitarSalir;
     public event Action?              FiltrosLimpiados;
 
-    public ProductosViewModel(IProductoRepository repo)
+    public ProductosViewModel(IProductoRepository repo, IRealtimeService realtime)
     {
-        _repo = repo;
+        _repo     = repo;
+        _realtime = realtime;
     }
 
     public async Task CargarDatosAsync()
@@ -149,6 +153,9 @@ public partial class ProductosViewModel : ObservableObject
         Paises = rPaises.Value!.ToList();
 
         await CargarPaginaAsync();
+
+        // Suscribir a cambios Realtime después de la carga inicial
+        await _realtime.SuscribirAsync("productos", OnCambioProducto);
     }
 
     public void RefrescarDatos() => _ = CargarPaginaAsync();
@@ -283,5 +290,75 @@ public partial class ProductosViewModel : ObservableObject
         PaginaAnteriorCommand.NotifyCanExecuteChanged();
         PaginaSiguienteCommand.NotifyCanExecuteChanged();
         UltimaPaginaCommand.NotifyCanExecuteChanged();
+    }
+
+    // ── Realtime handler ────────────────────────────────────────────
+
+    private void OnCambioProducto(CambioRealtime cambio)
+    {
+        if (_disposed) return;
+
+        bool afectaPaginaActual = cambio.IdRegistro.HasValue
+            && PageRows.Any(p => p.Id == cambio.IdRegistro.Value);
+
+        if (cambio.Operacion is "Insert" or "INSERT")
+        {
+            // INSERT: recargar página para actualizar conteos y posiblemente mostrar el nuevo registro
+            _ = CargarPaginaAsync();
+        }
+        else if (cambio.Operacion is "Update" or "UPDATE")
+        {
+            if (afectaPaginaActual)
+            {
+                // El registro modificado está en la página actual → recargar para reflejar cambios
+                _ = CargarPaginaAsync();
+            }
+            else
+            {
+                // El cambio no afecta la página actual → solo actualizar conteos
+                _ = RefrescarConteosAsync();
+            }
+        }
+    }
+
+    private async Task RefrescarConteosAsync()
+    {
+        var filtros = BuildFiltros();
+        var r = await _repo.GetPagedAsync(_page, PageSize, filtros);
+        if (!r.Success) return;
+
+        var pagina     = r.Value!;
+        TotalCount     = pagina.Total;
+        ActivosCount   = pagina.Activos;
+        InactivosCount = pagina.Inactivos;
+        _filteredCount = filtros.IdEstado switch
+        {
+            1 => pagina.Activos,
+            2 => pagina.Inactivos,
+            _ => pagina.Total
+        };
+
+        // Si la página actual quedó vacía (ej. último producto se deshabilitó), retroceder
+        if (PageRows.Count > 0 && pagina.Items.Count == 0 && _page > 1)
+        {
+            Page = _page - 1;
+            return;
+        }
+
+        OnPropertyChanged(nameof(TotalPages));
+        OnPropertyChanged(nameof(PageInfo));
+        OnPropertyChanged(nameof(NoResults));
+        NotifyPaginationCanExecuteChanged();
+    }
+
+    // ── IDisposable ─────────────────────────────────────────────────
+
+    public void Dispose()
+    {
+        if (_disposed) return;
+        _disposed = true;
+        _realtime.Desuscribir("productos", OnCambioProducto);
+        _searchCts?.Cancel();
+        _searchCts?.Dispose();
     }
 }
