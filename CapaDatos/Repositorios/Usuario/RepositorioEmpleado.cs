@@ -24,7 +24,7 @@ namespace CapaDatos.Repositorios.Usuario
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error al obtener categorías: {ex.Message}");
+                Serilog.Log.Error(ex, "Error al obtener empleados");
                 throw;
             }
         }
@@ -39,7 +39,7 @@ namespace CapaDatos.Repositorios.Usuario
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error al obtener categorías: {ex.Message}");
+                Serilog.Log.Error(ex, "Error al obtener empleados");
                 throw;
             }
         }

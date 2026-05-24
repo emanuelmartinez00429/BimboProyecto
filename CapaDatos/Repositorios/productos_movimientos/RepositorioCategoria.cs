@@ -23,7 +23,7 @@ namespace CapaDatos.Repositorios.productos_movimientos
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error al obtener categorías: {ex.Message}");
+                Serilog.Log.Error(ex, "Error al obtener categorías");
                 throw;
             }
         }
@@ -38,7 +38,7 @@ namespace CapaDatos.Repositorios.productos_movimientos
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error al insertar categoría: {ex.Message}");
+                Serilog.Log.Error(ex, "Error al insertar categoría");
                 throw;
             }
         }

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<configuration>
+  <appSettings>
+    <add key="SUPABASE_URL" value="https://tu-proyecto.supabase.co" />
+    <add key="SUPABASE_KEY" value="tu-anon-key-aqui" />
+  </appSettings>
+</configuration>

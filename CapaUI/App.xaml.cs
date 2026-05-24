@@ -1,3 +1,4 @@
+using System.IO;
 using System.Windows;
 using CapaAplicacion;
 using CapaDatos;
@@ -7,6 +8,7 @@ using CapaUI.Formularios.Principal.Pantallas.Productos;
 using CapaUI.Services.Picker;
 using CapaUI.ViewModels.Search;
 using Microsoft.Extensions.DependencyInjection;
+using Serilog;
 
 namespace CapaUI
 {
@@ -17,6 +19,20 @@ namespace CapaUI
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
+
+            var logFolder = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "BimboPesaje", "Logs");
+            Directory.CreateDirectory(logFolder);
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Warning()
+                .WriteTo.File(
+                    Path.Combine(logFolder, "app-.log"),
+                    rollingInterval: RollingInterval.Day,
+                    retainedFileCountLimit: 30,
+                    outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
+                .CreateLogger();
+
             Services = ConfigureServices();
             ShutdownMode = ShutdownMode.OnExplicitShutdown;
             MostrarLogin();
@@ -56,6 +72,12 @@ namespace CapaUI
                 MostrarLogin();
             };
             main.Show();
+        }
+
+        protected override void OnExit(ExitEventArgs e)
+        {
+            Log.CloseAndFlush();
+            base.OnExit(e);
         }
     }
 }

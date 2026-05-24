@@ -63,7 +63,7 @@ namespace CapaDominio
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[ServicioLogo] No se pudo descargar el logo: {ex.Message}");
+                Serilog.Log.Warning(ex, "[ServicioLogo] No se pudo descargar el logo");
                 // Si falla la descarga, devolver el logo local si existe
                 return File.Exists(RutaLogoLocal) ? RutaLogoLocal : null;
             }
@@ -79,6 +79,12 @@ namespace CapaDominio
         {
             string extension = Path.GetExtension(rutaArchivoLocal).ToLowerInvariant();
             string nuevaRutaBucket = $"logo_empresa_{idEmpresa}_{DateTimeOffset.UtcNow.ToUnixTimeSeconds()}{extension}";
+
+            if (!new[] { ".png", ".jpg", ".jpeg", ".webp" }.Contains(extension))
+                throw new InvalidOperationException("Solo se permiten imágenes PNG, JPG o WEBP.");
+
+            if (new FileInfo(rutaArchivoLocal).Length > 5 * 1024 * 1024)
+                throw new InvalidOperationException("El logo no puede superar 5 MB.");
 
             byte[] bytes = await File.ReadAllBytesAsync(rutaArchivoLocal);
 
@@ -103,7 +109,7 @@ namespace CapaDominio
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"[ServicioLogo] No se pudo eliminar logo anterior '{rutaAnterior}': {ex.Message}");
+                    Serilog.Log.Warning(ex, "[ServicioLogo] No se pudo eliminar logo anterior {RutaAnterior}", rutaAnterior);
                 }
             }
 

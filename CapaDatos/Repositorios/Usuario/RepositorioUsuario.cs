@@ -21,7 +21,7 @@ namespace CapaDatos.Repositorios.Usuario
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error al obtener usuarios por uuid: {ex.Message}");
+                Serilog.Log.Error(ex, "Error al obtener usuarios por uuid");
                 throw;
             }
         }
@@ -40,7 +40,7 @@ namespace CapaDatos.Repositorios.Usuario
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error al obtener usuario por id: {ex.Message}");
+                Serilog.Log.Error(ex, "Error al obtener usuario por id");
                 throw;
             }
         }
@@ -59,7 +59,7 @@ namespace CapaDatos.Repositorios.Usuario
             }
             catch (Exception ex) 
             {
-                Console.WriteLine($"Error al obtener usuarios: {ex.Message}");
+                Serilog.Log.Error(ex, "Error al obtener usuarios");
                 throw;
             }
         }
@@ -76,7 +76,7 @@ namespace CapaDatos.Repositorios.Usuario
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Error al obtener roles: " + ex.Message);
+                Serilog.Log.Error(ex, "Error al obtener roles");
                 throw;
             }
         }
@@ -104,7 +104,7 @@ namespace CapaDatos.Repositorios.Usuario
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error inesperado en Registro: {ex.Message}");
+                Serilog.Log.Error(ex, "Error inesperado en Registro");
                 throw;
             }
         }

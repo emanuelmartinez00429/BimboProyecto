@@ -178,7 +178,7 @@ namespace CapaUI.Formularios.InicioSesion
             }
             catch (Exception ex)
             {
-                LblError.Text = "Código incorrecto o expirado. " + ex.Message;
+                LblError.Text = "Código incorrecto o expirado. Inténtalo de nuevo.";
                 ErrorContainer.Visibility = Visibility.Visible;
                 BtnVerify.IsEnabled = true;
                 BtnVerify.Content   = "Verificar código";

@@ -17,7 +17,7 @@ namespace CapaDatos.Repositorios.productos_movimientos
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error al obtener taras: {ex.Message}");
+                Serilog.Log.Error(ex, "Error al obtener taras");
                 throw;
             }
         }

@@ -40,7 +40,7 @@ namespace CapaDatos.Repositorios.productos_movimientos
             catch (Exception ex)
             {
 
-                Console.WriteLine($"Error al obtener productos: {ex.Message}");
+                Serilog.Log.Error(ex, "Error al obtener productos");
                 throw;
             }
         }
@@ -59,7 +59,7 @@ namespace CapaDatos.Repositorios.productos_movimientos
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error al obtener productos: {ex.Message}");
+                Serilog.Log.Error(ex, "Error al obtener productos");
                 throw;
             }
         }
@@ -112,7 +112,7 @@ namespace CapaDatos.Repositorios.productos_movimientos
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error al obtener página de productos: {ex.Message}");
+                Serilog.Log.Error(ex, "Error al obtener página de productos");
                 throw;
             }
         }
@@ -150,7 +150,7 @@ namespace CapaDatos.Repositorios.productos_movimientos
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error al buscar sugerencias: {ex.Message}");
+                Serilog.Log.Error(ex, "Error al buscar sugerencias");
                 throw;
             }
         }
@@ -188,7 +188,7 @@ namespace CapaDatos.Repositorios.productos_movimientos
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error al obtener filtros: {ex.Message}");
+                Serilog.Log.Error(ex, "Error al obtener filtros");
                 throw;
             }
         }
@@ -226,7 +226,7 @@ namespace CapaDatos.Repositorios.productos_movimientos
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error al ingresar producto: {ex.Message}");
+                Serilog.Log.Error(ex, "Error al ingresar producto");
                 throw;
             }
         }

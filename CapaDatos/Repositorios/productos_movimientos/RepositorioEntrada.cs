@@ -24,7 +24,7 @@ namespace CapaDatos.Repositorios.productos_movimientos
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error al obtener entradas del mov-producto {idMovProducto}: {ex.Message}");
+                Serilog.Log.Error(ex, "Error al obtener entradas del mov-producto {IdMovProducto}", idMovProducto);
                 throw;
             }
         }
@@ -46,7 +46,7 @@ namespace CapaDatos.Repositorios.productos_movimientos
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error al guardar entrada de pesaje: {ex.Message}");
+                Serilog.Log.Error(ex, "Error al guardar entrada de pesaje");
                 throw;
             }
         }
@@ -64,7 +64,7 @@ namespace CapaDatos.Repositorios.productos_movimientos
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error al eliminar entrada {idPesaje}: {ex.Message}");
+                Serilog.Log.Error(ex, "Error al eliminar entrada {IdPesaje}", idPesaje);
                 throw;
             }
         }

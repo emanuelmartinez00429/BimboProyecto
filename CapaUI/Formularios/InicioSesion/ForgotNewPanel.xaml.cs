@@ -170,7 +170,7 @@ namespace CapaUI.Formularios.InicioSesion
             }
             catch (Exception ex)
             {
-                LblError.Text = "Error al actualizar: " + ex.Message;
+                LblError.Text = "No se pudo actualizar la contraseña. Inténtalo de nuevo.";
                 ErrorContainer.Visibility = Visibility.Visible;
                 BtnSubmit.IsEnabled = true;
                 BtnSubmit.Content   = "Actualizar contraseña";

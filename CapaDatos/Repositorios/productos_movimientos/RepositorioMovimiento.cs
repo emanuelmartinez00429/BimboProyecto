@@ -21,7 +21,7 @@ namespace CapaDatos.Repositorios.productos_movimientos
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error al obtener movimientos abiertos: {ex.Message}");
+                Serilog.Log.Error(ex, "Error al obtener movimientos abiertos");
                 throw;
             }
         }
@@ -53,7 +53,7 @@ namespace CapaDatos.Repositorios.productos_movimientos
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error al filtrar movimientos: {ex.Message}");
+                Serilog.Log.Error(ex, "Error al filtrar movimientos");
                 throw;
             }
         }
@@ -71,7 +71,7 @@ namespace CapaDatos.Repositorios.productos_movimientos
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error al crear movimiento: {ex.Message}");
+                Serilog.Log.Error(ex, "Error al crear movimiento");
                 throw;
             }
         }
@@ -90,7 +90,7 @@ namespace CapaDatos.Repositorios.productos_movimientos
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error al cerrar movimiento {idMovimiento}: {ex.Message}");
+                Serilog.Log.Error(ex, "Error al cerrar movimiento {IdMovimiento}", idMovimiento);
                 throw;
             }
         }
@@ -109,7 +109,7 @@ namespace CapaDatos.Repositorios.productos_movimientos
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error al anular movimiento {idMovimiento}: {ex.Message}");
+                Serilog.Log.Error(ex, "Error al anular movimiento {IdMovimiento}", idMovimiento);
                 throw;
             }
         }

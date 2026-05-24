@@ -20,8 +20,10 @@ namespace ServicioConexión.Conexion
             {
                 if (_client == null)
                 {
-                    string url = ConfigurationManager.AppSettings["SUPABASE_URL"];
-                    string key = ConfigurationManager.AppSettings["SUPABASE_KEY"];
+                    string url = Environment.GetEnvironmentVariable("SUPABASE_URL")
+                        ?? ConfigurationManager.AppSettings["SUPABASE_URL"];
+                    string key = Environment.GetEnvironmentVariable("SUPABASE_KEY")
+                        ?? ConfigurationManager.AppSettings["SUPABASE_KEY"];
 
                     var options = new SupabaseOptions
                     {

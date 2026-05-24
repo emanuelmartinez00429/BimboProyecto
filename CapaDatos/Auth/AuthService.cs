@@ -43,7 +43,7 @@ public class AuthService : IAuthService
         catch (Exception ex)
         {
             // #3: Loguear internamente sin exponer detalles al usuario
-            Console.WriteLine($"[AuthService] Error en LoginAsync: {ex}");
+            Serilog.Log.Error(ex, "[AuthService] Error en LoginAsync");
             return Result<LoginResultDto>.Fail("Error al iniciar sesión. Inténtalo de nuevo.");
         }
     }

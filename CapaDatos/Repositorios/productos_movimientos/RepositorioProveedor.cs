@@ -19,7 +19,7 @@ namespace CapaDatos.Repositorios.productos_movimientos
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error al obtener proveedores activos: {ex.Message}");
+                Serilog.Log.Error(ex, "Error al obtener proveedores activos");
                 throw;
             }
         }
@@ -37,7 +37,7 @@ namespace CapaDatos.Repositorios.productos_movimientos
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error al obtener proveedores: {ex.Message}");
+                Serilog.Log.Error(ex, "Error al obtener proveedores");
                 throw;
             }
         }

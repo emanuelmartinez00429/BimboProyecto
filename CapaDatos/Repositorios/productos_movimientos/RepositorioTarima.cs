@@ -17,7 +17,7 @@ namespace CapaDatos.Repositorios.productos_movimientos
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error al obtener tarimas: {ex.Message}");
+                Serilog.Log.Error(ex, "Error al obtener tarimas");
                 throw;
             }
         }
