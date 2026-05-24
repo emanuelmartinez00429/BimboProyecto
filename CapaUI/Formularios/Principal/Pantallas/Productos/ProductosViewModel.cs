@@ -15,7 +15,7 @@ public partial class ProductosViewModel : ObservableObject
     private CancellationTokenSource? _searchCts;
 
     private string       _query              = "";
-    private EstadoFilter _estadoFiltro       = EstadoFilter.Todos;
+    private EstadoFilter _estadoFiltro       = EstadoFilter.Habilitados;
     private int?         _fabricanteIdFiltro;
     private int?         _paisIdFiltro;
     private int          _page               = 1;
@@ -128,6 +128,7 @@ public partial class ProductosViewModel : ObservableObject
     public event Action?              SolicitarNuevo;
     public event Action<ProductoDto>? SolicitarEditar;
     public event Action?              SolicitarSalir;
+    public event Action?              FiltrosLimpiados;
 
     public ProductosViewModel(IProductoRepository repo)
     {
@@ -250,13 +251,11 @@ public partial class ProductosViewModel : ObservableObject
     [RelayCommand]
     private void LimpiarFiltros()
     {
-        _estadoFiltro       = EstadoFilter.Todos;
+        _estadoFiltro       = EstadoFilter.Habilitados;
         _fabricanteIdFiltro = null;
         _paisIdFiltro       = null;
-        OnPropertyChanged(nameof(EstadoFiltro));
-        OnPropertyChanged(nameof(FabricanteIdFiltro));
-        OnPropertyChanged(nameof(PaisIdFiltro));
         _page = 1;
+        FiltrosLimpiados?.Invoke();
         _ = CargarPaginaAsync();
     }
 

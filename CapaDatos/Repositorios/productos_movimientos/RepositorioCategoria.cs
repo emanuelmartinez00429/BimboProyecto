@@ -16,8 +16,9 @@ namespace CapaDatos.Repositorios.productos_movimientos
             {
 
                 var client = await ConexionSupabase.GetClientAsync();
+                using var ctsObtener = new CancellationTokenSource(TimeSpan.FromSeconds(ConexionSupabase.TimeoutSeconds));
                 var resultado = await client.From<Categoria>()
-                                            .Get();
+                                            .Get(ctsObtener.Token);
 
                 return resultado?.Models ?? new List<Categoria>();
             }
@@ -32,8 +33,9 @@ namespace CapaDatos.Repositorios.productos_movimientos
             try
             {
                 var client = await ConexionSupabase.GetClientAsync();
+                using var ctsInsertar = new CancellationTokenSource(TimeSpan.FromSeconds(ConexionSupabase.TimeoutSeconds));
                 var response = await client.From<Categoria>()
-                                           .Insert(categoria);
+                                           .Insert(categoria, cancellationToken: ctsInsertar.Token);
                 return response.Model ?? null;
             }
             catch (Exception ex)

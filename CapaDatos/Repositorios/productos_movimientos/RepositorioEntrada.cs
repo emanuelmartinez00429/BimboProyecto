@@ -14,12 +14,13 @@ namespace CapaDatos.Repositorios.productos_movimientos
             try
             {
                 var client = await ConexionSupabase.GetClientAsync();
+                using var ctsObtener = new CancellationTokenSource(TimeSpan.FromSeconds(ConexionSupabase.TimeoutSeconds));
                 var resultado = await client
                     .From<EntradaProducto>()
                     .Filter("id_mov_producto", Supabase.Postgrest.Constants.Operator.Equals, idMovProducto)
                     .Order("fecha_entrada", Supabase.Postgrest.Constants.Ordering.Ascending)
                     .Order("hora_entrada", Supabase.Postgrest.Constants.Ordering.Ascending)
-                    .Get();
+                    .Get(ctsObtener.Token);
                 return resultado?.Models ?? new List<EntradaProducto>();
             }
             catch (Exception ex)
@@ -39,9 +40,10 @@ namespace CapaDatos.Repositorios.productos_movimientos
             try
             {
                 var client = await ConexionSupabase.GetClientAsync();
+                using var ctsInsertar = new CancellationTokenSource(TimeSpan.FromSeconds(ConexionSupabase.TimeoutSeconds));
                 var response = await client
                     .From<EntradaProducto>()
-                    .Insert(entrada);
+                    .Insert(entrada, cancellationToken: ctsInsertar.Token);
                 return response.Model;
             }
             catch (Exception ex)
@@ -57,10 +59,11 @@ namespace CapaDatos.Repositorios.productos_movimientos
             try
             {
                 var client = await ConexionSupabase.GetClientAsync();
+                using var ctsEliminar = new CancellationTokenSource(TimeSpan.FromSeconds(ConexionSupabase.TimeoutSeconds));
                 await client
                     .From<EntradaProducto>()
                     .Where(e => e.idPesaje == idPesaje)
-                    .Delete();
+                    .Delete(null, ctsEliminar.Token);
             }
             catch (Exception ex)
             {

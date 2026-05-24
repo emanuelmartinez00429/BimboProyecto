@@ -10,11 +10,12 @@ namespace CapaDatos.Repositorios.productos_movimientos
             try
             {
                 var client = await ConexionSupabase.GetClientAsync();
+                using var ctsActivos = new CancellationTokenSource(TimeSpan.FromSeconds(ConexionSupabase.TimeoutSeconds));
                 var resultado = await client
                     .From<Proveedores>()
                     .Filter("id_estado", Supabase.Postgrest.Constants.Operator.Equals, EstadosPesaje.Activo)
                     .Order("nombre_proveedor", Supabase.Postgrest.Constants.Ordering.Ascending)
-                    .Get();
+                    .Get(ctsActivos.Token);
                 return resultado?.Models ?? new List<Proveedores>();
             }
             catch (Exception ex)
@@ -29,10 +30,11 @@ namespace CapaDatos.Repositorios.productos_movimientos
             try
             {
                 var client = await ConexionSupabase.GetClientAsync();
+                using var ctsTodos = new CancellationTokenSource(TimeSpan.FromSeconds(ConexionSupabase.TimeoutSeconds));
                 var resultado = await client
                     .From<Proveedores>()
                     .Order("nombre_proveedor", Supabase.Postgrest.Constants.Ordering.Ascending)
-                    .Get();
+                    .Get(ctsTodos.Token);
                 return resultado?.Models ?? new List<Proveedores>();
             }
             catch (Exception ex)

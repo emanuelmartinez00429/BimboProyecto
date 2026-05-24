@@ -11,12 +11,13 @@ namespace CapaDatos.Repositorios.productos_movimientos
             try
             {
                 var client = await ConexionSupabase.GetClientAsync();
+                using var ctsObtener = new CancellationTokenSource(TimeSpan.FromSeconds(ConexionSupabase.TimeoutSeconds));
                 var resultado = await client
                     .From<Movimiento>()
                     .Select("*, proveedores(*)")
                     .Filter("id_estado", Supabase.Postgrest.Constants.Operator.Equals, EstadosPesaje.Abierto)
                     .Order("fecha_asignacion", Supabase.Postgrest.Constants.Ordering.Descending)
-                    .Get();
+                    .Get(ctsObtener.Token);
                 return resultado?.Models ?? new List<Movimiento>();
             }
             catch (Exception ex)
@@ -46,9 +47,10 @@ namespace CapaDatos.Repositorios.productos_movimientos
                 if (idEstado.HasValue)
                     query = query.Filter("id_estado", Supabase.Postgrest.Constants.Operator.Equals, idEstado.Value);
 
+                using var ctsFiltrar = new CancellationTokenSource(TimeSpan.FromSeconds(ConexionSupabase.TimeoutSeconds));
                 var resultado = await query
                     .Order("fecha_asignacion", Supabase.Postgrest.Constants.Ordering.Descending)
-                    .Get();
+                    .Get(ctsFiltrar.Token);
                 return resultado?.Models ?? new List<Movimiento>();
             }
             catch (Exception ex)
@@ -64,9 +66,10 @@ namespace CapaDatos.Repositorios.productos_movimientos
             try
             {
                 var client = await ConexionSupabase.GetClientAsync();
+                using var ctsCrear = new CancellationTokenSource(TimeSpan.FromSeconds(ConexionSupabase.TimeoutSeconds));
                 var response = await client
                     .From<Movimiento>()
-                    .Insert(movimiento);
+                    .Insert(movimiento, cancellationToken: ctsCrear.Token);
                 return response.Model;
             }
             catch (Exception ex)
@@ -82,11 +85,12 @@ namespace CapaDatos.Repositorios.productos_movimientos
             try
             {
                 var client = await ConexionSupabase.GetClientAsync();
+                using var ctsCerrar = new CancellationTokenSource(TimeSpan.FromSeconds(ConexionSupabase.TimeoutSeconds));
                 await client
                     .From<Movimiento>()
                     .Where(m => m.idMovimiento == idMovimiento)
                     .Set(m => m.idEstado, EstadosPesaje.Cerrado)
-                    .Update();
+                    .Update(null, ctsCerrar.Token);
             }
             catch (Exception ex)
             {
@@ -101,11 +105,12 @@ namespace CapaDatos.Repositorios.productos_movimientos
             try
             {
                 var client = await ConexionSupabase.GetClientAsync();
+                using var ctsAnular = new CancellationTokenSource(TimeSpan.FromSeconds(ConexionSupabase.TimeoutSeconds));
                 await client
                     .From<Movimiento>()
                     .Where(m => m.idMovimiento == idMovimiento)
                     .Set(m => m.idEstado, EstadosPesaje.Anulado)
-                    .Update();
+                    .Update(null, ctsAnular.Token);
             }
             catch (Exception ex)
             {

@@ -69,7 +69,7 @@ namespace CapaUI.Formularios.Principal
                 [Routes.MiUsuario]  = () => new ConstructionVM("Mi Usuario", ""),
             };
 
-            //VistaActual = new WelcomeVM();
+            VistaActual = new WelcomeVM();
         }
 
         // ── Navegación ───────────────────────────────────────────────────
@@ -78,14 +78,14 @@ namespace CapaUI.Formularios.Principal
         {
             if (string.IsNullOrEmpty(routeId)) return;
             if (!_routes.TryGetValue(routeId, out var factory)) return;
-            //VistaActual = factory();
+            VistaActual = factory();
         }
 
         // ── Búsqueda ─────────────────────────────────────────────────────
         [RelayCommand]
         private void Buscar(string? term)
         {
-            //VistaActual = _searchVm;
+            VistaActual = _searchVm;
             if (!string.IsNullOrWhiteSpace(term))
                 _searchVm.TriggerSearch(term);
         }

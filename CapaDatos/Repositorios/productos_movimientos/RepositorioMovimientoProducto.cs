@@ -11,10 +11,11 @@ namespace CapaDatos.Repositorios.productos_movimientos
             try
             {
                 var client = await ConexionSupabase.GetClientAsync();
+                using var ctsResumen = new CancellationTokenSource(TimeSpan.FromSeconds(ConexionSupabase.TimeoutSeconds));
                 var resultado = await client
                     .From<MovProductoResumen>()
                     .Filter("id_movimiento", Supabase.Postgrest.Constants.Operator.Equals, idMovimiento)
-                    .Get();
+                    .Get(ctsResumen.Token);
                 return resultado?.Models ?? new List<MovProductoResumen>();
             }
             catch (Exception ex)
@@ -30,11 +31,12 @@ namespace CapaDatos.Repositorios.productos_movimientos
             try
             {
                 var client = await ConexionSupabase.GetClientAsync();
+                using var ctsObtener = new CancellationTokenSource(TimeSpan.FromSeconds(ConexionSupabase.TimeoutSeconds));
                 var resultado = await client
                     .From<MovimientoProducto>()
                     .Select("*, productos(*)")
                     .Filter("id_movimiento", Supabase.Postgrest.Constants.Operator.Equals, idMovimiento)
-                    .Get();
+                    .Get(ctsObtener.Token);
                 return resultado?.Models ?? new List<MovimientoProducto>();
             }
             catch (Exception ex)
@@ -50,9 +52,10 @@ namespace CapaDatos.Repositorios.productos_movimientos
             try
             {
                 var client = await ConexionSupabase.GetClientAsync();
+                using var ctsCrear = new CancellationTokenSource(TimeSpan.FromSeconds(ConexionSupabase.TimeoutSeconds));
                 var response = await client
                     .From<MovimientoProducto>()
-                    .Insert(movProducto);
+                    .Insert(movProducto, cancellationToken: ctsCrear.Token);
                 return response.Model;
             }
             catch (Exception ex)
@@ -68,11 +71,12 @@ namespace CapaDatos.Repositorios.productos_movimientos
             try
             {
                 var client = await ConexionSupabase.GetClientAsync();
+                using var ctsCerrar = new CancellationTokenSource(TimeSpan.FromSeconds(ConexionSupabase.TimeoutSeconds));
                 await client
                     .From<MovimientoProducto>()
                     .Where(mp => mp.idMovProducto == idMovProducto)
                     .Set(mp => mp.idEstado, EstadosPesaje.Cerrado)
-                    .Update();
+                    .Update(null, ctsCerrar.Token);
             }
             catch (Exception ex)
             {

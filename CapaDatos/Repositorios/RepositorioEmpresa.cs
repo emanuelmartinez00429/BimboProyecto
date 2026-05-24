@@ -11,7 +11,8 @@ namespace CapaDatos.Repositorios
         public static async Task<Empresa?> ObtenerAsync()
         {
             var client = await ConexionSupabase.GetClientAsync();
-            var result = await client.From<Empresa>().Limit(1).Get();
+            using var ctsObtener = new CancellationTokenSource(TimeSpan.FromSeconds(ConexionSupabase.TimeoutSeconds));
+            var result = await client.From<Empresa>().Limit(1).Get(ctsObtener.Token);
             return result?.Models?.FirstOrDefault();
         }
 
@@ -28,10 +29,11 @@ namespace CapaDatos.Repositorios
             var actual = await ObtenerAsync();
             string? rutaAnterior = actual?.LogoEmpresa;
 
+            using var ctsActualizar = new CancellationTokenSource(TimeSpan.FromSeconds(ConexionSupabase.TimeoutSeconds));
             await client.From<Empresa>()
                         .Where(e => e.IdEmpresa == idEmpresa)
                         .Set(e => e.LogoEmpresa!, nuevaRuta)
-                        .Update();
+                        .Update(null, ctsActualizar.Token);
 
             return rutaAnterior;
         }

@@ -14,9 +14,10 @@ namespace CapaDatos.Repositorios
         {
             var client = await ConexionSupabase.GetClientAsync();
 
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(ConexionSupabase.TimeoutSeconds));
             var resultado = await client
                 .From<Paises>()
-                .Get();
+                .Get(cts.Token);
 
             return resultado.Models;
         }

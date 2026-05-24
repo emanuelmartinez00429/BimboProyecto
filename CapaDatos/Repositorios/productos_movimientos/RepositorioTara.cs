@@ -10,9 +10,10 @@ namespace CapaDatos.Repositorios.productos_movimientos
             try
             {
                 var client = await ConexionSupabase.GetClientAsync();
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(ConexionSupabase.TimeoutSeconds));
                 var resultado = await client
                     .From<Tara>()
-                    .Get();
+                    .Get(cts.Token);
                 return resultado?.Models ?? new List<Tara>();
             }
             catch (Exception ex)

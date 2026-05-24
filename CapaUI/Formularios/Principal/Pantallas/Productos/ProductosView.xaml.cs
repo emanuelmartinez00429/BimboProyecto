@@ -42,6 +42,14 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
             _vm.SolicitarNuevo   += AbrirModalNuevo;
             _vm.SolicitarEditar  += AbrirModalEditar;
             _vm.SolicitarSalir   += () => SalirSolicitado?.Invoke();
+            _vm.FiltrosLimpiados += () =>
+            {
+                _suppressFilterChange = true;
+                RbHabilitados.IsChecked  = true;
+                CmbFabricante.SelectedIndex = 0;
+                CmbPais.SelectedIndex       = 0;
+                _suppressFilterChange = false;
+            };
             _vm.PropertyChanged  += (s, ev) =>
             {
                 if (ev.PropertyName == nameof(ProductosViewModel.PageRows))

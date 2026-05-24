@@ -12,10 +12,11 @@ namespace CapaDatos.Repositorios.Usuario
             {
 
                 var client = await ConexionSupabase.GetClientAsync();
+                using var ctsPorUuid = new CancellationTokenSource(TimeSpan.FromSeconds(ConexionSupabase.TimeoutSeconds));
                 var resultado = await client
                     .From<Usuarios>()
                     .Filter("uuid_usuario", Supabase.Postgrest.Constants.Operator.Equals, uuid)
-                    .Get();
+                    .Get(ctsPorUuid.Token);
                 return resultado?.Models?.FirstOrDefault();
 
             }
@@ -31,11 +32,12 @@ namespace CapaDatos.Repositorios.Usuario
             try
             {
                 var client = await ConexionSupabase.GetClientAsync();
+                using var ctsPorId = new CancellationTokenSource(TimeSpan.FromSeconds(ConexionSupabase.TimeoutSeconds));
                 var resultado = await client
                     .From<usuarioVista>()
                     .Select("*, roles(*), empleados(*)")
                     .Filter("id_usuario", Supabase.Postgrest.Constants.Operator.Equals, idUsuario.ToString())
-                    .Get();
+                    .Get(ctsPorId.Token);
                 return resultado?.Models?.FirstOrDefault();
             }
             catch (Exception ex)
@@ -50,11 +52,12 @@ namespace CapaDatos.Repositorios.Usuario
             try
             {
                 var client = await ConexionSupabase.GetClientAsync();
+                using var ctsObtener = new CancellationTokenSource(TimeSpan.FromSeconds(ConexionSupabase.TimeoutSeconds));
                 var resultado = await client
                                            .From<usuarioVista>()
                                            .Select("*, roles(*), empleados(*)")
                                            .Order("id_usuario", Supabase.Postgrest.Constants.Ordering.Ascending)
-                                           .Get();
+                                           .Get(ctsObtener.Token);
                 return resultado?.Models ?? new List<usuarioVista>();
             }
             catch (Exception ex) 
@@ -69,9 +72,10 @@ namespace CapaDatos.Repositorios.Usuario
             try
             {
                 var client = await ConexionSupabase.GetClientAsync();
+                using var ctsRoles = new CancellationTokenSource(TimeSpan.FromSeconds(ConexionSupabase.TimeoutSeconds));
                 var resultado = await client
                     .From<Roles>()
-                    .Get();
+                    .Get(ctsRoles.Token);
                 return resultado?.Models ?? new List<Roles>();
             }
             catch (Exception ex)

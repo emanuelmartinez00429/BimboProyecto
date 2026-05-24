@@ -12,6 +12,8 @@ namespace ServicioConexión.Conexion
 {
     public class ConexionSupabase
     {
+        public const int TimeoutSeconds = 10;
+
         private static Client _client;
 
         public static async Task<Client> GetClientAsync()

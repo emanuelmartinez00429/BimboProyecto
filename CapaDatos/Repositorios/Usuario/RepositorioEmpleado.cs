@@ -17,8 +17,9 @@ namespace CapaDatos.Repositorios.Usuario
             {
 
                 var client = await ConexionSupabase.GetClientAsync();
+                using var ctsObtener = new CancellationTokenSource(TimeSpan.FromSeconds(ConexionSupabase.TimeoutSeconds));
                 var resultado = await client.From<Empleados>()
-                                            .Get();
+                                            .Get(ctsObtener.Token);
 
                 return resultado?.Models ?? new List<Empleados>();
             }
@@ -33,8 +34,9 @@ namespace CapaDatos.Repositorios.Usuario
             try 
             {
                 var client = await ConexionSupabase.GetClientAsync();
+                using var ctsActualizar = new CancellationTokenSource(TimeSpan.FromSeconds(ConexionSupabase.TimeoutSeconds));
                 var resultado = await client.From<Empleados>()
-                                            .Update(empleado);
+                                            .Update(empleado, null, ctsActualizar.Token);
                 return resultado?.Models ?? new List<Empleados>();
             }
             catch (Exception ex)
