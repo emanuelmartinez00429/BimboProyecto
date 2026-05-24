@@ -301,23 +301,17 @@ public partial class ProductosViewModel : ObservableObject, IDisposable
         bool afectaPaginaActual = cambio.IdRegistro.HasValue
             && PageRows.Any(p => p.Id == cambio.IdRegistro.Value);
 
-        if (cambio.Operacion is "Insert" or "INSERT")
+        if (string.Equals(cambio.Operacion, "INSERT", StringComparison.OrdinalIgnoreCase))
         {
-            // INSERT: recargar página para actualizar conteos y posiblemente mostrar el nuevo registro
             _ = CargarPaginaAsync();
         }
-        else if (cambio.Operacion is "Update" or "UPDATE")
+        else if (string.Equals(cambio.Operacion, "UPDATE", StringComparison.OrdinalIgnoreCase))
         {
-            if (afectaPaginaActual)
-            {
-                // El registro modificado está en la página actual → recargar para reflejar cambios
+            // Si IdRegistro es null (no se pudo extraer del payload) → recargar por seguridad
+            if (afectaPaginaActual || !cambio.IdRegistro.HasValue)
                 _ = CargarPaginaAsync();
-            }
             else
-            {
-                // El cambio no afecta la página actual → solo actualizar conteos
                 _ = RefrescarConteosAsync();
-            }
         }
     }
 

@@ -160,9 +160,11 @@ public class RealtimeService : IRealtimeService
         long? id = null;
         int? estado = null;
 
-        var data = change.Payload?.Data;
-        var obj = data?.Record != null ? JObject.FromObject(data.Record) : null;
-        if (obj != null)
+        // data.Record   → SocketResponsePayload (wrapper del SDK)
+        // data.Record.Record → object (JObject con los valores reales de columnas)
+        var data    = change.Payload?.Data;
+        var rowData = data?.Record?.Record; // object? — JObject en runtime
+        if (rowData is JObject obj)
         {
             if (_pkColumns.TryGetValue(tabla, out var pkCol))
                 id = obj.Value<long?>(pkCol);
