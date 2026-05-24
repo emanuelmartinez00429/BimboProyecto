@@ -9,6 +9,7 @@ using WpfDataFormats = System.Windows.DataFormats;
 
 namespace CapaUI.Formularios.InicioSesion
 {
+
     public partial class ForgotCodePanel : UserControl
     {
         private readonly LoginWindow _win;
