@@ -6,6 +6,7 @@ using TextBox        = System.Windows.Controls.TextBox;
 using KeyEventArgs   = System.Windows.Input.KeyEventArgs;
 using WpfDataFormats = System.Windows.DataFormats;
 
+
 namespace CapaUI.Formularios.InicioSesion
 {
     public partial class ForgotCodePanel : UserControl
