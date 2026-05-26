@@ -21,7 +21,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
     {
         public string     Codigo { get; set; } = "";
         public string     Nombre { get; set; } = "";
-        public string     Meta   { get; set; } = "";hhhhhhhhhhhhhhhhhhhhhhhhhhhhhh
+        public string     Meta   { get; set; } = "";
         public bool       Activo { get; set; }
         public ProductoDto Source { get; set; } = null!;
     }
