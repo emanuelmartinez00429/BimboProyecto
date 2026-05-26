@@ -221,28 +221,35 @@ public class ProductoCrudRepository : RepositorioBase, IProductoRepository
         if (filtros.IdPais.HasValue)
             query = query.Filter("id_pais",       Op.Equals, filtros.IdPais.Value.ToString());
 
-        int previos = await query.Count(Ct.Exact);
+        var result  = await query.Get();
+        int previos = result?.Models.Count ?? 0;
         return (previos / size) + 1;
     }
 
     private static async Task<(int total, int activos, int inactivos)> GetConteosAsync(
         ProductoFiltros filtros, Supabase.Client client)
     {
-        // Conteos server-side con HEAD + Content-Range (0 filas descargadas)
-        var qBase = client.From<Modelados.Productos.Productos>().Select("id_producto");
-
+        // Count() no aplica filtros correctamente en esta versión del cliente.
+        // Se construyen dos queries independientes y se usa Get() que sí respeta los filtros.
+        var qTotal = client.From<Modelados.Productos.Productos>().Select("id_producto");
         if (filtros.IdFabricante.HasValue)
-            qBase = qBase.Filter("id_fabricante", Op.Equals, filtros.IdFabricante.Value.ToString());
+            qTotal = qTotal.Filter("id_fabricante", Op.Equals, filtros.IdFabricante.Value.ToString());
         if (filtros.IdPais.HasValue)
-            qBase = qBase.Filter("id_pais",       Op.Equals, filtros.IdPais.Value.ToString());
+            qTotal = qTotal.Filter("id_pais",       Op.Equals, filtros.IdPais.Value.ToString());
 
-        // Ambos conteos en paralelo
-        var totalTask   = qBase.Count(Ct.Exact);
-        var activosTask = qBase.Filter("id_estado", Op.Equals, "1").Count(Ct.Exact);
+        var qActivos = client.From<Modelados.Productos.Productos>().Select("id_producto")
+                             .Filter("id_estado", Op.Equals, "1");
+        if (filtros.IdFabricante.HasValue)
+            qActivos = qActivos.Filter("id_fabricante", Op.Equals, filtros.IdFabricante.Value.ToString());
+        if (filtros.IdPais.HasValue)
+            qActivos = qActivos.Filter("id_pais",       Op.Equals, filtros.IdPais.Value.ToString());
+
+        var totalTask   = qTotal.Get();
+        var activosTask = qActivos.Get();
         await Task.WhenAll(totalTask, activosTask);
 
-        int total   = totalTask.Result;
-        int activos = activosTask.Result;
+        int total   = totalTask.Result?.Models.Count   ?? 0;
+        int activos = activosTask.Result?.Models.Count ?? 0;
         return (total, activos, total - activos);
     }
 }

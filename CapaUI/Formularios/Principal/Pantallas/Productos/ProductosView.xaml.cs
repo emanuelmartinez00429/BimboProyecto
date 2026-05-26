@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
+using System.ComponentModel;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using CapaAplicacion.Productos.Dtos;
@@ -29,6 +31,8 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
         private ProductosViewModel _vm = null!;
         private bool _suppressFilterChange = false;
         private Storyboard? _spinnerStory;
+        private List<FiltroItem> _todosPaises = new();
+        private System.ComponentModel.ICollectionView? _paisesView;
 
         public event Action? SalirSolicitado;
 
@@ -46,8 +50,9 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
             _vm.FiltrosLimpiados += () =>
             {
                 _suppressFilterChange = true;
-                RbHabilitados.IsChecked  = true;
+                RbHabilitados.IsChecked     = true;
                 CmbFabricante.SelectedIndex = 0;
+                if (_paisesView != null) _paisesView.Filter = null;
                 CmbPais.SelectedIndex       = 0;
                 _suppressFilterChange = false;
             };
@@ -139,6 +144,21 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
             if (_vm == null || _suppressFilterChange) return;
             var selected = CmbPais.SelectedItem as FiltroItem;
             _vm.PaisIdFiltro = selected?.Id;
+            // Al seleccionar, quitar el filtro de texto para que el dropdown muestre todo la próxima vez
+            if (_paisesView != null) _paisesView.Filter = null;
+        }
+
+        private void CmbPais_PreviewKeyUp(object sender, WpfKey e)
+        {
+            if (e.Key is Key.Return or Key.Enter or Key.Up or Key.Down or Key.Escape or Key.Tab)
+                return;
+
+            if (_paisesView == null) return;
+            var texto = CmbPais.Text?.Trim() ?? "";
+            _paisesView.Filter = string.IsNullOrEmpty(texto)
+                ? null
+                : o => o is FiltroItem f && (f.Nombre?.Contains(texto, StringComparison.OrdinalIgnoreCase) == true);
+            CmbPais.IsDropDownOpen = true;
         }
 
         private void PoblarFabricantes()
@@ -155,10 +175,10 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
         private void PoblarPaises()
         {
             _suppressFilterChange = true;
-            CmbPais.Items.Clear();
-            CmbPais.Items.Add(new FiltroItem { Id = null, Nombre = "(Todos)" });
-            foreach (var p in _vm.Paises)
-                CmbPais.Items.Add(p);
+            _todosPaises = new List<FiltroItem> { new FiltroItem { Id = null, Nombre = "(Todos)" } };
+            _todosPaises.AddRange(_vm.Paises);
+            _paisesView = CollectionViewSource.GetDefaultView(_todosPaises);
+            CmbPais.ItemsSource   = _paisesView;
             CmbPais.SelectedIndex = 0;
             _suppressFilterChange = false;
         }

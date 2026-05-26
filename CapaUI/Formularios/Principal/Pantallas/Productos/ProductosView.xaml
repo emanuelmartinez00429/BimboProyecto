@@ -48,10 +48,25 @@
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter TargetName="DGR_Border" Property="Background" Value="#EAF1FB"/>
                             </Trigger>
+                            <!-- Hover en fila alterna: color más oscuro para distinguirse de #E8F0FA -->
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsMouseOver" Value="True"/>
+                                    <Condition Property="ItemsControl.AlternationIndex" Value="1"/>
+                                </MultiTrigger.Conditions>
+                                <Setter TargetName="DGR_Border" Property="Background" Value="#C8D8F0"/>
+                            </MultiTrigger>
                             <Trigger Property="IsSelected" Value="True">
-                                <Setter TargetName="DGR_Border" Property="Background" Value="#DBE7F5"/>
+                                <Setter TargetName="DGR_Border" Property="Background" Value="#EAF1FB"/>
                                 <Setter TargetName="SelIndicator" Property="Visibility" Value="Visible"/>
                             </Trigger>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsSelected" Value="True"/>
+                                    <Condition Property="ItemsControl.AlternationIndex" Value="1"/>
+                                </MultiTrigger.Conditions>
+                                <Setter TargetName="DGR_Border" Property="Background" Value="#C8D8F0"/>
+                            </MultiTrigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
@@ -707,7 +722,12 @@
                                   Width="130" Height="26"
                                   FontFamily="Segoe UI" FontSize="13"
                                   BorderBrush="#CBD5E1"
-                                  SelectionChanged="CmbPais_SelectionChanged"/>
+                                  IsEditable="True"
+                                  IsTextSearchEnabled="False"
+                                  StaysOpenOnEdit="True"
+                                  DisplayMemberPath="Nombre"
+                                  SelectionChanged="CmbPais_SelectionChanged"
+                                  PreviewKeyUp="CmbPais_PreviewKeyUp"/>
                     </StackPanel>
                 </Grid>
             </StackPanel>
