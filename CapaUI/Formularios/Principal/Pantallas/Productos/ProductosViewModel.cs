@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using CapaAplicacion.Common;
 using CapaAplicacion.Productos.Dtos;
 using CapaAplicacion.Productos.Interfaces;
 using CapaAplicacion.Productos.Queries;
@@ -360,15 +361,87 @@ public partial class ProductosViewModel : ObservableObject, IDisposable
 
         if (string.Equals(cambio.Operacion, "INSERT", StringComparison.OrdinalIgnoreCase))
         {
-            _ = CargarPaginaAsync();
+            _ = CargarPaginaSilenciosamenteAsync(actualizarFilas: true, esInsert: true);
         }
         else if (string.Equals(cambio.Operacion, "UPDATE", StringComparison.OrdinalIgnoreCase))
         {
-            // Si IdRegistro es null (no se pudo extraer del payload) → recargar por seguridad
             if (afectaPaginaActual || !cambio.IdRegistro.HasValue)
-                _ = CargarPaginaAsync();
+                _ = CargarPaginaSilenciosamenteAsync(actualizarFilas: true, esInsert: false);
             else
                 _ = RefrescarConteosAsync();
+        }
+    }
+
+    /// <summary>
+    /// Recarga datos de la página actual sin tocar IsLoading ni ErrorCarga.
+    /// Invocado exclusivamente desde OnCambioProducto (eventos Realtime).
+    /// </summary>
+    private async Task CargarPaginaSilenciosamenteAsync(bool actualizarFilas, bool esInsert)
+    {
+        try
+        {
+            if (IsLoading) return; // carga de usuario activa, ella actualizará los datos
+
+            int genCapturada = _loadGeneration; // leer SIN incrementar
+
+            var filtros = BuildFiltros();
+            Result<PagedResult<ProductoDto>> r;
+
+            try
+            {
+                r = await _repo.GetPagedAsync(_page, PageSize, filtros);
+            }
+            catch (Exception ex)
+            {
+                Serilog.Log.Warning(ex, "ProductosVM: silent refresh — excepción en request");
+                return;
+            }
+
+            if (_loadGeneration != genCapturada) return; // usuario navegó, descartar
+
+            if (!r.Success)
+            {
+                Serilog.Log.Warning("ProductosVM: silent refresh — error: {Error}", r.Error);
+                return;
+            }
+
+            var pagina = r.Value!;
+
+            int nuevoFilteredCount = filtros.IdEstado switch
+            {
+                1 => pagina.Activos,
+                2 => pagina.Inactivos,
+                _ => pagina.Total
+            };
+            int nuevoTotalPages = Math.Max(1, (int)Math.Ceiling(nuevoFilteredCount / (double)PageSize));
+
+            // INSERT: aplicar filas solo si seguimos en la última página.
+            // Si el INSERT llenó la página y creó una nueva, _page < nuevoTotalPages
+            // y el nuevo registro no está en esta página → solo actualizar conteos.
+            bool debeActualizarFilas = actualizarFilas
+                && (!esInsert || _page == nuevoTotalPages);
+
+            TotalCount     = pagina.Total;
+            ActivosCount   = pagina.Activos;
+            InactivosCount = pagina.Inactivos;
+            _filteredCount = nuevoFilteredCount;
+
+            if (debeActualizarFilas)
+            {
+                int? idSeleccionadoAntes = Seleccionado?.Id;
+                PageRows = new ObservableCollection<ProductoDto>(pagina.Items);
+                if (idSeleccionadoAntes.HasValue)
+                    Seleccionado = PageRows.FirstOrDefault(x => x.Id == idSeleccionadoAntes.Value);
+            }
+
+            OnPropertyChanged(nameof(TotalPages));
+            OnPropertyChanged(nameof(PageInfo));
+            OnPropertyChanged(nameof(NoResults));
+            NotifyPaginationCanExecuteChanged();
+        }
+        catch (Exception ex)
+        {
+            Serilog.Log.Error(ex, "ProductosVM: error inesperado en silent refresh");
         }
     }
 

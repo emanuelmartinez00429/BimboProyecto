@@ -709,7 +709,12 @@
                                   Width="170" Height="26"
                                   FontFamily="Segoe UI" FontSize="13"
                                   BorderBrush="#CBD5E1"
-                                  SelectionChanged="CmbFabricante_SelectionChanged"/>
+                                  IsEditable="True"
+                                  IsTextSearchEnabled="False"
+                                  StaysOpenOnEdit="True"
+                                  DisplayMemberPath="Nombre"
+                                  SelectionChanged="CmbFabricante_SelectionChanged"
+                                  PreviewKeyUp="CmbFabricante_PreviewKeyUp"/>
                     </StackPanel>
 
                     <StackPanel Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Center">

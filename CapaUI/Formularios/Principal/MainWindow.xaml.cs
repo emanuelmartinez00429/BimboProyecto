@@ -26,6 +26,7 @@ namespace CapaUI.Formularios.Principal
 
         // ── Estado del sidebar ────────────────────────────────────────────
         private bool   _collapsed      = false;
+        private bool   _animating      = false;
         private string _activeModuleId = "";
         private string _activeSubId    = "";
 
@@ -185,92 +186,133 @@ namespace CapaUI.Formularios.Principal
         // ══════════════════════════════════════════════════════════════════
         //  HAMBURGER
         // ══════════════════════════════════════════════════════════════════
-        private void BtnHamburger_Click(object sender, RoutedEventArgs e)
+        private async void BtnHamburger_Click(object sender, RoutedEventArgs e)
         {
-            if (_collapsed) ExpandSidebar();
-            else            CollapseSidebar();
+            if (_animating) return;
+            if (_collapsed) await ExpandSidebar();
+            else            await CollapseSidebar();
         }
 
-        private void CollapseSidebar()
+        private async Task CollapseSidebar()
         {
+            _animating = true;
             _collapsed = true;
 
-            foreach (var entry in _moduleMap.Values)
-                AnimateSubMenu(entry.SubMenu, false, 0);
-
-            AnimateWidth(Sidebar,    SidebarCollapsed, 200);
-            AnimateWidth(BrandBlock, SidebarCollapsed, 200);
-
-            // Ocultar solo etiquetas y chevrones, mantener iconos visibles
+            // Cerrar submenús y chevrones al instante
             foreach (var entry in _moduleMap.Values)
             {
                 entry.Chevron.Angle = 0;
+                AnimateSubMenu(entry.SubMenu, false, 0);
             }
 
-            // Usuarios
-            LblModuloUsuarios.Visibility = Visibility.Collapsed;
-            ChevUsuarios.Visibility     = Visibility.Collapsed;
-            ExpUsuarios.Visibility       = Visibility.Visible;
+            // Fase 1 — desvanecer etiquetas, chevrones y elementos extra (70 ms)
+            // Los iconos de módulo dentro del DockPanel NO se tocan — quedan visibles
+            AnimateOpacity(LblModuloUsuarios,   0, 70);
+            AnimateOpacity(ChevUsuarios,         0, 70);
+            AnimateOpacity(LblModuloProductos,   0, 70);
+            AnimateOpacity(ChevProductos,        0, 70);
+            AnimateOpacity(LblModuloPesajes,     0, 70);
+            AnimateOpacity(ChevPesajes,          0, 70);
+            AnimateOpacity(LblModuloReportes,    0, 70);
+            AnimateOpacity(ChevReportes,         0, 70);
+            AnimateOpacity(NavLabel,             0, 70);
+            AnimateOpacity(HomeButtonContainer,  0, 70);
+            AnimateOpacity(LogoContainer,        0, 70);
+            AnimateOpacity(UserCardButton,       0, 70);
 
-            // Productos
+            // Animar ancho simultáneamente — QuarticEase.EaseOut arranca rápido
+            AnimateWidth(Sidebar,    SidebarCollapsed, 160);
+            AnimateWidth(BrandBlock, SidebarCollapsed, 160);
+
+            // Fase 2 — tras el fade, colapsar con Visibility (ya invisibles, sin salto)
+            await Task.Delay(75);
+
+            LblModuloUsuarios.Visibility  = Visibility.Collapsed;
+            ChevUsuarios.Visibility       = Visibility.Collapsed;
             LblModuloProductos.Visibility = Visibility.Collapsed;
             ChevProductos.Visibility      = Visibility.Collapsed;
-            ExpProductos.Visibility      = Visibility.Visible;
-
-            // Pesajes
-            LblModuloPesajes.Visibility  = Visibility.Collapsed;
-            ChevPesajes.Visibility      = Visibility.Collapsed;
-            ExpPesajes.Visibility       = Visibility.Visible;
-
-            // Reportería
-            LblModuloReportes.Visibility = Visibility.Collapsed;
-            ChevReportes.Visibility      = Visibility.Collapsed;
-            ExpReportes.Visibility       = Visibility.Visible;
-            IcoReportes.Visibility       = Visibility.Collapsed;
-
-            NavLabel.Visibility            = Visibility.Collapsed;
+            LblModuloPesajes.Visibility   = Visibility.Collapsed;
+            ChevPesajes.Visibility        = Visibility.Collapsed;
+            LblModuloReportes.Visibility  = Visibility.Collapsed;
+            ChevReportes.Visibility       = Visibility.Collapsed;
+            NavLabel.Visibility           = Visibility.Collapsed;
             HomeButtonContainer.Visibility = Visibility.Collapsed;
-            UserCardButton.Visibility      = Visibility.Collapsed;
-            CompactUserCard.Visibility     = Visibility.Visible;
-            LogoContainer.Visibility       = Visibility.Collapsed;
+            UserCardButton.Visibility     = Visibility.Collapsed;
+            LogoContainer.Visibility      = Visibility.Collapsed;
+
+            // Restituir opacidad para la próxima expansión
+            LblModuloUsuarios.Opacity   = 1;
+            ChevUsuarios.Opacity        = 1;
+            LblModuloProductos.Opacity  = 1;
+            ChevProductos.Opacity       = 1;
+            LblModuloPesajes.Opacity    = 1;
+            ChevPesajes.Opacity         = 1;
+            LblModuloReportes.Opacity   = 1;
+            ChevReportes.Opacity        = 1;
+            NavLabel.Opacity            = 1;
+            HomeButtonContainer.Opacity = 1;
+            UserCardButton.Opacity      = 1;
+            LogoContainer.Opacity       = 1;
+
+            // Mostrar tarjeta compacta con fade-in
+            CompactUserCard.Opacity    = 0;
+            CompactUserCard.Visibility = Visibility.Visible;
+            AnimateOpacity(CompactUserCard, 1, 60);
+
+            // Esperar a que termine la animación de ancho antes de liberar el guard
+            await Task.Delay(90);
+            _animating = false;
         }
 
-        private void ExpandSidebar()
+        private async Task ExpandSidebar()
         {
+            _animating = true;
             _collapsed = false;
 
-            AnimateWidth(Sidebar,    SidebarExpanded, 200);
-            AnimateWidth(BrandBlock, SidebarExpanded, 200);
+            // Fase 1 — desvanecer tarjeta compacta (60 ms)
+            AnimateOpacity(CompactUserCard, 0, 60);
+            await Task.Delay(65);
+            CompactUserCard.Visibility = Visibility.Collapsed;
 
-            // Restaurar etiquetas y chevrones
-            LblModuloUsuarios.Visibility = Visibility.Visible;
-            ChevUsuarios.Visibility     = Visibility.Visible;
-            ExpUsuarios.Visibility      = Visibility.Visible;
-
-            LblModuloProductos.Visibility = Visibility.Visible;
-            ChevProductos.Visibility     = Visibility.Visible;
-            ExpProductos.Visibility      = Visibility.Visible;
-
-            LblModuloPesajes.Visibility  = Visibility.Visible;
-            ChevPesajes.Visibility      = Visibility.Visible;
-            ExpPesajes.Visibility       = Visibility.Visible;
-
-            LblModuloReportes.Visibility = Visibility.Visible;
-            ChevReportes.Visibility      = Visibility.Visible;
-            ExpReportes.Visibility       = Visibility.Visible;
-            IcoReportes.Visibility       = Visibility.Collapsed;
+            // Hacer visibles los elementos pero en opacidad 0 (sin salto al hacer Visible)
+            LblModuloUsuarios.Visibility  = Visibility.Visible;  LblModuloUsuarios.Opacity  = 0;
+            ChevUsuarios.Visibility       = Visibility.Visible;  ChevUsuarios.Opacity       = 0;
+            LblModuloProductos.Visibility = Visibility.Visible;  LblModuloProductos.Opacity = 0;
+            ChevProductos.Visibility      = Visibility.Visible;  ChevProductos.Opacity      = 0;
+            LblModuloPesajes.Visibility   = Visibility.Visible;  LblModuloPesajes.Opacity   = 0;
+            ChevPesajes.Visibility        = Visibility.Visible;  ChevPesajes.Opacity        = 0;
+            LblModuloReportes.Visibility  = Visibility.Visible;  LblModuloReportes.Opacity  = 0;
+            ChevReportes.Visibility       = Visibility.Visible;  ChevReportes.Opacity       = 0;
+            NavLabel.Visibility            = Visibility.Visible; NavLabel.Opacity            = 0;
+            HomeButtonContainer.Visibility = Visibility.Visible; HomeButtonContainer.Opacity = 0;
+            UserCardButton.Visibility      = Visibility.Visible; UserCardButton.Opacity      = 0;
+            LogoContainer.Visibility       = Visibility.Visible; LogoContainer.Opacity       = 0;
 
             foreach (var entry in _moduleMap.Values)
-            {
                 entry.CollapsedIcon.Visibility = Visibility.Collapsed;
-            }
+            IcoReportes.Visibility = Visibility.Collapsed;
 
-            NavLabel.Visibility            = Visibility.Visible;
-            HomeButtonContainer.Visibility = Visibility.Visible;
-            UserCardButton.Visibility      = Visibility.Visible;
-            CompactUserCard.Visibility     = Visibility.Collapsed;
-            LogoContainer.Visibility       = Visibility.Visible;
+            // Animar ancho
+            AnimateWidth(Sidebar,    SidebarExpanded, 160);
+            AnimateWidth(BrandBlock, SidebarExpanded, 160);
 
+            // Fase 2 — cuando el sidebar ya casi completó la expansión, fade-in del contenido
+            await Task.Delay(100);
+
+            AnimateOpacity(LblModuloUsuarios,   1, 80);
+            AnimateOpacity(ChevUsuarios,         1, 80);
+            AnimateOpacity(LblModuloProductos,   1, 80);
+            AnimateOpacity(ChevProductos,        1, 80);
+            AnimateOpacity(LblModuloPesajes,     1, 80);
+            AnimateOpacity(ChevPesajes,          1, 80);
+            AnimateOpacity(LblModuloReportes,    1, 80);
+            AnimateOpacity(ChevReportes,         1, 80);
+            AnimateOpacity(NavLabel,             1, 80);
+            AnimateOpacity(HomeButtonContainer,  1, 80);
+            AnimateOpacity(UserCardButton,       1, 80);
+            AnimateOpacity(LogoContainer,        1, 80);
+
+            // Reabrir el submenú activo tras la expansión
             if (!string.IsNullOrEmpty(_activeModuleId) &&
                 _moduleMap.TryGetValue(_activeModuleId, out var active))
             {
@@ -278,19 +320,22 @@ namespace CapaUI.Formularios.Principal
                 AnimateSubMenu(active.SubMenu, true, count);
                 AnimateChevron(active.Chevron, 180);
             }
+
+            await Task.Delay(80);
+            _animating = false;
         }
 
         // ══════════════════════════════════════════════════════════════════
         //  MÓDULOS — acordeón
         // ══════════════════════════════════════════════════════════════════
-        private void BtnModulo_Click(object sender, RoutedEventArgs e)
+        private async void BtnModulo_Click(object sender, RoutedEventArgs e)
         {
             var btn = (Button)sender;
             string id = (string)btn.Tag;
 
             if (_collapsed)
             {
-                ExpandSidebar();
+                await ExpandSidebar();
                 OpenModule(id);
                 return;
             }
@@ -505,7 +550,8 @@ namespace CapaUI.Formularios.Principal
         {
             var anim = new DoubleAnimation(to, TimeSpan.FromMilliseconds(ms))
             {
-                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseInOut }
+                // QuarticEase.EaseOut: arranca rápido y frena suave — elimina el "trabado" inicial
+                EasingFunction = new QuarticEase { EasingMode = EasingMode.EaseOut }
             };
             target.BeginAnimation(FrameworkElement.WidthProperty, anim);
         }
@@ -513,20 +559,30 @@ namespace CapaUI.Formularios.Principal
         private static void AnimateSubMenu(Border border, bool open, int itemCount)
         {
             double target = open ? itemCount * SubItemHeight + 8 : 0;
-            var anim = new DoubleAnimation(target, TimeSpan.FromMilliseconds(250))
+            // EaseOut: el acordeón arranca de golpe y desacelera al final (más natural)
+            var anim = new DoubleAnimation(target, TimeSpan.FromMilliseconds(open ? 220 : 160))
             {
-                EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseInOut }
+                EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
             };
             border.BeginAnimation(Border.MaxHeightProperty, anim);
         }
 
         private static void AnimateChevron(RotateTransform rt, double angle)
         {
-            var anim = new DoubleAnimation(angle, TimeSpan.FromMilliseconds(200))
+            var anim = new DoubleAnimation(angle, TimeSpan.FromMilliseconds(180))
             {
                 EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
             };
             rt.BeginAnimation(RotateTransform.AngleProperty, anim);
+        }
+
+        private static void AnimateOpacity(UIElement target, double to, int ms)
+        {
+            var anim = new DoubleAnimation(to, TimeSpan.FromMilliseconds(ms))
+            {
+                EasingFunction = new SineEase { EasingMode = EasingMode.EaseOut }
+            };
+            target.BeginAnimation(UIElement.OpacityProperty, anim);
         }
 
         // ══════════════════════════════════════════════════════════════════

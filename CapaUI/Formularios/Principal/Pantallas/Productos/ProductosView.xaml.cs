@@ -31,6 +31,8 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
         private ProductosViewModel _vm = null!;
         private bool _suppressFilterChange = false;
         private Storyboard? _spinnerStory;
+        private List<FiltroItem> _todosFabricantes = new();
+        private System.ComponentModel.ICollectionView? _fabricantesView;
         private List<FiltroItem> _todosPaises = new();
         private System.ComponentModel.ICollectionView? _paisesView;
 
@@ -50,10 +52,11 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
             _vm.FiltrosLimpiados += () =>
             {
                 _suppressFilterChange = true;
-                RbHabilitados.IsChecked     = true;
+                RbHabilitados.IsChecked = true;
+                if (_fabricantesView != null) _fabricantesView.Filter = null;
                 CmbFabricante.SelectedIndex = 0;
                 if (_paisesView != null) _paisesView.Filter = null;
-                CmbPais.SelectedIndex       = 0;
+                CmbPais.SelectedIndex = 0;
                 _suppressFilterChange = false;
             };
             _vm.PropertyChanged  += (s, ev) =>
@@ -137,6 +140,20 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
             if (_vm == null || _suppressFilterChange) return;
             var selected = CmbFabricante.SelectedItem as FiltroItem;
             _vm.FabricanteIdFiltro = selected?.Id;
+            if (_fabricantesView != null) _fabricantesView.Filter = null;
+        }
+
+        private void CmbFabricante_PreviewKeyUp(object sender, WpfKey e)
+        {
+            if (e.Key is Key.Return or Key.Enter or Key.Up or Key.Down or Key.Escape or Key.Tab)
+                return;
+
+            if (_fabricantesView == null) return;
+            var texto = CmbFabricante.Text?.Trim() ?? "";
+            _fabricantesView.Filter = string.IsNullOrEmpty(texto)
+                ? null
+                : o => o is FiltroItem f && (f.Nombre?.Contains(texto, StringComparison.OrdinalIgnoreCase) == true);
+            CmbFabricante.IsDropDownOpen = true;
         }
 
         private void CmbPais_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -164,10 +181,10 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
         private void PoblarFabricantes()
         {
             _suppressFilterChange = true;
-            CmbFabricante.Items.Clear();
-            CmbFabricante.Items.Add(new FiltroItem { Id = null, Nombre = "(Todos)" });
-            foreach (var f in _vm.Fabricantes)
-                CmbFabricante.Items.Add(f);
+            _todosFabricantes = new List<FiltroItem> { new FiltroItem { Id = null, Nombre = "(Todos)" } };
+            _todosFabricantes.AddRange(_vm.Fabricantes);
+            _fabricantesView = CollectionViewSource.GetDefaultView(_todosFabricantes);
+            CmbFabricante.ItemsSource = _fabricantesView;
             CmbFabricante.SelectedIndex = 0;
             _suppressFilterChange = false;
         }
