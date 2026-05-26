@@ -1,0 +1,218 @@
+﻿<UserControl x:Class="BimboPesaje.Formularios.Productos.GestionProductosWPF"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="#DCE6F1"
+             FontFamily="Segoe UI"
+             FontSize="13">
+    <Grid Margin="12,12,12,12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- FILA 0: Buscador + Botón Limpiar -->
+        <Grid Grid.Row="0" Margin="11,15,0,10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="516"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="217"/>
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Column="0" Background="White">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="40"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Button x:Name="button1" Grid.Column="0"
+                            Background="#1F3C88" BorderThickness="0"
+                            Width="40" Height="32">
+                        <TextBlock Text="🔍" Foreground="White"/>
+                    </Button>
+                    <TextBox x:Name="txtBusqueda" Grid.Column="1"
+                             BorderThickness="0" VerticalAlignment="Center"
+                             FontFamily="Segoe UI" FontSize="14"
+                             Foreground="Black" Padding="5,0"
+                             Height="28"/>
+                </Grid>
+            </Border>
+
+            <Button x:Name="btnLimpiar" Grid.Column="2"
+                    Content="Limpiar Filtros"
+                    Background="#1F3C88" Foreground="White"
+                    FontFamily="Segoe UI" FontSize="13"
+                    BorderThickness="0" Height="34"/>
+        </Grid>
+
+        <!-- FILA 1: RadioButtons + ComboBoxes -->
+        <Border Grid.Row="1" Background="White" Margin="11,0,0,10" Padding="5,7">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="93"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="97"/>
+                </Grid.ColumnDefinitions>
+
+                <RadioButton x:Name="rbHabilitados" Grid.Column="0"
+                             Content="Habilitados" FontFamily="Segoe UI" FontSize="13"
+                             VerticalAlignment="Center" Margin="0,0,10,0"/>
+                <RadioButton x:Name="rbDeshabilitados" Grid.Column="1"
+                             Content="Deshabilitados" FontFamily="Segoe UI" FontSize="13"
+                             VerticalAlignment="Center" Margin="0,0,10,0"/>
+                <RadioButton x:Name="rbTodos" Grid.Column="2"
+                             Content="Todos" IsChecked="True"
+                             FontFamily="Segoe UI" FontSize="13"
+                             VerticalAlignment="Center"/>
+
+                <Label Grid.Column="4" Content="Fabricante"
+                       FontFamily="Segoe UI" FontSize="13" VerticalAlignment="Center"/>
+
+                <!-- cmbMarca: strings simples, no necesita TextSearch.TextPath -->
+                <ComboBox x:Name="cmbMarca" Grid.Column="5"
+                          FontFamily="Segoe UI" FontSize="13"
+                          Margin="0,0,5,0"
+                          IsEditable="True"
+                          IsTextSearchEnabled="True"
+                          StaysOpenOnEdit="True"/>
+
+                <Label Grid.Column="6" Content="País"
+                       FontFamily="Segoe UI" FontSize="13" VerticalAlignment="Center"/>
+
+                <!-- cmbPais: objetos Paises, necesita TextSearch.TextPath -->
+                <ComboBox x:Name="cmbPais" Grid.Column="7"
+                          FontFamily="Segoe UI" FontSize="13"
+                          IsEditable="True"
+                          IsTextSearchEnabled="True"
+                          StaysOpenOnEdit="True"
+                          TextSearch.TextPath="nombrePais"/>
+            </Grid>
+        </Border>
+
+        <!-- FILA 2: DataGrid (igual al designer) -->
+        <DataGrid x:Name="dgvProductos" Grid.Row="2"
+          Margin="11,0,0,0"
+          AutoGenerateColumns="False"
+          CanUserAddRows="False"
+          CanUserDeleteRows="False"
+          CanUserResizeColumns="False"
+          CanUserResizeRows="False"
+          SelectionMode="Single"
+          SelectionUnit="FullRow"
+          Background="White"
+          BorderThickness="0"
+          GridLinesVisibility="None"
+          IsReadOnly="True"
+          AlternationCount="2"
+          RowHeaderWidth="30"
+          HorizontalScrollBarVisibility="Auto"
+          VerticalScrollBarVisibility="Auto">
+
+            <DataGrid.ColumnHeaderStyle>
+                <Style TargetType="DataGridColumnHeader">
+                    <Setter Property="Background" Value="#1F3C88"/>
+                    <Setter Property="Foreground" Value="White"/>
+                    <Setter Property="FontFamily" Value="Segoe UI"/>
+                    <Setter Property="FontSize" Value="13"/>
+                    <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                    <Setter Property="Height" Value="36"/>
+                    <Setter Property="BorderThickness" Value="0"/>
+                    <Setter Property="Padding" Value="4,0"/>
+                </Style>
+            </DataGrid.ColumnHeaderStyle>
+
+            <DataGrid.RowHeaderStyle>
+                <Style TargetType="DataGridRowHeader">
+                    <Setter Property="Background" Value="#1F3C88"/>
+                    <Setter Property="Foreground" Value="Transparent"/>
+                    <Setter Property="BorderThickness" Value="0"/>
+                    <Setter Property="Width" Value="30"/>
+                </Style>
+            </DataGrid.RowHeaderStyle>
+
+            <DataGrid.RowStyle>
+                <Style TargetType="DataGridRow">
+                    <Setter Property="FontFamily" Value="Segoe UI"/>
+                    <Setter Property="FontSize" Value="13"/>
+                    <Setter Property="Foreground" Value="Black"/>
+                    <Setter Property="Background" Value="White"/>
+                    <Setter Property="MinHeight" Value="36"/>
+                    <Style.Triggers>
+                        <Trigger Property="AlternationIndex" Value="1">
+                            <Setter Property="Background" Value="#DCE6F1"/>
+                        </Trigger>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter Property="Background" Value="#1F3C88"/>
+                            <Setter Property="Foreground" Value="White"/>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </DataGrid.RowStyle>
+
+            <DataGrid.CellStyle>
+                <Style TargetType="DataGridCell">
+                    <Setter Property="TextBlock.TextAlignment" Value="Center"/>
+                    <Setter Property="VerticalAlignment" Value="Center"/>
+                    <Setter Property="BorderThickness" Value="0"/>
+                    <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="DataGridCell">
+                                <Border Background="{TemplateBinding Background}"
+                                BorderThickness="0"
+                                Padding="4,6">
+                                    <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"/>
+                                </Border>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                    <Style.Triggers>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter Property="Background" Value="#1F3C88"/>
+                            <Setter Property="Foreground" Value="White"/>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </DataGrid.CellStyle>
+
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Código"       Binding="{Binding codigoProducto}"      Width="Auto" MinWidth="6"/>
+                <DataGridTextColumn Header="Producto"     Binding="{Binding nombreProducto}"      Width="Auto" MinWidth="6"/>
+                <DataGridTextColumn Header="Fabricante"   Binding="{Binding nombre_Fabricante}"   Width="125"  MinWidth="6"/>
+                <DataGridTextColumn Header="País"         Binding="{Binding nombre_Pais}"         Width="Auto" MinWidth="6"/>
+                <DataGridTextColumn Header="Contenido"    Binding="{Binding contenidoProducto}"   Width="Auto" MinWidth="6"/>
+                <DataGridTextColumn Header="Presentación" Binding="{Binding nombre_Presentacion}" Width="*"    MinWidth="6"/>
+                <DataGridTextColumn Header="Categoría"    Binding="{Binding nombre_Categoria}"    Width="Auto" MinWidth="6"/>
+                <DataGridCheckBoxColumn Header="Estado"   Binding="{Binding idEstado}"            Width="125"  MinWidth="6"/>
+                <DataGridTextColumn Header="Codigo"       Binding="{Binding idProducto}"          Width="0"    Visibility="Collapsed"/>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <!-- FILA 3: Botones -->
+        <StackPanel Grid.Row="3" Orientation="Horizontal"
+                    HorizontalAlignment="Left" Margin="11,10,0,0">
+            <Button x:Name="btnNuevo" Content="Nuevo Producto"
+                    Background="#0C5C5C" Foreground="White"
+                    FontFamily="Segoe UI" FontSize="13"
+                    Width="130" Height="56" Margin="0,0,6,0"
+                    BorderThickness="0"/>
+            <Button x:Name="btnEditar" Content="Editar"
+                    Background="#2E5AAC" Foreground="White"
+                    FontFamily="Segoe UI" FontSize="13"
+                    Width="131" Height="56" Margin="0,0,6,0"
+                    BorderThickness="0"/>
+            <Button x:Name="btnSalir" Content="Salir"
+                    Background="Gray" Foreground="White"
+                    FontFamily="Segoe UI" FontSize="13"
+                    Width="130" Height="57"
+                    BorderThickness="0"/>
+        </StackPanel>
+    </Grid>
+</UserControl>

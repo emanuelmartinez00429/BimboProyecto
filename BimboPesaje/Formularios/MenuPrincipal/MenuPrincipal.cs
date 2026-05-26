@@ -9,6 +9,7 @@ namespace BimboPesaje
     {
         #region Variables
         private Form _formActual = null;
+        private bool _menuAnimando = false; // ← AGREGADO: evita clics rápidos
 
         /// <summary>
         /// Variable para guardar los textos de los botones
@@ -16,7 +17,7 @@ namespace BimboPesaje
         private Dictionary<string, string> _textosOriginales = new Dictionary<string, string>();
 
         /// <summary>
-        /// varaibles para el ui del menu vertical
+        /// variables para el ui del menu vertical
         /// </summary>
         private bool menuExpandido = true;
         private const int MENU_EXPANDIDO = 300;
@@ -28,12 +29,16 @@ namespace BimboPesaje
         {
             InitializeComponent();
         }
-        private async void MenuPrincipal_Load(object sender, EventArgs e)
+
+        private void MenuPrincipal_Load(object sender, EventArgs e) // ← quitado async, no hay awaits reales
         {
             this.AutoScaleMode = AutoScaleMode.Dpi;
-            lblHeader.Text = "Men� principal";
-            await cerraSubmenu();
-            //recibiendo los nombres de los botones para guardarlos en la variable
+            EscalarImagenesBotones();
+            EscalarPictureBox();
+
+            lblHeader.Text = "Menú principal";
+            cerraSubmenu(); // ← quitado await
+
             foreach (Control ctrl in menuVertical.Controls)
             {
                 if (ctrl is Button btn)
@@ -45,35 +50,34 @@ namespace BimboPesaje
         #endregion
 
         #region uiHelpers
-        protected async Task cerraSubmenu()
+        protected void cerraSubmenu() // ← quitado async, no tenía ningún await
         {
             pnPesajes.Visible = false;
             pnProductos.Visible = false;
             pnUsers.Visible = false;
         }
+
         /// <summary>
-        ///  si el menu esta como false (esta colapsado) y tiene un width de 80 px.
-        /// los textos de los botones se cambian para no mostrar nada 
+        /// Si el menu esta colapsado tiene un width de 80px.
+        /// Los textos de los botones se cambian para no mostrar nada.
         /// </summary>
-        private async Task ColapsarMenu()
+        private void ColapsarMenu() // ← quitado async Task, no hay awaits reales
         {
             menuExpandido = false;
             menuVertical.Width = MENU_COLAPSADO;
-            await cerraSubmenu();
+            cerraSubmenu(); // ← ya no duplicado, una sola llamada
 
-            // Ocultar textos de los botones
             foreach (Control ctrl in menuVertical.Controls)
             {
                 if (ctrl is Button btn)
-                {
                     btn.Text = "";
-                }
             }
         }
+
         /// <summary>
-        /// Si el menu esta expandido, y el width es de 300, se devuelven los textos guardados a los botones
+        /// Si el menu esta expandido y el width es de 300, se devuelven los textos guardados a los botones.
         /// </summary>
-        private async void ExpandirMenuySubmenu(Panel panelNombre)
+        private void ExpandirMenuySubmenu(Panel panelNombre) // ← quitado async
         {
             menuExpandido = true;
             menuVertical.Width = MENU_EXPANDIDO;
@@ -81,13 +85,12 @@ namespace BimboPesaje
             foreach (Control ctrl in menuVertical.Controls)
             {
                 if (ctrl is Button btn)
-                {
                     btn.Text = _textosOriginales[btn.Name];
-                }
             }
+
             if (panelNombre.Visible == false)
             {
-                await cerraSubmenu();
+                cerraSubmenu(); // ← quitado await
                 panelNombre.Visible = true;
             }
             else
@@ -95,7 +98,8 @@ namespace BimboPesaje
                 panelNombre.Visible = false;
             }
         }
-        private async void ExpandirMenu()
+
+        private void ExpandirMenu() // ← quitado async
         {
             menuExpandido = true;
             menuVertical.Width = MENU_EXPANDIDO;
@@ -103,18 +107,14 @@ namespace BimboPesaje
             foreach (Control ctrl in menuVertical.Controls)
             {
                 if (ctrl is Button btn)
-                {
                     btn.Text = _textosOriginales[btn.Name];
-                }
             }
         }
 
-        protected async Task abrirFormHijo(Form _formHijo)
+        protected void abrirFormHijo(Form _formHijo) // ← quitado async Task, no hay awaits reales
         {
             if (_formActual != null)
-            {
                 _formActual.Close();
-            }
 
             _formActual = _formHijo;
             _formHijo.TopLevel = false;
@@ -125,152 +125,139 @@ namespace BimboPesaje
             _formHijo.BringToFront();
             _formHijo.Show();
         }
-        /// <summary>
-        /// Aqu� lo que estoy haciendo es que estoy comprobando que el submenu este abierto, si esta cerrado, se cierra
-        /// cualquiera que haya estado abierto y se abre
-        /// </summary>
-        /// <param name="subMenu"></param>
-        /// <returns></returns>
-        protected async Task mostrarSubmenu(Panel subMenu)
-        {
 
-            if (subMenu.Visible == false)
+        /// <summary>
+        /// Lógica de la burger
+        /// </summary>
+        private void btnSlide_Click(object sender, EventArgs e) // ← quitado async
+        {
+            if (_menuAnimando) return; // ← bloquea clics rápidos
+
+            _menuAnimando = true;
+            btnSlide.Enabled = false;
+
+            try
             {
-                await cerraSubmenu();
-                subMenu.Visible = true;
+                if (menuExpandido)
+                    ColapsarMenu();
+                else
+                    ExpandirMenu();
             }
-            else
+            finally
             {
-                subMenu.Visible = false;
+                _menuAnimando = false;
+                btnSlide.Enabled = true;
+            }
+        }
+        #endregion
+
+        #region EscaladoDPI
+        private void EscalarImagenesBotones()
+        {
+            //float escala = DeviceDpi / 96f;
+            //int tamano = (int)(48 * escala);
+
+            var botones = new (Button btn, Image imagen)[]
+            {
+                (btnReporteria, Properties.Resources.informe),
+                (btnPesaje,     Properties.Resources.camion),
+                (btnProductos,  Properties.Resources.cajas),
+                (btnUsuarios,   Properties.Resources.avatar),
+            };
+
+            foreach (var (btn, imagen) in botones)
+            {
+                int tamano = (int)(Math.Min(btn.Width, btn.Height) * 0.7f); 
+                btn.Image = new Bitmap(imagen, tamano, tamano);
             }
         }
 
-        /// <summary>
-        /// Logica de la burger
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private async void btnSlide_Click(object sender, EventArgs e)
+        private void EscalarPictureBox()
         {
-            if (menuExpandido)
-            {
-                await ColapsarMenu();
-                await cerraSubmenu();
-            }
-            else
-                ExpandirMenu();
+            float escala = DeviceDpi / 96f;
+            int tamano = (int)(Math.Min(btnSlide.Width, btnSlide.Height) * 0.7f);
+            btnSlide.Image = new Bitmap(Properties.Resources.menu_hamburguesa_80, tamano, tamano);
+            btnSlide.SizeMode = PictureBoxSizeMode.CenterImage;
         }
         #endregion
 
         #region BotonesSubmenus
-        /// <summary>
-        /// Si se presiona un boton dentro de este bloque, el menu vertical siempre va a cambiar a 300 px aun que este 
-        /// cerrado
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        /// 
-        private async void btnUsuarios_Click(object sender, EventArgs e)
+        private void btnUsuarios_Click(object sender, EventArgs e) // ← quitado async
         {
-            if (menuVertical.Width == 300)
-            {
-                ExpandirMenuySubmenu(pnUsers);
-            }
-            else
-            {
-                menuVertical.Width = 300;
-                ExpandirMenuySubmenu(pnUsers);
+            if (menuVertical.Width != MENU_EXPANDIDO)
+                menuVertical.Width = MENU_EXPANDIDO;
 
-            }
+            ExpandirMenuySubmenu(pnUsers);
         }
 
-        private async void btnProductos_Click(object sender, EventArgs e)
+        private void btnProductos_Click(object sender, EventArgs e) // ← quitado async
         {
-            if (menuVertical.Width == 300)
-            {
-                ExpandirMenuySubmenu(pnProductos);
-            }
-            else
-            {
-                menuVertical.Width = 300;
-                ExpandirMenuySubmenu(pnProductos);
+            if (menuVertical.Width != MENU_EXPANDIDO)
+                menuVertical.Width = MENU_EXPANDIDO;
 
-            }
+            ExpandirMenuySubmenu(pnProductos);
         }
 
-        private async void btnPesaje_Click(object sender, EventArgs e)
+        private void btnPesaje_Click(object sender, EventArgs e) // ← quitado async
         {
-            if (menuVertical.Width == 300)
-            {
-                ExpandirMenuySubmenu(pnPesajes);
-            }
-            else
-            {
-                menuVertical.Width = 300;
-                ExpandirMenuySubmenu(pnPesajes);
+            if (menuVertical.Width != MENU_EXPANDIDO)
+                menuVertical.Width = MENU_EXPANDIDO;
 
-            }
+            ExpandirMenuySubmenu(pnPesajes);
         }
-        private async void btnBitacora_Click(object sender, EventArgs e)
+
+        private void btnBitacora_Click(object sender, EventArgs e) // ← quitado async
         {
-            await ColapsarMenu();
+            ColapsarMenu();
         }
         #endregion
 
         #region navegacion_entre_forms
-        private async void btnGestionEmpleados_Click(object sender, EventArgs e)
+        private void btnGestionEmpleados_Click(object sender, EventArgs e) // ← quitado async
         {
-            await abrirFormHijo(new GestiónEmpleados());
+            abrirFormHijo(new GestiónEmpleados());
             lblHeader.Text = "Gestión de empleados";
-            await ColapsarMenu();
+            ColapsarMenu();
         }
 
-        private async void btnGestionUsuarios_Click(object sender, EventArgs e)
+        private void btnGestionUsuarios_Click(object sender, EventArgs e)
         {
-            await abrirFormHijo(new GestionUsuarios());
+            abrirFormHijo(new GestionUsuarios());
             lblHeader.Text = "Gestión de usuarios";
-            await ColapsarMenu();
+            ColapsarMenu();
         }
 
-        private async void btnGestionRoles_Click(object sender, EventArgs e)
+        private void btnGestionRoles_Click(object sender, EventArgs e)
         {
-            await ColapsarMenu();
+            ColapsarMenu();
         }
 
-
-
-        private async void btnGestionProductos_Click(object sender, EventArgs e)
+        private void btnGestionProductos_Click(object sender, EventArgs e)
         {
-            await abrirFormHijo(new GestionProductos());
+            abrirFormHijo(new GestionProductos());
             lblHeader.Text = "Gestión de productos";
-            await ColapsarMenu();
-
+            ColapsarMenu();
         }
 
-        private async void btnGestionProveedores_Click(object sender, EventArgs e)
+        private void btnGestionProveedores_Click(object sender, EventArgs e)
         {
-            await abrirFormHijo(new GestionProveedores());
+            abrirFormHijo(new GestionProveedores());
             lblHeader.Text = "Gestión de proveedores";
-            await ColapsarMenu();
+            ColapsarMenu();
         }
 
-        private async void btnGestionFabricantes_Click(object sender, EventArgs e)
+        private void btnGestionFabricantes_Click(object sender, EventArgs e)
         {
-            await abrirFormHijo(new GestionFabricantes());
+            abrirFormHijo(new GestionFabricantes());
             lblHeader.Text = "Gestión de fabricantes";
-            await ColapsarMenu();
+            ColapsarMenu();
         }
 
-        private async void button2_Click(object sender, EventArgs e)
+        private void btnMovimientosEntradas_Click(object sender, EventArgs e)
         {
-            await ColapsarMenu();
-        }
-
-        private async void btnMovimientosEntradas_Click(object sender, EventArgs e)
-        {
-            await abrirFormHijo(new MovimientosyEntradas());
+            abrirFormHijo(new MovimientosyEntradas());
             lblHeader.Text = "Entradas y movimientos";
-            await ColapsarMenu();
+            ColapsarMenu();
         }
         #endregion
 
@@ -279,11 +266,11 @@ namespace BimboPesaje
             ColapsarMenu();
         }
 
-        private async void btnCategorias_Click(object sender, EventArgs e)
+        private void btnCategorias_Click(object sender, EventArgs e)
         {
-            await abrirFormHijo(new GestionCategorias());
+            abrirFormHijo(new GestionCategorias());
             lblHeader.Text = "Gestión de categorías";
-            await ColapsarMenu();
+            ColapsarMenu();
         }
     }
 }

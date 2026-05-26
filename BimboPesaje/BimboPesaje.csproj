@@ -7,6 +7,12 @@
     <UseWindowsForms>true</UseWindowsForms>
     <UseWpf>true</UseWpf>
     <ImplicitUsings>enable</ImplicitUsings>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
+    <ApplicationDefaultFont>Segoe UI, 9pt</ApplicationDefaultFont>
   </PropertyGroup>
 
   <ItemGroup>
@@ -25,10 +31,6 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
   </ItemGroup>
-	
-	<PropertyGroup>
-		<ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
-	</PropertyGroup>
 
   <ItemGroup>
     <EmbeddedResource Update="Properties\Resources.resx">
