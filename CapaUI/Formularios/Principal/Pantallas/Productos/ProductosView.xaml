@@ -58,7 +58,7 @@
             </Setter>
             <Style.Triggers>
                 <Trigger Property="ItemsControl.AlternationIndex" Value="1">
-                    <Setter Property="Background" Value="#F5F8FC"/>
+                    <Setter Property="Background" Value="#E8F0FA"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
@@ -656,6 +656,7 @@
                         <StackPanel Orientation="Horizontal">
                             <RadioButton x:Name="RbHabilitados"
                                          GroupName="EstadoFiltro"
+                                         IsChecked="True"
                                          Style="{StaticResource SegmentBtn}"
                                          Checked="EstadoFiltro_Changed">
                                 <StackPanel Orientation="Horizontal">
@@ -674,7 +675,6 @@
                             </RadioButton>
                             <RadioButton x:Name="RbTodos"
                                          GroupName="EstadoFiltro"
-                                         IsChecked="True"
                                          Style="{StaticResource SegmentBtn}"
                                          Checked="EstadoFiltro_Changed">
                                 <TextBlock Text="Todos" FontFamily="Segoe UI" FontSize="13"/>
@@ -739,13 +739,28 @@
                     </TextBlock>
                 </StackPanel>
 
-                <!-- Loading -->
-                <TextBlock Grid.Row="0"
-                           x:Name="LoadingText"
-                           Text="Cargando productos..."
-                           FontFamily="Segoe UI" FontSize="14" Foreground="#6B7280"
-                           HorizontalAlignment="Center" VerticalAlignment="Center"
-                           Visibility="Collapsed"/>
+                <!-- Loading spinner -->
+                <StackPanel Grid.Row="0"
+                            x:Name="LoadingPanel"
+                            Visibility="Collapsed"
+                            VerticalAlignment="Center"
+                            HorizontalAlignment="Center"
+                            Orientation="Horizontal">
+                    <Path x:Name="SpinnerPath"
+                          Data="M 12 2 A 10 10 0 1 1 2 12"
+                          Stroke="#1E3A8A" StrokeThickness="2.5"
+                          StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                          Width="22" Height="22" Stretch="Uniform"
+                          RenderTransformOrigin="0.5,0.5"
+                          Margin="0,0,10,0">
+                        <Path.RenderTransform>
+                            <RotateTransform/>
+                        </Path.RenderTransform>
+                    </Path>
+                    <TextBlock Text="Cargando productos..."
+                               FontFamily="Segoe UI" FontSize="14" Foreground="#6B7280"
+                               VerticalAlignment="Center"/>
+                </StackPanel>
 
                 <!-- DataGrid -->
                 <DataGrid Grid.Row="0"

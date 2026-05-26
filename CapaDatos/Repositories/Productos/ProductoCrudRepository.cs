@@ -5,6 +5,7 @@ using CapaAplicacion.Productos.Queries;
 using ServicioConexión.Conexion;
 using Op  = Supabase.Postgrest.Constants.Operator;
 using Ord = Supabase.Postgrest.Constants.Ordering;
+using Ct  = Supabase.Postgrest.Constants.CountType;
 
 namespace CapaDatos.Repositories.Productos;
 
@@ -48,6 +49,10 @@ public class ProductoCrudRepository : RepositorioBase, IProductoRepository
 
     public Task<Result<IReadOnlyList<FiltroItem>>> GetCategoriasAsync(CancellationToken ct = default) =>
         TryAsync(GetCategoriasInternal, "Cargar categorías");
+
+    public Task<Result<int>> GetPaginaDeProductoAsync(
+        int idProducto, int size, ProductoFiltros filtros, CancellationToken ct = default) =>
+        TryAsync(() => GetPaginaDeProductoInternal(idProducto, size, filtros), "Calcular página de producto");
 
     // ── Escritura ─────────────────────────────────────────────────────────────
 
@@ -115,13 +120,13 @@ public class ProductoCrudRepository : RepositorioBase, IProductoRepository
         int from = (page - 1) * size;
         int to   = from + size - 1;
 
-        var resultado = await query
-            .Order("id_producto", Ord.Ascending)
-            .Range(from, to)
-            .Get();
+        // Página + conteos en paralelo
+        var pageTask    = query.Order("id_producto", Ord.Ascending).Range(from, to).Get();
+        var conteosTask = GetConteosAsync(filtros, client);
+        await Task.WhenAll(pageTask, conteosTask);
 
-        var items   = resultado?.Models.Select(Map).ToList() ?? [];
-        var conteos = await GetConteosAsync(filtros, client);
+        var items   = pageTask.Result?.Models.Select(Map).ToList() ?? [];
+        var conteos = conteosTask.Result;
 
         return new PagedResult<ProductoDto>
         {
@@ -202,19 +207,42 @@ public class ProductoCrudRepository : RepositorioBase, IProductoRepository
             .ToList();
     }
 
+    private async Task<int> GetPaginaDeProductoInternal(int idProducto, int size, ProductoFiltros filtros)
+    {
+        var client = await ConexionSupabase.GetClientAsync();
+        var query  = client.From<Modelados.Productos.Productos>()
+                           .Select("id_producto")
+                           .Filter("id_producto", Op.LessThan, idProducto.ToString());
+
+        if (filtros.IdEstado.HasValue)
+            query = query.Filter("id_estado",     Op.Equals, filtros.IdEstado.Value.ToString());
+        if (filtros.IdFabricante.HasValue)
+            query = query.Filter("id_fabricante", Op.Equals, filtros.IdFabricante.Value.ToString());
+        if (filtros.IdPais.HasValue)
+            query = query.Filter("id_pais",       Op.Equals, filtros.IdPais.Value.ToString());
+
+        int previos = await query.Count(Ct.Exact);
+        return (previos / size) + 1;
+    }
+
     private static async Task<(int total, int activos, int inactivos)> GetConteosAsync(
         ProductoFiltros filtros, Supabase.Client client)
     {
-        var q = client.From<Modelados.Productos.Productos>().Select("id_producto, id_estado");
+        // Conteos server-side con HEAD + Content-Range (0 filas descargadas)
+        var qBase = client.From<Modelados.Productos.Productos>().Select("id_producto");
 
         if (filtros.IdFabricante.HasValue)
-            q = q.Filter("id_fabricante", Op.Equals, filtros.IdFabricante.Value.ToString());
+            qBase = qBase.Filter("id_fabricante", Op.Equals, filtros.IdFabricante.Value.ToString());
         if (filtros.IdPais.HasValue)
-            q = q.Filter("id_pais",       Op.Equals, filtros.IdPais.Value.ToString());
+            qBase = qBase.Filter("id_pais",       Op.Equals, filtros.IdPais.Value.ToString());
 
-        var r      = await q.Get();
-        var models = r?.Models ?? [];
-        int activos = models.Count(p => p.idEstado == 1);
-        return (models.Count, activos, models.Count - activos);
+        // Ambos conteos en paralelo
+        var totalTask   = qBase.Count(Ct.Exact);
+        var activosTask = qBase.Filter("id_estado", Op.Equals, "1").Count(Ct.Exact);
+        await Task.WhenAll(totalTask, activosTask);
+
+        int total   = totalTask.Result;
+        int activos = activosTask.Result;
+        return (total, activos, total - activos);
     }
 }

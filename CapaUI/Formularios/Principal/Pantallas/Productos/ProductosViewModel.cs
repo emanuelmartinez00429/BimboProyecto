@@ -23,6 +23,8 @@ public partial class ProductosViewModel : ObservableObject, IDisposable
     private int?         _paisIdFiltro;
     private int          _page               = 1;
     private int          _filteredCount;
+    private int?         _pendingSelectionId;
+    private int          _loadGeneration;
 
     public const int PageSize = 50;
 
@@ -34,7 +36,12 @@ public partial class ProductosViewModel : ObservableObject, IDisposable
     [NotifyCanExecuteChangedFor(nameof(EditarCommand))]
     private ProductoDto? _seleccionado;
 
-    [ObservableProperty] private bool          _isLoading;
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(PrimeraPaginaCommand))]
+    [NotifyCanExecuteChangedFor(nameof(PaginaAnteriorCommand))]
+    [NotifyCanExecuteChangedFor(nameof(PaginaSiguienteCommand))]
+    [NotifyCanExecuteChangedFor(nameof(UltimaPaginaCommand))]
+    private bool _isLoading;
     [ObservableProperty] private bool          _showSuggestions;
     [ObservableProperty] private int           _highlightIndex = -1;
     [ObservableProperty] private int           _totalCount;
@@ -144,14 +151,20 @@ public partial class ProductosViewModel : ObservableObject, IDisposable
         IsLoading  = true;
         ErrorCarga = string.Empty;
 
-        var rFab = await _repo.GetFabricantesAsync();
+        // Filtros en paralelo entre sí
+        var fabTask  = _repo.GetFabricantesAsync();
+        var paisTask = _repo.GetPaisesAsync();
+        await Task.WhenAll(fabTask, paisTask);
+
+        var rFab = fabTask.Result;
         if (!rFab.Success) { ErrorCarga = rFab.Error; IsLoading = false; return; }
         Fabricantes = rFab.Value!.ToList();
 
-        var rPaises = await _repo.GetPaisesAsync();
+        var rPaises = paisTask.Result;
         if (!rPaises.Success) { ErrorCarga = rPaises.Error; IsLoading = false; return; }
         Paises = rPaises.Value!.ToList();
 
+        // Página después de filtros (maneja su propio IsLoading)
         await CargarPaginaAsync();
 
         // Suscribir a cambios Realtime después de la carga inicial
@@ -160,12 +173,28 @@ public partial class ProductosViewModel : ObservableObject, IDisposable
 
     public void RefrescarDatos() => _ = CargarPaginaAsync();
 
+    private const int TimeoutMs = 10_000;
+
     private async Task CargarPaginaAsync()
     {
-        IsLoading = true;
+        int myGen  = ++_loadGeneration;
+        IsLoading  = true;
+        ErrorCarga = string.Empty;
 
         var filtros = BuildFiltros();
-        var r       = await _repo.GetPagedAsync(_page, PageSize, filtros);
+
+        // Timeout de 10s — si la red no responde, el usuario no queda bloqueado
+        var task = _repo.GetPagedAsync(_page, PageSize, filtros);
+        if (await Task.WhenAny(task, Task.Delay(TimeoutMs)) != task)
+        {
+            if (myGen != _loadGeneration) return; // carga más nueva ya tomó el control
+            ErrorCarga = "La carga tardó demasiado. Intente de nuevo.";
+            IsLoading  = false;
+            return;
+        }
+
+        var r = await task;
+        if (myGen != _loadGeneration) return; // resultado obsoleto — descartarlo silenciosamente
 
         if (!r.Success)
         {
@@ -174,9 +203,10 @@ public partial class ProductosViewModel : ObservableObject, IDisposable
             return;
         }
 
-        var pagina     = r.Value!;
-        ErrorCarga     = string.Empty;
-        PageRows       = new ObservableCollection<ProductoDto>(pagina.Items);
+        var pagina = r.Value!;
+
+        // Conteos y _filteredCount ANTES de PageRows — su PropertyChanged
+        // dispara RefrescarPaginacion que necesita TotalPages ya actualizado
         TotalCount     = pagina.Total;
         ActivosCount   = pagina.Activos;
         InactivosCount = pagina.Inactivos;
@@ -187,11 +217,19 @@ public partial class ProductosViewModel : ObservableObject, IDisposable
             _ => pagina.Total
         };
 
+        PageRows = new ObservableCollection<ProductoDto>(pagina.Items);
+
         OnPropertyChanged(nameof(TotalPages));
         OnPropertyChanged(nameof(PageInfo));
         OnPropertyChanged(nameof(NoResults));
         NotifyPaginationCanExecuteChanged();
         IsLoading = false;
+
+        if (_pendingSelectionId.HasValue)
+        {
+            Seleccionado        = PageRows.FirstOrDefault(x => x.Id == _pendingSelectionId.Value);
+            _pendingSelectionId = null;
+        }
     }
 
     private async Task RefrescarSugerenciasAsync()
@@ -230,8 +268,27 @@ public partial class ProductosViewModel : ObservableObject, IDisposable
         _query = "";
         OnPropertyChanged(nameof(Query));
         ShowSuggestions = false;
+
         var enPagina = PageRows.FirstOrDefault(x => x.Id == p.Id);
-        Seleccionado = enPagina ?? p;
+        if (enPagina is not null) { Seleccionado = enPagina; return; }
+
+        // El producto está en otra página — navegar a ella antes de seleccionar
+        _pendingSelectionId = p.Id;
+        _ = NavegarAPaginaDeProductoAsync(p.Id);
+    }
+
+    private async Task NavegarAPaginaDeProductoAsync(int idProducto)
+    {
+        var r = await _repo.GetPaginaDeProductoAsync(idProducto, PageSize, BuildFiltros());
+        if (!r.Success) { _pendingSelectionId = null; ErrorCarga = r.Error; return; }
+
+        // Actualizar _page directamente para no disparar CargarPaginaAsync() dos veces
+        _page = r.Value;
+        OnPropertyChanged(nameof(Page));
+        OnPropertyChanged(nameof(PageInfo));
+        OnPropertyChanged(nameof(TotalPages));
+        NotifyPaginationCanExecuteChanged();
+        await CargarPaginaAsync();
     }
 
     private ProductoFiltros BuildFiltros() => new()
@@ -281,8 +338,8 @@ public partial class ProductosViewModel : ObservableObject, IDisposable
     [RelayCommand(CanExecute = nameof(PuedePaginaSiguiente))]
     private void UltimaPagina() => Page = TotalPages;
 
-    private bool PuedePaginaAnterior()  => _page > 1;
-    private bool PuedePaginaSiguiente() => _page < TotalPages;
+    private bool PuedePaginaAnterior()  => !IsLoading && _page > 1;
+    private bool PuedePaginaSiguiente() => !IsLoading && _page < TotalPages;
 
     private void NotifyPaginationCanExecuteChanged()
     {

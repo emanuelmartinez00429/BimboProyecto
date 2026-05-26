@@ -12,6 +12,7 @@ public interface IProductoRepository
     Task<Result<IReadOnlyList<FiltroItem>>>  GetFabricantesAsync(CancellationToken ct = default);
     Task<Result<IReadOnlyList<FiltroItem>>>  GetPaisesAsync(CancellationToken ct = default);
     Task<Result<IReadOnlyList<FiltroItem>>>  GetCategoriasAsync(CancellationToken ct = default);
+    Task<Result<int>>                        GetPaginaDeProductoAsync(int idProducto, int size, ProductoFiltros filtros, CancellationToken ct = default);
 
     // Escritura
     Task<Result<int>> CreateAsync(ProductoDto dto, CancellationToken ct = default);

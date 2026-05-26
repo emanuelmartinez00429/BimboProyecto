@@ -28,6 +28,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
     {
         private ProductosViewModel _vm = null!;
         private bool _suppressFilterChange = false;
+        private Storyboard? _spinnerStory;
 
         public event Action? SalirSolicitado;
 
@@ -55,11 +56,27 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
                 if (ev.PropertyName == nameof(ProductosViewModel.PageRows))
                     RefrescarPaginacion();
                 if (ev.PropertyName == nameof(ProductosViewModel.IsLoading))
-                    LoadingText.Visibility = _vm.IsLoading ? Visibility.Visible : Visibility.Collapsed;
+                {
+                    if (_vm.IsLoading)
+                    {
+                        DgProductos.Visibility  = Visibility.Collapsed;
+                        EmptyState.Visibility   = Visibility.Collapsed;
+                        LoadingPanel.Visibility = Visibility.Visible;
+                        IniciarSpinner();
+                    }
+                    else
+                    {
+                        LoadingPanel.Visibility = Visibility.Collapsed;
+                        DetenerSpinner();
+                        DgProductos.Visibility  = Visibility.Visible;
+                    }
+                }
                 if (ev.PropertyName == nameof(ProductosViewModel.NoResults))
                     EmptyState.Visibility = _vm.NoResults ? Visibility.Visible : Visibility.Collapsed;
                 if (ev.PropertyName == nameof(ProductosViewModel.HaySeleccionado))
                     SelectedInfo.Visibility = _vm.HaySeleccionado ? Visibility.Visible : Visibility.Collapsed;
+                if (ev.PropertyName == nameof(ProductosViewModel.Seleccionado))
+                    SeleccionarEnTabla();
                 if (ev.PropertyName == nameof(ProductosViewModel.Fabricantes))
                     PoblarFabricantes();
                 if (ev.PropertyName == nameof(ProductosViewModel.Paises))
@@ -74,6 +91,27 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
             DgProductos.ItemsSource = _vm.PageRows;
 
             await _vm.CargarDatosAsync();
+        }
+
+        // ── Spinner ───────────────────────────────────────────────────
+
+        private void IniciarSpinner()
+        {
+            if (_spinnerStory != null) return;
+            _spinnerStory = new Storyboard();
+            var anim = new DoubleAnimation(0, 360, TimeSpan.FromSeconds(0.8))
+            { RepeatBehavior = RepeatBehavior.Forever };
+            Storyboard.SetTarget(anim, SpinnerPath);
+            Storyboard.SetTargetProperty(anim,
+                new PropertyPath("(UIElement.RenderTransform).(RotateTransform.Angle)"));
+            _spinnerStory.Children.Add(anim);
+            _spinnerStory.Begin();
+        }
+
+        private void DetenerSpinner()
+        {
+            _spinnerStory?.Stop();
+            _spinnerStory = null;
         }
 
         // ── Filters ───────────────────────────────────────────────────
@@ -276,6 +314,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
         private void SeleccionarEnTabla()
         {
             if (_vm.Seleccionado == null) return;
+            if (DgProductos.SelectedItem == _vm.Seleccionado) return;
             DgProductos.SelectedItem = _vm.Seleccionado;
             DgProductos.ScrollIntoView(_vm.Seleccionado);
         }
@@ -330,7 +369,11 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
                             : FindResource("PageBtn")),
                         Tag = p
                     };
-                    btn.Click += (s, ev) => { if (s is System.Windows.Controls.Button b && b.Tag is int pg) _vm.Page = pg; };
+                    btn.Click += (s, ev) =>
+                    {
+                        if (_vm.IsLoading) return;
+                        if (s is System.Windows.Controls.Button b && b.Tag is int pg) _vm.Page = pg;
+                    };
                     PaginacionPanel.Items.Add(btn);
                 }
             }
@@ -373,30 +416,14 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
         private void MostrarModal(System.Windows.Controls.UserControl modal)
         {
             ModalContent.Content    = modal;
+            ModalOverlay.Opacity    = 1;
             ModalOverlay.Visibility = Visibility.Visible;
-
-            var sb   = new Storyboard();
-            var fade = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(200))
-                { EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut } };
-            Storyboard.SetTarget(fade, ModalOverlay);
-            Storyboard.SetTargetProperty(fade, new PropertyPath(UIElement.OpacityProperty));
-            sb.Children.Add(fade);
-            sb.Begin();
         }
 
         private void CerrarModal()
         {
-            var sb   = new Storyboard();
-            var fade = new DoubleAnimation(1, 0, TimeSpan.FromMilliseconds(150));
-            Storyboard.SetTarget(fade, ModalOverlay);
-            Storyboard.SetTargetProperty(fade, new PropertyPath(UIElement.OpacityProperty));
-            fade.Completed += (s, e) =>
-            {
-                ModalOverlay.Visibility = Visibility.Collapsed;
-                ModalContent.Content    = null;
-            };
-            sb.Children.Add(fade);
-            sb.Begin();
+            ModalOverlay.Visibility = Visibility.Collapsed;
+            ModalContent.Content    = null;
         }
 
         private void OnProductoGuardado()
