@@ -100,6 +100,11 @@ public class RealtimeService : IRealtimeService
     {
         var client = await ConexionSupabase.GetClientAsync();
 
+        // AutoConnectRealtime = true inicia la conexión, pero puede no estar lista aún.
+        // ConnectAsync() es idempotente — si ya está conectado, no hace nada.
+        if (client.Realtime.Socket is null || !client.Realtime.Socket.IsConnected)
+            await client.Realtime.ConnectAsync();
+
         var channel = client.Realtime.Channel($"rt-{tabla}");
         channel.Register(new PostgresChangesOptions("public", tabla, ListenType.All));
         channel.AddPostgresChangeHandler(ListenType.All, (_, change) => OnCambioRecibido(tabla, change));
