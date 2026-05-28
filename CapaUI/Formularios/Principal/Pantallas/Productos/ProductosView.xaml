@@ -546,11 +546,39 @@
                                                        Foreground="#9CA3AF"/>
                                         </Grid>
                                     </Border>
-                                    <ItemsControl x:Name="SuggestionsList">
-                                        <ItemsControl.ItemTemplate>
+                                    <ListBox x:Name="SuggestionsList"
+                                             SelectedIndex="{Binding HighlightIndex, Mode=OneWay}"
+                                             Background="Transparent"
+                                             BorderThickness="0"
+                                             FocusVisualStyle="{x:Null}"
+                                             ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                        <ListBox.ItemContainerStyle>
+                                            <Style TargetType="ListBoxItem">
+                                                <Setter Property="Padding" Value="0"/>
+                                                <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                                <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+                                                <Setter Property="Template">
+                                                    <Setter.Value>
+                                                        <ControlTemplate TargetType="ListBoxItem">
+                                                            <Border x:Name="ItemBd" Background="Transparent">
+                                                                <ContentPresenter/>
+                                                            </Border>
+                                                            <ControlTemplate.Triggers>
+                                                                <Trigger Property="IsMouseOver" Value="True">
+                                                                    <Setter TargetName="ItemBd" Property="Background" Value="#EEF2F8"/>
+                                                                </Trigger>
+                                                                <Trigger Property="IsSelected" Value="True">
+                                                                    <Setter TargetName="ItemBd" Property="Background" Value="#D1DCF5"/>
+                                                                </Trigger>
+                                                            </ControlTemplate.Triggers>
+                                                        </ControlTemplate>
+                                                    </Setter.Value>
+                                                </Setter>
+                                            </Style>
+                                        </ListBox.ItemContainerStyle>
+                                        <ListBox.ItemTemplate>
                                             <DataTemplate DataType="{x:Type local:SuggestionItemData}">
-                                                <Border x:Name="SugItem"
-                                                        Background="Transparent"
+                                                <Border Background="Transparent"
                                                         BorderBrush="#F3F4F6" BorderThickness="0,0,0,1"
                                                         Cursor="Hand"
                                                         MouseLeftButtonDown="SuggestionItem_Click"
@@ -613,8 +641,8 @@
                                                     </Grid>
                                                 </Border>
                                             </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
                                 </StackPanel>
                             </Border>
                         </Popup>

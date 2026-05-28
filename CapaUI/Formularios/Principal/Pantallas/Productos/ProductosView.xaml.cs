@@ -7,9 +7,11 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using CapaAplicacion.Common;
 using CapaAplicacion.Productos.Dtos;
 using CapaAplicacion.Productos.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
+using static CapaAplicacion.Common.EstadoRegistro;
 using WpfKey         = System.Windows.Input.KeyEventArgs;
 using WpfMouse       = System.Windows.Input.MouseEventArgs;
 using WpfMouseButton = System.Windows.Input.MouseButtonEventArgs;
@@ -59,46 +61,49 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
                 CmbPais.SelectedIndex = 0;
                 _suppressFilterChange = false;
             };
-            _vm.PropertyChanged  += (s, ev) =>
+            _vm.PropertyChanged += (s, ev) =>
             {
-                if (ev.PropertyName == nameof(ProductosViewModel.PageRows))
-                    RefrescarPaginacion();
-                if (ev.PropertyName == nameof(ProductosViewModel.IsLoading))
+                switch (ev.PropertyName)
                 {
-                    if (_vm.IsLoading)
-                    {
-                        DgProductos.Visibility  = Visibility.Collapsed;
-                        EmptyState.Visibility   = Visibility.Collapsed;
-                        LoadingPanel.Visibility = Visibility.Visible;
-                        IniciarSpinner();
-                    }
-                    else
-                    {
-                        LoadingPanel.Visibility = Visibility.Collapsed;
-                        DetenerSpinner();
-                        DgProductos.Visibility  = Visibility.Visible;
-                    }
+                    case nameof(ProductosViewModel.PageRows):        RefrescarPaginacion();  break;
+                    case nameof(ProductosViewModel.IsLoading):       ActualizarCarga();      break;
+                    case nameof(ProductosViewModel.NoResults):
+                        EmptyState.Visibility = _vm.NoResults ? Visibility.Visible : Visibility.Collapsed;
+                        break;
+                    case nameof(ProductosViewModel.HaySeleccionado):
+                        SelectedInfo.Visibility = _vm.HaySeleccionado ? Visibility.Visible : Visibility.Collapsed;
+                        break;
+                    case nameof(ProductosViewModel.Seleccionado):    SeleccionarEnTabla();   break;
+                    case nameof(ProductosViewModel.Fabricantes):     PoblarFabricantes();    break;
+                    case nameof(ProductosViewModel.Paises):          PoblarPaises();         break;
+                    case nameof(ProductosViewModel.ShowSuggestions): ActualizarSuggestions();break;
+                    // HighlightIndex: resuelto por ListBox.SelectedIndex OneWay binding
                 }
-                if (ev.PropertyName == nameof(ProductosViewModel.NoResults))
-                    EmptyState.Visibility = _vm.NoResults ? Visibility.Visible : Visibility.Collapsed;
-                if (ev.PropertyName == nameof(ProductosViewModel.HaySeleccionado))
-                    SelectedInfo.Visibility = _vm.HaySeleccionado ? Visibility.Visible : Visibility.Collapsed;
-                if (ev.PropertyName == nameof(ProductosViewModel.Seleccionado))
-                    SeleccionarEnTabla();
-                if (ev.PropertyName == nameof(ProductosViewModel.Fabricantes))
-                    PoblarFabricantes();
-                if (ev.PropertyName == nameof(ProductosViewModel.Paises))
-                    PoblarPaises();
-                if (ev.PropertyName == nameof(ProductosViewModel.ShowSuggestions))
-                    ActualizarSuggestions();
-                if (ev.PropertyName == nameof(ProductosViewModel.HighlightIndex))
-                    ActualizarHighlight();
             };
 
             DataContext = _vm;
             DgProductos.ItemsSource = _vm.PageRows;
 
             await _vm.CargarDatosAsync();
+        }
+
+        // ── Loading state ─────────────────────────────────────────────
+
+        private void ActualizarCarga()
+        {
+            if (_vm.IsLoading)
+            {
+                DgProductos.Visibility  = Visibility.Collapsed;
+                EmptyState.Visibility   = Visibility.Collapsed;
+                LoadingPanel.Visibility = Visibility.Visible;
+                IniciarSpinner();
+            }
+            else
+            {
+                LoadingPanel.Visibility = Visibility.Collapsed;
+                DetenerSpinner();
+                DgProductos.Visibility  = Visibility.Visible;
+            }
         }
 
         // ── Spinner ───────────────────────────────────────────────────
@@ -283,7 +288,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
                     Codigo = p.CodigoInterno,
                     Nombre = p.Nombre,
                     Meta   = $"{p.Fabricante} · {p.Pais} · {p.Categoria}",
-                    Activo = p.IdEstado == 1,
+                    Activo = p.IdEstado == Activo,
                     Source = p
                 }).ToList();
 
@@ -297,32 +302,6 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
                 SuggestionsPopup.IsOpen = false;
                 if (!TxtBusqueda.IsFocused)
                     SearchBoxBorder.CornerRadius = new CornerRadius(8);
-            }
-        }
-
-        private static readonly SolidColorBrush _highlightBrush =
-            new(Color.FromRgb(0xD1, 0xDC, 0xF5));
-        private static readonly SolidColorBrush _transparentBrush =
-            Brushes.Transparent;
-
-        private void ActualizarHighlight()
-        {
-            SuggestionsList.UpdateLayout();
-
-            for (int i = 0; i < SuggestionsList.Items.Count; i++)
-            {
-                var container = SuggestionsList.ItemContainerGenerator
-                    .ContainerFromIndex(i) as ContentPresenter;
-                if (container == null) continue;
-
-                var border = VisualTreeHelper.GetChildrenCount(container) > 0
-                    ? VisualTreeHelper.GetChild(container, 0) as System.Windows.Controls.Border
-                    : null;
-                if (border == null) continue;
-
-                border.Background = (i == _vm.HighlightIndex)
-                    ? _highlightBrush
-                    : _transparentBrush;
             }
         }
 

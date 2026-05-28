@@ -5,9 +5,10 @@ using CapaAplicacion.Productos.Queries;
 using ServicioConexión.Conexion;
 using Supabase.Postgrest;
 using Supabase.Postgrest.Interfaces;
-using Op  = Supabase.Postgrest.Constants.Operator;
-using Ord = Supabase.Postgrest.Constants.Ordering;
-using Ct  = Supabase.Postgrest.Constants.CountType;
+using Op    = Supabase.Postgrest.Constants.Operator;
+using Ord   = Supabase.Postgrest.Constants.Ordering;
+using Ct    = Supabase.Postgrest.Constants.CountType;
+using Table = Supabase.Postgrest.Interfaces.IPostgrestTable<CapaDatos.Modelados.Productos.Productos>;
 
 namespace CapaDatos.Repositories.Productos;
 
@@ -100,7 +101,7 @@ public class ProductoCrudRepository : RepositorioBase, IProductoRepository
             var client = await ConexionSupabase.GetClientAsync();
             await client.From<Modelados.Productos.Productos>()
                 .Where(p => p.idProducto == id)
-                .Set(p => p.idEstado, 2)
+                .Set(p => p.idEstado, EstadoRegistro.Inactivo)
                 .Update();
         }, "Eliminar producto");
 
@@ -110,14 +111,7 @@ public class ProductoCrudRepository : RepositorioBase, IProductoRepository
         int page, int size, ProductoFiltros filtros)
     {
         var client = await ConexionSupabase.GetClientAsync();
-        var query  = client.From<Modelados.Productos.Productos>().Select(Select);
-
-        if (filtros.IdEstado.HasValue)
-            query = query.Filter("id_estado",     Op.Equals, filtros.IdEstado.Value.ToString());
-        if (filtros.IdFabricante.HasValue)
-            query = query.Filter("id_fabricante", Op.Equals, filtros.IdFabricante.Value.ToString());
-        if (filtros.IdPais.HasValue)
-            query = query.Filter("id_pais",       Op.Equals, filtros.IdPais.Value.ToString());
+        var query  = AplicarFiltros(client.From<Modelados.Productos.Productos>().Select(Select), filtros);
 
         int from = (page - 1) * size;
         int to   = from + size - 1;
@@ -143,14 +137,7 @@ public class ProductoCrudRepository : RepositorioBase, IProductoRepository
         string termino, ProductoFiltros filtros)
     {
         var client = await ConexionSupabase.GetClientAsync();
-        var query  = client.From<Modelados.Productos.Productos>().Select(Select);
-
-        if (filtros.IdEstado.HasValue)
-            query = query.Filter("id_estado",     Op.Equals, filtros.IdEstado.Value.ToString());
-        if (filtros.IdFabricante.HasValue)
-            query = query.Filter("id_fabricante", Op.Equals, filtros.IdFabricante.Value.ToString());
-        if (filtros.IdPais.HasValue)
-            query = query.Filter("id_pais",       Op.Equals, filtros.IdPais.Value.ToString());
+        var query  = AplicarFiltros(client.From<Modelados.Productos.Productos>().Select(Select), filtros);
 
         var resultado = await query
             .Or(new List<IPostgrestQueryFilter>
@@ -216,20 +203,26 @@ public class ProductoCrudRepository : RepositorioBase, IProductoRepository
     private async Task<int> GetPaginaDeProductoInternal(int idProducto, int size, ProductoFiltros filtros)
     {
         var client = await ConexionSupabase.GetClientAsync();
-        var query  = client.From<Modelados.Productos.Productos>()
-                           .Select("id_producto")
-                           .Filter("id_producto", Op.LessThan, idProducto.ToString());
+        var query  = AplicarFiltros(
+            client.From<Modelados.Productos.Productos>()
+                  .Select("id_producto")
+                  .Filter("id_producto", Op.LessThan, idProducto.ToString()),
+            filtros);
 
+        var result  = await query.Get();
+        int previos = result?.Models.Count ?? 0;
+        return (previos / size) + 1;
+    }
+
+    private static Table AplicarFiltros(Table query, ProductoFiltros filtros)
+    {
         if (filtros.IdEstado.HasValue)
             query = query.Filter("id_estado",     Op.Equals, filtros.IdEstado.Value.ToString());
         if (filtros.IdFabricante.HasValue)
             query = query.Filter("id_fabricante", Op.Equals, filtros.IdFabricante.Value.ToString());
         if (filtros.IdPais.HasValue)
             query = query.Filter("id_pais",       Op.Equals, filtros.IdPais.Value.ToString());
-
-        var result  = await query.Get();
-        int previos = result?.Models.Count ?? 0;
-        return (previos / size) + 1;
+        return query;
     }
 
     private static async Task<(int total, int activos, int inactivos)> GetConteosAsync(
@@ -244,7 +237,7 @@ public class ProductoCrudRepository : RepositorioBase, IProductoRepository
             qTotal = qTotal.Filter("id_pais",       Op.Equals, filtros.IdPais.Value.ToString());
 
         var qActivos = client.From<Modelados.Productos.Productos>().Select("id_producto")
-                             .Filter("id_estado", Op.Equals, "1");
+                             .Filter("id_estado", Op.Equals, EstadoRegistro.Activo.ToString());
         if (filtros.IdFabricante.HasValue)
             qActivos = qActivos.Filter("id_fabricante", Op.Equals, filtros.IdFabricante.Value.ToString());
         if (filtros.IdPais.HasValue)

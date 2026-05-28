@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using CapaAplicacion.Common;
 using CapaAplicacion.Productos.Dtos;
+using static CapaAplicacion.Common.EstadoRegistro;
 using CapaAplicacion.Productos.Interfaces;
 using CapaAplicacion.Productos.Queries;
 using CapaAplicacion.Realtime;
@@ -211,12 +212,7 @@ public partial class ProductosViewModel : ObservableObject, IDisposable
         TotalCount     = pagina.Total;
         ActivosCount   = pagina.Activos;
         InactivosCount = pagina.Inactivos;
-        _filteredCount = filtros.IdEstado switch
-        {
-            1 => pagina.Activos,
-            2 => pagina.Inactivos,
-            _ => pagina.Total
-        };
+        _filteredCount = ResolverFilteredCount(pagina, filtros);
 
         PageRows = new ObservableCollection<ProductoDto>(pagina.Items);
 
@@ -296,8 +292,8 @@ public partial class ProductosViewModel : ObservableObject, IDisposable
     {
         IdEstado = _estadoFiltro switch
         {
-            EstadoFilter.Habilitados    => 1,
-            EstadoFilter.Deshabilitados => 2,
+            EstadoFilter.Habilitados    => Activo,
+            EstadoFilter.Deshabilitados => Inactivo,
             _                           => null
         },
         IdFabricante = _fabricanteIdFiltro,
@@ -349,6 +345,14 @@ public partial class ProductosViewModel : ObservableObject, IDisposable
         PaginaSiguienteCommand.NotifyCanExecuteChanged();
         UltimaPaginaCommand.NotifyCanExecuteChanged();
     }
+
+    private static int ResolverFilteredCount(PagedResult<ProductoDto> pagina, ProductoFiltros filtros) =>
+        filtros.IdEstado switch
+        {
+            Activo   => pagina.Activos,
+            Inactivo => pagina.Inactivos,
+            _        => pagina.Total
+        };
 
     // ── Realtime handler ────────────────────────────────────────────
 
@@ -407,13 +411,8 @@ public partial class ProductosViewModel : ObservableObject, IDisposable
 
             var pagina = r.Value!;
 
-            int nuevoFilteredCount = filtros.IdEstado switch
-            {
-                1 => pagina.Activos,
-                2 => pagina.Inactivos,
-                _ => pagina.Total
-            };
-            int nuevoTotalPages = Math.Max(1, (int)Math.Ceiling(nuevoFilteredCount / (double)PageSize));
+            int nuevoFilteredCount = ResolverFilteredCount(pagina, filtros);
+            int nuevoTotalPages    = Math.Max(1, (int)Math.Ceiling(nuevoFilteredCount / (double)PageSize));
 
             // INSERT: aplicar filas solo si seguimos en la última página.
             // Si el INSERT llenó la página y creó una nueva, _page < nuevoTotalPages
@@ -455,12 +454,7 @@ public partial class ProductosViewModel : ObservableObject, IDisposable
         TotalCount     = pagina.Total;
         ActivosCount   = pagina.Activos;
         InactivosCount = pagina.Inactivos;
-        _filteredCount = filtros.IdEstado switch
-        {
-            1 => pagina.Activos,
-            2 => pagina.Inactivos,
-            _ => pagina.Total
-        };
+        _filteredCount = ResolverFilteredCount(pagina, filtros);
 
         // Si la página actual quedó vacía (ej. último producto se deshabilitó), retroceder
         if (PageRows.Count > 0 && pagina.Items.Count == 0 && _page > 1)
