@@ -173,6 +173,10 @@ public class RealtimeService : IRealtimeService
         {
             if (_pkColumns.TryGetValue(tabla, out var pkCol))
                 id = obj.Value<long?>(pkCol);
+            else
+                Serilog.Log.Warning(
+                    "Realtime P-008: tabla '{Tabla}' no tiene PK mapeada en _pkColumns. " +
+                    "Agrégala para que IdRegistro se extraiga correctamente.", tabla);
 
             estado = obj.Value<int?>("id_estado");
         }

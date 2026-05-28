@@ -228,8 +228,10 @@ public class ProductoCrudRepository : RepositorioBase, IProductoRepository
     private static async Task<(int total, int activos, int inactivos)> GetConteosAsync(
         ProductoFiltros filtros, Supabase.Client client)
     {
-        // Count() no aplica filtros correctamente en esta versión del cliente.
+        // TODO P-007: Workaround — Supabase SDK v1.1.1: Count() no aplica filtros correctamente.
         // Se construyen dos queries independientes y se usa Get() que sí respeta los filtros.
+        // Revisar al actualizar el paquete Supabase NuGet: si Count(CountType.Exact) con Filter
+        // funciona correctamente, reemplazar ambas queries por una sola con Count().
         var qTotal = client.From<Modelados.Productos.Productos>().Select("id_producto");
         if (filtros.IdFabricante.HasValue)
             qTotal = qTotal.Filter("id_fabricante", Op.Equals, filtros.IdFabricante.Value.ToString());
