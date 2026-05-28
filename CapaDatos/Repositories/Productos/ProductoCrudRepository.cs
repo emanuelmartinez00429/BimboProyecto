@@ -3,6 +3,8 @@ using CapaAplicacion.Productos.Dtos;
 using CapaAplicacion.Productos.Interfaces;
 using CapaAplicacion.Productos.Queries;
 using ServicioConexión.Conexion;
+using Supabase.Postgrest;
+using Supabase.Postgrest.Interfaces;
 using Op  = Supabase.Postgrest.Constants.Operator;
 using Ord = Supabase.Postgrest.Constants.Ordering;
 using Ct  = Supabase.Postgrest.Constants.CountType;
@@ -151,7 +153,11 @@ public class ProductoCrudRepository : RepositorioBase, IProductoRepository
             query = query.Filter("id_pais",       Op.Equals, filtros.IdPais.Value.ToString());
 
         var resultado = await query
-            .Filter("nombre_producto", Op.ILike, $"%{termino}%")
+            .Or(new List<IPostgrestQueryFilter>
+            {
+                new QueryFilter("nombre_producto", Op.ILike, $"%{termino}%"),
+                new QueryFilter("codigo_producto",  Op.ILike, $"%{termino}%"),
+            })
             .Order("nombre_producto",  Ord.Ascending)
             .Limit(10)
             .Get();
