@@ -27,12 +27,13 @@ public static class DependencyInjection
         services.AddSingleton<IRealtimeService, RealtimeService>();
 
         // Buscador universal (entidad de dominio)
-        services.AddScoped<IRepository<Producto>, ProductoSearchRepository>();
-        services.AddScoped<IRepository<Empleado>, EmpleadoRepository>();
-        services.AddScoped<IRepository<Cliente>,  ClienteRepository>();
+        // Transient: repos sin estado mutable — Scoped era engañoso en WPF (sin scopes = singleton de facto)
+        services.AddTransient<IRepository<Producto>, ProductoSearchRepository>();
+        services.AddTransient<IRepository<Empleado>, EmpleadoRepository>();
+        services.AddTransient<IRepository<Cliente>,  ClienteRepository>();
 
         // Formulario de productos (DTO con FKs)
-        services.AddScoped<IProductoRepository, ProductoCrudRepository>();
+        services.AddTransient<IProductoRepository, ProductoCrudRepository>();
 
         return services;
     }

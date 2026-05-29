@@ -14,7 +14,11 @@ namespace CapaUI
 {
     public partial class App : Application
     {
-        public static IServiceProvider Services { get; private set; } = null!;
+        // C13: lazy-init para que App.Services funcione incluso cuando
+        // BimboPesaje (WinForms host) es el ejecutable de entrada y
+        // CapaUI.App.OnStartup nunca se invoca.
+        private static IServiceProvider? _services;
+        public static IServiceProvider Services => _services ??= ConfigureServices();
 
         private static LoginWindow? _loginActual;
         private static MainWindow?  _mainActual;
@@ -36,7 +40,7 @@ namespace CapaUI
                     outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
                 .CreateLogger();
 
-            Services = ConfigureServices();
+            _ = Services; // fuerza inicialización en el hilo UI (el getter ya crea el provider)
             ShutdownMode = ShutdownMode.OnExplicitShutdown;
             MostrarLogin();
         }
@@ -81,6 +85,7 @@ namespace CapaUI
         {
             _mainActual!.SesionCerrada -= OnSesionCerrada;
             _mainActual = null;
+            CapaDominio.SesionActual.Limpiar();   // limpia IdUsuario entre sesiones
             MostrarLogin();
         }
 

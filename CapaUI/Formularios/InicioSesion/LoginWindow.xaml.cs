@@ -154,6 +154,8 @@ namespace CapaUI.Formularios.InicioSesion
                 // Step 2: Establecer sesión
                 await AnimarStep(S2Dot, S2Text, 25, 55);
                 servicioSesionActual.Iniciar(result.Value!.IdUsuario, email);
+                SesionActual.IdUsuario     = result.Value!.IdUsuario;  // unifica las dos fuentes de sesión
+                SesionActual.NombreUsuario = email;
                 CompletarStep(S2Dot, S2Text);
 
                 // Step 3: Sincronizar módulos / permisos

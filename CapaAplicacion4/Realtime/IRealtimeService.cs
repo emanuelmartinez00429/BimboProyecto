@@ -20,7 +20,15 @@ public interface IRealtimeService
     void Desuscribir(string tabla, Action<CambioRealtime> handler);
 
     /// <summary>
-    /// Cierra todos los canales y desconecta el WebSocket.
+    /// Suscribe y devuelve un token IDisposable.
+    /// Al hacer Dispose() del token la suscripción se cancela automáticamente.
+    /// Patrón preferido para ViewModels — imposible olvidar la baja.
+    /// </summary>
+    IDisposable Observar(string tabla, Action<CambioRealtime> handler);
+
+    /// <summary>
+    /// Cierra todos los canales. El WebSocket se mantiene vivo
+    /// para reutilizarse en el próximo login sin latencia de reconexión.
     /// Llamar al cerrar sesión para liberar recursos.
     /// </summary>
     Task DesconectarAsync();

@@ -5,6 +5,7 @@ using static CapaAplicacion.Common.EstadoRegistro;
 using CapaAplicacion.Productos.Interfaces;
 using CapaAplicacion.Productos.Queries;
 using CapaAplicacion.Realtime;
+using CapaUI.Core.MVVM;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
@@ -12,12 +13,15 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos;
 
 public enum EstadoFilter { Habilitados, Deshabilitados, Todos }
 
-public partial class ProductosViewModel : ObservableObject, IDisposable
+/// <summary>
+/// ViewModel del formulario de Productos.
+/// Hereda de RealtimeAwareViewModel: la suscripción a "productos" se cancela
+/// automáticamente al Dispose(), sin posibilidad de olvidar la baja.
+/// </summary>
+public partial class ProductosViewModel : RealtimeAwareViewModel
 {
     private readonly IProductoRepository _repo;
-    private readonly IRealtimeService    _realtime;
     private CancellationTokenSource? _searchCts;
-    private bool _disposed;
 
     private string       _query              = "";
     private EstadoFilter _estadoFiltro       = EstadoFilter.Habilitados;
@@ -44,14 +48,14 @@ public partial class ProductosViewModel : ObservableObject, IDisposable
     [NotifyCanExecuteChangedFor(nameof(PaginaSiguienteCommand))]
     [NotifyCanExecuteChangedFor(nameof(UltimaPaginaCommand))]
     private bool _isLoading;
-    [ObservableProperty] private bool          _showSuggestions;
-    [ObservableProperty] private int           _highlightIndex = -1;
-    [ObservableProperty] private int           _totalCount;
-    [ObservableProperty] private int           _activosCount;
-    [ObservableProperty] private int           _inactivosCount;
+    [ObservableProperty] private bool             _showSuggestions;
+    [ObservableProperty] private int              _highlightIndex = -1;
+    [ObservableProperty] private int              _totalCount;
+    [ObservableProperty] private int              _activosCount;
+    [ObservableProperty] private int              _inactivosCount;
     [ObservableProperty] private List<FiltroItem> _fabricantes = new();
     [ObservableProperty] private List<FiltroItem> _paises      = new();
-    [ObservableProperty] private string        _errorCarga    = "";
+    [ObservableProperty] private string           _errorCarga  = "";
 
     public bool   HaySeleccionado   => Seleccionado is not null;
     public string TextoSeleccionado => Seleccionado is null
@@ -142,9 +146,9 @@ public partial class ProductosViewModel : ObservableObject, IDisposable
     public event Action?              FiltrosLimpiados;
 
     public ProductosViewModel(IProductoRepository repo, IRealtimeService realtime)
+        : base(realtime)
     {
-        _repo     = repo;
-        _realtime = realtime;
+        _repo = repo;
     }
 
     public async Task CargarDatosAsync()
@@ -152,7 +156,6 @@ public partial class ProductosViewModel : ObservableObject, IDisposable
         IsLoading  = true;
         ErrorCarga = string.Empty;
 
-        // Filtros en paralelo entre sí
         var fabTask  = _repo.GetFabricantesAsync();
         var paisTask = _repo.GetPaisesAsync();
         await Task.WhenAll(fabTask, paisTask);
@@ -165,11 +168,10 @@ public partial class ProductosViewModel : ObservableObject, IDisposable
         if (!rPaises.Success) { ErrorCarga = rPaises.Error; IsLoading = false; return; }
         Paises = rPaises.Value!.ToList();
 
-        // Página después de filtros (maneja su propio IsLoading)
         await CargarPaginaAsync();
 
-        // Suscribir a cambios Realtime después de la carga inicial
-        await _realtime.SuscribirAsync("productos", OnCambioProducto);
+        // Observar() registra el token de baja — se cancela en Dispose() automáticamente
+        Observar("productos", OnCambioProducto);
     }
 
     public void RefrescarDatos() => _ = CargarPaginaAsync();
@@ -184,18 +186,17 @@ public partial class ProductosViewModel : ObservableObject, IDisposable
 
         var filtros = BuildFiltros();
 
-        // Timeout de 10s — si la red no responde, el usuario no queda bloqueado
         var task = _repo.GetPagedAsync(_page, PageSize, filtros);
         if (await Task.WhenAny(task, Task.Delay(TimeoutMs)) != task)
         {
-            if (myGen != _loadGeneration) return; // carga más nueva ya tomó el control
+            if (myGen != _loadGeneration) return;
             ErrorCarga = "La carga tardó demasiado. Intente de nuevo.";
             IsLoading  = false;
             return;
         }
 
         var r = await task;
-        if (myGen != _loadGeneration) return; // resultado obsoleto — descartarlo silenciosamente
+        if (myGen != _loadGeneration) return;
 
         if (!r.Success)
         {
@@ -206,8 +207,6 @@ public partial class ProductosViewModel : ObservableObject, IDisposable
 
         var pagina = r.Value!;
 
-        // Conteos y _filteredCount ANTES de PageRows — su PropertyChanged
-        // dispara RefrescarPaginacion que necesita TotalPages ya actualizado
         TotalCount     = pagina.Total;
         ActivosCount   = pagina.Activos;
         InactivosCount = pagina.Inactivos;
@@ -268,7 +267,6 @@ public partial class ProductosViewModel : ObservableObject, IDisposable
         var enPagina = PageRows.FirstOrDefault(x => x.Id == p.Id);
         if (enPagina is not null) { Seleccionado = enPagina; return; }
 
-        // El producto está en otra página — navegar a ella antes de seleccionar
         _pendingSelectionId = p.Id;
         _ = NavegarAPaginaDeProductoAsync(p.Id);
     }
@@ -278,7 +276,6 @@ public partial class ProductosViewModel : ObservableObject, IDisposable
         var r = await _repo.GetPaginaDeProductoAsync(idProducto, PageSize, BuildFiltros());
         if (!r.Success) { _pendingSelectionId = null; ErrorCarga = r.Error; return; }
 
-        // Actualizar _page directamente para no disparar CargarPaginaAsync() dos veces
         _page = r.Value;
         OnPropertyChanged(nameof(Page));
         OnPropertyChanged(nameof(PageInfo));
@@ -354,7 +351,7 @@ public partial class ProductosViewModel : ObservableObject, IDisposable
 
     private void OnCambioProducto(CambioRealtime cambio)
     {
-        if (_disposed) return;
+        if (Disposed) return;   // guard post-dispose (Disposed viene de RealtimeAwareViewModel)
 
         bool afectaPaginaActual = cambio.IdRegistro.HasValue
             && PageRows.Any(p => p.Id == cambio.IdRegistro.Value);
@@ -372,18 +369,13 @@ public partial class ProductosViewModel : ObservableObject, IDisposable
         }
     }
 
-    /// <summary>
-    /// Recarga datos de la página actual sin tocar IsLoading ni ErrorCarga.
-    /// Invocado exclusivamente desde OnCambioProducto (eventos Realtime).
-    /// </summary>
     private async Task CargarPaginaSilenciosamenteAsync(bool actualizarFilas, bool esInsert)
     {
         try
         {
-            if (IsLoading) return; // carga de usuario activa, ella actualizará los datos
+            if (IsLoading) return;
 
-            int genCapturada = _loadGeneration; // leer SIN incrementar
-
+            int genCapturada = _loadGeneration;
             var filtros = BuildFiltros();
             Result<PagedResult<ProductoDto>> r;
 
@@ -397,8 +389,7 @@ public partial class ProductosViewModel : ObservableObject, IDisposable
                 return;
             }
 
-            if (_loadGeneration != genCapturada) return; // usuario navegó, descartar
-
+            if (_loadGeneration != genCapturada) return;
             if (!r.Success)
             {
                 Serilog.Log.Warning("ProductosVM: silent refresh — error: {Error}", r.Error);
@@ -406,13 +397,9 @@ public partial class ProductosViewModel : ObservableObject, IDisposable
             }
 
             var pagina = r.Value!;
-
             int nuevoFilteredCount = ResolverFilteredCount(pagina, filtros);
             int nuevoTotalPages    = Math.Max(1, (int)Math.Ceiling(nuevoFilteredCount / (double)PageSize));
 
-            // INSERT: aplicar filas solo si seguimos en la última página.
-            // Si el INSERT llenó la página y creó una nueva, _page < nuevoTotalPages
-            // y el nuevo registro no está en esta página → solo actualizar conteos.
             bool debeActualizarFilas = actualizarFilas
                 && (!esInsert || _page == nuevoTotalPages);
 
@@ -452,7 +439,6 @@ public partial class ProductosViewModel : ObservableObject, IDisposable
         InactivosCount = pagina.Inactivos;
         _filteredCount = ResolverFilteredCount(pagina, filtros);
 
-        // Si la página actual quedó vacía (ej. último producto se deshabilitó), retroceder
         if (PageRows.Count > 0 && pagina.Items.Count == 0 && _page > 1)
         {
             Page = _page - 1;
@@ -465,13 +451,11 @@ public partial class ProductosViewModel : ObservableObject, IDisposable
         NotifyPaginationCanExecuteChanged();
     }
 
-    // ── IDisposable ─────────────────────────────────────────────────
+    // ── IDisposable — implementado en RealtimeAwareViewModel ────────
+    // OnDispose() libera el CancellationTokenSource de búsqueda
 
-    public void Dispose()
+    protected override void OnDispose()
     {
-        if (_disposed) return;
-        _disposed = true;
-        _realtime.Desuscribir("productos", OnCambioProducto);
         _searchCts?.Cancel();
         _searchCts?.Dispose();
     }

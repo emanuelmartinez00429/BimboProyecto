@@ -2,12 +2,14 @@ using CapaAplicacion.Common;
 using CapaAplicacion.Productos.Dtos;
 using CapaAplicacion.Productos.Interfaces;
 using CapaAplicacion.Productos.Queries;
+using CapaDatos.Modelados.Productos;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using ServicioConexión.Conexion;
 using Supabase.Postgrest;
 using Supabase.Postgrest.Interfaces;
 using Op    = Supabase.Postgrest.Constants.Operator;
 using Ord   = Supabase.Postgrest.Constants.Ordering;
-using Ct    = Supabase.Postgrest.Constants.CountType;
 using Table = Supabase.Postgrest.Interfaces.IPostgrestTable<CapaDatos.Modelados.Productos.Productos>;
 
 namespace CapaDatos.Repositories.Productos;
@@ -116,9 +118,9 @@ public class ProductoCrudRepository : RepositorioBase, IProductoRepository
         int from = (page - 1) * size;
         int to   = from + size - 1;
 
-        // Página + conteos en paralelo
+        // Página + conteos en paralelo (conteos via RPC — sin descargar filas)
         var pageTask    = query.Order("id_producto", Ord.Ascending).Range(from, to).Get();
-        var conteosTask = GetConteosAsync(filtros, client);
+        var conteosTask = GetConteosRpcAsync(filtros, client);
         await Task.WhenAll(pageTask, conteosTask);
 
         var items   = pageTask.Result?.Models.Select(Map).ToList() ?? [];
@@ -152,51 +154,44 @@ public class ProductoCrudRepository : RepositorioBase, IProductoRepository
         return resultado?.Models.Select(Map).ToList() ?? [];
     }
 
+    // C12: Consultar catálogo directamente en vez de descargar toda la tabla productos
+
     private async Task<IReadOnlyList<FiltroItem>> GetFabricantesInternal()
     {
         var client    = await ConexionSupabase.GetClientAsync();
-        var resultado = await client.From<Modelados.Productos.Productos>()
-            .Select("id_fabricante, fabricante(nombre_fabricante)")
+        var resultado = await client.From<FabricanteConsulta>()
+            .Select("id_fabricante, nombre_fabricante")
+            .Order("nombre_fabricante", Ord.Ascending)
             .Get();
 
         return (resultado?.Models ?? [])
-            .Where(p => p.Fabricante != null)
-            .Select(p => (p.idFabricante, p.Fabricante!.nombreFabricante))
-            .DistinctBy(x => x.idFabricante)
-            .OrderBy(x => x.nombreFabricante)
-            .Select(x => new FiltroItem { Id = x.idFabricante, Nombre = x.nombreFabricante })
+            .Select(f => new FiltroItem { Id = f.idFabricante, Nombre = f.nombreFabricante })
             .ToList();
     }
 
     private async Task<IReadOnlyList<FiltroItem>> GetPaisesInternal()
     {
         var client    = await ConexionSupabase.GetClientAsync();
-        var resultado = await client.From<Modelados.Productos.Productos>()
-            .Select("id_pais, paises(nombre_pais)")
+        var resultado = await client.From<Paises>()
+            .Select("id_pais, nombre_pais")
+            .Order("nombre_pais", Ord.Ascending)
             .Get();
 
         return (resultado?.Models ?? [])
-            .Where(p => p.Paises != null)
-            .Select(p => (p.idPais, p.Paises!.nombrePais))
-            .DistinctBy(x => x.idPais)
-            .OrderBy(x => x.nombrePais)
-            .Select(x => new FiltroItem { Id = x.idPais, Nombre = x.nombrePais })
+            .Select(p => new FiltroItem { Id = p.idPais, Nombre = p.nombrePais })
             .ToList();
     }
 
     private async Task<IReadOnlyList<FiltroItem>> GetCategoriasInternal()
     {
         var client    = await ConexionSupabase.GetClientAsync();
-        var resultado = await client.From<Modelados.Productos.Productos>()
-            .Select("id_categoria, categoria(nombre_categoria)")
+        var resultado = await client.From<Categoria>()
+            .Select("id_categoria, nombre_categoria")
+            .Order("nombre_categoria", Ord.Ascending)
             .Get();
 
         return (resultado?.Models ?? [])
-            .Where(p => p.Categoria != null)
-            .Select(p => (p.idCategoria, p.Categoria!.nombreCategoria))
-            .DistinctBy(x => x.idCategoria)
-            .OrderBy(x => x.nombreCategoria)
-            .Select(x => new FiltroItem { Id = x.idCategoria, Nombre = x.nombreCategoria })
+            .Select(c => new FiltroItem { Id = c.idCategoria, Nombre = c.nombreCategoria })
             .ToList();
     }
 
@@ -225,32 +220,31 @@ public class ProductoCrudRepository : RepositorioBase, IProductoRepository
         return query;
     }
 
-    private static async Task<(int total, int activos, int inactivos)> GetConteosAsync(
+    /// <summary>
+    /// C12: Obtiene conteos via RPC contar_productos — un viaje al servidor,
+    /// sin descargar filas. Reemplaza el workaround de GET + .Models.Count.
+    /// </summary>
+    private static async Task<(int total, int activos, int inactivos)> GetConteosRpcAsync(
         ProductoFiltros filtros, Supabase.Client client)
     {
-        // TODO P-007: Workaround — Supabase SDK v1.1.1: Count() no aplica filtros correctamente.
-        // Se construyen dos queries independientes y se usa Get() que sí respeta los filtros.
-        // Revisar al actualizar el paquete Supabase NuGet: si Count(CountType.Exact) con Filter
-        // funciona correctamente, reemplazar ambas queries por una sola con Count().
-        var qTotal = client.From<Modelados.Productos.Productos>().Select("id_producto");
-        if (filtros.IdFabricante.HasValue)
-            qTotal = qTotal.Filter("id_fabricante", Op.Equals, filtros.IdFabricante.Value.ToString());
-        if (filtros.IdPais.HasValue)
-            qTotal = qTotal.Filter("id_pais",       Op.Equals, filtros.IdPais.Value.ToString());
+        var parametros = new Dictionary<string, object?>();
+        if (filtros.IdEstado.HasValue)     parametros["p_estado"] = filtros.IdEstado.Value;
+        if (filtros.IdFabricante.HasValue) parametros["p_fab"]    = filtros.IdFabricante.Value;
+        if (filtros.IdPais.HasValue)       parametros["p_pais"]   = filtros.IdPais.Value;
 
-        var qActivos = client.From<Modelados.Productos.Productos>().Select("id_producto")
-                             .Filter("id_estado", Op.Equals, EstadoRegistro.Activo.ToString());
-        if (filtros.IdFabricante.HasValue)
-            qActivos = qActivos.Filter("id_fabricante", Op.Equals, filtros.IdFabricante.Value.ToString());
-        if (filtros.IdPais.HasValue)
-            qActivos = qActivos.Filter("id_pais",       Op.Equals, filtros.IdPais.Value.ToString());
+        var response = await client.Rpc("contar_productos", parametros);
+        var json     = response?.Content;
 
-        var totalTask   = qTotal.Get();
-        var activosTask = qActivos.Get();
-        await Task.WhenAll(totalTask, activosTask);
+        if (string.IsNullOrWhiteSpace(json))
+            return (0, 0, 0);
 
-        int total   = totalTask.Result?.Models.Count   ?? 0;
-        int activos = activosTask.Result?.Models.Count ?? 0;
-        return (total, activos, total - activos);
+        var arr  = JArray.Parse(json);
+        var row  = arr.FirstOrDefault() as JObject;
+        if (row is null) return (0, 0, 0);
+
+        int total   = row["total"]?.Value<int>()    ?? 0;
+        int activos = row["activos"]?.Value<int>()  ?? 0;
+        int inact   = row["inactivos"]?.Value<int>() ?? 0;
+        return (total, activos, inact);
     }
 }

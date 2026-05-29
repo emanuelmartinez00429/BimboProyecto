@@ -13,21 +13,26 @@ namespace CapaDatos.Realtime;
 ///
 /// Patrones: Facade (oculta Supabase API), Mediator (desacopla tablas de ViewModels),
 ///           Observer (suscriptores por tabla).
+///
+/// Thread-safety:
+///   _stateLock (object)   — protege mutaciones rápidas de diccionarios
+///   _lock (SemaphoreSlim) — serializa I/O async (apertura de canales)
+///   Los dos nunca se adquieren juntos → sin riesgo de deadlock.
 /// </summary>
 public class RealtimeService : IRealtimeService
 {
     private readonly SynchronizationContext? _syncContext;
-    private readonly SemaphoreSlim _lock = new(1, 1);
+    private readonly SemaphoreSlim _lock      = new(1, 1);
+    private readonly object        _stateLock = new();
 
-    // Lock ligero para operaciones rápidas sobre los diccionarios.
-    // Evita usar SemaphoreSlim.Wait() (síncrono) que causa deadlock en UI thread.
-    private readonly object _stateLock = new();
-
-    private readonly Dictionary<string, IRealtimeChannel> _canales = new();
+    private readonly Dictionary<string, IRealtimeChannel> _canales      = new();
     private readonly Dictionary<string, List<Action<CambioRealtime>>> _suscriptores = new();
 
+    // Flag para registrar el handler de reconexión solo una vez (C7)
+    private bool _estadoHandlerRegistrado;
+
     /// <summary>
-    /// Mapeo tabla → columna PK. Se usa para extraer el ID del registro
+    /// Mapeo tabla → columna PK. Usado para extraer el ID del registro
     /// desde el payload JSON crudo de Supabase Realtime.
     /// </summary>
     private static readonly Dictionary<string, string> _pkColumns = new()
@@ -48,10 +53,12 @@ public class RealtimeService : IRealtimeService
 
     public RealtimeService()
     {
-        // Captura el SynchronizationContext del UI thread.
-        // El DI lo construye en el hilo principal de WPF,
-        // así que aquí capturamos el Dispatcher context.
         _syncContext = SynchronizationContext.Current;
+        if (_syncContext is null)
+            Serilog.Log.Warning(
+                "RealtimeService: SynchronizationContext nulo en el constructor — " +
+                "los handlers correrán en el hilo del socket en vez del UI thread. " +
+                "Resolver este servicio en el hilo de UI para evitar cross-thread exceptions.");
     }
 
     // ── IRealtimeService ─────────────────────────────────────────────
@@ -64,21 +71,17 @@ public class RealtimeService : IRealtimeService
         {
             if (!_suscriptores.ContainsKey(tabla))
                 _suscriptores[tabla] = new List<Action<CambioRealtime>>();
-
             _suscriptores[tabla].Add(handler);
             necesitaCanal = !_canales.ContainsKey(tabla);
         }
 
-        // Abrir canal fuera del lock rápido — usa SemaphoreSlim solo para I/O
         if (necesitaCanal)
         {
             await _lock.WaitAsync();
             try
             {
-                // Double-check: otro hilo pudo abrirlo mientras esperábamos
                 bool yaExiste;
                 lock (_stateLock) { yaExiste = _canales.ContainsKey(tabla); }
-
                 if (!yaExiste)
                     await AbrirCanalAsync(tabla);
             }
@@ -91,19 +94,33 @@ public class RealtimeService : IRealtimeService
 
     public void Desuscribir(string tabla, Action<CambioRealtime> handler)
     {
+        IRealtimeChannel? canalACerrar = null;
+
         lock (_stateLock)
         {
             if (!_suscriptores.TryGetValue(tabla, out var handlers)) return;
-
             handlers.Remove(handler);
 
-            // Último suscriptor → cerrar canal
             if (handlers.Count == 0)
             {
                 _suscriptores.Remove(tabla);
-                CerrarCanal(tabla);
+                if (_canales.Remove(tabla, out var canal))
+                    canalACerrar = canal;   // saca del dict bajo lock…
             }
         }
+
+        if (canalACerrar is not null)        // …cierra FUERA del lock (I/O de red)
+        {
+            try   { canalACerrar.Unsubscribe(); }
+            catch (Exception ex) { Serilog.Log.Warning(ex, "Realtime: error al cerrar canal '{Tabla}'", tabla); }
+            Serilog.Log.Information("Realtime: canal '{Tabla}' cerrado", tabla);
+        }
+    }
+
+    public IDisposable Observar(string tabla, Action<CambioRealtime> handler)
+    {
+        _ = SuscribirAsync(tabla, handler);   // apertura del canal en background
+        return new Suscripcion(this, tabla, handler);
     }
 
     // ── Canal lifecycle ──────────────────────────────────────────────
@@ -112,10 +129,25 @@ public class RealtimeService : IRealtimeService
     {
         var client = await ConexionSupabase.GetClientAsync();
 
-        // AutoConnectRealtime = true inicia la conexión, pero puede no estar lista aún.
-        // ConnectAsync() es idempotente — si ya está conectado, no hace nada.
+        // ConnectAsync() es idempotente — si ya está conectado, no hace nada
         if (client.Realtime.Socket is null || !client.Realtime.Socket.IsConnected)
             await client.Realtime.ConnectAsync();
+
+        // Registrar handler de log de reconexión una sola vez (C7)
+        // Nota: RealtimeChannel.HandleSocketStateChanged ya re-suscribe canales
+        // automáticamente tras reconexión del WebSocket (SDK 7.0.2, comportamiento nativo).
+        lock (_stateLock)
+        {
+            if (!_estadoHandlerRegistrado)
+            {
+                _estadoHandlerRegistrado = true;
+                client.Realtime.AddStateChangedHandler((_, state) =>
+                {
+                    if (state == Supabase.Realtime.Constants.SocketState.Reconnect)
+                        Serilog.Log.Information("Realtime: WebSocket reconectando — el SDK re-suscribirá los canales activos");
+                });
+            }
+        }
 
         var channel = client.Realtime.Channel($"rt-{tabla}");
         channel.Register(new PostgresChangesOptions("public", tabla, ListenType.All));
@@ -124,15 +156,6 @@ public class RealtimeService : IRealtimeService
 
         lock (_stateLock) { _canales[tabla] = channel; }
         Serilog.Log.Information("Realtime: canal '{Tabla}' abierto", tabla);
-    }
-
-    private void CerrarCanal(string tabla)
-    {
-        if (!_canales.TryGetValue(tabla, out var channel)) return;
-
-        channel.Unsubscribe();
-        _canales.Remove(tabla);
-        Serilog.Log.Information("Realtime: canal '{Tabla}' cerrado", tabla);
     }
 
     // ── Procesamiento de eventos ─────────────────────────────────────
@@ -154,11 +177,9 @@ public class RealtimeService : IRealtimeService
             {
                 foreach (var h in snapshot)
                 {
-                    try { h(cambio); }
+                    try   { h(cambio); }
                     catch (Exception ex)
-                    {
-                        Serilog.Log.Warning(ex, "Realtime: error en handler para '{Tabla}'", tabla);
-                    }
+                    { Serilog.Log.Warning(ex, "Realtime: error en handler para '{Tabla}'", tabla); }
                 }
             });
         }
@@ -168,29 +189,22 @@ public class RealtimeService : IRealtimeService
         }
     }
 
-    /// <summary>
-    /// Extrae operación, ID del registro y nuevo estado desde el payload
-    /// crudo de Supabase Realtime, sin requerir un tipo genérico.
-    /// </summary>
     private static CambioRealtime ExtraerCambio(string tabla, PostgresChangesResponse change)
     {
         string operacion = change.Payload?.Data?.Type.ToString() ?? "UNKNOWN";
 
-        long? id = null;
-        int? estado = null;
+        long? id     = null;
+        int?  estado = null;
 
-        // data.Record   → SocketResponsePayload (wrapper del SDK)
-        // data.Record.Record → object (JObject con los valores reales de columnas)
         var data    = change.Payload?.Data;
-        var rowData = data?.Record?.Record; // object? — JObject en runtime
+        var rowData = data?.Record?.Record;
         if (rowData is JObject obj)
         {
             if (_pkColumns.TryGetValue(tabla, out var pkCol))
                 id = obj.Value<long?>(pkCol);
             else
                 Serilog.Log.Warning(
-                    "Realtime P-008: tabla '{Tabla}' no tiene PK mapeada en _pkColumns. " +
-                    "Agrégala para que IdRegistro se extraiga correctamente.", tabla);
+                    "Realtime P-008: tabla '{Tabla}' no tiene PK mapeada en _pkColumns.", tabla);
 
             estado = obj.Value<int?>("id_estado");
         }
@@ -198,38 +212,61 @@ public class RealtimeService : IRealtimeService
         return new CambioRealtime(operacion, id, estado);
     }
 
-    // ── Desconexión ────────────────────────────────────────────────
+    // ── Desconexión ─────────────────────────────────────────────────
 
     public Task DesconectarAsync()
     {
         lock (_stateLock)
         {
-            // Cerrar todos los canales
             foreach (var tabla in _canales.Keys.ToList())
-                CerrarCanal(tabla);
-
+            {
+                if (_canales.Remove(tabla, out var canal))
+                {
+                    try   { canal.Unsubscribe(); }
+                    catch (Exception ex) { Serilog.Log.Warning(ex, "Realtime: error al cerrar canal '{Tabla}'", tabla); }
+                }
+            }
             _suscriptores.Clear();
         }
 
         // No llamamos Disconnect() al WebSocket:
-        // - La conexión es ligera (~1-2 KB) y se reutiliza en el próximo login.
-        // - Disconnect() hace que ConnectAsync() sea lento al reconectar,
-        //   lo que ampliaba la ventana de deadlock.
-        // - Los canales ya están cerrados, así que no llegan más eventos.
+        // La conexión es ligera y se reutiliza en el próximo login.
+        // Disconnect() hace que ConnectAsync() sea lento al reconectar,
+        // lo que amplía la ventana de deadlock.
 
         Serilog.Log.Information("Realtime: desconectado — todos los canales cerrados");
         return Task.CompletedTask;
     }
 
-    /// <summary>
-    /// Despacha un callback al UI thread usando el SynchronizationContext
-    /// capturado en el constructor. Esto evita que CapaDatos dependa de WPF.
-    /// </summary>
+    // ── Marshaling al UI thread ──────────────────────────────────────
+
     private void DespacharEnUIThread(Action accion)
     {
         if (_syncContext != null)
             _syncContext.Post(_ => accion(), null);
         else
             accion();
+    }
+
+    // ── Token de suscripción (C4) ────────────────────────────────────
+
+    /// <summary>
+    /// Token devuelto por Observar(). Al hacer Dispose() se desuscribe automáticamente.
+    /// Idempotente y thread-safe.
+    /// </summary>
+    private sealed class Suscripcion : IDisposable
+    {
+        private RealtimeService?              _svc;
+        private readonly string               _tabla;
+        private readonly Action<CambioRealtime> _handler;
+
+        public Suscripcion(RealtimeService svc, string tabla, Action<CambioRealtime> handler)
+            => (_svc, _tabla, _handler) = (svc, tabla, handler);
+
+        public void Dispose()
+        {
+            var svc = Interlocked.Exchange(ref _svc, null);
+            svc?.Desuscribir(_tabla, _handler);
+        }
     }
 }

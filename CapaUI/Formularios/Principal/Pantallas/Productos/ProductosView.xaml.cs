@@ -47,6 +47,11 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
 
         private async void UserControl_Loaded(object sender, RoutedEventArgs e)
         {
+            // Guard: Loaded puede dispararse varias veces (re-parenting en WPF).
+            // Sin este guard, dos VMs se suscriben al mismo canal Realtime y el primero
+            // queda retenido para siempre en RealtimeService._suscriptores.
+            if (_vm != null) return;
+
             _vm = App.Services.GetRequiredService<ProductosViewModel>();
             _vm.SolicitarNuevo   += AbrirModalNuevo;
             _vm.SolicitarEditar  += AbrirModalEditar;
@@ -68,6 +73,8 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
             _vm.PropertyChanged  -= OnVmPropertyChanged;
             _vm.Dispose();
             DataContext = null;
+            _vm = null!;          // permite recrear limpio si el control vuelve al árbol
+            DetenerSpinner();     // cierra el Storyboard para liberar SpinnerPath
         }
 
         private void OnFiltrosLimpiados()
@@ -137,7 +144,10 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
 
         private void DetenerSpinner()
         {
-            _spinnerStory?.Stop();
+            if (_spinnerStory is null) return;
+            _spinnerStory.Stop();
+            _spinnerStory.Remove();        // desasocia el clock del elemento destino
+            _spinnerStory.Children.Clear(); // corta la referencia a SpinnerPath
             _spinnerStory = null;
         }
 
