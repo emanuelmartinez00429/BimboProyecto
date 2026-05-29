@@ -14,7 +14,7 @@
         </ResourceDictionary>
     </Window.Resources>
 
-    <Border Background="#F4F5F7">
+    <Border Background="#F4F5F7" BorderBrush="#C8CDD6" BorderThickness="1">
         <Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="340"/>

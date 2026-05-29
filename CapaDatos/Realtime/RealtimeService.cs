@@ -94,26 +94,19 @@ public class RealtimeService : IRealtimeService
 
     public void Desuscribir(string tabla, Action<CambioRealtime> handler)
     {
-        IRealtimeChannel? canalACerrar = null;
-
         lock (_stateLock)
         {
             if (!_suscriptores.TryGetValue(tabla, out var handlers)) return;
             handlers.Remove(handler);
 
+            // Modelo "keep-open": el canal Supabase NO se cierra al quedar sin suscriptores.
+            // Cerrar y reabrir canales provoca churn de Pushes (cada Push tiene un System.Timers.Timer)
+            // y, como Client.Channel() deduplica por topic, reabrir reutiliza el MISMO canal y vuelve a
+            // apilar Register()/AddPostgresChangeHandler() → fuga de bindings, despacho duplicado y
+            // timers que no bajan. El canal permanece vivo durante la sesión y se libera de una sola vez
+            // en DesconectarAsync() (reset total del cliente).
             if (handlers.Count == 0)
-            {
                 _suscriptores.Remove(tabla);
-                if (_canales.Remove(tabla, out var canal))
-                    canalACerrar = canal;   // saca del dict bajo lock…
-            }
-        }
-
-        if (canalACerrar is not null)        // …cierra FUERA del lock (I/O de red)
-        {
-            try   { canalACerrar.Unsubscribe(); }
-            catch (Exception ex) { Serilog.Log.Warning(ex, "Realtime: error al cerrar canal '{Tabla}'", tabla); }
-            Serilog.Log.Information("Realtime: canal '{Tabla}' cerrado", tabla);
         }
     }
 
@@ -214,28 +207,23 @@ public class RealtimeService : IRealtimeService
 
     // ── Desconexión ─────────────────────────────────────────────────
 
-    public Task DesconectarAsync()
+    public async Task DesconectarAsync()
     {
         lock (_stateLock)
         {
-            foreach (var tabla in _canales.Keys.ToList())
-            {
-                if (_canales.Remove(tabla, out var canal))
-                {
-                    try   { canal.Unsubscribe(); }
-                    catch (Exception ex) { Serilog.Log.Warning(ex, "Realtime: error al cerrar canal '{Tabla}'", tabla); }
-                }
-            }
+            _canales.Clear();
             _suscriptores.Clear();
+            _estadoHandlerRegistrado = false;   // el próximo login re-registra sobre el cliente nuevo
         }
 
-        // No llamamos Disconnect() al WebSocket:
-        // La conexión es ligera y se reutiliza en el próximo login.
-        // Disconnect() hace que ConnectAsync() sea lento al reconectar,
-        // lo que amplía la ventana de deadlock.
+        // Reset total: dispone el socket Realtime y el cliente Supabase completo (con todos sus
+        // timers: Push._timer, RealtimeChannel._rejoinTimer y los del WebsocketClient interno).
+        // El próximo login reconstruye un cliente limpio, sin canales ni handlers heredados de la
+        // sesión previa. Es la única forma fiable de soltar lo acumulado, porque la librería no
+        // expone una baja que libere los canales rooteados por el socket.
+        await ConexionSupabase.ResetAsync();
 
-        Serilog.Log.Information("Realtime: desconectado — todos los canales cerrados");
-        return Task.CompletedTask;
+        Serilog.Log.Information("Realtime: reset total — socket dispuesto y estado limpio");
     }
 
     // ── Marshaling al UI thread ──────────────────────────────────────
