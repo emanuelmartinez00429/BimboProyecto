@@ -36,6 +36,7 @@ namespace CapaUI.Formularios.InicioSesion
                 StartCountdown();
                 D1.Focus();
             };
+            Unloaded += (_, _) => _timer?.Stop();
         }
 
         private void StartCountdown()

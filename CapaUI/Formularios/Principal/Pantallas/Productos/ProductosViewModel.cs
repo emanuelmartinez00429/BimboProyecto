@@ -139,7 +139,6 @@ public partial class ProductosViewModel : ObservableObject, IDisposable
 
     public event Action?              SolicitarNuevo;
     public event Action<ProductoDto>? SolicitarEditar;
-    public event Action?              SolicitarSalir;
     public event Action?              FiltrosLimpiados;
 
     public ProductosViewModel(IProductoRepository repo, IRealtimeService realtime)
@@ -319,9 +318,6 @@ public partial class ProductosViewModel : ObservableObject, IDisposable
         FiltrosLimpiados?.Invoke();
         _ = CargarPaginaAsync();
     }
-
-    [RelayCommand]
-    private void Salir() => SolicitarSalir?.Invoke();
 
     [RelayCommand(CanExecute = nameof(PuedePaginaAnterior))]
     private void PrimeraPagina() => Page = 1;

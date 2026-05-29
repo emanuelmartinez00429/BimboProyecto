@@ -50,41 +50,55 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
             _vm = App.Services.GetRequiredService<ProductosViewModel>();
             _vm.SolicitarNuevo   += AbrirModalNuevo;
             _vm.SolicitarEditar  += AbrirModalEditar;
-            _vm.SolicitarSalir   += () => SalirSolicitado?.Invoke();
-            _vm.FiltrosLimpiados += () =>
-            {
-                _suppressFilterChange = true;
-                RbHabilitados.IsChecked = true;
-                if (_fabricantesView != null) _fabricantesView.Filter = null;
-                CmbFabricante.SelectedIndex = 0;
-                if (_paisesView != null) _paisesView.Filter = null;
-                CmbPais.SelectedIndex = 0;
-                _suppressFilterChange = false;
-            };
-            _vm.PropertyChanged += (s, ev) =>
-            {
-                switch (ev.PropertyName)
-                {
-                    case nameof(ProductosViewModel.PageRows):        RefrescarPaginacion();  break;
-                    case nameof(ProductosViewModel.IsLoading):       ActualizarCarga();      break;
-                    case nameof(ProductosViewModel.NoResults):
-                        EmptyState.Visibility = _vm.NoResults ? Visibility.Visible : Visibility.Collapsed;
-                        break;
-                    case nameof(ProductosViewModel.HaySeleccionado):
-                        SelectedInfo.Visibility = _vm.HaySeleccionado ? Visibility.Visible : Visibility.Collapsed;
-                        break;
-                    case nameof(ProductosViewModel.Seleccionado):    SeleccionarEnTabla();   break;
-                    case nameof(ProductosViewModel.Fabricantes):     PoblarFabricantes();    break;
-                    case nameof(ProductosViewModel.Paises):          PoblarPaises();         break;
-                    case nameof(ProductosViewModel.ShowSuggestions): ActualizarSuggestions();break;
-                    // HighlightIndex: resuelto por ListBox.SelectedIndex OneWay binding
-                }
-            };
+            _vm.FiltrosLimpiados += OnFiltrosLimpiados;
+            _vm.PropertyChanged  += OnVmPropertyChanged;
 
             DataContext = _vm;
             DgProductos.ItemsSource = _vm.PageRows;
 
             await _vm.CargarDatosAsync();
+        }
+
+        private void UserControl_Unloaded(object sender, RoutedEventArgs e)
+        {
+            if (_vm == null) return;
+            _vm.SolicitarNuevo   -= AbrirModalNuevo;
+            _vm.SolicitarEditar  -= AbrirModalEditar;
+            _vm.FiltrosLimpiados -= OnFiltrosLimpiados;
+            _vm.PropertyChanged  -= OnVmPropertyChanged;
+            _vm.Dispose();
+            DataContext = null;
+        }
+
+        private void OnFiltrosLimpiados()
+        {
+            _suppressFilterChange = true;
+            RbHabilitados.IsChecked = true;
+            if (_fabricantesView != null) _fabricantesView.Filter = null;
+            CmbFabricante.SelectedIndex = 0;
+            if (_paisesView != null) _paisesView.Filter = null;
+            CmbPais.SelectedIndex = 0;
+            _suppressFilterChange = false;
+        }
+
+        private void OnVmPropertyChanged(object? s, System.ComponentModel.PropertyChangedEventArgs ev)
+        {
+            switch (ev.PropertyName)
+            {
+                case nameof(ProductosViewModel.PageRows):        RefrescarPaginacion();   break;
+                case nameof(ProductosViewModel.IsLoading):       ActualizarCarga();       break;
+                case nameof(ProductosViewModel.NoResults):
+                    EmptyState.Visibility = _vm.NoResults ? Visibility.Visible : Visibility.Collapsed;
+                    break;
+                case nameof(ProductosViewModel.HaySeleccionado):
+                    SelectedInfo.Visibility = _vm.HaySeleccionado ? Visibility.Visible : Visibility.Collapsed;
+                    break;
+                case nameof(ProductosViewModel.Seleccionado):    SeleccionarEnTabla();    break;
+                case nameof(ProductosViewModel.Fabricantes):     PoblarFabricantes();     break;
+                case nameof(ProductosViewModel.Paises):          PoblarPaises();          break;
+                case nameof(ProductosViewModel.ShowSuggestions): ActualizarSuggestions(); break;
+                // HighlightIndex: resuelto por ListBox.SelectedIndex OneWay binding
+            }
         }
 
         // ── Loading state ─────────────────────────────────────────────

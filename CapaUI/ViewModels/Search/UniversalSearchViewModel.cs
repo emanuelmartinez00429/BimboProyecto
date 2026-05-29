@@ -7,10 +7,11 @@ using MediatR;
 
 namespace CapaUI.ViewModels.Search;
 
-public partial class UniversalSearchViewModel : ObservableObject
+public partial class UniversalSearchViewModel : ObservableObject, IDisposable
 {
     private readonly IMediator         _mediator;
     private CancellationTokenSource?   _cts;
+    private bool _disposed;
 
     [ObservableProperty] private string _searchTerm = string.Empty;
     [ObservableProperty] private bool   _isLoading;
@@ -80,5 +81,13 @@ public partial class UniversalSearchViewModel : ObservableObject
         Results.Clear();
         HasResults = false;
         StatusText = string.Empty;
+    }
+
+    public void Dispose()
+    {
+        if (_disposed) return;
+        _disposed = true;
+        _cts?.Cancel();
+        _cts?.Dispose();
     }
 }

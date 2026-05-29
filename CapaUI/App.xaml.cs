@@ -16,6 +16,9 @@ namespace CapaUI
     {
         public static IServiceProvider Services { get; private set; } = null!;
 
+        private static LoginWindow? _loginActual;
+        private static MainWindow?  _mainActual;
+
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
@@ -54,24 +57,31 @@ namespace CapaUI
 
         public static void MostrarLogin()
         {
-            var login = Services.GetRequiredService<LoginWindow>();
-            login.LoginExitoso += (_, _) =>
-            {
-                login.Close();
-                MostrarPrincipal();
-            };
-            login.Show();
+            _loginActual = Services.GetRequiredService<LoginWindow>();
+            _loginActual.LoginExitoso += OnLoginExitoso;
+            _loginActual.Show();
+        }
+
+        private static void OnLoginExitoso(object? s, EventArgs e)
+        {
+            _loginActual!.LoginExitoso -= OnLoginExitoso;
+            _loginActual.Close();
+            _loginActual = null;
+            MostrarPrincipal();
         }
 
         private static void MostrarPrincipal()
         {
-            var main = Services.GetRequiredService<MainWindow>();
-            main.SesionCerrada += (_, _) =>
-            {
-                main.Close();
-                MostrarLogin();
-            };
-            main.Show();
+            _mainActual = Services.GetRequiredService<MainWindow>();
+            _mainActual.SesionCerrada += OnSesionCerrada;
+            _mainActual.Show();
+        }
+
+        private static void OnSesionCerrada(object? s, EventArgs e)
+        {
+            _mainActual!.SesionCerrada -= OnSesionCerrada;
+            _mainActual = null;
+            MostrarLogin();
         }
 
         protected override void OnExit(ExitEventArgs e)

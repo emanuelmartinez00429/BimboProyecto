@@ -12,11 +12,12 @@ using CommunityToolkit.Mvvm.Input;
 
 namespace CapaUI.Formularios.Principal
 {
-    public partial class MainViewModel : ObservableObject
+    public partial class MainViewModel : ObservableObject, IDisposable
     {
         private readonly IPerfilUsuarioService    _perfilService;
         private readonly UniversalSearchViewModel _searchVm;
         private readonly Dictionary<string, Func<object>> _routes;
+        private bool _disposed;
 
         // ── Vista actual ─────────────────────────────────────────────────
         [ObservableProperty] private object? _vistaActual;
@@ -75,10 +76,12 @@ namespace CapaUI.Formularios.Principal
         /// <summary>
         /// Dispone el ViewModel anterior al cambiar de vista,
         /// permitiendo que los VMs liberen suscripciones Realtime.
+        /// Nota: en OnChanging, _vistaActual todavía tiene el valor VIEJO.
+        /// El parámetro value es el valor NUEVO que se va a asignar.
         /// </summary>
-        partial void OnVistaActualChanging(object? oldValue)
+        partial void OnVistaActualChanging(object? value)
         {
-            (oldValue as IDisposable)?.Dispose();
+            (_vistaActual as IDisposable)?.Dispose();
         }
 
         // ── Navegación ───────────────────────────────────────────────────
@@ -115,6 +118,20 @@ namespace CapaUI.Formularios.Principal
         // ── Cierre de sesión ─────────────────────────────────────────────
         [RelayCommand]
         private void CerrarSesion() => CierreRequerido?.Invoke(this, EventArgs.Empty);
+
+        // ── IDisposable ─────────────────────────────────────────────────
+        public void Dispose()
+        {
+            if (_disposed) return;
+            _disposed = true;
+
+            // Disponer la vista actual (si es IDisposable)
+            (VistaActual as IDisposable)?.Dispose();
+
+            // Desuscribir del SearchVM y disponerlo
+            _searchVm.ResultSelected -= OnResultadoBusquedaSeleccionado;
+            (_searchVm as IDisposable)?.Dispose();
+        }
     }
 
     // ── VMs marcadores (DataTemplate triggers) ───────────────────────────

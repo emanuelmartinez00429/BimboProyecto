@@ -18,4 +18,10 @@ public interface IRealtimeService
     /// cierra el canal de Supabase automáticamente.
     /// </summary>
     void Desuscribir(string tabla, Action<CambioRealtime> handler);
+
+    /// <summary>
+    /// Cierra todos los canales y desconecta el WebSocket.
+    /// Llamar al cerrar sesión para liberar recursos.
+    /// </summary>
+    Task DesconectarAsync();
 }

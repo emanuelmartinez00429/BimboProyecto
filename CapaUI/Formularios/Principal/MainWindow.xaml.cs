@@ -9,6 +9,7 @@ using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using CapaAplicacion.Perfil;
+using CapaAplicacion.Realtime;
 using CapaDominio;
 using CapaUI.Navigation;
 using WpfColor = System.Windows.Media.Color;
@@ -23,12 +24,15 @@ namespace CapaUI.Formularios.Principal
         private MainViewModel Vm => (MainViewModel)DataContext;
         private bool _cerrando = false;
         private readonly IPerfilUsuarioService _perfilService;
+        private readonly IRealtimeService      _realtimeService;
 
         // ── Estado del sidebar ────────────────────────────────────────────
         private bool   _collapsed      = false;
         private bool   _animating      = false;
         private string _activeModuleId = "";
         private string _activeSubId    = "";
+
+        private HwndSource? _hwndSource;
 
         private const double SidebarExpanded  = 226;
         private const double SidebarCollapsed = 72;
@@ -90,16 +94,17 @@ namespace CapaUI.Formularios.Principal
         }
         // ─────────────────────────────────────────────────────────────────
 
-        public MainWindow(MainViewModel vm, IPerfilUsuarioService perfilService)
+        public MainWindow(MainViewModel vm, IPerfilUsuarioService perfilService, IRealtimeService realtimeService)
         {
-            _perfilService = perfilService;
+            _perfilService   = perfilService;
+            _realtimeService = realtimeService;
             DataContext    = vm;
             InitializeComponent();
 
             MinWidth  = 600;
             MinHeight = 400;
 
-            Vm.CierreRequerido += (_, _) => Close();
+            Vm.CierreRequerido += OnCierreRequerido;
 
             Loaded            += OnLoaded;
             SourceInitialized += OnSourceInitialized;
@@ -125,7 +130,8 @@ namespace CapaUI.Formularios.Principal
             int noColor = DWMWA_COLOR_NONE;
             DwmSetWindowAttribute(hwnd, DWMWA_BORDER_COLOR, ref noColor, sizeof(int));
 
-            HwndSource.FromHwnd(hwnd)?.AddHook(WndProc);
+            _hwndSource = HwndSource.FromHwnd(hwnd);
+            _hwndSource?.AddHook(WndProc);
         }
 
         private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
@@ -499,6 +505,8 @@ namespace CapaUI.Formularios.Principal
 
         private void BtnCerrarVentana_Click(object sender, RoutedEventArgs e) => Close();
 
+        private void OnCierreRequerido(object? s, EventArgs e) => Close();
+
         // ══════════════════════════════════════════════════════════════════
         //  Cierre — punto único para X, botón de logout y Alt+F4
         // ══════════════════════════════════════════════════════════════════
@@ -537,6 +545,16 @@ namespace CapaUI.Formularios.Principal
                 CapaUI.Core.Permisos.SesionPermisos.Limpiar();
                 _perfilService.Limpiar();
                 servicioSesionActual.Cerrar();
+
+                // Cleanup: liberar hook, desuscribir eventos, disponer VM
+                _hwndSource?.RemoveHook(WndProc);
+                _hwndSource = null;
+                Vm.CierreRequerido -= OnCierreRequerido;
+                Vm.Dispose();
+
+                // Cerrar todos los canales Realtime y desconectar WebSocket
+                await _realtimeService.DesconectarAsync();
+
                 _cerrando = true;
                 SesionCerrada?.Invoke(this, EventArgs.Empty);
                 Close();

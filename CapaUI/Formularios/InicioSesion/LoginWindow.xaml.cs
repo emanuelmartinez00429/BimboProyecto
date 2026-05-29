@@ -167,6 +167,7 @@ namespace CapaUI.Formularios.InicioSesion
                 CompletarStep(S4Dot, S4Text);
 
                 await System.Threading.Tasks.Task.Delay(300);
+                SpinnerRotate.BeginAnimation(System.Windows.Media.RotateTransform.AngleProperty, null);
                 LoginExitoso?.Invoke(this, EventArgs.Empty);
             }
             catch (Exception ex)

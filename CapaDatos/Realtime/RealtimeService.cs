@@ -184,6 +184,39 @@ public class RealtimeService : IRealtimeService
         return new CambioRealtime(operacion, id, estado);
     }
 
+    // ── Desconexión ────────────────────────────────────────────────
+
+    public async Task DesconectarAsync()
+    {
+        await _lock.WaitAsync();
+        try
+        {
+            // Cerrar todos los canales
+            foreach (var tabla in _canales.Keys.ToList())
+                CerrarCanal(tabla);
+
+            _suscriptores.Clear();
+
+            // Desconectar el WebSocket
+            try
+            {
+                var client = await ConexionSupabase.GetClientAsync();
+                if (client.Realtime.Socket is { IsConnected: true })
+                    client.Realtime.Disconnect();
+            }
+            catch (Exception ex)
+            {
+                Serilog.Log.Warning(ex, "Realtime: error al desconectar WebSocket");
+            }
+
+            Serilog.Log.Information("Realtime: desconectado — todos los canales cerrados");
+        }
+        finally
+        {
+            _lock.Release();
+        }
+    }
+
     /// <summary>
     /// Despacha un callback al UI thread usando el SynchronizationContext
     /// capturado en el constructor. Esto evita que CapaDatos dependa de WPF.
