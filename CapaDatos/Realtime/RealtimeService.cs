@@ -19,6 +19,10 @@ public class RealtimeService : IRealtimeService
     private readonly SynchronizationContext? _syncContext;
     private readonly SemaphoreSlim _lock = new(1, 1);
 
+    // Lock ligero para operaciones rápidas sobre los diccionarios.
+    // Evita usar SemaphoreSlim.Wait() (síncrono) que causa deadlock en UI thread.
+    private readonly object _stateLock = new();
+
     private readonly Dictionary<string, IRealtimeChannel> _canales = new();
     private readonly Dictionary<string, List<Action<CambioRealtime>>> _suscriptores = new();
 
@@ -54,28 +58,40 @@ public class RealtimeService : IRealtimeService
 
     public async Task SuscribirAsync(string tabla, Action<CambioRealtime> handler)
     {
-        await _lock.WaitAsync();
-        try
+        bool necesitaCanal;
+
+        lock (_stateLock)
         {
             if (!_suscriptores.ContainsKey(tabla))
                 _suscriptores[tabla] = new List<Action<CambioRealtime>>();
 
             _suscriptores[tabla].Add(handler);
-
-            // Primer suscriptor → abrir canal
-            if (!_canales.ContainsKey(tabla))
-                await AbrirCanalAsync(tabla);
+            necesitaCanal = !_canales.ContainsKey(tabla);
         }
-        finally
+
+        // Abrir canal fuera del lock rápido — usa SemaphoreSlim solo para I/O
+        if (necesitaCanal)
         {
-            _lock.Release();
+            await _lock.WaitAsync();
+            try
+            {
+                // Double-check: otro hilo pudo abrirlo mientras esperábamos
+                bool yaExiste;
+                lock (_stateLock) { yaExiste = _canales.ContainsKey(tabla); }
+
+                if (!yaExiste)
+                    await AbrirCanalAsync(tabla);
+            }
+            finally
+            {
+                _lock.Release();
+            }
         }
     }
 
     public void Desuscribir(string tabla, Action<CambioRealtime> handler)
     {
-        _lock.Wait();
-        try
+        lock (_stateLock)
         {
             if (!_suscriptores.TryGetValue(tabla, out var handlers)) return;
 
@@ -87,10 +103,6 @@ public class RealtimeService : IRealtimeService
                 _suscriptores.Remove(tabla);
                 CerrarCanal(tabla);
             }
-        }
-        finally
-        {
-            _lock.Release();
         }
     }
 
@@ -110,7 +122,7 @@ public class RealtimeService : IRealtimeService
         channel.AddPostgresChangeHandler(ListenType.All, (_, change) => OnCambioRecibido(tabla, change));
         await channel.Subscribe();
 
-        _canales[tabla] = channel;
+        lock (_stateLock) { _canales[tabla] = channel; }
         Serilog.Log.Information("Realtime: canal '{Tabla}' abierto", tabla);
     }
 
@@ -131,10 +143,12 @@ public class RealtimeService : IRealtimeService
         {
             var cambio = ExtraerCambio(tabla, change);
 
-            if (!_suscriptores.TryGetValue(tabla, out var handlers)) return;
-
-            // Snapshot para thread safety — los handlers podrían modificar la lista
-            var snapshot = handlers.ToList();
+            List<Action<CambioRealtime>> snapshot;
+            lock (_stateLock)
+            {
+                if (!_suscriptores.TryGetValue(tabla, out var handlers)) return;
+                snapshot = handlers.ToList();
+            }
 
             DespacharEnUIThread(() =>
             {
@@ -186,35 +200,25 @@ public class RealtimeService : IRealtimeService
 
     // ── Desconexión ────────────────────────────────────────────────
 
-    public async Task DesconectarAsync()
+    public Task DesconectarAsync()
     {
-        await _lock.WaitAsync();
-        try
+        lock (_stateLock)
         {
             // Cerrar todos los canales
             foreach (var tabla in _canales.Keys.ToList())
                 CerrarCanal(tabla);
 
             _suscriptores.Clear();
-
-            // Desconectar el WebSocket
-            try
-            {
-                var client = await ConexionSupabase.GetClientAsync();
-                if (client.Realtime.Socket is { IsConnected: true })
-                    client.Realtime.Disconnect();
-            }
-            catch (Exception ex)
-            {
-                Serilog.Log.Warning(ex, "Realtime: error al desconectar WebSocket");
-            }
-
-            Serilog.Log.Information("Realtime: desconectado — todos los canales cerrados");
         }
-        finally
-        {
-            _lock.Release();
-        }
+
+        // No llamamos Disconnect() al WebSocket:
+        // - La conexión es ligera (~1-2 KB) y se reutiliza en el próximo login.
+        // - Disconnect() hace que ConnectAsync() sea lento al reconectar,
+        //   lo que ampliaba la ventana de deadlock.
+        // - Los canales ya están cerrados, así que no llegan más eventos.
+
+        Serilog.Log.Information("Realtime: desconectado — todos los canales cerrados");
+        return Task.CompletedTask;
     }
 
     /// <summary>
