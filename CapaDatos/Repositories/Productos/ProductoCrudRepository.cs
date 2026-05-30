@@ -1,4 +1,5 @@
 using CapaAplicacion.Common;
+using CapaAplicacion.Conexion;
 using CapaAplicacion.Productos.Dtos;
 using CapaAplicacion.Productos.Interfaces;
 using CapaAplicacion.Productos.Queries;
@@ -16,6 +17,8 @@ namespace CapaDatos.Repositories.Productos;
 
 public class ProductoCrudRepository : RepositorioBase, IProductoRepository
 {
+    public ProductoCrudRepository(IConexionMonitor conexion) : base(conexion) { }
+
     private const string Select =
         "*, presentacion_producto(*), fabricante(*), categoria(*), paises(*)";
 

@@ -5,6 +5,7 @@ using static CapaAplicacion.Common.EstadoRegistro;
 using CapaAplicacion.Categorias.Interfaces;
 using CapaAplicacion.Categorias.Queries;
 using CapaAplicacion.Productos.Queries;
+using CapaAplicacion.Conexion;
 using CapaAplicacion.Realtime;
 using CapaUI.Core.MVVM;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -112,8 +113,9 @@ public partial class CategoriasViewModel : RealtimeAwareViewModel
     public event Action<CategoriaDto>? SolicitarEditar;
     public event Action?                FiltrosLimpiados;
 
-    public CategoriasViewModel(ICategoriaRepository repo, IRealtimeService realtime)
-        : base(realtime)
+    public CategoriasViewModel(ICategoriaRepository repo, IRealtimeService realtime,
+                               IConexionMonitor conexionMonitor)
+        : base(realtime, conexionMonitor)
     {
         _repo = repo;
     }
@@ -125,6 +127,9 @@ public partial class CategoriasViewModel : RealtimeAwareViewModel
     }
 
     public void RefrescarDatos() => _ = CargarPaginaAsync();
+
+    // Al volver la conexión, recarga todo (Observar es idempotente → no duplica suscripción).
+    protected override Task OnReconexionAsync() => CargarDatosAsync();
 
     private const int TimeoutMs = 10_000;
 

@@ -1,4 +1,5 @@
 using CapaAplicacion.Common;
+using CapaAplicacion.Conexion;
 using CapaAplicacion.Fabricantes.Dtos;
 using CapaAplicacion.Fabricantes.Interfaces;
 using CapaAplicacion.Fabricantes.Queries;
@@ -19,6 +20,8 @@ namespace CapaDatos.Repositories.Fabricantes;
 
 public class FabricanteCrudRepository : RepositorioBase, IFabricanteRepository
 {
+    public FabricanteCrudRepository(IConexionMonitor conexion) : base(conexion) { }
+
     private static FabricanteDto Map(
         FabricanteCrud f,
         Dictionary<int, string> provDic,

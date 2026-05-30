@@ -6,6 +6,7 @@ using static CapaAplicacion.Common.EstadoRegistro;
 using CapaAplicacion.Fabricantes.Interfaces;
 using CapaAplicacion.Fabricantes.Queries;
 using CapaAplicacion.Productos.Queries;
+using CapaAplicacion.Conexion;
 using CapaAplicacion.Realtime;
 using CapaUI.Core.MVVM;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -126,8 +127,9 @@ public partial class FabricantesViewModel : RealtimeAwareViewModel
     public event Action<FabricanteDto>? SolicitarEditar;
     public event Action?                FiltrosLimpiados;
 
-    public FabricantesViewModel(IFabricanteRepository repo, IRealtimeService realtime)
-        : base(realtime)
+    public FabricantesViewModel(IFabricanteRepository repo, IRealtimeService realtime,
+                                IConexionMonitor conexionMonitor)
+        : base(realtime, conexionMonitor)
     {
         _repo = repo;
     }
@@ -147,6 +149,9 @@ public partial class FabricantesViewModel : RealtimeAwareViewModel
     }
 
     public void RefrescarDatos() => _ = CargarPaginaAsync();
+
+    // Al volver la conexión, recarga todo (Observar es idempotente → no duplica suscripción).
+    protected override Task OnReconexionAsync() => CargarDatosAsync();
 
     private const int TimeoutMs = 10_000;
 

@@ -8,6 +8,7 @@ using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using CapaAplicacion.Conexion;
 using CapaAplicacion.Perfil;
 using CapaAplicacion.Realtime;
 using CapaDominio;
@@ -25,6 +26,7 @@ namespace CapaUI.Formularios.Principal
         private bool _cerrando = false;
         private readonly IPerfilUsuarioService _perfilService;
         private readonly IRealtimeService      _realtimeService;
+        private readonly IConexionMonitor      _conexionMonitor;
 
         // ── Estado del sidebar ────────────────────────────────────────────
         private bool   _collapsed      = false;
@@ -94,10 +96,12 @@ namespace CapaUI.Formularios.Principal
         }
         // ─────────────────────────────────────────────────────────────────
 
-        public MainWindow(MainViewModel vm, IPerfilUsuarioService perfilService, IRealtimeService realtimeService)
+        public MainWindow(MainViewModel vm, IPerfilUsuarioService perfilService,
+                          IRealtimeService realtimeService, IConexionMonitor conexionMonitor)
         {
             _perfilService   = perfilService;
             _realtimeService = realtimeService;
+            _conexionMonitor = conexionMonitor;
             DataContext    = vm;
             InitializeComponent();
 
@@ -187,6 +191,9 @@ namespace CapaUI.Formularios.Principal
             // Sub-items — Reportería
             _subMap["dashboard"]      = new(DotDashboard,     LblDashboard,     "reportes");
             _subMap["crear-reportes"] = new(DotCrearReportes, LblCrearReportes, "reportes");
+
+            // Arrancar el monitor de conexión (ya estamos logueados y en el hilo de UI)
+            _conexionMonitor.Iniciar();
         }
 
         // ══════════════════════════════════════════════════════════════════
@@ -551,6 +558,9 @@ namespace CapaUI.Formularios.Principal
                 _hwndSource = null;
                 Vm.CierreRequerido -= OnCierreRequerido;
                 Vm.Dispose();
+
+                // Detener el monitor de conexión (deja de vigilar la red entre sesiones)
+                _conexionMonitor.Detener();
 
                 // Cerrar todos los canales Realtime y desconectar WebSocket
                 await _realtimeService.DesconectarAsync();

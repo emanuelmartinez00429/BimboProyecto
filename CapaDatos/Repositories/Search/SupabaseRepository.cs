@@ -4,7 +4,7 @@ using Supabase.Postgrest.Models;
 
 namespace CapaDatos.Repositories.Search;
 
-public abstract class SupabaseRepository<TDomain, TSupabase> : RepositorioBase, IRepository<TDomain>
+public abstract class SupabaseRepository<TDomain, TSupabase> : IRepository<TDomain>
     where TDomain  : class
     where TSupabase : BaseModel, new()
 {

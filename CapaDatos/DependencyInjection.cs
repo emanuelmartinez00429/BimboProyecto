@@ -1,11 +1,13 @@
 using CapaAplicacion.Auth.Interfaces;
 using CapaAplicacion.Categorias.Interfaces;
+using CapaAplicacion.Conexion;
 using CapaAplicacion.Fabricantes.Interfaces;
 using CapaAplicacion.Perfil;
 using CapaAplicacion.Productos.Interfaces;
 using CapaAplicacion.Proveedores.Interfaces;
 using CapaAplicacion.Realtime;
 using CapaDatos.Auth;
+using CapaDatos.Conexion;
 using CapaDatos.Perfil;
 using CapaDatos.Realtime;
 using CapaDatos.Repositories.Categorias;
@@ -31,6 +33,9 @@ public static class DependencyInjection
 
         // Realtime — singleton: una sola conexión WebSocket, canales on-demand
         services.AddSingleton<IRealtimeService, RealtimeService>();
+
+        // Monitor de conexión — singleton: una sola vigilancia de red para toda la app
+        services.AddSingleton<IConexionMonitor, ConexionMonitor>();
 
         // Buscador universal (entidad de dominio)
         // Transient: repos sin estado mutable — Scoped era engañoso en WPF (sin scopes = singleton de facto)

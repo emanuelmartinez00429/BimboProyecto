@@ -1,4 +1,5 @@
 using CapaAplicacion.Common;
+using CapaAplicacion.Conexion;
 using CapaAplicacion.Productos.Queries;
 using CapaAplicacion.Proveedores.Dtos;
 using CapaAplicacion.Proveedores.Interfaces;
@@ -16,6 +17,8 @@ namespace CapaDatos.Repositories.Proveedores;
 
 public class ProveedorCrudRepository : RepositorioBase, IProveedorRepository
 {
+    public ProveedorCrudRepository(IConexionMonitor conexion) : base(conexion) { }
+
     private static ProveedorDto Map(Prov p) => new()
     {
         Id        = p.idProveedor,

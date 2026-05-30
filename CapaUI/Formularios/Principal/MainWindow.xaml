@@ -126,15 +126,33 @@
                         </DockPanel>
                     </Border>
 
-                    <!-- ── SEARCH BAR (centro) ── -->
-                    <Grid Grid.Column="1" VerticalAlignment="Center"
+                    <!-- ── ESTADO DE CONEXIÓN + SEARCH BAR ── -->
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center"
                           WindowChrome.IsHitTestVisibleInChrome="True">
+
+                        <!-- Semáforo de conexión (arriba a la izquierda del contenido) -->
+                        <Border x:Name="ConnPill"
+                                Background="#1FFFFFFF"
+                                BorderBrush="#15FFFFFF" BorderThickness="1"
+                                CornerRadius="14" Height="28"
+                                Margin="24,0,0,0" Padding="10,0"
+                                VerticalAlignment="Center"
+                                ToolTip="Estado de conexión">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Ellipse Width="9" Height="9" Margin="0,0,7,0"
+                                         Fill="{Binding EstadoBrush}"/>
+                                <TextBlock Text="{Binding EstadoTexto}" Foreground="White"
+                                           FontFamily="Segoe UI" FontSize="12"
+                                           VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+
                         <Border x:Name="SearchPill"
                                 Background="#1FFFFFFF"
                                 BorderBrush="#15FFFFFF" BorderThickness="1"
                                 CornerRadius="22" Height="38"
                                 HorizontalAlignment="Left" MaxWidth="480"
-                                Margin="24,0" Padding="14,0">
+                                Margin="16,0" Padding="14,0">
 
                             <Grid>
                                 <Grid.ColumnDefinitions>
@@ -189,7 +207,7 @@
                                 </Border>
                             </Grid>
                         </Border>
-                    </Grid>
+                    </StackPanel>
 
                     <!-- ── ACCIONES DERECHA ── -->
                     <StackPanel Grid.Column="2" Orientation="Horizontal"

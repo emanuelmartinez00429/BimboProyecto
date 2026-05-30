@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Windows.Media;
+using CapaAplicacion.Conexion;
 using CapaAplicacion.Perfil;
 using CapaAplicacion.Search.Dtos;
 using CapaUI.Core.MVVM;
@@ -16,11 +18,46 @@ namespace CapaUI.Formularios.Principal
     {
         private readonly IPerfilUsuarioService    _perfilService;
         private readonly UniversalSearchViewModel _searchVm;
+        private readonly IConexionMonitor         _conexionMonitor;
         private readonly Dictionary<string, Func<object>> _routes;
         private bool _disposed;
 
         // ── Vista actual ─────────────────────────────────────────────────
         [ObservableProperty] private object? _vistaActual;
+
+        // ── Estado de conexión (label del top bar) ───────────────────────
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(EstadoTexto))]
+        [NotifyPropertyChangedFor(nameof(EstadoBrush))]
+        private EstadoConexion _conectividad = EstadoConexion.Desconocido;
+
+        public string EstadoTexto => Conectividad switch
+        {
+            EstadoConexion.Conectado   => "Conectado",
+            EstadoConexion.Degradado   => "Sin internet",
+            EstadoConexion.SinConexion => "Sin conexión",
+            _                          => "Verificando…"
+        };
+
+        public Brush EstadoBrush => Conectividad switch
+        {
+            EstadoConexion.Conectado   => _brushVerde,
+            EstadoConexion.Degradado   => _brushAmbar,
+            EstadoConexion.SinConexion => _brushRojo,
+            _                          => _brushGris
+        };
+
+        private static readonly Brush _brushVerde = CrearBrush("#10B981");
+        private static readonly Brush _brushAmbar = CrearBrush("#F59E0B");
+        private static readonly Brush _brushRojo  = CrearBrush("#EF4444");
+        private static readonly Brush _brushGris  = CrearBrush("#9CA3AF");
+
+        private static Brush CrearBrush(string hex)
+        {
+            var b = new SolidColorBrush((Color)ColorConverter.ConvertFromString(hex));
+            b.Freeze();
+            return b;
+        }
 
         // ── Info de usuario ──────────────────────────────────────────────
         public string NombreUsuario => _perfilService.PerfilActual?.NombreCompleto
@@ -40,11 +77,16 @@ namespace CapaUI.Formularios.Principal
         public event EventHandler? CierreRequerido;
 
         public MainViewModel(IPerfilUsuarioService perfilService,
-                             UniversalSearchViewModel searchVm)
+                             UniversalSearchViewModel searchVm,
+                             IConexionMonitor conexionMonitor)
         {
             _perfilService = perfilService;
             _searchVm      = searchVm;
             _searchVm.ResultSelected += OnResultadoBusquedaSeleccionado;
+
+            _conexionMonitor = conexionMonitor;
+            _conectividad    = _conexionMonitor.Estado;   // estado actual al construir
+            _conexionMonitor.EstadoCambiado += OnEstadoConexionCambiado;
 
             _routes = new Dictionary<string, Func<object>>
             {
@@ -93,6 +135,12 @@ namespace CapaUI.Formularios.Principal
             VistaActual = factory();
         }
 
+        // ── Estado de conexión (label del top bar) ───────────────────────
+        // El evento del monitor llega ya en el UI thread (SynchronizationContext).
+        // La recarga de datos al reconectar la maneja cada VM (RealtimeAwareViewModel).
+        private void OnEstadoConexionCambiado(object? sender, EstadoConexion nuevo)
+            => Conectividad = nuevo;
+
         // ── Búsqueda ─────────────────────────────────────────────────────
         [RelayCommand]
         private void Buscar(string? term)
@@ -124,6 +172,9 @@ namespace CapaUI.Formularios.Principal
         {
             if (_disposed) return;
             _disposed = true;
+
+            // Desuscribir del monitor de conexión (singleton — no debe retener este VM)
+            _conexionMonitor.EstadoCambiado -= OnEstadoConexionCambiado;
 
             // Disponer la vista actual (si es IDisposable)
             (VistaActual as IDisposable)?.Dispose();

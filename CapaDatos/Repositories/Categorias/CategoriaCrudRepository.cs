@@ -2,6 +2,7 @@ using CapaAplicacion.Categorias.Dtos;
 using CapaAplicacion.Categorias.Interfaces;
 using CapaAplicacion.Categorias.Queries;
 using CapaAplicacion.Common;
+using CapaAplicacion.Conexion;
 using CapaAplicacion.Productos.Queries;
 using CapaDatos.Modelados.Productos;
 using Newtonsoft.Json.Linq;
@@ -16,6 +17,8 @@ namespace CapaDatos.Repositories.Categorias;
 
 public class CategoriaCrudRepository : RepositorioBase, ICategoriaRepository
 {
+    public CategoriaCrudRepository(IConexionMonitor conexion) : base(conexion) { }
+
     private static CategoriaDto Map(Categoria c) => new()
     {
         Id              = c.idCategoria,
