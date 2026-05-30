@@ -1,0 +1,16 @@
+using CapaAplicacion.Common;
+using CapaAplicacion.Productos.Queries;
+using CapaAplicacion.Proveedores.Dtos;
+using CapaAplicacion.Proveedores.Queries;
+
+namespace CapaAplicacion.Proveedores.Interfaces;
+
+public interface IProveedorRepository
+{
+    Task<Result<PagedResult<ProveedorDto>>>   GetPagedAsync(int page, int size, ProveedorFiltros filtros, CancellationToken ct = default);
+    Task<Result<IReadOnlyList<ProveedorDto>>> BuscarSugerenciasAsync(string termino, ProveedorFiltros filtros, CancellationToken ct = default);
+    Task<Result<int>>                         GetPaginaDeRegistroAsync(int id, int size, ProveedorFiltros filtros, CancellationToken ct = default);
+    Task<Result<int>> CreateAsync(ProveedorDto dto, CancellationToken ct = default);
+    Task<Result>      UpdateAsync(ProveedorDto dto, CancellationToken ct = default);
+    Task<Result>      DeleteAsync(int id,           CancellationToken ct = default);
+}

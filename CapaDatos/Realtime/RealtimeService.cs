@@ -38,7 +38,7 @@ public class RealtimeService : IRealtimeService
     private static readonly Dictionary<string, string> _pkColumns = new()
     {
         ["productos"]              = "id_producto",
-        ["categorias"]             = "id_categoria",
+        ["categoria"]              = "id_categoria",
         ["empleados"]              = "id_empleado",
         ["usuarios"]               = "id_usuario",
         ["movimientos"]            = "id_movimiento",

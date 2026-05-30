@@ -55,9 +55,9 @@ namespace CapaUI.Formularios.Principal
                 [Routes.Bitacora]  = () => new ConstructionVM("Bitácora",             "Usuarios"),
                 // Productos
                 [Routes.Productos]            = () => new ProductosVM(),
-                [Routes.Proveedores]          = () => new ConstructionVM("Gestión de Proveedores", "Productos"),
-                [Routes.Fabricantes]          = () => new ConstructionVM("Gestión de Fabricantes", "Productos"),
-                [Routes.Categorias]           = () => new ConstructionVM("Gestión de Categorías",  "Productos"),
+                [Routes.Proveedores]          = () => new ProveedoresVM(),
+                [Routes.Fabricantes]          = () => new FabricantesVM(),
+                [Routes.Categorias]           = () => new CategoriasVM(),
                 [Routes.ContactosProveedores] = () => new ConstructionVM("Contactos Proveedores",  "Productos"),
                 [Routes.ContactosFabricantes] = () => new ConstructionVM("Contactos Fabricantes",  "Productos"),
                 // Pesajes
@@ -135,8 +135,11 @@ namespace CapaUI.Formularios.Principal
     }
 
     // ── VMs marcadores (DataTemplate triggers) ───────────────────────────
-    public class WelcomeVM    : ViewModelBase { }
-    public class ProductosVM  : ViewModelBase { }
+    public class WelcomeVM     : ViewModelBase { }
+    public class ProductosVM   : ViewModelBase { }
+    public class ProveedoresVM : ViewModelBase { }
+    public class FabricantesVM : ViewModelBase { }
+    public class CategoriasVM  : ViewModelBase { }
 
     public class ConstructionVM : ViewModelBase
     {

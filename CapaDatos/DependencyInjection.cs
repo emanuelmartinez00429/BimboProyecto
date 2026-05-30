@@ -1,11 +1,17 @@
 using CapaAplicacion.Auth.Interfaces;
+using CapaAplicacion.Categorias.Interfaces;
+using CapaAplicacion.Fabricantes.Interfaces;
 using CapaAplicacion.Perfil;
 using CapaAplicacion.Productos.Interfaces;
+using CapaAplicacion.Proveedores.Interfaces;
 using CapaAplicacion.Realtime;
 using CapaDatos.Auth;
 using CapaDatos.Perfil;
 using CapaDatos.Realtime;
+using CapaDatos.Repositories.Categorias;
+using CapaDatos.Repositories.Fabricantes;
 using CapaDatos.Repositories.Productos;
+using CapaDatos.Repositories.Proveedores;
 using CapaDatos.Repositories.Search;
 using CapaDominio.Entities;
 using CapaDominio.Interfaces;
@@ -34,6 +40,11 @@ public static class DependencyInjection
 
         // Formulario de productos (DTO con FKs)
         services.AddTransient<IProductoRepository, ProductoCrudRepository>();
+
+        // Formularios de catálogo
+        services.AddTransient<IProveedorRepository, ProveedorCrudRepository>();
+        services.AddTransient<IFabricanteRepository, FabricanteCrudRepository>();
+        services.AddTransient<ICategoriaRepository, CategoriaCrudRepository>();
 
         return services;
     }
