@@ -6,22 +6,12 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using CapaAplicacion.Categorias.Dtos;
 using CapaAplicacion.Categorias.Interfaces;
+using CapaUI.Core.Controls;
 using Microsoft.Extensions.DependencyInjection;
-using WpfKey         = System.Windows.Input.KeyEventArgs;
-using WpfMouse       = System.Windows.Input.MouseEventArgs;
 using WpfMouseButton = System.Windows.Input.MouseButtonEventArgs;
-using Key            = System.Windows.Input.Key;
 
 namespace CapaUI.Formularios.Principal.Pantallas.Categorias
 {
-    public class SuggestionItemData
-    {
-        public string      Nombre { get; set; } = "";
-        public string      Meta   { get; set; } = "";
-        public bool        Activo { get; set; }
-        public CategoriaDto Source { get; set; } = null!;
-    }
-
     public partial class CategoriasView : System.Windows.Controls.UserControl
     {
         private CategoriasViewModel _vm = null!;
@@ -136,123 +126,23 @@ namespace CapaUI.Formularios.Principal.Pantallas.Categorias
                 _vm.EstadoFiltro = EstadoFilter.Todos;
         }
 
-        private void TxtBusqueda_GotFocus(object sender, RoutedEventArgs e)
-        {
-            SearchBoxBorder.CornerRadius = new CornerRadius(8, 8, 0, 0);
-        }
-
-        private void TxtBusqueda_LostFocus(object sender, RoutedEventArgs e)
-        {
-            Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Input, () =>
-            {
-                if (!SuggestionsPopup.IsKeyboardFocusWithin)
-                {
-                    SuggestionsPopup.IsOpen = false;
-                    SearchBoxBorder.CornerRadius = new CornerRadius(8);
-                }
-            });
-        }
-
-        private void TxtBusqueda_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            if (_vm == null) return;
-            _vm.Query = TxtBusqueda.Text;
-            BtnClearSearch.Visibility = string.IsNullOrEmpty(TxtBusqueda.Text)
-                ? Visibility.Collapsed : Visibility.Visible;
-        }
-
-        private void TxtBusqueda_PreviewKeyDown(object sender, WpfKey e)
-        {
-            if (_vm == null) return;
-            if (e.Key == Key.Down)
-            {
-                if (_vm.Suggestions.Count > 0)
-                    _vm.HighlightIndex = Math.Min(_vm.HighlightIndex + 1, _vm.Suggestions.Count - 1);
-                e.Handled = true;
-            }
-            else if (e.Key == Key.Up)
-            {
-                if (_vm.Suggestions.Count > 0)
-                    _vm.HighlightIndex = Math.Max(_vm.HighlightIndex - 1, 0);
-                e.Handled = true;
-            }
-            else if (e.Key == Key.Enter)
-            {
-                if (_vm.Suggestions.Count > 0 && _vm.HighlightIndex >= 0 && _vm.HighlightIndex < _vm.Suggestions.Count)
-                {
-                    _vm.SeleccionarSugerencia(_vm.Suggestions[_vm.HighlightIndex]);
-                    TxtBusqueda.Text = "";
-                    BtnClearSearch.Visibility = Visibility.Collapsed;
-                    SuggestionsPopup.IsOpen = false;
-                    SearchBoxBorder.CornerRadius = new CornerRadius(8);
-                    SeleccionarEnTabla();
-                }
-                e.Handled = true;
-            }
-            else if (e.Key == Key.Escape)
-            {
-                _vm.Query = "";
-                TxtBusqueda.Text = "";
-                SuggestionsPopup.IsOpen = false;
-                SearchBoxBorder.CornerRadius = new CornerRadius(8);
-                e.Handled = true;
-            }
-        }
-
-        private void BtnClearSearch_Click(object sender, RoutedEventArgs e)
-        {
-            _vm.Query = "";
-            TxtBusqueda.Text = "";
-            BtnClearSearch.Visibility = Visibility.Collapsed;
-            SuggestionsPopup.IsOpen = false;
-            SearchBoxBorder.CornerRadius = new CornerRadius(8);
-        }
-
         private void ActualizarSuggestions()
         {
-            if (_vm.ShowSuggestions && _vm.Suggestions.Count > 0)
-            {
-                var items = _vm.Suggestions.Select(c => new SuggestionItemData
-                {
-                    Nombre = c.Nombre,
-                    Meta   = c.Descripcion,
-                    Activo = c.EstadoCategoria,
-                    Source = c
-                }).ToList();
-
-                SuggestionsList.ItemsSource = items;
-                SugCountLabel.Text = $"\u2191\u2193 navegar · \u21b5 seleccionar · {items.Count} coincidencias";
-                SuggestionsPopup.IsOpen = true;
-                SearchBoxBorder.CornerRadius = new CornerRadius(8, 8, 0, 0);
-            }
-            else
-            {
-                SuggestionsPopup.IsOpen = false;
-                if (!TxtBusqueda.IsFocused)
-                    SearchBoxBorder.CornerRadius = new CornerRadius(8);
-            }
+            SearchBox.SuggestItems = (_vm.ShowSuggestions && _vm.Suggestions.Count > 0)
+                ? _vm.Suggestions.Select(c => new SuggestionItemData
+                  {
+                      Nombre = c.Nombre,
+                      Meta   = c.Descripcion,
+                      Activo = c.EstadoCategoria,
+                      Source = c
+                  }).ToList()
+                : null;
         }
 
-        private void SuggestionItem_Click(object sender, WpfMouseButton e)
+        private void SearchBox_ItemSelected(object? sender, SuggestionItemData e)
         {
-            if (sender is Border b && b.Tag is SuggestionItemData data)
-            {
-                _vm.SeleccionarSugerencia(data.Source);
-                TxtBusqueda.Text = "";
-                BtnClearSearch.Visibility = Visibility.Collapsed;
-                SuggestionsPopup.IsOpen = false;
-                SearchBoxBorder.CornerRadius = new CornerRadius(8);
-                SeleccionarEnTabla();
-            }
-        }
-
-        private void SuggestionItem_MouseEnter(object sender, WpfMouse e)
-        {
-            if (sender is Border b && b.Tag is SuggestionItemData data)
-            {
-                int idx = _vm.Suggestions.IndexOf(data.Source);
-                if (idx >= 0) _vm.HighlightIndex = idx;
-            }
+            _vm.SeleccionarSugerencia((CategoriaDto)e.Source);
+            SeleccionarEnTabla();
         }
 
         private void SeleccionarEnTabla()

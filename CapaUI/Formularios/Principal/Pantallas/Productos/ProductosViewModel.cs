@@ -253,7 +253,7 @@ public partial class ProductosViewModel : RealtimeAwareViewModel
 
             Suggestions     = new ObservableCollection<ProductoDto>(r.Value!);
             ShowSuggestions = r.Value!.Count > 0;
-            HighlightIndex  = r.Value!.Count > 0 ? 0 : -1;
+            HighlightIndex  = -1;
         }
         catch (OperationCanceledException) { }
     }

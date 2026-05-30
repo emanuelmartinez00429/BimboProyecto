@@ -10,24 +10,15 @@ using System.Windows.Media.Animation;
 using CapaAplicacion.Common;
 using CapaAplicacion.Productos.Dtos;
 using CapaAplicacion.Productos.Interfaces;
+using CapaUI.Core.Controls;
 using Microsoft.Extensions.DependencyInjection;
 using static CapaAplicacion.Common.EstadoRegistro;
 using WpfKey         = System.Windows.Input.KeyEventArgs;
-using WpfMouse       = System.Windows.Input.MouseEventArgs;
 using WpfMouseButton = System.Windows.Input.MouseButtonEventArgs;
 using Key            = System.Windows.Input.Key;
 
 namespace CapaUI.Formularios.Principal.Pantallas.Productos
 {
-    public class SuggestionItemData
-    {
-        public string     Codigo { get; set; } = "";
-        public string     Nombre { get; set; } = "";
-        public string     Meta   { get; set; } = "";
-        public bool       Activo { get; set; }
-        public ProductoDto Source { get; set; } = null!;
-    }
-
     public partial class ProductosView : System.Windows.Controls.UserControl
     {
         private ProductosViewModel _vm = null!;
@@ -104,7 +95,6 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
                 case nameof(ProductosViewModel.Fabricantes):     PoblarFabricantes();     break;
                 case nameof(ProductosViewModel.Paises):          PoblarPaises();          break;
                 case nameof(ProductosViewModel.ShowSuggestions): ActualizarSuggestions(); break;
-                // HighlightIndex: resuelto por ListBox.SelectedIndex OneWay binding
             }
         }
 
@@ -231,124 +221,24 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
 
         // ── Search ────────────────────────────────────────────────────
 
-        private void TxtBusqueda_GotFocus(object sender, RoutedEventArgs e)
-        {
-            SearchBoxBorder.CornerRadius = new CornerRadius(8, 8, 0, 0);
-        }
-
-        private void TxtBusqueda_LostFocus(object sender, RoutedEventArgs e)
-        {
-            Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Input, () =>
-            {
-                if (!SuggestionsPopup.IsKeyboardFocusWithin)
-                {
-                    SuggestionsPopup.IsOpen = false;
-                    SearchBoxBorder.CornerRadius = new CornerRadius(8);
-                }
-            });
-        }
-
-        private void TxtBusqueda_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            if (_vm == null) return;
-            _vm.Query = TxtBusqueda.Text;
-            BtnClearSearch.Visibility = string.IsNullOrEmpty(TxtBusqueda.Text)
-                ? Visibility.Collapsed : Visibility.Visible;
-        }
-
-        private void TxtBusqueda_PreviewKeyDown(object sender, WpfKey e)
-        {
-            if (_vm == null) return;
-            if (e.Key == Key.Down)
-            {
-                if (_vm.Suggestions.Count > 0)
-                    _vm.HighlightIndex = Math.Min(_vm.HighlightIndex + 1, _vm.Suggestions.Count - 1);
-                e.Handled = true;
-            }
-            else if (e.Key == Key.Up)
-            {
-                if (_vm.Suggestions.Count > 0)
-                    _vm.HighlightIndex = Math.Max(_vm.HighlightIndex - 1, 0);
-                e.Handled = true;
-            }
-            else if (e.Key == Key.Enter)
-            {
-                if (_vm.Suggestions.Count > 0 && _vm.HighlightIndex >= 0 && _vm.HighlightIndex < _vm.Suggestions.Count)
-                {
-                    _vm.SeleccionarSugerencia(_vm.Suggestions[_vm.HighlightIndex]);
-                    TxtBusqueda.Text = "";
-                    BtnClearSearch.Visibility = Visibility.Collapsed;
-                    SuggestionsPopup.IsOpen = false;
-                    SearchBoxBorder.CornerRadius = new CornerRadius(8);
-                    SeleccionarEnTabla();
-                }
-                e.Handled = true;
-            }
-            else if (e.Key == Key.Escape)
-            {
-                _vm.Query = "";
-                TxtBusqueda.Text = "";
-                SuggestionsPopup.IsOpen = false;
-                SearchBoxBorder.CornerRadius = new CornerRadius(8);
-                e.Handled = true;
-            }
-        }
-
-        private void BtnClearSearch_Click(object sender, RoutedEventArgs e)
-        {
-            _vm.Query = "";
-            TxtBusqueda.Text = "";
-            BtnClearSearch.Visibility = Visibility.Collapsed;
-            SuggestionsPopup.IsOpen = false;
-            SearchBoxBorder.CornerRadius = new CornerRadius(8);
-        }
-
         private void ActualizarSuggestions()
         {
-            if (_vm.ShowSuggestions && _vm.Suggestions.Count > 0)
-            {
-                var items = _vm.Suggestions.Select(p => new SuggestionItemData
-                {
-                    Codigo = p.CodigoInterno,
-                    Nombre = p.Nombre,
-                    Meta   = $"{p.Fabricante} · {p.Pais} · {p.Categoria}",
-                    Activo = p.IdEstado == Activo,
-                    Source = p
-                }).ToList();
-
-                SuggestionsList.ItemsSource = items;
-                SugCountLabel.Text = $"\u2191\u2193 navegar · \u21b5 seleccionar · {items.Count} coincidencias";
-                SuggestionsPopup.IsOpen = true;
-                SearchBoxBorder.CornerRadius = new CornerRadius(8, 8, 0, 0);
-            }
-            else
-            {
-                SuggestionsPopup.IsOpen = false;
-                if (!TxtBusqueda.IsFocused)
-                    SearchBoxBorder.CornerRadius = new CornerRadius(8);
-            }
+            SearchBox.SuggestItems = (_vm.ShowSuggestions && _vm.Suggestions.Count > 0)
+                ? _vm.Suggestions.Select(p => new SuggestionItemData
+                  {
+                      Codigo = p.CodigoInterno,
+                      Nombre = p.Nombre,
+                      Meta   = $"{p.Fabricante} · {p.Pais} · {p.Categoria}",
+                      Activo = p.IdEstado == Activo,
+                      Source = p
+                  }).ToList()
+                : null;
         }
 
-        private void SuggestionItem_Click(object sender, WpfMouseButton e)
+        private void SearchBox_ItemSelected(object? sender, SuggestionItemData e)
         {
-            if (sender is Border b && b.Tag is SuggestionItemData data)
-            {
-                _vm.SeleccionarSugerencia(data.Source);
-                TxtBusqueda.Text = "";
-                BtnClearSearch.Visibility = Visibility.Collapsed;
-                SuggestionsPopup.IsOpen = false;
-                SearchBoxBorder.CornerRadius = new CornerRadius(8);
-                SeleccionarEnTabla();
-            }
-        }
-
-        private void SuggestionItem_MouseEnter(object sender, WpfMouse e)
-        {
-            if (sender is Border b && b.Tag is SuggestionItemData data)
-            {
-                int idx = _vm.Suggestions.IndexOf(data.Source);
-                if (idx >= 0) _vm.HighlightIndex = idx;
-            }
+            _vm.SeleccionarSugerencia((ProductoDto)e.Source);
+            SeleccionarEnTabla();
         }
 
         private void SeleccionarEnTabla()
