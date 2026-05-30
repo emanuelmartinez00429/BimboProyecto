@@ -29,8 +29,6 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
         private List<FiltroItem> _todosPaises = new();
         private System.ComponentModel.ICollectionView? _paisesView;
 
-        public event Action? SalirSolicitado;
-
         public ProductosView()
         {
             InitializeComponent();
