@@ -19,14 +19,19 @@ namespace CapaDatos.Repositories.Fabricantes;
 
 public class FabricanteCrudRepository : RepositorioBase, IFabricanteRepository
 {
-    private static FabricanteDto Map(FabricanteCrud f) => new()
+    private static FabricanteDto Map(
+        FabricanteCrud f,
+        Dictionary<int, string> provDic,
+        Dictionary<int, string> paisDic) => new()
     {
-        Id          = f.idFabricante,
-        Nombre      = f.nombreFabricante          ?? string.Empty,
-        Descripcion = f.descripcionFabricante      ?? string.Empty,
-        IdProveedor = f.idProveedor,
-        IdPais      = f.idPais,
-        IdEstado    = f.idEstado,
+        Id              = f.idFabricante,
+        Nombre          = f.nombreFabricante     ?? string.Empty,
+        Descripcion     = f.descripcionFabricante ?? string.Empty,
+        IdProveedor     = f.idProveedor,
+        NombreProveedor = f.idProveedor.HasValue ? provDic.GetValueOrDefault(f.idProveedor.Value, "") : "",
+        IdPais          = f.idPais,
+        NombrePais      = f.idPais.HasValue      ? paisDic.GetValueOrDefault(f.idPais.Value,      "") : "",
+        IdEstado        = f.idEstado,
     };
 
     // ── Lectura ───────────────────────────────────────────────────────────────
@@ -104,9 +109,13 @@ public class FabricanteCrudRepository : RepositorioBase, IFabricanteRepository
 
         var pageTask    = query.Order("id_fabricante", Ord.Ascending).Range(from, to).Get();
         var conteosTask = GetConteosRpcAsync(filtros, client);
-        await Task.WhenAll(pageTask, conteosTask);
+        var provDicTask = GetProveedoresDicAsync(client);
+        var paisDicTask = GetPaisesDicAsync(client);
+        await Task.WhenAll(pageTask, conteosTask, provDicTask, paisDicTask);
 
-        var items   = pageTask.Result?.Models.Select(Map).ToList() ?? [];
+        var provDic = provDicTask.Result;
+        var paisDic = paisDicTask.Result;
+        var items   = pageTask.Result?.Models.Select(f => Map(f, provDic, paisDic)).ToList() ?? [];
         var conteos = conteosTask.Result;
 
         return new PagedResult<FabricanteDto>
@@ -124,7 +133,7 @@ public class FabricanteCrudRepository : RepositorioBase, IFabricanteRepository
         var client = await ConexionSupabase.GetClientAsync();
         var query  = AplicarFiltros(client.From<FabricanteCrud>().Select("*"), filtros);
 
-        var resultado = await query
+        var resultTask  = query
             .Or(new List<IPostgrestQueryFilter>
             {
                 new QueryFilter("nombre_fabricante", Op.ILike, $"%{termino}%"),
@@ -132,8 +141,13 @@ public class FabricanteCrudRepository : RepositorioBase, IFabricanteRepository
             .Order("nombre_fabricante", Ord.Ascending)
             .Limit(10)
             .Get();
+        var provDicTask = GetProveedoresDicAsync(client);
+        var paisDicTask = GetPaisesDicAsync(client);
+        await Task.WhenAll(resultTask, provDicTask, paisDicTask);
 
-        return resultado?.Models.Select(Map).ToList() ?? [];
+        var provDic = provDicTask.Result;
+        var paisDic = paisDicTask.Result;
+        return resultTask.Result?.Models.Select(f => Map(f, provDic, paisDic)).ToList() ?? [];
     }
 
     private async Task<IReadOnlyList<FiltroItem>> GetPaisesInternal()
@@ -175,6 +189,26 @@ public class FabricanteCrudRepository : RepositorioBase, IFabricanteRepository
         var result  = await query.Get();
         int previos = result?.Models.Count ?? 0;
         return (previos / size) + 1;
+    }
+
+    private static async Task<Dictionary<int, string>> GetProveedoresDicAsync(Supabase.Client client)
+    {
+        var r = await client.From<ProveedorEnt>()
+            .Select("id_proveedor, nombre_proveedor")
+            .Get();
+        return (r?.Models ?? [])
+            .Where(p => p.idProveedor > 0)
+            .ToDictionary(p => p.idProveedor, p => p.nombreProveedor ?? "");
+    }
+
+    private static async Task<Dictionary<int, string>> GetPaisesDicAsync(Supabase.Client client)
+    {
+        var r = await client.From<Paises>()
+            .Select("id_pais, nombre_pais")
+            .Get();
+        return (r?.Models ?? [])
+            .Where(p => p.idPais > 0)
+            .ToDictionary(p => p.idPais, p => p.nombrePais ?? "");
     }
 
     private static Table AplicarFiltros(Table query, FabricanteFiltros filtros)

@@ -25,6 +25,5 @@
     <ProjectReference Include="..\CapaDominio\CapaDominio.csproj" />
     <ProjectReference Include="..\CapaAplicacion4\CapaAplicacion.csproj" />
     <ProjectReference Include="..\CapaDatos\CapaDatos.csproj" />
-    <ProjectReference Include="..\CapaServicios\CapaServicios.csproj" />
   </ItemGroup>
 </Project>
