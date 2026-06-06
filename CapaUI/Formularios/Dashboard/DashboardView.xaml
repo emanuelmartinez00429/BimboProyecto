@@ -426,7 +426,12 @@
 
                     <!-- Barras de merma -->
                     <ItemsControl Grid.Row="1" ItemsSource="{Binding TopMerma}"
-                                  VerticalAlignment="Center">
+                                  VerticalAlignment="Stretch">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <UniformGrid Rows="5"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
                                 <Grid Margin="0,4">
