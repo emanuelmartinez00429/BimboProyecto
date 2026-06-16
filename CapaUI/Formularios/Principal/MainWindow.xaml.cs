@@ -512,20 +512,21 @@ namespace CapaUI.Formularios.Principal
 
         private void BtnCerrarVentana_Click(object sender, RoutedEventArgs e) => Close();
 
-        private void OnCierreRequerido(object? s, EventArgs e) => Close();
+        private void OnCierreRequerido(object? s, EventArgs e) => HandleCerrarSesionAsync();
 
         // ══════════════════════════════════════════════════════════════════
-        //  Cierre — punto único para X, botón de logout y Alt+F4
+        //  Cierre — X / Alt+F4 → salir app; botón "Cerrar sesión" → logout
         // ══════════════════════════════════════════════════════════════════
         protected override void OnClosing(CancelEventArgs e)
         {
             if (_cerrando) { base.OnClosing(e); return; }
 
             e.Cancel = true;
-            HandleCierreAsync();
+            HandleSalirAplicacionAsync();
         }
 
-        private async void HandleCierreAsync()
+        // Cerrar sesión: confirma → limpia → vuelve al login
+        private async void HandleCerrarSesionAsync()
         {
             var resultado = MessageBox.Show(
                 "¿Deseas cerrar sesión?", "Cerrar sesión",
@@ -533,6 +534,32 @@ namespace CapaUI.Formularios.Principal
 
             if (resultado != MessageBoxResult.Yes) return;
 
+            await LimpiarRecursosAsync();
+
+            _cerrando = true;
+            SesionCerrada?.Invoke(this, EventArgs.Empty);
+            Close();
+        }
+
+        // Salir de la aplicación: advertencia → limpia → apaga app
+        private async void HandleSalirAplicacionAsync()
+        {
+            var resultado = MessageBox.Show(
+                "Asegúrese de guardar todos los cambios, de lo contrario podría perderlos.\n\n¿Desea salir del sistema?",
+                "Salir del sistema",
+                MessageBoxButton.YesNo, MessageBoxImage.Warning);
+
+            if (resultado != MessageBoxResult.Yes) return;
+
+            await LimpiarRecursosAsync();
+
+            _cerrando = true;
+            Application.Current.Shutdown();
+        }
+
+        // Cleanup compartido por ambos caminos
+        private async Task LimpiarRecursosAsync()
+        {
             try
             {
                 using var cts = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(5));
@@ -547,28 +574,22 @@ namespace CapaUI.Formularios.Principal
             {
                 Debug.WriteLine($"[Cierre] Error en SignOut: {ex.Message}");
             }
-            finally
-            {
-                CapaUI.Core.Permisos.SesionPermisos.Limpiar();
-                _perfilService.Limpiar();
-                servicioSesionActual.Cerrar();
 
-                // Cleanup: liberar hook, desuscribir eventos, disponer VM
-                _hwndSource?.RemoveHook(WndProc);
-                _hwndSource = null;
-                Vm.CierreRequerido -= OnCierreRequerido;
-                Vm.Dispose();
+            CapaUI.Core.Permisos.SesionPermisos.Limpiar();
+            _perfilService.Limpiar();
+            servicioSesionActual.Cerrar();
 
-                // Detener el monitor de conexión (deja de vigilar la red entre sesiones)
-                _conexionMonitor.Detener();
+            // Liberar hook, desuscribir eventos, disponer VM
+            _hwndSource?.RemoveHook(WndProc);
+            _hwndSource = null;
+            Vm.CierreRequerido -= OnCierreRequerido;
+            Vm.Dispose();
 
-                // Cerrar todos los canales Realtime y desconectar WebSocket
-                await _realtimeService.DesconectarAsync();
+            // Detener el monitor de conexión (deja de vigilar la red entre sesiones)
+            _conexionMonitor.Detener();
 
-                _cerrando = true;
-                SesionCerrada?.Invoke(this, EventArgs.Empty);
-                Close();
-            }
+            // Cerrar todos los canales Realtime y desconectar WebSocket
+            await _realtimeService.DesconectarAsync();
         }
 
         // ══════════════════════════════════════════════════════════════════
