@@ -30,5 +30,8 @@ namespace CapaDatos.Modelados
         /// </summary>
         [Column("logo_empresa")]
         public string? LogoEmpresa { get; set; }
+
+        [Column("dominio_correo")]
+        public string? DominioCorreo { get; set; }
     }
 }

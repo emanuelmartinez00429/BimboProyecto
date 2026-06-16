@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -6,6 +7,7 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using CapaAplicacion.Auth.Interfaces;
 using CapaAplicacion.Perfil;
+using CapaDatos.Repositorios;
 using CapaUI.Core.Permisos;
 using CapaDominio;
 
@@ -29,6 +31,24 @@ namespace CapaUI.Formularios.InicioSesion
             _authService   = authService;
             _perfilService = perfilService;
             InitializeComponent();
+            Loaded += LoginWindow_Loaded;
+        }
+
+        private async void LoginWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var empresa = await RepositorioEmpresa.ObtenerAsync();
+                if (!string.IsNullOrWhiteSpace(empresa?.DominioCorreo))
+                    TxtEmail.GhostSuffix = empresa.DominioCorreo;
+                else
+                    TxtEmail.GhostSuffix = "@gmail.com";
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[LoginWindow] Error cargando dominio: {ex.Message}");
+                TxtEmail.GhostSuffix = "@gmail.com";
+            }
         }
 
         // ── Chrome ───────────────────────────────────────────────────────────
@@ -113,7 +133,7 @@ namespace CapaUI.Formularios.InicioSesion
 
         private async System.Threading.Tasks.Task IngresarAsync()
         {
-            string email    = TxtEmail.Text.Trim();
+            string email    = TxtEmail.GetFullText();
             string password = _pwdVisible ? TxtPasswordVisible.Text : TxtPassword.Password;
 
             BtnIngresar.IsEnabled = false;

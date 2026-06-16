@@ -1,0 +1,35 @@
+<UserControl x:Class="CapaUI.Core.Controls.GhostTextBox"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Focusable="False">
+
+    <Grid>
+        <!-- Ghost: identical TextBox but read-only, non-interactive, grey text -->
+        <TextBox x:Name="GhostDisplay"
+                 BorderThickness="0"
+                 Background="Transparent"
+                 Foreground="#B0B8C4"
+                 Padding="12,0,12,0"
+                 FontFamily="Segoe UI" FontSize="14"
+                 VerticalContentAlignment="Center"
+                 IsReadOnly="True"
+                 Focusable="False"
+                 IsHitTestVisible="False"
+                 IsTabStop="False"
+                 Cursor="IBeam"/>
+
+        <!-- Actual input -->
+        <TextBox x:Name="InnerBox"
+                 BorderThickness="0"
+                 Background="Transparent"
+                 Padding="12,0,12,0"
+                 FontFamily="Segoe UI" FontSize="14"
+                 Foreground="#1A1F2E"
+                 VerticalContentAlignment="Center"
+                 CaretBrush="#1E3A8A"
+                 TextChanged="InnerBox_TextChanged"
+                 PreviewKeyDown="InnerBox_PreviewKeyDown"
+                 GotFocus="InnerBox_GotFocus"
+                 LostFocus="InnerBox_LostFocus"/>
+    </Grid>
+</UserControl>
