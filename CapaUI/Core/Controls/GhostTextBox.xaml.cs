@@ -171,7 +171,7 @@ namespace CapaUI.Core.Controls
         {
             try
             {
-                await Task.Delay(300, ct);
+                await Task.Delay(500, ct);
                 if (ct.IsCancellationRequested) return;
 
                 Dispatcher.Invoke(() =>
