@@ -131,21 +131,7 @@
                           WindowChrome.IsHitTestVisibleInChrome="True">
 
                         <!-- Semáforo de conexión (arriba a la izquierda del contenido) -->
-                        <Border x:Name="ConnPill"
-                                Background="#1FFFFFFF"
-                                BorderBrush="#15FFFFFF" BorderThickness="1"
-                                CornerRadius="14" Height="28"
-                                Margin="24,0,0,0" Padding="10,0"
-                                VerticalAlignment="Center"
-                                ToolTip="Estado de conexión">
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <Ellipse Width="9" Height="9" Margin="0,0,7,0"
-                                         Fill="{Binding EstadoBrush}"/>
-                                <TextBlock Text="{Binding EstadoTexto}" Foreground="White"
-                                           FontFamily="Segoe UI" FontSize="12"
-                                           VerticalAlignment="Center"/>
-                            </StackPanel>
-                        </Border>
+
 
                         <Border x:Name="SearchPill"
                                 Background="#1FFFFFFF"
@@ -207,6 +193,23 @@
                                 </Border>
                             </Grid>
                         </Border>
+                        
+                        <Border x:Name="ConnPill"
+                            Background="#1FFFFFFF"
+                            BorderBrush="#15FFFFFF" BorderThickness="1"
+                            CornerRadius="14" Height="28"
+                            Margin="2,0,0,0" Padding="10,0"
+                            VerticalAlignment="Center"
+                            ToolTip="Estado de conexión">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Ellipse Width="9" Height="9" Margin="0,0,7,0"
+                                    Fill="{Binding EstadoBrush}"/>
+                                    <TextBlock Text="{Binding EstadoTexto}" Foreground="White"
+                                    FontFamily="Segoe UI" FontSize="12"
+                                    VerticalAlignment="Center"/> 
+                            </StackPanel>
+                        </Border>
+                        
                     </StackPanel>
 
                     <!-- ── ACCIONES DERECHA ── -->
@@ -437,8 +440,8 @@
                                 WindowChrome.IsHitTestVisibleInChrome="True"
                                 Command="{Binding CerrarSesionCommand}">
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <Viewbox Width="15" Height="15" Margin="0,0,6,0">
-                                    <Canvas Width="24" Height="24">
+                                <Viewbox Width="20" Height="20" Margin="0,0,6,0">
+                                    <Canvas Width="15" Height="24">
                                         <Path Data="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"
                                               Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"
                                               StrokeThickness="1.8" Fill="Transparent"
@@ -450,9 +453,6 @@
                                               StrokeLineJoin="Round"/>
                                     </Canvas>
                                 </Viewbox>
-                                <TextBlock Text="Cerrar sesión"
-                                           FontFamily="Segoe UI" FontSize="13" FontWeight="SemiBold"
-                                           Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"/>
                             </StackPanel>
                         </Button>
 
@@ -912,7 +912,7 @@
                 </Border>
 
                 <!-- ══ CONTENIDO CENTRAL ═══════════════════════════════ -->
-                <ContentControl Grid.Column="1" Content="{Binding VistaActual}"/>
+                <ContentControl x:Name="ContentArea" Grid.Column="1" Content="{Binding VistaActual}"/>
 
             </Grid>
         </Grid>

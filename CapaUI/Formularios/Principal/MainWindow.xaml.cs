@@ -211,6 +211,10 @@ namespace CapaUI.Formularios.Principal
             _animating = true;
             _collapsed = true;
 
+            // Pinchar al tamaño FINAL: ContentArea ya ocupa su destino desde el frame 0,
+            // así el layout no recalcula en cada frame y no hay salto al terminar.
+            ContentArea.Width = ContentArea.ActualWidth + Sidebar.ActualWidth - SidebarCollapsed;
+
             // Cerrar submenús y chevrones al instante
             foreach (var entry in _moduleMap.Values)
             {
@@ -274,6 +278,7 @@ namespace CapaUI.Formularios.Principal
 
             // Esperar a que termine la animación de ancho antes de liberar el guard
             await Task.Delay(90);
+            ContentArea.Width = double.NaN; // liberar: ContentControl vuelve a Width="*"
             _animating = false;
         }
 
@@ -281,6 +286,9 @@ namespace CapaUI.Formularios.Principal
         {
             _animating = true;
             _collapsed = false;
+
+            // Pinchar al tamaño FINAL
+            ContentArea.Width = ContentArea.ActualWidth + Sidebar.ActualWidth - SidebarExpanded;
 
             // Fase 1 — desvanecer tarjeta compacta (60 ms)
             AnimateOpacity(CompactUserCard, 0, 60);
@@ -335,6 +343,7 @@ namespace CapaUI.Formularios.Principal
             }
 
             await Task.Delay(80);
+            ContentArea.Width = double.NaN; // liberar: ContentControl vuelve a Width="*"
             _animating = false;
         }
 
