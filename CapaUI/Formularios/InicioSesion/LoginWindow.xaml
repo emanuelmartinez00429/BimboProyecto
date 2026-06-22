@@ -5,7 +5,10 @@
         Title="BimboPesaje" Width="900" Height="560"
         WindowStyle="None" AllowsTransparency="True"
         Background="Transparent" ResizeMode="NoResize"
-        WindowStartupLocation="CenterScreen">
+        WindowStartupLocation="CenterScreen"
+        UseLayoutRounding="True"
+        TextOptions.TextRenderingMode="Grayscale"
+        TextOptions.TextFormattingMode="Display">
 
     <Window.Resources>
         <ResourceDictionary>

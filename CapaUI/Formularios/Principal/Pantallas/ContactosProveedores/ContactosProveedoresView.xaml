@@ -5,7 +5,10 @@
              xmlns:controls="clr-namespace:CapaUI.Core.Controls"
              Background="#EAF1F8"
              Loaded="UserControl_Loaded"
-             Unloaded="UserControl_Unloaded">
+             Unloaded="UserControl_Unloaded"
+             UseLayoutRounding="True"
+             TextOptions.TextRenderingMode="Grayscale"
+             TextOptions.TextFormattingMode="Display">
 
     <UserControl.Resources>
         <Geometry x:Key="IconPlus">M12,5 v14 M5,12 h14</Geometry>
@@ -301,11 +304,8 @@
                 <DropShadowEffect Color="Black" BlurRadius="10" ShadowDepth="2" Opacity="0.06"/>
             </Border.Effect>
             <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                <!-- MODO LISTA: ícono + título simple -->
+                <StackPanel x:Name="HeaderListMode" Orientation="Horizontal" VerticalAlignment="Center">
                     <Border Width="36" Height="36" CornerRadius="8" Background="#EFF6FF" Margin="0,0,12,0">
                         <Path Data="{StaticResource IconTruck}"
                               Stroke="#1E3A8A" StrokeThickness="1.6"
@@ -313,40 +313,58 @@
                               Width="18" Height="18" Stretch="Uniform"/>
                     </Border>
                     <StackPanel VerticalAlignment="Center">
-                        <TextBlock x:Name="TxtHeaderContext"
-                                   Text="CATÁLOGO" FontFamily="Segoe UI" FontSize="9.5"
+                        <TextBlock Text="CATÁLOGO" FontFamily="Segoe UI" FontSize="9.5"
                                    FontWeight="Bold" Foreground="#9CA3AF"/>
-                        <TextBlock x:Name="TxtHeaderTitle"
-                                   Text="Contactos · Proveedores" FontFamily="Segoe UI"
+                        <TextBlock Text="Contactos · Proveedores" FontFamily="Segoe UI"
                                    FontSize="17" FontWeight="Bold" Foreground="#1A1F2E"/>
                     </StackPanel>
                 </StackPanel>
-                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Button x:Name="BtnVolver" Style="{StaticResource GhostBtn}"
-                            Padding="12,0" Visibility="Collapsed" Margin="0,0,10,0"
-                            Click="BtnVolver_Click">
-                        <StackPanel Orientation="Horizontal">
-                            <Path Data="{StaticResource IconArrowLeft}"
-                                  Stroke="#1E3A8A" StrokeThickness="2"
-                                  StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                                  Width="13" Height="13" Stretch="Uniform" Margin="0,0,5,0"/>
-                            <TextBlock Text="Volver" FontFamily="Segoe UI" FontSize="13"
-                                       FontWeight="SemiBold" Foreground="#1E3A8A"/>
-                        </StackPanel>
+
+                <!-- MODO CONTACTOS: breadcrumb + título + contador -->
+                <Grid x:Name="HeaderContactsMode" Visibility="Collapsed">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <!-- Botón circular volver -->
+                    <Button Grid.Column="0" Width="40" Height="40" Margin="0,0,14,0"
+                            VerticalAlignment="Center" Cursor="Hand" FocusVisualStyle="{x:Null}"
+                            Background="White" Click="BtnVolver_Click">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="20"
+                                        BorderBrush="#D8E1EC" BorderThickness="1">
+                                    <Path Data="{StaticResource IconArrowLeft}" Stroke="#1E3A8A" StrokeThickness="2"
+                                          StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                          Width="16" Height="16" Stretch="Uniform"/>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="Bd" Property="Background" Value="#EFF6FF"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Button.Template>
                     </Button>
-                    <Button x:Name="BtnNuevoContacto" Style="{StaticResource ActionBtn}"
-                            Background="#16A34A" Padding="14,0" Visibility="Collapsed"
-                            Click="BtnNuevoContacto_Click">
-                        <StackPanel Orientation="Horizontal">
-                            <Path Data="{StaticResource IconPlus}"
-                                  Stroke="White" StrokeThickness="2.2"
-                                  StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                                  Width="14" Height="14" Stretch="Uniform" Margin="0,0,6,0"/>
-                            <TextBlock Text="Nuevo contacto" FontFamily="Segoe UI" FontSize="13"
-                                       FontWeight="SemiBold" Foreground="White"/>
+                    <!-- Breadcrumb + título -->
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,2">
+                            <TextBlock Text="Productos" FontFamily="Segoe UI" FontSize="12" Foreground="#9CA3AF"/>
+                            <TextBlock Text="  /  " FontFamily="Segoe UI" FontSize="12" Foreground="#CBD5E1"/>
+                            <TextBlock Text="Contactos Proveedores" FontFamily="Segoe UI" FontSize="12" FontWeight="SemiBold" Foreground="#2563EB"/>
+                            <TextBlock Text="  /  " FontFamily="Segoe UI" FontSize="12" Foreground="#CBD5E1"/>
+                            <TextBlock x:Name="TxtCrumbNombre" FontFamily="Segoe UI" FontSize="12" Foreground="#6B7280"/>
                         </StackPanel>
-                    </Button>
-                </StackPanel>
+                        <TextBlock x:Name="TxtContactosTitulo" FontFamily="Segoe UI" FontSize="22" FontWeight="Bold" Foreground="#1A1F2E"/>
+                    </StackPanel>
+                    <!-- Contador -->
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Ellipse Width="7" Height="7" Fill="#2563EB" Margin="0,0,7,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="CONTACTOS" FontFamily="Segoe UI" FontSize="11" FontWeight="Bold" Foreground="#9CA3AF" VerticalAlignment="Center"/>
+                        <TextBlock x:Name="TxtContactosCount" Text="0" FontFamily="Segoe UI" FontSize="14" FontWeight="Bold" Foreground="#2563EB" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Grid>
             </Grid>
         </Border>
 
@@ -361,6 +379,36 @@
                 HighlightIndex="{Binding HighlightIndex, Mode=TwoWay}"
                 Placeholder="Buscar proveedor por nombre o RTN..."
                 ItemSelected="SearchBox_ItemSelected"/>
+        </Border>
+
+        <!-- ── Toolbar modo contactos ───────────────── -->
+        <Border x:Name="ContactsToolbar" Grid.Row="2" Background="White" CornerRadius="10"
+                BorderBrush="#D8E1EC" BorderThickness="1" Padding="12" Visibility="Collapsed">
+            <Border.Effect>
+                <DropShadowEffect Color="Black" BlurRadius="10" ShadowDepth="2" Opacity="0.06"/>
+            </Border.Effect>
+            <Grid>
+                <Button x:Name="BtnVolver" Style="{StaticResource GhostBtn}" Padding="14,0"
+                        HorizontalAlignment="Left" Click="BtnVolver_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <Path Data="{StaticResource IconArrowLeft}" Stroke="#1E3A8A" StrokeThickness="2"
+                              StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                              Width="13" Height="13" Stretch="Uniform" Margin="0,0,5,0"/>
+                        <TextBlock Text="Volver a proveedores" FontFamily="Segoe UI" FontSize="13"
+                                   FontWeight="SemiBold" Foreground="#1E3A8A"/>
+                    </StackPanel>
+                </Button>
+                <Button x:Name="BtnNuevoContacto" Style="{StaticResource ActionBtn}" Background="#16A34A"
+                        Padding="14,0" HorizontalAlignment="Right" Click="BtnNuevoContacto_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <Path Data="{StaticResource IconPlus}" Stroke="White" StrokeThickness="2.2"
+                              StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                              Width="14" Height="14" Stretch="Uniform" Margin="0,0,6,0"/>
+                        <TextBlock Text="Nuevo contacto" FontFamily="Segoe UI" FontSize="13"
+                                   FontWeight="SemiBold" Foreground="White"/>
+                    </StackPanel>
+                </Button>
+            </Grid>
         </Border>
 
         <!-- ── Contenido ─────────────────────────────── -->

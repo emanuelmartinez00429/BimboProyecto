@@ -68,7 +68,8 @@
         </Style>
     </UserControl.Resources>
 
-    <Border CornerRadius="10" ClipToBounds="True">
+    <Border CornerRadius="10" ClipToBounds="True"
+            MaxHeight="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=Border}}">
         <Border.Effect><DropShadowEffect Color="Black" BlurRadius="100" ShadowDepth="40" Opacity="0.7"/></Border.Effect>
         <Grid>
             <Border CornerRadius="10">
@@ -80,6 +81,7 @@
                     </LinearGradientBrush>
                 </Border.Background>
             </Border>
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
             <StackPanel>
                 <Border Height="4">
                     <Border.Background>
@@ -262,6 +264,7 @@
                     </DockPanel>
                 </Border>
             </StackPanel>
+            </ScrollViewer>
         </Grid>
     </Border>
 </UserControl>

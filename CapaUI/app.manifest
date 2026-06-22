@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<assembly manifestVersion="1.0" xmlns="urn:schemas-microsoft-com:asm.v1">
+
+  <!--
+    Manifest de la aplicación BimboProyecto (CapaUI).
+
+    Propósito principal: declarar DPI awareness Per-Monitor V2.
+
+    Sin este manifest, una app WPF corre como "System DPI-Aware" (default de WPF).
+    En ese modo, al mover la ventana a un monitor con distinto DPI Windows estira
+    el bitmap → la UI se ve borrosa, sobre todo en escalas no enteras (125%, 150%).
+
+    Con Per-Monitor V2, .NET 8 WPF re-renderiza nativamente al cambiar de monitor
+    o de escala — sin código nativo, para contenido WPF puro.
+
+    Ref: https://learn.microsoft.com/en-us/windows/win32/hidpi/declaring-managed-apps-dpi-aware
+  -->
+
+  <assemblyIdentity version="1.0.0.0" name="CapaUI.app"/>
+
+  <!-- Compatibilidad con versiones de Windows (Windows 10/11) -->
+  <compatibility xmlns="urn:schemas-microsoft-com:compatibility.v1">
+    <application>
+      <!-- Windows 10 y Windows 11 -->
+      <supportedOS Id="{8e0f7a12-bfb3-4fe8-b9a5-48fd50a15a9a}" />
+    </application>
+  </compatibility>
+
+  <!-- Configuración de DPI awareness -->
+  <application xmlns="urn:schemas-microsoft-com:asm.v3">
+    <windowsSettings>
+      <!-- dpiAware: compatibilidad con sistemas anteriores a Win10 Creators Update -->
+      <dpiAware xmlns="http://schemas.microsoft.com/SMI/2005/WindowsSettings">true/PM</dpiAware>
+      <!-- dpiAwareness: Per-Monitor V2 (Win10 1703+), con fallback a PerMonitor -->
+      <dpiAwareness xmlns="http://schemas.microsoft.com/SMI/2016/WindowsSettings">PerMonitorV2, PerMonitor</dpiAwareness>
+    </windowsSettings>
+  </application>
+
+</assembly>

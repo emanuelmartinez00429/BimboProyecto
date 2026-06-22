@@ -65,7 +65,8 @@
         </Style>
     </UserControl.Resources>
 
-    <Border CornerRadius="10" ClipToBounds="True">
+    <Border CornerRadius="10" ClipToBounds="True"
+            MaxHeight="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=Border}}">
         <Border.Effect><DropShadowEffect Color="Black" BlurRadius="100" ShadowDepth="40" Opacity="0.7"/></Border.Effect>
         <Grid>
             <Border CornerRadius="10">
@@ -77,6 +78,7 @@
                     </LinearGradientBrush>
                 </Border.Background>
             </Border>
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
             <StackPanel>
                 <Border Height="4">
                     <Border.Background>
@@ -182,7 +184,7 @@
                         </Border>
                         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
                             <Button Content="Volver" Click="BtnCerrar_Click" Background="#1AFFFFFF" Foreground="White"
-                                    FontFamily="Segoe UI" FontSize="13.5" FontWeight="SemiBold"
+                                    FontFamily="Segoe UI" FontSize="15" FontWeight="SemiBold"
                                     BorderBrush="#4CFFFFFF" BorderThickness="1" Padding="22,9" Cursor="Hand" FocusVisualStyle="{x:Null}" Margin="0,0,10,0">
                                 <Button.Template>
                                     <ControlTemplate TargetType="Button">
@@ -197,7 +199,7 @@
                                 </Button.Template>
                             </Button>
                             <Button x:Name="BtnGuardar" Click="BtnGuardar_Click" Foreground="White"
-                                    FontFamily="Segoe UI" FontSize="13.5" FontWeight="Bold"
+                                    FontFamily="Segoe UI" FontSize="15" FontWeight="Bold"
                                     BorderBrush="#15803D" BorderThickness="1" Padding="22,9" Cursor="Hand" FocusVisualStyle="{x:Null}">
                                 <Button.Background>
                                     <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
@@ -214,7 +216,7 @@
                                                 <Path Data="M20,6 L9,17 l-5,-5" Stroke="White" StrokeThickness="2.6"
                                                       StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
                                                       Width="14" Height="14" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center"/>
-                                                <TextBlock Text="Guardar" FontFamily="Segoe UI" FontSize="13.5" FontWeight="Bold" Foreground="White" VerticalAlignment="Center"/>
+                                                <TextBlock Text="Guardar" FontFamily="Segoe UI" FontSize="15" FontWeight="Bold" Foreground="White" VerticalAlignment="Center"/>
                                             </StackPanel>
                                         </Border>
                                         <ControlTemplate.Triggers>
@@ -227,6 +229,7 @@
                     </DockPanel>
                 </Border>
             </StackPanel>
+            </ScrollViewer>
         </Grid>
     </Border>
 </UserControl>

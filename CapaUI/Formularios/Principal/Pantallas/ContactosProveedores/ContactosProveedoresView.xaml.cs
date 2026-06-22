@@ -80,9 +80,11 @@ namespace CapaUI.Formularios.Principal.Pantallas.ContactosProveedores
                     DgContactos.ItemsSource   = _vm.Contactos;
                     EmptyContactos.Visibility = _vm.Contactos.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
                     DgContactos.Visibility    = _vm.Contactos.Count >  0 ? Visibility.Visible : Visibility.Collapsed;
+                    TxtContactosCount.Text    = _vm.Contactos.Count.ToString();
                     break;
                 case nameof(ContactosProveedoresViewModel.Titulo):
-                    TxtHeaderTitle.Text = _vm.Titulo;
+                    TxtContactosTitulo.Text = $"Contactos de {_vm.Titulo}";
+                    TxtCrumbNombre.Text     = _vm.Titulo;
                     break;
             }
         }
@@ -98,10 +100,9 @@ namespace CapaUI.Formularios.Principal.Pantallas.ContactosProveedores
             ToolbarPanel.Visibility     = viewing ? Visibility.Collapsed : Visibility.Visible;
             PanelContactos.Visibility   = viewing ? Visibility.Visible   : Visibility.Collapsed;
 
-            BtnVolver.Visibility        = viewing ? Visibility.Visible   : Visibility.Collapsed;
-            BtnNuevoContacto.Visibility = viewing ? Visibility.Visible   : Visibility.Collapsed;
-
-            TxtHeaderContext.Text = viewing ? "CONTACTOS DE PROVEEDOR" : "CATÁLOGO";
+            HeaderListMode.Visibility     = viewing ? Visibility.Collapsed : Visibility.Visible;
+            HeaderContactsMode.Visibility = viewing ? Visibility.Visible   : Visibility.Collapsed;
+            ContactsToolbar.Visibility    = viewing ? Visibility.Visible   : Visibility.Collapsed;
         }
 
         // ── Spinner / Loading ───────────────────────────────
