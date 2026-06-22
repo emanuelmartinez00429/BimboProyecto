@@ -1,7 +1,10 @@
 <UserControl x:Class="CapaUI.Formularios.Principal.Pantallas.Productos.ProductoModal"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             Width="620">
+             Width="620"
+             UseLayoutRounding="True"
+             TextOptions.TextRenderingMode="Grayscale"
+             TextOptions.TextFormattingMode="Display">
 
     <UserControl.Resources>
         <Geometry x:Key="IconBoxM">M21,16 V8 a2,2 0 0 0,-1,-1.73 l-7,-4 a2,2 0 0 0,-2,0 l-7,4 A2,2 0 0 0,3,8 v8 a2,2 0 0 0,1,1.73 l7,4 a2,2 0 0 0,2,0 l7,-4 A2,2 0 0 0,21,16 z</Geometry>
