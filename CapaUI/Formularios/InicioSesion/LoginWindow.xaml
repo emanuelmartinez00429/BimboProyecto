@@ -106,7 +106,6 @@
                                     </Canvas>
                                 </Viewbox>
                                 <controls:GhostTextBox x:Name="TxtEmail" Grid.Column="1"
-                                         Placeholder="Usuario"
                                          InnerGotFocus="Input_GotFocus" InnerLostFocus="Input_LostFocus"
                                          TextChanged="Fields_Changed"/>
                             </Grid>

@@ -446,7 +446,7 @@
                         <!-- Cerrar sesión -->
                         <Button Style="{StaticResource LogoutButton}"
                                 WindowChrome.IsHitTestVisibleInChrome="True"
-                                Command="{Binding CerrarSesionCommand}">
+                                Command="{Binding CerrarSesionCommand}" >
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                 <Viewbox Width="20" Height="20" Margin="0,0,6,0">
                                     <Canvas Width="15" Height="24">
@@ -461,6 +461,10 @@
                                               StrokeLineJoin="Round"/>
                                     </Canvas>
                                 </Viewbox>
+                                <TextBlock Text="Cerrar Sesión"
+                                           Margin="5"
+                                    VerticalAlignment="Center"
+                                    Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"/>    
                             </StackPanel>
                         </Button>
 

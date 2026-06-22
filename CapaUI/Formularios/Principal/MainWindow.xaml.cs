@@ -643,6 +643,7 @@ namespace CapaUI.Formularios.Principal
             target.BeginAnimation(UIElement.OpacityProperty, anim);
         }
 
+
         // ══════════════════════════════════════════════════════════════════
         //  Helpers
         // ══════════════════════════════════════════════════════════════════
