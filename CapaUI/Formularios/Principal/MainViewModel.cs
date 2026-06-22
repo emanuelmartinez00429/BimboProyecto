@@ -100,8 +100,8 @@ namespace CapaUI.Formularios.Principal
                 [Routes.Proveedores]          = () => new ProveedoresVM(),
                 [Routes.Fabricantes]          = () => new FabricantesVM(),
                 [Routes.Categorias]           = () => new CategoriasVM(),
-                [Routes.ContactosProveedores] = () => new ConstructionVM("Contactos Proveedores",  "Productos"),
-                [Routes.ContactosFabricantes] = () => new ConstructionVM("Contactos Fabricantes",  "Productos"),
+                [Routes.ContactosProveedores] = () => new ContactosProveedoresVM(),
+                [Routes.ContactosFabricantes] = () => new ContactosFabricantesVM(),
                 // Pesajes
                 [Routes.Pesajes]       = () => new ConstructionVM("Movimientos y Entradas", "Pesajes"),
                 // Reportería
@@ -186,11 +186,13 @@ namespace CapaUI.Formularios.Principal
     }
 
     // ── VMs marcadores (DataTemplate triggers) ───────────────────────────
-    public class WelcomeVM     : ViewModelBase { }
-    public class ProductosVM   : ViewModelBase { }
-    public class ProveedoresVM : ViewModelBase { }
-    public class FabricantesVM : ViewModelBase { }
-    public class CategoriasVM  : ViewModelBase { }
+    public class WelcomeVM                : ViewModelBase { }
+    public class ProductosVM              : ViewModelBase { }
+    public class ProveedoresVM            : ViewModelBase { }
+    public class FabricantesVM            : ViewModelBase { }
+    public class CategoriasVM             : ViewModelBase { }
+    public class ContactosFabricantesVM   : ViewModelBase { }
+    public class ContactosProveedoresVM   : ViewModelBase { }
 
     public class ConstructionVM : ViewModelBase
     {

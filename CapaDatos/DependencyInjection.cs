@@ -1,6 +1,8 @@
 using CapaAplicacion.Auth.Interfaces;
 using CapaAplicacion.Categorias.Interfaces;
 using CapaAplicacion.Conexion;
+using CapaAplicacion.Contactos.Fabricantes.Interfaces;
+using CapaAplicacion.Contactos.Proveedores.Interfaces;
 using CapaAplicacion.Fabricantes.Interfaces;
 using CapaAplicacion.Perfil;
 using CapaAplicacion.Productos.Interfaces;
@@ -11,6 +13,7 @@ using CapaDatos.Conexion;
 using CapaDatos.Perfil;
 using CapaDatos.Realtime;
 using CapaDatos.Repositories.Categorias;
+using CapaDatos.Repositories.Contactos;
 using CapaDatos.Repositories.Fabricantes;
 using CapaDatos.Repositories.Productos;
 using CapaDatos.Repositories.Proveedores;
@@ -50,6 +53,10 @@ public static class DependencyInjection
         services.AddTransient<IProveedorRepository, ProveedorCrudRepository>();
         services.AddTransient<IFabricanteRepository, FabricanteCrudRepository>();
         services.AddTransient<ICategoriaRepository, CategoriaCrudRepository>();
+
+        // Contactos de fabricantes y proveedores
+        services.AddTransient<IContactoFabricanteRepository, ContactoFabricanteCrudRepository>();
+        services.AddTransient<IContactoProveedorRepository, ContactoProveedorCrudRepository>();
 
         return services;
     }

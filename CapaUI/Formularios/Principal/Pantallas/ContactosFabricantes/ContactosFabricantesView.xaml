@@ -1,0 +1,611 @@
+<UserControl x:Class="CapaUI.Formularios.Principal.Pantallas.ContactosFabricantes.ContactosFabricantesView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:CapaUI.Formularios.Principal.Pantallas.ContactosFabricantes"
+             xmlns:controls="clr-namespace:CapaUI.Core.Controls"
+             Background="#EAF1F8"
+             Loaded="UserControl_Loaded"
+             Unloaded="UserControl_Unloaded">
+
+    <UserControl.Resources>
+        <Geometry x:Key="IconPlus">M12,5 v14 M5,12 h14</Geometry>
+        <Geometry x:Key="IconPencil">M11,4 H4 a2,2 0 0 0,-2,2 v14 a2,2 0 0 0,2,2 h14 a2,2 0 0 0,2,-2 v-7 M18.5,2.5 a2.12,2.12 0 0 1,3,3 L12,15 l-4,1 1,-4 z</Geometry>
+        <Geometry x:Key="IconTrash">M3,6 h18 M8,6 V4 a1,1 0 0 1,1,-1 h6 a1,1 0 0 1,1,1 v2 M19,6 l-1,14 a2,2 0 0 1,-2,2 H8 a2,2 0 0 1,-2,-2 L5,6</Geometry>
+        <Geometry x:Key="IconArrowLeft">M19,12 H5 M12,19 l-7,-7 7,-7</Geometry>
+        <Geometry x:Key="IconCheck">M20,6 L9,17 l-5,-5</Geometry>
+        <Geometry x:Key="IconFactory">M2,20 V8 l7,-5 v5 l7,-5 v17 z</Geometry>
+        <Geometry x:Key="IconPerson">M20,21 v-2 a4,4 0 0 0,-4,-4 H8 a4,4 0 0 0,-4,4 v2 M12,11 a4,4 0 1 0,0,-8 a4,4 0 0 0,0,8 z</Geometry>
+
+        <Style x:Key="ProductRowStyle" TargetType="DataGridRow">
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#EEF2F8"/>
+            <Setter Property="BorderThickness" Value="0,0,0,1"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="DataGridRow">
+                        <Border x:Name="DGR_Border"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                SnapsToDevicePixels="True">
+                            <Grid>
+                                <Border x:Name="SelIndicator" Width="3" HorizontalAlignment="Left"
+                                        VerticalAlignment="Stretch" Background="#1E3A8A"
+                                        Visibility="Collapsed" Panel.ZIndex="1"/>
+                                <DataGridCellsPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"
+                                                        ItemsPanel="{TemplateBinding ItemsPanel}"/>
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="DGR_Border" Property="Background" Value="#C8D8F0"/>
+                            </Trigger>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsMouseOver" Value="True"/>
+                                    <Condition Property="ItemsControl.AlternationIndex" Value="1"/>
+                                </MultiTrigger.Conditions>
+                                <Setter TargetName="DGR_Border" Property="Background" Value="#C8D8F0"/>
+                            </MultiTrigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="DGR_Border" Property="Background" Value="#C8D8F0"/>
+                                <Setter TargetName="SelIndicator" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsSelected" Value="True"/>
+                                    <Condition Property="ItemsControl.AlternationIndex" Value="1"/>
+                                </MultiTrigger.Conditions>
+                                <Setter TargetName="DGR_Border" Property="Background" Value="#C8D8F0"/>
+                            </MultiTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="ItemsControl.AlternationIndex" Value="1">
+                    <Setter Property="Background" Value="#E8F0FA"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="ProductCellStyle" TargetType="DataGridCell">
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="DataGridCell">
+                        <Border Background="{TemplateBinding Background}" BorderThickness="0" Padding="0">
+                            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ProductCellStyle1" TargetType="DataGridCell">
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="DataGridCell">
+                        <Border Background="{TemplateBinding Background}" BorderThickness="0" Padding="0">
+                            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Left"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="DataGridColumnHeader">
+            <Setter Property="Background" Value="#1E3A8A"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="FontSize" Value="11.5"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="DataGridColumnHeader">
+                        <Border Background="#1E3A8A" BorderBrush="#1EFFFFFF" BorderThickness="0,0,1,0">
+                            <TextBlock Text="{TemplateBinding Content}"
+                                       Foreground="White" FontFamily="Segoe UI"
+                                       FontSize="11.5" FontWeight="Bold"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                                       Padding="8,0"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ActionBtn" TargetType="Button">
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="MinWidth" Value="110"/>
+            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}"
+                                CornerRadius="8" Padding="{TemplateBinding Padding}">
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="6" ShadowDepth="2" Opacity="0.25" Color="Black"/>
+                            </Border.Effect>
+                            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bd" Property="RenderTransform">
+                                    <Setter.Value><TranslateTransform Y="1"/></Setter.Value>
+                                </Setter>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="Bd" Property="Background" Value="#CBD5E1"/>
+                                <Setter TargetName="Bd" Property="Opacity" Value="0.7"/>
+                                <Setter Property="Cursor" Value="Arrow"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="GhostBtn" TargetType="Button">
+            <Setter Property="Height" Value="34"/>
+            <Setter Property="MinWidth" Value="80"/>
+            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="#1E3A8A"/>
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#CBD5E1"/>
+            <Setter Property="BorderThickness" Value="1.5"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="8" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#EEF2F8"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="IconBtn" TargetType="Button">
+            <Setter Property="Width" Value="28"/>
+            <Setter Property="Height" Value="28"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="6">
+                            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#EEF2F8"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="IconBtnDanger" TargetType="Button">
+            <Setter Property="Width" Value="28"/>
+            <Setter Property="Height" Value="28"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="6">
+                            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#FEE2E2"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="PageBtn" TargetType="Button">
+            <Setter Property="MinWidth" Value="30"/>
+            <Setter Property="Height" Value="28"/>
+            <Setter Property="Padding" Value="4,0"/>
+            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Foreground" Value="#1A1F2E"/>
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#CBD5E1"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="4" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#EEF2F8"/>
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="#1E3A8A"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Foreground" Value="#CBD5E1"/>
+                                <Setter Property="Cursor" Value="Arrow"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ActivePageBtn" TargetType="Button" BasedOn="{StaticResource PageBtn}">
+            <Setter Property="Background" Value="#1E3A8A"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="BorderBrush" Value="#1E3A8A"/>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid>
+    <Grid Margin="22,18,22,0">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="8"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="8"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- ── Encabezado ───────────────────────────── -->
+        <Border Grid.Row="0" Background="White" CornerRadius="10"
+                BorderBrush="#D8E1EC" BorderThickness="1" Padding="16,14">
+            <Border.Effect>
+                <DropShadowEffect Color="Black" BlurRadius="10" ShadowDepth="2" Opacity="0.06"/>
+            </Border.Effect>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Border Width="36" Height="36" CornerRadius="8" Background="#EFF6FF" Margin="0,0,12,0">
+                        <Path Data="{StaticResource IconFactory}"
+                              Stroke="#1E3A8A" StrokeThickness="1.6"
+                              StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                              Width="18" Height="18" Stretch="Uniform"/>
+                    </Border>
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock x:Name="TxtHeaderContext"
+                                   Text="CATÁLOGO" FontFamily="Segoe UI" FontSize="9.5"
+                                   FontWeight="Bold" Foreground="#9CA3AF"/>
+                        <TextBlock x:Name="TxtHeaderTitle"
+                                   Text="Contactos · Fabricantes" FontFamily="Segoe UI"
+                                   FontSize="17" FontWeight="Bold" Foreground="#1A1F2E"/>
+                    </StackPanel>
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button x:Name="BtnVolver" Style="{StaticResource GhostBtn}"
+                            Padding="12,0" Visibility="Collapsed" Margin="0,0,10,0"
+                            Click="BtnVolver_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="{StaticResource IconArrowLeft}"
+                                  Stroke="#1E3A8A" StrokeThickness="2"
+                                  StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                  Width="13" Height="13" Stretch="Uniform" Margin="0,0,5,0"/>
+                            <TextBlock Text="Volver" FontFamily="Segoe UI" FontSize="13"
+                                       FontWeight="SemiBold" Foreground="#1E3A8A"/>
+                        </StackPanel>
+                    </Button>
+                    <Button x:Name="BtnNuevoContacto" Style="{StaticResource ActionBtn}"
+                            Background="#16A34A" Padding="14,0" Visibility="Collapsed"
+                            Click="BtnNuevoContacto_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="{StaticResource IconPlus}"
+                                  Stroke="White" StrokeThickness="2.2"
+                                  StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                  Width="14" Height="14" Stretch="Uniform" Margin="0,0,6,0"/>
+                            <TextBlock Text="Nuevo contacto" FontFamily="Segoe UI" FontSize="13"
+                                       FontWeight="SemiBold" Foreground="White"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- ── Toolbar SearchBox ─────────────────────── -->
+        <Border x:Name="ToolbarPanel" Grid.Row="2" Background="White" CornerRadius="10"
+                BorderBrush="#D8E1EC" BorderThickness="1" Padding="12">
+            <Border.Effect>
+                <DropShadowEffect Color="Black" BlurRadius="10" ShadowDepth="2" Opacity="0.06"/>
+            </Border.Effect>
+            <controls:SuggestionSearchBox x:Name="SearchBox"
+                Query="{Binding Query, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                HighlightIndex="{Binding HighlightIndex, Mode=TwoWay}"
+                Placeholder="Buscar fabricante por nombre..."
+                ItemSelected="SearchBox_ItemSelected"/>
+        </Border>
+
+        <!-- ── Contenido ─────────────────────────────── -->
+        <Border Grid.Row="4" Background="White" CornerRadius="10"
+                BorderBrush="#D8E1EC" BorderThickness="1" ClipToBounds="True">
+            <Border.Effect>
+                <DropShadowEffect Color="#0F172A" BlurRadius="14" ShadowDepth="4" Opacity="0.08"/>
+            </Border.Effect>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- Nivel 1: Lista de fabricantes -->
+                <Grid x:Name="PanelFabricantes" Grid.Row="0">
+                    <StackPanel x:Name="LoadingPanel" Visibility="Collapsed"
+                                VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Horizontal">
+                        <Path x:Name="SpinnerPath"
+                              Data="M 12 2 A 10 10 0 1 1 2 12"
+                              Stroke="#1E3A8A" StrokeThickness="2.5"
+                              StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                              Width="22" Height="22" Stretch="Uniform"
+                              RenderTransformOrigin="0.5,0.5" Margin="0,0,10,0">
+                            <Path.RenderTransform><RotateTransform/></Path.RenderTransform>
+                        </Path>
+                        <TextBlock Text="Cargando fabricantes..." FontFamily="Segoe UI"
+                                   FontSize="14" Foreground="#6B7280" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <StackPanel x:Name="EmptyState" Visibility="Collapsed"
+                                VerticalAlignment="Center" HorizontalAlignment="Center">
+                        <TextBlock FontFamily="Segoe UI" FontSize="14" Foreground="#6B7280">Sin resultados.</TextBlock>
+                    </StackPanel>
+                    <DataGrid x:Name="DgFabricantes"
+                              AutoGenerateColumns="False" CanUserAddRows="False"
+                              CanUserSortColumns="False" HeadersVisibility="Column"
+                              GridLinesVisibility="None" SelectionMode="Single" SelectionUnit="FullRow"
+                              Background="White" BorderThickness="0" AlternationCount="2"
+                              RowStyle="{StaticResource ProductRowStyle}"
+                              CellStyle="{StaticResource ProductCellStyle}"
+                              SelectionChanged="DgFabricantes_SelectionChanged"
+                              MouseDoubleClick="DgFabricantes_MouseDoubleClick"
+                              ScrollViewer.VerticalScrollBarVisibility="Auto"
+                              VirtualizingPanel.IsVirtualizing="True">
+                        <DataGrid.Columns>
+                            <DataGridTemplateColumn Header="NOMBRE" Width="*" CellStyle="{StaticResource ProductCellStyle1}">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Nombre}" FontFamily="Segoe UI"
+                                                   FontSize="13.5" Foreground="#1A1F2E"
+                                                   TextTrimming="CharacterEllipsis" Padding="8,0"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTemplateColumn Header="DESCRIPCIÓN" Width="*" CellStyle="{StaticResource ProductCellStyle1}">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Descripcion}" FontFamily="Segoe UI"
+                                                   FontSize="13" Foreground="#6B7280"
+                                                   TextTrimming="CharacterEllipsis" Padding="4,0"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTemplateColumn Header="PROVEEDOR" Width="180" CellStyle="{StaticResource ProductCellStyle}">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding NombreProveedor}" FontFamily="Segoe UI"
+                                                   FontSize="13" Foreground="#1A1F2E"
+                                                   HorizontalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTemplateColumn Header="ESTADO" Width="70" CellStyle="{StaticResource ProductCellStyle}">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Grid HorizontalAlignment="Center">
+                                            <Border Width="20" Height="20" CornerRadius="4" Background="#1E3A8A" HorizontalAlignment="Center">
+                                                <Border.Style>
+                                                    <Style TargetType="Border">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IdEstado}" Value="1">
+                                                                <Setter Property="Visibility" Value="Visible"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Border.Style>
+                                                <Border.Effect>
+                                                    <DropShadowEffect Color="#1E3A8A" BlurRadius="4" ShadowDepth="1" Opacity="0.3"/>
+                                                </Border.Effect>
+                                                <Path Data="{StaticResource IconCheck}" Stroke="White" StrokeThickness="2.8"
+                                                      StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                                      Width="11" Height="11" Stretch="Uniform"/>
+                                            </Border>
+                                            <Border Width="20" Height="20" CornerRadius="4" Background="White"
+                                                    BorderBrush="#CBD5E1" BorderThickness="2" HorizontalAlignment="Center">
+                                                <Border.Style>
+                                                    <Style TargetType="Border">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IdEstado}" Value="1">
+                                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Border.Style>
+                                            </Border>
+                                        </Grid>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTemplateColumn Header="" Width="160" CellStyle="{StaticResource ProductCellStyle}">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="Ver contactos ›" FontFamily="Segoe UI" FontSize="12"
+                                                   Foreground="#1E3A8A" HorizontalAlignment="Center"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+
+                <!-- Paginación (Nivel 1) -->
+                <Border x:Name="PaginacionBar" Grid.Row="1"
+                        Background="White" BorderBrush="#E2E8F0" BorderThickness="0,1,0,0" Padding="16,10">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" FontFamily="Segoe UI" FontSize="12.5"
+                                   Foreground="#6B7280" VerticalAlignment="Center"
+                                   Text="{Binding PageInfo}"/>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal">
+                            <Button Style="{StaticResource PageBtn}"
+                                    Command="{Binding PrimeraPaginaCommand}" Content="«" Margin="2,0"/>
+                            <Button Style="{StaticResource PageBtn}"
+                                    Command="{Binding PaginaAnteriorCommand}" Content="‹" Margin="2,0"/>
+                            <ItemsControl x:Name="PaginacionPanel" Margin="2,0"/>
+                            <Button Style="{StaticResource PageBtn}"
+                                    Command="{Binding PaginaSiguienteCommand}" Content="›" Margin="2,0"/>
+                            <Button Style="{StaticResource PageBtn}"
+                                    Command="{Binding UltimaPaginaCommand}" Content="»" Margin="2,0"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- Nivel 2: Contactos del fabricante seleccionado -->
+                <Grid x:Name="PanelContactos" Grid.RowSpan="2" Visibility="Collapsed">
+                    <StackPanel x:Name="LoadingContactos" Visibility="Collapsed"
+                                VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Horizontal">
+                        <TextBlock Text="Cargando contactos..." FontFamily="Segoe UI"
+                                   FontSize="14" Foreground="#6B7280" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <StackPanel x:Name="EmptyContactos" Visibility="Collapsed"
+                                VerticalAlignment="Center" HorizontalAlignment="Center">
+                        <Path Data="{StaticResource IconPerson}"
+                              Stroke="#CBD5E1" StrokeThickness="1.5"
+                              Width="48" Height="48" Stretch="Uniform" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Sin contactos registrados" FontFamily="Segoe UI"
+                                   FontSize="16" FontWeight="SemiBold" Foreground="#9CA3AF"
+                                   HorizontalAlignment="Center" Margin="0,12,0,4"/>
+                        <TextBlock Text="Haz clic en «Nuevo contacto» para agregar el primero."
+                                   FontFamily="Segoe UI" FontSize="13" Foreground="#CBD5E1"
+                                   HorizontalAlignment="Center"/>
+                    </StackPanel>
+                    <DataGrid x:Name="DgContactos"
+                              AutoGenerateColumns="False" CanUserAddRows="False"
+                              CanUserSortColumns="False" HeadersVisibility="Column"
+                              GridLinesVisibility="None" SelectionMode="Single" SelectionUnit="FullRow"
+                              Background="White" BorderThickness="0" AlternationCount="2"
+                              RowStyle="{StaticResource ProductRowStyle}"
+                              CellStyle="{StaticResource ProductCellStyle}"
+                              SelectionChanged="DgContactos_SelectionChanged"
+                              MouseDoubleClick="DgContactos_MouseDoubleClick"
+                              ScrollViewer.VerticalScrollBarVisibility="Auto"
+                              VirtualizingPanel.IsVirtualizing="True">
+                        <DataGrid.Columns>
+                            <DataGridTemplateColumn Header="NOMBRE" Width="*" CellStyle="{StaticResource ProductCellStyle1}">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Nombre}" FontFamily="Segoe UI"
+                                                   FontSize="13.5" FontWeight="SemiBold" Foreground="#1A1F2E"
+                                                   TextTrimming="CharacterEllipsis" Padding="8,0"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTemplateColumn Header="TELÉFONO" Width="180" CellStyle="{StaticResource ProductCellStyle}">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Telefono}" FontFamily="Segoe UI"
+                                                   FontSize="13" Foreground="#374151" HorizontalAlignment="Center"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTemplateColumn Header="CORREO" Width="240" CellStyle="{StaticResource ProductCellStyle}">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Correo}" FontFamily="Segoe UI"
+                                                   FontSize="13" Foreground="#374151" HorizontalAlignment="Center"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTemplateColumn Header="ACCIONES" Width="100" CellStyle="{StaticResource ProductCellStyle}">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                            <Button Style="{StaticResource IconBtn}"
+                                                    Tag="{Binding}"
+                                                    Click="BtnEditarContacto_Click"
+                                                    ToolTip="Editar">
+                                                <Path Data="{StaticResource IconPencil}"
+                                                      Stroke="#1E3A8A" StrokeThickness="1.5"
+                                                      StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                                      Width="13" Height="13" Stretch="Uniform"/>
+                                            </Button>
+                                            <Button Style="{StaticResource IconBtnDanger}"
+                                                    Tag="{Binding}"
+                                                    Click="BtnEliminarContacto_Click"
+                                                    ToolTip="Eliminar">
+                                                <Path Data="{StaticResource IconTrash}"
+                                                      Stroke="#DC2626" StrokeThickness="1.5"
+                                                      StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                                      Width="13" Height="13" Stretch="Uniform"/>
+                                            </Button>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </Grid>
+        </Border>
+
+        <!-- Modal overlay -->
+    </Grid>
+
+        <!-- MODAL OVERLAY — fuera del Grid con márgenes para cubrir toda la vista -->
+        <Border x:Name="ModalOverlay"
+                Background="#80000000" Visibility="Collapsed"
+                Panel.ZIndex="100">
+            <ContentControl x:Name="ModalContent"
+                            VerticalAlignment="Center" HorizontalAlignment="Center"/>
+        </Border>
+    </Grid>
+</UserControl>

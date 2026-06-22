@@ -45,6 +45,8 @@ public class RealtimeService : IRealtimeService
         ["movimiento_productos"]   = "id_mov_producto",
         ["proveedores"]            = "id_proveedor",
         ["fabricante"]             = "id_fabricante",
+        ["contactos_fabricante"]   = "id_contacto_fabricante",
+        ["contactos_proveedor"]    = "id_contacto_proveedor",
         ["presentacion_producto"]  = "id_presentacion",
         ["paises"]                 = "id_pais",
         ["taras"]                  = "id_tara",

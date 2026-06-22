@@ -7,6 +7,8 @@
         xmlns:provs="clr-namespace:CapaUI.Formularios.Principal.Pantallas.Proveedores"
         xmlns:fabs="clr-namespace:CapaUI.Formularios.Principal.Pantallas.Fabricantes"
         xmlns:cats="clr-namespace:CapaUI.Formularios.Principal.Pantallas.Categorias"
+        xmlns:cfabs="clr-namespace:CapaUI.Formularios.Principal.Pantallas.ContactosFabricantes"
+        xmlns:cprovs="clr-namespace:CapaUI.Formularios.Principal.Pantallas.ContactosProveedores"
         xmlns:dash="clr-namespace:CapaUI.Formularios.Dashboard"
         xmlns:searchVm="clr-namespace:CapaUI.ViewModels.Search"
         xmlns:searchViews="clr-namespace:CapaUI.Formularios.Search"
@@ -45,6 +47,12 @@
             </DataTemplate>
             <DataTemplate DataType="{x:Type local:CategoriasVM}">
                 <cats:CategoriasView/>
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type local:ContactosFabricantesVM}">
+                <cfabs:ContactosFabricantesView/>
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type local:ContactosProveedoresVM}">
+                <cprovs:ContactosProveedoresView/>
             </DataTemplate>
             <DataTemplate DataType="{x:Type local:PlaceholderVM}">
                 <Grid Background="#F4F5F7">
