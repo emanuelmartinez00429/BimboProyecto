@@ -13,7 +13,7 @@
         <Geometry x:Key="IconSearchM">M11,4 a7,7 0 1 1 0,14 a7,7 0 0 1 0,-14 z M20,20 l-4.3,-4.3</Geometry>
 
         <Style x:Key="ModalInput" TargetType="TextBox">
-            <Setter Property="Height" Value="30"/>
+            <Setter Property="Height" Value="34"/>
             <Setter Property="Padding" Value="10,0"/>
             <Setter Property="FontFamily" Value="Segoe UI"/>
             <Setter Property="FontSize" Value="13.5"/>
@@ -54,7 +54,7 @@
         </Style>
 
         <Style x:Key="ModalCombo" TargetType="ComboBox">
-            <Setter Property="Height" Value="30"/>
+            <Setter Property="Height" Value="34"/>
             <Setter Property="FontFamily" Value="Segoe UI"/>
             <Setter Property="FontSize" Value="13.5"/>
             <Setter Property="Foreground" Value="#1A1F2E"/>
@@ -142,10 +142,10 @@
                         </Border>
                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
                             <TextBlock x:Name="TxtModalContext"
-                                       FontFamily="Segoe UI" FontSize="10.5" FontWeight="SemiBold"
+                                       FontFamily="Segoe UI" FontSize="12" FontWeight="SemiBold"
                                        Foreground="#A6FFFFFF"/>
                             <TextBlock x:Name="TxtModalTitle"
-                                       FontFamily="Segoe UI" FontSize="20" FontWeight="Bold"
+                                       FontFamily="Segoe UI" FontSize="22" FontWeight="Bold"
                                        Foreground="White" Margin="0,2,0,0"/>
                         </StackPanel>
                         <Button Grid.Column="2"
@@ -186,7 +186,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="0" Text="C&#243;digo interno"
-                                   FontFamily="Segoe UI" FontSize="13" FontWeight="Medium"
+                                   FontFamily="Segoe UI" FontSize="14.5" FontWeight="Medium"
                                    Foreground="#F2FFFFFF" VerticalAlignment="Center"
                                    HorizontalAlignment="Right" Margin="0,0,12,0"/>
                         <TextBox Grid.Column="1" x:Name="TxtCodigo" Style="{StaticResource ModalInput}"/>
@@ -198,7 +198,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="0" Text="Nombre producto"
-                                   FontFamily="Segoe UI" FontSize="13" FontWeight="Medium"
+                                   FontFamily="Segoe UI" FontSize="14.5" FontWeight="Medium"
                                    Foreground="#F2FFFFFF" VerticalAlignment="Center"
                                    HorizontalAlignment="Right" Margin="0,0,12,0"/>
                         <TextBox Grid.Column="1" x:Name="TxtNombre" Style="{StaticResource ModalInput}"/>
@@ -211,7 +211,7 @@
                             <ColumnDefinition Width="32"/>
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="0" Text="Presentaci&#243;n"
-                                   FontFamily="Segoe UI" FontSize="13" FontWeight="Medium"
+                                   FontFamily="Segoe UI" FontSize="14.5" FontWeight="Medium"
                                    Foreground="#F2FFFFFF" VerticalAlignment="Center"
                                    HorizontalAlignment="Right" Margin="0,0,12,0"/>
                         <TextBox Grid.Column="1" x:Name="TxtPresentacion" Style="{StaticResource ModalInput}" IsReadOnly="True"/>
@@ -250,7 +250,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="0" Text="Fabricante"
-                                   FontFamily="Segoe UI" FontSize="13" FontWeight="Medium"
+                                   FontFamily="Segoe UI" FontSize="14.5" FontWeight="Medium"
                                    Foreground="#F2FFFFFF" VerticalAlignment="Center"
                                    HorizontalAlignment="Right" Margin="0,0,12,0"/>
                         <ComboBox Grid.Column="1" x:Name="CmbFabricanteModal" Style="{StaticResource ModalCombo}"/>
@@ -262,7 +262,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="0" Text="Categor&#237;a"
-                                   FontFamily="Segoe UI" FontSize="13" FontWeight="Medium"
+                                   FontFamily="Segoe UI" FontSize="14.5" FontWeight="Medium"
                                    Foreground="#F2FFFFFF" VerticalAlignment="Center"
                                    HorizontalAlignment="Right" Margin="0,0,12,0"/>
                         <ComboBox Grid.Column="1" x:Name="CmbCategoriaModal" Style="{StaticResource ModalCombo}"/>
@@ -275,11 +275,11 @@
                             <ColumnDefinition Width="70"/>
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="0" Text="Contenido"
-                                   FontFamily="Segoe UI" FontSize="13" FontWeight="Medium"
+                                   FontFamily="Segoe UI" FontSize="14.5" FontWeight="Medium"
                                    Foreground="#F2FFFFFF" VerticalAlignment="Center"
                                    HorizontalAlignment="Right" Margin="0,0,12,0"/>
                         <TextBox Grid.Column="1" x:Name="TxtContenido" Style="{StaticResource ModalInput}" Margin="0,0,4,0"/>
-                        <ComboBox Grid.Column="2" x:Name="CmbUnidad" Style="{StaticResource ModalCombo}" Height="30">
+                        <ComboBox Grid.Column="2" x:Name="CmbUnidad" Style="{StaticResource ModalCombo}" Height="34">
                             <ComboBoxItem Content="g"/>
                             <ComboBoxItem Content="kg"/>
                             <ComboBoxItem Content="ml"/>
@@ -294,7 +294,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="0" Text="Pa&#237;s importado"
-                                   FontFamily="Segoe UI" FontSize="13" FontWeight="Medium"
+                                   FontFamily="Segoe UI" FontSize="14.5" FontWeight="Medium"
                                    Foreground="#F2FFFFFF" VerticalAlignment="Center"
                                    HorizontalAlignment="Right" Margin="0,0,12,0"/>
                         <ComboBox Grid.Column="1" x:Name="CmbPaisModal" Style="{StaticResource ModalCombo}">
@@ -315,7 +315,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="0" Text="Estado"
-                                   FontFamily="Segoe UI" FontSize="13" FontWeight="Medium"
+                                   FontFamily="Segoe UI" FontSize="14.5" FontWeight="Medium"
                                    Foreground="#F2FFFFFF" VerticalAlignment="Center"
                                    HorizontalAlignment="Right" Margin="0,0,12,0"/>
                         <Border Grid.Column="1"
@@ -330,7 +330,7 @@
                                              Style="{StaticResource ModalSegBtn}">
                                     <StackPanel Orientation="Horizontal">
                                         <Border Width="6" Height="6" CornerRadius="3" Background="#10B981" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                                        <TextBlock Text="Activo" FontFamily="Segoe UI" FontSize="13"/>
+                                        <TextBlock Text="Activo" FontFamily="Segoe UI" FontSize="14.5"/>
                                     </StackPanel>
                                 </RadioButton>
                                 <RadioButton x:Name="RbInactivo"
@@ -338,7 +338,7 @@
                                              Style="{StaticResource ModalSegBtn}">
                                     <StackPanel Orientation="Horizontal">
                                         <Border Width="6" Height="6" CornerRadius="3" Background="#94A3B8" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                                        <TextBlock Text="Inactivo" FontFamily="Segoe UI" FontSize="13"/>
+                                        <TextBlock Text="Inactivo" FontFamily="Segoe UI" FontSize="14.5"/>
                                     </StackPanel>
                                 </RadioButton>
                             </StackPanel>
@@ -372,7 +372,7 @@
                                     Click="BtnCerrar_Click"
                                     Background="#1AFFFFFF"
                                     Foreground="White"
-                                    FontFamily="Segoe UI" FontSize="13.5" FontWeight="SemiBold"
+                                    FontFamily="Segoe UI" FontSize="15" FontWeight="SemiBold"
                                     BorderBrush="#4CFFFFFF" BorderThickness="1"
                                     Padding="22,9"
                                     Cursor="Hand"
@@ -400,7 +400,7 @@
                             <Button x:Name="BtnGuardar"
                                     Click="BtnGuardar_Click"
                                     Foreground="White"
-                                    FontFamily="Segoe UI" FontSize="13.5" FontWeight="Bold"
+                                    FontFamily="Segoe UI" FontSize="15" FontWeight="Bold"
                                     BorderBrush="#15803D" BorderThickness="1"
                                     Padding="22,9"
                                     Cursor="Hand"
@@ -429,7 +429,7 @@
                                                       Width="14" Height="14" Stretch="Uniform"
                                                       Margin="0,0,6,0" VerticalAlignment="Center"/>
                                                 <TextBlock Text="Guardar"
-                                                           FontFamily="Segoe UI" FontSize="13.5" FontWeight="Bold"
+                                                           FontFamily="Segoe UI" FontSize="15" FontWeight="Bold"
                                                            Foreground="White" VerticalAlignment="Center"/>
                                             </StackPanel>
                                         </Border>
