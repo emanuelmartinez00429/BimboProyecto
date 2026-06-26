@@ -30,9 +30,6 @@
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}"
                                 CornerRadius="6">
-                            <Border.Effect>
-                                <DropShadowEffect Color="Black" BlurRadius="2" ShadowDepth="1" Opacity="0.08" Direction="270"/>
-                            </Border.Effect>
                             <ScrollViewer x:Name="PART_ContentHost"
                                           Margin="{TemplateBinding Padding}"
                                           VerticalAlignment="Center"/>
@@ -40,11 +37,6 @@
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsFocused" Value="True">
                                 <Setter TargetName="Bd" Property="BorderBrush" Value="White"/>
-                                <Setter TargetName="Bd" Property="Effect">
-                                    <Setter.Value>
-                                        <DropShadowEffect Color="White" BlurRadius="8" ShadowDepth="0" Opacity="0.3"/>
-                                    </Setter.Value>
-                                </Setter>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -56,7 +48,7 @@
     <Border CornerRadius="12" ClipToBounds="True"
             MaxHeight="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=Border}}">
         <Border.Effect>
-            <DropShadowEffect Color="Black" BlurRadius="80" ShadowDepth="30" Opacity="0.6"/>
+            <DropShadowEffect Color="Black" BlurRadius="20" ShadowDepth="6" Opacity="0.5"/>
         </Border.Effect>
         <Grid>
             <!-- Fondo degradado -->

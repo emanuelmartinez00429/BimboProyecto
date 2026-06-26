@@ -26,15 +26,11 @@
                     <ControlTemplate TargetType="TextBox">
                         <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="4">
-                            <Border.Effect><DropShadowEffect Color="Black" BlurRadius="2" ShadowDepth="1" Opacity="0.08" Direction="270"/></Border.Effect>
                             <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsFocused" Value="True">
                                 <Setter TargetName="Bd" Property="BorderBrush" Value="White"/>
-                                <Setter TargetName="Bd" Property="Effect">
-                                    <Setter.Value><DropShadowEffect Color="White" BlurRadius="8" ShadowDepth="0" Opacity="0.25"/></Setter.Value>
-                                </Setter>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -70,7 +66,7 @@
 
     <Border CornerRadius="10" ClipToBounds="True"
             MaxHeight="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=Border}}">
-        <Border.Effect><DropShadowEffect Color="Black" BlurRadius="100" ShadowDepth="40" Opacity="0.7"/></Border.Effect>
+        <Border.Effect><DropShadowEffect Color="Black" BlurRadius="24" ShadowDepth="8" Opacity="0.55"/></Border.Effect>
         <Grid>
             <Border CornerRadius="10">
                 <Border.Background>
