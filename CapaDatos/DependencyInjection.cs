@@ -4,6 +4,7 @@ using CapaAplicacion.Conexion;
 using CapaAplicacion.Contactos.Fabricantes.Interfaces;
 using CapaAplicacion.Contactos.Proveedores.Interfaces;
 using CapaAplicacion.Fabricantes.Interfaces;
+using CapaAplicacion.Pesaje.Interfaces;
 using CapaAplicacion.Perfil;
 using CapaAplicacion.Productos.Interfaces;
 using CapaAplicacion.Proveedores.Interfaces;
@@ -15,6 +16,7 @@ using CapaDatos.Realtime;
 using CapaDatos.Repositories.Categorias;
 using CapaDatos.Repositories.Contactos;
 using CapaDatos.Repositories.Fabricantes;
+using CapaDatos.Repositories.Pesaje;
 using CapaDatos.Repositories.Productos;
 using CapaDatos.Repositories.Proveedores;
 using CapaDatos.Repositories.Search;
@@ -57,6 +59,12 @@ public static class DependencyInjection
         // Contactos de fabricantes y proveedores
         services.AddTransient<IContactoFabricanteRepository, ContactoFabricanteCrudRepository>();
         services.AddTransient<IContactoProveedorRepository, ContactoProveedorCrudRepository>();
+
+        // Pesaje — selector de productos por proveedor (extensión aditiva del buscador)
+        services.AddTransient<IPickerProductoRepository, PickerProductoRepository>();
+
+        // Pesaje — persistencia real (movimientos / movimiento_productos / entradas_producto)
+        services.AddTransient<IPesajeRepository, PesajeRepository>();
 
         return services;
     }

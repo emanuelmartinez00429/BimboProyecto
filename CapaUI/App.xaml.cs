@@ -8,6 +8,7 @@ using CapaUI.Formularios.Principal.Pantallas.Categorias;
 using CapaUI.Formularios.Principal.Pantallas.ContactosFabricantes;
 using CapaUI.Formularios.Principal.Pantallas.ContactosProveedores;
 using CapaUI.Formularios.Principal.Pantallas.Fabricantes;
+using CapaUI.Formularios.Principal.Pantallas.Pesaje;
 using CapaUI.Formularios.Principal.Pantallas.Productos;
 using CapaUI.Formularios.Principal.Pantallas.Proveedores;
 using CapaUI.Services.Picker;
@@ -58,6 +59,7 @@ namespace CapaUI
             services.AddSingleton<IPickerService, PickerService>();
             services.AddTransient<UniversalSearchViewModel>();
             services.AddTransient<ProductosViewModel>();
+            services.AddTransient<PesajeViewModel>();
             services.AddTransient<ProveedoresViewModel>();
             services.AddTransient<FabricantesViewModel>();
             services.AddTransient<CategoriasViewModel>();

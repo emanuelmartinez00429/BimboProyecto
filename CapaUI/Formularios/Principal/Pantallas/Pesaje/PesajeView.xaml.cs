@@ -1,0 +1,433 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
+using System.Windows.Media.Animation;
+using System.Windows.Shapes;
+using System.Windows.Threading;
+using CapaAplicacion.Proveedores.Interfaces;
+using CapaAplicacion.Proveedores.Queries;
+using CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales;
+using CapaUI.Formularios.Principal.Pantallas.Pesaje.Modelos;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
+{
+    public partial class PesajeView : UserControl
+    {
+        private PesajeViewModel _vm = null!;
+        private bool _sync;
+        private Action? _pendingConfirm;
+        private int _modalGen;
+
+        public PesajeView() => InitializeComponent();
+
+        // ── Lifecycle ─────────────────────────────────────────────────────────
+        private async void UserControl_Loaded(object sender, RoutedEventArgs e)
+        {
+            if (_vm != null) return;
+            _vm = App.Services.GetRequiredService<PesajeViewModel>();
+            _vm.Toast           += MostrarToast;
+            _vm.PropertyChanged += (_, __) => ActualizarUI();
+            DataContext = _vm;
+
+            await _vm.CargarAsync();
+
+            _sync = true;
+            LstCamiones.SelectedItem = _vm.SelectedCamion;
+            _sync = false;
+            ActualizarUI();
+        }
+
+        private void UserControl_Unloaded(object sender, RoutedEventArgs e)
+        {
+            if (_vm == null) return;
+            _vm.Toast -= MostrarToast;
+            DataContext = null;
+            _vm = null!;
+        }
+
+        // ── Sincronización de estados/empty-states ─────────────────────────────
+        private void ActualizarUI()
+        {
+            if (_vm == null) return;
+
+            bool hayCamion   = _vm.HayCamion;
+            bool cerrado     = _vm.CamionCerrado;
+            bool hayProducto = _vm.HayProducto;
+            bool prodAbierto = _vm.SelectedProducto?.Estado == "Abierto";
+            bool hayEntrada  = _vm.SelectedEntrada != null;
+
+            bool sinProductos = !hayCamion || (_vm.SelectedCamion!.Productos.Count == 0);
+            MovEmpty.Visibility    = sinProductos ? Visibility.Visible : Visibility.Collapsed;
+            DgProductos.Visibility = sinProductos ? Visibility.Collapsed : Visibility.Visible;
+            MovEmpty.Text = !hayCamion
+                ? "Selecciona un camión para ver sus productos"
+                : "Este camión no tiene productos agregados todavía";
+
+            bool sinEntradas = _vm.FilasEntradas.Count == 0;
+            EntEmpty.Visibility   = sinEntradas ? Visibility.Visible : Visibility.Collapsed;
+            DgEntradas.Visibility = sinEntradas ? Visibility.Collapsed : Visibility.Visible;
+            EntEmpty.Text = !hayCamion
+                ? "Selecciona un camión para ver sus pesajes"
+                : "Aún no hay pesajes registrados";
+
+            BtnCamionAgregar.IsEnabled   = _vm.PuedeAgregarCamion;
+            BtnCamionEditar.IsEnabled    = hayCamion && !cerrado;
+            BtnCamionQuitar.IsEnabled    = hayCamion;
+            BtnCamionDescargar.IsEnabled = hayCamion && !cerrado;
+            BtnCerrarTodos.IsEnabled     = _vm.CamionesActivos > 0;
+
+            BtnProdAgregar.IsEnabled = hayCamion && !cerrado;
+            BtnProdPesar.IsEnabled   = hayProducto && prodAbierto && !cerrado;
+            BtnProdEditar.IsEnabled  = hayProducto && !cerrado;
+            BtnProdQuitar.IsEnabled  = hayProducto && !cerrado;
+
+            BtnEntEditar.IsEnabled = hayEntrada && !cerrado;
+            BtnEntQuitar.IsEnabled = hayEntrada && !cerrado;
+        }
+
+        // ── Selección ──────────────────────────────────────────────────────────
+        private async void LstCamiones_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_sync || _vm == null) return;
+            await _vm.SeleccionarCamionAsync(LstCamiones.SelectedItem as CamionPesaje);
+            ActualizarUI();
+        }
+
+        private void LstCamiones_DoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (_vm?.SelectedCamion != null && !_vm.CamionCerrado)
+                AbrirCamionModal("edit", _vm.SelectedCamion);
+        }
+
+        private void DgProductos_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_sync || _vm == null) return;
+            _vm.SeleccionarProducto(DgProductos.SelectedItem as ProductoCamion);
+            ActualizarUI();
+        }
+
+        private void DgProductos_DoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (_vm?.SelectedProducto is { } p && p.Estado == "Abierto" && !_vm.CamionCerrado)
+                AbrirPesajeModal(p, null);
+        }
+
+        private void DgEntradas_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_sync || _vm == null) return;
+            _vm.SelectedEntrada = DgEntradas.SelectedItem as EntradaPesaje;
+            ActualizarUI();
+        }
+
+        private async void EstadoProducto_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (sender is FrameworkElement fe && fe.DataContext is ProductoCamion p)
+            {
+                await _vm.ToggleEstadoProductoAsync(p);
+                ActualizarUI();
+                e.Handled = true;
+            }
+        }
+
+        private void RbVista_Changed(object sender, RoutedEventArgs e)
+        {
+            if (_vm == null) return;
+            string modo = RbVistaCamion.IsChecked == true ? "camion" : "producto";
+            ColEntProducto.Visibility = modo == "camion" ? Visibility.Visible : Visibility.Collapsed;
+            _vm.CambiarVista(modo);
+            ActualizarUI();
+        }
+
+        // ── Camiones ─────────────────────────────────────────────────────────
+        private void BtnCerrarTodos_Click(object sender, RoutedEventArgs e)
+        {
+            PedirConfirmacion(BtnCerrarTodos,
+                $"¿Cerrar los {_vm.CamionesActivos} camiones abiertos y generar sus reportes?",
+                () => _ = CerrarTodosFlujo());
+        }
+
+        private async Task CerrarTodosFlujo()
+        {
+            var cerradas = await _vm.CerrarTodosAsync();
+            ActualizarUI();
+            if (cerradas.Count > 0) AbrirReporte(cerradas);
+        }
+
+        private void BtnCamionAgregar_Click(object sender, RoutedEventArgs e) => AbrirCamionModal("new", null);
+        private void BtnCamionEditar_Click(object sender, RoutedEventArgs e)
+        { if (_vm.SelectedCamion != null) AbrirCamionModal("edit", _vm.SelectedCamion); }
+
+        private void BtnCamionQuitar_Click(object sender, RoutedEventArgs e)
+        {
+            if (_vm.SelectedCamion == null) return;
+            PedirConfirmacion(BtnCamionQuitar,
+                $"¿Quitar el camión {_vm.SelectedCamion.Placa}? Se perderán sus productos y pesajes.",
+                () => _ = QuitarCamionFlujo());
+        }
+
+        private async Task QuitarCamionFlujo()
+        {
+            await _vm.QuitarCamionAsync();
+            SincronizarSeleccion();
+            ActualizarUI();
+        }
+
+        private async void BtnCamionDescargar_Click(object sender, RoutedEventArgs e)
+        {
+            var camion = _vm.SelectedCamion;
+            if (camion == null || _vm.CamionCerrado) return;
+            bool ok = await _vm.DescargarCamionAsync();
+            ActualizarUI();
+            if (ok) AbrirReporte(new List<CamionPesaje> { camion });
+        }
+
+        // ── Productos ────────────────────────────────────────────────────────
+        private void BtnProdAgregar_Click(object sender, RoutedEventArgs e) => AbrirProductoModal("new", null);
+        private void BtnProdEditar_Click(object sender, RoutedEventArgs e)
+        { if (_vm.SelectedProducto != null) AbrirProductoModal("edit", _vm.SelectedProducto); }
+
+        private void BtnProdQuitar_Click(object sender, RoutedEventArgs e)
+        {
+            if (_vm.SelectedProducto == null) return;
+            PedirConfirmacion(BtnProdQuitar,
+                $"¿Quitar {_vm.SelectedProducto.ProductoNombre} de este camión? Se perderán sus pesajes.",
+                () => _ = QuitarProductoFlujo());
+        }
+
+        private async Task QuitarProductoFlujo()
+        {
+            await _vm.QuitarProductoAsync();
+            ActualizarUI();
+        }
+
+        private void BtnProdPesar_Click(object sender, RoutedEventArgs e)
+        {
+            if (_vm.SelectedProducto is { } p && p.Estado == "Abierto" && !_vm.CamionCerrado)
+                AbrirPesajeModal(p, null);
+        }
+
+        // ── Entradas ─────────────────────────────────────────────────────────
+        private void BtnEntEditar_Click(object sender, RoutedEventArgs e)
+        {
+            var ent = _vm.SelectedEntrada;
+            if (ent == null || _vm.SelectedCamion == null) return;
+            var prod = _vm.SelectedCamion.Productos.FirstOrDefault(p => p.Id == ent.ProdId);
+            if (prod != null) AbrirPesajeModal(prod, ent);
+        }
+
+        private void BtnEntQuitar_Click(object sender, RoutedEventArgs e)
+        {
+            var ent = _vm.SelectedEntrada;
+            if (ent == null) return;
+            PedirConfirmacion(BtnEntQuitar,
+                "¿Quitar esta entrada de pesaje? Se recalculará lo recibido.",
+                () => _ = QuitarEntradaFlujo(ent));
+        }
+
+        private async Task QuitarEntradaFlujo(EntradaPesaje ent)
+        {
+            await _vm.QuitarEntradaAsync(ent);
+            ActualizarUI();
+        }
+
+        // ══════════════════════════════════════════════════════════════════════
+        //  Modales
+        // ══════════════════════════════════════════════════════════════════════
+        private async void AbrirCamionModal(string mode, CamionPesaje? initial)
+        {
+            var proveedores = await CargarProveedoresAsync();
+            var modal = new CamionModal(mode, initial, proveedores);
+            modal.Cerrado  += CerrarModal;
+            modal.Guardado += async r =>
+            {
+                if (mode == "edit" && initial != null)
+                    await _vm.ActualizarCamionAsync(initial, r.Placa, r.Proveedor, r.IdProveedor, r.Observaciones);
+                else
+                    await _vm.RegistrarCamionAsync(r.Placa, r.Proveedor, r.IdProveedor, r.Observaciones);
+                CerrarModal();
+                SincronizarSeleccion();
+                ActualizarUI();
+            };
+            MostrarModal(modal);
+        }
+
+        private void AbrirProductoModal(string mode, ProductoCamion? initial)
+        {
+            if (_vm.SelectedCamion == null) return;
+            var modal = new ProductoCamionModal(mode, initial, _vm.SelectedCamion);
+            modal.Cerrado  += CerrarModal;
+            modal.Guardado += async r =>
+            {
+                if (mode == "edit" && initial != null)
+                    await _vm.ActualizarProductoAsync(initial, r.PesoManifestado, r.BultosTeoricos, r.Observaciones);
+                else
+                    await _vm.AgregarProductoAsync(r.IdProducto, r.PesoManifestado, r.BultosTeoricos, r.Observaciones);
+                CerrarModal();
+                SincronizarSeleccion();
+                ActualizarUI();
+            };
+            MostrarModal(modal);
+        }
+
+        private void AbrirPesajeModal(ProductoCamion producto, EntradaPesaje? editInitial)
+        {
+            if (_vm.SelectedCamion == null) return;
+            var modal = new PesajeModal(_vm.SelectedCamion, producto, editInitial);
+            modal.Cerrado += CerrarModal;
+            modal.GuardarYSeguir += async snap =>
+            {
+                await _vm.GuardarEntradaAsync(producto, snap, editInitial);
+                CerrarModal();
+                SincronizarSeleccion();
+                ActualizarUI();
+            };
+            modal.CerrarCamion += async snap =>
+            {
+                if (snap != null) await _vm.GuardarEntradaAsync(producto, snap, editInitial);
+                var camion = _vm.SelectedCamion;
+                bool ok = await _vm.DescargarCamionAsync();
+                ActualizarUI();
+                if (ok && camion != null) AbrirReporte(new List<CamionPesaje> { camion });
+                else CerrarModal();
+            };
+            MostrarModal(modal);
+        }
+
+        private void AbrirReporte(List<CamionPesaje> camiones)
+        {
+            var modal = new ReporteModal(camiones);
+            modal.Cerrado += CerrarModal;
+            MostrarModal(modal);
+        }
+
+        private async Task<List<ProveedorItem>> CargarProveedoresAsync()
+        {
+            try
+            {
+                var repo = App.Services.GetRequiredService<IProveedorRepository>();
+                var r = await repo.GetPagedAsync(1, 200, new ProveedorFiltros { IdEstado = 1 });
+                if (r.Success && r.Value != null)
+                    return r.Value.Items.Select(p => new ProveedorItem(p.Id, p.Nombre)).ToList();
+            }
+            catch { /* combo vacío si falla */ }
+            return new List<ProveedorItem>();
+        }
+
+        private void SincronizarSeleccion()
+        {
+            _sync = true;
+            LstCamiones.SelectedItem = _vm.SelectedCamion;
+            if (_vm.SelectedProducto != null) DgProductos.SelectedItem = _vm.SelectedProducto;
+            _sync = false;
+        }
+
+        // ── Overlay + animación fade/pop ───────────────────────────────────────
+        private void MostrarModal(UserControl modal)
+        {
+            _modalGen++;
+            ModalContent.Content = modal;
+            ModalContent.RenderTransformOrigin = new Point(0.5, 0.5);
+            var scale = new ScaleTransform(0.94, 0.94);
+            ModalContent.RenderTransform = scale;
+
+            ModalOverlay.Opacity = 0;
+            ModalOverlay.Visibility = Visibility.Visible;
+            ModalOverlay.BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(140)));
+
+            var pop = new DoubleAnimation(0.94, 1, TimeSpan.FromMilliseconds(160)) { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } };
+            scale.BeginAnimation(ScaleTransform.ScaleXProperty, pop);
+            scale.BeginAnimation(ScaleTransform.ScaleYProperty, pop);
+        }
+
+        private void CerrarModal()
+        {
+            int gen = ++_modalGen;
+            var fade = new DoubleAnimation(1, 0, TimeSpan.FromMilliseconds(120));
+            fade.Completed += (_, __) =>
+            {
+                if (gen != _modalGen) return;
+                ModalOverlay.Visibility = Visibility.Collapsed;
+                ModalContent.Content = null;
+            };
+            ModalOverlay.BeginAnimation(OpacityProperty, fade);
+        }
+
+        // ── Toast ──────────────────────────────────────────────────────────────
+        private void MostrarToast(string mensaje)
+        {
+            var border = new Border
+            {
+                Background = (Brush)new BrushConverter().ConvertFromString("#1A1F2E")!,
+                CornerRadius = new CornerRadius(8),
+                Padding = new Thickness(18, 9, 18, 9),
+                Margin = new Thickness(0, 8, 0, 0),
+                Opacity = 0,
+            };
+            border.Effect = new System.Windows.Media.Effects.DropShadowEffect
+            { BlurRadius = 18, ShadowDepth = 4, Opacity = 0.4, Color = Colors.Black };
+
+            var sp = new StackPanel { Orientation = Orientation.Horizontal };
+            sp.Children.Add(new Path
+            {
+                Data = Geometry.Parse("M20,6 L9,17 l-5,-5"),
+                Stroke = (Brush)new BrushConverter().ConvertFromString("#4ADE80")!,
+                StrokeThickness = 2.4, Width = 14, Height = 14, Stretch = Stretch.Uniform,
+                Margin = new Thickness(0, 0, 8, 0), VerticalAlignment = VerticalAlignment.Center,
+                StrokeStartLineCap = PenLineCap.Round, StrokeEndLineCap = PenLineCap.Round, StrokeLineJoin = PenLineJoin.Round,
+            });
+            sp.Children.Add(new TextBlock
+            {
+                Text = mensaje, Foreground = Brushes.White, FontFamily = new FontFamily("Segoe UI"),
+                FontSize = 12.5, VerticalAlignment = VerticalAlignment.Center,
+            });
+            border.Child = sp;
+
+            var trans = new TranslateTransform(0, 8);
+            border.RenderTransform = trans;
+            ToastHost.Children.Add(border);
+
+            border.BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(180)));
+            trans.BeginAnimation(TranslateTransform.YProperty,
+                new DoubleAnimation(8, 0, TimeSpan.FromMilliseconds(180)) { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } });
+
+            var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(2400) };
+            timer.Tick += (_, __) =>
+            {
+                timer.Stop();
+                var outAnim = new DoubleAnimation(1, 0, TimeSpan.FromMilliseconds(180));
+                outAnim.Completed += (_, ___) => ToastHost.Children.Remove(border);
+                border.BeginAnimation(OpacityProperty, outAnim);
+            };
+            timer.Start();
+        }
+
+        // ── Confirm popup ───────────────────────────────────────────────────────
+        private void PedirConfirmacion(UIElement anchor, string texto, Action alConfirmar)
+        {
+            _pendingConfirm = alConfirmar;
+            ConfirmText.Text = texto;
+            ConfirmPopup.PlacementTarget = anchor;
+            ConfirmPopup.Placement = System.Windows.Controls.Primitives.PlacementMode.Top;
+            ConfirmPopup.IsOpen = true;
+        }
+
+        private void ConfirmCancel_Click(object sender, RoutedEventArgs e)
+        {
+            ConfirmPopup.IsOpen = false;
+            _pendingConfirm = null;
+        }
+
+        private void ConfirmOk_Click(object sender, RoutedEventArgs e)
+        {
+            ConfirmPopup.IsOpen = false;
+            var action = _pendingConfirm;
+            _pendingConfirm = null;
+            action?.Invoke();
+        }
+    }
+}
