@@ -430,7 +430,9 @@
                           AlternationCount="2" RowStyle="{StaticResource ProductRowStyle}" CellStyle="{StaticResource ProductCellStyle}"
                           SelectionChanged="DgProveedores_SelectionChanged" MouseDoubleClick="DgProveedores_MouseDoubleClick"
                           ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                          VirtualizingPanel.IsVirtualizing="True">
+                          VirtualizingPanel.IsVirtualizing="True"
+                          VirtualizingPanel.VirtualizationMode="Recycling"
+                          VirtualizingPanel.ScrollUnit="Pixel">
                     <DataGrid.Resources>
                         <Style TargetType="ScrollBar" BasedOn="{StaticResource ModernScrollBar}"/>
                     </DataGrid.Resources>

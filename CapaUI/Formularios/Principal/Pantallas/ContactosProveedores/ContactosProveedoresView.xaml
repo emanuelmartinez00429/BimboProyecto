@@ -452,7 +452,9 @@
                               SelectionChanged="DgProveedores_SelectionChanged"
                               MouseDoubleClick="DgProveedores_MouseDoubleClick"
                               ScrollViewer.VerticalScrollBarVisibility="Auto"
-                              VirtualizingPanel.IsVirtualizing="True">
+                              VirtualizingPanel.IsVirtualizing="True"
+                              VirtualizingPanel.VirtualizationMode="Recycling"
+                              VirtualizingPanel.ScrollUnit="Pixel">
                         <DataGrid.Columns>
                             <DataGridTemplateColumn Header="NOMBRE" Width="*" CellStyle="{StaticResource ProductCellStyle1}">
                                 <DataGridTemplateColumn.CellTemplate>
@@ -584,7 +586,9 @@
                               SelectionChanged="DgContactos_SelectionChanged"
                               MouseDoubleClick="DgContactos_MouseDoubleClick"
                               ScrollViewer.VerticalScrollBarVisibility="Auto"
-                              VirtualizingPanel.IsVirtualizing="True">
+                              VirtualizingPanel.IsVirtualizing="True"
+                              VirtualizingPanel.VirtualizationMode="Recycling"
+                              VirtualizingPanel.ScrollUnit="Pixel">
                         <DataGrid.Columns>
                             <DataGridTemplateColumn Header="NOMBRE" Width="*" CellStyle="{StaticResource ProductCellStyle1}">
                                 <DataGridTemplateColumn.CellTemplate>

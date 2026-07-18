@@ -109,6 +109,7 @@
                     <!-- ── BRAND BLOCK (mismo ancho que sidebar, anima junto) ── -->
                     <Border x:Name="BrandBlock" Grid.Column="0" Width="226"
                             Background="#1E3A8A"
+                            CacheMode="BitmapCache"
                             BorderBrush="#2EFFFFFF" BorderThickness="0,0,1,0">
                         <DockPanel Margin="12,0" LastChildFill="True"
                                    WindowChrome.IsHitTestVisibleInChrome="True">
@@ -130,10 +131,6 @@
                                     Background="Transparent" CornerRadius="8"
                                     Padding="10,4" Margin="8,0,0,0"
                                     HorizontalAlignment="Left" VerticalAlignment="Center">
-                                <Border.Effect>
-                                    <DropShadowEffect BlurRadius="6" ShadowDepth="1"
-                                                      Direction="270" Opacity="0.15"/>
-                                </Border.Effect>
                                 <Image Source="/Resources/bimbo-logo.png" Height="50"
        Stretch="Uniform"
        RenderOptions.BitmapScalingMode="HighQuality"/>
@@ -513,6 +510,7 @@
                 <Border x:Name="Sidebar" Grid.Column="0"
                         Width="226"
                         Background="{StaticResource SidebarGradient}"
+                        CacheMode="BitmapCache"
                         ClipToBounds="True">
                     <Grid>
                         <Grid.RowDefinitions>
@@ -931,7 +929,9 @@
                 </Border>
 
                 <!-- ══ CONTENIDO CENTRAL ═══════════════════════════════ -->
-                <ContentControl x:Name="ContentArea" Grid.Column="1" Content="{Binding VistaActual}"/>
+                <Border x:Name="ContentAreaBorder" Grid.Column="1">
+                    <ContentControl x:Name="ContentArea" Content="{Binding VistaActual}"/>
+                </Border>
 
             </Grid>
         </Grid>

@@ -211,10 +211,6 @@ namespace CapaUI.Formularios.Principal
             _animating = true;
             _collapsed = true;
 
-            // Pinchar al tamaño FINAL: ContentArea ya ocupa su destino desde el frame 0,
-            // así el layout no recalcula en cada frame y no hay salto al terminar.
-            ContentArea.Width = ContentArea.ActualWidth + Sidebar.ActualWidth - SidebarCollapsed;
-
             // Cerrar submenús y chevrones al instante
             foreach (var entry in _moduleMap.Values)
             {
@@ -222,8 +218,13 @@ namespace CapaUI.Formularios.Principal
                 AnimateSubMenu(entry.SubMenu, false, 0);
             }
 
-            // Fase 1 — desvanecer etiquetas, chevrones y elementos extra (70 ms)
-            // Los iconos de módulo dentro del DockPanel NO se tocan — quedan visibles
+            // Fase 0 — ocultar contenido pesado (DataGrids) antes de animar
+            AnimateOpacity(ContentAreaBorder, 0, 50);
+            await Task.Delay(55);
+            ContentAreaBorder.Visibility = Visibility.Collapsed;
+
+            // Fase 1 — desvanecer etiquetas (70ms) + Sidebar.Width (160ms)
+            // Con el contenido oculto, el layout tree es ligero → animación suave
             AnimateOpacity(LblModuloUsuarios,   0, 70);
             AnimateOpacity(ChevUsuarios,         0, 70);
             AnimateOpacity(LblModuloProductos,   0, 70);
@@ -237,9 +238,7 @@ namespace CapaUI.Formularios.Principal
             AnimateOpacity(LogoContainer,        0, 70);
             AnimateOpacity(UserCardButton,       0, 70);
 
-            // Animar ancho simultáneamente — QuarticEase.EaseOut arranca rápido
-            AnimateWidth(Sidebar,    SidebarCollapsed, 160);
-            AnimateWidth(BrandBlock, SidebarCollapsed, 160);
+            AnimateWidth(Sidebar, SidebarCollapsed, 160);
 
             // Fase 2 — tras el fade, colapsar con Visibility (ya invisibles, sin salto)
             await Task.Delay(75);
@@ -276,9 +275,13 @@ namespace CapaUI.Formularios.Principal
             CompactUserCard.Visibility = Visibility.Visible;
             AnimateOpacity(CompactUserCard, 1, 60);
 
-            // Esperar a que termine la animación de ancho antes de liberar el guard
-            await Task.Delay(90);
-            ContentArea.Width = double.NaN; // liberar: ContentControl vuelve a Width="*"
+            // Fase 3 — restaurar contenido tras la animación de ancho
+            await Task.Delay(100);
+            ContentAreaBorder.Visibility = Visibility.Visible;
+            ContentAreaBorder.Opacity    = 0;
+            AnimateOpacity(ContentAreaBorder, 1, 80);
+
+            await Task.Delay(80);
             _animating = false;
         }
 
@@ -287,8 +290,8 @@ namespace CapaUI.Formularios.Principal
             _animating = true;
             _collapsed = false;
 
-            // Pinchar al tamaño FINAL
-            ContentArea.Width = ContentArea.ActualWidth + Sidebar.ActualWidth - SidebarExpanded;
+            // Fase 0 — ocultar contenido pesado antes de animar
+            ContentAreaBorder.Visibility = Visibility.Collapsed;
 
             // Fase 1 — desvanecer tarjeta compacta (60 ms)
             AnimateOpacity(CompactUserCard, 0, 60);
@@ -313,11 +316,9 @@ namespace CapaUI.Formularios.Principal
                 entry.CollapsedIcon.Visibility = Visibility.Collapsed;
             IcoReportes.Visibility = Visibility.Collapsed;
 
-            // Animar ancho
-            AnimateWidth(Sidebar,    SidebarExpanded, 160);
-            AnimateWidth(BrandBlock, SidebarExpanded, 160);
+            AnimateWidth(Sidebar, SidebarExpanded, 160);
 
-            // Fase 2 — cuando el sidebar ya casi completó la expansión, fade-in del contenido
+            // Fase 2 — fade-in del contenido del sidebar
             await Task.Delay(100);
 
             AnimateOpacity(LblModuloUsuarios,   1, 80);
@@ -342,8 +343,13 @@ namespace CapaUI.Formularios.Principal
                 AnimateChevron(active.Chevron, 180);
             }
 
+            // Fase 3 — restaurar contenido tras la animación de ancho
             await Task.Delay(80);
-            ContentArea.Width = double.NaN; // liberar: ContentControl vuelve a Width="*"
+            ContentAreaBorder.Visibility = Visibility.Visible;
+            ContentAreaBorder.Opacity    = 0;
+            AnimateOpacity(ContentAreaBorder, 1, 80);
+
+            await Task.Delay(80);
             _animating = false;
         }
 
@@ -608,7 +614,6 @@ namespace CapaUI.Formularios.Principal
         {
             var anim = new DoubleAnimation(to, TimeSpan.FromMilliseconds(ms))
             {
-                // QuarticEase.EaseOut: arranca rápido y frena suave — elimina el "trabado" inicial
                 EasingFunction = new QuarticEase { EasingMode = EasingMode.EaseOut }
             };
             target.BeginAnimation(FrameworkElement.WidthProperty, anim);

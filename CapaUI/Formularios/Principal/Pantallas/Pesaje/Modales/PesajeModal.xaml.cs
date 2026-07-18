@@ -65,6 +65,11 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
 
         private void Recalcular(object sender, RoutedEventArgs e)
         {
+            // InitializeComponent() setea Text="0" en TxtTaraExtra, lo que dispara este
+            // TextChanged antes de que el constructor asigne _producto. Sin esta guarda,
+            // esa primera invocación revienta con NullReferenceException.
+            if (_producto is null) return;
+
             double taraTotal = _taraInd + TaraExtra;
             double neto      = Math.Max(0, Bruto - taraTotal);
             double netoTotal = _pesoRecibidoPrevio + neto;
