@@ -1,7 +1,9 @@
 using System.IO;
 using System.Windows;
 using CapaAplicacion;
+using CapaAplicacion.Usuarios.Interfaces;
 using CapaDatos;
+using CapaUI.Core.Permisos;
 using CapaUI.Formularios.InicioSesion;
 using CapaUI.Formularios.Principal;
 using CapaUI.Formularios.Principal.Pantallas.Categorias;
@@ -11,6 +13,7 @@ using CapaUI.Formularios.Principal.Pantallas.Fabricantes;
 using CapaUI.Formularios.Principal.Pantallas.Pesaje;
 using CapaUI.Formularios.Principal.Pantallas.Productos;
 using CapaUI.Formularios.Principal.Pantallas.Proveedores;
+using CapaUI.Formularios.Principal.Pantallas.Usuarios;
 using CapaUI.Services.Picker;
 using CapaUI.ViewModels.Search;
 using Microsoft.Extensions.DependencyInjection;
@@ -65,10 +68,17 @@ namespace CapaUI
             services.AddTransient<CategoriasViewModel>();
             services.AddTransient<ContactosFabricantesViewModel>();
             services.AddTransient<ContactosProveedoresViewModel>();
+            services.AddTransient<UsuariosViewModel>();
             services.AddTransient<LoginWindow>();
             services.AddTransient<MainViewModel>();
             services.AddTransient<MainWindow>();
-            return services.BuildServiceProvider();
+
+            var provider = services.BuildServiceProvider();
+
+            // Conectar SesionPermisos (estático) con la fuente de verdad (IUsuarioSesionService)
+            SesionPermisos.Configurar(provider.GetRequiredService<IUsuarioSesionService>());
+
+            return provider;
         }
 
         public static void MostrarLogin()
@@ -97,7 +107,7 @@ namespace CapaUI
         {
             _mainActual!.SesionCerrada -= OnSesionCerrada;
             _mainActual = null;
-            CapaDominio.SesionActual.Limpiar();   // limpia IdUsuario entre sesiones
+            // La limpieza de sesión ya se hizo en MainWindow.LimpiarRecursosAsync() via IUsuarioSesionService
             MostrarLogin();
         }
 

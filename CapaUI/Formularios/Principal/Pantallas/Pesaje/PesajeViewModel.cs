@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using CapaAplicacion.Pesaje.Dtos;
 using CapaAplicacion.Pesaje.Interfaces;
+using CapaAplicacion.Usuarios.Interfaces;
 using CapaUI.Formularios.Principal.Pantallas.Pesaje.Modelos;
 using CommunityToolkit.Mvvm.ComponentModel;
 
@@ -18,6 +19,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
         public const int MaxCamiones = 3;
 
         private readonly IPesajeRepository _repo;
+        private readonly IUsuarioSesionService _sesionService;
 
         public ObservableCollection<CamionPesaje>  Camiones      { get; } = new();
         public ObservableCollection<EntradaPesaje> FilasEntradas { get; } = new();
@@ -47,9 +49,13 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
 
         public event Action<string>? Toast;
 
-        public PesajeViewModel(IPesajeRepository repo) => _repo = repo;
+        public PesajeViewModel(IPesajeRepository repo, IUsuarioSesionService sesionService)
+        {
+            _repo = repo;
+            _sesionService = sesionService;
+        }
 
-        private static int UsuarioActual => CapaDominio.SesionActual.IdUsuario;
+        private int UsuarioActual => _sesionService.SesionActual?.IdUsuario ?? 0;
 
         // ══════════════════════════════════════════════════════════════════════
         //  Carga

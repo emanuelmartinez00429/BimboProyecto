@@ -9,6 +9,7 @@ using CapaAplicacion.Perfil;
 using CapaAplicacion.Productos.Interfaces;
 using CapaAplicacion.Proveedores.Interfaces;
 using CapaAplicacion.Realtime;
+using CapaAplicacion.Usuarios.Interfaces;
 using CapaDatos.Auth;
 using CapaDatos.Conexion;
 using CapaDatos.Perfil;
@@ -20,6 +21,7 @@ using CapaDatos.Repositories.Pesaje;
 using CapaDatos.Repositories.Productos;
 using CapaDatos.Repositories.Proveedores;
 using CapaDatos.Repositories.Search;
+using CapaDatos.Repositories.Usuarios;
 using CapaDominio.Entities;
 using CapaDominio.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
@@ -65,6 +67,11 @@ public static class DependencyInjection
 
         // Pesaje — persistencia real (movimientos / movimiento_productos / entradas_producto)
         services.AddTransient<IPesajeRepository, PesajeRepository>();
+
+        // Usuarios — CRUD, consulta de roles, y servicio de sesion
+        services.AddTransient<IUsuarioRepository, UsuarioRepository>();
+        services.AddTransient<IRolRepository, RolRepository>();
+        services.AddSingleton<IUsuarioSesionService, UsuarioSesionService>();
 
         return services;
     }

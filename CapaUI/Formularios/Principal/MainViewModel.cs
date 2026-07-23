@@ -2,13 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Windows.Media;
 using CapaAplicacion.Conexion;
-using CapaAplicacion.Perfil;
 using CapaAplicacion.Search.Dtos;
+using CapaAplicacion.Usuarios.Interfaces;
 using CapaUI.Core.MVVM;
 using CapaUI.Core.Permisos;
 using CapaUI.Navigation;
+using CapaUI.Formularios.Principal.Pantallas.Usuarios;
 using CapaUI.ViewModels.Search;
-using CapaDominio;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
@@ -16,7 +16,7 @@ namespace CapaUI.Formularios.Principal
 {
     public partial class MainViewModel : ObservableObject, IDisposable
     {
-        private readonly IPerfilUsuarioService    _perfilService;
+        private readonly IUsuarioSesionService     _sesionService;
         private readonly UniversalSearchViewModel _searchVm;
         private readonly IConexionMonitor         _conexionMonitor;
         private readonly Dictionary<string, Func<object>> _routes;
@@ -60,10 +60,10 @@ namespace CapaUI.Formularios.Principal
         }
 
         // ── Info de usuario ──────────────────────────────────────────────
-        public string NombreUsuario => _perfilService.PerfilActual?.NombreCompleto
-                                       ?? servicioSesionActual.NombreUsuario;
-        public string Iniciales     => _perfilService.PerfilActual?.Iniciales ?? "??";
-        public string NombreRol     => _perfilService.PerfilActual?.NombreRol  ?? "";
+        public string NombreUsuario => _sesionService.SesionActual?.NombreCompleto
+                                       ?? _sesionService.SesionActual?.Email ?? "";
+        public string Iniciales     => _sesionService.SesionActual?.Iniciales ?? "??";
+        public string NombreRol     => _sesionService.SesionActual?.NombreRol  ?? "";
 
         // ── Visibilidad de módulos ───────────────────────────────────────
         public bool VerPesajes     => SesionPermisos.TieneAlguno(Permiso.Pesajes_Ver,    Permiso.Pesajes_Crear,    Permiso.Pesajes_Modificar);
@@ -76,11 +76,11 @@ namespace CapaUI.Formularios.Principal
         // ── Eventos ──────────────────────────────────────────────────────
         public event EventHandler? CierreRequerido;
 
-        public MainViewModel(IPerfilUsuarioService perfilService,
+        public MainViewModel(IUsuarioSesionService sesionService,
                              UniversalSearchViewModel searchVm,
                              IConexionMonitor conexionMonitor)
         {
-            _perfilService = perfilService;
+            _sesionService = sesionService;
             _searchVm      = searchVm;
             _searchVm.ResultSelected += OnResultadoBusquedaSeleccionado;
 
@@ -91,7 +91,7 @@ namespace CapaUI.Formularios.Principal
             _routes = new Dictionary<string, Func<object>>
             {
                 // Usuarios
-                [Routes.Usuarios]  = () => new ConstructionVM("Gestión de Usuarios",  "Usuarios"),
+                [Routes.Usuarios]  = () => new UsuariosScreenVM(),
                 [Routes.Empleados] = () => new ConstructionVM("Gestión de Empleados", "Usuarios"),
                 [Routes.Roles]     = () => new ConstructionVM("Gestión de Roles",     "Usuarios"),
                 [Routes.Bitacora]  = () => new ConstructionVM("Bitácora",             "Usuarios"),
@@ -194,6 +194,7 @@ namespace CapaUI.Formularios.Principal
     public class ContactosFabricantesVM   : ViewModelBase { }
     public class ContactosProveedoresVM   : ViewModelBase { }
     public class PesajesVM                 : ViewModelBase { }
+    public class UsuariosScreenVM          : ViewModelBase { }
 
     public class ConstructionVM : ViewModelBase
     {

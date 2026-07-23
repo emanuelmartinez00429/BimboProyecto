@@ -10,6 +10,7 @@
         xmlns:cfabs="clr-namespace:CapaUI.Formularios.Principal.Pantallas.ContactosFabricantes"
         xmlns:cprovs="clr-namespace:CapaUI.Formularios.Principal.Pantallas.ContactosProveedores"
         xmlns:pesaje="clr-namespace:CapaUI.Formularios.Principal.Pantallas.Pesaje"
+        xmlns:usrs="clr-namespace:CapaUI.Formularios.Principal.Pantallas.Usuarios"
         xmlns:dash="clr-namespace:CapaUI.Formularios.Dashboard"
         xmlns:searchVm="clr-namespace:CapaUI.ViewModels.Search"
         xmlns:searchViews="clr-namespace:CapaUI.Formularios.Search"
@@ -60,6 +61,9 @@
             </DataTemplate>
             <DataTemplate DataType="{x:Type local:PesajesVM}">
                 <pesaje:PesajeView/>
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type local:UsuariosScreenVM}">
+                <usrs:UsuariosView/>
             </DataTemplate>
             <DataTemplate DataType="{x:Type local:PlaceholderVM}">
                 <Grid Background="#F4F5F7">

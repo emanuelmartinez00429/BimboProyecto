@@ -14,7 +14,7 @@ namespace CapaDatos.Modelados.Usuarios
         [PrimaryKey("id_usuario")]
         public int idUsuario { get; set; }
         
-        [Column("alias_usuarios")]
+        [Column("alias_usuario")]
         public string correoUsuario { get; set; }
         
         [Column("id_empleado")]

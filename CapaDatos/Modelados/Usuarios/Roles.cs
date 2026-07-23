@@ -16,5 +16,8 @@ namespace CapaDatos.Modelados.Usuarios
         
         [Column("nombre_rol")]
         public string nombreRol { get; set; }
+
+        [Column("id_estado")]
+        public int idEstado { get; set; }
     }
 }

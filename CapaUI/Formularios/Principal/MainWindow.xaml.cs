@@ -9,9 +9,8 @@ using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using CapaAplicacion.Conexion;
-using CapaAplicacion.Perfil;
 using CapaAplicacion.Realtime;
-using CapaDominio;
+using CapaAplicacion.Usuarios.Interfaces;
 using CapaUI.Navigation;
 using WpfColor = System.Windows.Media.Color;
 using WpfColorConverter = System.Windows.Media.ColorConverter;
@@ -24,7 +23,7 @@ namespace CapaUI.Formularios.Principal
 
         private MainViewModel Vm => (MainViewModel)DataContext;
         private bool _cerrando = false;
-        private readonly IPerfilUsuarioService _perfilService;
+        private readonly IUsuarioSesionService _sesionService;
         private readonly IRealtimeService      _realtimeService;
         private readonly IConexionMonitor      _conexionMonitor;
 
@@ -96,10 +95,10 @@ namespace CapaUI.Formularios.Principal
         }
         // ─────────────────────────────────────────────────────────────────
 
-        public MainWindow(MainViewModel vm, IPerfilUsuarioService perfilService,
+        public MainWindow(MainViewModel vm, IUsuarioSesionService sesionService,
                           IRealtimeService realtimeService, IConexionMonitor conexionMonitor)
         {
-            _perfilService   = perfilService;
+            _sesionService   = sesionService;
             _realtimeService = realtimeService;
             _conexionMonitor = conexionMonitor;
             DataContext    = vm;
@@ -591,8 +590,7 @@ namespace CapaUI.Formularios.Principal
             }
 
             CapaUI.Core.Permisos.SesionPermisos.Limpiar();
-            _perfilService.Limpiar();
-            servicioSesionActual.Cerrar();
+            _sesionService.CerrarSesion();
 
             // Liberar hook, desuscribir eventos, disponer VM
             _hwndSource?.RemoveHook(WndProc);

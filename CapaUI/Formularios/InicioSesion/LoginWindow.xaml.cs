@@ -6,10 +6,8 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using CapaAplicacion.Auth.Interfaces;
-using CapaAplicacion.Perfil;
+using CapaAplicacion.Usuarios.Interfaces;
 using CapaDatos.Repositorios;
-using CapaUI.Core.Permisos;
-using CapaDominio;
 
 namespace CapaUI.Formularios.InicioSesion
 {
@@ -18,7 +16,7 @@ namespace CapaUI.Formularios.InicioSesion
         public event EventHandler? LoginExitoso;
 
         private readonly IAuthService _authService;
-        private readonly IPerfilUsuarioService _perfilService;
+        private readonly IUsuarioSesionService _sesionService;
         private bool _pwdVisible = false;
 
         private static readonly SolidColorBrush _brandBrush   = new(Color.FromRgb(0x1E, 0x3A, 0x8A));
@@ -26,10 +24,10 @@ namespace CapaUI.Formularios.InicioSesion
         private static readonly SolidColorBrush _successBrush = new(Color.FromRgb(0x10, 0xB9, 0x81));
         private static readonly SolidColorBrush _primaryBrush = new(Color.FromRgb(0x1A, 0x1F, 0x2E));
 
-        public LoginWindow(IAuthService authService, IPerfilUsuarioService perfilService)
+        public LoginWindow(IAuthService authService, IUsuarioSesionService sesionService)
         {
-            _authService   = authService;
-            _perfilService = perfilService;
+            _authService    = authService;
+            _sesionService  = sesionService;
             InitializeComponent();
             Loaded += LoginWindow_Loaded;
         }
@@ -171,22 +169,19 @@ namespace CapaUI.Formularios.InicioSesion
                 }
                 CompletarStep(S1Dot, S1Text);
 
-                // Step 2: Establecer sesión
-                await AnimarStep(S2Dot, S2Text, 25, 55);
-                servicioSesionActual.Iniciar(result.Value!.IdUsuario, email);
-                SesionActual.IdUsuario     = result.Value!.IdUsuario;  // unifica las dos fuentes de sesión
-                SesionActual.NombreUsuario = email;
+                // Step 2: Establecer sesión + permisos + perfil (una sola llamada)
+                await AnimarStep(S2Dot, S2Text, 25, 70);
+                var sesion = await _sesionService.IniciarSesionAsync(result.Value!.IdUsuario);
+                if (!sesion.Success)
+                {
+                    VolverAlLogin(sesion.Error);
+                    return;
+                }
                 CompletarStep(S2Dot, S2Text);
 
-                // Step 3: Sincronizar módulos / permisos
-                await AnimarStep(S3Dot, S3Text, 55, 80);
-                await SesionPermisos.CargarAsync(result.Value.IdRol);
+                // Step 3: Preparar espacio de trabajo
+                await AnimarStep(S3Dot, S3Text, 70, 100);
                 CompletarStep(S3Dot, S3Text);
-
-                // Step 4: Preparar espacio de trabajo
-                await AnimarStep(S4Dot, S4Text, 80, 100);
-                await _perfilService.CargarAsync(result.Value!.IdUsuario);
-                CompletarStep(S4Dot, S4Text);
 
                 await System.Threading.Tasks.Task.Delay(300);
                 SpinnerRotate.BeginAnimation(System.Windows.Media.RotateTransform.AngleProperty, null);
