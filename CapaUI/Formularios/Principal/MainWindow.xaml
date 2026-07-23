@@ -929,6 +929,11 @@
                 </Border>
 
                 <!-- ══ CONTENIDO CENTRAL ═══════════════════════════════ -->
+                <!-- Telón detrás del contenido: transparente siempre, salvo el instante en que
+                     ContentAreaBorder se oculta durante la animación del sidebar con un modal abierto
+                     (evita el flash blanco — ver CollapseSidebar/ExpandSidebar). -->
+                <Border x:Name="ContentBackdrop" Grid.Column="1" Background="Transparent"/>
+
                 <Border x:Name="ContentAreaBorder" Grid.Column="1">
                     <ContentControl x:Name="ContentArea" Content="{Binding VistaActual}"/>
                 </Border>

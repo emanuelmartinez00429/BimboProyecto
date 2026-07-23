@@ -40,6 +40,24 @@ namespace CapaUI.Formularios.Principal
         private const double SidebarCollapsed = 72;
         private const int    SubItemHeight    = 40;
 
+        // ── Duraciones de animación del sidebar (ms) ────────────────────────
+        private const int SidebarWidthAnimMs        = 160; // Sidebar/BrandBlock width tween (AnimateWidth)
+        private const int ContentFadeOutMs          = 50;  // ContentAreaBorder fade-out, Collapse fase 0
+        private const int ContentHideDelayMs        = 55;  // espera tras fade-out antes de Visibility.Collapsed
+        private const int ChromeFadeOutMs           = 70;  // labels/chevrones fade-out, Collapse fase 1
+        private const int ChromeCollapseDelayMs     = 75;  // espera tras fade-out antes de Visibility.Collapsed (chrome)
+        private const int CompactCardFadeMs         = 60;  // CompactUserCard fade in/out
+        private const int CompactCardHideDelayMs    = 65;  // espera fade-out CompactUserCard antes de Collapsed (Expand)
+        private const int SidebarWidthSettleDelayMs = 100; // espera tras iniciar el width tween del sidebar
+        private const int ChromeFadeInMs            = 80;  // labels/chevrones fade-in, Expand fase 2
+        private const int ChromeFadeInSettleMs      = 80;  // espera tras el fade-in del chrome antes de restaurar contenido (Expand)
+        private const int ContentFadeInMs           = 80;  // ContentAreaBorder fade-in tras el width tween
+        private const int ContentFadeInDelayMs      = 80;  // espera tras iniciar el fade-in de contenido antes de _animating = false
+
+        private const int SubMenuOpenMs   = 220; // AnimateSubMenu(open: true)
+        private const int SubMenuCloseMs  = 160; // AnimateSubMenu(open: false)
+        private const int ChevronRotateMs = 180; // AnimateChevron duration
+
         private record ModuleEntry(
             Border           SubMenu,
             RotateTransform  Chevron,
@@ -51,6 +69,12 @@ namespace CapaUI.Formularios.Principal
 
         private Dictionary<string, ModuleEntry> _moduleMap = new();
         private Dictionary<string, SubEntry>    _subMap    = new();
+
+        // Elementos de "chrome" del sidebar (labels + chevrones + contenedores) que se
+        // desvanecen/ocultan en bloque durante CollapseSidebar()/ExpandSidebar(). Definidos una sola
+        // vez para que ambos métodos iteren la misma lista y no puedan desincronizarse — la causa
+        // raíz de P-009 fue justamente un elemento (BrandBlock) viviendo fuera de esta lista.
+        private readonly UIElement[] _sidebarChromeElements;
 
         // ── DWM API ───────────────────────────────────────────────────────
         [DllImport("dwmapi.dll")]
@@ -104,6 +128,15 @@ namespace CapaUI.Formularios.Principal
             _conexionMonitor = conexionMonitor;
             DataContext    = vm;
             InitializeComponent();
+
+            _sidebarChromeElements = new UIElement[]
+            {
+                LblModuloUsuarios,  ChevUsuarios,
+                LblModuloProductos, ChevProductos,
+                LblModuloPesajes,   ChevPesajes,
+                LblModuloReportes,  ChevReportes,
+                NavLabel, HomeButtonContainer, UserCardButton, LogoContainer,
+            };
 
             MinWidth  = 600;
             MinHeight = 400;
@@ -211,6 +244,11 @@ namespace CapaUI.Formularios.Principal
             _animating = true;
             _collapsed = true;
 
+            // Si hay un modal abierto, el telón se pone oscuro para que el hueco de
+            // ContentAreaBorder (fases 0/3 más abajo) no se vea como flash blanco.
+            var modalBrush = ObtenerModalOverlayBrush();
+            if (modalBrush != null) ContentBackdrop.Background = modalBrush;
+
             // Cerrar submenús y chevrones al instante
             foreach (var entry in _moduleMap.Values)
             {
@@ -219,69 +257,40 @@ namespace CapaUI.Formularios.Principal
             }
 
             // Fase 0 — ocultar contenido pesado (DataGrids) antes de animar
-            AnimateOpacity(ContentAreaBorder, 0, 50);
-            await Task.Delay(55);
+            AnimateOpacity(ContentAreaBorder, 0, ContentFadeOutMs);
+            await Task.Delay(ContentHideDelayMs);
             ContentAreaBorder.Visibility = Visibility.Collapsed;
 
             // Fase 1 — desvanecer etiquetas (70ms) + Sidebar.Width (160ms)
             // Con el contenido oculto, el layout tree es ligero → animación suave
-            AnimateOpacity(LblModuloUsuarios,   0, 70);
-            AnimateOpacity(ChevUsuarios,         0, 70);
-            AnimateOpacity(LblModuloProductos,   0, 70);
-            AnimateOpacity(ChevProductos,        0, 70);
-            AnimateOpacity(LblModuloPesajes,     0, 70);
-            AnimateOpacity(ChevPesajes,          0, 70);
-            AnimateOpacity(LblModuloReportes,    0, 70);
-            AnimateOpacity(ChevReportes,         0, 70);
-            AnimateOpacity(NavLabel,             0, 70);
-            AnimateOpacity(HomeButtonContainer,  0, 70);
-            AnimateOpacity(LogoContainer,        0, 70);
-            AnimateOpacity(UserCardButton,       0, 70);
+            foreach (var el in _sidebarChromeElements)
+                AnimateOpacity(el, 0, ChromeFadeOutMs);
 
-            AnimateWidth(Sidebar, SidebarCollapsed, 160);
+            AnimateSidebarWidth(SidebarCollapsed);
 
             // Fase 2 — tras el fade, colapsar con Visibility (ya invisibles, sin salto)
-            await Task.Delay(75);
+            await Task.Delay(ChromeCollapseDelayMs);
 
-            LblModuloUsuarios.Visibility  = Visibility.Collapsed;
-            ChevUsuarios.Visibility       = Visibility.Collapsed;
-            LblModuloProductos.Visibility = Visibility.Collapsed;
-            ChevProductos.Visibility      = Visibility.Collapsed;
-            LblModuloPesajes.Visibility   = Visibility.Collapsed;
-            ChevPesajes.Visibility        = Visibility.Collapsed;
-            LblModuloReportes.Visibility  = Visibility.Collapsed;
-            ChevReportes.Visibility       = Visibility.Collapsed;
-            NavLabel.Visibility           = Visibility.Collapsed;
-            HomeButtonContainer.Visibility = Visibility.Collapsed;
-            UserCardButton.Visibility     = Visibility.Collapsed;
-            LogoContainer.Visibility      = Visibility.Collapsed;
+            foreach (var el in _sidebarChromeElements)
+                el.Visibility = Visibility.Collapsed;
 
             // Restituir opacidad para la próxima expansión
-            LblModuloUsuarios.Opacity   = 1;
-            ChevUsuarios.Opacity        = 1;
-            LblModuloProductos.Opacity  = 1;
-            ChevProductos.Opacity       = 1;
-            LblModuloPesajes.Opacity    = 1;
-            ChevPesajes.Opacity         = 1;
-            LblModuloReportes.Opacity   = 1;
-            ChevReportes.Opacity        = 1;
-            NavLabel.Opacity            = 1;
-            HomeButtonContainer.Opacity = 1;
-            UserCardButton.Opacity      = 1;
-            LogoContainer.Opacity       = 1;
+            foreach (var el in _sidebarChromeElements)
+                el.Opacity = 1;
 
             // Mostrar tarjeta compacta con fade-in
             CompactUserCard.Opacity    = 0;
             CompactUserCard.Visibility = Visibility.Visible;
-            AnimateOpacity(CompactUserCard, 1, 60);
+            AnimateOpacity(CompactUserCard, 1, CompactCardFadeMs);
 
             // Fase 3 — restaurar contenido tras la animación de ancho
-            await Task.Delay(100);
+            await Task.Delay(SidebarWidthSettleDelayMs);
             ContentAreaBorder.Visibility = Visibility.Visible;
             ContentAreaBorder.Opacity    = 0;
-            AnimateOpacity(ContentAreaBorder, 1, 80);
+            AnimateOpacity(ContentAreaBorder, 1, ContentFadeInMs);
 
-            await Task.Delay(80);
+            await Task.Delay(ContentFadeInDelayMs);
+            if (modalBrush != null) ContentBackdrop.Background = Brushes.Transparent;
             _animating = false;
         }
 
@@ -290,49 +299,35 @@ namespace CapaUI.Formularios.Principal
             _animating = true;
             _collapsed = false;
 
+            var modalBrush = ObtenerModalOverlayBrush();
+            if (modalBrush != null) ContentBackdrop.Background = modalBrush;
+
             // Fase 0 — ocultar contenido pesado antes de animar
             ContentAreaBorder.Visibility = Visibility.Collapsed;
 
             // Fase 1 — desvanecer tarjeta compacta (60 ms)
-            AnimateOpacity(CompactUserCard, 0, 60);
-            await Task.Delay(65);
+            AnimateOpacity(CompactUserCard, 0, CompactCardFadeMs);
+            await Task.Delay(CompactCardHideDelayMs);
             CompactUserCard.Visibility = Visibility.Collapsed;
 
             // Hacer visibles los elementos pero en opacidad 0 (sin salto al hacer Visible)
-            LblModuloUsuarios.Visibility  = Visibility.Visible;  LblModuloUsuarios.Opacity  = 0;
-            ChevUsuarios.Visibility       = Visibility.Visible;  ChevUsuarios.Opacity       = 0;
-            LblModuloProductos.Visibility = Visibility.Visible;  LblModuloProductos.Opacity = 0;
-            ChevProductos.Visibility      = Visibility.Visible;  ChevProductos.Opacity      = 0;
-            LblModuloPesajes.Visibility   = Visibility.Visible;  LblModuloPesajes.Opacity   = 0;
-            ChevPesajes.Visibility        = Visibility.Visible;  ChevPesajes.Opacity        = 0;
-            LblModuloReportes.Visibility  = Visibility.Visible;  LblModuloReportes.Opacity  = 0;
-            ChevReportes.Visibility       = Visibility.Visible;  ChevReportes.Opacity       = 0;
-            NavLabel.Visibility            = Visibility.Visible; NavLabel.Opacity            = 0;
-            HomeButtonContainer.Visibility = Visibility.Visible; HomeButtonContainer.Opacity = 0;
-            UserCardButton.Visibility      = Visibility.Visible; UserCardButton.Opacity      = 0;
-            LogoContainer.Visibility       = Visibility.Visible; LogoContainer.Opacity       = 0;
+            foreach (var el in _sidebarChromeElements)
+            {
+                el.Visibility = Visibility.Visible;
+                el.Opacity    = 0;
+            }
 
             foreach (var entry in _moduleMap.Values)
                 entry.CollapsedIcon.Visibility = Visibility.Collapsed;
             IcoReportes.Visibility = Visibility.Collapsed;
 
-            AnimateWidth(Sidebar, SidebarExpanded, 160);
+            AnimateSidebarWidth(SidebarExpanded);
 
             // Fase 2 — fade-in del contenido del sidebar
-            await Task.Delay(100);
+            await Task.Delay(SidebarWidthSettleDelayMs);
 
-            AnimateOpacity(LblModuloUsuarios,   1, 80);
-            AnimateOpacity(ChevUsuarios,         1, 80);
-            AnimateOpacity(LblModuloProductos,   1, 80);
-            AnimateOpacity(ChevProductos,        1, 80);
-            AnimateOpacity(LblModuloPesajes,     1, 80);
-            AnimateOpacity(ChevPesajes,          1, 80);
-            AnimateOpacity(LblModuloReportes,    1, 80);
-            AnimateOpacity(ChevReportes,         1, 80);
-            AnimateOpacity(NavLabel,             1, 80);
-            AnimateOpacity(HomeButtonContainer,  1, 80);
-            AnimateOpacity(UserCardButton,       1, 80);
-            AnimateOpacity(LogoContainer,        1, 80);
+            foreach (var el in _sidebarChromeElements)
+                AnimateOpacity(el, 1, ChromeFadeInMs);
 
             // Reabrir el submenú activo tras la expansión
             if (!string.IsNullOrEmpty(_activeModuleId) &&
@@ -344,12 +339,13 @@ namespace CapaUI.Formularios.Principal
             }
 
             // Fase 3 — restaurar contenido tras la animación de ancho
-            await Task.Delay(80);
+            await Task.Delay(ChromeFadeInSettleMs);
             ContentAreaBorder.Visibility = Visibility.Visible;
             ContentAreaBorder.Opacity    = 0;
-            AnimateOpacity(ContentAreaBorder, 1, 80);
+            AnimateOpacity(ContentAreaBorder, 1, ContentFadeInMs);
 
-            await Task.Delay(80);
+            await Task.Delay(ContentFadeInDelayMs);
+            if (modalBrush != null) ContentBackdrop.Background = Brushes.Transparent;
             _animating = false;
         }
 
@@ -358,6 +354,8 @@ namespace CapaUI.Formularios.Principal
         // ══════════════════════════════════════════════════════════════════
         private async void BtnModulo_Click(object sender, RoutedEventArgs e)
         {
+            if (_animating) return;
+
             var btn = (Button)sender;
             string id = (string)btn.Tag;
 
@@ -610,6 +608,14 @@ namespace CapaUI.Formularios.Principal
         // ══════════════════════════════════════════════════════════════════
         //  Animaciones
         // ══════════════════════════════════════════════════════════════════
+        // No es static como el resto: necesita los campos de instancia Sidebar/BrandBlock.
+        // Une ambos anchos en un único call site para que no puedan volver a desincronizarse (P-009).
+        private void AnimateSidebarWidth(double to)
+        {
+            AnimateWidth(Sidebar,    to, SidebarWidthAnimMs);
+            AnimateWidth(BrandBlock, to, SidebarWidthAnimMs);
+        }
+
         private static void AnimateWidth(FrameworkElement target, double to, int ms)
         {
             var anim = new DoubleAnimation(to, TimeSpan.FromMilliseconds(ms))
@@ -623,7 +629,7 @@ namespace CapaUI.Formularios.Principal
         {
             double target = open ? itemCount * SubItemHeight + 8 : 0;
             // EaseOut: el acordeón arranca de golpe y desacelera al final (más natural)
-            var anim = new DoubleAnimation(target, TimeSpan.FromMilliseconds(open ? 220 : 160))
+            var anim = new DoubleAnimation(target, TimeSpan.FromMilliseconds(open ? SubMenuOpenMs : SubMenuCloseMs))
             {
                 EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
             };
@@ -632,7 +638,7 @@ namespace CapaUI.Formularios.Principal
 
         private static void AnimateChevron(RotateTransform rt, double angle)
         {
-            var anim = new DoubleAnimation(angle, TimeSpan.FromMilliseconds(180))
+            var anim = new DoubleAnimation(angle, TimeSpan.FromMilliseconds(ChevronRotateMs))
             {
                 EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
             };
@@ -666,6 +672,31 @@ namespace CapaUI.Formularios.Principal
             if (_moduleMap.TryGetValue(moduleId, out var entry))
                 return entry.SubMenu.MaxHeight;
             return 0;
+        }
+
+        // ContentArea.Content es el ViewModel (la View real la genera el DataTemplate), así que
+        // para saber si la View activa tiene su "ModalOverlay" visible hay que buscarlo en el
+        // árbol visual ya renderizado en vez de mirar el Content directamente. Devuelve el mismo
+        // Brush semitransparente que ya usa esa View (varía: "#990F172A", "#8C0F172A", …) para que
+        // el backdrop anti-flash se vea idéntico a la sombra real del modal, no un tono inventado.
+        private Brush? ObtenerModalOverlayBrush()
+            => FindNamedChild(ContentArea, "ModalOverlay") is Border { Visibility: Visibility.Visible } overlay
+               ? overlay.Background
+               : null;
+
+        private static FrameworkElement? FindNamedChild(DependencyObject parent, string name)
+        {
+            int count = VisualTreeHelper.GetChildrenCount(parent);
+            for (int i = 0; i < count; i++)
+            {
+                var child = VisualTreeHelper.GetChild(parent, i);
+                if (child is FrameworkElement fe && fe.Name == name)
+                    return fe;
+
+                var found = FindNamedChild(child, name);
+                if (found != null) return found;
+            }
+            return null;
         }
     }
 }
