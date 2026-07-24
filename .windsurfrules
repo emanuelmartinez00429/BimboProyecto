@@ -1,0 +1,9 @@
+Este proyecto usa AGENTS.md (raíz) como fuente única de instrucciones para agentes.
+
+Antes de tocar código, seguí ./AGENTS.md:
+- Solo trabajar en CapaUI, nunca en BimboPesaje.
+- CapaAplicacion nunca referencia CapaDatos.
+- MVVM con CommunityToolkit; repos con RepositorioBase + TryAsync + Result.
+- Build: dotnet build BimboProyecto.sln (0 errores).
+- Arquitectura vigente: contexto/40 - Proyecto Bimbo/Arquitectura Actual.md.
+- Documentar en la bóveda: contexto/AGENTS.md.

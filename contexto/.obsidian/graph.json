@@ -1,0 +1,86 @@
+{
+  "collapse-filter": false,
+  "search": "",
+  "showTags": false,
+  "showAttachments": false,
+  "hideUnresolved": false,
+  "showOrphans": true,
+  "collapse-color-groups": false,
+  "colorGroups": [
+    {
+      "query": "path:\"00 - MOC\"",
+      "color": {
+        "a": 1,
+        "rgb": 5142951
+      }
+    },
+    {
+      "query": "path:\"10 - Arquitectura\"",
+      "color": {
+        "a": 1,
+        "rgb": 15896107
+      }
+    },
+    {
+      "query": "path:\"20 - Patrones\"",
+      "color": {
+        "a": 1,
+        "rgb": 14767961
+      }
+    },
+    {
+      "query": "path:\"30 - Casos de Uso\"",
+      "color": {
+        "a": 1,
+        "rgb": 7780786
+      }
+    },
+    {
+      "query": "path:\"40 - Proyecto Bimbo\"",
+      "color": {
+        "a": 1,
+        "rgb": 5873999
+      }
+    },
+    {
+      "query": "path:\"45 - Decisiones\"",
+      "color": {
+        "a": 1,
+        "rgb": 15583048
+      }
+    },
+    {
+      "query": "path:\"50 - Referencia\"",
+      "color": {
+        "a": 1,
+        "rgb": 11565217
+      }
+    },
+    {
+      "query": "path:\"70 - Bitácora de Cambios\"",
+      "color": {
+        "a": 1,
+        "rgb": 16751527
+      }
+    },
+    {
+      "query": "path:\"_templates\"",
+      "color": {
+        "a": 1,
+        "rgb": 12234924
+      }
+    }
+  ],
+  "collapse-display": true,
+  "showArrow": false,
+  "textFadeMultiplier": 0,
+  "nodeSizeMultiplier": 1,
+  "lineSizeMultiplier": 1,
+  "collapse-forces": true,
+  "centerStrength": 0.518713248970312,
+  "repelStrength": 10,
+  "linkStrength": 1,
+  "linkDistance": 250,
+  "scale": 0.6909988086165403,
+  "close": true
+}

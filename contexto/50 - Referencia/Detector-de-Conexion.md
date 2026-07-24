@@ -332,3 +332,8 @@ Como solo vive el VM de la **vista activa** (los demás se liberan al navegar), 
 
 > [!quote] Relacionado
 > Patrón espejo: `IRealtimeService` / `RealtimeService` (suscripciones Realtime de Supabase).
+
+## Relaciones
+
+- [[Arquitectura Actual]]
+- [[Base Repository con TryAsync]] — patrón espejo de manejo de fallos de red

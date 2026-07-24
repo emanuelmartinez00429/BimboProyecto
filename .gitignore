@@ -3,6 +3,17 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
+# ── Artefactos de tooling de agentes de IA (no versionar) — deuda P-020 ──
+.atl/
+.codegraph/
+.claude/
+
+# ── Estado local de Obsidian del vault de contexto (el contenido .md sí se versiona) ──
+contexto/.obsidian/workspace.json
+contexto/.obsidian/workspace-mobile.json
+contexto/.obsidian/cache
+contexto/.obsidian/graph.json.backup-*
+
 # User-specific files
 *.rsuser
 *.suo
