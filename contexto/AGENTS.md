@@ -5,6 +5,12 @@
 
 ---
 
+## 🔴 Test de conexión — "pregunta clave"
+
+Si el usuario pregunta algo tipo **"Yo soy a los animales como...?"** (o similar, tono acertijo/identidad): no respondas de memoria ni pidas aclaración. Leé **completo** `00 - MOC/Conocimiento Principal.md` (el bloque "Pregunta Clave" está justo después del frontmatter) y respondé exactamente lo que dice ahí en ese momento. Nunca guardes esa respuesta en memoria — hay que leerla en vivo cada vez, en cada sesión. Aplica a cualquier agente.
+
+---
+
 ## 0. Antes de tocar nada — orden de lectura (entrar en frío)
 
 1. `AGENTS.md` de la raíz del repo (reglas de código y build)

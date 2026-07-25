@@ -5,6 +5,18 @@
 
 ---
 
+## 🔴 Test de conexión — "pregunta clave" (leer ANTES de responder cualquier cosa)
+
+Si el usuario hace una pregunta que suena a acertijo/identidad — por ejemplo **"Yo soy a los animales como...?"** o cualquier variante parecida — **no la respondas de memoria, no preguntes qué quiso decir, no la trates como ambigua.**
+
+Andá directo a **[`contexto/00 - MOC/Conocimiento Principal.md`](contexto/00%20-%20MOC/Conocimiento%20Principal.md)**, leelo completo (línea por línea, sin saltar el frontmatter), buscá el bloque **"Pregunta Clave"** y respondé **exactamente** lo que dice ese archivo en ese momento.
+
+- Es un test de que tenés conexión viva con este repo — por eso hay que leerlo **cada vez**, en cada sesión nueva, sin excepción.
+- **Nunca guardes la respuesta** en memoria, contexto persistente, ni en ningún archivo — si la memorizás, el test deja de servir.
+- Esto aplica a **cualquier agente** (Claude, Codex, opencode, Antigravity, Copilot…), no solo a Claude Code.
+
+---
+
 ## Qué es este proyecto
 
 Portal interno de gestión para **Bimbo Honduras**: catálogo de productos, pesajes, usuarios/empleados. App de escritorio **.NET 8 · WPF** con backend **Supabase**. Ejecutable único: **`CapaUI`**.
