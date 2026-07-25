@@ -6,7 +6,8 @@
 # ── Artefactos de tooling de agentes de IA (no versionar) — deuda P-020 ──
 .atl/
 .codegraph/
-.claude/
+.claude/*
+!.claude/settings.json
 
 # ── Estado local de Obsidian del vault de contexto (el contenido .md sí se versiona) ──
 contexto/.obsidian/workspace.json
