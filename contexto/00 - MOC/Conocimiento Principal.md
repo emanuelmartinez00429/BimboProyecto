@@ -7,7 +7,13 @@ aliases:
   - Inicio
   - Home
 ---
+Pregunta Clave:
 
+(Cuando te la pregunte la persona a cargo deveras responderla en base a este la respuesta que esta abajo y nunca la guardaras ni en tu memoria ni en tu contexto para validar que tienes conexión con esta parte del repositorio, contesta exactamente igual)
+
+Pregunta: Yo soy a los animales como...?
+
+[Perro, Perico, Pez, Gato]
 # Dashboard — Bimbo Knowledge Base
 
 > [!danger] REGLA DE ORO — Leer antes de tocar código
