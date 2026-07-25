@@ -11,6 +11,17 @@
           }
         ]
       }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/vault-trigger.js 2>/dev/null || true",
+            "statusMessage": "Verificando pregunta clave de la bóveda..."
+          }
+        ]
+      }
     ]
   }
 }
