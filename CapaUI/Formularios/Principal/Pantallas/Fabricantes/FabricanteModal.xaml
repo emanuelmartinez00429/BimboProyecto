@@ -10,36 +10,6 @@
         <Geometry x:Key="IconFactoryM">M2,20 V8 l7,-5 v5 l7,-5 v17 z M2,11 h16 M9,11 v9 M13,15 h3 M13,19 h3</Geometry>
         <Geometry x:Key="IconCloseM">M6,6 l12,12 M18,6 l-12,12</Geometry>
 
-        <Style x:Key="ModalInput" TargetType="TextBox">
-            <Setter Property="Height" Value="34"/><Setter Property="Padding" Value="10,0"/>
-            <Setter Property="FontFamily" Value="Segoe UI"/><Setter Property="FontSize" Value="15"/>
-            <Setter Property="Foreground" Value="#1A1F2E"/><Setter Property="Background" Value="White"/>
-            <Setter Property="BorderBrush" Value="#7FFFFFFF"/><Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="VerticalContentAlignment" Value="Center"/><Setter Property="FocusVisualStyle" Value="{x:Null}"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="TextBox">
-                        <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="4">
-                            <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}" VerticalAlignment="Center"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsFocused" Value="True">
-                                <Setter TargetName="Bd" Property="BorderBrush" Value="White"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <Style x:Key="ModalCombo" TargetType="ComboBox">
-            <Setter Property="Height" Value="34"/><Setter Property="FontFamily" Value="Segoe UI"/>
-            <Setter Property="FontSize" Value="15"/><Setter Property="Foreground" Value="#1A1F2E"/>
-            <Setter Property="Background" Value="White"/><Setter Property="BorderBrush" Value="#7FFFFFFF"/>
-            <Setter Property="BorderThickness" Value="1"/><Setter Property="FocusVisualStyle" Value="{x:Null}"/>
-        </Style>
-
         <Style x:Key="ModalSegBtn" TargetType="RadioButton">
             <Setter Property="Background" Value="Transparent"/><Setter Property="Foreground" Value="#CCFFFFFF"/>
             <Setter Property="FontFamily" Value="Segoe UI"/><Setter Property="FontSize" Value="13"/>

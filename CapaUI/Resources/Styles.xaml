@@ -121,6 +121,52 @@
         </Setter>
     </Style>
 
+    <!-- ── Modal ComboBox ──────────────────────────────────────────────── -->
+    <Style x:Key="ModalCombo" TargetType="ComboBox">
+        <Setter Property="Height" Value="34"/>
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontSize" Value="13.5"/>
+        <Setter Property="Foreground" Value="#1A1F2E"/>
+        <Setter Property="Background" Value="White"/>
+        <Setter Property="BorderBrush" Value="#7FFFFFFF"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+    </Style>
+
+    <!-- ── Modal TextBox ───────────────────────────────────────────────── -->
+    <Style x:Key="ModalInput" TargetType="TextBox">
+        <Setter Property="Height" Value="34"/>
+        <Setter Property="Padding" Value="10,0"/>
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontSize" Value="13.5"/>
+        <Setter Property="Foreground" Value="#1A1F2E"/>
+        <Setter Property="Background" Value="White"/>
+        <Setter Property="BorderBrush" Value="#7FFFFFFF"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TextBox">
+                    <Border x:Name="Bd"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="4">
+                        <ScrollViewer x:Name="PART_ContentHost"
+                                      Margin="{TemplateBinding Padding}"
+                                      VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsFocused" Value="True">
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="White"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <!-- ── PasswordBox ──────────────────────────────────────────────────── -->
     <Style x:Key="InputPassword" TargetType="PasswordBox">
         <Setter Property="Height"     Value="44"/>
