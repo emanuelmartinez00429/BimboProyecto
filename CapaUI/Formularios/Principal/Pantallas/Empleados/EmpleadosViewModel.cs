@@ -1,0 +1,316 @@
+using System.Collections.ObjectModel;
+using CapaAplicacion.Empleados.Dtos;
+using CapaAplicacion.Empleados.Interfaces;
+using CapaAplicacion.Empleados.Queries;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+
+namespace CapaUI.Formularios.Principal.Pantallas.Empleados;
+
+public enum EstadoEmpleadoFilter { Activos, Inactivos, Todos }
+
+/// <summary>
+/// ViewModel del formulario de Empleados. Paginación server-side, búsqueda con
+/// sugerencias y filtro por estado — mismo patrón que Usuarios/Categorías.
+/// Solo lectura por ahora: Nuevo/Editar abren el modal para revisión, pero
+/// Guardar y Cambiar Estado no persisten nada (módulo en revisión, ver
+/// Sesión 2026-07-26 - Módulo Empleados (solo lectura)).
+/// </summary>
+public partial class EmpleadosViewModel : ObservableObject, IDisposable
+{
+    private readonly IEmpleadoRepository _repo;
+    private CancellationTokenSource?    _searchCts;
+    private bool _disposed;
+
+    private string               _query        = "";
+    private EstadoEmpleadoFilter _estadoFiltro = EstadoEmpleadoFilter.Activos;
+    private int                  _page         = 1;
+    private int                  _filteredCount;
+    private int?                 _pendingSelectionId;
+    private int                  _loadGeneration;
+
+    public const int PageSize = 50;
+
+    [ObservableProperty] private ObservableCollection<EmpleadoDto> _pageRows    = new();
+    [ObservableProperty] private ObservableCollection<EmpleadoDto> _suggestions = new();
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HaySeleccionado), nameof(TextoSeleccionado))]
+    [NotifyCanExecuteChangedFor(nameof(EditarCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ToggleEstadoCommand))]
+    private EmpleadoDto? _seleccionado;
+
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(PrimeraPaginaCommand))]
+    [NotifyCanExecuteChangedFor(nameof(PaginaAnteriorCommand))]
+    [NotifyCanExecuteChangedFor(nameof(PaginaSiguienteCommand))]
+    [NotifyCanExecuteChangedFor(nameof(UltimaPaginaCommand))]
+    private bool _isLoading;
+
+    [ObservableProperty] private bool   _showSuggestions;
+    [ObservableProperty] private int    _highlightIndex = -1;
+    [ObservableProperty] private int    _totalCount;
+    [ObservableProperty] private int    _activosCount;
+    [ObservableProperty] private int    _inactivosCount;
+    [ObservableProperty] private string _errorCarga = "";
+
+    public bool   HaySeleccionado   => Seleccionado is not null;
+    public string TextoSeleccionado => Seleccionado is null
+        ? ""
+        : $"{Seleccionado.NombreEmpleado} {Seleccionado.ApellidoEmpleado} · {Seleccionado.NumeroIdentidad}";
+
+    public int  TotalPages => Math.Max(1, (int)Math.Ceiling(_filteredCount / (double)PageSize));
+    public bool NoResults  => !IsLoading && _filteredCount == 0 && TotalCount > 0;
+
+    public string PageInfo
+    {
+        get
+        {
+            if (_filteredCount == 0) return "Sin resultados";
+            int from = (_page - 1) * PageSize + 1;
+            int to   = Math.Min(_page * PageSize, _filteredCount);
+            return $"Mostrando {from}–{to} de {_filteredCount} empleados";
+        }
+    }
+
+    public string Query
+    {
+        get => _query;
+        set
+        {
+            if (_query == value) return;
+            _query = value;
+            OnPropertyChanged();
+            _ = RefrescarSugerenciasAsync();
+        }
+    }
+
+    public EstadoEmpleadoFilter EstadoFiltro
+    {
+        get => _estadoFiltro;
+        set
+        {
+            if (_estadoFiltro == value) return;
+            _estadoFiltro = value;
+            OnPropertyChanged();
+            _page = 1;
+            _ = CargarPaginaAsync();
+        }
+    }
+
+    public int Page
+    {
+        get => _page;
+        set
+        {
+            if (_page == value) return;
+            _page = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(PageInfo));
+            OnPropertyChanged(nameof(TotalPages));
+            NotifyPaginationCanExecuteChanged();
+            _ = CargarPaginaAsync();
+        }
+    }
+
+    // ── Eventos ────────────────────────────────────────────────────────
+    public event Action?              SolicitarNuevo;
+    public event Action<EmpleadoDto>? SolicitarEditar;
+    public event Action?              FiltrosLimpiados;
+
+    // ── Constructor ────────────────────────────────────────────────────
+    public EmpleadosViewModel(IEmpleadoRepository repo)
+    {
+        _repo = repo;
+    }
+
+    // ── Carga ──────────────────────────────────────────────────────────
+    public async Task CargarDatosAsync() => await CargarPaginaAsync();
+
+    public void RefrescarDatos() => _ = CargarPaginaAsync();
+
+    private const int TimeoutMs = 10_000;
+
+    private EmpleadoFiltros BuildFiltros() => new()
+    {
+        IdEstado = _estadoFiltro switch
+        {
+            EstadoEmpleadoFilter.Activos   => 1,
+            EstadoEmpleadoFilter.Inactivos => 2,
+            _                              => null,
+        },
+    };
+
+    private async Task CargarPaginaAsync()
+    {
+        int myGen  = ++_loadGeneration;
+        IsLoading  = true;
+        ErrorCarga = string.Empty;
+
+        var filtros = BuildFiltros();
+        var task = _repo.GetPagedAsync(_page, PageSize, filtros);
+        if (await Task.WhenAny(task, Task.Delay(TimeoutMs)) != task)
+        {
+            if (myGen != _loadGeneration) return;
+            ErrorCarga = "La carga tardó demasiado. Intente de nuevo.";
+            IsLoading  = false;
+            return;
+        }
+
+        var r = await task;
+        if (myGen != _loadGeneration) return;
+
+        if (!r.Success)
+        {
+            ErrorCarga = r.Error;
+            IsLoading  = false;
+            return;
+        }
+
+        var pagina = r.Value!;
+
+        TotalCount     = pagina.Total;
+        ActivosCount   = pagina.Activos;
+        InactivosCount = pagina.Inactivos;
+        _filteredCount = _estadoFiltro switch
+        {
+            EstadoEmpleadoFilter.Activos   => pagina.Activos,
+            EstadoEmpleadoFilter.Inactivos => pagina.Inactivos,
+            _                              => pagina.Total,
+        };
+
+        PageRows = new ObservableCollection<EmpleadoDto>(pagina.Items);
+
+        OnPropertyChanged(nameof(TotalPages));
+        OnPropertyChanged(nameof(PageInfo));
+        OnPropertyChanged(nameof(NoResults));
+        NotifyPaginationCanExecuteChanged();
+        IsLoading = false;
+
+        if (_pendingSelectionId.HasValue)
+        {
+            Seleccionado        = PageRows.FirstOrDefault(x => x.IdEmpleado == _pendingSelectionId.Value);
+            _pendingSelectionId = null;
+        }
+    }
+
+    // ── Búsqueda con debounce ──────────────────────────────────────────
+    private async Task RefrescarSugerenciasAsync()
+    {
+        _searchCts?.Cancel();
+        _searchCts = new CancellationTokenSource();
+        var token  = _searchCts.Token;
+
+        var q = _query.Trim();
+        if (string.IsNullOrEmpty(q))
+        {
+            Suggestions     = new ObservableCollection<EmpleadoDto>();
+            ShowSuggestions = false;
+            return;
+        }
+
+        try
+        {
+            await Task.Delay(300, token);
+            if (token.IsCancellationRequested) return;
+
+            var r = await _repo.BuscarSugerenciasAsync(q, BuildFiltros(), token);
+            if (token.IsCancellationRequested) return;
+
+            if (!r.Success) { ShowSuggestions = false; return; }
+
+            Suggestions     = new ObservableCollection<EmpleadoDto>(r.Value!);
+            ShowSuggestions = r.Value!.Count > 0;
+            HighlightIndex  = -1;
+        }
+        catch (OperationCanceledException) { }
+    }
+
+    public void SeleccionarSugerencia(EmpleadoDto e)
+    {
+        _query = "";
+        OnPropertyChanged(nameof(Query));
+        ShowSuggestions = false;
+
+        var enPagina = PageRows.FirstOrDefault(x => x.IdEmpleado == e.IdEmpleado);
+        if (enPagina is not null) { Seleccionado = enPagina; return; }
+
+        _pendingSelectionId = e.IdEmpleado;
+        _ = NavegarAPaginaDeRegistroAsync(e.IdEmpleado);
+    }
+
+    private async Task NavegarAPaginaDeRegistroAsync(int id)
+    {
+        var r = await _repo.GetPaginaDeRegistroAsync(id, PageSize, BuildFiltros());
+        if (!r.Success) { _pendingSelectionId = null; ErrorCarga = r.Error; return; }
+
+        _page = r.Value;
+        OnPropertyChanged(nameof(Page));
+        OnPropertyChanged(nameof(PageInfo));
+        OnPropertyChanged(nameof(TotalPages));
+        NotifyPaginationCanExecuteChanged();
+        await CargarPaginaAsync();
+    }
+
+    // ── Comandos CRUD (Nuevo/Editar solo abren el modal — ver docstring) ─
+    [RelayCommand]
+    private void Nuevo() => SolicitarNuevo?.Invoke();
+
+    [RelayCommand(CanExecute = nameof(HaySeleccionado))]
+    private void Editar()
+    {
+        if (Seleccionado is not null) SolicitarEditar?.Invoke(Seleccionado);
+    }
+
+    /// <summary>
+    /// Deshabilitado a propósito: el módulo está en revisión (ver docstring de
+    /// la clase). No llama al repositorio — solo informa en vez de ejecutar.
+    /// </summary>
+    [RelayCommand(CanExecute = nameof(HaySeleccionado))]
+    private void ToggleEstado()
+    {
+        ErrorCarga = "Edición deshabilitada temporalmente — módulo en revisión.";
+    }
+
+    [RelayCommand]
+    private void LimpiarFiltros()
+    {
+        _estadoFiltro = EstadoEmpleadoFilter.Activos;
+        _page         = 1;
+        FiltrosLimpiados?.Invoke();
+        _ = CargarPaginaAsync();
+    }
+
+    // ── Paginación ─────────────────────────────────────────────────────
+    [RelayCommand(CanExecute = nameof(PuedePaginaAnterior))]
+    private void PrimeraPagina() => Page = 1;
+
+    [RelayCommand(CanExecute = nameof(PuedePaginaAnterior))]
+    private void PaginaAnterior() => Page--;
+
+    [RelayCommand(CanExecute = nameof(PuedePaginaSiguiente))]
+    private void PaginaSiguiente() => Page++;
+
+    [RelayCommand(CanExecute = nameof(PuedePaginaSiguiente))]
+    private void UltimaPagina() => Page = TotalPages;
+
+    private bool PuedePaginaAnterior()  => !IsLoading && _page > 1;
+    private bool PuedePaginaSiguiente() => !IsLoading && _page < TotalPages;
+
+    private void NotifyPaginationCanExecuteChanged()
+    {
+        PrimeraPaginaCommand.NotifyCanExecuteChanged();
+        PaginaAnteriorCommand.NotifyCanExecuteChanged();
+        PaginaSiguienteCommand.NotifyCanExecuteChanged();
+        UltimaPaginaCommand.NotifyCanExecuteChanged();
+    }
+
+    // ── IDisposable ────────────────────────────────────────────────────
+    public void Dispose()
+    {
+        if (_disposed) return;
+        _disposed = true;
+        _searchCts?.Cancel();
+        _searchCts?.Dispose();
+    }
+}

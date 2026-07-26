@@ -92,7 +92,7 @@ namespace CapaUI.Formularios.Principal
             {
                 // Usuarios
                 [Routes.Usuarios]  = () => new UsuariosScreenVM(),
-                [Routes.Empleados] = () => new ConstructionVM("Gestión de Empleados", "Usuarios"),
+                [Routes.Empleados] = () => new EmpleadosVM(),
                 [Routes.Roles]     = () => new ConstructionVM("Gestión de Roles",     "Usuarios"),
                 [Routes.Bitacora]  = () => new ConstructionVM("Bitácora",             "Usuarios"),
                 // Productos
@@ -195,6 +195,7 @@ namespace CapaUI.Formularios.Principal
     public class ContactosProveedoresVM   : ViewModelBase { }
     public class PesajesVM                 : ViewModelBase { }
     public class UsuariosScreenVM          : ViewModelBase { }
+    public class EmpleadosVM               : ViewModelBase { }
 
     public class ConstructionVM : ViewModelBase
     {

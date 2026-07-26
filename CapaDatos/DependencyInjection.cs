@@ -14,8 +14,10 @@ using CapaDatos.Auth;
 using CapaDatos.Conexion;
 using CapaDatos.Perfil;
 using CapaDatos.Realtime;
+using CapaAplicacion.Empleados.Interfaces;
 using CapaDatos.Repositories.Categorias;
 using CapaDatos.Repositories.Contactos;
+using CapaDatos.Repositories.GestionEmpleados;
 using CapaDatos.Repositories.Fabricantes;
 using CapaDatos.Repositories.Pesaje;
 using CapaDatos.Repositories.Productos;
@@ -72,6 +74,9 @@ public static class DependencyInjection
         services.AddTransient<IUsuarioRepository, UsuarioRepository>();
         services.AddTransient<IRolRepository, RolRepository>();
         services.AddSingleton<IUsuarioSesionService, UsuarioSesionService>();
+
+        // Empleados — solo lectura por ahora (módulo en revisión)
+        services.AddTransient<IEmpleadoRepository, EmpleadoCrudRepository>();
 
         return services;
     }
