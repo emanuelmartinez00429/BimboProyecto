@@ -53,14 +53,20 @@ Los ComboBox de filtro en `UsuariosView` y `BitacoraView` se veían con fondo gr
 
 Archivos modificados:
 
-| Archivo | ComboBox | Propiedades agregadas |
+| Archivo | ComboBox | Propiedades |
 |---|---|---|
-| `CapaUI/.../Usuarios/UsuariosView.xaml` | `CmbRol` | `IsEditable="True" IsTextSearchEnabled="False" StaysOpenOnEdit="True"` |
+| `CapaUI/.../Usuarios/UsuariosView.xaml` | `CmbRol` | `IsEditable="True" IsTextSearchEnabled="True" StaysOpenOnEdit="True"` |
 | `CapaUI/.../Bitacora/BitacoraView.xaml` | `CmbModulo` | ídem |
 | `CapaUI/.../Bitacora/BitacoraView.xaml` | `CmbAccion` | ídem |
 | `CapaUI/.../Bitacora/BitacoraView.xaml` | `CmbUsuario` | ídem |
 
 No se agregó `DisplayMemberPath` porque estos ComboBox se llenan con `ComboBoxItem` desde code-behind (el `Content` se muestra automáticamente).
+
+### Ronda 3 — `IsTextSearchEnabled=True` para búsqueda escribiendo
+
+Se activó `IsTextSearchEnabled="True"` en los ComboBox editables de UsuariosView y BitacoraView. Esto permite que al escribir en el ComboBox, WPF busque automáticamente la coincidencia más cercana en la lista desplegable y la seleccione — funciona contra la propiedad `Content` de los `ComboBoxItem`.
+
+Propiedad nativa de WPF: `ComboBox.IsTextSearchEnabled` — cuando está en `True` (default), el control busca el primer elemento cuyo texto empiece con lo que el usuario teclea. Combinado con `IsEditable=True` y `StaysOpenOnEdit=True`, la experiencia es tipo autocomplete: el dropdown se mantiene abierto mientras se escribe y el item más cercano se resalta/selecciona automáticamente.
 
 ### Lo que NO se tocó (Ronda 2)
 - **Pesaje modals** (PesajeModalStyles.xaml → `MCombo`): 36px, BorderBrush=#80FFFFFF, Cursor=Hand. Contexto diferente, intencional.
@@ -71,10 +77,10 @@ No se agregó `DisplayMemberPath` porque estos ComboBox se llenan con `ComboBoxI
 ## Verificación
 
 ```
-dotnet build BimboProyecto.sln → 0 errores, 47 warnings (solo los preexistentes de nullable en CapaDatos)
+dotnet build BimboProyecto.sln → 0 errores (warnings preexistentes de nullable en CapaDatos)
 ```
 
-No hay harness de tests de UI; la verificación es build + prueba visual manual del flujo de creación/edición en cada modal que usa ComboBox (Producto, Usuario, Fabricante).
+No hay harness de tests de UI; la verificación es build + prueba visual manual: al escribir en los ComboBox de filtro (Usuarios → Rol; Bitácora → Módulo, Acción, Usuario), el dropdown debe mostrar el item más cercano al texto escrito.
 
 ---
 

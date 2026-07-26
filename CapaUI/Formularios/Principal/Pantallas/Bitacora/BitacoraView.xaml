@@ -384,21 +384,21 @@
                     <TextBlock Grid.Column="0" Text="MÓDULO" Style="{StaticResource FiltroLabel}"/>
                     <ComboBox Grid.Column="1" x:Name="CmbModulo" Width="180" Height="26"
                               FontFamily="Segoe UI" FontSize="13" BorderBrush="#CBD5E1"
-                              IsEditable="True" IsTextSearchEnabled="False" StaysOpenOnEdit="True"
+                              IsEditable="True" IsTextSearchEnabled="True" StaysOpenOnEdit="True"
                               VerticalAlignment="Center" Margin="0,0,16,0"
                               SelectionChanged="CmbModulo_SelectionChanged"/>
 
                     <TextBlock Grid.Column="2" Text="ACCIÓN" Style="{StaticResource FiltroLabel}"/>
                     <ComboBox Grid.Column="3" x:Name="CmbAccion" Width="180" Height="26"
                               FontFamily="Segoe UI" FontSize="13" BorderBrush="#CBD5E1"
-                              IsEditable="True" IsTextSearchEnabled="False" StaysOpenOnEdit="True"
+                              IsEditable="True" IsTextSearchEnabled="True" StaysOpenOnEdit="True"
                               VerticalAlignment="Center" Margin="0,0,16,0"
                               SelectionChanged="CmbAccion_SelectionChanged"/>
 
                     <TextBlock Grid.Column="4" Text="USUARIO" Style="{StaticResource FiltroLabel}"/>
                     <ComboBox Grid.Column="5" x:Name="CmbUsuario" Width="200" Height="26"
                               FontFamily="Segoe UI" FontSize="13" BorderBrush="#CBD5E1"
-                              IsEditable="True" IsTextSearchEnabled="False" StaysOpenOnEdit="True"
+                              IsEditable="True" IsTextSearchEnabled="True" StaysOpenOnEdit="True"
                               VerticalAlignment="Center"
                               SelectionChanged="CmbUsuario_SelectionChanged"/>
                 </Grid>
