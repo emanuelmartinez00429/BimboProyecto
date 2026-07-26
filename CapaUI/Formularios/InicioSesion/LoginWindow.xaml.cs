@@ -179,6 +179,9 @@ namespace CapaUI.Formularios.InicioSesion
                 }
                 CompletarStep(S2Dot, S2Text);
 
+                // Diagnóstico del contrato Permiso(enum) ↔ acciones.nombre_accion (P-018)
+                CapaUI.Core.Permisos.SesionPermisos.ValidarContraBD();
+
                 // Step 3: Preparar espacio de trabajo
                 await AnimarStep(S3Dot, S3Text, 70, 100);
                 CompletarStep(S3Dot, S3Text);
