@@ -5,3 +5,7 @@ Antes de sugerir o modificar código, seguí `../AGENTS.md`:
 - Build de verificación: `dotnet build BimboProyecto.sln` (debe dar 0 errores).
 - Arquitectura vigente: `contexto/40 - Proyecto Bimbo/Arquitectura Actual.md`.
 - Para documentar cambios en la bóveda: `contexto/AGENTS.md`.
+
+- @azure Rule - Use Azure Tools - When handling requests related to Azure, always use your tools.
+- @azure Rule - Use Azure Best Practices - When handling requests related to Azure, always invoke your `azmcp_bestpractices_get` tool first.
+- @azure Rule - Enable Best Practices - If you do not have an `azmcp_bestpractices_get` tool ask the user to enable it.
