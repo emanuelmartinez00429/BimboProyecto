@@ -61,7 +61,8 @@ public class UsuarioRepository : RepositorioBase, IUsuarioRepository
             if (!string.IsNullOrWhiteSpace(busqueda))
                 query = query.Or(new List<Supabase.Postgrest.Interfaces.IPostgrestQueryFilter>
                 {
-                    new Supabase.Postgrest.QueryFilter("alias_usuario", Op.ILike, $"%{busqueda}%"),
+                    new Supabase.Postgrest.QueryFilter("alias_usuario",   Op.ILike, $"%{busqueda}%"),
+                    new Supabase.Postgrest.QueryFilter("nombre_completo", Op.ILike, $"%{busqueda}%"),
                 });
 
             int from = (page - 1) * pageSize;
@@ -282,17 +283,23 @@ public class UsuarioRepository : RepositorioBase, IUsuarioRepository
     private static async Task<(int total, int activos, int inactivos)> ObtenerConteosAsync(
         Supabase.Client client, int? idEstado, int? idRol, string? busqueda)
     {
-        var query = client.From<UsuariosModel>().Select("id_usuario, id_estado");
+        // Misma vista que la página para que los conteos coincidan con el filtro
+        // de búsqueda por alias O nombre de empleado (P-021).
+        var query = client.From<usuarioVista>().Select("id_usuario, id_estado");
 
         if (idEstado.HasValue)
             query = query.Filter("id_estado", Op.Equals, idEstado.Value.ToString());
         if (idRol.HasValue)
             query = query.Filter("id_rol", Op.Equals, idRol.Value.ToString());
         if (!string.IsNullOrWhiteSpace(busqueda))
-            query = query.Filter("alias_usuario", Op.ILike, $"%{busqueda}%");
+            query = query.Or(new List<Supabase.Postgrest.Interfaces.IPostgrestQueryFilter>
+            {
+                new Supabase.Postgrest.QueryFilter("alias_usuario",   Op.ILike, $"%{busqueda}%"),
+                new Supabase.Postgrest.QueryFilter("nombre_completo", Op.ILike, $"%{busqueda}%"),
+            });
 
         var resultado = await query.Get();
-        var models    = resultado?.Models ?? new List<UsuariosModel>();
+        var models    = resultado?.Models ?? new List<usuarioVista>();
 
         int total   = models.Count;
         int activos = models.Count(u => u.idEstado == 1);

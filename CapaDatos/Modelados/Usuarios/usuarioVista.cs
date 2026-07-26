@@ -8,7 +8,11 @@ using System.Threading.Tasks;
 
 namespace CapaDatos.Modelados.Usuarios
 {
-    [Table("usuarios")]
+    // Vista SQL (security_invoker) que aplana el nombre del empleado para poder
+    // buscar por alias O nombre en un solo OR server-side (P-021). PostgREST no
+    // permite OR mezclando columnas del padre con columnas del JOIN.
+    // Ver ADR-005 y "Supabase - Vistas SQL, RLS y security_invoker" en la bóveda.
+    [Table("vista_usuarios_busqueda")]
     public class usuarioVista : BaseModel
     {
         [PrimaryKey("id_usuario")]
@@ -31,6 +35,10 @@ namespace CapaDatos.Modelados.Usuarios
 
         [Column("ultimo_acceso")]
         public DateTime ultimoAcceso { get; set; }
+
+        /// <summary>Nombre + apellido del empleado, aplanado por la vista para búsqueda.</summary>
+        [Column("nombre_completo")]
+        public string? nombreCompleto { get; set; }
 
         public Roles roles { get; set; }
 
