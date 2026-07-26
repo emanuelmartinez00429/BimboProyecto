@@ -1,5 +1,5 @@
 ---
-title: "Sesión 2026-07-26 — Centralización Estilos ComboBox y TextBox en Modales CRUD"
+title: "Sesión 2026-07-26 — Refactor Visual de ComboBox y TextBox (Modales + Toolbars)"
 tags:
   - sesion
   - refactor
@@ -7,12 +7,14 @@ tags:
 date: 2026-07-26
 branch: main
 autor_cambios: opencode (gentle-orchestrator)
+revisor: Emanuel Castellanos
 ---
 
-# Sesión 2026-07-26 — Centralización Estilos ComboBox y TextBox en Modales CRUD
+# Sesión 2026-07-26 — Refactor Visual de ComboBox y TextBox (Modales + Toolbars)
 
 > [!success] Resultado
-> Se centralizaron los estilos `ModalCombo` y `ModalInput` en `Resources/Styles.xaml` y se eliminaron las 9 definiciones locales duplicadas de los 6 modales CRUD, unificando FontSize, Height, BorderBrush y FocusVisualStyle en una sola fuente de verdad.
+> Ronda 1: Centralizados estilos `ModalCombo`/`ModalInput` en `Resources/Styles.xaml`, eliminadas 9 definiciones locales duplicadas en 6 modales CRUD.  
+> Ronda 2: Homogeneizados ComboBox de toolbar en UsuariosView y BitacoraView agregando `IsEditable=True` para que tengan el mismo fondo blanco que ProductosView y FabricantesView.
 
 ---
 
@@ -45,9 +47,24 @@ El formulario de productos (`ProductoModal.xaml`) definía un estilo `ModalCombo
 
 El mecanismo de resolución de WPF busca `StaticResource` primero en `UserControl.Resources`, luego en `Application.Resources` (donde está `Styles.xaml` vía merged dictionary en `App.xaml`). Al eliminar las definiciones locales, la resolución cae en los globales automáticamente.
 
-### Lo que NO se tocó
-- **Toolbars** (ComboBox inline en ProductosView, UsuariosView, FabricantesView, BitacoraView): 26px, borde #CBD5E1, contexto visual diferente (fondo blanco, compactos). Siguen siendo inline.
-- **Pesaje modals** (PesajeModalStyles.xaml → `MCombo`): 36px, BorderBrush=#80FFFFFF, Cursor=Hand. Contexto visual diferente, intencional.
+### Ronda 2 — Toolbar ComboBox: `IsEditable=True` para fondo blanco
+
+Los ComboBox de filtro en `UsuariosView` y `BitacoraView` se veían con fondo gris nativo de WPF porque **no tenían `IsEditable="True"`**. En cambio, `ProductosView` y `FabricantesView` sí lo tenían y se veían blancos.
+
+Archivos modificados:
+
+| Archivo | ComboBox | Propiedades agregadas |
+|---|---|---|
+| `CapaUI/.../Usuarios/UsuariosView.xaml` | `CmbRol` | `IsEditable="True" IsTextSearchEnabled="False" StaysOpenOnEdit="True"` |
+| `CapaUI/.../Bitacora/BitacoraView.xaml` | `CmbModulo` | ídem |
+| `CapaUI/.../Bitacora/BitacoraView.xaml` | `CmbAccion` | ídem |
+| `CapaUI/.../Bitacora/BitacoraView.xaml` | `CmbUsuario` | ídem |
+
+No se agregó `DisplayMemberPath` porque estos ComboBox se llenan con `ComboBoxItem` desde code-behind (el `Content` se muestra automáticamente).
+
+### Lo que NO se tocó (Ronda 2)
+- **Pesaje modals** (PesajeModalStyles.xaml → `MCombo`): 36px, BorderBrush=#80FFFFFF, Cursor=Hand. Contexto diferente, intencional.
+- **FabricantesView**: ya tenía `IsEditable=True` (idéntico a ProductosView).
 - `ModalSegBtn` (RadioButton): consistente en todos los modales, no se tocó.
 - Iconos geométricos (`IconBoxM`, `IconUserM`, etc.): propios de cada modal, no se tocaron.
 
