@@ -172,8 +172,19 @@ query = query.Range(from, from + size - 1);
 // ILike
 query = query.Filter("nombre_producto", Op.ILike, $"%{termino}%");
 
-// OR multi-columna
-.Filter("or", Operator.Equals, "(nombre_producto.ilike.%t%,codigo_producto.ilike.%t%)")
+// OR multi-columna — SIEMPRE con .Or() + QueryFilter.
+// ⚠️ NUNCA usar Filter("or", Op.Equals, "(...)"): compila, no lanza error,
+// y retorna resultados silenciosamente incorrectos.
+// Ver [[Bug - Filter OR con Op.Equals en postgrest-csharp]].
+query.Or(new List<IPostgrestQueryFilter>
+{
+    new QueryFilter("nombre_producto", Op.ILike, $"%{termino}%"),
+    new QueryFilter("codigo_producto", Op.ILike, $"%{termino}%"),
+})
+
+// OR que cruza tablas joineadas (ej. usuarios + empleados): PostgREST NO lo
+// permite — crear una vista SQL con security_invoker que aplane la columna.
+// Ver [[ADR-005 - Vista SQL para Búsquedas Cross-Tabla]].
 ```
 
 ### Convención de columnas

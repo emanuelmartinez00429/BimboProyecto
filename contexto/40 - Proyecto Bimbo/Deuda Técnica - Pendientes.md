@@ -24,7 +24,7 @@ Estos errores se propagarán en cascada a cada módulo nuevo si no se corrigen p
 
 ---
 
-### P-013 · Regresión de auditoría: `IdUsuario ?? 0` en Pesaje pierde el "fail-loud"
+### ~~P-013 · Regresión de auditoría: `IdUsuario ?? 0` en Pesaje pierde el "fail-loud"~~ ✅ Resuelto 2026-07-26
 
 **Archivo:** `CapaUI/Formularios/Principal/Pantallas/Pesaje/PesajeViewModel.cs`
 **Introducido en:** commit `f105047` (Emanuel, 2026-07-23), refactor de sesión. Ver [[Sesión 2026-07-23 - Revisión QA Módulo Usuarios y Refactor de Sesión (Emanuel)]].
@@ -40,9 +40,9 @@ El `SesionActual.IdUsuario` borrado lanzaba `InvalidOperationException` a propó
 
 **Riesgo:** Registros de auditoría/movimientos atribuidos a un usuario fantasma. Silencioso — no da error.
 
-**Solución:** Que `UsuarioActual` (o el repositorio de pesaje antes de insertar) lance/rechace si no hay sesión activa, replicando la garantía anterior. Alternativa: validar `_sesionService.Autenticado` antes de permitir pesar.
+**Solución aplicada:** `UsuarioActual` lanza `InvalidOperationException` si no hay sesión (garantía de última defensa) + guarda `HaySesionActiva()` en los 2 puntos de uso que loguea (Serilog) y muestra Toast "Sesión expirada" — mensaje genérico al usuario, detalle al log. Ver [[Sesión 2026-07-26 - Resolución Deuda Técnica P-013 a P-021]].
 
-**Estado:** `[ ] Pendiente`
+**Estado:** `[x] Resuelto` — `dotnet build` 0 errores.
 
 ---
 
@@ -254,7 +254,7 @@ Los valores `50, 55, 60, 65, 70, 75, 80, 100, 160, 180, 220` ms aparecen como li
 
 ---
 
-### P-014 · `Debug.WriteLine` logueando prefijos de access token (Usuarios)
+### ~~P-014 · `Debug.WriteLine` logueando prefijos de access token (Usuarios)~~ ✅ Resuelto 2026-07-26
 
 **Archivo:** `CapaDatos/Repositories/Usuarios/UsuarioRepository.cs` — `CrearAsync`
 **Introducido en:** commit `f105047` (Emanuel). Ver [[Sesión 2026-07-23 - Revisión QA Módulo Usuarios y Refactor de Sesión (Emanuel)]].
@@ -263,13 +263,13 @@ Tres `Debug.WriteLine` loguean prefijos del access token (`token={session?.Acces
 
 **Riesgo:** Fuga parcial de tokens en logs/Output. Bajo (solo Debug), pero debe limpiarse antes de producción.
 
-**Solución:** Eliminar los `Debug.WriteLine` de diagnóstico de token, o reducirlos a un booleano ("sesión presente: sí/no") sin exponer el token.
+**Solución aplicada:** eliminados los 3 `Debug.WriteLine` con token; queda un solo `Serilog.Log.Debug` booleano ("sesión restaurada: sí/no"). Regla permanente agregada al [[Plan de Seguridad - Roadmap 10-10]] §2.1b: nunca loguear secretos, ni truncados.
 
-**Estado:** `[ ] Pendiente`
+**Estado:** `[x] Resuelto`
 
 ---
 
-### P-015 · Debug scaffolding "[MapToDto] Diagnóstico FK" corre por cada fila
+### ~~P-015 · Debug scaffolding "[MapToDto] Diagnóstico FK" corre por cada fila~~ ✅ Resuelto 2026-07-26
 
 **Archivo:** `CapaDatos/Repositories/Usuarios/UsuarioRepository.cs` — `MapToDto`
 
@@ -277,13 +277,13 @@ Tres `Debug.WriteLine` loguean prefijos del access token (`token={session?.Acces
 
 **Riesgo:** Ruido en Output y trabajo inútil en cada render. Menor pero se replicará si se usa este repo como plantilla.
 
-**Solución:** Quitar el `Debug.WriteLine` de `MapToDto`.
+**Solución aplicada:** eliminado el bloque de diagnóstico completo; las variables locales del mapeo se conservan.
 
-**Estado:** `[ ] Pendiente`
+**Estado:** `[x] Resuelto`
 
 ---
 
-### P-016 · `Normalizar()` del modal itera bytes UTF-8 como `char` (stripping de acentos incorrecto)
+### ~~P-016 · `Normalizar()` del modal itera bytes UTF-8 como `char` (stripping de acentos incorrecto)~~ ✅ Resuelto 2026-07-26
 
 **Archivo:** `CapaUI/.../Usuarios/UsuarioModal.xaml.cs` — `Normalizar`
 
@@ -291,13 +291,13 @@ Para quitar tildes al auto-generar el email, el código hace `Encoding.UTF8.GetB
 
 **Riesgo:** Emails auto-generados con caracteres raros o acentos sin quitar para nombres como "Muñoz", "Peña", "Hernández".
 
-**Solución:** Iterar sobre los **`char`** de la cadena `FormD` (no sobre bytes UTF-8) y filtrar por `CharUnicodeInfo.GetUnicodeCategory(c) != NonSpacingMark`, luego recomponer con `new string(...)`.
+**Solución aplicada:** iteración sobre `char` de la cadena FormD + filtrado `NonSpacingMark` + recomposición FormC. Verificado: `Muñoz→munoz`, `María→maria`, `Peña→pena`. Patrón documentado en [[NET - Normalizacion Unicode para Quitar Acentos]].
 
-**Estado:** `[ ] Pendiente`
+**Estado:** `[x] Resuelto`
 
 ---
 
-### P-017 · Dependencia muerta: `IUsuarioSesionService` inyectada y no usada en `UsuarioModal`
+### ~~P-017 · Dependencia muerta: `IUsuarioSesionService` inyectada y no usada en `UsuarioModal`~~ ✅ Resuelto 2026-07-26
 
 **Archivo:** `CapaUI/.../Usuarios/UsuarioModal.xaml.cs`
 
@@ -305,13 +305,13 @@ El constructor recibe y guarda `IUsuarioSesionService _sesionService` pero nunca
 
 **Riesgo:** Ninguno funcional; ensucia el contrato del modal y confunde sobre por qué depende de la sesión.
 
-**Solución:** Quitar el parámetro y el campo, o usarlo (p. ej. para validar permiso antes de guardar).
+**Solución aplicada:** eliminados campo, parámetro y asignación; actualizados los 2 llamadores en `UsuariosView.xaml.cs`.
 
-**Estado:** `[ ] Pendiente`
+**Estado:** `[x] Resuelto`
 
 ---
 
-### P-018 · Acoplamiento frágil: permisos por nombre de enum vs. string de BD
+### ~~P-018 · Acoplamiento frágil: permisos por nombre de enum vs. string de BD~~ ✅ Resuelto 2026-07-26
 
 **Archivo:** `CapaUI/Core/Permisos/SesionPermisos.cs` — `Tiene`
 
@@ -319,9 +319,9 @@ El constructor recibe y guarda `IUsuarioSesionService _sesionService` pero nunca
 
 **Riesgo:** Permisos "desaparecen" sin diagnóstico. Difícil de depurar porque no hay excepción.
 
-**Solución:** Documentar el contrato enum↔BD como fuente de verdad compartida; idealmente un test/validación al arranque que verifique que cada `Permiso` existe en `acciones`, o mapeo explícito `[Description]` en vez de `ToString()`.
+**Solución aplicada:** contrato documentado en el doc-comment de `Permiso.cs` (no renombrar sin migración) + `SesionPermisos.ValidarContraBD()` invocado tras login: loguea con Serilog los valores del enum que la sesión no reconoce. No bloquea la app — es diagnóstico.
 
-**Estado:** `[ ] Documentar contrato + validación al arranque`
+**Estado:** `[x] Resuelto (documentación + validación diagnóstica)`
 
 ---
 
@@ -329,13 +329,15 @@ El constructor recibe y guarda `IUsuarioSesionService _sesionService` pero nunca
 
 ---
 
-### P-019 · Nombre confuso: propiedad `correoUsuario` mapea a columna `alias_usuario`
+### ~~P-019 · Nombre confuso: propiedad `correoUsuario` mapea a columna `alias_usuario`~~ ✅ Resuelto 2026-07-26
 
 **Archivo:** `CapaDatos/Modelados/Usuarios/Usuarios.cs`
 
-La propiedad C# `correoUsuario` tiene `[Column("alias_usuario")]`. El nombre de la propiedad y el de la columna sugieren conceptos distintos ("correo" vs "alias"). Aceptable si el equipo sabe que son lo mismo, pero invita a confusión.
+La propiedad C# `correoUsuario` tenía `[Column("alias_usuario")]`. El nombre de la propiedad y el de la columna sugerían conceptos distintos ("correo" vs "alias").
 
-**Estado:** `[ ] Unificar nomenclatura cuando se pueda tocar el esquema`
+**Solución aplicada:** renombrada la propiedad a `aliasUsuario` en los 2 modelos + 3 servicios que la referencian. El atributo `[Column("alias_usuario")]` no cambió — el esquema de BD quedó intacto.
+
+**Estado:** `[x] Resuelto`
 
 ---
 
@@ -353,15 +355,15 @@ Artefactos generados por herramientas de agentes de IA, no forman parte del cód
 
 ---
 
-### P-021 · Búsqueda de Usuarios solo por `alias_usuario`, no por nombre de empleado
+### ~~P-021 · Búsqueda de Usuarios solo por `alias_usuario`, no por nombre de empleado~~ ✅ Resuelto 2026-07-26
 
 **Archivo:** `CapaDatos/Repositories/Usuarios/UsuarioRepository.cs` — `ObtenerPaginaAsync` / `ObtenerConteosAsync`
 
-La búsqueda filtra solo `alias_usuario` (correo). El nombre del empleado vive en la tabla joineada `empleados`, así que buscar por nombre no devuelve resultados. **Conocido:** el commit `f105047` lo admite en su mensaje (*"falta el buscador dentro de este"*).
+La búsqueda filtraba solo `alias_usuario` (correo). El nombre del empleado vive en la tabla joineada `empleados`, y PostgREST no permite un OR que cruce padre + JOIN.
 
-**Solución:** Buscar server-side sobre columnas de la tabla joineada, o replicar el patrón multi-campo de Productos (`SuggestionSearchBox`).
+**Solución aplicada:** vista SQL `vista_usuarios_busqueda` (`security_invoker = true`, respeta RLS) que aplana `nombre_completo`; `usuarioVista` apunta a la vista y el OR server-side cubre `alias_usuario` + `nombre_completo` en página y conteos. Primera búsqueda cross-tabla del sistema — ver [[ADR-005 - Vista SQL para Búsquedas Cross-Tabla]].
 
-**Estado:** `[ ] Pendiente (conocido por el autor)`
+**Estado:** `[x] Resuelto`
 
 ---
 
@@ -403,15 +405,15 @@ Diccionario estático que mapea nombre de tabla a columna PK. Si se agrega una t
 | P-010 | Elementos del sidebar repetidos en 4 bloques paralelos | ✅ Resuelto | [[Sesión 2026-07-23 - Reconciliación Animación Sidebar (ContentAreaBorder) y Regresión BrandBlock]] |
 | P-011 | Guard `_animating` no cubre `BtnModulo_Click` | ✅ Resuelto | [[Sesión 2026-07-23 - Reconciliación Animación Sidebar (ContentAreaBorder) y Regresión BrandBlock]] |
 | P-012 | Magic numbers de duración de animación | ✅ Resuelto | [[Sesión 2026-07-23 - Reconciliación Animación Sidebar (ContentAreaBorder) y Regresión BrandBlock]] |
-| P-013 | Regresión auditoría: `IdUsuario ?? 0` en Pesaje | `[ ]` Pendiente 🔴 | [[Sesión 2026-07-23 - Revisión QA Módulo Usuarios y Refactor de Sesión (Emanuel)]] |
-| P-014 | Debug logueando prefijos de access token | `[ ]` Pendiente | [[Sesión 2026-07-23 - Revisión QA Módulo Usuarios y Refactor de Sesión (Emanuel)]] |
-| P-015 | Debug scaffolding en `MapToDto` por fila | `[ ]` Pendiente | [[Sesión 2026-07-23 - Revisión QA Módulo Usuarios y Refactor de Sesión (Emanuel)]] |
-| P-016 | `Normalizar()` itera bytes UTF-8 como char | `[ ]` Pendiente | [[Sesión 2026-07-23 - Revisión QA Módulo Usuarios y Refactor de Sesión (Emanuel)]] |
-| P-017 | Dependencia muerta en `UsuarioModal` | `[ ]` Pendiente | [[Sesión 2026-07-23 - Revisión QA Módulo Usuarios y Refactor de Sesión (Emanuel)]] |
-| P-018 | Permisos por nombre de enum vs string de BD | `[ ]` Pendiente | [[Sesión 2026-07-23 - Revisión QA Módulo Usuarios y Refactor de Sesión (Emanuel)]] |
-| P-019 | `correoUsuario` mapea a `alias_usuario` | `[ ]` Pendiente | [[Sesión 2026-07-23 - Revisión QA Módulo Usuarios y Refactor de Sesión (Emanuel)]] |
+| P-013 | Regresión auditoría: `IdUsuario ?? 0` en Pesaje | ✅ Resuelto | [[Sesión 2026-07-26 - Resolución Deuda Técnica P-013 a P-021]] |
+| P-014 | Debug logueando prefijos de access token | ✅ Resuelto | [[Sesión 2026-07-26 - Resolución Deuda Técnica P-013 a P-021]] |
+| P-015 | Debug scaffolding en `MapToDto` por fila | ✅ Resuelto | [[Sesión 2026-07-26 - Resolución Deuda Técnica P-013 a P-021]] |
+| P-016 | `Normalizar()` itera bytes UTF-8 como char | ✅ Resuelto | [[Sesión 2026-07-26 - Resolución Deuda Técnica P-013 a P-021]] |
+| P-017 | Dependencia muerta en `UsuarioModal` | ✅ Resuelto | [[Sesión 2026-07-26 - Resolución Deuda Técnica P-013 a P-021]] |
+| P-018 | Permisos por nombre de enum vs string de BD | ✅ Resuelto | [[Sesión 2026-07-26 - Resolución Deuda Técnica P-013 a P-021]] |
+| P-019 | `correoUsuario` mapea a `alias_usuario` | ✅ Resuelto | [[Sesión 2026-07-26 - Resolución Deuda Técnica P-013 a P-021]] |
 | P-020 | Artefactos `.atl`/`.codegraph` commiteados | ✅ Resuelto | [[Sesión 2026-07-23 - Plan Preparar Bóveda Multi-Agente (AGENTS.md)]] |
-| P-021 | Búsqueda de Usuarios incompleta (solo alias) | `[ ]` Pendiente | [[Sesión 2026-07-23 - Revisión QA Módulo Usuarios y Refactor de Sesión (Emanuel)]] |
+| P-021 | Búsqueda de Usuarios incompleta (solo alias) | ✅ Resuelto | [[Sesión 2026-07-26 - Resolución Deuda Técnica P-013 a P-021]] |
 
 ---
 

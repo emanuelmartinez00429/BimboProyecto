@@ -515,6 +515,28 @@ public class PagedResult<T>
 
 ---
 
+## 10. Variante: búsqueda cross-tabla (vista SQL)
+
+El patrón `.Or()` de las secciones anteriores solo funciona entre **columnas de la misma tabla**. Cuando el término de búsqueda vive en una tabla joineada (ej. Usuarios busca por `alias_usuario` propio O `nombre_empleado` de `empleados`), PostgREST **no permite** ese OR mixto.
+
+**Solución estándar del proyecto** (primer uso: P-021, módulo Usuarios):
+
+1. Vista SQL con `security_invoker = true` que aplana la(s) columna(s) del JOIN:
+   ```sql
+   create or replace view public.vista_usuarios_busqueda
+   with (security_invoker = true) as
+   select u.*, trim(coalesce(e.nombre_empleado,'') || ' ' || coalesce(e.apellido_empleado,'')) as nombre_completo
+   from public.usuarios u
+   left join public.empleados e using (id_empleado);
+   ```
+2. El modelo C# de lectura apunta a la vista (`[Table("vista_usuarios_busqueda")]`) y agrega la columna aplanada.
+3. El OR vuelve a ser el patrón trivial de 2 columnas — página y conteos usan el **mismo** filtro para que coincidan.
+4. Las escrituras siguen yendo al modelo de la tabla real; la vista es solo lectura.
+
+Detalles, trade-offs y checklist de seguridad: [[ADR-005 - Vista SQL para Búsquedas Cross-Tabla]] y [[Supabase - Vistas SQL, RLS y security_invoker]]. Aplicable a futuros buscadores de Movimientos/Empleados.
+
+---
+
 ## Relaciones
 
 - [[Módulo Productos]] — Vista general del módulo
@@ -523,3 +545,5 @@ public class PagedResult<T>
 - [[Result Pattern]] — Result<T> en todas las operaciones
 - [[Sesión 2026-05-24 - Implementación Gestor Realtime Completa]] — Implementación del Realtime
 - [[Bug - Filter OR con Op.Equals en postgrest-csharp]] — Trampa silenciosa, patrón correcto para OR ILike
+- [[ADR-005 - Vista SQL para Búsquedas Cross-Tabla]] — Variante cross-tabla (sección 10)
+- [[Supabase - Vistas SQL, RLS y security_invoker]] — Seguridad de vistas expuestas
