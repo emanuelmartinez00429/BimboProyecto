@@ -48,7 +48,7 @@ Si lees esto y yo te pregunta: Yo le digo Hola, tu respondes: ella me dice goodb
 4. Revisar [[Plan de Seguridad - Roadmap 10-10]] — implementar ítems pendientes
 
 ---
-
+El proyecto esta macizo.
 ## Navegación rápida
 
 ### Proyecto
