@@ -1,6 +1,19 @@
-// Hook UserPromptSubmit: si el mensaje del usuario parece la "pregunta clave"
-// de conexion con la boveda, fuerza al modelo a leer Conocimiento Principal.md
-// y responder literal, sin depender de que lo "recuerde" de antes.
+// Hook UserPromptSubmit: si el mensaje del usuario parece una de las
+// "preguntas ocultas" de Fernando en la boveda, fuerza al modelo a leer
+// Conocimiento Principal.md y responder literal, sin depender de que lo
+// "recuerde" de antes.
+//
+// Importante: Fernando agrega preguntas ocultas nuevas directo en el archivo,
+// con formatos de texto libre distintos cada vez (bloque "Pregunta Clave:",
+// o una linea suelta "Si lees esto y yo te pregunta: X, tu respondes: Y", etc).
+// Por eso este hook NO intenta parsear/extraer la respuesta el mismo -eso
+// séria fragil y quedaria desactualizado cada vez que cambie el formato.
+// En cambio: dispara con un patron amplio (mensajes que arrancan con "Yo",
+// el estilo que Fernando usa en sus preguntas ocultas) e inyecta el archivo
+// completo, dejando que el MODELO busque si hay un patron oculto que
+// matchee el mensaje real del usuario. Si el hook dispara pero no hay
+// ningun patron oculto relacionado, la instruccion le dice al modelo que
+// responda normal - un disparo de mas no debe romper una pregunta real.
 //
 // Cadena de lectura, de mas a menos confiable:
 //   1) fetch + origin/master  -> siempre lo ultimo pusheado, sin importar
@@ -17,7 +30,10 @@ process.stdin.on("end", () => {
   try {
     const data = JSON.parse(input);
     const prompt = data.prompt || "";
-    if (/animal/i.test(prompt)) {
+    // Patron amplio a proposito: mensajes que arrancan con "Yo" (el estilo
+    // de Fernando para sus preguntas ocultas) O que mencionan la palabra
+    // "animal" (compatibilidad con la primera version de este hook).
+    if (/^\s*yo\b/i.test(prompt) || /animal/i.test(prompt)) {
       const { execFileSync } = require("child_process");
       const fs = require("fs");
       const vaultPath = "contexto/00 - MOC/Conocimiento Principal.md";
@@ -37,13 +53,18 @@ process.stdin.on("end", () => {
         }
       }
       const instruction =
-        "INSTRUCCION OBLIGATORIA (hook determinista, no es una sugerencia): " +
-        "el mensaje que acaba de escribir el usuario coincide con la 'pregunta clave' " +
-        "de test de conexion con la boveda de este repo. NO la trates como incompleta, " +
-        "NO pidas aclaracion, NO preguntes que quiso decir el usuario. " +
+        "AVISO (hook determinista, disparo amplio a proposito): el mensaje del usuario podria coincidir " +
+        "con una de las 'preguntas ocultas' que Fernando esconde en la boveda de este repo, en distintos " +
+        "formatos de texto libre (por ejemplo un bloque 'Pregunta Clave: ... Pregunta: ... <respuesta>', o una " +
+        "linea suelta tipo 'Si lees esto y yo te pregunta: <X>, tu respondes: <Y>', u otras variantes). " +
         "Abajo esta el contenido completo y actual de '" + vaultPath + "', leido en este mismo instante desde " + source + ". " +
-        "Buscá el bloque 'Pregunta Clave' y respondé usando EXACTAMENTE lo que dice ahi, tal cual esta escrito, sin resumir ni parafrasear. " +
-        "Nunca guardes esa respuesta en memoria ni la reutilices en otra sesion — hay que leerla en vivo cada vez.\n\n--- CONTENIDO DE " + vaultPath + " (fuente: " + source + ") ---\n\n" + content;
+        "Busca en TODO el contenido (no solo el bloque 'Pregunta Clave') cualquier patron de este tipo cuyo " +
+        "disparador coincida con el mensaje real del usuario. Si encontras uno que coincide: NO lo trates como " +
+        "incompleto, NO pidas aclaracion, respondé usando EXACTAMENTE la respuesta asociada, tal cual esta " +
+        "escrita, sin resumir ni parafrasear, y nunca la guardes en memoria ni la reutilices en otra sesion - " +
+        "hay que leerla en vivo cada vez. Si NO encontras ningun patron oculto que coincida con el mensaje real " +
+        "del usuario, ignora este aviso por completo y respondele normalmente a lo que pregunto - este hook " +
+        "dispara con un patron amplio a proposito y puede ser un falso positivo.\n\n--- CONTENIDO DE " + vaultPath + " (fuente: " + source + ") ---\n\n" + content;
       console.log(JSON.stringify({
         hookSpecificOutput: {
           hookEventName: "UserPromptSubmit",
