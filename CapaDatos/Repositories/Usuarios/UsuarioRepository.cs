@@ -146,8 +146,6 @@ public class UsuarioRepository : RepositorioBase, IUsuarioRepository
                 await tempClient.InitializeAsync();
 
                 var sessionBefore = client.Auth.CurrentSession;
-                System.Diagnostics.Debug.WriteLine(
-                    $"[CrearAsync] Sesión ANTES del SignUp: email={sessionBefore?.User?.Email}, token={sessionBefore?.AccessToken?[..Math.Min(20, sessionBefore.AccessToken?.Length ?? 0)]}...");
 
                 await tempClient.Auth.SignUp(dto.Email, dto.Password);
 
@@ -155,8 +153,9 @@ public class UsuarioRepository : RepositorioBase, IUsuarioRepository
                 if (sessionBefore?.AccessToken is not null)
                     await client.Auth.SetSession(sessionBefore.AccessToken, sessionBefore.RefreshToken);
 
-                System.Diagnostics.Debug.WriteLine(
-                    $"[CrearAsync] Sesión DESPUÉS del SignUp: email={client.Auth.CurrentSession?.User?.Email}");
+                // Nunca loguear tokens ni fragmentos — solo el hecho booleano.
+                Serilog.Log.Debug("UsuarioRepository.CrearAsync: sesión admin restaurada tras SignUp: {Restaurada}",
+                    client.Auth.CurrentSession is not null);
             }
             catch (Exception ex)
             {
@@ -183,12 +182,7 @@ public class UsuarioRepository : RepositorioBase, IUsuarioRepository
                 }
             }
 
-            // 2) Debug: verificar sesión antes de la RPC
-            var session = client.Auth.CurrentSession;
-            System.Diagnostics.Debug.WriteLine(
-                $"[CrearAsync] Sesión actual ANTES de RPC: email={session?.User?.Email}, token={session?.AccessToken?[..Math.Min(30, session?.AccessToken?.Length ?? 0)]}...");
-
-            // 3) Llamar a la RPC que vincula auth user con empleado
+            // 2) Llamar a la RPC que vincula auth user con empleado
             var response = await client.Rpc("crear_usuario_empleado_seguro", new
             {
                 p_id_empleado = dto.IdEmpleado,
@@ -255,14 +249,9 @@ public class UsuarioRepository : RepositorioBase, IUsuarioRepository
 
     private static UsuarioVistaDto MapToDto(usuarioVista u)
     {
-        // ── Diagnóstico FK ──
         var empName = u.empleados?.nombreEmpleado;
         var empLast = u.empleados?.apellidoEmpleado;
         var rolName = u.roles?.nombreRol;
-
-        System.Diagnostics.Debug.WriteLine(
-            $"[MapToDto] id={u.idUsuario} | empleados={(u.empleados is null ? "NULL" : $"OK (nombre={empName}, apellido={empLast})")} " +
-            $"| roles={(u.roles is null ? "NULL" : $"OK (nombre={rolName})")}");
 
         return new UsuarioVistaDto
         {

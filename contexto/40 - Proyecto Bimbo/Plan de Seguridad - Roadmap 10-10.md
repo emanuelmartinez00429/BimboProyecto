@@ -116,6 +116,22 @@ Reemplazar cada `Console.WriteLine(...)` por `Log.Warning(...)` o `Log.Error(...
 > - `Log.CloseAndFlush()` en `OnExit`
 > - Reemplazados **30 `Console.WriteLine`** en 12 archivos por `Serilog.Log.Error/Warning` con excepción completa y parámetros estructurados
 
+### 2.1b Regla — Nunca loguear secretos ✅ `2026-07-26`
+
+> [!danger] Regla permanente
+> **Jamás escribir tokens, contraseñas, API keys ni fragmentos de ellos en ningún log** (Serilog, `Debug.WriteLine`, `Console.WriteLine`, Output de VS). "Solo los primeros 20 caracteres" también cuenta como fuga. Si se necesita diagnosticar estado de sesión, loguear el **hecho booleano** (`sesión activa: sí/no`) o el email — nunca la credencial.
+
+**Origen:** P-014 — `UsuarioRepository.CrearAsync` logueaba prefijos del access token en Output (detectado en QA 2026-07-23, corregido 2026-07-26).
+
+**Cómo cumplirla:**
+```csharp
+// ❌ MAL — fuga parcial de token
+Debug.WriteLine($"token={session?.AccessToken?[..20]}...");
+
+// ✅ BIEN — hecho booleano con Serilog estructurado
+Serilog.Log.Debug("Sesión admin restaurada: {Restaurada}", session is not null);
+```
+
 ---
 
 ### 2.2 Tabla de Auditoría en Supabase ⏳ planificada
