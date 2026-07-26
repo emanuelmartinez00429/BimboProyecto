@@ -362,7 +362,7 @@
                 </Border>
 
                 <StackPanel VerticalAlignment="Center">
-                    <TextBlock FontFamily="Segoe UI" FontSize="11" Foreground="#6B7280">
+                    <TextBlock FontFamily="Segoe UI" FontSize="12" Foreground="#6B7280">
                         <Run Text="Productos" FontWeight="Normal"/>
                         <Run Text=" / "/>
                         <Run Text="Gestión de Productos" FontWeight="SemiBold" Foreground="#1A1F2E"/>
