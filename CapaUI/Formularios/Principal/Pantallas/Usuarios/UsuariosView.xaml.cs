@@ -260,10 +260,9 @@ namespace CapaUI.Formularios.Principal.Pantallas.Usuarios
 
         private void AbrirModalNuevo()
         {
-            var sesionService = App.Services.GetRequiredService<IUsuarioSesionService>();
             var rolRepo       = App.Services.GetRequiredService<IRolRepository>();
             var usuarioRepo   = App.Services.GetRequiredService<IUsuarioRepository>();
-            var modal = new UsuarioModal(usuarioRepo, rolRepo, sesionService, null);
+            var modal = new UsuarioModal(usuarioRepo, rolRepo, null);
             modal.Cerrado  += CerrarModal;
             modal.Guardado += OnUsuarioGuardado;
             MostrarModal(modal);
@@ -271,10 +270,9 @@ namespace CapaUI.Formularios.Principal.Pantallas.Usuarios
 
         private void AbrirModalEditar(UsuarioVistaDto u)
         {
-            var sesionService = App.Services.GetRequiredService<IUsuarioSesionService>();
             var rolRepo       = App.Services.GetRequiredService<IRolRepository>();
             var usuarioRepo   = App.Services.GetRequiredService<IUsuarioRepository>();
-            var modal = new UsuarioModal(usuarioRepo, rolRepo, sesionService, u);
+            var modal = new UsuarioModal(usuarioRepo, rolRepo, u);
             modal.Cerrado  += CerrarModal;
             modal.Guardado += OnUsuarioGuardado;
             MostrarModal(modal);

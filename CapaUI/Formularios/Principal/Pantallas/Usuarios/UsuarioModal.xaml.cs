@@ -11,7 +11,6 @@ namespace CapaUI.Formularios.Principal.Pantallas.Usuarios
     {
         private readonly IUsuarioRepository    _usuarioRepo;
         private readonly IRolRepository        _rolRepo;
-        private readonly IUsuarioSesionService  _sesionService;
         private readonly UsuarioVistaDto?      _usuario;
         private readonly bool                  _esNuevo;
 
@@ -21,12 +20,10 @@ namespace CapaUI.Formularios.Principal.Pantallas.Usuarios
         public UsuarioModal(
             IUsuarioRepository    usuarioRepo,
             IRolRepository        rolRepo,
-            IUsuarioSesionService sesionService,
             UsuarioVistaDto?      usuario)
         {
             _usuarioRepo    = usuarioRepo;
             _rolRepo        = rolRepo;
-            _sesionService  = sesionService;
             _usuario        = usuario;
             _esNuevo        = usuario == null;
             InitializeComponent();
@@ -127,16 +124,23 @@ namespace CapaUI.Formularios.Principal.Pantallas.Usuarios
             return $"{nombre}.{apellido}@empresa.com";
         }
 
+        /// <summary>
+        /// Quita acentos/diacríticos ("Muñoz" → "munoz") para emails auto-generados.
+        /// FormD descompone cada letra acentuada en letra base + marca combinante;
+        /// se filtran las marcas iterando sobre char (nunca bytes UTF-8) y se
+        /// recompone con FormC. Ver nota de referencia en la bóveda:
+        /// ".NET - Normalización Unicode (FormD-FormC) para quitar acentos".
+        /// </summary>
         private static string Normalizar(string s)
         {
-            var normalizado = System.Text.Encoding.UTF8.GetString(
-                System.Text.Encoding.UTF8.GetBytes(
-                    s.Normalize(System.Text.NormalizationForm.FormD))
-                    .Where(b => System.Globalization.CharUnicodeInfo
-                        .GetUnicodeCategory((char)b)
-                        != System.Globalization.UnicodeCategory.NonSpacingMark)
-                    .ToArray());
-            return normalizado.ToLowerInvariant().Trim();
+            var formD = s.Normalize(System.Text.NormalizationForm.FormD);
+            var sb = new System.Text.StringBuilder(formD.Length);
+            foreach (var c in formD)
+                if (System.Globalization.CharUnicodeInfo.GetUnicodeCategory(c)
+                    != System.Globalization.UnicodeCategory.NonSpacingMark)
+                    sb.Append(c);
+            return sb.ToString().Normalize(System.Text.NormalizationForm.FormC)
+                     .ToLowerInvariant().Trim();
         }
 
         // ── Acciones ─────────────────────────────────────────────────────
