@@ -40,10 +40,10 @@
                            RenderOptions.BitmapScalingMode="HighQuality"
                            SnapsToDevicePixels="True"/>
                     <TextBlock Text="Portal Interno"
-                               FontFamily="Segoe UI" FontSize="22" FontWeight="Bold"
+                               FontFamily="Segoe UI" FontSize="25" FontWeight="Bold"
                                Foreground="White" TextAlignment="Center" Margin="0,0,0,10"/>
                     <TextBlock Text="Sistema de gestión y pesajes"
-                               FontFamily="Segoe UI" FontSize="13"
+                               FontFamily="Segoe UI" FontSize="15"
                                TextAlignment="Center" TextWrapping="Wrap">
                         <TextBlock.Foreground>
                             <SolidColorBrush Color="White" Opacity="0.75"/>
@@ -66,7 +66,7 @@
                     <Grid>
                         <TextBlock x:Name="TitleBarText" Text="Iniciar sesión"
                                    VerticalAlignment="Center" Margin="16,0,0,0"
-                                   FontFamily="Segoe UI" FontSize="12" Foreground="#6B7280"/>
+                                   FontFamily="Segoe UI" FontSize="15" Foreground="#6B7280"/>
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                             <Button Style="{StaticResource ChromeButton}" Click="BtnMinimize_Click">
                                 <TextBlock Text="&#x2014;" FontSize="11"/>
@@ -84,12 +84,12 @@
                               HorizontalScrollBarVisibility="Disabled">
                     <StackPanel Margin="56,44,56,24" VerticalAlignment="Center">
 
-                        <TextBlock Text="Bienvenido" FontFamily="Segoe UI" FontSize="13"
+                        <TextBlock Text="Bienvenido" FontFamily="Segoe UI" FontSize="14"
                                    Foreground="{StaticResource TextMuted}" Margin="0,0,0,4"/>
                         <TextBlock Text="Iniciar sesión" FontFamily="Segoe UI" FontSize="28" FontWeight="Bold"
                                    Foreground="{StaticResource TextPrimary}" Margin="0,0,0,6"/>
                         <TextBlock Text="Ingresa tus credenciales para continuar."
-                                   FontFamily="Segoe UI" FontSize="14"
+                                   FontFamily="Segoe UI" FontSize="16"
                                    Foreground="{StaticResource TextMuted}" Margin="0,0,0,22"/>
 
                         <!-- Usuario -->
@@ -179,7 +179,7 @@
                                 Style="{StaticResource PrimaryButton}"
                                 IsEnabled="False" Click="BtnIngresar_Click" Margin="0,0,0,12"/>
 
-                        <TextBlock HorizontalAlignment="Center" FontFamily="Segoe UI" FontSize="11"
+                        <TextBlock HorizontalAlignment="Center" FontFamily="Segoe UI" FontSize="14"
                                    Foreground="{StaticResource TextDisabled}">
                             <Run Text="Presiona "/>
                             <Run Text="[Enter]" FontFamily="Consolas" FontWeight="SemiBold"/>
@@ -187,11 +187,11 @@
                         </TextBlock>
 
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,20,0,0">
-                            <TextBlock Text="🛡 Conexión segura · PROD" FontFamily="Segoe UI" FontSize="11"
+                            <TextBlock Text="🛡 Conexión segura · PROD" FontFamily="Segoe UI" FontSize="12"
                                        Foreground="{StaticResource TextDisabled}"/>
-                            <TextBlock Text="   ·   " FontFamily="Segoe UI" FontSize="11"
+                            <TextBlock Text="   ·   " FontFamily="Segoe UI" FontSize="12"
                                        Foreground="{StaticResource TextDisabled}"/>
-                            <TextBlock Text="v1.0.0" FontFamily="Consolas" FontSize="11"
+                            <TextBlock Text="v1.0.0" FontFamily="Consolas" FontSize="12"
                                        Foreground="{StaticResource TextDisabled}"/>
                         </StackPanel>
                     </StackPanel>
