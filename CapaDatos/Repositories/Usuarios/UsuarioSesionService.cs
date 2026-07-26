@@ -68,7 +68,7 @@ public class UsuarioSesionService : IUsuarioSesionService
             _sesion = new UsuarioSesion(permisosPorModulo)
             {
                 IdUsuario      = usuario.idUsuario,
-                Email          = usuario.correoUsuario ?? string.Empty,
+                Email          = usuario.aliasUsuario ?? string.Empty,
                 IdRol          = usuario.idRol,
                 NombreRol      = perfil?.NombreRol ?? usuario.roles?.nombreRol ?? string.Empty,
                 NombreCompleto = perfil?.NombreCompleto ?? string.Empty,

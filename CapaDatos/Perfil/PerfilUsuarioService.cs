@@ -25,10 +25,10 @@ public class PerfilUsuarioService : IPerfilUsuarioService
 
             PerfilActual = new PerfilUsuario
             {
-                NombreCompleto = nombreCompleto.Length > 0 ? nombreCompleto : usuario.correoUsuario,
+                NombreCompleto = nombreCompleto.Length > 0 ? nombreCompleto : usuario.aliasUsuario,
                 Iniciales      = iniciales.Length > 0 ? iniciales : "??",
-                NombreUsuario  = usuario.correoUsuario,
-                Correo         = usuario.empleados?.correoEmpleado ?? usuario.correoUsuario,
+                NombreUsuario  = usuario.aliasUsuario,
+                Correo         = usuario.empleados?.correoEmpleado ?? usuario.aliasUsuario,
                 NombreRol      = usuario.nombre_Rol,
             };
         }

@@ -19,7 +19,7 @@ namespace CapaDatos.Modelados.Usuarios
         public int idUsuario { get; set; }
 
         [Column("alias_usuario")]
-        public string correoUsuario { get; set; }
+        public string aliasUsuario { get; set; }
 
         [Column("id_empleado")]
         public int idEmpleado { get; set; }

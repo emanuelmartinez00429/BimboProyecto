@@ -221,7 +221,7 @@ public class UsuarioRepository : RepositorioBase, IUsuarioRepository
             if (dto.IdEstado.HasValue)
                 query = query.Set(u => u.idEstado, dto.IdEstado.Value);
             if (dto.Email is not null)
-                query = query.Set(u => u.correoUsuario, dto.Email);
+                query = query.Set(u => u.aliasUsuario, dto.Email);
 
             var response = await query.Update();
 
@@ -257,7 +257,7 @@ public class UsuarioRepository : RepositorioBase, IUsuarioRepository
         return new UsuarioVistaDto
         {
             IdUsuario     = u.idUsuario,
-            CorreoUsuario = u.correoUsuario,
+            CorreoUsuario = u.aliasUsuario,
             IdEmpleado    = u.idEmpleado,
             IdRol         = u.idRol,
             IdEstado      = u.idEstado,
