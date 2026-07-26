@@ -152,6 +152,7 @@ ProductosViewModel : RealtimeAwareViewModel
 | [[Módulo Contactos (Drill-down)\|Contactos Fabricantes]] | ✅ Completo | ContactosFabricantesView, ContactosFabricantesViewModel, ContactoFabricanteCrudRepository |
 | [[Módulo Contactos (Drill-down)\|Contactos Proveedores]] | ✅ Completo | ContactosProveedoresView, ContactosProveedoresViewModel, ContactoProveedorCrudRepository |
 | [[Buscador Universal Bimbo]] | ✅ Completo | Multi-entidad con Strategy + Mediator |
+| [[Módulo Empleados]] | 🟡 Solo lectura (2026-07-26) | EmpleadosView, EmpleadosViewModel, EmpleadoCrudRepository — Guardar/Cambiar Estado son no-op a propósito |
 
 ### Navegación entre módulos
 
