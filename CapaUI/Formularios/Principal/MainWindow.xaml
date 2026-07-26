@@ -131,7 +131,7 @@
                                     Width="40" Height="40"
                                     Click="BtnHamburger_Click"
                                     ToolTip="Colapsar / expandir menú">
-                                <Viewbox Width="20" Height="20">
+                                <Viewbox Width="25" Height="25">
                                     <Canvas Width="24" Height="24">
                                         <Path Data="M3 6 L21 6 M3 12 L21 12 M3 18 L21 18"
                                               Stroke="White" StrokeThickness="2"
@@ -187,14 +187,15 @@
                                 <!-- input -->
                                 <Grid Grid.Column="1" VerticalAlignment="Center">
                                     <TextBlock x:Name="SearchPlaceholder"
+                                               Padding="1"
                                                Text="Buscar módulo o ajustes…"
                                                Foreground="#8CFFFFFF"
-                                               FontFamily="Segoe UI" FontSize="14"
+                                               FontFamily="Segoe UI" FontSize="15"
                                                VerticalAlignment="Center"
                                                IsHitTestVisible="False"/>
                                     <TextBox x:Name="TxtSearch"
                                              Background="Transparent" BorderThickness="0"
-                                             FontFamily="Segoe UI" FontSize="14"
+                                             FontFamily="Segoe UI" FontSize="15"
                                              Foreground="White" CaretBrush="White"
                                              SelectionBrush="#4CFFFFFF"
                                              VerticalAlignment="Center"
@@ -212,7 +213,7 @@
                                         VerticalAlignment="Center" Margin="8,0,0,0"
                                         IsHitTestVisible="False">
                                     <TextBlock Text="Ctrl+K" Foreground="#D9FFFFFF"
-                                               FontFamily="Consolas" FontSize="10"
+                                               FontFamily="Consolas" FontSize="12"
                                                VerticalAlignment="Center"/>
                                 </Border>
                             </Grid>
@@ -229,7 +230,7 @@
                                 <Ellipse Width="9" Height="9" Margin="0,0,7,0"
                                     Fill="{Binding EstadoBrush}"/>
                                     <TextBlock Text="{Binding EstadoTexto}" Foreground="White"
-                                    FontFamily="Segoe UI" FontSize="12"
+                                    FontFamily="Segoe UI" FontSize="14"
                                     VerticalAlignment="Center"/> 
                             </StackPanel>
                         </Border>
@@ -542,7 +543,7 @@
                         <TextBlock x:Name="NavLabel" Grid.Row="0"
                                    Text="NAVEGACIÓN"
                                    Foreground="#80FFFFFF"
-                                   FontFamily="Segoe UI" FontSize="10" FontWeight="Bold"
+                                   FontFamily="Segoe UI" FontSize="12" FontWeight="Bold"
                                    Margin="16,20,16,10"/>
 
                         <!-- Módulos con scroll -->
@@ -595,7 +596,7 @@
                                                             Background="{StaticResource AccentGreen}"
                                                             HorizontalAlignment="Left" Margin="-16,0,0,0" Visibility="Collapsed"/>
                                                     <TextBlock x:Name="LblUsuariosSub" Text="Gestión de Usuarios"
-                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="13"/>
+                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="15"/>
                                                 </Grid>
                                             </Button>
                                             <Button Style="{StaticResource SidebarSubButton}" Tag="empleados"
@@ -605,7 +606,7 @@
                                                             Background="{StaticResource AccentGreen}"
                                                             HorizontalAlignment="Left" Margin="-16,0,0,0" Visibility="Collapsed"/>
                                                     <TextBlock x:Name="LblEmpleados" Text="Gestión de Empleados"
-                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="13"/>
+                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="15"/>
                                                 </Grid>
                                             </Button>
                                             <Button Style="{StaticResource SidebarSubButton}" Tag="roles"
@@ -615,7 +616,7 @@
                                                             Background="{StaticResource AccentGreen}"
                                                             HorizontalAlignment="Left" Margin="-16,0,0,0" Visibility="Collapsed"/>
                                                     <TextBlock x:Name="LblRoles" Text="Gestión de Roles"
-                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="13"/>
+                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="15"/>
                                                 </Grid>
                                             </Button>
                                             <Button Style="{StaticResource SidebarSubButton}" Tag="bitacora"
@@ -625,7 +626,7 @@
                                                             Background="{StaticResource AccentGreen}"
                                                             HorizontalAlignment="Left" Margin="-16,0,0,0" Visibility="Collapsed"/>
                                                     <TextBlock x:Name="LblBitacora" Text="Bitácora"
-                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="13"/>
+                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="15"/>
                                                 </Grid>
                                             </Button>
                                         </StackPanel>
@@ -676,7 +677,7 @@
                                                             Background="{StaticResource AccentGreen}"
                                                             HorizontalAlignment="Left" Margin="-16,0,0,0" Visibility="Collapsed"/>
                                                     <TextBlock x:Name="LblProductosSub" Text="Gestión de Productos"
-                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="13"/>
+                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="15"/>
                                                 </Grid>
                                             </Button>
                                             <Button Style="{StaticResource SidebarSubButton}" Tag="proveedores"
@@ -686,7 +687,7 @@
                                                             Background="{StaticResource AccentGreen}"
                                                             HorizontalAlignment="Left" Margin="-16,0,0,0" Visibility="Collapsed"/>
                                                     <TextBlock x:Name="LblProveedores" Text="Gestión de Proveedores"
-                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="13"/>
+                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="15"/>
                                                 </Grid>
                                             </Button>
                                             <Button Style="{StaticResource SidebarSubButton}" Tag="fabricantes"
@@ -696,7 +697,7 @@
                                                             Background="{StaticResource AccentGreen}"
                                                             HorizontalAlignment="Left" Margin="-16,0,0,0" Visibility="Collapsed"/>
                                                     <TextBlock x:Name="LblFabricantes" Text="Gestión de Fabricantes"
-                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="13"/>
+                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="15"/>
                                                 </Grid>
                                             </Button>
                                             <Button Style="{StaticResource SidebarSubButton}" Tag="categorias"
@@ -706,7 +707,7 @@
                                                             Background="{StaticResource AccentGreen}"
                                                             HorizontalAlignment="Left" Margin="-16,0,0,0" Visibility="Collapsed"/>
                                                     <TextBlock x:Name="LblCategorias" Text="Gestión de Categorías"
-                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="13"/>
+                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="15"/>
                                                 </Grid>
                                             </Button>
                                             <Button Style="{StaticResource SidebarSubButton}" Tag="contactos-proveedores"
@@ -716,7 +717,7 @@
                                                             Background="{StaticResource AccentGreen}"
                                                             HorizontalAlignment="Left" Margin="-16,0,0,0" Visibility="Collapsed"/>
                                                     <TextBlock x:Name="LblContactosProveedores" Text="Contactos Proveedores"
-                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="13"/>
+                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="15"/>
                                                 </Grid>
                                             </Button>
                                             <Button Style="{StaticResource SidebarSubButton}" Tag="contactos-fabricantes"
@@ -726,7 +727,7 @@
                                                             Background="{StaticResource AccentGreen}"
                                                             HorizontalAlignment="Left" Margin="-16,0,0,0" Visibility="Collapsed"/>
                                                     <TextBlock x:Name="LblContactosFabricantes" Text="Contactos Fabricantes"
-                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="13"/>
+                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="15"/>
                                                 </Grid>
                                             </Button>
                                         </StackPanel>
@@ -777,7 +778,7 @@
                                                             Background="{StaticResource AccentGreen}"
                                                             HorizontalAlignment="Left" Margin="-16,0,0,0" Visibility="Collapsed"/>
                                                     <TextBlock x:Name="LblPesajes" Text="Movimientos y Entradas"
-                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="13"/>
+                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="15"/>
                                                 </Grid>
                                             </Button>
                                         </StackPanel>
@@ -828,7 +829,7 @@
                                                             Background="{StaticResource AccentGreen}"
                                                             HorizontalAlignment="Left" Margin="-16,0,0,0" Visibility="Collapsed"/>
                                                     <TextBlock x:Name="LblDashboard" Text="Dashboard"
-                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="13"/>
+                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="15"/>
                                                 </Grid>
                                             </Button>
                                             <Button Style="{StaticResource SidebarSubButton}" Tag="crear-reportes"
@@ -838,7 +839,7 @@
                                                             Background="{StaticResource AccentGreen}"
                                                             HorizontalAlignment="Left" Margin="-16,0,0,0" Visibility="Collapsed"/>
                                                     <TextBlock x:Name="LblCrearReportes" Text="Crear Reportes"
-                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="13"/>
+                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="15"/>
                                                 </Grid>
                                             </Button>
                                         </StackPanel>

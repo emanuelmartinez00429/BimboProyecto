@@ -133,6 +133,7 @@
                                 </Viewbox>
                                 <PasswordBox x:Name="TxtPassword" Grid.Column="1"
                                              Style="{StaticResource InputPasswordBox}"
+                                             FontSize="15"
                                              GotFocus="Input_GotFocus" LostFocus="Input_LostFocus"
                                              KeyDown="Field_KeyDown" PasswordChanged="Fields_Changed"/>
                                 <TextBox x:Name="TxtPasswordVisible" Grid.Column="1"
