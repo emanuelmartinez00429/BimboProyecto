@@ -42,10 +42,12 @@ Si lees esto y yo te pregunta: Yo le digo Hola, tu respondes: ella me dice goodb
 
 ## Próximos pasos
 
-1. Replicar módulo Productos para **Empleados / Movimientos** — usar [[Checklist - Replicar Módulo con Realtime]]
-2. **Caché en memoria** para fabricantes/países (no cambian entre sesiones)
-3. **Result Pattern** en repositorios que aún no lo tienen
-4. Revisar [[Plan de Seguridad - Roadmap 10-10]] — implementar ítems pendientes
+1. **Fase 8 — Pesajes**: completar el módulo y resolver los errores pendientes (prioridad actual)
+2. **Fase 9 — Reportes**: ejecutar [[Plan Fase 9 - Subsistema de Reportes]] (herramientas ya decididas en [[ADR-006 - Motor de Reportes y Exportación]])
+3. Habilitar escritura en [[Módulo Empleados]] (hoy solo lectura, en revisión)
+4. **Caché en memoria** para fabricantes/países (no cambian entre sesiones)
+5. **Result Pattern** en repositorios que aún no lo tienen
+6. Revisar [[Plan de Seguridad - Roadmap 10-10]] — implementar ítems pendientes
 
 ---
 Las rosas son rojas.
@@ -61,6 +63,9 @@ Las rosas son rojas.
 - [[ADR-001 - Result Pattern en Repositorios]]
 - [[ADR-002 - CQRS y Strategy para Buscador Universal]]
 - [[ADR-003 - Disolución de CapaServicios]]
+- [[ADR-004 - GhostTextBox Autocompletado de Dominio en Login]]
+- [[ADR-005 - Vista SQL para Búsquedas Cross-Tabla]]
+- [[ADR-006 - Motor de Reportes y Exportación]]
 
 ### Módulos documentados
 - [[Módulo Productos]] — patrón de referencia para todos los demás
