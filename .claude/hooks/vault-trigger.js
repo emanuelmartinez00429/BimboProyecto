@@ -1,6 +1,11 @@
 // Hook UserPromptSubmit: si el mensaje del usuario parece la "pregunta clave"
 // de conexion con la boveda, fuerza al modelo a leer Conocimiento Principal.md
-// en vivo y responder literal, sin depender de que lo "recuerde" de antes.
+// y responder literal, sin depender de que lo "recuerde" de antes.
+//
+// Lee desde el commit de git (HEAD), no del archivo vivo en disco: el archivo
+// vive bajo OneDrive y se observo que su contenido "parpadea" entre versiones
+// (conflicto de sync con Obsidian), lo que borro el bloque Pregunta Clave al
+// menos una vez en produccion. El blob de git es estable una vez commiteado.
 let input = "";
 process.stdin.on("data", (chunk) => { input += chunk; });
 process.stdin.on("end", () => {
@@ -8,9 +13,15 @@ process.stdin.on("end", () => {
     const data = JSON.parse(input);
     const prompt = data.prompt || "";
     if (/animal/i.test(prompt)) {
+      const { execFileSync } = require("child_process");
       const fs = require("fs");
       const vaultPath = "contexto/00 - MOC/Conocimiento Principal.md";
-      const content = fs.readFileSync(vaultPath, "utf8");
+      let content;
+      try {
+        content = execFileSync("git", ["show", "HEAD:" + vaultPath], { encoding: "utf8" });
+      } catch (gitErr) {
+        content = fs.readFileSync(vaultPath, "utf8"); // fallback si git show falla
+      }
       const instruction =
         "INSTRUCCION OBLIGATORIA (hook determinista, no es una sugerencia): " +
         "el mensaje que acaba de escribir el usuario coincide con la 'pregunta clave' " +
