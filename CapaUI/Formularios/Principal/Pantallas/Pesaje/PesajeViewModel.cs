@@ -55,7 +55,24 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             _sesionService = sesionService;
         }
 
-        private int UsuarioActual => _sesionService.SesionActual?.IdUsuario ?? 0;
+        /// <summary>
+        /// Id del usuario autenticado. Fail-loud: si no hay sesión activa lanza
+        /// excepción en vez de retornar 0 — un pesaje jamás debe registrarse con
+        /// usuario fantasma (id_usuario = 0). Los llamadores validan antes con
+        /// <see cref="HaySesionActiva"/> para dar feedback amigable vía Toast.
+        /// </summary>
+        private int UsuarioActual => _sesionService.SesionActual?.IdUsuario
+            ?? throw new InvalidOperationException(
+                "No hay sesión activa; no se puede registrar la operación de pesaje.");
+
+        /// <summary>Guarda amigable: true si hay sesión; si no, loguea y notifica.</summary>
+        private bool HaySesionActiva(string operacion)
+        {
+            if (_sesionService.SesionActual is not null) return true;
+            Serilog.Log.Warning("PesajeVM: intento de {Operacion} sin sesión activa", operacion);
+            Toast?.Invoke("Sesión expirada. Vuelve a iniciar sesión.");
+            return false;
+        }
 
         // ══════════════════════════════════════════════════════════════════════
         //  Carga
@@ -112,6 +129,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
         public async Task RegistrarCamionAsync(string placa, string proveedor, int? idProveedor, string obs)
         {
             if (idProveedor is null) { Toast?.Invoke("Selecciona un proveedor válido"); return; }
+            if (!HaySesionActiva("registrar camión")) return;
             var r = await _repo.CrearCamionAsync(idProveedor.Value, placa, obs, UsuarioActual);
             if (!r.Success) { Toast?.Invoke(r.Error ?? "No se pudo registrar"); return; }
 
@@ -226,6 +244,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
         public async Task GuardarEntradaAsync(ProductoCamion producto, EntradaPesaje snapshot, EntradaPesaje? editando)
         {
             if (SelectedCamion is null) return;
+            if (!HaySesionActiva("guardar pesaje")) return;
 
             if (editando is not null)
             {
