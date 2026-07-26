@@ -1,4 +1,5 @@
 using CapaAplicacion.Auth.Interfaces;
+using CapaAplicacion.Bitacora.Interfaces;
 using CapaAplicacion.Categorias.Interfaces;
 using CapaAplicacion.Conexion;
 using CapaAplicacion.Contactos.Fabricantes.Interfaces;
@@ -77,6 +78,9 @@ public static class DependencyInjection
 
         // Empleados — solo lectura por ahora (módulo en revisión)
         services.AddTransient<IEmpleadoRepository, EmpleadoCrudRepository>();
+
+        // Bitácora — solo lectura por diseño (la escribe el sistema, no la UI)
+        services.AddTransient<IBitacoraRepository, Repositories.Bitacora.BitacoraCrudRepository>();
 
         return services;
     }

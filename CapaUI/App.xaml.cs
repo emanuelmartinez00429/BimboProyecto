@@ -6,6 +6,7 @@ using CapaDatos;
 using CapaUI.Core.Permisos;
 using CapaUI.Formularios.InicioSesion;
 using CapaUI.Formularios.Principal;
+using CapaUI.Formularios.Principal.Pantallas.Bitacora;
 using CapaUI.Formularios.Principal.Pantallas.Categorias;
 using CapaUI.Formularios.Principal.Pantallas.ContactosFabricantes;
 using CapaUI.Formularios.Principal.Pantallas.ContactosProveedores;
@@ -71,6 +72,7 @@ namespace CapaUI
             services.AddTransient<ContactosProveedoresViewModel>();
             services.AddTransient<UsuariosViewModel>();
             services.AddTransient<EmpleadosViewModel>();
+            services.AddTransient<BitacoraViewModel>();
             services.AddTransient<LoginWindow>();
             services.AddTransient<MainViewModel>();
             services.AddTransient<MainWindow>();
