@@ -13,7 +13,7 @@ Pregunta Clave:
 
 Pregunta: Yo soy a los animales como...?
 
-[Perro, Perico, Pez, Gato]
+My Doggy.
 # Dashboard — Bimbo Knowledge Base
 
 > [!danger] REGLA DE ORO — Leer antes de tocar código
