@@ -33,7 +33,7 @@ Si lees esto y yo te pregunta: Yo le digo Hola, tu respondes: ella me dice goodb
 | Realtime | ✅ `RealtimeService` + `RealtimeAwareViewModel` |
 | Autenticación | ✅ Login · Logout · Recuperación OTP |
 | Buscador universal | ✅ Strategy + CQRS + MediatR |
-| Buscador por formulario | ✅ `SuggestionSearchBox` compartido (4 vistas) |
+| Buscador por formulario | ✅ `SuggestionSearchBox` compartido (7 vistas, incl. Usuarios desde 2026-07-26) |
 | Memory leaks | ✅ Auditados y corregidos (2026-05-28/29) |
 | Deuda técnica P-001–P-008 | ✅ Todos resueltos o documentados |
 | Advertencias de build | ✅ Ninguna activa |

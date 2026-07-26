@@ -7,6 +7,7 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using CapaAplicacion.Usuarios.Dtos;
 using CapaAplicacion.Usuarios.Interfaces;
+using CapaUI.Core.Controls;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace CapaUI.Formularios.Principal.Pantallas.Usuarios
@@ -79,6 +80,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Usuarios
                     break;
                 case nameof(UsuariosViewModel.Seleccionado):  SeleccionarEnTabla();    break;
                 case nameof(UsuariosViewModel.Roles):         PoblarRoles();           break;
+                case nameof(UsuariosViewModel.ShowSuggestions): ActualizarSuggestions(); break;
             }
         }
 
@@ -163,16 +165,28 @@ namespace CapaUI.Formularios.Principal.Pantallas.Usuarios
             _suppressFilterChange = true;
             RbActivos.IsChecked = true;
             CmbRol.SelectedIndex = 0;
-            TxtSearch.Text = "";
             _suppressFilterChange = false;
         }
 
         // ── Search ─────────────────────────────────────────────────────
 
-        private void TxtSearch_TextChanged(object sender, TextChangedEventArgs e)
+        private void ActualizarSuggestions()
         {
-            if (_vm == null) return;
-            _vm.Query = TxtSearch.Text;
+            SearchBox.SuggestItems = (_vm.ShowSuggestions && _vm.Suggestions.Count > 0)
+                ? _vm.Suggestions.Select(u => new SuggestionItemData
+                  {
+                      Nombre = u.NombreEmpleado,
+                      Meta   = $"{u.CorreoUsuario} · {u.NombreRol}",
+                      Activo = u.IdEstado == 1,
+                      Source = u
+                  }).ToList()
+                : null;
+        }
+
+        private void SearchBox_ItemSelected(object? sender, SuggestionItemData e)
+        {
+            _vm.SeleccionarSugerencia((UsuarioVistaDto)e.Source);
+            SeleccionarEnTabla();
         }
 
         // ── Table ──────────────────────────────────────────────────────
