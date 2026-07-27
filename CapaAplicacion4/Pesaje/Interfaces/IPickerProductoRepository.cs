@@ -1,5 +1,6 @@
 using CapaAplicacion.Common;
 using CapaAplicacion.Productos.Dtos;
+using CapaAplicacion.Productos.Queries;
 
 namespace CapaAplicacion.Pesaje.Interfaces;
 
@@ -25,4 +26,15 @@ public interface IPickerProductoRepository
     /// <summary>Búsqueda global en todo el catálogo ("Buscar en todos los proveedores").</summary>
     Task<Result<IReadOnlyList<ProductoDto>>> BuscarTodosAsync(
         string termino, CancellationToken ct = default);
+
+    /// <summary>
+    /// Página del catálogo para el selector con tabla (Fase 8). Paginación server-side.
+    /// <para/>
+    /// <paramref name="idProveedor"/> null = todo el catálogo; con valor acota por el
+    /// puente producto→fabricante→proveedor.
+    /// <paramref name="termino"/> vacío o null = sin filtro de texto (a diferencia de
+    /// los métodos de búsqueda, que exigen término).
+    /// </summary>
+    Task<Result<PagedResult<ProductoDto>>> GetPagedAsync(
+        int? idProveedor, string? termino, int page, int size, CancellationToken ct = default);
 }
