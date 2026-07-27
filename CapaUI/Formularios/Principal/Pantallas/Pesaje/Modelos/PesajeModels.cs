@@ -42,7 +42,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modelos
         /// PLANA al calcular el peso neto guardado. Inconsistencia conocida y documentada
         /// (ver Deuda Técnica); este indicador es informativo y no altera el neto.
         /// </summary>
-        public static double? BultosDeclarados(
+        public static double? BultosTeoricos(
             double pesoBruto, double pesoTeoricoUnitario, double taraEmpaqueUnitaria, double taraExtraPorBulto)
         {
             if (pesoBruto <= 0) return null;

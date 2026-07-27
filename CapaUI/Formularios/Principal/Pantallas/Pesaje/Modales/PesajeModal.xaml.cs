@@ -21,6 +21,9 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
         private readonly string _fecha;
         private readonly string _hora;
 
+        /// <summary>Tara extra que le corresponde a UN bulto (viene prorrateada del camión).</summary>
+        private readonly double _taraExtraPorBulto;
+
         private static readonly Brush _blanco = Brushes.White;
         private static readonly Brush _rojo   = (Brush)new BrushConverter().ConvertFromString("#FCA5A5")!;
 
@@ -32,6 +35,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
             // La tara individual es PLANA (tara.peso_tara_envalaje), igual que el trigger de BD;
             // no se multiplica por bultos.
             _taraInd     = producto.TaraUnitaria;
+            _taraExtraPorBulto  = camion.TaraExtraPorBulto;
             _pesoRecibidoPrevio = producto.Entradas.Where(e => e != editInitial).Sum(e => e.Neto);
             _fecha = editInitial?.Fecha ?? PesajeCalc.FechaHoy();
             _hora  = editInitial?.Hora  ?? PesajeCalc.HoraAhora();
@@ -46,11 +50,14 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
             TxtCodigo.Text    = producto.ProductoCodigo;
             TxtTaraInd.Text   = _taraInd.ToString("N2", CultureInfo.InvariantCulture);
             TxtManifestado.Text = producto.PesoManifestado.ToString("N0", CultureInfo.InvariantCulture) + " kg";
+            TxtBultosDeclarados.Text = producto.BultosDeclarados.ToString("N0", CultureInfo.InvariantCulture);
+
+            // Sin tara extra registrada el neto queda sobrestimado: se avisa.
+            AvisoTaraExtra.Visibility = camion.FaltaTaraExtra ? Visibility.Visible : Visibility.Collapsed;
 
             if (editInitial != null)
             {
                 TxtBruto.Text     = editInitial.Bruto.ToString(CultureInfo.InvariantCulture);
-                TxtTaraExtra.Text = editInitial.TaraExtra.ToString(CultureInfo.InvariantCulture);
                 TxtBultos.Text    = editInitial.Bultos.ToString(CultureInfo.InvariantCulture);
                 TxtObs.Text       = editInitial.Observaciones;
             }
@@ -58,25 +65,39 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
             Loaded += (_, __) => { TxtBruto.Focus(); Recalcular(this, null!); };
         }
 
-        private double Bruto     => double.TryParse(TxtBruto.Text,     NumberStyles.Any, CultureInfo.InvariantCulture, out var v) ? v : 0;
-        private double TaraExtra => double.TryParse(TxtTaraExtra.Text, NumberStyles.Any, CultureInfo.InvariantCulture, out var v) ? v : 0;
-        private int    Bultos    => int.TryParse(TxtBultos.Text, out var v) ? v : 0;
-        private bool   Valido    => Bruto > 0 && Bultos > 0;
+        private double Bruto  => double.TryParse(TxtBruto.Text, NumberStyles.Any, CultureInfo.InvariantCulture, out var v) ? v : 0;
+        private int    Bultos => int.TryParse(TxtBultos.Text, out var v) ? v : 0;
+        private bool   Valido => Bruto > 0 && Bultos > 0;
+
+        /// <summary>
+        /// Tara extra que le toca a ESTA pesada: la parte por bulto (calculada sobre
+        /// toda la carga) multiplicada por los bultos que se están pesando ahora.
+        /// </summary>
+        private double TaraExtra => _taraExtraPorBulto * Bultos;
 
         private void Recalcular(object sender, RoutedEventArgs e)
         {
-            // InitializeComponent() setea Text="0" en TxtTaraExtra, lo que dispara este
-            // TextChanged antes de que el constructor asigne _producto. Sin esta guarda,
-            // esa primera invocación revienta con NullReferenceException.
+            // Los TextChanged pueden dispararse durante InitializeComponent(), antes de
+            // que el constructor asigne _producto. Sin esta guarda revienta con NRE.
             if (_producto is null) return;
 
-            double taraTotal = _taraInd + TaraExtra;
+            double taraExtra = TaraExtra;
+            double taraTotal = _taraInd + taraExtra;
             double neto      = Math.Max(0, Bruto - taraTotal);
             double netoTotal = _pesoRecibidoPrevio + neto;
             double dif       = _producto.PesoManifestado - netoTotal;
 
+            TxtTaraExtra.Text = taraExtra.ToString("N2", CultureInfo.InvariantCulture);
             TxtNeto.Text      = neto.ToString("N2", CultureInfo.InvariantCulture);
             TxtNetoTotal.Text = netoTotal.ToString("N2", CultureInfo.InvariantCulture);
+
+            // Bultos teóricos: cuántos bultos representa el bruto pesado. Devuelve null
+            // (→ "—") si falta el peso teórico del producto o el bruto no es válido.
+            double? teoricos = PesajeCalc.BultosTeoricos(
+                Bruto, _producto.PesoTeorico, _producto.TaraUnitaria, _taraExtraPorBulto);
+            TxtBultosTeoricos.Text = teoricos.HasValue
+                ? teoricos.Value.ToString("N2", CultureInfo.InvariantCulture)
+                : "—";
 
             TxtDif.Text = (dif < 0 ? "+" : "") + Math.Abs(dif).ToString("N1", CultureInfo.InvariantCulture);
             TxtDif.Foreground = dif < 0 ? _rojo : _blanco;
@@ -89,11 +110,12 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
 
         private EntradaPesaje Snapshot()
         {
-            double taraTotal = _taraInd + TaraExtra;
+            double taraExtra = TaraExtra;
+            double taraTotal = _taraInd + taraExtra;
             double neto      = Math.Max(0, Bruto - taraTotal);
             return new EntradaPesaje
             {
-                Bruto = Bruto, TaraInd = _taraInd, TaraExtra = TaraExtra, TaraTotal = taraTotal,
+                Bruto = Bruto, TaraInd = _taraInd, TaraExtra = taraExtra, TaraTotal = taraTotal,
                 Neto = neto, Bultos = Bultos, Fecha = _fecha, Hora = _hora,
                 Observaciones = TxtObs.Text?.Trim() ?? "",
             };

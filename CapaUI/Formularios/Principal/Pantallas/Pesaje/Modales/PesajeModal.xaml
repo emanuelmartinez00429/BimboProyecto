@@ -86,6 +86,9 @@
                                 <TextBox x:Name="TxtBultos" Style="{StaticResource MInput}" TextChanged="Recalcular"/>
                             </StackPanel>
                         </Grid>
+                        <!-- Taras: ambas de solo lectura. La extra ya no se escribe acá —
+                             se pesa una vez por camión en el proceso de descarga y el
+                             sistema reparte a esta pesada la parte que le toca. -->
                         <Grid Margin="0,0,0,12">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="14"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                             <StackPanel Grid.Column="0">
@@ -93,8 +96,21 @@
                                 <TextBox x:Name="TxtTaraInd" Style="{StaticResource MInput}" IsEnabled="False"/>
                             </StackPanel>
                             <StackPanel Grid.Column="2">
-                                <TextBlock Text="Peso tara extra (kg)" Style="{StaticResource MLabel}"/>
-                                <TextBox x:Name="TxtTaraExtra" Style="{StaticResource MInput}" Text="0" TextChanged="Recalcular"/>
+                                <TextBlock Text="Tara extra asignada (kg)" Style="{StaticResource MLabel}"/>
+                                <TextBox x:Name="TxtTaraExtra" Style="{StaticResource MInput}" IsEnabled="False"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- Bultos teóricos: cuántos bultos representa el bruto pesado -->
+                        <Grid Margin="0,0,0,12">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="14"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Bultos declarados" Style="{StaticResource MLabel}"/>
+                                <TextBox x:Name="TxtBultosDeclarados" Style="{StaticResource MInput}" IsEnabled="False"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Bultos teóricos (calculado)" Style="{StaticResource MLabel}"/>
+                                <TextBox x:Name="TxtBultosTeoricos" Style="{StaticResource MInput}" IsEnabled="False"/>
                             </StackPanel>
                         </Grid>
                         <Grid Margin="0,0,0,12">
@@ -125,6 +141,13 @@
                             <Border Height="1" Background="#26FFFFFF" Margin="0,10"/>
                             <TextBlock Text="MANIFESTADO" FontFamily="Segoe UI" FontSize="10.5" FontWeight="Bold" Foreground="#99FFFFFF"/>
                             <TextBlock x:Name="TxtManifestado" FontFamily="Segoe UI" FontSize="16" FontWeight="Bold" Foreground="White" Margin="0,2,0,0"/>
+
+                            <!-- Aviso: sin tara extra registrada el neto puede no ser el correcto -->
+                            <Border x:Name="AvisoTaraExtra" Background="#40D97706" CornerRadius="6"
+                                    Padding="10,8" Margin="0,14,0,0" Visibility="Collapsed">
+                                <TextBlock FontFamily="Segoe UI" FontSize="11" Foreground="#FDE68A" TextWrapping="Wrap"
+                                           Text="Falta registrar la tara extra de la carga. El resultado puede no ser el correcto hasta que se ingrese."/>
+                            </Border>
                         </StackPanel>
                     </Border>
                 </Grid>
