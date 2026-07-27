@@ -155,6 +155,7 @@ ProductosViewModel : RealtimeAwareViewModel
 | [[Módulo Usuarios]] | ✅ Completo (2026-07-23, refactor 2026-07-26) | UsuariosView, UsuariosViewModel, UsuarioRepository, UsuarioSesionService — CRUD + auth + permisos desde BD |
 | [[Módulo Empleados]] | ✅ Completo (2026-07-26) | EmpleadosView, EmpleadosViewModel, EmpleadoCrudRepository — CRUD completo, crea usuario desde empleado |
 | [[Módulo Bitácora]] | ✅ Completo (2026-07-26) | BitacoraView, BitacoraViewModel, BitacoraCrudRepository — solo lectura **por diseño** (auditoría), filtros usuario/módulo/acción/fecha |
+| [[Módulo Pesaje]] | ✅ Flujo rediseñado (2026-07-26) | PesajeView, PesajeViewModel, PesajeRepository, ProcesoDescargaModal (wizard + megamodal), SelectorProductosModal — ⚠️ datos de tara de prueba (P-023) |
 
 ### Navegación entre módulos
 

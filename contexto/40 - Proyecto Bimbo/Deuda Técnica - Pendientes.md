@@ -406,6 +406,54 @@ Diccionario estático que mapea nombre de tabla a columna PK. Si se agrega una t
 
 ---
 
+### P-023 · 🔴 Catálogo de taras con datos de prueba — afecta el peso que se le paga al proveedor
+
+**Tablas:** `tara`, `productos.peso_teorico`
+**Detectado en:** [[Sesión 2026-07-26 - Rediseño del flujo de Pesajes]]
+
+La tabla `tara` tiene **una sola fila**: 20 kg, descripción *"tara de 20 kg"*, usada por **503 de 505 productos**. Pero **500 de esos productos tienen `peso_teorico` menor a 10 kg** — el empaque pesaría el doble o más que el producto que contiene. Los 5 restantes (1,000 a 10,000 kg) tienen nombres tipo *"Producto Number 1"*, *"Producto bien five"*.
+
+Además existe una tabla `tarima` aparte con su propio `peso_tarima`, y `entradas_producto` ya tiene `id_tarima` — o sea las tarimas se manejan por separado, lo que refuerza que ese 20 kg no es un empaque real.
+
+**Riesgo:** la tara se resta del peso bruto para calcular el neto, y **el neto es lo que se le paga al proveedor**. Con datos de relleno, todo cálculo de recepción es incorrecto. Además el indicador de bultos teóricos (Fase 8) va a dar números sin sentido hasta que se cargue el catálogo real.
+
+**Solución:** poblar `tara` con los empaques reales y asignar el `id_tara` correcto a cada producto. Verificar también los `peso_teorico` de los 5 productos de prueba.
+
+**Estado:** `[ ] Pendiente — requiere datos de planta`
+
+---
+
+### P-024 · Tara de empaque: plana en el trigger, por bulto en el cálculo de bultos teóricos
+
+**Archivos:** función de BD `calcular_pesos_entrada`, `CapaUI/.../Pesaje/Modelos/PesajeModels.cs` (`PesajeCalc.BultosTeoricos`)
+**Detectado en:** [[Sesión 2026-07-26 - Rediseño del flujo de Pesajes]]
+
+El trigger de BD resta la tara de empaque **una sola vez por pesada** (plana), sin importar cuántos bultos se pesen. La fórmula nueva de bultos teóricos la trata **por bulto** (cada bulto trae su empaque), que es lo físicamente correcto.
+
+Ambas conviven **a propósito**: cambiar el trigger alteraría el `peso_neto` de los pesajes futuros y dejaría inconsistentes los ya guardados — y ese neto es lo que se le paga al proveedor. El indicador nuevo es solo informativo y no toca el neto.
+
+**Riesgo:** si la tara realmente es por bulto, el sistema viene **sobrestimando el neto** desde siempre (se paga empaque como si fuera producto). Si es plana, la fórmula de bultos teóricos está inflando el peso por bulto y subestimando la cantidad.
+
+**Solución:** resolver junto con P-023 — con las taras reales cargadas se puede determinar cuál interpretación corresponde y alinear ambos lados.
+
+**Estado:** `[ ] Pendiente — bloqueado por P-023`
+
+---
+
+### P-025 · Repositorios de movimientos duplicados y sin uso
+
+**Archivos:** `CapaDatos/Repositorios/productos_movimientos/RepositorioMovimiento.cs`, `RepositorioMovimientoProducto.cs`
+
+Implementación **vieja** del acceso a `movimientos`/`movimiento_productos`: métodos estáticos, sin Result Pattern, sin `RepositorioBase`. Hace lo mismo que `CapaDatos/Repositories/Pesaje/PesajeRepository.cs`, que es el que realmente se usa.
+
+Verificado: **`CapaUI` no los referencia en ningún lado**.
+
+**Riesgo:** confunde a quien busque el repositorio de pesaje (hay dos carpetas parecidas: `Repositorios/` y `Repositories/`). Un agente nuevo podría modificar el archivo equivocado.
+
+**Estado:** `[ ] Eliminar tras confirmar que nada más los usa`
+
+---
+
 ## Historial de resolución
 
 | ID | Descripción | Estado | Sesión |
@@ -431,6 +479,9 @@ Diccionario estático que mapea nombre de tabla a columna PK. Si se agrega una t
 | P-019 | `correoUsuario` mapea a `alias_usuario` | ✅ Resuelto | [[Sesión 2026-07-26 - Resolución Deuda Técnica P-013 a P-021]] |
 | P-020 | Artefactos `.atl`/`.codegraph` commiteados | ✅ Resuelto | [[Sesión 2026-07-23 - Plan Preparar Bóveda Multi-Agente (AGENTS.md)]] |
 | P-021 | Búsqueda de Usuarios incompleta (solo alias) | ✅ Resuelto | [[Sesión 2026-07-26 - Resolución Deuda Técnica P-013 a P-021]] |
+| P-023 | Catálogo de taras con datos de prueba | `[ ]` Pendiente 🔴 | [[Sesión 2026-07-26 - Rediseño del flujo de Pesajes]] |
+| P-024 | Tara plana (trigger) vs por bulto (bultos teóricos) | `[ ]` Pendiente | [[Sesión 2026-07-26 - Rediseño del flujo de Pesajes]] |
+| P-025 | Repositorios de movimientos duplicados sin uso | `[ ]` Pendiente | [[Sesión 2026-07-26 - Rediseño del flujo de Pesajes]] |
 
 ---
 
