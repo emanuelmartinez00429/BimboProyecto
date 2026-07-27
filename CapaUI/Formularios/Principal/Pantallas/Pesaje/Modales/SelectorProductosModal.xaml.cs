@@ -54,7 +54,9 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
             _suppressAlcance = true;
             if (_vm.PuedeFiltrarPorProveedor)
             {
-                TxtRbProveedor.Text  = $"Solo {proveedorNombre}";
+                TxtRbProveedor.Text = $"Solo {proveedorNombre}";
+                // El texto se trunca si el nombre es largo: el tooltip lo muestra entero.
+                RbProveedor.ToolTip = $"Mostrar solo productos de {proveedorNombre}";
                 RbProveedor.IsChecked = true;
             }
             else
