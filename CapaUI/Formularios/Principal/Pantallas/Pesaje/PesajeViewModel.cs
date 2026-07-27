@@ -101,6 +101,10 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             camion.Productos.Clear();
             if (!r.Success) { Toast?.Invoke(r.Error ?? "Error al cargar productos"); return; }
             foreach (var p in r.Value!) camion.Productos.Add(MapProducto(p, camion.Proveedor));
+
+            // El prorrateo de la tara extra depende del total de bultos declarados,
+            // que recién se conoce con los productos ya cargados.
+            camion.NotificarTaraExtra();
         }
 
         // ══════════════════════════════════════════════════════════════════════
@@ -126,25 +130,28 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
         // ══════════════════════════════════════════════════════════════════════
         //  Camiones
         // ══════════════════════════════════════════════════════════════════════
-        public async Task RegistrarCamionAsync(string placa, string proveedor, int? idProveedor, string obs)
+        public async Task<int?> RegistrarCamionAsync(string placa, string proveedor, int? idProveedor, string obs, double taraExtraTotal = 0)
         {
-            if (idProveedor is null) { Toast?.Invoke("Selecciona un proveedor válido"); return; }
-            if (!HaySesionActiva("registrar camión")) return;
-            var r = await _repo.CrearCamionAsync(idProveedor.Value, placa, obs, UsuarioActual);
-            if (!r.Success) { Toast?.Invoke(r.Error ?? "No se pudo registrar"); return; }
+            if (idProveedor is null) { Toast?.Invoke("Selecciona un proveedor válido"); return null; }
+            if (!HaySesionActiva("registrar camión")) return null;
+            var r = await _repo.CrearCamionAsync(idProveedor.Value, placa, obs, taraExtraTotal, UsuarioActual);
+            if (!r.Success) { Toast?.Invoke(r.Error ?? "No se pudo registrar"); return null; }
 
             await RecargarCamionesAsync(seleccionarId: r.Value);
             Toast?.Invoke("Camión registrado");
+            return r.Value;
         }
 
-        public async Task ActualizarCamionAsync(CamionPesaje c, string placa, string proveedor, int? idProveedor, string obs)
+        public async Task ActualizarCamionAsync(CamionPesaje c, string placa, string proveedor, int? idProveedor, string obs, double taraExtraTotal)
         {
             if (idProveedor is null) { Toast?.Invoke("Selecciona un proveedor válido"); return; }
-            var r = await _repo.ActualizarCamionAsync(c.Id, idProveedor.Value, placa, obs);
+            var r = await _repo.ActualizarCamionAsync(c.Id, idProveedor.Value, placa, obs, taraExtraTotal);
             if (!r.Success) { Toast?.Invoke(r.Error ?? "No se pudo actualizar"); return; }
 
             c.Placa = placa; c.Proveedor = proveedor; c.IdProveedor = idProveedor; c.Observaciones = obs;
+            c.TaraExtraTotal = taraExtraTotal;
             foreach (var p in c.Productos) p.ProveedorNombre = proveedor;
+            c.NotificarTaraExtra();
             OnPropertyChanged(nameof(SelectedCamion));
             RecalcularFilas();
             Toast?.Invoke("Camión actualizado");
@@ -252,8 +259,13 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
                 if (!ra.Success) { Toast?.Invoke(ra.Error ?? "No se pudo editar"); return; }
             }
 
+            // La tara extra se pesa UNA sola vez para todo el camión: a esta pesada le
+            // toca la parte proporcional a sus bultos. Se calcula acá (fuente única de
+            // verdad), no se confía en lo que traiga el snapshot del modal.
+            double taraExtraProrrateada = SelectedCamion.TaraExtraPorBulto * snapshot.Bultos;
+
             var r = await _repo.CrearEntradaAsync(
-                producto.Id, producto.IdProducto, snapshot.Bruto, snapshot.TaraExtra,
+                producto.Id, producto.IdProducto, snapshot.Bruto, taraExtraProrrateada,
                 snapshot.Bultos, snapshot.Observaciones, UsuarioActual);
             if (!r.Success) { Toast?.Invoke(r.Error ?? "No se pudo guardar el pesaje"); return; }
 
@@ -342,6 +354,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             Id = c.Id, Placa = c.Placa, Proveedor = c.Proveedor, IdProveedor = c.IdProveedor,
             FechaAsignacion = c.FechaAsignacion, Observaciones = c.Observaciones,
             Estado = c.Cerrado ? "Cerrado" : "Abierto",
+            TaraExtraTotal = c.TaraExtraTotal,
         };
 
         private static ProductoCamion MapProducto(MovProductoDto p, string proveedor)
@@ -349,7 +362,8 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             var pc = new ProductoCamion
             {
                 Id = p.Id, IdProducto = p.IdProducto, ProductoCodigo = p.Codigo, ProductoNombre = p.Nombre,
-                TaraUnitaria = p.TaraUnitaria, PesoManifestado = p.PesoManifestado, BultosTeoricos = p.BultosTeoricos,
+                TaraUnitaria = p.TaraUnitaria, PesoTeorico = p.PesoTeorico,
+                PesoManifestado = p.PesoManifestado, BultosDeclarados = p.BultosDeclarados,
                 Observaciones = p.Observaciones, Estado = p.Cerrado ? "Cerrado" : "Abierto", ProveedorNombre = proveedor,
             };
             foreach (var e in p.Entradas)

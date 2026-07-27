@@ -41,11 +41,12 @@ public class PesajeRepository : RepositorioBase, IPesajeRepository
                 FechaAsignacion = m.fechaAsignacion.ToString("dd/MM/yyyy"),
                 Observaciones   = m.observaciones ?? "",
                 Cerrado         = m.idEstado == EstadosPesaje.Cerrado,
+                TaraExtraTotal  = (double)m.pesoTaraExtra,
             }).ToList();
             return lista;
         }, "Cargar camiones");
 
-    public Task<Result<int>> CrearCamionAsync(int idProveedor, string placa, string observaciones, int idUsuario, CancellationToken ct = default) =>
+    public Task<Result<int>> CrearCamionAsync(int idProveedor, string placa, string observaciones, double taraExtraTotal, int idUsuario, CancellationToken ct = default) =>
         TryAsync(async () =>
         {
             var client = await ConexionSupabase.GetClientAsync();
@@ -57,12 +58,13 @@ public class PesajeRepository : RepositorioBase, IPesajeRepository
                 idUsuario       = idUsuario,
                 idEstado        = EstadosPesaje.Abierto,
                 observaciones   = string.IsNullOrWhiteSpace(observaciones) ? null : observaciones,
+                pesoTaraExtra   = (decimal)taraExtraTotal,
             };
             var r = await client.From<Movimiento>().Insert(nuevo);
             return r.Models.First().idMovimiento;
         }, "Registrar camión");
 
-    public Task<Result> ActualizarCamionAsync(int idMovimiento, int idProveedor, string placa, string observaciones, CancellationToken ct = default) =>
+    public Task<Result> ActualizarCamionAsync(int idMovimiento, int idProveedor, string placa, string observaciones, double taraExtraTotal, CancellationToken ct = default) =>
         TryAsync(async () =>
         {
             var client = await ConexionSupabase.GetClientAsync();
@@ -71,6 +73,7 @@ public class PesajeRepository : RepositorioBase, IPesajeRepository
                 .Set(m => m.idProveedor,   idProveedor)
                 .Set(m => m.placaVehiculo, placa)
                 .Set(m => m.observaciones, string.IsNullOrWhiteSpace(observaciones) ? null : observaciones)
+                .Set(m => m.pesoTaraExtra, (decimal)taraExtraTotal)
                 .Update();
         }, "Actualizar camión");
 
@@ -111,14 +114,17 @@ public class PesajeRepository : RepositorioBase, IPesajeRepository
             var idProductos    = movProds.Select(m => (object)m.idProducto).Distinct().ToList();
             var idMovProductos = movProds.Select(m => (object)m.idMovProducto).ToList();
 
-            // 2) tara por producto (para la previsualización del modal)
+            // 2) peso teórico + tara por producto (previsualización del modal
+            //    y cálculo de bultos teóricos)
             var taraRes = await client.From<ProductoTaraConsulta>()
-                .Select("id_producto, tara(*)")
+                .Select("id_producto, peso_teorico, tara(*)")
                 .Filter("id_producto", Op.In, idProductos)
                 .Get();
-            var taraPorProducto = (taraRes?.Models ?? new())
+            var datosPorProducto = (taraRes?.Models ?? new())
                 .GroupBy(p => p.idProducto)
-                .ToDictionary(g => g.Key, g => (double)g.First().taraUnitaria);
+                .ToDictionary(
+                    g => g.Key,
+                    g => ((double)g.First().taraUnitaria, (double)(g.First().pesoTeorico ?? 0m)));
 
             // 3) entradas activas de esos productos
             var entRes = await client.From<EntradaProducto>()
@@ -131,24 +137,29 @@ public class PesajeRepository : RepositorioBase, IPesajeRepository
                 .GroupBy(e => e.idMovProducto)
                 .ToDictionary(g => g.Key, g => g.Select(MapEntrada).ToList());
 
-            IReadOnlyList<MovProductoDto> lista = movProds.Select(m => new MovProductoDto
+            IReadOnlyList<MovProductoDto> lista = movProds.Select(m =>
             {
-                Id              = m.idMovProducto,
-                IdProducto      = m.idProducto,
-                Codigo          = m.codigoProducto,
-                Nombre          = m.nombreProducto,
-                TaraUnitaria    = taraPorProducto.TryGetValue(m.idProducto, out var t) ? t : 0,
-                PesoManifestado = (double)m.pesoManifestado,
-                BultosTeoricos  = m.bultosTeóricos,
-                Observaciones   = m.observaciones ?? "",
-                Cerrado         = m.idEstado == EstadosPesaje.Cerrado,
-                Entradas        = entradasPorMp.TryGetValue(m.idMovProducto, out var es)
-                                    ? es : new List<EntradaDto>(),
+                datosPorProducto.TryGetValue(m.idProducto, out var d);
+                return new MovProductoDto
+                {
+                    Id               = m.idMovProducto,
+                    IdProducto       = m.idProducto,
+                    Codigo           = m.codigoProducto,
+                    Nombre           = m.nombreProducto,
+                    TaraUnitaria     = d.Item1,
+                    PesoTeorico      = d.Item2,
+                    PesoManifestado  = (double)m.pesoManifestado,
+                    BultosDeclarados = m.bultosTeóricos,
+                    Observaciones    = m.observaciones ?? "",
+                    Cerrado          = m.idEstado == EstadosPesaje.Cerrado,
+                    Entradas         = entradasPorMp.TryGetValue(m.idMovProducto, out var es)
+                                         ? es : new List<EntradaDto>(),
+                };
             }).ToList();
             return lista;
         }, "Cargar productos del camión");
 
-    public Task<Result<int>> AgregarProductoAsync(int idMovimiento, int idProducto, double pesoManifestado, int bultosTeoricos, string observaciones, CancellationToken ct = default) =>
+    public Task<Result<int>> AgregarProductoAsync(int idMovimiento, int idProducto, double pesoManifestado, int bultosDeclarados, string observaciones, CancellationToken ct = default) =>
         TryAsync(async () =>
         {
             var client = await ConexionSupabase.GetClientAsync();
@@ -157,7 +168,7 @@ public class PesajeRepository : RepositorioBase, IPesajeRepository
                 idMovimiento    = idMovimiento,
                 idProducto      = idProducto,
                 pesoManifestado = (decimal)pesoManifestado,
-                bultosTeóricos  = bultosTeoricos,
+                bultosTeóricos  = bultosDeclarados,   // columna BD conserva el nombre viejo
                 idEstado        = EstadosPesaje.Abierto,
                 observaciones   = string.IsNullOrWhiteSpace(observaciones) ? null : observaciones,
             };
@@ -165,14 +176,14 @@ public class PesajeRepository : RepositorioBase, IPesajeRepository
             return r.Models.First().idMovProducto;
         }, "Agregar producto al camión");
 
-    public Task<Result> ActualizarProductoAsync(int idMovProducto, double pesoManifestado, int bultosTeoricos, string observaciones, CancellationToken ct = default) =>
+    public Task<Result> ActualizarProductoAsync(int idMovProducto, double pesoManifestado, int bultosDeclarados, string observaciones, CancellationToken ct = default) =>
         TryAsync(async () =>
         {
             var client = await ConexionSupabase.GetClientAsync();
             await client.From<MovimientoProducto>()
                 .Where(mp => mp.idMovProducto == idMovProducto)
                 .Set(mp => mp.pesoManifestado, (decimal)pesoManifestado)
-                .Set(mp => mp.bultosTeóricos,  bultosTeoricos)
+                .Set(mp => mp.bultosTeóricos,  bultosDeclarados)
                 .Set(mp => mp.observaciones,   string.IsNullOrWhiteSpace(observaciones) ? null : observaciones)
                 .Update();
         }, "Actualizar producto");

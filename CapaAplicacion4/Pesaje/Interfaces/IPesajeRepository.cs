@@ -12,15 +12,15 @@ public interface IPesajeRepository
 {
     // ── Camiones (movimientos) ──────────────────────────────────────────────
     Task<Result<IReadOnlyList<CamionDto>>> GetCamionesActivosAsync(CancellationToken ct = default);
-    Task<Result<int>> CrearCamionAsync(int idProveedor, string placa, string observaciones, int idUsuario, CancellationToken ct = default);
-    Task<Result>      ActualizarCamionAsync(int idMovimiento, int idProveedor, string placa, string observaciones, CancellationToken ct = default);
+    Task<Result<int>> CrearCamionAsync(int idProveedor, string placa, string observaciones, double taraExtraTotal, int idUsuario, CancellationToken ct = default);
+    Task<Result>      ActualizarCamionAsync(int idMovimiento, int idProveedor, string placa, string observaciones, double taraExtraTotal, CancellationToken ct = default);
     Task<Result>      CerrarCamionAsync(int idMovimiento, CancellationToken ct = default);
     Task<Result>      AnularCamionAsync(int idMovimiento, CancellationToken ct = default);
 
     // ── Productos del camión (movimiento_productos) ─────────────────────────
     Task<Result<IReadOnlyList<MovProductoDto>>> GetProductosAsync(int idMovimiento, CancellationToken ct = default);
-    Task<Result<int>> AgregarProductoAsync(int idMovimiento, int idProducto, double pesoManifestado, int bultosTeoricos, string observaciones, CancellationToken ct = default);
-    Task<Result>      ActualizarProductoAsync(int idMovProducto, double pesoManifestado, int bultosTeoricos, string observaciones, CancellationToken ct = default);
+    Task<Result<int>> AgregarProductoAsync(int idMovimiento, int idProducto, double pesoManifestado, int bultosDeclarados, string observaciones, CancellationToken ct = default);
+    Task<Result>      ActualizarProductoAsync(int idMovProducto, double pesoManifestado, int bultosDeclarados, string observaciones, CancellationToken ct = default);
     Task<Result>      AnularProductoAsync(int idMovProducto, CancellationToken ct = default);
     Task<Result>      SetEstadoProductoAsync(int idMovProducto, bool cerrado, CancellationToken ct = default);
 

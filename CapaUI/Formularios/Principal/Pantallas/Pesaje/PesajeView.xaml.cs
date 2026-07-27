@@ -246,7 +246,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             modal.Guardado += async r =>
             {
                 if (mode == "edit" && initial != null)
-                    await _vm.ActualizarCamionAsync(initial, r.Placa, r.Proveedor, r.IdProveedor, r.Observaciones);
+                    await _vm.ActualizarCamionAsync(initial, r.Placa, r.Proveedor, r.IdProveedor, r.Observaciones, initial.TaraExtraTotal);
                 else
                     await _vm.RegistrarCamionAsync(r.Placa, r.Proveedor, r.IdProveedor, r.Observaciones);
                 CerrarModal();

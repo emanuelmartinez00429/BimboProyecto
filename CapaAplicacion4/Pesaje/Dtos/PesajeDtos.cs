@@ -10,6 +10,13 @@ public class CamionDto
     public string FechaAsignacion { get; init; } = string.Empty;
     public string Observaciones   { get; init; } = string.Empty;
     public bool   Cerrado         { get; init; }
+
+    /// <summary>
+    /// Tara extra TOTAL del camión (movimientos.peso_tara_extra): tarimas, forros y
+    /// separadores, pesados una sola vez para toda la carga. Se prorratea entre los
+    /// bultos declarados al registrar cada pesada.
+    /// </summary>
+    public double TaraExtraTotal { get; init; }
 }
 
 /// <summary>Producto de un camión (`movimiento_productos` + join a producto y su tara).</summary>
@@ -19,9 +26,21 @@ public class MovProductoDto
     public int    IdProducto      { get; init; }
     public string Codigo          { get; init; } = string.Empty;
     public string Nombre          { get; init; } = string.Empty;
-    public double TaraUnitaria    { get; init; }   // tara.peso_tara_envalaje (plano, la usa el trigger)
+
+    /// <summary>tara.peso_tara_envalaje del producto (empaque de un bulto).</summary>
+    public double TaraUnitaria    { get; init; }
+
+    /// <summary>productos.peso_teorico — peso unitario declarado, sin empaque.</summary>
+    public double PesoTeorico     { get; init; }
+
     public double PesoManifestado { get; init; }
-    public int    BultosTeoricos  { get; init; }
+
+    /// <summary>
+    /// Cantidad de bultos que declara el manifiesto (columna BD `bultos_teoricos`,
+    /// conservada por compatibilidad). Es el dato de papel, sin verificar.
+    /// </summary>
+    public int    BultosDeclarados { get; init; }
+
     public string Observaciones   { get; init; } = string.Empty;
     public bool   Cerrado         { get; init; }
     public IReadOnlyList<EntradaDto> Entradas { get; init; } = [];

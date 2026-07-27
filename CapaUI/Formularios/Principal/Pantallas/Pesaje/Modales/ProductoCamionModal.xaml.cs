@@ -47,7 +47,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
                 TxtLockedCod.Text = _codigo;
                 TxtLockedNom.Text = _nombre;
                 TxtPeso.Text   = initial.PesoManifestado.ToString(CultureInfo.InvariantCulture);
-                TxtBultos.Text = initial.BultosTeoricos.ToString(CultureInfo.InvariantCulture);
+                TxtBultos.Text = initial.BultosDeclarados.ToString(CultureInfo.InvariantCulture);
                 TxtObs.Text    = initial.Observaciones;
             }
 

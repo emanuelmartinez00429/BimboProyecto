@@ -28,6 +28,14 @@ namespace CapaDatos.Modelados.Pesajes
         [Column("observaciones")]
         public string? observaciones { get; set; }
 
+        /// <summary>
+        /// Tara extra TOTAL del camión (tarimas, forros, separadores): se pesa una sola
+        /// vez para toda la carga. La app la prorratea entre los bultos declarados al
+        /// insertar cada entrada — ver PesajeCalc.TaraExtraPorBulto.
+        /// </summary>
+        [Column("peso_tara_extra")]
+        public decimal pesoTaraExtra { get; set; }
+
         // Navigation — se carga con Select("*, proveedores(*)")
         // JsonProperty mapea la clave JSON de PostgREST y NullValueHandling.Ignore
         // evita que se incluya en el INSERT cuando es null
