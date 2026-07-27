@@ -92,6 +92,15 @@ Implementado en `PesajeCalc.BultosTeoricos`. Devuelve `null` (la UI muestra "—
 ### Estado vacío
 Si **no hay ningún camión abierto**, la pantalla muestra "Actualmente no hay camiones descargándose" con un botón para iniciar el proceso, en vez de tres paneles vacíos. Si hay camiones cerrados, un enlace permite verlos.
 
+Durante la primera carga se muestra un indicador "Cargando camiones en proceso de descarga…" en lugar del estado vacío.
+
+> [!bug] Un estado vacío calculado sobre una colección debe excluir la carga
+> `MostrarEstadoVacio` es `!IsLoading && CamionesActivos == 0`. **El `!IsLoading` no es opcional.**
+>
+> Sin él, la secuencia era: `IsLoading = true` → dispara `PropertyChanged` → `ActualizarUI()` → `CamionesActivos == 0` porque **los datos todavía no llegaron** → se mostraba el formulario de iniciar descarga durante todo el viaje a Supabase, y recién después aparecían los camiones. Se veía como si la pantalla se equivocara y se corrigiera sola.
+>
+> Regla general: cualquier "estado vacío" derivado de una colección que se llena por red tiene que distinguir **"vacío porque no hay nada"** de **"vacío porque todavía no cargó"**. Detectado y corregido el 2026-07-26.
+
 ### Proceso de descarga — un componente, dos modos
 `Modales/ProcesoDescargaModal` unifica lo que antes eran tres modales sueltos.
 

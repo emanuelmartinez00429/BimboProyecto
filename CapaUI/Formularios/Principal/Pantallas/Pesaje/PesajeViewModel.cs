@@ -35,7 +35,10 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
 
         [ObservableProperty] private EntradaPesaje? _selectedEntrada;
         [ObservableProperty] private string _vistaEntradas = "producto";
-        [ObservableProperty] private bool _isLoading;
+
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(MostrarEstadoVacio))]
+        private bool _isLoading;
 
         public bool HayCamion     => SelectedCamion is not null;
         public bool HayProducto   => SelectedProducto is not null;
@@ -51,8 +54,13 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
         /// No hay ninguna descarga en curso: la pantalla muestra el estado vacío con el
         /// botón para iniciar el proceso, en vez de tres paneles vacíos sin contexto.
         /// "Descargándose" = camión abierto.
+        /// <para/>
+        /// El <c>!IsLoading</c> es obligatorio: mientras se consultan los camiones la
+        /// colección está vacía, así que sin esa guarda el estado vacío aparecía un
+        /// instante en cada carga aunque sí hubiera camiones abiertos — se veía como
+        /// si se abriera solo el formulario de iniciar descarga y después cambiara.
         /// </summary>
-        public bool MostrarEstadoVacio => CamionesActivos == 0;
+        public bool MostrarEstadoVacio => !IsLoading && CamionesActivos == 0;
 
         /// <summary>Hay camiones ya cerrados aunque ninguno esté descargándose.</summary>
         public bool HayCerrados => Camiones.Any(c => c.Estado == "Cerrado");

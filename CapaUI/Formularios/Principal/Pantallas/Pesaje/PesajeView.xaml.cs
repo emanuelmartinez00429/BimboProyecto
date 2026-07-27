@@ -29,6 +29,9 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
         /// </summary>
         private bool _verHistorico;
 
+        /// <summary>Animación del spinner de la carga inicial.</summary>
+        private Storyboard? _spinnerCarga;
+
         public PesajeView() => InitializeComponent();
 
         // ── Lifecycle ─────────────────────────────────────────────────────────
@@ -50,6 +53,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
 
         private void UserControl_Unloaded(object sender, RoutedEventArgs e)
         {
+            DetenerSpinnerCarga();   // si se sale mientras cargaba, no dejar la animación viva
             if (_vm == null) return;
             _vm.Toast -= MostrarToast;
             DataContext = null;
@@ -99,10 +103,19 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
         /// <summary>
         /// Muestra el estado vacío cuando no hay ningún camión descargándose.
         /// Si existen camiones cerrados, ofrece el enlace para verlos sin salir.
+        /// <para/>
+        /// Mientras carga se muestra el indicador de carga en su lugar: el VM ya
+        /// devuelve MostrarEstadoVacio=false durante la carga para no mostrar el
+        /// formulario de iniciar descarga con datos a medio traer.
         /// </summary>
         private void ActualizarEstadoVacio()
         {
             if (_vm == null) return;
+
+            // Solo en la primera carga: en recargas ya hay contenido y taparlo parpadearía.
+            bool cargandoPrimeraVez = _vm.IsLoading && _vm.Camiones.Count == 0;
+            CargandoInicial.Visibility = cargandoPrimeraVez ? Visibility.Visible : Visibility.Collapsed;
+            if (cargandoPrimeraVez) IniciarSpinnerCarga(); else DetenerSpinnerCarga();
 
             bool vacio = _vm.MostrarEstadoVacio && !_verHistorico;
             EstadoVacio.Visibility = vacio ? Visibility.Visible : Visibility.Collapsed;
@@ -119,6 +132,32 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
         {
             _verHistorico = true;
             ActualizarEstadoVacio();
+        }
+
+        // ── Spinner de la carga inicial ────────────────────────────────────
+        // Mismo patrón que el resto de los formularios (Productos, Usuarios…):
+        // Storyboard guardado en campo para poder detenerlo y liberarlo.
+
+        private void IniciarSpinnerCarga()
+        {
+            if (_spinnerCarga != null) return;
+            _spinnerCarga = new Storyboard();
+            var anim = new DoubleAnimation(0, 360, TimeSpan.FromSeconds(0.8))
+            { RepeatBehavior = RepeatBehavior.Forever };
+            Storyboard.SetTarget(anim, SpinnerCarga);
+            Storyboard.SetTargetProperty(anim,
+                new PropertyPath("(UIElement.RenderTransform).(RotateTransform.Angle)"));
+            _spinnerCarga.Children.Add(anim);
+            _spinnerCarga.Begin();
+        }
+
+        private void DetenerSpinnerCarga()
+        {
+            if (_spinnerCarga is null) return;
+            _spinnerCarga.Stop();
+            _spinnerCarga.Remove();
+            _spinnerCarga.Children.Clear();
+            _spinnerCarga = null;
         }
 
         // ── Selección ──────────────────────────────────────────────────────────

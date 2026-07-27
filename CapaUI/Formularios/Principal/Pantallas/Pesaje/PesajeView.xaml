@@ -671,6 +671,26 @@
             </Border>
         </Grid>
 
+        <!-- ══ CARGA INICIAL ══
+             Cubre el contenido solo en la primera carga (cuando todavía no hay nada
+             que mostrar). En recargas posteriores no aparece: ya hay datos en pantalla
+             y parpadear sería peor. -->
+        <Border x:Name="CargandoInicial" Background="#EAF1F8" Visibility="Collapsed" Panel.ZIndex="60">
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Horizontal">
+                <Path x:Name="SpinnerCarga"
+                      Data="M 12 2 A 10 10 0 1 1 2 12"
+                      Stroke="#1E3A8A" StrokeThickness="2.5"
+                      StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                      Width="22" Height="22" Stretch="Uniform"
+                      RenderTransformOrigin="0.5,0.5" Margin="0,0,12,0">
+                    <Path.RenderTransform><RotateTransform/></Path.RenderTransform>
+                </Path>
+                <TextBlock Text="Cargando camiones en proceso de descarga..."
+                           FontFamily="Segoe UI" FontSize="14" Foreground="#6B7280"
+                           VerticalAlignment="Center"/>
+            </StackPanel>
+        </Border>
+
         <!-- ══ ESTADO VACÍO ══
              Cubre el contenido cuando no hay ningún camión descargándose (abierto).
              Evita que el usuario se encuentre tres paneles vacíos sin saber por dónde
