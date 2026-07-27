@@ -47,6 +47,18 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
         public string CamionesTexto      => $"{Camiones.Count}/{MaxCamiones}";
         public bool   PuedeAgregarCamion => Camiones.Count(c => c.Estado == "Abierto") < MaxCamiones;
 
+        /// <summary>
+        /// No hay ninguna descarga en curso: la pantalla muestra el estado vacío con el
+        /// botón para iniciar el proceso, en vez de tres paneles vacíos sin contexto.
+        /// "Descargándose" = camión abierto.
+        /// </summary>
+        public bool MostrarEstadoVacio => CamionesActivos == 0;
+
+        /// <summary>Hay camiones ya cerrados aunque ninguno esté descargándose.</summary>
+        public bool HayCerrados => Camiones.Any(c => c.Estado == "Cerrado");
+
+        public int CerradosCount => Camiones.Count(c => c.Estado == "Cerrado");
+
         public event Action<string>? Toast;
 
         public PesajeViewModel(IPesajeRepository repo, IUsuarioSesionService sesionService)
@@ -155,6 +167,66 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             OnPropertyChanged(nameof(SelectedCamion));
             RecalcularFilas();
             Toast?.Invoke("Camión actualizado");
+        }
+
+        /// <summary>
+        /// Persiste el proceso de descarga completo (camión + productos + tara extra)
+        /// en una sola operación, tanto para alta (wizard) como para edición (megamodal).
+        /// <para/>
+        /// Orden: primero el camión (para tener su id), después los productos quitados,
+        /// después los nuevos, y al final las actualizaciones de los ya existentes.
+        /// Si falla el camión se corta: sin id no hay dónde colgar los productos.
+        /// </summary>
+        public async Task<bool> GuardarProcesoAsync(
+            CamionPesaje? camionExistente,
+            string placa, string proveedor, int? idProveedor, string obs, double taraExtraTotal,
+            IReadOnlyList<(int IdMovProducto, int IdProducto, double PesoManifestado, int BultosDeclarados)> productos,
+            IReadOnlyList<int> idsQuitados)
+        {
+            if (idProveedor is null) { Toast?.Invoke("Selecciona un proveedor válido"); return false; }
+            if (!HaySesionActiva("guardar el proceso de descarga")) return false;
+
+            int idCamion;
+
+            if (camionExistente is null)
+            {
+                var rNuevo = await _repo.CrearCamionAsync(idProveedor.Value, placa, obs, taraExtraTotal, UsuarioActual);
+                if (!rNuevo.Success) { Toast?.Invoke(rNuevo.Error ?? "No se pudo registrar el camión"); return false; }
+                idCamion = rNuevo.Value;
+            }
+            else
+            {
+                var rEdit = await _repo.ActualizarCamionAsync(camionExistente.Id, idProveedor.Value, placa, obs, taraExtraTotal);
+                if (!rEdit.Success) { Toast?.Invoke(rEdit.Error ?? "No se pudo actualizar el camión"); return false; }
+                idCamion = camionExistente.Id;
+            }
+
+            // Quitados: se anulan por estado, nunca se borran (no se pierde auditoría).
+            foreach (var idMovProd in idsQuitados)
+            {
+                var rDel = await _repo.AnularProductoAsync(idMovProd);
+                if (!rDel.Success) Toast?.Invoke(rDel.Error ?? "No se pudo quitar un producto");
+            }
+
+            foreach (var p in productos)
+            {
+                if (p.IdMovProducto == 0)
+                {
+                    var rAdd = await _repo.AgregarProductoAsync(
+                        idCamion, p.IdProducto, p.PesoManifestado, p.BultosDeclarados, "");
+                    if (!rAdd.Success) Toast?.Invoke(rAdd.Error ?? $"No se pudo agregar un producto");
+                }
+                else
+                {
+                    var rUpd = await _repo.ActualizarProductoAsync(
+                        p.IdMovProducto, p.PesoManifestado, p.BultosDeclarados, "");
+                    if (!rUpd.Success) Toast?.Invoke(rUpd.Error ?? "No se pudo actualizar un producto");
+                }
+            }
+
+            await RecargarCamionesAsync(seleccionarId: idCamion);
+            Toast?.Invoke(camionExistente is null ? "Proceso de descarga iniciado" : "Cambios guardados");
+            return true;
         }
 
         public async Task QuitarCamionAsync()
@@ -347,6 +419,9 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             OnPropertyChanged(nameof(CamionesActivos));
             OnPropertyChanged(nameof(CamionesTexto));
             OnPropertyChanged(nameof(PuedeAgregarCamion));
+            OnPropertyChanged(nameof(MostrarEstadoVacio));
+            OnPropertyChanged(nameof(HayCerrados));
+            OnPropertyChanged(nameof(CerradosCount));
         }
 
         private static CamionPesaje MapCamion(CamionDto c) => new()

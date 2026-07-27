@@ -23,6 +23,12 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
         private Action? _pendingConfirm;
         private int _modalGen;
 
+        /// <summary>
+        /// El usuario pidió ver los camiones cerrados aunque no haya ninguno abierto:
+        /// se oculta el estado vacío hasta que vuelva a cargarse la pantalla.
+        /// </summary>
+        private bool _verHistorico;
+
         public PesajeView() => InitializeComponent();
 
         // ── Lifecycle ─────────────────────────────────────────────────────────
@@ -81,13 +87,38 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             BtnCamionDescargar.IsEnabled = hayCamion && !cerrado;
             BtnCerrarTodos.IsEnabled     = _vm.CamionesActivos > 0;
 
-            BtnProdAgregar.IsEnabled = hayCamion && !cerrado;
-            BtnProdPesar.IsEnabled   = hayProducto && prodAbierto && !cerrado;
-            BtnProdEditar.IsEnabled  = hayProducto && !cerrado;
-            BtnProdQuitar.IsEnabled  = hayProducto && !cerrado;
+            // Agregar/editar/quitar productos vive en el megamodal; acá solo se pesa.
+            BtnProdPesar.IsEnabled = hayProducto && prodAbierto && !cerrado;
 
             BtnEntEditar.IsEnabled = hayEntrada && !cerrado;
             BtnEntQuitar.IsEnabled = hayEntrada && !cerrado;
+
+            ActualizarEstadoVacio();
+        }
+
+        /// <summary>
+        /// Muestra el estado vacío cuando no hay ningún camión descargándose.
+        /// Si existen camiones cerrados, ofrece el enlace para verlos sin salir.
+        /// </summary>
+        private void ActualizarEstadoVacio()
+        {
+            if (_vm == null) return;
+
+            bool vacio = _vm.MostrarEstadoVacio && !_verHistorico;
+            EstadoVacio.Visibility = vacio ? Visibility.Visible : Visibility.Collapsed;
+
+            if (!vacio) return;
+
+            BtnVerCerrados.Visibility = _vm.HayCerrados ? Visibility.Visible : Visibility.Collapsed;
+            TxtVerCerrados.Text = _vm.CerradosCount == 1
+                ? "Hay 1 camión cerrado — ver historial"
+                : $"Hay {_vm.CerradosCount} camiones cerrados — ver historial";
+        }
+
+        private void BtnVerCerrados_Click(object sender, RoutedEventArgs e)
+        {
+            _verHistorico = true;
+            ActualizarEstadoVacio();
         }
 
         // ── Selección ──────────────────────────────────────────────────────────
@@ -101,7 +132,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
         private void LstCamiones_DoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             if (_vm?.SelectedCamion != null && !_vm.CamionCerrado)
-                AbrirCamionModal("edit", _vm.SelectedCamion);
+                AbrirProcesoModal(ModoProceso.Edicion, _vm.SelectedCamion);
         }
 
         private void DgProductos_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -158,9 +189,19 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             if (cerradas.Count > 0) AbrirReporte(cerradas);
         }
 
-        private void BtnCamionAgregar_Click(object sender, RoutedEventArgs e) => AbrirCamionModal("new", null);
-        private void BtnCamionEditar_Click(object sender, RoutedEventArgs e)
-        { if (_vm.SelectedCamion != null) AbrirCamionModal("edit", _vm.SelectedCamion); }
+        /// <summary>Alta guiada: abre el proceso en modo wizard.</summary>
+        private void BtnNuevoProceso_Click(object sender, RoutedEventArgs e)
+            => AbrirProcesoModal(ModoProceso.Wizard, null);
+
+        /// <summary>
+        /// Único botón de edición de la pantalla: abre el megamodal con TODO el
+        /// proceso del camión seleccionado (datos, productos y tara extra).
+        /// </summary>
+        private void BtnEditarProceso_Click(object sender, RoutedEventArgs e)
+        {
+            if (_vm.SelectedCamion != null && !_vm.CamionCerrado)
+                AbrirProcesoModal(ModoProceso.Edicion, _vm.SelectedCamion);
+        }
 
         private void BtnCamionQuitar_Click(object sender, RoutedEventArgs e)
         {
@@ -187,23 +228,8 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
         }
 
         // ── Productos ────────────────────────────────────────────────────────
-        private void BtnProdAgregar_Click(object sender, RoutedEventArgs e) => AbrirProductoModal("new", null);
-        private void BtnProdEditar_Click(object sender, RoutedEventArgs e)
-        { if (_vm.SelectedProducto != null) AbrirProductoModal("edit", _vm.SelectedProducto); }
-
-        private void BtnProdQuitar_Click(object sender, RoutedEventArgs e)
-        {
-            if (_vm.SelectedProducto == null) return;
-            PedirConfirmacion(BtnProdQuitar,
-                $"¿Quitar {_vm.SelectedProducto.ProductoNombre} de este camión? Se perderán sus pesajes.",
-                () => _ = QuitarProductoFlujo());
-        }
-
-        private async Task QuitarProductoFlujo()
-        {
-            await _vm.QuitarProductoAsync();
-            ActualizarUI();
-        }
+        // Agregar/editar/quitar productos se hace desde el megamodal ("Editar proceso"),
+        // donde además se respeta la regla de no quitar un producto ya pesado.
 
         private void BtnProdPesar_Click(object sender, RoutedEventArgs e)
         {
@@ -238,39 +264,35 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
         // ══════════════════════════════════════════════════════════════════════
         //  Modales
         // ══════════════════════════════════════════════════════════════════════
-        private async void AbrirCamionModal(string mode, CamionPesaje? initial)
+        /// <summary>
+        /// Abre el proceso de descarga: en modo Wizard para dar de alta una descarga
+        /// nueva, o en modo Edición (megamodal) para corregir la del camión elegido.
+        /// Unifica lo que antes eran CamionModal + ProductoCamionModal + el picker.
+        /// </summary>
+        private async void AbrirProcesoModal(ModoProceso modo, CamionPesaje? camion)
         {
             var proveedores = await CargarProveedoresAsync();
-            var modal = new CamionModal(mode, initial, proveedores);
-            modal.Cerrado  += CerrarModal;
-            modal.Guardado += async r =>
-            {
-                if (mode == "edit" && initial != null)
-                    await _vm.ActualizarCamionAsync(initial, r.Placa, r.Proveedor, r.IdProveedor, r.Observaciones, initial.TaraExtraTotal);
-                else
-                    await _vm.RegistrarCamionAsync(r.Placa, r.Proveedor, r.IdProveedor, r.Observaciones);
-                CerrarModal();
-                SincronizarSeleccion();
-                ActualizarUI();
-            };
-            MostrarModal(modal);
-        }
+            var modal = new ProcesoDescargaModal(modo, camion, proveedores);
 
-        private void AbrirProductoModal(string mode, ProductoCamion? initial)
-        {
-            if (_vm.SelectedCamion == null) return;
-            var modal = new ProductoCamionModal(mode, initial, _vm.SelectedCamion);
-            modal.Cerrado  += CerrarModal;
-            modal.Guardado += async r =>
+            modal.Cerrado += CerrarModal;
+            modal.Confirmado += async r =>
             {
-                if (mode == "edit" && initial != null)
-                    await _vm.ActualizarProductoAsync(initial, r.PesoManifestado, r.BultosTeoricos, r.Observaciones);
-                else
-                    await _vm.AgregarProductoAsync(r.IdProducto, r.PesoManifestado, r.BultosTeoricos, r.Observaciones);
+                var productos = r.Productos
+                    .Select(p => (p.IdMovProducto, p.IdProducto, p.PesoManifestado, p.BultosDeclarados))
+                    .ToList();
+
+                bool ok = await _vm.GuardarProcesoAsync(
+                    camion, r.Placa, r.Proveedor, r.IdProveedor, r.Observaciones,
+                    r.TaraExtraTotal, productos, modal.IdsProductosQuitados);
+
+                if (!ok) return;   // el VM ya avisó por Toast; el modal queda abierto
+
+                _verHistorico = false;
                 CerrarModal();
                 SincronizarSeleccion();
                 ActualizarUI();
             };
+
             MostrarModal(modal);
         }
 
