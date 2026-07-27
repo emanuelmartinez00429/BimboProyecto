@@ -200,11 +200,11 @@
                             VerticalAlignment="Center" x:Name="PanelAlcance">
                         <StackPanel Orientation="Horizontal">
                             <RadioButton x:Name="RbProveedor" GroupName="Alcance"
-                                         Style="{StaticResource ModalSegBtn}" Checked="Alcance_Changed">
+                                         Style="{StaticResource MSegBtn}" Checked="Alcance_Changed">
                                 <TextBlock x:Name="TxtRbProveedor" Text="Solo proveedor" FontFamily="Segoe UI" FontSize="13"/>
                             </RadioButton>
                             <RadioButton x:Name="RbTodos" GroupName="Alcance"
-                                         Style="{StaticResource ModalSegBtn}" Checked="Alcance_Changed">
+                                         Style="{StaticResource MSegBtn}" Checked="Alcance_Changed">
                                 <TextBlock Text="Todo el catálogo" FontFamily="Segoe UI" FontSize="13"/>
                             </RadioButton>
                         </StackPanel>

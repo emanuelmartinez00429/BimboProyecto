@@ -64,6 +64,39 @@
         <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
     </Style>
 
+    <!-- RadioButton segmentado sobre fondo oscuro (toggles dentro de los modales).
+         Vive acá y no local en cada modal: los modales de Pesaje ya importan este
+         diccionario, y los estilos "ModalSegBtn" de los modales CRUD no son visibles
+         desde acá (se definen en las Resources de cada UserControl). -->
+    <Style x:Key="MSegBtn" TargetType="RadioButton">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Foreground" Value="#CCFFFFFF"/>
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="Padding" Value="12,5"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="RadioButton">
+                    <Border x:Name="Bd" Background="{TemplateBinding Background}"
+                            CornerRadius="6" Padding="{TemplateBinding Padding}">
+                        <ContentPresenter/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="#3CFFFFFF"/>
+                            <Setter Property="Foreground" Value="White"/>
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="#26FFFFFF"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <!-- Botón fantasma (traslúcido) -->
     <Style x:Key="GhostBtn" TargetType="Button">
         <Setter Property="Background" Value="#1AFFFFFF"/>

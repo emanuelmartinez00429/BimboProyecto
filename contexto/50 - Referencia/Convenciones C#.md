@@ -95,8 +95,28 @@ public partial class XxxViewModel : ObservableObject
 
 ---
 
+## Recursos XAML — dónde vive cada estilo
+
+> [!danger] El build verde no garantiza que los `StaticResource` existan
+> WPF resuelve `StaticResource` y `FindResource(...)` **en runtime**. Un `dotnet build` con 0 errores puede esconder un recurso inexistente que revienta al abrir la pantalla con `XamlParseException: No se puede encontrar el recurso con el nombre 'X'`.
+
+Tres ámbitos, de mayor a menor alcance:
+
+| Ámbito | Dónde | Visible desde |
+|---|---|---|
+| **Global** | `CapaUI/Resources/Styles.xaml` (mergeado en `App.xaml`) | Toda la app |
+| **Diccionario de módulo** | ej. `Pesaje/Modales/PesajeModalStyles.xaml` | Solo quien lo importe con `MergedDictionaries` |
+| **Local** | `<UserControl.Resources>` de un archivo | **Solo ese archivo** |
+
+**La trampa:** un estilo definido localmente en, por ejemplo, `CategoriaModal.xaml` **no es visible** desde ningún otro control, aunque el nombre parezca "estándar". Caso real: `ModalSegBtn` está definido local en varios modales CRUD; usarlo desde un modal de Pesaje compila y falla en runtime (2026-07-26, ver [[Módulo Pesaje]]).
+
+**Antes de dar por bueno un XAML nuevo**, cruzar sus `StaticResource` + los `FindResource(...)` de su code-behind contra esos tres ámbitos. Si el estilo hace falta en más de un archivo, va al diccionario del módulo o al global — nunca duplicado local.
+
+---
+
 ## Relaciones
 
 - [[Clean Architecture]] — Por qué estas reglas existen
 - [[SOLID]] — Los principios detrás de las convenciones
 - [[CommunityToolkit.Mvvm]] — Herramienta para los ViewModels
+- [[Módulo Pesaje]] — caso real del error de recurso XAML en runtime

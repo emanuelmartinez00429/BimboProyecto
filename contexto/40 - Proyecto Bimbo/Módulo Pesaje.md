@@ -141,6 +141,18 @@ CapaUI/.../Pantallas/Pesaje/
   Modales/ReporteModal                  — cierre de camión
 ```
 
+## Estilos de los modales
+
+Los modales de Pesaje comparten `Modales/PesajeModalStyles.xaml` (prefijo `M`): `MLabel`, `MInput`, `MCombo`, `MSegBtn`, `GhostBtn`, `SolidBtn`, `CloseBtn` y los iconos `MIcoX`.
+
+> [!bug] `ModalSegBtn` NO existe acá — es `MSegBtn`
+> Los modales CRUD (Categoría, Empleado, Producto…) definen `ModalSegBtn` **localmente** en sus propias `UserControl.Resources`. Ese estilo **no es visible** desde los modales de Pesaje: los recursos locales de un UserControl no se comparten con otros. Usar `{StaticResource ModalSegBtn}` acá compila sin error y **revienta en runtime** con `XamlParseException: No se puede encontrar el recurso con el nombre 'ModalSegBtn'`.
+>
+> Pasó al crear `SelectorProductosModal` (2026-07-26). La solución fue agregar `MSegBtn` al diccionario compartido de Pesaje.
+
+> [!warning] El build verde NO garantiza que los StaticResource resuelvan
+> WPF resuelve `StaticResource` y `FindResource(...)` **en tiempo de ejecución**. Un `dotnet build` con 0 errores puede esconder recursos inexistentes que revientan al abrir el modal. Al crear un XAML nuevo, cruzar sus `StaticResource` contra: sus propias `Resources`, el diccionario que importe, y `CapaUI/Resources/Styles.xaml` (global vía `App.xaml`).
+
 ## Deuda técnica conocida
 
 - **Tara plana vs por bulto** (arriba) y **catálogo de taras con datos de prueba**.
