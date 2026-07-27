@@ -1,70 +1,111 @@
 ---
-title: Módulo Empleados
-tags:
-  - modulo
-  - empleados
-  - wip
+title: "Módulo Empleados"
+tags: [bimbo, modulo, empleados, crud]
 date: 2026-07-26
 ---
 
 # Módulo Empleados
 
-> [!warning] Solo lectura — en revisión
-> Creado el 2026-07-26 a pedido explícito de Fernando: **la lista, el buscador y los modales de Ver/Crear están completamente funcionales, pero el botón Guardar (y "Cambiar Estado") NO persisten nada.** Es intencional — Fernando necesita revisar algo del modelo de Empleados antes de habilitar la escritura. Ver [[Sesión 2026-07-26 - Módulo Empleados (solo lectura)]].
+> CRUD completo de empleados: crear, editar, cambiar estado. Los empleados están vinculados al módulo de Usuarios — desde Empleados se puede crear un usuario para un empleado seleccionado.
 
----
+## Tabla `empleados` (Supabase)
 
-## Qué funciona
+| Columna | Tipo | Notas |
+|---------|------|-------|
+| `id_empleado` | int (PK) | Auto-increment |
+| `nombre_empleado` | varchar | |
+| `apellido_empleado` | varchar | |
+| `numero_identidad` | varchar | |
+| `telefono_empleado` | varchar | |
+| `correo_empleado` | varchar | |
+| `id_estado` | int | 1 = activo, 2 = inactivo |
+| `created_at` | timestamptz | |
+| `updated_at` | timestamptz | |
 
-- Listado paginado (50/página), stats TOTAL/ACTIVOS/INACTIVOS reales.
-- Buscador `SuggestionSearchBox` (nombre, apellido, número de identidad) — mismo patrón que Usuarios/Categorías, con popup, teclado y mouse.
-- Filtro por estado (Activos/Inactivos/Todos).
-- Navegación cross-page al seleccionar una sugerencia que está en otra página.
-- Modal `EmpleadoModal` abre y **muestra datos reales** al hacer doble-click o "Editar"; abre vacío al hacer "Nuevo".
+## Archivos del Módulo
 
-## Qué NO funciona (a propósito)
-
-- `EmpleadoModal.BtnGuardar_Click` no llama a ningún repositorio — solo muestra un `MessageBox` informativo ("Guardado deshabilitado temporalmente — módulo en revisión").
-- `EmpleadosViewModel.ToggleEstadoCommand` tampoco persiste — solo escribe en `ErrorCarga` el mismo aviso.
-- `IEmpleadoRepository` **no expone** `CreateAsync`/`UpdateAsync`/`CambiarEstadoAsync` todavía — a propósito, para que sea imposible escribir por accidente mientras el módulo está en revisión.
-
-## Archivos clave
-
-### CapaAplicacion4/Empleados/
+### CapaAplicacion
 ```
-Dtos/EmpleadoDto.cs           — IdEmpleado, NombreEmpleado, ApellidoEmpleado, NumeroIdentidad, TelefonoEmpleado, CorreoEmpleado, IdEstado
-Queries/EmpleadoFiltros.cs    — { int? IdEstado }
-Interfaces/IEmpleadoRepository.cs — GetPagedAsync, BuscarSugerenciasAsync, GetPaginaDeRegistroAsync (SOLO lectura)
-```
-
-### CapaDatos/Repositories/Empleados/
-```
-EmpleadoCrudRepository.cs — implementa IEmpleadoRepository sobre CapaDatos.Modelados.Usuarios.Empleados
+Empleados/Interfaces/IEmpleadoRepository.cs  — GetPagedAsync, BuscarSugerenciasAsync,
+                                                GetPaginaDeRegistroAsync,
+                                                CreateAsync, UpdateAsync, CambiarEstadoAsync
+Empleados/Dtos/EmpleadoDto.cs                — IdEmpleado, NombreEmpleado, ApellidoEmpleado,
+                                                NumeroIdentidad, TelefonoEmpleado, CorreoEmpleado, IdEstado
+Empleados/Queries/EmpleadoFiltros.cs         — { int? IdEstado }
 ```
 
-> [!bug] Namespace no puede ser `CapaDatos.Repositories.Empleados`
-> El modelo Supabase `CapaDatos.Modelados.Usuarios.Empleados` se usa **sin calificar** en `EmpleadoRepository.cs` (buscador universal) y `UsuarioRepository.cs`, ambos con `using CapaDatos.Modelados.Usuarios;`. Un namespace **hermano** con el mismo nombre ("Empleados") gana la resolución de C# sobre el `using` y rompe esos dos archivos con `CS0118: 'Empleados' es espacio de nombres pero se usa como tipo`. Por eso el namespace real es `CapaDatos.Repositories.GestionEmpleados` (la carpeta física sigue llamándose `Empleados/`, eso no afecta al compilador).
-
-### CapaUI/.../Pantallas/Empleados/
+### CapaDatos
 ```
-EmpleadosViewModel.cs   — mismo patrón que UsuariosViewModel (sin Realtime, sin filtro de Rol)
-EmpleadosView.xaml(.cs) — lista + SuggestionSearchBox + paginación + stats
-EmpleadoModal.xaml(.cs) — Ver/Crear; Guardar es un no-op deliberado
+Repositories/Empleados/EmpleadoCrudRepository.cs  — implementa IEmpleadoRepository
+                                                     namespace: GestionEmpleados (ver nota)
+Modelados/Usuarios/Empleados.cs                    — modelo Supabase, hereda BaseModel
+```
+
+> [!bug] Namespace: `GestionEmpleados`, no `Empleados`
+> El modelo `CapaDatos.Modelados.Usuarios.Empleados` se usa sin calificar en otros repos.
+> Un namespace hermano "Empleados" gana la resolución y rompe `CS0118`.
+
+### CapaUI
+```
+Empleados/EmpleadosViewModel.cs    — patrón UsuariosViewModel (sin Realtime, sin filtro Rol)
+Empleados/EmpleadosView.xaml(.cs)  — lista + SuggestionSearchBox + paginación + stats
+Empleados/EmpleadoModal.xaml(.cs)  — Crear + Editar + Cambiar estado
 ```
 
 ### Navegación
-- `Routes.Empleados = "empleados"` ya existía (definido para el buscador universal). Antes apuntaba a un placeholder `ConstructionVM("Gestión de Empleados", ...)` — ahora apunta a `EmpleadosVM` real (`MainViewModel.cs` + `MainWindow.xaml` DataTemplate).
-- Sidebar: botón "Gestión de Empleados" bajo el submenú Usuarios ya existía en `MainWindow.xaml`, sin cambios.
+- `Routes.Empleados = "empleados"` en `Routes.cs`
+- Botón "Gestión de Empleados" en sidebar bajo submenú Usuarios
 
-## Para habilitar la escritura más adelante
+## Data Flow
 
-1. Agregar `CreateAsync`/`UpdateAsync`/`CambiarEstadoAsync` a `IEmpleadoRepository` (mismo patrón que `ICategoriaRepository`).
-2. Implementarlos en `EmpleadoCrudRepository`.
-3. En `EmpleadoModal.xaml.cs`, reemplazar el `MessageBox` de `BtnGuardar_Click` por la llamada real al repositorio (ver `CategoriaModal.xaml.cs` como plantilla) + evento `Guardado` + suscripción en `EmpleadosView.xaml.cs`.
-4. En `EmpleadosViewModel.ToggleEstado()`, llamar al repositorio real en vez de solo escribir `ErrorCarga`.
+### Crear empleado
+```
+"+Nuevo" → EmpleadoModal(repo, null)
+    → TxtNombre, TxtApellido, TxtIdentidad, TxtTelefono, TxtCorreo (editables)
+    → RowEstado oculto
+    → BtnGuardar → Validate → EmpleadoDto → _repo.CreateAsync(dto)
+    → Insert Supabase → Guardado event → View cierra + RefrescarDatos
+```
+
+### Editar empleado
+```
+Doble clic en fila → EmpleadoModal(repo, empleadoDto)
+    → Campos pre-cargados con datos actuales
+    → RowEstado visible (RadioButtons Activo/Inactivo)
+    → BtnGuardar → Validate → EmpleadoDto → _repo.UpdateAsync(dto)
+    → Update Supabase → Guardado event → View cierra + RefrescarDatos
+```
+
+### Cambiar estado
+```
+Seleccionar fila → "Deshabilitar" button → ToggleEstadoAsync
+    → _repo.CambiarEstadoAsync(id, nuevoEstado)
+    → Update Supabase (solo id_estado) → CargarPaginaAsync
+```
+
+### Crear usuario desde empleado
+```
+Seleccionar fila → "Crear Usuario" button
+    → UsuarioModal(usuarioRepo, rolRepo, idEmpleado, nombre, correo)
+    → TxtNombre + TxtEmail readonly, pre-cargados
+    → Usuario completa: contraseña + rol
+    → RPC crear_usuario_empleado_seguro
+```
+
+## Patrones en Uso
+- [[Repository Pattern]] — EmpleadoCrudRepository hereda RepositorioBase
+- [[Result Pattern]] — TryAsync + Result<T> en todas las operaciones
+- [[Base Repository con TryAsync]] — wrapper de error handling
+- [[Módulo Productos]] — patrón canónico replicado
+
+## Preguntas Abiertas
+1. Empleados no tiene Realtime (no es crítico para catálogos)
+2. No hay filtro por rol (empleados no tienen rol — eso es de usuarios)
+3. Validación de número de identidad duplicado no implementada
 
 ## Relaciones
-
-- [[Módulo Productos]] — patrón de referencia general
-- [[Sesión 2026-07-26 - Módulo Empleados (solo lectura)]]
-- [[Arquitectura Actual]]
+- [[Módulo Usuarios]] — usuarios se crean desde empleados
+- [[Módulo Productos]] — patrón canónico replicado
+- [[Arquitectura Actual]] — estado del proyecto
+- [[Sesión 2026-07-26 - Módulo Empleados (solo lectura)]] — origen del módulo
+- [[Sesión 2026-07-26 - CRUD Completo Módulo Empleados]] — completación del CRUD

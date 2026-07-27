@@ -28,7 +28,6 @@ namespace CapaUI.Formularios.Principal.Pantallas.Usuarios
             if (_vm != null) return;
 
             _vm = App.Services.GetRequiredService<UsuariosViewModel>();
-            _vm.SolicitarNuevo   += AbrirModalNuevo;
             _vm.SolicitarEditar  += AbrirModalEditar;
             _vm.FiltrosLimpiados += OnFiltrosLimpiados;
             _vm.PropertyChanged  += OnVmPropertyChanged;
@@ -43,7 +42,6 @@ namespace CapaUI.Formularios.Principal.Pantallas.Usuarios
         private void UserControl_Unloaded(object sender, RoutedEventArgs e)
         {
             if (_vm == null) return;
-            _vm.SolicitarNuevo   -= AbrirModalNuevo;
             _vm.SolicitarEditar  -= AbrirModalEditar;
             _vm.FiltrosLimpiados -= OnFiltrosLimpiados;
             _vm.PropertyChanged  -= OnVmPropertyChanged;
@@ -271,16 +269,6 @@ namespace CapaUI.Formularios.Principal.Pantallas.Usuarios
         }
 
         // ── Modal ──────────────────────────────────────────────────────
-
-        private void AbrirModalNuevo()
-        {
-            var rolRepo       = App.Services.GetRequiredService<IRolRepository>();
-            var usuarioRepo   = App.Services.GetRequiredService<IUsuarioRepository>();
-            var modal = new UsuarioModal(usuarioRepo, rolRepo, null);
-            modal.Cerrado  += CerrarModal;
-            modal.Guardado += OnUsuarioGuardado;
-            MostrarModal(modal);
-        }
 
         private void AbrirModalEditar(UsuarioVistaDto u)
         {

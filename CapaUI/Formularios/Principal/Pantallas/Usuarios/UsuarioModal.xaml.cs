@@ -13,6 +13,10 @@ namespace CapaUI.Formularios.Principal.Pantallas.Usuarios
         private readonly IRolRepository        _rolRepo;
         private readonly UsuarioVistaDto?      _usuario;
         private readonly bool                  _esNuevo;
+        private readonly bool                  _esCreacionConEmpleado;
+        private readonly int                   _preselectedIdEmpleado;
+        private readonly string?               _preselectedNombre;
+        private readonly string?               _preselectedCorreo;
 
         public event Action? Cerrado;
         public event Action? Guardado;
@@ -30,16 +34,47 @@ namespace CapaUI.Formularios.Principal.Pantallas.Usuarios
             Loaded += OnLoaded;
         }
 
+        public UsuarioModal(
+            IUsuarioRepository usuarioRepo,
+            IRolRepository     rolRepo,
+            int                idEmpleado,
+            string             nombreEmpleado,
+            string             correoEmpleado)
+        {
+            _usuarioRepo             = usuarioRepo;
+            _rolRepo                 = rolRepo;
+            _usuario                 = null;
+            _esNuevo                 = true;
+            _esCreacionConEmpleado   = true;
+            _preselectedIdEmpleado   = idEmpleado;
+            _preselectedNombre       = nombreEmpleado;
+            _preselectedCorreo       = correoEmpleado;
+            InitializeComponent();
+            Loaded += OnLoaded;
+        }
+
         private async void OnLoaded(object sender, RoutedEventArgs e)
         {
             TxtModalContext.Text = _esNuevo ? "NUEVO REGISTRO" : "EDICIÓN";
             TxtModalTitle.Text   = _esNuevo ? "Crear usuario"  : "Editar usuario";
 
             // ── Empleados (solo al crear) ─────────────────────────────────
-            if (_esNuevo)
+            if (_esCreacionConEmpleado)
             {
-                RowEmpleado.Visibility  = Visibility.Visible;
-                RowPassword.Visibility = Visibility.Visible;
+                RowEmpleado.Visibility   = Visibility.Visible;
+                RowPassword.Visibility   = Visibility.Visible;
+                CmbEmpleado.Visibility   = Visibility.Collapsed;
+                TxtEmpleadoNombre.Visibility = Visibility.Visible;
+                TxtEmpleadoNombre.Text   = _preselectedNombre ?? "";
+                TxtEmail.Text            = _preselectedCorreo ?? "";
+                TxtEmail.IsReadOnly      = true;
+            }
+            else if (_esNuevo)
+            {
+                RowEmpleado.Visibility   = Visibility.Visible;
+                RowPassword.Visibility   = Visibility.Visible;
+                TxtEmpleadoNombre.Visibility = Visibility.Collapsed;
+                CmbEmpleado.Visibility   = Visibility.Visible;
                 var rEmp = await _usuarioRepo.ObtenerEmpleadosSinUsuarioAsync();
                 if (rEmp.Success)
                 {
@@ -154,12 +189,15 @@ namespace CapaUI.Formularios.Principal.Pantallas.Usuarios
             ComboBoxItem? empItem = null;
             if (_esNuevo)
             {
-                if (CmbEmpleado.SelectedItem is not ComboBoxItem item)
+                if (!_esCreacionConEmpleado)
                 {
-                    MostrarError("Seleccione un empleado.");
-                    return;
+                    if (CmbEmpleado.SelectedItem is not ComboBoxItem item)
+                    {
+                        MostrarError("Seleccione un empleado.");
+                        return;
+                    }
+                    empItem = item;
                 }
-                empItem = item;
 
                 if (TxtPassword.Password.Length < 6)
                 {
@@ -181,7 +219,9 @@ namespace CapaUI.Formularios.Principal.Pantallas.Usuarios
             {
                 if (_esNuevo)
                 {
-                    int idEmp = (int)empItem.Tag;
+                    int idEmp = _esCreacionConEmpleado
+                        ? _preselectedIdEmpleado
+                        : (int)empItem!.Tag;
                     string email = TxtEmail.Text.Trim();
 
                     var dto = new CrearUsuarioDto

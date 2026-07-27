@@ -12,9 +12,7 @@ public enum EstadoEmpleadoFilter { Activos, Inactivos, Todos }
 /// <summary>
 /// ViewModel del formulario de Empleados. Paginación server-side, búsqueda con
 /// sugerencias y filtro por estado — mismo patrón que Usuarios/Categorías.
-/// Solo lectura por ahora: Nuevo/Editar abren el modal para revisión, pero
-/// Guardar y Cambiar Estado no persisten nada (módulo en revisión, ver
-/// Sesión 2026-07-26 - Módulo Empleados (solo lectura)).
+/// CRUD completo: crear, editar y cambiar estado.
 /// </summary>
 public partial class EmpleadosViewModel : ObservableObject, IDisposable
 {
@@ -38,6 +36,7 @@ public partial class EmpleadosViewModel : ObservableObject, IDisposable
     [NotifyPropertyChangedFor(nameof(HaySeleccionado), nameof(TextoSeleccionado))]
     [NotifyCanExecuteChangedFor(nameof(EditarCommand))]
     [NotifyCanExecuteChangedFor(nameof(ToggleEstadoCommand))]
+    [NotifyCanExecuteChangedFor(nameof(CrearUsuarioCommand))]
     private EmpleadoDto? _seleccionado;
 
     [ObservableProperty]
@@ -116,6 +115,7 @@ public partial class EmpleadosViewModel : ObservableObject, IDisposable
     // ── Eventos ────────────────────────────────────────────────────────
     public event Action?              SolicitarNuevo;
     public event Action<EmpleadoDto>? SolicitarEditar;
+    public event Action<EmpleadoDto>? SolicitarCrearUsuario;
     public event Action?              FiltrosLimpiados;
 
     // ── Constructor ────────────────────────────────────────────────────
@@ -252,7 +252,7 @@ public partial class EmpleadosViewModel : ObservableObject, IDisposable
         await CargarPaginaAsync();
     }
 
-    // ── Comandos CRUD (Nuevo/Editar solo abren el modal — ver docstring) ─
+    // ── Comandos CRUD ──────────────────────────────────────────────────
     [RelayCommand]
     private void Nuevo() => SolicitarNuevo?.Invoke();
 
@@ -262,14 +262,24 @@ public partial class EmpleadosViewModel : ObservableObject, IDisposable
         if (Seleccionado is not null) SolicitarEditar?.Invoke(Seleccionado);
     }
 
+    [RelayCommand(CanExecute = nameof(HaySeleccionado))]
+    private void CrearUsuario() => SolicitarCrearUsuario?.Invoke(Seleccionado!);
+
     /// <summary>
-    /// Deshabilitado a propósito: el módulo está en revisión (ver docstring de
-    /// la clase). No llama al repositorio — solo informa en vez de ejecutar.
+    /// Cambia el estado del empleado seleccionado entre activo (1) e inactivo (2).
     /// </summary>
     [RelayCommand(CanExecute = nameof(HaySeleccionado))]
-    private void ToggleEstado()
+    private async Task ToggleEstadoAsync()
     {
-        ErrorCarga = "Edición deshabilitada temporalmente — módulo en revisión.";
+        if (Seleccionado is null) return;
+        int nuevoEstado = Seleccionado.IdEstado == 1 ? 2 : 1;
+        var r = await _repo.CambiarEstadoAsync(Seleccionado.IdEmpleado, nuevoEstado);
+        if (!r.Success)
+        {
+            ErrorCarga = r.Error;
+            return;
+        }
+        await CargarPaginaAsync();
     }
 
     [RelayCommand]

@@ -652,17 +652,6 @@
         <!-- ROW 5: ACTION BUTTONS -->
         <DockPanel Grid.Row="5" Margin="0,4,0,14" LastChildFill="False">
             <StackPanel DockPanel.Dock="Left" Orientation="Horizontal">
-                <Button Command="{Binding NuevoCommand}" Background="#16A34A"
-                        Style="{StaticResource ActionBtn}" Padding="22,0" Margin="0,0,8,0">
-                    <StackPanel Orientation="Horizontal">
-                        <Path Data="{StaticResource IconPlus}"
-                              Stroke="White" StrokeThickness="2.2"
-                              StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                              Width="15" Height="15" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center"/>
-                        <TextBlock Text="Nuevo" FontFamily="Segoe UI" FontSize="13.5" FontWeight="SemiBold"
-                                   Foreground="White" VerticalAlignment="Center"/>
-                    </StackPanel>
-                </Button>
                 <Button Command="{Binding EditarCommand}" Background="#1E3A8A"
                         Style="{StaticResource ActionBtn}" Padding="22,0">
                     <StackPanel Orientation="Horizontal">

@@ -153,6 +153,26 @@ Los backups que genera cada recoloreo (`graph.json.backup-*`) están gitignoread
 Claude tiene skills (`wiki-query`, `wiki-capture`, `wiki-update`) que automatizan búsqueda y captura. **Los demás agentes ignoran esta sección** y trabajan con markdown plano siguiendo las reglas de arriba — el resultado es el mismo. Las skills nunca son requisito para contribuir.
 
 ---
+## 10. Regla de fuente de verdad (CRÍTICO)
+- El contenido de los archivos del vault (contexto/ y vault anterior) es 
+  SIEMPRE la única fuente de verdad. Tu memoria de conversaciones o 
+  sesiones anteriores NUNCA tiene prioridad sobre el contenido actual 
+  de un archivo.
+
+- Antes de responder cualquier pregunta sobre el estado del proyecto, 
+  DEBES releer el archivo relevante en ese momento, incluso si crees 
+  que ya lo leíste antes en esta misma sesión o en una anterior. 
+  No asumas que el contenido sigue igual.
+
+- Si tu respuesta se basa en algo que "recuerdas" haber dicho o leído 
+  antes pero no puedes confirmarlo releyendo el archivo actual ahora 
+  mismo, dilo explícitamente: "esto lo recuerdo de antes pero no lo 
+  he verificado releyendo el archivo actual."
+
+- Nunca inventes contenido de una nota que no puedas ubicar o releer. 
+  Si no encuentras el archivo o la sección, dilo — no rellenes con 
+  una versión "reconstruida" de memoria.
+
 
 ## Relaciones
 

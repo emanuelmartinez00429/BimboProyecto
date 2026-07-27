@@ -379,6 +379,23 @@ Workaround documentado con comentario en el código: `Count() no aplica filtros 
 
 ---
 
+### P-022 · `UsuarioModal` tiene 3 constructores, el original con ComboBox está muerto
+
+**Archivo:** `CapaUI/.../Usuarios/UsuarioModal.xaml.cs`
+
+Tras el refactor del flujo de creación (Sesión 2026-07-26), el `UsuarioModal` tiene 3 constructores:
+1. `(repo, rolRepo, usuario)` — edición (activo)
+2. `(repo, rolRepo, null)` — creación original con ComboBox de empleados (**muerto**, nadie lo llama)
+3. `(repo, rolRepo, idEmpleado, nombre, correo)` — creación desde Empleados (activo)
+
+El constructor #2 y todo el código del `OnLoaded` que carga `ObtenerEmpleadosSinUsuarioAsync()` es código muerto.
+
+**Riesgo:** Confunde a quien lea el código. El ComboBox de empleados ya no se muestra desde ningún lado.
+
+**Estado:** `[ ] Limpiar constructor muerto y código de CmbEmpleado`
+
+---
+
 ### P-008 · Mapeo tabla→PK en `RealtimeService` es manual
 
 **Archivo:** `CapaDatos/Realtime/RealtimeService.cs`

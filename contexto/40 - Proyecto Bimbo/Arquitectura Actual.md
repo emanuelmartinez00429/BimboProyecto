@@ -152,7 +152,8 @@ ProductosViewModel : RealtimeAwareViewModel
 | [[Módulo Contactos (Drill-down)\|Contactos Fabricantes]] | ✅ Completo | ContactosFabricantesView, ContactosFabricantesViewModel, ContactoFabricanteCrudRepository |
 | [[Módulo Contactos (Drill-down)\|Contactos Proveedores]] | ✅ Completo | ContactosProveedoresView, ContactosProveedoresViewModel, ContactoProveedorCrudRepository |
 | [[Buscador Universal Bimbo]] | ✅ Completo | Multi-entidad con Strategy + Mediator |
-| [[Módulo Empleados]] | 🟡 Solo lectura (2026-07-26) | EmpleadosView, EmpleadosViewModel, EmpleadoCrudRepository — Guardar/Cambiar Estado son no-op a propósito |
+| [[Módulo Usuarios]] | ✅ Completo (2026-07-23, refactor 2026-07-26) | UsuariosView, UsuariosViewModel, UsuarioRepository, UsuarioSesionService — CRUD + auth + permisos desde BD |
+| [[Módulo Empleados]] | ✅ Completo (2026-07-26) | EmpleadosView, EmpleadosViewModel, EmpleadoCrudRepository — CRUD completo, crea usuario desde empleado |
 | [[Módulo Bitácora]] | ✅ Completo (2026-07-26) | BitacoraView, BitacoraViewModel, BitacoraCrudRepository — solo lectura **por diseño** (auditoría), filtros usuario/módulo/acción/fecha |
 
 ### Navegación entre módulos

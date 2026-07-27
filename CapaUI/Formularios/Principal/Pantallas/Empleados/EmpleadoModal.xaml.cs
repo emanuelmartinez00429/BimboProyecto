@@ -1,3 +1,4 @@
+using CapaAplicacion.Common;
 using CapaAplicacion.Empleados.Dtos;
 using CapaAplicacion.Empleados.Interfaces;
 using System;
@@ -7,10 +8,7 @@ using System.Windows.Media.Imaging;
 namespace CapaUI.Formularios.Principal.Pantallas.Empleados
 {
     /// <summary>
-    /// Modal de Empleados — solo lectura por ahora. Carga y muestra los datos
-    /// correctamente (ver/crear), pero <see cref="BtnGuardar_Click"/> es un
-    /// no-op deliberado: el módulo está en revisión y no debe persistir nada
-    /// todavía. Ver Sesión 2026-07-26 - Módulo Empleados (solo lectura).
+    /// Modal de Empleados — crear y editar registros.
     /// </summary>
     public partial class EmpleadoModal : System.Windows.Controls.UserControl
     {
@@ -19,6 +17,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Empleados
         private readonly bool                _esNuevo;
 
         public event Action? Cerrado;
+        public event Action? Guardado;
 
         public EmpleadoModal(IEmpleadoRepository repo, EmpleadoDto? empleado)
         {
@@ -62,15 +61,59 @@ namespace CapaUI.Formularios.Principal.Pantallas.Empleados
 
         private void BtnCerrar_Click(object sender, RoutedEventArgs e) => Cerrado?.Invoke();
 
-        /// <summary>
-        /// Deshabilitado a propósito (ver docstring de la clase): no llama a
-        /// <see cref="_repo"/> ni persiste ningún cambio. Solo informa.
-        /// </summary>
-        private void BtnGuardar_Click(object sender, RoutedEventArgs e)
+        private async void BtnGuardar_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show(
-                "Guardado deshabilitado temporalmente — módulo en revisión.",
-                "Módulo en revisión", MessageBoxButton.OK, MessageBoxImage.Information);
+            if (string.IsNullOrWhiteSpace(TxtNombre.Text) || string.IsNullOrWhiteSpace(TxtApellido.Text))
+            {
+                MessageBox.Show("Nombre y apellido son obligatorios.", "Validacion",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            BtnGuardar.IsEnabled = false;
+            try
+            {
+                var dto = new EmpleadoDto
+                {
+                    IdEmpleado       = _esNuevo ? 0 : _empleado!.IdEmpleado,
+                    NombreEmpleado   = TxtNombre.Text.Trim(),
+                    ApellidoEmpleado = TxtApellido.Text.Trim(),
+                    NumeroIdentidad  = TxtIdentidad.Text.Trim(),
+                    TelefonoEmpleado = TxtTelefono.Text.Trim(),
+                    CorreoEmpleado   = TxtCorreo.Text.Trim(),
+                    IdEstado         = RbActivo.IsChecked == true ? 1 : 2,
+                };
+
+                if (_esNuevo)
+                {
+                    var r = await _repo.CreateAsync(dto);
+                    if (!r.Success)
+                    {
+                        MessageBox.Show(r.Error, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                        return;
+                    }
+                }
+                else
+                {
+                    var r = await _repo.UpdateAsync(dto);
+                    if (!r.Success)
+                    {
+                        MessageBox.Show(r.Error, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                        return;
+                    }
+                }
+
+                Guardado?.Invoke();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error inesperado: " + ex.Message, "Error",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            finally
+            {
+                BtnGuardar.IsEnabled = true;
+            }
         }
     }
 }

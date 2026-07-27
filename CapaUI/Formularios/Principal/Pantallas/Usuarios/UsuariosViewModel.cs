@@ -128,7 +128,6 @@ public partial class UsuariosViewModel : ObservableObject, IDisposable
     }
 
     // ── Eventos ────────────────────────────────────────────────────────
-    public event Action?                 SolicitarNuevo;
     public event Action<UsuarioVistaDto>? SolicitarEditar;
     public event Action?                 FiltrosLimpiados;
 
@@ -263,9 +262,6 @@ public partial class UsuariosViewModel : ObservableObject, IDisposable
     }
 
     // ── Comandos CRUD ──────────────────────────────────────────────────
-    [RelayCommand]
-    private void Nuevo() => SolicitarNuevo?.Invoke();
-
     [RelayCommand(CanExecute = nameof(HaySeleccionado))]
     private void Editar()
     {

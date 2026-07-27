@@ -7,7 +7,9 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using CapaAplicacion.Empleados.Dtos;
 using CapaAplicacion.Empleados.Interfaces;
+using CapaAplicacion.Usuarios.Interfaces;
 using CapaUI.Core.Controls;
+using CapaUI.Formularios.Principal.Pantallas.Usuarios;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace CapaUI.Formularios.Principal.Pantallas.Empleados
@@ -28,10 +30,11 @@ namespace CapaUI.Formularios.Principal.Pantallas.Empleados
             if (_vm != null) return;
 
             _vm = App.Services.GetRequiredService<EmpleadosViewModel>();
-            _vm.SolicitarNuevo   += AbrirModalNuevo;
-            _vm.SolicitarEditar  += AbrirModalEditar;
-            _vm.FiltrosLimpiados += OnFiltrosLimpiados;
-            _vm.PropertyChanged  += OnVmPropertyChanged;
+            _vm.SolicitarNuevo       += AbrirModalNuevo;
+            _vm.SolicitarEditar      += AbrirModalEditar;
+            _vm.SolicitarCrearUsuario += AbrirModalCrearUsuario;
+            _vm.FiltrosLimpiados     += OnFiltrosLimpiados;
+            _vm.PropertyChanged      += OnVmPropertyChanged;
 
             DataContext = _vm;
             DgEmpleados.ItemsSource = _vm.PageRows;
@@ -42,10 +45,11 @@ namespace CapaUI.Formularios.Principal.Pantallas.Empleados
         private void UserControl_Unloaded(object sender, RoutedEventArgs e)
         {
             if (_vm == null) return;
-            _vm.SolicitarNuevo   -= AbrirModalNuevo;
-            _vm.SolicitarEditar  -= AbrirModalEditar;
-            _vm.FiltrosLimpiados -= OnFiltrosLimpiados;
-            _vm.PropertyChanged  -= OnVmPropertyChanged;
+            _vm.SolicitarNuevo       -= AbrirModalNuevo;
+            _vm.SolicitarEditar      -= AbrirModalEditar;
+            _vm.SolicitarCrearUsuario -= AbrirModalCrearUsuario;
+            _vm.FiltrosLimpiados     -= OnFiltrosLimpiados;
+            _vm.PropertyChanged      -= OnVmPropertyChanged;
             _vm.Dispose();
             DataContext = null;
             _vm = null!;
@@ -253,7 +257,8 @@ namespace CapaUI.Formularios.Principal.Pantallas.Empleados
         {
             var repo  = App.Services.GetRequiredService<IEmpleadoRepository>();
             var modal = new EmpleadoModal(repo, null);
-            modal.Cerrado += CerrarModal;
+            modal.Cerrado  += CerrarModal;
+            modal.Guardado += OnEmpleadoGuardado;
             MostrarModal(modal);
         }
 
@@ -261,7 +266,19 @@ namespace CapaUI.Formularios.Principal.Pantallas.Empleados
         {
             var repo  = App.Services.GetRequiredService<IEmpleadoRepository>();
             var modal = new EmpleadoModal(repo, empleado);
-            modal.Cerrado += CerrarModal;
+            modal.Cerrado  += CerrarModal;
+            modal.Guardado += OnEmpleadoGuardado;
+            MostrarModal(modal);
+        }
+
+        private void AbrirModalCrearUsuario(EmpleadoDto emp)
+        {
+            var rolRepo     = App.Services.GetRequiredService<IRolRepository>();
+            var usuarioRepo = App.Services.GetRequiredService<IUsuarioRepository>();
+            var modal = new UsuarioModal(usuarioRepo, rolRepo,
+                emp.IdEmpleado, emp.NombreEmpleado, emp.CorreoEmpleado);
+            modal.Cerrado  += CerrarModal;
+            modal.Guardado += OnUsuarioGuardado;
             MostrarModal(modal);
         }
 
@@ -276,6 +293,18 @@ namespace CapaUI.Formularios.Principal.Pantallas.Empleados
         {
             ModalOverlay.Visibility = Visibility.Collapsed;
             ModalContent.Content    = null;
+        }
+
+        private void OnUsuarioGuardado()
+        {
+            CerrarModal();
+            _vm.RefrescarDatos();
+        }
+
+        private void OnEmpleadoGuardado()
+        {
+            CerrarModal();
+            _vm.RefrescarDatos();
         }
     }
 }

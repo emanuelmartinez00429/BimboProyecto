@@ -674,6 +674,17 @@
                                    Foreground="White" VerticalAlignment="Center"/>
                     </StackPanel>
                 </Button>
+                <Button Command="{Binding CrearUsuarioCommand}" Background="#7C3AED"
+                        Style="{StaticResource ActionBtn}" Padding="22,0" Margin="8,0,0,0">
+                    <StackPanel Orientation="Horizontal">
+                        <Path Data="{StaticResource IconUser}"
+                              Stroke="White" StrokeThickness="2.2"
+                              StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                              Width="15" Height="15" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="Crear Usuario" FontFamily="Segoe UI" FontSize="13.5" FontWeight="SemiBold"
+                                   Foreground="White" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
             </StackPanel>
 
             <StackPanel DockPanel.Dock="Left" x:Name="SelectedInfo"

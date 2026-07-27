@@ -45,6 +45,50 @@ public class EmpleadoCrudRepository : RepositorioBase, IEmpleadoRepository
         int id, int size, EmpleadoFiltros filtros, CancellationToken ct = default) =>
         TryAsync(() => GetPaginaDeRegistroInternal(id, size, filtros), "Calcular página de empleado");
 
+    // ── Escritura ──────────────────────────────────────────────────────
+
+    public Task<Result<int>> CreateAsync(EmpleadoDto dto, CancellationToken ct = default) =>
+        TryAsync(async () =>
+        {
+            var client = await ConexionSupabase.GetClientAsync();
+            var nuevo = new CapaDatos.Modelados.Usuarios.Empleados
+            {
+                nombreEmpleado   = dto.NombreEmpleado,
+                apellidoEmpleado = dto.ApellidoEmpleado,
+                numeroIdentidad  = dto.NumeroIdentidad,
+                telefonoEmpleado = dto.TelefonoEmpleado,
+                correoEmpleado   = dto.CorreoEmpleado,
+                idEstado         = dto.IdEstado,
+            };
+            var resultado = await client.From<CapaDatos.Modelados.Usuarios.Empleados>().Insert(nuevo);
+            return resultado.Models.First().idEmpleado;
+        }, "Crear empleado");
+
+    public Task<Result> UpdateAsync(EmpleadoDto dto, CancellationToken ct = default) =>
+        TryAsync(async () =>
+        {
+            var client = await ConexionSupabase.GetClientAsync();
+            await client.From<CapaDatos.Modelados.Usuarios.Empleados>()
+                .Where(e => e.idEmpleado == dto.IdEmpleado)
+                .Set(e => e.nombreEmpleado,   dto.NombreEmpleado)
+                .Set(e => e.apellidoEmpleado, dto.ApellidoEmpleado)
+                .Set(e => e.numeroIdentidad,  dto.NumeroIdentidad)
+                .Set(e => e.telefonoEmpleado, dto.TelefonoEmpleado)
+                .Set(e => e.correoEmpleado,   dto.CorreoEmpleado)
+                .Set(e => e.idEstado,         dto.IdEstado)
+                .Update();
+        }, "Actualizar empleado");
+
+    public Task<Result> CambiarEstadoAsync(int id, int nuevoEstado, CancellationToken ct = default) =>
+        TryAsync(async () =>
+        {
+            var client = await ConexionSupabase.GetClientAsync();
+            await client.From<CapaDatos.Modelados.Usuarios.Empleados>()
+                .Where(e => e.idEmpleado == id)
+                .Set(e => e.idEstado, nuevoEstado)
+                .Update();
+        }, "Cambiar estado empleado");
+
     // ── Lógica interna ──────────────────────────────────────────────────────
 
     private async Task<PagedResult<EmpleadoDto>> GetPagedInternal(int page, int size, EmpleadoFiltros filtros)
