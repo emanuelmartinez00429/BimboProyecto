@@ -211,20 +211,39 @@ query.Or(new List<IPostgrestQueryFilter>
 ## Búsqueda con sugerencias (ProductosView)
 
 - El buscador es **siempre** `controls:SuggestionSearchBox`, nunca un `TextBox` plano
-- Debounce 300ms via `CancellationTokenSource` en el ViewModel
-- Highlight via `ListBox` + `SelectedIndex="{Binding HighlightIndex, Mode=OneWay}"` + triggers `IsSelected`/`IsMouseOver`. `VisualTreeHelper` fue eliminado al resolver P-005 (2026-05-28); `OneWay` es deliberado — en `TwoWay`, cambiar el `ItemsSource` reescribiría `HighlightIndex` en el VM
-- El switch de `OnVmPropertyChanged` debe tener **los dos** `case`:
+- **No hay code-behind de sugerencias.** El ViewModel expone una sola propiedad ya mapeada y el control se bindea directo:
 
 ```csharp
-case nameof(Vm.Suggestions):     ActualizarSuggestions(); break;
-case nameof(Vm.ShowSuggestions): ActualizarSuggestions(); break;
+[ObservableProperty] private IReadOnlyList<SuggestionItemData>? _suggestItems;  // null o vacía = popup cerrado
+private readonly SuggestionDebouncer _buscador = new();
+
+private Task RefrescarSugerenciasAsync() => _buscador.EjecutarAsync(
+    _query,
+    async (q, ct) =>
+    {
+        var r = await _repo.BuscarSugerenciasAsync(q, BuildFiltros(), ct);
+        return r.Success ? r.Value!.Select(Map).ToList() : null;
+    },
+    items => { SuggestItems = items; HighlightIndex = -1; });
+
+private static SuggestionItemData Map(ProductoDto p) => new() { … };
 ```
 
-  `ShowSuggestions` es un `bool`: no notifica cuando el valor no cambia, así que con el popup abierto queda pegado en `true` y la lista se congela en el término anterior. `Suggestions` es una instancia nueva de `ObservableCollection` en cada búsqueda → siempre notifica. `ShowSuggestions` se conserva porque el camino de error del repositorio no reasigna la colección.
-- `SeleccionarSugerencia(...)` debe empezar con `_searchCts?.Cancel()`: asigna al campo `_query` y no a la propiedad, así que no pasa por el setter y el debounce en vuelo quedaría vivo reabriendo el popup
+```xml
+<controls:SuggestionSearchBox
+    Query="{Binding Query, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+    SuggestItems="{Binding SuggestItems}"
+    HighlightIndex="{Binding HighlightIndex, Mode=TwoWay}"
+    ItemSelected="SearchBox_ItemSelected"/>
+```
+
+- Debounce 300ms en `CapaUI/Core/Controls/SuggestionDebouncer.cs` — **un solo lugar** para los 9 módulos. Por composición, no herencia (los VMs heredan de bases distintas). Liberar con `_buscador.Dispose()` en `OnDispose()`/`Dispose()`
+- Lo único que varía por módulo: la lambda (qué repositorio) y `Map` (cómo se ve la sugerencia)
+- `SeleccionarSugerencia(...)` debe empezar con `_buscador.Cancelar()`: asigna al campo `_query` y no a la propiedad, así que no pasa por el setter y el debounce en vuelo quedaría vivo reabriendo el popup
+- Highlight via `ListBox` + `SelectedIndex="{Binding HighlightIndex, Mode=OneWay}"` + triggers `IsSelected`/`IsMouseOver`. `VisualTreeHelper` fue eliminado al resolver P-005 (2026-05-28); `OneWay` es deliberado — en `TwoWay`, cambiar el `ItemsSource` reescribiría `HighlightIndex` en el VM
 - Al seleccionar sugerencia: buscar en `PageRows` por `Id`, **NO insertar** en la colección
-- `SeleccionarSugerencia(ProductoDto p)` → `PageRows.FirstOrDefault(x => x.Id == p.Id)`
 - El ViewModel **no pre-selecciona**: `HighlightIndex = -1` siempre al llegar sugerencias nuevas
+- ⚠️ **Nunca** exponer un `bool ShowSuggestions` como señal de "mostrar el popup": `[ObservableProperty]` no notifica cuando el valor no cambia, y el popup se congela. Una sola señal (`SuggestItems`) — ver P-026
 
 ---
 

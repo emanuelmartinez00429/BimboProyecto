@@ -467,9 +467,14 @@ El control compartido resolvió la duplicación del **XAML** y del comportamient
 
 Es la misma familia que **P-006** (lógica acoplada al ViewModel que se copia entre módulos).
 
-**Solución candidata:** una interfaz `ISuggestionHost` (o una clase base de ViewModel) que exponga `Suggestions`/`ShowSuggestions`/`HighlightIndex` + un `Func<object, SuggestionItemData>` de mapeo, para que el control se enganche por binding y desaparezca el code-behind por pantalla. Requiere tocar las 9 — hacer solo junto a otro refactor del área, no aislado.
+**Solución aplicada (2026-07-28), en dos pasos:**
 
-**Estado:** `[ ] Pendiente — aceptada mientras no haya otro refactor del buscador`
+1. **Binding directo.** `Suggestions` + `ShowSuggestions` (que nunca se bindeaban en XAML — eran plomería del acoplamiento) se reemplazaron por una sola propiedad `SuggestItems` ya mapeada, bindeada desde el XAML. Desaparecieron los 9 `ActualizarSuggestions()` y los `case` del switch. El mapeo `DTO → SuggestionItemData` se mudó al ViewModel como método `Map` estático.
+2. **`SuggestionDebouncer` compartido.** `CapaUI/Core/Controls/SuggestionDebouncer.cs` encapsula el `CancellationTokenSource`, el `Task.Delay(300)`, los guards y el `catch (OperationCanceledException)`. Se usa por **composición** — 5 de los 9 VMs heredan de `RealtimeAwareViewModel` y 4 de `ObservableObject`, así que una clase base común no era opción.
+
+Por módulo queda solo lo que genuinamente varía: qué repositorio llamar y cómo se ve una sugerencia.
+
+**Estado:** `[x] Resuelto 2026-07-28` — ver [[Sesión 2026-07-28 - Refactor del Buscador de Sugerencias (P-026)]]
 
 ---
 
@@ -501,7 +506,7 @@ Es la misma familia que **P-006** (lógica acoplada al ViewModel que se copia en
 | P-023 | Catálogo de taras con datos de prueba | `[ ]` Pendiente 🔴 | [[Sesión 2026-07-26 - Rediseño del flujo de Pesajes]] |
 | P-024 | Tara plana (trigger) vs por bulto (bultos teóricos) | `[ ]` Pendiente | [[Sesión 2026-07-26 - Rediseño del flujo de Pesajes]] |
 | P-025 | Repositorios de movimientos duplicados sin uso | `[ ]` Pendiente | [[Sesión 2026-07-26 - Rediseño del flujo de Pesajes]] |
-| P-026 | Puente VM → SuggestionSearchBox duplicado 9× | `[ ]` Pendiente | [[Sesión 2026-07-28 - Fix Refresco del Popup de Sugerencias (9 módulos)]] |
+| P-026 | Puente VM → SuggestionSearchBox duplicado 9× | ✅ Resuelto | [[Sesión 2026-07-28 - Refactor del Buscador de Sugerencias (P-026)]] |
 
 ---
 
@@ -513,3 +518,4 @@ Es la misma familia que **P-006** (lógica acoplada al ViewModel que se copia en
 - [[Sesión 2026-07-23 - Reconciliación Animación Sidebar (ContentAreaBorder) y Regresión BrandBlock]] — origen de P-009 a P-012
 - [[Sesión 2026-07-23 - Revisión QA Módulo Usuarios y Refactor de Sesión (Emanuel)]] — origen de P-013 a P-021
 - [[Sesión 2026-07-28 - Fix Refresco del Popup de Sugerencias (9 módulos)]] — origen de P-026
+- [[Sesión 2026-07-28 - Refactor del Buscador de Sugerencias (P-026)]] — resolución de P-026

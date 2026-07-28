@@ -75,12 +75,12 @@ UserControl_Loaded
 ```
 TxtBusqueda.TextChanged
     ↓ _vm.Query = text
-    ↓ RefrescarSugerenciasAsync() [debounce 300ms, cancela token previo]
+    ↓ RefrescarSugerenciasAsync() → _buscador.EjecutarAsync(...)
+                                    [SuggestionDebouncer: 300ms, cancela el anterior]
     ↓ _repo.BuscarSugerenciasAsync(q, filtros)   ← ILike server-side, Limit 10
-    → Suggestions: ObservableCollection<ProductoDto>   ← instancia nueva: siempre notifica
-    ↓ ShowSuggestions = results.Count > 0
-    ↓ View: case Suggestions | ShowSuggestions → ActualizarSuggestions()
-    ↓ SearchBox.SuggestItems = ... → SuggestionsPopup.IsOpen = true
+    → SuggestItems = results.Select(Map).ToList()   ← una sola señal, ya mapeada
+    ↓ binding SuggestItems="{Binding SuggestItems}"
+    ↓ SuggestionSearchBox.OnSuggestItemsChanged → SuggestionsPopup.IsOpen = true
 
 Enter / Click
     ↓ SeleccionarSugerencia(ProductoDto p)
@@ -278,19 +278,48 @@ Lifecycle del canal:
 > [!warning] CanUserAddRows="False"
 > Todos los DataGrid deben tener esta propiedad para evitar filas inline.
 
-> [!danger] El wiring VM → control necesita **dos** `case`, no uno
-> En el switch de `OnVmPropertyChanged` de la vista:
+> [!tip] Patrón vigente del buscador (desde 2026-07-28)
+> Todo el wiring vive en el ViewModel + un binding. **No hay code-behind de sugerencias.**
 >
 > ```csharp
-> case nameof(ProductosViewModel.Suggestions):     ActualizarSuggestions(); break;
-> case nameof(ProductosViewModel.ShowSuggestions): ActualizarSuggestions(); break;
+> // ViewModel — una sola señal, ya mapeada. null o vacía = popup cerrado.
+> [ObservableProperty] private IReadOnlyList<SuggestionItemData>? _suggestItems;
+> private readonly SuggestionDebouncer _buscador = new();
+>
+> private Task RefrescarSugerenciasAsync() => _buscador.EjecutarAsync(
+>     _query,
+>     async (q, ct) =>
+>     {
+>         var r = await _repo.BuscarSugerenciasAsync(q, BuildFiltros(), ct);
+>         return r.Success ? r.Value!.Select(Map).ToList() : null;
+>     },
+>     items => { SuggestItems = items; HighlightIndex = -1; });
+>
+> private static SuggestionItemData Map(ProductoDto p) => new() { … };
+>
+> public void SeleccionarSugerencia(ProductoDto p)
+> {
+>     _buscador.Cancelar();       // obligatorio: _query es campo, no pasa por el setter
+>     _query = "";
+>     OnPropertyChanged(nameof(Query));
+>     SuggestItems = null;
+>     …
+> }
+>
+> protected override void OnDispose() => _buscador.Dispose();
 > ```
 >
-> Con solo `ShowSuggestions` el buscador se rompe de forma sutil: ese `bool` con `[ObservableProperty]` **no levanta `PropertyChanged` cuando el valor no cambia**, así que mientras el popup está abierto queda pegado en `true`. Cada tecleo posterior ejecuta la búsqueda y reemplaza `Suggestions`, pero `ActualizarSuggestions()` nunca corre → `SuggestItems` sigue apuntando a la lista vieja y el popup muestra los resultados del término anterior. Solo se recupera borrando todo el texto (`true → false → true`).
+> ```xml
+> <controls:SuggestionSearchBox
+>     Query="{Binding Query, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+>     SuggestItems="{Binding SuggestItems}"
+>     HighlightIndex="{Binding HighlightIndex, Mode=TwoWay}"
+>     ItemSelected="SearchBox_ItemSelected"/>
+> ```
 >
-> `Suggestions` se reasigna a una instancia nueva de `ObservableCollection` en cada búsqueda, así que siempre notifica. Se conserva `ShowSuggestions` porque el camino de error del repositorio (`if (!r.Success)`) no reasigna la colección y necesita cerrar el popup.
+> Lo único que cambia por módulo: **qué repositorio se llama** (la lambda) y **cómo se ve una sugerencia** (`Map`). En el code-behind solo queda `SearchBox_ItemSelected`, porque además hace `SeleccionarEnTabla()` — eso sí es responsabilidad de la vista.
 >
-> Además, `SeleccionarSugerencia(...)` debe empezar con `_searchCts?.Cancel()` — asigna al campo `_query`, no a la propiedad, así que no pasa por el setter y el debounce en vuelo quedaría vivo. Ver [[Sesión 2026-07-28 - Fix Refresco del Popup de Sugerencias (9 módulos)]].
+> **Por qué una sola propiedad:** antes había dos (`Suggestions` + `ObservableProperty bool ShowSuggestions`) y la vista las combinaba en un `switch`. Ese `bool` no levanta `PropertyChanged` cuando el valor no cambia, así que con el popup abierto quedaba pegado en `true` y la lista se congelaba en el término anterior. Ver [[Sesión 2026-07-28 - Fix Refresco del Popup de Sugerencias (9 módulos)]] y [[Sesión 2026-07-28 - Refactor del Buscador de Sugerencias (P-026)]].
 
 > [!warning] El buscador SIEMPRE es `controls:SuggestionSearchBox`, nunca un `TextBox` plano
 > Módulo Usuarios se construyó con un `TextBox` + `TextChanged` en vez del control compartido — mismo look-and-feel roto, sin popup ni navegación por teclado, aunque el ViewModel ya tenía `Suggestions`/`ShowSuggestions`/`HighlightIndex` listos. Se detectó y corrigió el 2026-07-26. Al replicar este módulo, verificar SIEMPRE que la vista use `<controls:SuggestionSearchBox Query="{Binding Query, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HighlightIndex="{Binding HighlightIndex, Mode=TwoWay}" ItemSelected="SearchBox_ItemSelected"/>` + mapeo `SuggestionItemData` en el code-behind — no un `TextBox` binding directo a `Query`. Ver [[Sesión 2026-07-26 - Fix Buscador Usuarios (SuggestionSearchBox)]].

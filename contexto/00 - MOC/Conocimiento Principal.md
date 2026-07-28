@@ -115,4 +115,4 @@ Regla: `CapaAplicacion` **nunca** referencia `CapaDatos`.
 ## Bitácora
 
 Las sesiones están en `70 - Bitácora de Cambios/`.  
-Sesión más reciente: [[Sesión 2026-07-28 - Fix Refresco del Popup de Sugerencias (9 módulos)]]
+Sesión más reciente: [[Sesión 2026-07-28 - Refactor del Buscador de Sugerencias (P-026)]]

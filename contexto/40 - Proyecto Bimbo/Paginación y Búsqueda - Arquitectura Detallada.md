@@ -257,23 +257,20 @@ public string PageInfo
 ```
 Usuario escribe en TxtBusqueda
     ↓ TextChanged → _vm.Query = text
-    ↓ CancellationTokenSource anterior cancelado
-    ↓ await Task.Delay(300ms, token)    ← debounce
-    ↓ _repo.BuscarSugerenciasAsync(q, BuildFiltros(), token)
+    ↓ _buscador.EjecutarAsync(...)      ← SuggestionDebouncer compartido
+         ↓ cancela la búsqueda anterior
+         ↓ await Task.Delay(300ms, ct)  ← debounce
+    ↓ _repo.BuscarSugerenciasAsync(q, BuildFiltros(), ct)
          ↓ Supabase: Filter("nombre_producto", ILike, "%q%").Limit(10)
-    → Suggestions = new ObservableCollection<ProductoDto>(results)   ← instancia NUEVA: siempre notifica
-    → ShowSuggestions = results.Count > 0
-    ↓ View.OnVmPropertyChanged → case Suggestions | ShowSuggestions
-    ↓ ActualizarSuggestions() → SearchBox.SuggestItems = List<SuggestionItemData> | null
+    → SuggestItems = results.Select(Map).ToList()    ← UNA señal, ya mapeada
+    ↓ binding SuggestItems="{Binding SuggestItems}"
     → SuggestionSearchBox.OnSuggestItemsChanged → Popup visible
 ```
 
-> [!danger] La vista debe escuchar `Suggestions`, no solo `ShowSuggestions`
-> `ShowSuggestions` es un `bool` con `[ObservableProperty]`: **no levanta `PropertyChanged` cuando el valor no cambia**. Con el popup ya abierto queda pegado en `true`, así que si es el único `case` del switch, cada tecleo posterior ejecuta la búsqueda, reemplaza `Suggestions`… y muere ahí. `SuggestItems` nunca se reasigna y la lista visible queda congelada en el término anterior.
+> [!danger] Una sola señal, nunca un `bool` de "mostrar"
+> El diseño original tenía **dos** propiedades (`Suggestions` + `ShowSuggestions`) para un solo hecho, y la vista las combinaba a mano en el `switch` de `OnVmPropertyChanged`. `ShowSuggestions` era un `bool` con `[ObservableProperty]`, que **no levanta `PropertyChanged` cuando el valor no cambia**: con el popup abierto quedaba pegado en `true`, la búsqueda corría, `Suggestions` se reemplazaba… y moría ahí. La lista visible se congelaba en el término anterior y solo se recuperaba borrando todo el texto.
 >
-> Se mantienen **los dos** `case`: `Suggestions` cubre el refresco continuo (siempre es una instancia nueva de `ObservableCollection` → comparación por referencia → siempre notifica), y `ShowSuggestions` cubre el camino de error del repositorio, que no reasigna la colección pero sí debe cerrar el popup.
->
-> Corregido el 2026-07-28 en las 9 pantallas. Ver [[Sesión 2026-07-28 - Fix Refresco del Popup de Sugerencias (9 módulos)]].
+> Desde 2026-07-28 el ViewModel expone **`SuggestItems` y nada más** (ya mapeada; `null` o vacía = popup cerrado) y el control se bindea directo. No hay `switch` que olvidar. Ver [[Sesión 2026-07-28 - Fix Refresco del Popup de Sugerencias (9 módulos)]] y [[Sesión 2026-07-28 - Refactor del Buscador de Sugerencias (P-026)]].
 
 ### Implementación de sugerencias (CapaDatos)
 
@@ -317,13 +314,12 @@ public void SeleccionarSugerencia(ProductoDto p)
 {
     // Obligatorio: se asigna al CAMPO _query, no a la propiedad, así que no se
     // pasa por el setter y nadie más cancelaría el debounce en vuelo. Sin esto,
-    // una búsqueda en curso termina después de la selección, pone
-    // ShowSuggestions = true (false→true: sí notifica) y reabre el popup con la
-    // caja de texto ya vacía.
-    _searchCts?.Cancel();
+    // una búsqueda en curso termina después de la selección y reabre el popup
+    // con la caja de texto ya vacía.
+    _buscador.Cancelar();
 
     _query = "";
-    ShowSuggestions = false;
+    SuggestItems = null;
 
     var enPagina = PageRows.FirstOrDefault(x => x.Id == p.Id);
     if (enPagina is not null)
