@@ -390,33 +390,39 @@
                         </ListBox>
 
                         <!-- Toolbar camiones — un solo botón de edición: abre el megamodal
-                             con todo el proceso (camión + productos + tara extra). -->
-                        <WrapPanel Grid.Row="2" Margin="12,9" >
-                            <Button x:Name="BtnCamionAgregar" Style="{StaticResource ToolBtn}" Margin="0,0,8,0" Click="BtnNuevoProceso_Click">
+                             con todo el proceso (camión + productos + tara extra).
+
+                             Grilla 2×2 uniforme, no WrapPanel: en el WrapPanel cada botón
+                             medía lo que medía su texto ("Nueva descarga" vs "Quitar"), así
+                             que la segunda fila no alineaba con la primera y el corte de
+                             línea dependía del ancho disponible. UniformGrid da cuatro
+                             celdas iguales, con el mismo ancho y siempre 2×2. -->
+                        <UniformGrid Grid.Row="2" Rows="2" Columns="2" Margin="12,9">
+                            <Button x:Name="BtnCamionAgregar" Style="{StaticResource ToolBtn}" Margin="0,0,4,4" Click="BtnNuevoProceso_Click">
                                 <StackPanel Orientation="Horizontal">
                                     <Path Data="{StaticResource IcoPlus}" Stroke="#1E3A8A" StrokeThickness="2.2" Width="13" Height="13" Stretch="Uniform" Margin="0,0,7,0" VerticalAlignment="Center" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
                                     <TextBlock Text="Nueva descarga" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>
-                            <Button x:Name="BtnCamionEditar" Style="{StaticResource ToolBtn}" Margin="0,0,8,0" Click="BtnEditarProceso_Click">
+                            <Button x:Name="BtnCamionEditar" Style="{StaticResource ToolBtn}" Margin="4,0,0,4" Click="BtnEditarProceso_Click">
                                 <StackPanel Orientation="Horizontal">
                                     <Path Data="{StaticResource IcoPencil}" Stroke="#1E3A8A" StrokeThickness="2" Width="13" Height="13" Stretch="Uniform" Margin="0,0,7,0" VerticalAlignment="Center" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
                                     <TextBlock Text="Editar proceso" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>
-                            <Button x:Name="BtnCamionQuitar" Style="{StaticResource ToolDanger}" Margin="0,0,8,0" Click="BtnCamionQuitar_Click">
+                            <Button x:Name="BtnCamionQuitar" Style="{StaticResource ToolDanger}" Margin="0,4,4,0" Click="BtnCamionQuitar_Click">
                                 <StackPanel Orientation="Horizontal">
                                     <Path Data="{StaticResource IcoTrash}" Stroke="#DC2626" StrokeThickness="2" Width="13" Height="13" Stretch="Uniform" Margin="0,0,7,0" VerticalAlignment="Center" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
                                     <TextBlock Text="Quitar" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>
-                            <Button x:Name="BtnCamionDescargar" Style="{StaticResource ToolSuccess}" Click="BtnCamionDescargar_Click">
+                            <Button x:Name="BtnCamionDescargar" Style="{StaticResource ToolSuccess}" Margin="4,4,0,0" Click="BtnCamionDescargar_Click">
                                 <StackPanel Orientation="Horizontal">
                                     <Path Data="{StaticResource IcoDownload}" Stroke="White" StrokeThickness="2.2" Width="13" Height="13" Stretch="Uniform" Margin="0,0,7,0" VerticalAlignment="Center" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
                                     <TextBlock Text="Descargar" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>
-                        </WrapPanel>
+                        </UniformGrid>
                     </Grid>
                 </Border>
 
