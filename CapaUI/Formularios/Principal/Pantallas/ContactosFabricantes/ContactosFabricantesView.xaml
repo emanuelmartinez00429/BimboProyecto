@@ -36,7 +36,7 @@
                                 SnapsToDevicePixels="True">
                             <Grid>
                                 <Border x:Name="SelIndicator" Width="3" HorizontalAlignment="Left"
-                                        VerticalAlignment="Stretch" Background="#1E3A8A"
+                                        VerticalAlignment="Stretch" Background="#34D399"
                                         Visibility="Collapsed" Panel.ZIndex="1"/>
                                 <DataGridCellsPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"
                                                         ItemsPanel="{TemplateBinding ItemsPanel}"/>
@@ -54,7 +54,7 @@
                                 <Setter TargetName="DGR_Border" Property="Background" Value="#C8D8F0"/>
                             </MultiTrigger>
                             <Trigger Property="IsSelected" Value="True">
-                                <Setter TargetName="DGR_Border" Property="Background" Value="#C8D8F0"/>
+                                <Setter TargetName="DGR_Border" Property="Background" Value="#C2F2E0"/>
                                 <Setter TargetName="SelIndicator" Property="Visibility" Value="Visible"/>
                             </Trigger>
                             <MultiTrigger>
@@ -62,7 +62,7 @@
                                     <Condition Property="IsSelected" Value="True"/>
                                     <Condition Property="ItemsControl.AlternationIndex" Value="1"/>
                                 </MultiTrigger.Conditions>
-                                <Setter TargetName="DGR_Border" Property="Background" Value="#C8D8F0"/>
+                                <Setter TargetName="DGR_Border" Property="Background" Value="#C2F2E0"/>
                             </MultiTrigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
