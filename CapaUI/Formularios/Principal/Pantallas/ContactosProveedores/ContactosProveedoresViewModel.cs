@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using CapaAplicacion.Common;
 using CapaAplicacion.Conexion;
 using CapaAplicacion.Contactos.Proveedores.Dtos;
@@ -20,7 +20,7 @@ public partial class ContactosProveedoresViewModel : RealtimeAwareViewModel
 {
     private readonly IProveedorRepository         _provRepo;
     private readonly IContactoProveedorRepository _contactoRepo;
-    private CancellationTokenSource?              _searchCts;
+    private readonly SuggestionDebouncer          _buscador = new();
 
     private string _query         = "";
     private int    _page          = 1;
@@ -173,29 +173,14 @@ public partial class ContactosProveedoresViewModel : RealtimeAwareViewModel
         }
     }
 
-    private async Task RefrescarSugerenciasAsync()
-    {
-        _searchCts?.Cancel();
-        _searchCts = new CancellationTokenSource();
-        var token  = _searchCts.Token;
-
-        var q = _query.Trim();
-        if (string.IsNullOrEmpty(q)) { SuggestItems = null; return; }
-
-        try
+    private Task RefrescarSugerenciasAsync() => _buscador.EjecutarAsync(
+        _query,
+        async (q, ct) =>
         {
-            await Task.Delay(300, token);
-            if (token.IsCancellationRequested) return;
-
-            var r = await _provRepo.BuscarSugerenciasAsync(q, new ProveedorFiltros { IdEstado = Activo }, token);
-            if (token.IsCancellationRequested) return;
-            if (!r.Success) { SuggestItems = null; return; }
-
-            SuggestItems   = r.Value!.Select(Map).ToList();
-            HighlightIndex = -1;
-        }
-        catch (OperationCanceledException) { }
-    }
+            var r = await _provRepo.BuscarSugerenciasAsync(q, new ProveedorFiltros { IdEstado = Activo }, ct);
+            return r.Success ? r.Value!.Select(Map).ToList() : null;
+        },
+        items => { SuggestItems = items; HighlightIndex = -1; });
 
     private static SuggestionItemData Map(ProveedorDto p) => new()
     {
@@ -208,9 +193,9 @@ public partial class ContactosProveedoresViewModel : RealtimeAwareViewModel
     public void SeleccionarSugerencia(ProveedorDto prov)
     {
         // Cancelar el debounce en vuelo: como se asigna al campo _query y no a la
-        // propiedad, no se pasa por el setter y nadie mas cancelaria el token. Sin
+        // propiedad, no se pasa por el setter y nadie mas cancelaria la busqueda. Sin
         // esto, una busqueda en curso termina despues de la seleccion y reabre el popup.
-        _searchCts?.Cancel();
+        _buscador.Cancelar();
 
         _query = "";
         OnPropertyChanged(nameof(Query));
@@ -328,7 +313,6 @@ public partial class ContactosProveedoresViewModel : RealtimeAwareViewModel
 
     protected override void OnDispose()
     {
-        _searchCts?.Cancel();
-        _searchCts?.Dispose();
+        _buscador.Dispose();
     }
 }

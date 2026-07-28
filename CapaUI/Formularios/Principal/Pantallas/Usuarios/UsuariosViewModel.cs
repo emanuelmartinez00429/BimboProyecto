@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using CapaAplicacion.Usuarios.Dtos;
 using CapaAplicacion.Usuarios.Interfaces;
 using CapaUI.Core.MVVM;
@@ -18,7 +18,7 @@ public partial class UsuariosViewModel : ObservableObject, IDisposable
 {
     private readonly IUsuarioRepository _usuarioRepo;
     private readonly IRolRepository     _rolRepo;
-    private CancellationTokenSource?   _searchCts;
+    private readonly SuggestionDebouncer   _buscador = new();
     private bool _disposed;
 
     private string              _query          = "";
@@ -212,20 +212,10 @@ public partial class UsuariosViewModel : ObservableObject, IDisposable
     }
 
     // ── Búsqueda con debounce ──────────────────────────────────────────
-    private async Task RefrescarSugerenciasAsync()
-    {
-        _searchCts?.Cancel();
-        _searchCts = new CancellationTokenSource();
-        var token = _searchCts.Token;
-
-        var q = _query.Trim();
-        if (string.IsNullOrEmpty(q)) { SuggestItems = null; return; }
-
-        try
+    private Task RefrescarSugerenciasAsync() => _buscador.EjecutarAsync(
+        _query,
+        async (q, ct) =>
         {
-            await Task.Delay(300, token);
-            if (token.IsCancellationRequested) return;
-
             int? idEstado = _estadoFiltro switch
             {
                 EstadoUsuarioFilter.Activos   => 1,
@@ -234,15 +224,9 @@ public partial class UsuariosViewModel : ObservableObject, IDisposable
             };
 
             var r = await _usuarioRepo.ObtenerPaginaAsync(1, 10, idEstado, _rolFiltro, q);
-            if (token.IsCancellationRequested) return;
-
-            if (!r.Success) { SuggestItems = null; return; }
-
-            SuggestItems   = r.Value!.Items.Select(Map).ToList();
-            HighlightIndex = -1;
-        }
-        catch (OperationCanceledException) { }
-    }
+            return r.Success ? r.Value!.Items.Select(Map).ToList() : null;
+        },
+        items => { SuggestItems = items; HighlightIndex = -1; });
 
     private static SuggestionItemData Map(UsuarioVistaDto u) => new()
     {
@@ -255,9 +239,9 @@ public partial class UsuariosViewModel : ObservableObject, IDisposable
     public void SeleccionarSugerencia(UsuarioVistaDto u)
     {
         // Cancelar el debounce en vuelo: como se asigna al campo _query y no a la
-        // propiedad, no se pasa por el setter y nadie mas cancelaria el token. Sin
+        // propiedad, no se pasa por el setter y nadie mas cancelaria la busqueda. Sin
         // esto, una busqueda en curso termina despues de la seleccion y reabre el popup.
-        _searchCts?.Cancel();
+        _buscador.Cancelar();
 
         _query = "";
         OnPropertyChanged(nameof(Query));
@@ -329,7 +313,6 @@ public partial class UsuariosViewModel : ObservableObject, IDisposable
     {
         if (_disposed) return;
         _disposed = true;
-        _searchCts?.Cancel();
-        _searchCts?.Dispose();
+        _buscador.Dispose();
     }
 }
