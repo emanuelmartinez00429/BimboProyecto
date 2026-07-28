@@ -74,6 +74,10 @@ namespace CapaUI.Formularios.Principal.Pantallas.Bitacora
                     }
                     break;
                 case nameof(BitacoraViewModel.Seleccionado):    SeleccionarEnTabla();    break;
+                // Suggestions ademas de ShowSuggestions: el bool se queda pegado en true
+                // mientras el popup esta abierto y no vuelve a notificar, asi que sin este
+                // case la lista no se refresca al seguir escribiendo.
+                case nameof(BitacoraViewModel.Suggestions):     ActualizarSuggestions(); break;
                 case nameof(BitacoraViewModel.ShowSuggestions): ActualizarSuggestions(); break;
             }
         }

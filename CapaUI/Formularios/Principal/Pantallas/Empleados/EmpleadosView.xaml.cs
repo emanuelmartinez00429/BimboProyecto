@@ -82,6 +82,10 @@ namespace CapaUI.Formularios.Principal.Pantallas.Empleados
                     SelectedInfo.Visibility = _vm.HaySeleccionado ? Visibility.Visible : Visibility.Collapsed;
                     break;
                 case nameof(EmpleadosViewModel.Seleccionado):      SeleccionarEnTabla();    break;
+                // Suggestions ademas de ShowSuggestions: el bool se queda pegado en true
+                // mientras el popup esta abierto y no vuelve a notificar, asi que sin este
+                // case la lista no se refresca al seguir escribiendo.
+                case nameof(EmpleadosViewModel.Suggestions):       ActualizarSuggestions(); break;
                 case nameof(EmpleadosViewModel.ShowSuggestions):   ActualizarSuggestions(); break;
             }
         }

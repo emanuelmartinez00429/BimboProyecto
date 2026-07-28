@@ -72,6 +72,10 @@ namespace CapaUI.Formularios.Principal.Pantallas.Categorias
                     SelectedInfo.Visibility = _vm.HaySeleccionado ? Visibility.Visible : Visibility.Collapsed;
                     break;
                 case nameof(CategoriasViewModel.Seleccionado):    SeleccionarEnTabla();     break;
+                // Suggestions ademas de ShowSuggestions: el bool se queda pegado en true
+                // mientras el popup esta abierto y no vuelve a notificar, asi que sin este
+                // case la lista no se refresca al seguir escribiendo.
+                case nameof(CategoriasViewModel.Suggestions):     ActualizarSuggestions();  break;
                 case nameof(CategoriasViewModel.ShowSuggestions): ActualizarSuggestions();  break;
             }
         }

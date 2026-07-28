@@ -92,6 +92,10 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
                 case nameof(ProductosViewModel.Seleccionado):    SeleccionarEnTabla();    break;
                 case nameof(ProductosViewModel.Fabricantes):     PoblarFabricantes();     break;
                 case nameof(ProductosViewModel.Paises):          PoblarPaises();          break;
+                // Suggestions ademas de ShowSuggestions: el bool se queda pegado en true
+                // mientras el popup esta abierto y no vuelve a notificar, asi que sin este
+                // case la lista no se refresca al seguir escribiendo.
+                case nameof(ProductosViewModel.Suggestions):     ActualizarSuggestions(); break;
                 case nameof(ProductosViewModel.ShowSuggestions): ActualizarSuggestions(); break;
             }
         }

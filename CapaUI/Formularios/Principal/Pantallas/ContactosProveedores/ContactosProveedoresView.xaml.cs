@@ -67,6 +67,10 @@ namespace CapaUI.Formularios.Principal.Pantallas.ContactosProveedores
                 case nameof(ContactosProveedoresViewModel.NoResults):
                     EmptyState.Visibility = _vm.NoResults ? Visibility.Visible : Visibility.Collapsed;
                     break;
+                // Suggestions ademas de ShowSuggestions: el bool se queda pegado en true
+                // mientras el popup esta abierto y no vuelve a notificar, asi que sin este
+                // case la lista no se refresca al seguir escribiendo.
+                case nameof(ContactosProveedoresViewModel.Suggestions):
                 case nameof(ContactosProveedoresViewModel.ShowSuggestions):
                     ActualizarSuggestions();
                     break;

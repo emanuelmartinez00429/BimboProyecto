@@ -251,6 +251,11 @@ public partial class UsuariosViewModel : ObservableObject, IDisposable
 
     public void SeleccionarSugerencia(UsuarioVistaDto u)
     {
+        // Cancelar el debounce en vuelo: como se asigna al campo _query y no a la
+        // propiedad, no se pasa por el setter y nadie mas cancelaria el token. Sin
+        // esto, una busqueda en curso termina despues de la seleccion y reabre el popup.
+        _searchCts?.Cancel();
+
         _query = "";
         OnPropertyChanged(nameof(Query));
         ShowSuggestions = false;

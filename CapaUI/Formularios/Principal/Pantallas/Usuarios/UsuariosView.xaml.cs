@@ -78,6 +78,10 @@ namespace CapaUI.Formularios.Principal.Pantallas.Usuarios
                     break;
                 case nameof(UsuariosViewModel.Seleccionado):  SeleccionarEnTabla();    break;
                 case nameof(UsuariosViewModel.Roles):         PoblarRoles();           break;
+                // Suggestions ademas de ShowSuggestions: el bool se queda pegado en true
+                // mientras el popup esta abierto y no vuelve a notificar, asi que sin este
+                // case la lista no se refresca al seguir escribiendo.
+                case nameof(UsuariosViewModel.Suggestions):     ActualizarSuggestions(); break;
                 case nameof(UsuariosViewModel.ShowSuggestions): ActualizarSuggestions(); break;
             }
         }
