@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -92,20 +92,35 @@ public partial class SuggestionSearchBox : UserControl
         // la ListBox queda visualmente deseleccionada (fix bug #3).
         ctrl.SuggestionsList.SelectedIndex = -1;
 
-        if (items is { Count: > 0 })
+        // null y lista vacia NO son lo mismo:
+        //   null  -> no hay busqueda activa (query vacia, error del repositorio, o
+        //            se acaba de seleccionar una sugerencia) -> popup cerrado.
+        //   vacia -> si se busco y no se encontro nada -> popup con "Sin resultados",
+        //            para que el usuario vea que el buscador respondio.
+        if (items is null)
         {
-            ctrl.SuggestionsList.ItemsSource = items;
-            ctrl.SugCountLabel.Text =
-                $"\u2191\u2193 navegar · \u21b5 seleccionar · {items.Count} coincidencias";
-            ctrl.SuggestionsPopup.IsOpen = true;
-            ctrl.SearchBoxBorder.CornerRadius = new CornerRadius(8, 8, 0, 0);
+            ctrl.CerrarSoloPopup();
+            return;
         }
-        else
+
+        if (items.Count == 0)
         {
-            ctrl.SuggestionsPopup.IsOpen = false;
-            if (!ctrl.TxtBusqueda.IsFocused)
-                ctrl.SearchBoxBorder.CornerRadius = new CornerRadius(8);
+            ctrl.SuggestionsList.ItemsSource = null;
+            ctrl.SuggestionsList.Visibility  = Visibility.Collapsed;
+            ctrl.EmptyStateDetalle.Text      =
+                $"No se encontró nada para «{ctrl.TxtBusqueda.Text.Trim()}»";
+            ctrl.EmptyStatePanel.Visibility  = Visibility.Visible;
+            ctrl.SugCountLabel.Text          = "sin coincidencias";
+            ctrl.AbrirPopup();
+            return;
         }
+
+        ctrl.EmptyStatePanel.Visibility  = Visibility.Collapsed;
+        ctrl.SuggestionsList.Visibility  = Visibility.Visible;
+        ctrl.SuggestionsList.ItemsSource = items;
+        ctrl.SugCountLabel.Text =
+            $"↑↓ navegar · ↵ seleccionar · {items.Count} coincidencias";
+        ctrl.AbrirPopup();
     }
 
     private static void OnHighlightIndexChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
@@ -149,6 +164,15 @@ public partial class SuggestionSearchBox : UserControl
 
     private void TxtBusqueda_PreviewKeyDown(object sender, KeyEventArgs e)
     {
+        // Escape se atiende primero: el popup también puede estar abierto
+        // mostrando "Sin resultados", donde no hay items que navegar.
+        if (e.Key == Key.Escape)
+        {
+            CerrarPopup();
+            e.Handled = true;
+            return;
+        }
+
         var items = SuggestItems;
         if (items == null || items.Count == 0) return;
 
@@ -170,11 +194,6 @@ public partial class SuggestionSearchBox : UserControl
         {
             if (HighlightIndex >= 0 && HighlightIndex < items.Count)
                 SeleccionarItem(items[HighlightIndex]);
-            e.Handled = true;
-        }
-        else if (e.Key == Key.Escape)
-        {
-            CerrarPopup();
             e.Handled = true;
         }
     }
@@ -217,6 +236,21 @@ public partial class SuggestionSearchBox : UserControl
         CerrarPopup();
     }
 
+    private void AbrirPopup()
+    {
+        SuggestionsPopup.IsOpen = true;
+        SearchBoxBorder.CornerRadius = new CornerRadius(8, 8, 0, 0);
+    }
+
+    /// <summary>Cierra el popup sin tocar el texto del buscador.</summary>
+    private void CerrarSoloPopup()
+    {
+        SuggestionsPopup.IsOpen = false;
+        if (!TxtBusqueda.IsFocused)
+            SearchBoxBorder.CornerRadius = new CornerRadius(8);
+    }
+
+    /// <summary>Cierra el popup y limpia el texto (Escape, botón ×, selección).</summary>
     private void CerrarPopup()
     {
         _updatingText = true;

@@ -214,7 +214,7 @@ query.Or(new List<IPostgrestQueryFilter>
 - **No hay code-behind de sugerencias.** El ViewModel expone una sola propiedad ya mapeada y el control se bindea directo:
 
 ```csharp
-[ObservableProperty] private IReadOnlyList<SuggestionItemData>? _suggestItems;  // null o vacía = popup cerrado
+[ObservableProperty] private IReadOnlyList<SuggestionItemData>? _suggestItems;
 private readonly SuggestionDebouncer _buscador = new();
 
 private Task RefrescarSugerenciasAsync() => _buscador.EjecutarAsync(
@@ -237,6 +237,15 @@ private static SuggestionItemData Map(ProductoDto p) => new() { … };
     ItemSelected="SearchBox_ItemSelected"/>
 ```
 
+- ⚠️ **`null` y lista vacía NO son lo mismo** — es el contrato de `SuggestItems`:
+
+| Valor | Significado | Qué muestra el control |
+|---|---|---|
+| `null` | No hay búsqueda activa: query vacía, error del repositorio, o se acaba de seleccionar | Popup cerrado |
+| lista vacía | Se buscó y no se encontró nada | Popup con el estado **"Sin resultados"** |
+| lista con items | Resultados | Popup con la lista |
+
+  Nunca "normalizar" el vacío a `null` en el ViewModel: mata el estado sin resultados y el usuario no sabe si el buscador respondió. El `SuggestionDebouncer` ya respeta esto — `aplicar(null)` solo en query vacía, y la lambda devuelve `null` solo si el repositorio falló.
 - Debounce 300ms en `CapaUI/Core/Controls/SuggestionDebouncer.cs` — **un solo lugar** para los 9 módulos. Por composición, no herencia (los VMs heredan de bases distintas). Liberar con `_buscador.Dispose()` en `OnDispose()`/`Dispose()`
 - Lo único que varía por módulo: la lambda (qué repositorio) y `Map` (cómo se ve la sugerencia)
 - `SeleccionarSugerencia(...)` debe empezar con `_buscador.Cancelar()`: asigna al campo `_query` y no a la propiedad, así que no pasa por el setter y el debounce en vuelo quedaría vivo reabriendo el popup

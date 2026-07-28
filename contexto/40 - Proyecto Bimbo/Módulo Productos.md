@@ -282,7 +282,7 @@ Lifecycle del canal:
 > Todo el wiring vive en el ViewModel + un binding. **No hay code-behind de sugerencias.**
 >
 > ```csharp
-> // ViewModel — una sola señal, ya mapeada. null o vacía = popup cerrado.
+> // ViewModel — una sola señal, ya mapeada.
 > [ObservableProperty] private IReadOnlyList<SuggestionItemData>? _suggestItems;
 > private readonly SuggestionDebouncer _buscador = new();
 >
@@ -318,6 +318,8 @@ Lifecycle del canal:
 > ```
 >
 > Lo único que cambia por módulo: **qué repositorio se llama** (la lambda) y **cómo se ve una sugerencia** (`Map`). En el code-behind solo queda `SearchBox_ItemSelected`, porque además hace `SeleccionarEnTabla()` — eso sí es responsabilidad de la vista.
+>
+> **`null` ≠ lista vacía.** `null` = no hay búsqueda activa (query vacía, error del repositorio, o se acaba de seleccionar) → popup cerrado. Lista **vacía** = se buscó y no se encontró nada → el control abre el popup con el estado **"Sin resultados"**. Nunca normalizar el vacío a `null`: mata ese estado y el usuario no sabe si el buscador llegó a responder.
 >
 > **Por qué una sola propiedad:** antes había dos (`Suggestions` + `ObservableProperty bool ShowSuggestions`) y la vista las combinaba en un `switch`. Ese `bool` no levanta `PropertyChanged` cuando el valor no cambia, así que con el popup abierto quedaba pegado en `true` y la lista se congelaba en el término anterior. Ver [[Sesión 2026-07-28 - Fix Refresco del Popup de Sugerencias (9 módulos)]] y [[Sesión 2026-07-28 - Refactor del Buscador de Sugerencias (P-026)]].
 
