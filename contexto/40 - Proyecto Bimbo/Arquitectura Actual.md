@@ -13,6 +13,11 @@ aliases:
 > [!info] MOC del proyecto
 > Este nodo describe el estado actual de la arquitectura. Para el contexto completo de Claude Code, ver [[CLAUDE]].
 
+> [!success] Actualizado 2026-07-28 — Módulo Presentaciones de Producto (CRUD)
+> **Nuevo módulo Presentaciones** implementado con el mismo patrón que Proveedores (`id_estado` integer, no bool como Categorías). RPC `contar_presentaciones` agregado en Supabase (migración `contar_presentaciones_rpc`). Botón en el submenú de Productos, debajo de Categorías.
+> **Fix: alta forzada a Activo.** El modal permitía crear un registro directamente como Inactivo (radio Estado editable en modo Nuevo), lo que causaba que pareciera "no guardar" porque el filtro por defecto de la lista es Habilitados. Ahora en modo Nuevo el radio queda fijo en Activo y deshabilitado; el toggle a Inactivo solo aplica al editar (baja lógica). Ver [[Deuda Técnica - Pendientes]] si este mismo patrón aparece en otros módulos.
+> **Enter-para-guardar.** En `PresentacionModal`, presionar Enter con el foco en el último campo de texto (Descripción) dispara el guardado, igual que el botón Guardar.
+
 > [!success] Actualizado 2026-07-23 — Sesión y permisos refactorizados (commit `f105047`, Emanuel)
 > **`SesionActual` y `servicioSesionActual` (holders estáticos en `CapaDominio`) eliminados.** Reemplazados por `IUsuarioSesionService` (Singleton en DI) + entidad `UsuarioSesion`. Fuente única de verdad de autenticación y permisos.
 > **Permisos ahora reales desde BD** (`acciones_roles`/`acciones`/`modulos`) — antes `SesionPermisos` tenía un `switch(idRol)` hardcodeado. `SesionPermisos` es ahora una fachada estática que delega en `IUsuarioSesionService`.
@@ -22,7 +27,7 @@ aliases:
 > **BimboPesaje eliminado.** La app es ahora un proyecto WPF puro (CapaUI). Ya no existe la capa híbrida WinForms + WPF embebido.
 > **CapaServicios disuelto.** Sus 4 clases (`SesionActual`, `servicioSesionActual`, `PesoCalculator`, `ServicioBuscador`) vivían ya en namespace `CapaDominio` — se movieron físicamente al proyecto `CapaDominio` y se eliminó la referencia de `CapaUI`.
 > **Módulos Proveedores, Fabricantes y Categorías** implementados con el mismo patrón que Productos.
-> **`SuggestionSearchBox` compartido.** UserControl en `CapaUI/Core/Controls/` centraliza popup, teclado y lógica de sugerencias. Código duplicado eliminado. 5 bugs de UX corregidos. 7 formularios lo usan (Productos, Proveedores, Fabricantes, Categorías, Contactos Fabricantes, Contactos Proveedores, Usuarios — este último corregido 2026-07-26, tenía un `TextBox` plano en su lugar).
+> **`SuggestionSearchBox` compartido.** UserControl en `CapaUI/Core/Controls/` centraliza popup, teclado y lógica de sugerencias. Código duplicado eliminado. 5 bugs de UX corregidos. 8 formularios lo usan (Productos, Proveedores, Fabricantes, Categorías, Presentaciones — agregado 2026-07-28, Contactos Fabricantes, Contactos Proveedores, Usuarios — este último corregido 2026-07-26, tenía un `TextBox` plano en su lugar).
 > **Módulos Contactos Fabricantes y Contactos Proveedores** implementados con patrón drill-down (2026-06-21). Ver [[Módulo Contactos (Drill-down)]].
 > **Soporte DPI Per-Monitor V2 y multi-resolución** (2026-06-21): `app.manifest` + props de rendering en todas las vistas/modales + modales con scroll. Ver [[WPF - DPI Awareness y Escalado Multi-Resolución]].
 
@@ -149,6 +154,7 @@ ProductosViewModel : RealtimeAwareViewModel
 | Proveedores | ✅ Completo | ProveedoresView, ProveedoresViewModel, ProveedorCrudRepository |
 | Fabricantes | ✅ Completo | FabricantesView, FabricantesViewModel, FabricanteCrudRepository |
 | Categorías | ✅ Completo | CategoriasView, CategoriasViewModel, CategoriaCrudRepository |
+| Presentaciones | ✅ Completo (2026-07-28) | PresentacionesView, PresentacionesViewModel, PresentacionCrudRepository — `id_estado` integer (patrón Proveedores, no Categorías) |
 | [[Módulo Contactos (Drill-down)\|Contactos Fabricantes]] | ✅ Completo | ContactosFabricantesView, ContactosFabricantesViewModel, ContactoFabricanteCrudRepository |
 | [[Módulo Contactos (Drill-down)\|Contactos Proveedores]] | ✅ Completo | ContactosProveedoresView, ContactosProveedoresViewModel, ContactoProveedorCrudRepository |
 | [[Buscador Universal Bimbo]] | ✅ Completo | Multi-entidad con Strategy + Mediator |

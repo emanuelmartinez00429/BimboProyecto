@@ -1,0 +1,431 @@
+<UserControl x:Class="CapaUI.Formularios.Principal.Pantallas.Presentaciones.PresentacionesView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:CapaUI.Formularios.Principal.Pantallas.Presentaciones"
+             xmlns:controls="clr-namespace:CapaUI.Core.Controls"
+             Background="#EAF1F8"
+             Loaded="UserControl_Loaded"
+             Unloaded="UserControl_Unloaded"
+             UseLayoutRounding="True"
+             TextOptions.TextRenderingMode="Grayscale"
+             TextOptions.TextFormattingMode="Display">
+
+    <UserControl.Resources>
+        <Geometry x:Key="IconFilter">M3,6 h18 M6,12 h12 M10,18 h4</Geometry>
+        <Geometry x:Key="IconCheck">M20,6 L9,17 l-5,-5</Geometry>
+        <Geometry x:Key="IconPlus">M12,5 v14 M5,12 h14</Geometry>
+        <Geometry x:Key="IconPencil">M11,4 H4 a2,2 0 0 0,-2,2 v14 a2,2 0 0 0,2,2 h14 a2,2 0 0 0,2,-2 v-7 M18.5,2.5 a2.12,2.12 0 0 1,3,3 L12,15 l-4,1 1,-4 z</Geometry>
+        <Geometry x:Key="IconBox">M21,16 V8 a2,2 0 0 0,-1,-1.73 l-7,-4 a2,2 0 0 0,-2,0 l-7,4 A2,2 0 0 0,3,8 v8 a2,2 0 0 0,1,1.73 l7,4 a2,2 0 0 0,2,0 l7,-4 A2,2 0 0 0,21,16 z M3.27,6.96 L12,12.01 l8.73,-5.05 M12,22.08 V12</Geometry>
+
+        <Style x:Key="ProductRowStyle" TargetType="DataGridRow">
+            <Setter Property="Height" Value="36"/><Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#EEF2F8"/><Setter Property="BorderThickness" Value="0,0,0,1"/>
+            <Setter Property="Cursor" Value="Hand"/><Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="DataGridRow">
+                        <Border x:Name="DGR_Border" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" SnapsToDevicePixels="True">
+                            <Grid>
+                                <Border x:Name="SelIndicator" Width="3" HorizontalAlignment="Left" VerticalAlignment="Stretch" Background="#34D399" Visibility="Collapsed" Panel.ZIndex="1"/>
+                                <DataGridCellsPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" ItemsPanel="{TemplateBinding ItemsPanel}"/>
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="DGR_Border" Property="Background" Value="#C8D8F0"/></Trigger>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions><Condition Property="IsMouseOver" Value="True"/><Condition Property="ItemsControl.AlternationIndex" Value="1"/></MultiTrigger.Conditions>
+                                <Setter TargetName="DGR_Border" Property="Background" Value="#C8D8F0"/>
+                            </MultiTrigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="DGR_Border" Property="Background" Value="#C2F2E0"/>
+                                <Setter TargetName="SelIndicator" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions><Condition Property="IsSelected" Value="True"/><Condition Property="ItemsControl.AlternationIndex" Value="1"/></MultiTrigger.Conditions>
+                                <Setter TargetName="DGR_Border" Property="Background" Value="#C2F2E0"/>
+                            </MultiTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="ItemsControl.AlternationIndex" Value="1"><Setter Property="Background" Value="#E8F0FA"/></Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="ProductCellStyle" TargetType="DataGridCell">
+            <Setter Property="BorderThickness" Value="0"/><Setter Property="Padding" Value="0"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/><Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="DataGridCell">
+                        <Border Background="{TemplateBinding Background}" BorderThickness="0" Padding="0">
+                            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ProductCellStyle1" TargetType="DataGridCell">
+            <Setter Property="BorderThickness" Value="0"/><Setter Property="Padding" Value="0"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/><Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="DataGridCell">
+                        <Border Background="{TemplateBinding Background}" BorderThickness="0" Padding="0">
+                            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Left"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="DataGridColumnHeader">
+            <Setter Property="Background" Value="#1E3A8A"/><Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontFamily" Value="Segoe UI"/><Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontWeight" Value="Bold"/><Setter Property="Height" Value="40"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="DataGridColumnHeader">
+                        <Border Background="#1E3A8A" BorderBrush="#1EFFFFFF" BorderThickness="0,0,1,0">
+                            <TextBlock Text="{TemplateBinding Content}" Foreground="White" FontFamily="Segoe UI"
+                                       FontSize="11" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="8,0"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ActionBtn" TargetType="Button">
+            <Setter Property="Height" Value="40"/><Setter Property="MinWidth" Value="120"/>
+            <Setter Property="FontFamily" Value="Segoe UI"/><Setter Property="FontSize" Value="13.5"/>
+            <Setter Property="FontWeight" Value="SemiBold"/><Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/><Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                            <Border.Effect><DropShadowEffect BlurRadius="6" ShadowDepth="2" Opacity="0.3" Color="Black"/></Border.Effect>
+                            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsPressed" Value="True"><Setter TargetName="Bd" Property="RenderTransform"><Setter.Value><TranslateTransform Y="1"/></Setter.Value></Setter></Trigger>
+                            <Trigger Property="IsEnabled" Value="False"><Setter TargetName="Bd" Property="Background" Value="#CBD5E1"/><Setter TargetName="Bd" Property="Opacity" Value="0.7"/><Setter Property="Cursor" Value="Arrow"/></Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="PageBtn" TargetType="Button">
+            <Setter Property="MinWidth" Value="30"/><Setter Property="Height" Value="28"/><Setter Property="Padding" Value="4,0"/>
+            <Setter Property="FontFamily" Value="Segoe UI"/><Setter Property="FontSize" Value="13"/><Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="Foreground" Value="#1A1F2E"/><Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#CBD5E1"/><Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Cursor" Value="Hand"/><Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="4" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Bd" Property="Background" Value="#EEF2F8"/><Setter TargetName="Bd" Property="BorderBrush" Value="#1E3A8A"/></Trigger>
+                            <Trigger Property="IsEnabled" Value="False"><Setter Property="Foreground" Value="#CBD5E1"/><Setter Property="Cursor" Value="Arrow"/></Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ActivePageBtn" TargetType="Button" BasedOn="{StaticResource PageBtn}">
+            <Setter Property="Background" Value="#1E3A8A"/><Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="Bold"/><Setter Property="BorderBrush" Value="#1E3A8A"/>
+        </Style>
+
+        <Style x:Key="SegmentBtn" TargetType="RadioButton">
+            <Setter Property="Background" Value="Transparent"/><Setter Property="Foreground" Value="#6B7280"/>
+            <Setter Property="FontFamily" Value="Segoe UI"/><Setter Property="FontSize" Value="13"/>
+            <Setter Property="Padding" Value="10,4"/><Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="BorderThickness" Value="0"/><Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="White"/>
+                                <Setter Property="Foreground" Value="#1A1F2E"/>
+                                <Setter TargetName="Bd" Property="Effect"><Setter.Value><DropShadowEffect Color="Black" BlurRadius="4" ShadowDepth="1" Opacity="0.08"/></Setter.Value></Setter>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ModernScrollBar" TargetType="ScrollBar">
+            <Setter Property="Width" Value="8"/><Setter Property="Background" Value="#F3F4F6"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ScrollBar">
+                        <Grid x:Name="GridRoot" Width="8">
+                            <Track x:Name="PART_Track" IsDirectionReversed="True">
+                                <Track.DecreaseRepeatButton><RepeatButton Command="ScrollBar.LineUpCommand" Opacity="0" Height="0"/></Track.DecreaseRepeatButton>
+                                <Track.Thumb><Thumb x:Name="Thumb"><Thumb.Template><ControlTemplate TargetType="Thumb"><Border Background="#94A3B8" CornerRadius="4" Margin="2,0"/></ControlTemplate></Thumb.Template></Thumb></Track.Thumb>
+                                <Track.IncreaseRepeatButton><RepeatButton Command="ScrollBar.LineDownCommand" Opacity="0" Height="0"/></Track.IncreaseRepeatButton>
+                            </Track>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid>
+    <Grid Margin="22,18,22,0">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="12"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="10"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- HEADER -->
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                <Border Width="38" Height="38" Background="#1E3A8A" CornerRadius="8" Margin="0,0,12,0" VerticalAlignment="Center">
+                    <Border.Effect><DropShadowEffect Color="#1E3A8A" BlurRadius="8" ShadowDepth="2" Opacity="0.3"/></Border.Effect>
+                    <Path Data="{StaticResource IconBox}" Stroke="White" StrokeThickness="1.5"
+                          StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                          Width="20" Height="20" Stretch="Uniform"/>
+                </Border>
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock FontFamily="Segoe UI" FontSize="11" Foreground="#6B7280">
+                        <Run Text="Productos" FontWeight="Normal"/>
+                        <Run Text=" / "/>
+                        <Run Text="Gestión de Presentaciones" FontWeight="SemiBold" Foreground="#1A1F2E"/>
+                    </TextBlock>
+                    <TextBlock Text="Cat&#225;logo de presentaciones" FontFamily="Segoe UI" FontSize="19" FontWeight="Bold" Foreground="#1A1F2E" Margin="0,2,0,0"/>
+                </StackPanel>
+            </StackPanel>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Right">
+                <Border Background="#EEF2F8" CornerRadius="999" BorderBrush="#D8E1EC" BorderThickness="1" Padding="12,6" Margin="0,0,8,0">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <Border Width="6" Height="6" CornerRadius="3" Background="#1E3A8A" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="TOTAL" FontFamily="Segoe UI" FontSize="11" FontWeight="SemiBold" Foreground="#1E3A8A" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                        <TextBlock Text="{Binding TotalCount}" FontFamily="Segoe UI" FontSize="13" FontWeight="Bold" Foreground="#1E3A8A" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+                <Border Background="#ECFDF5" CornerRadius="999" BorderBrush="#D1FAE5" BorderThickness="1" Padding="12,6" Margin="0,0,8,0">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <Border Width="6" Height="6" CornerRadius="3" Background="#10B981" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="ACTIVOS" FontFamily="Segoe UI" FontSize="11" FontWeight="SemiBold" Foreground="#047857" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                        <TextBlock Text="{Binding ActivosCount}" FontFamily="Segoe UI" FontSize="13" FontWeight="Bold" Foreground="#047857" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+                <Border Background="#F3F4F6" CornerRadius="999" BorderBrush="#E5E7EB" BorderThickness="1" Padding="12,6">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <Border Width="6" Height="6" CornerRadius="3" Background="#9CA3AF" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="INACTIVOS" FontFamily="Segoe UI" FontSize="11" FontWeight="SemiBold" Foreground="#6B7280" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                        <TextBlock Text="{Binding InactivosCount}" FontFamily="Segoe UI" FontSize="13" FontWeight="Bold" Foreground="#6B7280" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </Grid>
+
+        <!-- TOOLBAR -->
+        <Border Grid.Row="2" Background="White" CornerRadius="10" BorderBrush="#D8E1EC" BorderThickness="1" Padding="12">
+            <Border.Effect><DropShadowEffect Color="Black" BlurRadius="10" ShadowDepth="2" Opacity="0.06"/></Border.Effect>
+            <StackPanel>
+                <Grid>
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                    <controls:SuggestionSearchBox Grid.Column="0" Margin="0,0,10,0"
+                        x:Name="SearchBox"
+                        Query="{Binding Query, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                        SuggestItems="{Binding SuggestItems}"
+                        HighlightIndex="{Binding HighlightIndex, Mode=TwoWay}"
+                        Placeholder="Buscar presentación por nombre o descripción..."
+                        ItemSelected="SearchBox_ItemSelected"/>
+                    <Button Grid.Column="1" Command="{Binding LimpiarFiltrosCommand}" Background="#4A6FA8"
+                            Style="{StaticResource ActionBtn}" Padding="16,0" Height="38" MinWidth="0">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="{StaticResource IconFilter}" Stroke="White" StrokeThickness="1.8"
+                                  StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                  Width="16" Height="16" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Limpiar Filtros" FontFamily="Segoe UI" FontSize="13.5" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                </Grid>
+                <Border BorderBrush="#E5E7EB" BorderThickness="0,0,0,1" Margin="0,10,0,10" SnapsToDevicePixels="True"/>
+                <Grid>
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="ESTADO" FontFamily="Segoe UI" FontSize="10.5" FontWeight="Bold" Foreground="#6B7280" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                    <Border Grid.Column="1" Background="#F3F4F6" CornerRadius="8" BorderBrush="#E5E7EB" BorderThickness="1" Padding="3" VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal">
+                            <RadioButton x:Name="RbHabilitados" GroupName="EstadoFiltro" IsChecked="True" Style="{StaticResource SegmentBtn}" Checked="EstadoFiltro_Changed">
+                                <StackPanel Orientation="Horizontal">
+                                    <Border Width="6" Height="6" CornerRadius="3" Background="#10B981" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Habilitados" FontFamily="Segoe UI" FontSize="13"/>
+                                </StackPanel>
+                            </RadioButton>
+                            <RadioButton x:Name="RbDeshabilitados" GroupName="EstadoFiltro" Style="{StaticResource SegmentBtn}" Checked="EstadoFiltro_Changed">
+                                <StackPanel Orientation="Horizontal">
+                                    <Border Width="6" Height="6" CornerRadius="3" Background="#94A3B8" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Deshabilitados" FontFamily="Segoe UI" FontSize="13"/>
+                                </StackPanel>
+                            </RadioButton>
+                            <RadioButton x:Name="RbTodos" GroupName="EstadoFiltro" Style="{StaticResource SegmentBtn}" Checked="EstadoFiltro_Changed">
+                                <TextBlock Text="Todos" FontFamily="Segoe UI" FontSize="13"/>
+                            </RadioButton>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </StackPanel>
+        </Border>
+
+        <!-- TABLE -->
+        <Border Grid.Row="4" Background="White" CornerRadius="10" BorderBrush="#D8E1EC" BorderThickness="1" ClipToBounds="True">
+            <Border.Effect><DropShadowEffect Color="#0F172A" BlurRadius="14" ShadowDepth="4" Opacity="0.08"/></Border.Effect>
+            <Grid>
+                <Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                <StackPanel Grid.Row="0" x:Name="EmptyState" Visibility="Collapsed" VerticalAlignment="Center" HorizontalAlignment="Center">
+                    <TextBlock FontFamily="Segoe UI" FontSize="14" Foreground="#6B7280" HorizontalAlignment="Center">
+                        Sin resultados. Ajusta los filtros o pulsa <Bold>Limpiar Filtros</Bold>.
+                    </TextBlock>
+                </StackPanel>
+                <StackPanel Grid.Row="0" x:Name="LoadingPanel" Visibility="Collapsed" VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Horizontal">
+                    <Path x:Name="SpinnerPath" Data="M 12 2 A 10 10 0 1 1 2 12" Stroke="#1E3A8A" StrokeThickness="2.5"
+                          StrokeStartLineCap="Round" StrokeEndLineCap="Round" Width="22" Height="22" Stretch="Uniform"
+                          RenderTransformOrigin="0.5,0.5" Margin="0,0,10,0">
+                        <Path.RenderTransform><RotateTransform/></Path.RenderTransform>
+                    </Path>
+                    <TextBlock Text="Cargando presentaciones..." FontFamily="Segoe UI" FontSize="14" Foreground="#6B7280" VerticalAlignment="Center"/>
+                </StackPanel>
+                <DataGrid Grid.Row="0" x:Name="DgPresentaciones" AutoGenerateColumns="False" CanUserAddRows="False"
+                          CanUserSortColumns="False" HeadersVisibility="Column" GridLinesVisibility="None"
+                          SelectionMode="Single" SelectionUnit="FullRow" Background="White" BorderThickness="0"
+                          AlternationCount="2" RowStyle="{StaticResource ProductRowStyle}" CellStyle="{StaticResource ProductCellStyle}"
+                          SelectionChanged="DgPresentaciones_SelectionChanged" MouseDoubleClick="DgPresentaciones_MouseDoubleClick"
+                          ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                          VirtualizingPanel.IsVirtualizing="True"
+                          VirtualizingPanel.VirtualizationMode="Recycling"
+                          VirtualizingPanel.ScrollUnit="Pixel">
+                    <DataGrid.Resources>
+                        <Style TargetType="ScrollBar" BasedOn="{StaticResource ModernScrollBar}"/>
+                    </DataGrid.Resources>
+                    <DataGrid.Columns>
+                        <DataGridTemplateColumn Header="NOMBRE" Width="220" CellStyle="{StaticResource ProductCellStyle1}">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Border Background="#F0F5FB" CornerRadius="999" Padding="10,2" HorizontalAlignment="Left" Margin="8,0">
+                                        <TextBlock Text="{Binding Nombre}" FontFamily="Segoe UI" FontSize="12" FontWeight="SemiBold" Foreground="#1E3A8A"/>
+                                    </Border>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="DESCRIPCIÓN" Width="*" CellStyle="{StaticResource ProductCellStyle1}">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Descripcion}" FontFamily="Segoe UI" FontSize="13.5"
+                                               Foreground="#6B7280" TextTrimming="CharacterEllipsis" Padding="8,0"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="ESTADO" Width="70" CellStyle="{StaticResource ProductCellStyle}">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Grid HorizontalAlignment="Center">
+                                        <Border Width="20" Height="20" CornerRadius="4" Background="#1E3A8A" HorizontalAlignment="Center">
+                                            <Border.Style>
+                                                <Style TargetType="Border">
+                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IdEstado}" Value="1">
+                                                            <Setter Property="Visibility" Value="Visible"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Border.Style>
+                                            <Border.Effect><DropShadowEffect Color="#1E3A8A" BlurRadius="4" ShadowDepth="1" Opacity="0.3"/></Border.Effect>
+                                            <Path Data="{StaticResource IconCheck}" Stroke="White" StrokeThickness="2.8"
+                                                  StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                                  Width="11" Height="11" Stretch="Uniform"/>
+                                        </Border>
+                                        <Border Width="20" Height="20" CornerRadius="4" Background="White" BorderBrush="#CBD5E1" BorderThickness="2" HorizontalAlignment="Center">
+                                            <Border.Style>
+                                                <Style TargetType="Border">
+                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IdEstado}" Value="1">
+                                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Border.Style>
+                                        </Border>
+                                    </Grid>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+                <Border Grid.Row="1" Background="#FAFBFC" BorderBrush="#E5E7EB" BorderThickness="0,1,0,0" Padding="12,8">
+                    <DockPanel>
+                        <TextBlock DockPanel.Dock="Left" FontFamily="Segoe UI" FontSize="12" Foreground="#9CA3AF" VerticalAlignment="Center" Text="{Binding PageInfo}"/>
+                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right">
+                            <Button Content="&#171;" Style="{StaticResource PageBtn}" Command="{Binding PrimeraPaginaCommand}" Padding="6,0" Margin="0,0,2,0"/>
+                            <Button Content="&#8249;" Style="{StaticResource PageBtn}" Command="{Binding PaginaAnteriorCommand}" Padding="6,0" Margin="0,0,2,0"/>
+                            <ItemsControl x:Name="PaginacionPanel">
+                                <ItemsControl.ItemsPanel><ItemsPanelTemplate><StackPanel Orientation="Horizontal"/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                            </ItemsControl>
+                            <Button Content="&#8250;" Style="{StaticResource PageBtn}" Command="{Binding PaginaSiguienteCommand}" Padding="6,0" Margin="2,0,0,0"/>
+                            <Button Content="&#187;" Style="{StaticResource PageBtn}" Command="{Binding UltimaPaginaCommand}" Padding="6,0" Margin="2,0,0,0"/>
+                        </StackPanel>
+                    </DockPanel>
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- ACTION BUTTONS -->
+        <DockPanel Grid.Row="5" Margin="0,4,0,14" LastChildFill="False">
+            <StackPanel DockPanel.Dock="Left" Orientation="Horizontal">
+                <Button Command="{Binding NuevoCommand}" Background="#16A34A" Style="{StaticResource ActionBtn}" Padding="22,0" Margin="0,0,8,0">
+                    <StackPanel Orientation="Horizontal">
+                        <Path Data="{StaticResource IconPlus}" Stroke="White" StrokeThickness="2.2"
+                              StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                              Width="15" Height="15" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="Nuevo" FontFamily="Segoe UI" FontSize="13.5" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+                <Button Command="{Binding EditarCommand}" Background="#1E3A8A" Style="{StaticResource ActionBtn}" Padding="22,0">
+                    <StackPanel Orientation="Horizontal">
+                        <Path Data="{StaticResource IconPencil}" Stroke="White" StrokeThickness="2.2"
+                              StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                              Width="15" Height="15" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="Editar" FontFamily="Segoe UI" FontSize="13.5" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+            <StackPanel DockPanel.Dock="Left" x:Name="SelectedInfo" Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0" Visibility="Collapsed">
+                <Border Width="6" Height="6" CornerRadius="3" Background="#1E3A8A" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                <TextBlock FontFamily="Segoe UI" FontSize="12" Foreground="#6B7280" VerticalAlignment="Center" Text="{Binding TextoSeleccionado}"/>
+            </StackPanel>
+        </DockPanel>
+    </Grid>
+
+        <Border x:Name="ModalOverlay" Background="#990F172A" Visibility="Collapsed" Panel.ZIndex="100">
+            <ContentControl x:Name="ModalContent" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        </Border>
+    </Grid>
+</UserControl>

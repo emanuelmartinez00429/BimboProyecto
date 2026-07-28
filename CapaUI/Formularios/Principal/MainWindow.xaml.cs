@@ -214,6 +214,7 @@ namespace CapaUI.Formularios.Principal
             _subMap["proveedores"]           = new(DotProveedores,          LblProveedores,          "productos");
             _subMap["fabricantes"]           = new(DotFabricantes,          LblFabricantes,          "productos");
             _subMap["categorias"]            = new(DotCategorias,           LblCategorias,           "productos");
+            _subMap["presentaciones"]        = new(DotPresentaciones,       LblPresentaciones,       "productos");
             _subMap["contactos-proveedores"] = new(DotContactosProveedores, LblContactosProveedores, "productos");
             _subMap["contactos-fabricantes"] = new(DotContactosFabricantes, LblContactosFabricantes, "productos");
 

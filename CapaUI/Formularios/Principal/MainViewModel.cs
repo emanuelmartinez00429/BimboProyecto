@@ -100,6 +100,7 @@ namespace CapaUI.Formularios.Principal
                 [Routes.Proveedores]          = () => new ProveedoresVM(),
                 [Routes.Fabricantes]          = () => new FabricantesVM(),
                 [Routes.Categorias]           = () => new CategoriasVM(),
+                [Routes.Presentaciones]       = () => new PresentacionesVM(),
                 [Routes.ContactosProveedores] = () => new ContactosProveedoresVM(),
                 [Routes.ContactosFabricantes] = () => new ContactosFabricantesVM(),
                 // Pesajes
@@ -191,6 +192,7 @@ namespace CapaUI.Formularios.Principal
     public class ProveedoresVM            : ViewModelBase { }
     public class FabricantesVM            : ViewModelBase { }
     public class CategoriasVM             : ViewModelBase { }
+    public class PresentacionesVM         : ViewModelBase { }
     public class ContactosFabricantesVM   : ViewModelBase { }
     public class ContactosProveedoresVM   : ViewModelBase { }
     public class PesajesVM                 : ViewModelBase { }

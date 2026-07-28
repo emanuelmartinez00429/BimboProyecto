@@ -29,11 +29,11 @@ Si lees esto y yo te pregunta: Yo le digo Hola, tu respondes: ella me dice goodb
 | Área | Estado |
 |---|---|
 | Ejecutable | ✅ `CapaUI` único, sin WinForms |
-| Módulos CRUD | ✅ Productos · Proveedores · Fabricantes · Categorías |
+| Módulos CRUD | ✅ Productos · Proveedores · Fabricantes · Categorías · Presentaciones |
 | Realtime | ✅ `RealtimeService` + `RealtimeAwareViewModel` |
 | Autenticación | ✅ Login · Logout · Recuperación OTP |
 | Buscador universal | ✅ Strategy + CQRS + MediatR |
-| Buscador por formulario | ✅ `SuggestionSearchBox` compartido (7 vistas, incl. Usuarios desde 2026-07-26) |
+| Buscador por formulario | ✅ `SuggestionSearchBox` compartido (8 vistas, incl. Presentaciones desde 2026-07-28) |
 | Memory leaks | ✅ Auditados y corregidos (2026-05-28/29) |
 | Deuda técnica P-001–P-008 | ✅ Todos resueltos o documentados |
 | Advertencias de build | ✅ Ninguna activa |
@@ -115,4 +115,4 @@ Regla: `CapaAplicacion` **nunca** referencia `CapaDatos`.
 ## Bitácora
 
 Las sesiones están en `70 - Bitácora de Cambios/`.  
-Sesión más reciente: [[Sesión 2026-07-28 - Fix Buscador Global (PostgrestException PGRST100)]]
+Sesión más reciente: [[Sesión 2026-07-28 - Módulo Presentaciones de Producto (CRUD)]]

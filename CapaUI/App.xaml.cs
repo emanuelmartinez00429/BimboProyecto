@@ -13,6 +13,7 @@ using CapaUI.Formularios.Principal.Pantallas.ContactosProveedores;
 using CapaUI.Formularios.Principal.Pantallas.Empleados;
 using CapaUI.Formularios.Principal.Pantallas.Fabricantes;
 using CapaUI.Formularios.Principal.Pantallas.Pesaje;
+using CapaUI.Formularios.Principal.Pantallas.Presentaciones;
 using CapaUI.Formularios.Principal.Pantallas.Productos;
 using CapaUI.Formularios.Principal.Pantallas.Proveedores;
 using CapaUI.Formularios.Principal.Pantallas.Usuarios;
@@ -68,6 +69,7 @@ namespace CapaUI
             services.AddTransient<ProveedoresViewModel>();
             services.AddTransient<FabricantesViewModel>();
             services.AddTransient<CategoriasViewModel>();
+            services.AddTransient<PresentacionesViewModel>();
             services.AddTransient<ContactosFabricantesViewModel>();
             services.AddTransient<ContactosProveedoresViewModel>();
             services.AddTransient<UsuariosViewModel>();
