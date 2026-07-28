@@ -6,6 +6,7 @@ using CapaAplicacion.Productos.Interfaces;
 using CapaAplicacion.Productos.Queries;
 using CapaAplicacion.Conexion;
 using CapaAplicacion.Realtime;
+using CapaUI.Core.Controls;
 using CapaUI.Core.MVVM;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -35,8 +36,16 @@ public partial class ProductosViewModel : RealtimeAwareViewModel
 
     public const int PageSize = 50;
 
-    [ObservableProperty] private ObservableCollection<ProductoDto> _pageRows    = new();
-    [ObservableProperty] private ObservableCollection<ProductoDto> _suggestions = new();
+    [ObservableProperty] private ObservableCollection<ProductoDto> _pageRows = new();
+
+    /// <summary>
+    /// Sugerencias ya mapeadas para el <c>SuggestionSearchBox</c>, que se bindea
+    /// directo a esta propiedad. <c>null</c> o lista vacía = popup cerrado.
+    /// Es una sola señal a propósito: la versión anterior tenía dos
+    /// (<c>Suggestions</c> + <c>ShowSuggestions</c>) y el popup se congelaba
+    /// cuando la segunda no cambiaba de valor.
+    /// </summary>
+    [ObservableProperty] private IReadOnlyList<SuggestionItemData>? _suggestItems;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HaySeleccionado), nameof(TextoSeleccionado))]
@@ -49,7 +58,6 @@ public partial class ProductosViewModel : RealtimeAwareViewModel
     [NotifyCanExecuteChangedFor(nameof(PaginaSiguienteCommand))]
     [NotifyCanExecuteChangedFor(nameof(UltimaPaginaCommand))]
     private bool _isLoading;
-    [ObservableProperty] private bool             _showSuggestions;
     [ObservableProperty] private int              _highlightIndex = -1;
     [ObservableProperty] private int              _totalCount;
     [ObservableProperty] private int              _activosCount;
@@ -239,12 +247,7 @@ public partial class ProductosViewModel : RealtimeAwareViewModel
         var token  = _searchCts.Token;
 
         var q = _query.Trim();
-        if (string.IsNullOrEmpty(q))
-        {
-            Suggestions     = new ObservableCollection<ProductoDto>();
-            ShowSuggestions = false;
-            return;
-        }
+        if (string.IsNullOrEmpty(q)) { SuggestItems = null; return; }
 
         try
         {
@@ -254,14 +257,22 @@ public partial class ProductosViewModel : RealtimeAwareViewModel
             var r = await _repo.BuscarSugerenciasAsync(q, BuildFiltros(), token);
             if (token.IsCancellationRequested) return;
 
-            if (!r.Success) { ShowSuggestions = false; return; }
+            if (!r.Success) { SuggestItems = null; return; }
 
-            Suggestions     = new ObservableCollection<ProductoDto>(r.Value!);
-            ShowSuggestions = r.Value!.Count > 0;
-            HighlightIndex  = -1;
+            SuggestItems   = r.Value!.Select(Map).ToList();
+            HighlightIndex = -1;
         }
         catch (OperationCanceledException) { }
     }
+
+    private static SuggestionItemData Map(ProductoDto p) => new()
+    {
+        Codigo = p.CodigoInterno,
+        Nombre = p.Nombre,
+        Meta   = $"{p.Fabricante} · {p.Pais} · {p.Categoria}",
+        Activo = p.IdEstado == Activo,
+        Source = p,
+    };
 
     public void SeleccionarSugerencia(ProductoDto p)
     {
@@ -272,7 +283,7 @@ public partial class ProductosViewModel : RealtimeAwareViewModel
 
         _query = "";
         OnPropertyChanged(nameof(Query));
-        ShowSuggestions = false;
+        SuggestItems = null;
 
         var enPagina = PageRows.FirstOrDefault(x => x.Id == p.Id);
         if (enPagina is not null) { Seleccionado = enPagina; return; }

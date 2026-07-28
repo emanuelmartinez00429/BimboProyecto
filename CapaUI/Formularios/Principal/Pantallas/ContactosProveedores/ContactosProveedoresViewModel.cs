@@ -8,6 +8,7 @@ using CapaAplicacion.Proveedores.Dtos;
 using CapaAplicacion.Proveedores.Interfaces;
 using CapaAplicacion.Proveedores.Queries;
 using CapaAplicacion.Realtime;
+using CapaUI.Core.Controls;
 using CapaUI.Core.MVVM;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -30,7 +31,8 @@ public partial class ContactosProveedoresViewModel : RealtimeAwareViewModel
     public const int PageSize = 50;
 
     [ObservableProperty] private ObservableCollection<ProveedorDto>          _pageRows    = new();
-    [ObservableProperty] private ObservableCollection<ProveedorDto>          _suggestions = new();
+    /// <summary>Sugerencias ya mapeadas para el <c>SuggestionSearchBox</c> (binding directo). <c>null</c> o vacía = popup cerrado.</summary>
+    [ObservableProperty] private IReadOnlyList<SuggestionItemData>?          _suggestItems;
     [ObservableProperty] private ObservableCollection<ContactoProveedorDto>  _contactos   = new();
 
     [ObservableProperty]
@@ -51,7 +53,6 @@ public partial class ContactosProveedoresViewModel : RealtimeAwareViewModel
     private bool _isLoading;
 
     [ObservableProperty] private bool   _isLoadingContactos;
-    [ObservableProperty] private bool   _showSuggestions;
     [ObservableProperty] private int    _highlightIndex = -1;
     [ObservableProperty] private int    _totalCount;
     [ObservableProperty] private int    _activosCount;
@@ -179,12 +180,7 @@ public partial class ContactosProveedoresViewModel : RealtimeAwareViewModel
         var token  = _searchCts.Token;
 
         var q = _query.Trim();
-        if (string.IsNullOrEmpty(q))
-        {
-            Suggestions     = new ObservableCollection<ProveedorDto>();
-            ShowSuggestions = false;
-            return;
-        }
+        if (string.IsNullOrEmpty(q)) { SuggestItems = null; return; }
 
         try
         {
@@ -193,14 +189,21 @@ public partial class ContactosProveedoresViewModel : RealtimeAwareViewModel
 
             var r = await _provRepo.BuscarSugerenciasAsync(q, new ProveedorFiltros { IdEstado = Activo }, token);
             if (token.IsCancellationRequested) return;
-            if (!r.Success) { ShowSuggestions = false; return; }
+            if (!r.Success) { SuggestItems = null; return; }
 
-            Suggestions     = new ObservableCollection<ProveedorDto>(r.Value!);
-            ShowSuggestions = r.Value!.Count > 0;
-            HighlightIndex  = -1;
+            SuggestItems   = r.Value!.Select(Map).ToList();
+            HighlightIndex = -1;
         }
         catch (OperationCanceledException) { }
     }
+
+    private static SuggestionItemData Map(ProveedorDto p) => new()
+    {
+        Nombre = p.Nombre,
+        Meta   = p.Rtn,
+        Activo = p.IdEstado == Activo,
+        Source = p,
+    };
 
     public void SeleccionarSugerencia(ProveedorDto prov)
     {
@@ -211,7 +214,7 @@ public partial class ContactosProveedoresViewModel : RealtimeAwareViewModel
 
         _query = "";
         OnPropertyChanged(nameof(Query));
-        ShowSuggestions = false;
+        SuggestItems = null;
 
         var enPagina = PageRows.FirstOrDefault(x => x.Id == prov.Id);
         if (enPagina is not null)

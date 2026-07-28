@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
@@ -78,11 +78,6 @@ namespace CapaUI.Formularios.Principal.Pantallas.Usuarios
                     break;
                 case nameof(UsuariosViewModel.Seleccionado):  SeleccionarEnTabla();    break;
                 case nameof(UsuariosViewModel.Roles):         PoblarRoles();           break;
-                // Suggestions ademas de ShowSuggestions: el bool se queda pegado en true
-                // mientras el popup esta abierto y no vuelve a notificar, asi que sin este
-                // case la lista no se refresca al seguir escribiendo.
-                case nameof(UsuariosViewModel.Suggestions):     ActualizarSuggestions(); break;
-                case nameof(UsuariosViewModel.ShowSuggestions): ActualizarSuggestions(); break;
             }
         }
 
@@ -171,19 +166,6 @@ namespace CapaUI.Formularios.Principal.Pantallas.Usuarios
         }
 
         // ── Search ─────────────────────────────────────────────────────
-
-        private void ActualizarSuggestions()
-        {
-            SearchBox.SuggestItems = (_vm.ShowSuggestions && _vm.Suggestions.Count > 0)
-                ? _vm.Suggestions.Select(u => new SuggestionItemData
-                  {
-                      Nombre = u.NombreEmpleado,
-                      Meta   = $"{u.CorreoUsuario} · {u.NombreRol}",
-                      Activo = u.IdEstado == 1,
-                      Source = u
-                  }).ToList()
-                : null;
-        }
 
         private void SearchBox_ItemSelected(object? sender, SuggestionItemData e)
         {

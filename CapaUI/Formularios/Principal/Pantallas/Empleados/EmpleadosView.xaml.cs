@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
@@ -82,11 +82,6 @@ namespace CapaUI.Formularios.Principal.Pantallas.Empleados
                     SelectedInfo.Visibility = _vm.HaySeleccionado ? Visibility.Visible : Visibility.Collapsed;
                     break;
                 case nameof(EmpleadosViewModel.Seleccionado):      SeleccionarEnTabla();    break;
-                // Suggestions ademas de ShowSuggestions: el bool se queda pegado en true
-                // mientras el popup esta abierto y no vuelve a notificar, asi que sin este
-                // case la lista no se refresca al seguir escribiendo.
-                case nameof(EmpleadosViewModel.Suggestions):       ActualizarSuggestions(); break;
-                case nameof(EmpleadosViewModel.ShowSuggestions):   ActualizarSuggestions(); break;
             }
         }
 
@@ -154,19 +149,6 @@ namespace CapaUI.Formularios.Principal.Pantallas.Empleados
         }
 
         // ── Search ─────────────────────────────────────────────────────
-
-        private void ActualizarSuggestions()
-        {
-            SearchBox.SuggestItems = (_vm.ShowSuggestions && _vm.Suggestions.Count > 0)
-                ? _vm.Suggestions.Select(e => new SuggestionItemData
-                  {
-                      Nombre = $"{e.NombreEmpleado} {e.ApellidoEmpleado}",
-                      Meta   = $"{e.NumeroIdentidad} · {e.CorreoEmpleado}",
-                      Activo = e.IdEstado == 1,
-                      Source = e
-                  }).ToList()
-                : null;
-        }
 
         private void SearchBox_ItemSelected(object? sender, SuggestionItemData e)
         {

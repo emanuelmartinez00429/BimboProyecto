@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using CapaAplicacion.Usuarios.Dtos;
 using CapaAplicacion.Usuarios.Interfaces;
 using CapaUI.Core.MVVM;
+using CapaUI.Core.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
@@ -31,7 +32,8 @@ public partial class UsuariosViewModel : ObservableObject, IDisposable
 
     // ── Datos de la grilla ─────────────────────────────────────────────
     [ObservableProperty] private ObservableCollection<UsuarioVistaDto> _pageRows    = new();
-    [ObservableProperty] private ObservableCollection<UsuarioVistaDto> _suggestions = new();
+    /// <summary>Sugerencias ya mapeadas para el <c>SuggestionSearchBox</c> (binding directo). <c>null</c> o vacía = popup cerrado.</summary>
+    [ObservableProperty] private IReadOnlyList<SuggestionItemData>? _suggestItems;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HaySeleccionado), nameof(TextoSeleccionado))]
@@ -46,7 +48,6 @@ public partial class UsuariosViewModel : ObservableObject, IDisposable
     [NotifyCanExecuteChangedFor(nameof(UltimaPaginaCommand))]
     private bool _isLoading;
 
-    [ObservableProperty] private bool  _showSuggestions;
     [ObservableProperty] private int   _highlightIndex = -1;
     [ObservableProperty] private int   _totalCount;
     [ObservableProperty] private int   _activosCount;
@@ -218,12 +219,7 @@ public partial class UsuariosViewModel : ObservableObject, IDisposable
         var token = _searchCts.Token;
 
         var q = _query.Trim();
-        if (string.IsNullOrEmpty(q))
-        {
-            Suggestions     = new ObservableCollection<UsuarioVistaDto>();
-            ShowSuggestions = false;
-            return;
-        }
+        if (string.IsNullOrEmpty(q)) { SuggestItems = null; return; }
 
         try
         {
@@ -240,14 +236,21 @@ public partial class UsuariosViewModel : ObservableObject, IDisposable
             var r = await _usuarioRepo.ObtenerPaginaAsync(1, 10, idEstado, _rolFiltro, q);
             if (token.IsCancellationRequested) return;
 
-            if (!r.Success) { ShowSuggestions = false; return; }
+            if (!r.Success) { SuggestItems = null; return; }
 
-            Suggestions     = new ObservableCollection<UsuarioVistaDto>(r.Value!.Items);
-            ShowSuggestions = r.Value!.Items.Count > 0;
-            HighlightIndex  = -1;
+            SuggestItems   = r.Value!.Items.Select(Map).ToList();
+            HighlightIndex = -1;
         }
         catch (OperationCanceledException) { }
     }
+
+    private static SuggestionItemData Map(UsuarioVistaDto u) => new()
+    {
+        Nombre = u.NombreEmpleado,
+        Meta   = $"{u.CorreoUsuario} · {u.NombreRol}",
+        Activo = u.IdEstado == 1,
+        Source = u,
+    };
 
     public void SeleccionarSugerencia(UsuarioVistaDto u)
     {
@@ -258,7 +261,7 @@ public partial class UsuariosViewModel : ObservableObject, IDisposable
 
         _query = "";
         OnPropertyChanged(nameof(Query));
-        ShowSuggestions = false;
+        SuggestItems = null;
 
         var enPagina = PageRows.FirstOrDefault(x => x.IdUsuario == u.IdUsuario);
         if (enPagina is not null) { Seleccionado = enPagina; return; }

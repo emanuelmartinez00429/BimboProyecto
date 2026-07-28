@@ -7,6 +7,7 @@ using CapaAplicacion.Categorias.Queries;
 using CapaAplicacion.Productos.Queries;
 using CapaAplicacion.Conexion;
 using CapaAplicacion.Realtime;
+using CapaUI.Core.Controls;
 using CapaUI.Core.MVVM;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -30,7 +31,8 @@ public partial class CategoriasViewModel : RealtimeAwareViewModel
     public const int PageSize = 50;
 
     [ObservableProperty] private ObservableCollection<CategoriaDto> _pageRows    = new();
-    [ObservableProperty] private ObservableCollection<CategoriaDto> _suggestions = new();
+    /// <summary>Sugerencias ya mapeadas para el <c>SuggestionSearchBox</c> (binding directo). <c>null</c> o vacía = popup cerrado.</summary>
+    [ObservableProperty] private IReadOnlyList<SuggestionItemData>? _suggestItems;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HaySeleccionado), nameof(TextoSeleccionado))]
@@ -44,7 +46,6 @@ public partial class CategoriasViewModel : RealtimeAwareViewModel
     [NotifyCanExecuteChangedFor(nameof(UltimaPaginaCommand))]
     private bool _isLoading;
 
-    [ObservableProperty] private bool   _showSuggestions;
     [ObservableProperty] private int    _highlightIndex = -1;
     [ObservableProperty] private int    _totalCount;
     [ObservableProperty] private int    _activosCount;
@@ -189,12 +190,7 @@ public partial class CategoriasViewModel : RealtimeAwareViewModel
         var token  = _searchCts.Token;
 
         var q = _query.Trim();
-        if (string.IsNullOrEmpty(q))
-        {
-            Suggestions     = new ObservableCollection<CategoriaDto>();
-            ShowSuggestions = false;
-            return;
-        }
+        if (string.IsNullOrEmpty(q)) { SuggestItems = null; return; }
 
         try
         {
@@ -204,14 +200,21 @@ public partial class CategoriasViewModel : RealtimeAwareViewModel
             var r = await _repo.BuscarSugerenciasAsync(q, BuildFiltros(), token);
             if (token.IsCancellationRequested) return;
 
-            if (!r.Success) { ShowSuggestions = false; return; }
+            if (!r.Success) { SuggestItems = null; return; }
 
-            Suggestions     = new ObservableCollection<CategoriaDto>(r.Value!);
-            ShowSuggestions = r.Value!.Count > 0;
-            HighlightIndex  = -1;
+            SuggestItems   = r.Value!.Select(Map).ToList();
+            HighlightIndex = -1;
         }
         catch (OperationCanceledException) { }
     }
+
+    private static SuggestionItemData Map(CategoriaDto c) => new()
+    {
+        Nombre = c.Nombre,
+        Meta   = c.Descripcion,
+        Activo = c.EstadoCategoria,
+        Source = c,
+    };
 
     public void SeleccionarSugerencia(CategoriaDto c)
     {
@@ -222,7 +225,7 @@ public partial class CategoriasViewModel : RealtimeAwareViewModel
 
         _query = "";
         OnPropertyChanged(nameof(Query));
-        ShowSuggestions = false;
+        SuggestItems = null;
 
         var enPagina = PageRows.FirstOrDefault(x => x.Id == c.Id);
         if (enPagina is not null) { Seleccionado = enPagina; return; }

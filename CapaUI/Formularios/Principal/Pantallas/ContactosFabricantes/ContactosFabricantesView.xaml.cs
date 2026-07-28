@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
@@ -66,13 +66,6 @@ namespace CapaUI.Formularios.Principal.Pantallas.ContactosFabricantes
                     break;
                 case nameof(ContactosFabricantesViewModel.NoResults):
                     EmptyState.Visibility = _vm.NoResults ? Visibility.Visible : Visibility.Collapsed;
-                    break;
-                // Suggestions ademas de ShowSuggestions: el bool se queda pegado en true
-                // mientras el popup esta abierto y no vuelve a notificar, asi que sin este
-                // case la lista no se refresca al seguir escribiendo.
-                case nameof(ContactosFabricantesViewModel.Suggestions):
-                case nameof(ContactosFabricantesViewModel.ShowSuggestions):
-                    ActualizarSuggestions();
                     break;
                 case nameof(ContactosFabricantesViewModel.IsViewingContacts):
                     AlternarPaneles();
@@ -165,19 +158,6 @@ namespace CapaUI.Formularios.Principal.Pantallas.ContactosFabricantes
         }
 
         // ── Buscador (Nivel 1) ──────────────────────────────
-
-        private void ActualizarSuggestions()
-        {
-            SearchBox.SuggestItems = (_vm.ShowSuggestions && _vm.Suggestions.Count > 0)
-                ? _vm.Suggestions.Select(f => new SuggestionItemData
-                  {
-                      Nombre = f.Nombre,
-                      Meta   = f.NombreProveedor,
-                      Activo = f.IdEstado == Activo,
-                      Source = f
-                  }).ToList()
-                : null;
-        }
 
         private void SearchBox_ItemSelected(object? sender, SuggestionItemData e)
             => _vm.SeleccionarSugerencia((FabricanteDto)e.Source);

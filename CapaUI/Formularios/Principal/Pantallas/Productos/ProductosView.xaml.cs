@@ -92,11 +92,6 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
                 case nameof(ProductosViewModel.Seleccionado):    SeleccionarEnTabla();    break;
                 case nameof(ProductosViewModel.Fabricantes):     PoblarFabricantes();     break;
                 case nameof(ProductosViewModel.Paises):          PoblarPaises();          break;
-                // Suggestions ademas de ShowSuggestions: el bool se queda pegado en true
-                // mientras el popup esta abierto y no vuelve a notificar, asi que sin este
-                // case la lista no se refresca al seguir escribiendo.
-                case nameof(ProductosViewModel.Suggestions):     ActualizarSuggestions(); break;
-                case nameof(ProductosViewModel.ShowSuggestions): ActualizarSuggestions(); break;
             }
         }
 
@@ -223,20 +218,8 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
 
         // ── Search ────────────────────────────────────────────────────
 
-        private void ActualizarSuggestions()
-        {
-            SearchBox.SuggestItems = (_vm.ShowSuggestions && _vm.Suggestions.Count > 0)
-                ? _vm.Suggestions.Select(p => new SuggestionItemData
-                  {
-                      Codigo = p.CodigoInterno,
-                      Nombre = p.Nombre,
-                      Meta   = $"{p.Fabricante} · {p.Pais} · {p.Categoria}",
-                      Activo = p.IdEstado == Activo,
-                      Source = p
-                  }).ToList()
-                : null;
-        }
-
+        // El popup se alimenta por binding (SuggestItems="{Binding SuggestItems}").
+        // Acá solo queda la reacción de la tabla, que es responsabilidad de la vista.
         private void SearchBox_ItemSelected(object? sender, SuggestionItemData e)
         {
             _vm.SeleccionarSugerencia((ProductoDto)e.Source);

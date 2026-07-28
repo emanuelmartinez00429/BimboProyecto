@@ -3,6 +3,7 @@ using CapaAplicacion.Bitacora.Dtos;
 using CapaAplicacion.Bitacora.Interfaces;
 using CapaAplicacion.Bitacora.Queries;
 using CapaAplicacion.Productos.Dtos;
+using CapaUI.Core.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
@@ -34,7 +35,8 @@ public partial class BitacoraViewModel : ObservableObject, IDisposable
     public const int PageSize = 50;
 
     [ObservableProperty] private ObservableCollection<BitacoraDto> _pageRows    = new();
-    [ObservableProperty] private ObservableCollection<BitacoraDto> _suggestions = new();
+    /// <summary>Sugerencias ya mapeadas para el <c>SuggestionSearchBox</c> (binding directo). <c>null</c> o vacía = popup cerrado.</summary>
+    [ObservableProperty] private IReadOnlyList<SuggestionItemData>? _suggestItems;
 
     /// <summary>Solo para resaltar la fila elegida desde el buscador — sin acción asociada.</summary>
     [ObservableProperty] private BitacoraDto? _seleccionado;
@@ -46,7 +48,6 @@ public partial class BitacoraViewModel : ObservableObject, IDisposable
     [NotifyCanExecuteChangedFor(nameof(UltimaPaginaCommand))]
     private bool _isLoading;
 
-    [ObservableProperty] private bool   _showSuggestions;
     [ObservableProperty] private int    _highlightIndex = -1;
     [ObservableProperty] private int    _totalCount;
     [ObservableProperty] private string _errorCarga = "";
@@ -235,12 +236,7 @@ public partial class BitacoraViewModel : ObservableObject, IDisposable
         var token  = _searchCts.Token;
 
         var q = _query.Trim();
-        if (string.IsNullOrEmpty(q))
-        {
-            Suggestions     = new ObservableCollection<BitacoraDto>();
-            ShowSuggestions = false;
-            return;
-        }
+        if (string.IsNullOrEmpty(q)) { SuggestItems = null; return; }
 
         try
         {
@@ -250,14 +246,21 @@ public partial class BitacoraViewModel : ObservableObject, IDisposable
             var r = await _repo.BuscarSugerenciasAsync(q, BuildFiltros(), token);
             if (token.IsCancellationRequested) return;
 
-            if (!r.Success) { ShowSuggestions = false; return; }
+            if (!r.Success) { SuggestItems = null; return; }
 
-            Suggestions     = new ObservableCollection<BitacoraDto>(r.Value!);
-            ShowSuggestions = r.Value!.Count > 0;
-            HighlightIndex  = -1;
+            SuggestItems   = r.Value!.Select(Map).ToList();
+            HighlightIndex = -1;
         }
         catch (OperationCanceledException) { }
     }
+
+    private static SuggestionItemData Map(BitacoraDto b) => new()
+    {
+        Nombre = b.CampoAfectado,
+        Meta   = $"{b.FechaHora:dd/MM/yyyy HH:mm} · {b.AliasUsuario} · {b.NombreAccion}",
+        Activo = true,
+        Source = b,
+    };
 
     public void SeleccionarSugerencia(BitacoraDto b)
     {
@@ -268,7 +271,7 @@ public partial class BitacoraViewModel : ObservableObject, IDisposable
 
         _query = "";
         OnPropertyChanged(nameof(Query));
-        ShowSuggestions = false;
+        SuggestItems = null;
 
         var enPagina = PageRows.FirstOrDefault(x => x.IdBitacora == b.IdBitacora);
         if (enPagina is not null) { Seleccionado = enPagina; return; }

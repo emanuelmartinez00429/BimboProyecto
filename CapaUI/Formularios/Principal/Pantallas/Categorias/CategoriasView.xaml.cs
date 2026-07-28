@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -72,11 +72,6 @@ namespace CapaUI.Formularios.Principal.Pantallas.Categorias
                     SelectedInfo.Visibility = _vm.HaySeleccionado ? Visibility.Visible : Visibility.Collapsed;
                     break;
                 case nameof(CategoriasViewModel.Seleccionado):    SeleccionarEnTabla();     break;
-                // Suggestions ademas de ShowSuggestions: el bool se queda pegado en true
-                // mientras el popup esta abierto y no vuelve a notificar, asi que sin este
-                // case la lista no se refresca al seguir escribiendo.
-                case nameof(CategoriasViewModel.Suggestions):     ActualizarSuggestions();  break;
-                case nameof(CategoriasViewModel.ShowSuggestions): ActualizarSuggestions();  break;
             }
         }
 
@@ -128,19 +123,6 @@ namespace CapaUI.Formularios.Principal.Pantallas.Categorias
                 _vm.EstadoFiltro = EstadoFilter.Deshabilitados;
             else
                 _vm.EstadoFiltro = EstadoFilter.Todos;
-        }
-
-        private void ActualizarSuggestions()
-        {
-            SearchBox.SuggestItems = (_vm.ShowSuggestions && _vm.Suggestions.Count > 0)
-                ? _vm.Suggestions.Select(c => new SuggestionItemData
-                  {
-                      Nombre = c.Nombre,
-                      Meta   = c.Descripcion,
-                      Activo = c.EstadoCategoria,
-                      Source = c
-                  }).ToList()
-                : null;
         }
 
         private void SearchBox_ItemSelected(object? sender, SuggestionItemData e)

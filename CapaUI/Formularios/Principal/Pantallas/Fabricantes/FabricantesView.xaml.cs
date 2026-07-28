@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -83,11 +83,6 @@ namespace CapaUI.Formularios.Principal.Pantallas.Fabricantes
                     break;
                 case nameof(FabricantesViewModel.Seleccionado):    SeleccionarEnTabla();    break;
                 case nameof(FabricantesViewModel.Paises):          PoblarPaises();          break;
-                // Suggestions ademas de ShowSuggestions: el bool se queda pegado en true
-                // mientras el popup esta abierto y no vuelve a notificar, asi que sin este
-                // case la lista no se refresca al seguir escribiendo.
-                case nameof(FabricantesViewModel.Suggestions):     ActualizarSuggestions(); break;
-                case nameof(FabricantesViewModel.ShowSuggestions): ActualizarSuggestions(); break;
             }
         }
 
@@ -169,19 +164,6 @@ namespace CapaUI.Formularios.Principal.Pantallas.Fabricantes
             CmbPais.ItemsSource   = _paisesView;
             CmbPais.SelectedIndex = 0;
             _suppressFilterChange = false;
-        }
-
-        private void ActualizarSuggestions()
-        {
-            SearchBox.SuggestItems = (_vm.ShowSuggestions && _vm.Suggestions.Count > 0)
-                ? _vm.Suggestions.Select(f => new SuggestionItemData
-                  {
-                      Nombre = f.Nombre,
-                      Meta   = $"{f.NombreProveedor} · {f.NombrePais}",
-                      Activo = f.IdEstado == Activo,
-                      Source = f
-                  }).ToList()
-                : null;
         }
 
         private void SearchBox_ItemSelected(object? sender, SuggestionItemData e)

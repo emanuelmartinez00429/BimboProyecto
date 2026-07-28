@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
@@ -74,11 +74,6 @@ namespace CapaUI.Formularios.Principal.Pantallas.Bitacora
                     }
                     break;
                 case nameof(BitacoraViewModel.Seleccionado):    SeleccionarEnTabla();    break;
-                // Suggestions ademas de ShowSuggestions: el bool se queda pegado en true
-                // mientras el popup esta abierto y no vuelve a notificar, asi que sin este
-                // case la lista no se refresca al seguir escribiendo.
-                case nameof(BitacoraViewModel.Suggestions):     ActualizarSuggestions(); break;
-                case nameof(BitacoraViewModel.ShowSuggestions): ActualizarSuggestions(); break;
             }
         }
 
@@ -206,19 +201,6 @@ namespace CapaUI.Formularios.Principal.Pantallas.Bitacora
         }
 
         // ── Search ─────────────────────────────────────────────────────
-
-        private void ActualizarSuggestions()
-        {
-            SearchBox.SuggestItems = (_vm.ShowSuggestions && _vm.Suggestions.Count > 0)
-                ? _vm.Suggestions.Select(b => new SuggestionItemData
-                  {
-                      Nombre = b.CampoAfectado,
-                      Meta   = $"{b.FechaHora:dd/MM/yyyy HH:mm} · {b.AliasUsuario} · {b.NombreAccion}",
-                      Activo = true,
-                      Source = b
-                  }).ToList()
-                : null;
-        }
 
         private void SearchBox_ItemSelected(object? sender, SuggestionItemData e)
         {

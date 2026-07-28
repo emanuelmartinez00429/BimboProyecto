@@ -1,4 +1,4 @@
-<UserControl x:Class="CapaUI.Formularios.Principal.Pantallas.Fabricantes.FabricantesView"
+﻿<UserControl x:Class="CapaUI.Formularios.Principal.Pantallas.Fabricantes.FabricantesView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:CapaUI.Formularios.Principal.Pantallas.Fabricantes"
@@ -287,6 +287,7 @@
                     <controls:SuggestionSearchBox Grid.Column="0" Margin="0,0,10,0"
                         x:Name="SearchBox"
                         Query="{Binding Query, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                        SuggestItems="{Binding SuggestItems}"
                         HighlightIndex="{Binding HighlightIndex, Mode=TwoWay}"
                         Placeholder="Buscar fabricante por nombre..."
                         ItemSelected="SearchBox_ItemSelected"/>
