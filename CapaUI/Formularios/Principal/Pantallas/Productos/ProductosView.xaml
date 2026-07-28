@@ -81,7 +81,7 @@
             </Style.Triggers>
         </Style>
 
-        <!-- DataGrid Cell Style para alineacion central-->
+        <!-- DataGrid Cell Style para alineacion izquierda-->
         <Style x:Key="ProductCellStyle" TargetType="DataGridCell">
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Padding" Value="0"/>
@@ -92,8 +92,9 @@
                     <ControlTemplate TargetType="DataGridCell">
                         <Border Background="{TemplateBinding Background}"
                                 BorderThickness="0"
-                                Padding="0">
-                            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Left" />
+                                Padding="0"
+                                >
+                            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center" />
                         </Border>
                     </ControlTemplate>
                 </Setter.Value>
@@ -650,7 +651,7 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="PRODUCTO" Width="200" CellStyle="{StaticResource ProductCellStyle1}">
+                        <DataGridTemplateColumn Header="PRODUCTO" Width="*" CellStyle="{StaticResource ProductCellStyle1}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding Nombre}"
@@ -661,7 +662,7 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="FABRICANTE" Width="110" CellStyle="{StaticResource ProductCellStyle}">
+                        <DataGridTemplateColumn Header="FABRICANTE" Width="110" CellStyle="{StaticResource ProductCellStyle1}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding Fabricante}"
@@ -683,7 +684,7 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="CONTENIDO" Width="100" CellStyle="{StaticResource ProductCellStyle}">
+                        <DataGridTemplateColumn Header="CONTENIDO" Width="100" CellStyle="{StaticResource ProductCellStyle1}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding Contenido}"
@@ -694,18 +695,18 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="PRESENTACI&#211;N" Width="*" CellStyle="{StaticResource ProductCellStyle1}">
+                        <DataGridTemplateColumn Header="PRESENTACI&#211;N" Width="SizeToCells" CellStyle="{StaticResource ProductCellStyle1}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding Presentacion}"
                                                FontFamily="Segoe UI" FontSize="13.5"
                                                Foreground="#1A1F2E"
                                                TextTrimming="CharacterEllipsis"
-                                               HorizontalAlignment="Center" Padding="4,0"/>
+                                               HorizontalAlignment="Center" Padding="8,0"/>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="CATEGOR&#205;A" Width="130" CellStyle="{StaticResource ProductCellStyle}">
+                        <DataGridTemplateColumn Header="CATEGOR&#205;A" Width="SizeToCells" CellStyle="{StaticResource ProductCellStyle1}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <Border Background="#F0F5FB" CornerRadius="999" Padding="10,2" HorizontalAlignment="Center">
