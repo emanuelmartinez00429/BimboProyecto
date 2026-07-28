@@ -454,6 +454,25 @@ Verificado: **`CapaUI` no los referencia en ningún lado**.
 
 ---
 
+### P-026 · Puente ViewModel → SuggestionSearchBox duplicado 9 veces
+
+**Archivos:** los 9 pares `*View.xaml.cs` / `*ViewModel.cs` de `CapaUI/Formularios/Principal/Pantallas/` que usan el control (Productos, Proveedores, Fabricantes, Categorías, ContactosProveedores, ContactosFabricantes, Usuarios, Empleados, Bitácora).
+**Detectado en:** [[Sesión 2026-07-28 - Fix Refresco del Popup de Sugerencias (9 módulos)]]
+
+El control compartido resolvió la duplicación del **XAML** y del comportamiento de teclado, pero el puente entre el ViewModel y el control sigue siendo imperativo y copiado íntegro en cada pantalla: los `case` de `OnVmPropertyChanged`, el método `ActualizarSuggestions()` (idéntico salvo el mapeo `DTO → SuggestionItemData`), el `SearchBox_ItemSelected` y el bloque `RefrescarSugerenciasAsync()` / `SeleccionarSugerencia()` del ViewModel.
+
+**Riesgo — ya se materializó dos veces.** Un defecto en el patrón se replica en las 9 y hay que arreglarlo 9 veces:
+- 2026-07-26 · Usuarios se construyó con un `TextBox` plano en vez del control.
+- 2026-07-28 · las 9 pantallas escuchaban solo `ShowSuggestions`, un `bool` que no notifica cuando no cambia, y el popup quedaba congelado al seguir escribiendo.
+
+Es la misma familia que **P-006** (lógica acoplada al ViewModel que se copia entre módulos).
+
+**Solución candidata:** una interfaz `ISuggestionHost` (o una clase base de ViewModel) que exponga `Suggestions`/`ShowSuggestions`/`HighlightIndex` + un `Func<object, SuggestionItemData>` de mapeo, para que el control se enganche por binding y desaparezca el code-behind por pantalla. Requiere tocar las 9 — hacer solo junto a otro refactor del área, no aislado.
+
+**Estado:** `[ ] Pendiente — aceptada mientras no haya otro refactor del buscador`
+
+---
+
 ## Historial de resolución
 
 | ID | Descripción | Estado | Sesión |
@@ -482,6 +501,7 @@ Verificado: **`CapaUI` no los referencia en ningún lado**.
 | P-023 | Catálogo de taras con datos de prueba | `[ ]` Pendiente 🔴 | [[Sesión 2026-07-26 - Rediseño del flujo de Pesajes]] |
 | P-024 | Tara plana (trigger) vs por bulto (bultos teóricos) | `[ ]` Pendiente | [[Sesión 2026-07-26 - Rediseño del flujo de Pesajes]] |
 | P-025 | Repositorios de movimientos duplicados sin uso | `[ ]` Pendiente | [[Sesión 2026-07-26 - Rediseño del flujo de Pesajes]] |
+| P-026 | Puente VM → SuggestionSearchBox duplicado 9× | `[ ]` Pendiente | [[Sesión 2026-07-28 - Fix Refresco del Popup de Sugerencias (9 módulos)]] |
 
 ---
 
@@ -492,3 +512,4 @@ Verificado: **`CapaUI` no los referencia en ningún lado**.
 - [[Paginación y Búsqueda - Arquitectura Detallada]] — arquitectura de referencia
 - [[Sesión 2026-07-23 - Reconciliación Animación Sidebar (ContentAreaBorder) y Regresión BrandBlock]] — origen de P-009 a P-012
 - [[Sesión 2026-07-23 - Revisión QA Módulo Usuarios y Refactor de Sesión (Emanuel)]] — origen de P-013 a P-021
+- [[Sesión 2026-07-28 - Fix Refresco del Popup de Sugerencias (9 módulos)]] — origen de P-026

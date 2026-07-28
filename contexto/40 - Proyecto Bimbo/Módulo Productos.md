@@ -77,8 +77,10 @@ TxtBusqueda.TextChanged
     ↓ _vm.Query = text
     ↓ RefrescarSugerenciasAsync() [debounce 300ms, cancela token previo]
     ↓ _repo.BuscarSugerenciasAsync(q, filtros)   ← ILike server-side, Limit 10
-    → Suggestions: ObservableCollection<ProductoDto>
-    ↓ ShowSuggestions = true → SuggestionsPopup.IsOpen = true
+    → Suggestions: ObservableCollection<ProductoDto>   ← instancia nueva: siempre notifica
+    ↓ ShowSuggestions = results.Count > 0
+    ↓ View: case Suggestions | ShowSuggestions → ActualizarSuggestions()
+    ↓ SearchBox.SuggestItems = ... → SuggestionsPopup.IsOpen = true
 
 Enter / Click
     ↓ SeleccionarSugerencia(ProductoDto p)
@@ -137,18 +139,21 @@ La animación es responsabilidad de la **vista**, no del ViewModel (separación 
 
 ## Highlight de sugerencias
 
-```csharp
-// VisualTreeHelper manual porque ItemsControl no tiene selección nativa
-private void ActualizarHighlight()
-{
-    for (int i = 0; i < SuggestionsList.Items.Count; i++)
-    {
-        var container = SuggestionsList.ItemContainerGenerator.ContainerFromIndex(i);
-        var border = VisualTreeHelper.GetChild(container, 0) as Border;
-        border.Background = (i == _vm.HighlightIndex) ? _highlightBrush : Transparent;
-    }
-}
-```
+Vive dentro de `SuggestionSearchBox`, no en la vista. Es un `ListBox` con
+`SelectedIndex="{Binding HighlightIndex, Mode=OneWay}"` y triggers de estilo
+(`IsMouseOver` para hover, `IsSelected` para la selección — el segundo va después
+para que gane).
+
+`Mode=OneWay` es deliberado: en `TwoWay`, cualquier cambio de `SelectedIndex`
+(incluido el reemplazo del `ItemsSource`) escribiría de vuelta en `HighlightIndex`
+del ViewModel, disparando efectos secundarios.
+
+> [!info] El `VisualTreeHelper` manual fue eliminado
+> La versión anterior recorría el visual tree desde el code-behind porque el
+> control usaba un `ItemsControl` sin selección nativa. Se reemplazó por `ListBox`
+> + triggers al resolver **P-005** (2026-05-28): dependía de que el template XAML
+> no cambiara ni un `Border`, y fallaba en runtime sin excepción clara.
+> Ver [[Sesión 2026-05-28 - Refactor P004-P005]].
 
 ---
 
@@ -272,6 +277,20 @@ Lifecycle del canal:
 
 > [!warning] CanUserAddRows="False"
 > Todos los DataGrid deben tener esta propiedad para evitar filas inline.
+
+> [!danger] El wiring VM → control necesita **dos** `case`, no uno
+> En el switch de `OnVmPropertyChanged` de la vista:
+>
+> ```csharp
+> case nameof(ProductosViewModel.Suggestions):     ActualizarSuggestions(); break;
+> case nameof(ProductosViewModel.ShowSuggestions): ActualizarSuggestions(); break;
+> ```
+>
+> Con solo `ShowSuggestions` el buscador se rompe de forma sutil: ese `bool` con `[ObservableProperty]` **no levanta `PropertyChanged` cuando el valor no cambia**, así que mientras el popup está abierto queda pegado en `true`. Cada tecleo posterior ejecuta la búsqueda y reemplaza `Suggestions`, pero `ActualizarSuggestions()` nunca corre → `SuggestItems` sigue apuntando a la lista vieja y el popup muestra los resultados del término anterior. Solo se recupera borrando todo el texto (`true → false → true`).
+>
+> `Suggestions` se reasigna a una instancia nueva de `ObservableCollection` en cada búsqueda, así que siempre notifica. Se conserva `ShowSuggestions` porque el camino de error del repositorio (`if (!r.Success)`) no reasigna la colección y necesita cerrar el popup.
+>
+> Además, `SeleccionarSugerencia(...)` debe empezar con `_searchCts?.Cancel()` — asigna al campo `_query`, no a la propiedad, así que no pasa por el setter y el debounce en vuelo quedaría vivo. Ver [[Sesión 2026-07-28 - Fix Refresco del Popup de Sugerencias (9 módulos)]].
 
 > [!warning] El buscador SIEMPRE es `controls:SuggestionSearchBox`, nunca un `TextBox` plano
 > Módulo Usuarios se construyó con un `TextBox` + `TextChanged` en vez del control compartido — mismo look-and-feel roto, sin popup ni navegación por teclado, aunque el ViewModel ya tenía `Suggestions`/`ShowSuggestions`/`HighlightIndex` listos. Se detectó y corrigió el 2026-07-26. Al replicar este módulo, verificar SIEMPRE que la vista use `<controls:SuggestionSearchBox Query="{Binding Query, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HighlightIndex="{Binding HighlightIndex, Mode=TwoWay}" ItemSelected="SearchBox_ItemSelected"/>` + mapeo `SuggestionItemData` en el code-behind — no un `TextBox` binding directo a `Query`. Ver [[Sesión 2026-07-26 - Fix Buscador Usuarios (SuggestionSearchBox)]].

@@ -261,9 +261,19 @@ Usuario escribe en TxtBusqueda
     ↓ await Task.Delay(300ms, token)    ← debounce
     ↓ _repo.BuscarSugerenciasAsync(q, BuildFiltros(), token)
          ↓ Supabase: Filter("nombre_producto", ILike, "%q%").Limit(10)
-    → Suggestions = new ObservableCollection<ProductoDto>(results)
-    → ShowSuggestions = true → Popup visible
+    → Suggestions = new ObservableCollection<ProductoDto>(results)   ← instancia NUEVA: siempre notifica
+    → ShowSuggestions = results.Count > 0
+    ↓ View.OnVmPropertyChanged → case Suggestions | ShowSuggestions
+    ↓ ActualizarSuggestions() → SearchBox.SuggestItems = List<SuggestionItemData> | null
+    → SuggestionSearchBox.OnSuggestItemsChanged → Popup visible
 ```
+
+> [!danger] La vista debe escuchar `Suggestions`, no solo `ShowSuggestions`
+> `ShowSuggestions` es un `bool` con `[ObservableProperty]`: **no levanta `PropertyChanged` cuando el valor no cambia**. Con el popup ya abierto queda pegado en `true`, así que si es el único `case` del switch, cada tecleo posterior ejecuta la búsqueda, reemplaza `Suggestions`… y muere ahí. `SuggestItems` nunca se reasigna y la lista visible queda congelada en el término anterior.
+>
+> Se mantienen **los dos** `case`: `Suggestions` cubre el refresco continuo (siempre es una instancia nueva de `ObservableCollection` → comparación por referencia → siempre notifica), y `ShowSuggestions` cubre el camino de error del repositorio, que no reasigna la colección pero sí debe cerrar el popup.
+>
+> Corregido el 2026-07-28 en las 9 pantallas. Ver [[Sesión 2026-07-28 - Fix Refresco del Popup de Sugerencias (9 módulos)]].
 
 ### Implementación de sugerencias (CapaDatos)
 
@@ -305,6 +315,13 @@ Las sugerencias devuelven productos de **cualquier página**. Si el usuario sele
 // ProductosViewModel.SeleccionarSugerencia()
 public void SeleccionarSugerencia(ProductoDto p)
 {
+    // Obligatorio: se asigna al CAMPO _query, no a la propiedad, así que no se
+    // pasa por el setter y nadie más cancelaría el debounce en vuelo. Sin esto,
+    // una búsqueda en curso termina después de la selección, pone
+    // ShowSuggestions = true (false→true: sí notifica) y reabre el popup con la
+    // caja de texto ya vacía.
+    _searchCts?.Cancel();
+
     _query = "";
     ShowSuggestions = false;
 

@@ -210,10 +210,21 @@ query.Or(new List<IPostgrestQueryFilter>
 
 ## Búsqueda con sugerencias (ProductosView)
 
+- El buscador es **siempre** `controls:SuggestionSearchBox`, nunca un `TextBox` plano
 - Debounce 300ms via `CancellationTokenSource` en el ViewModel
-- Highlight manual via `VisualTreeHelper` en el code-behind (ItemsControl, no ListBox)
+- Highlight via `ListBox` + `SelectedIndex="{Binding HighlightIndex, Mode=OneWay}"` + triggers `IsSelected`/`IsMouseOver`. `VisualTreeHelper` fue eliminado al resolver P-005 (2026-05-28); `OneWay` es deliberado — en `TwoWay`, cambiar el `ItemsSource` reescribiría `HighlightIndex` en el VM
+- El switch de `OnVmPropertyChanged` debe tener **los dos** `case`:
+
+```csharp
+case nameof(Vm.Suggestions):     ActualizarSuggestions(); break;
+case nameof(Vm.ShowSuggestions): ActualizarSuggestions(); break;
+```
+
+  `ShowSuggestions` es un `bool`: no notifica cuando el valor no cambia, así que con el popup abierto queda pegado en `true` y la lista se congela en el término anterior. `Suggestions` es una instancia nueva de `ObservableCollection` en cada búsqueda → siempre notifica. `ShowSuggestions` se conserva porque el camino de error del repositorio no reasigna la colección.
+- `SeleccionarSugerencia(...)` debe empezar con `_searchCts?.Cancel()`: asigna al campo `_query` y no a la propiedad, así que no pasa por el setter y el debounce en vuelo quedaría vivo reabriendo el popup
 - Al seleccionar sugerencia: buscar en `PageRows` por `Id`, **NO insertar** en la colección
 - `SeleccionarSugerencia(ProductoDto p)` → `PageRows.FirstOrDefault(x => x.Id == p.Id)`
+- El ViewModel **no pre-selecciona**: `HighlightIndex = -1` siempre al llegar sugerencias nuevas
 
 ---
 
