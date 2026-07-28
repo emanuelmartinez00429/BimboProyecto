@@ -65,6 +65,11 @@ public partial class UniversalSearchViewModel : ObservableObject, IDisposable
                 : "Sin resultados";
         }
         catch (OperationCanceledException) { }
+        catch (Exception ex)
+        {
+            Serilog.Log.Error(ex, "[UniversalSearch] Error inesperado buscando '{Term}'", SearchTerm);
+            StatusText = "Error al buscar";
+        }
         finally
         {
             IsLoading = false;

@@ -1,6 +1,8 @@
 using CapaDatos.Modelados.Usuarios;
 using CapaDominio.Entities;
-using static Supabase.Postgrest.Constants;
+using Supabase.Postgrest;
+using Supabase.Postgrest.Interfaces;
+using Op = Supabase.Postgrest.Constants.Operator;
 
 namespace CapaDatos.Repositories.Search;
 
@@ -25,8 +27,13 @@ public class EmpleadoRepository
         var response = await client
             .From<Empleados>()
             .Select("*")
-            .Filter("or", Operator.Equals,
-                $"(nombre_empleado.ilike.{pattern},apellido_empleado.ilike.{pattern},numero_identidad.ilike.{pattern},correo_empleado.ilike.{pattern})")
+            .Or(new List<IPostgrestQueryFilter>
+            {
+                new QueryFilter("nombre_empleado",   Op.ILike, pattern),
+                new QueryFilter("apellido_empleado", Op.ILike, pattern),
+                new QueryFilter("numero_identidad",  Op.ILike, pattern),
+                new QueryFilter("correo_empleado",   Op.ILike, pattern),
+            })
             .Get();
         return response.Models.Select(MapToDomain).ToList();
     }

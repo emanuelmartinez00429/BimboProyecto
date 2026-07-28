@@ -1,5 +1,7 @@
 using CapaDominio.Entities;
-using static Supabase.Postgrest.Constants;
+using Supabase.Postgrest;
+using Supabase.Postgrest.Interfaces;
+using Op = Supabase.Postgrest.Constants.Operator;
 using ProductosModel = CapaDatos.Modelados.Productos.Productos;
 
 namespace CapaDatos.Repositories.Search;
@@ -30,8 +32,12 @@ public class ProductoSearchRepository
         var response = await client
             .From<ProductosModel>()
             .Select(SelectStatement)
-            .Filter("or", Operator.Equals,
-                $"(nombre_producto.ilike.{pattern},codigo_producto.ilike.{pattern},contenido.ilike.{pattern})")
+            .Or(new List<IPostgrestQueryFilter>
+            {
+                new QueryFilter("nombre_producto", Op.ILike, pattern),
+                new QueryFilter("codigo_producto",  Op.ILike, pattern),
+                new QueryFilter("contenido",        Op.ILike, pattern),
+            })
             .Get();
         return response.Models.Select(MapToDomain).ToList();
     }
