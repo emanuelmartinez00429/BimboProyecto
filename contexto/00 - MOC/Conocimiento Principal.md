@@ -115,4 +115,4 @@ Regla: `CapaAplicacion` **nunca** referencia `CapaDatos`.
 ## Bitácora
 
 Las sesiones están en `70 - Bitácora de Cambios/`.  
-Sesión más reciente: [[Sesión 2026-07-28 - Fix Buscador Global (PostgrestException PGRST100)]]
+Sesión más reciente: [[Sesión 2026-08-09 - Implementación RBAC visual y gestión de roles]]

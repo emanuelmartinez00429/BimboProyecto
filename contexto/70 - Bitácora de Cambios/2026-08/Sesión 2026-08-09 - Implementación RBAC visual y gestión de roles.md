@@ -80,3 +80,35 @@ Validación posterior:
 - Acciones distintas referenciadas desde XAML: 28.
 - Referencias inválidas: 0.
 - `dotnet build BimboProyecto.sln --no-restore`: 0 errores y 0 advertencias.
+
+## 02:01 — Cierre de sesión
+
+### Resumen
+
+Se cerró la sesión con el modelado RBAC alineado, la gestión visual de roles implementada y el contrato de autorización corregido para utilizar los 28 nombres reales de `public.acciones`.
+
+### Archivos y conocimiento actualizado
+
+- Implementación: modelos RBAC, `IRolPermisoRepository`, `RolPermisoRepository`, `RolesView`, `RolesViewModel`, `PermisoCatalogo`, navegación y guardas visuales/imperativas.
+- Evergreen: [[Arquitectura Actual]] y [[Módulo Usuarios]].
+- Navegación: [[Conocimiento Principal]] apunta a esta sesión como la más reciente.
+- Backlog: [[Deuda Técnica - Pendientes]] incorpora P-027 para la prueba funcional con rol Consulta y auditoría de RLS.
+
+### Decisiones
+
+No hubo una nueva decisión arquitectónica: se aplicaron ADR-010 y ADR-011. La asociación de Categorías y administración de Roles con `Modificar Configuración` responde al catálogo vigente, que no define acciones específicas para esas áreas.
+
+### Pruebas y validaciones
+
+- `dotnet build BimboProyecto.sln --no-restore`: compilación correcta, 0 errores y 0 advertencias.
+- Auditoría del contrato: 28 acciones del catálogo, 28 nombres distintos usados en XAML y 0 inválidos.
+- `git diff --check`: sin errores.
+
+### Pendiente principal
+
+Ejecutar una prueba funcional con un usuario Consulta después de recompilar e iniciar sesión nuevamente; confirmar botones visibles y revisar RLS si las tres consultas RBAC todavía devuelven una colección vacía. Ver P-027.
+
+### Observaciones
+
+- No se realizaron commits, push, migraciones ni cambios en políticas Supabase.
+- Se preservó el cambio previo del usuario en `contexto/.obsidian/graph.json`.

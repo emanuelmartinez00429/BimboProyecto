@@ -478,6 +478,19 @@ Por módulo queda solo lo que genuinamente varía: qué repositorio llamar y có
 
 ---
 
+### P-027 · Verificación funcional y RLS del RBAC con rol Consulta
+
+**Archivos:** `UsuarioSesionService.cs`, `PermisoCatalogo`, `PermisoBehavior`, tablas `acciones_roles` / `acciones` / `modulos`
+**Detectado en:** [[Sesión 2026-08-09 - Implementación RBAC visual y gestión de roles]]
+
+El contrato del cliente ya coincide con las 28 acciones reales de Supabase y la auditoría estática no encuentra nombres inválidos. Antes de la corrección, el log mostraba sesiones con cero permisos porque el cliente comparaba contra la nomenclatura provisional con guiones bajos.
+
+**Pendiente de verificación:** iniciar la aplicación recompilada con un usuario de rol Consulta, confirmar que el menú muestre únicamente sus módulos y validar que las políticas RLS permitan leer las filas activas necesarias sin ampliar acceso de escritura.
+
+**Estado:** `[ ] Pendiente — prueba funcional con datos y sesión real`
+
+---
+
 ## Historial de resolución
 
 | ID | Descripción | Estado | Sesión |
@@ -507,6 +520,7 @@ Por módulo queda solo lo que genuinamente varía: qué repositorio llamar y có
 | P-024 | Tara plana (trigger) vs por bulto (bultos teóricos) | `[ ]` Pendiente | [[Sesión 2026-07-26 - Rediseño del flujo de Pesajes]] |
 | P-025 | Repositorios de movimientos duplicados sin uso | `[ ]` Pendiente | [[Sesión 2026-07-26 - Rediseño del flujo de Pesajes]] |
 | P-026 | Puente VM → SuggestionSearchBox duplicado 9× | ✅ Resuelto | [[Sesión 2026-07-28 - Refactor del Buscador de Sugerencias (P-026)]] |
+| P-027 | Verificación funcional y RLS del RBAC con rol Consulta | `[ ]` Pendiente | [[Sesión 2026-08-09 - Implementación RBAC visual y gestión de roles]] |
 
 ---
 
@@ -519,3 +533,4 @@ Por módulo queda solo lo que genuinamente varía: qué repositorio llamar y có
 - [[Sesión 2026-07-23 - Revisión QA Módulo Usuarios y Refactor de Sesión (Emanuel)]] — origen de P-013 a P-021
 - [[Sesión 2026-07-28 - Fix Refresco del Popup de Sugerencias (9 módulos)]] — origen de P-026
 - [[Sesión 2026-07-28 - Refactor del Buscador de Sugerencias (P-026)]] — resolución de P-026
+- [[Sesión 2026-08-09 - Implementación RBAC visual y gestión de roles]] — origen de P-027
