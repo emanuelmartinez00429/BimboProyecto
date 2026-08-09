@@ -9,6 +9,7 @@ using CapaAplicacion.Empleados.Dtos;
 using CapaAplicacion.Empleados.Interfaces;
 using CapaAplicacion.Usuarios.Interfaces;
 using CapaUI.Core.Controls;
+using CapaUI.Core.Permisos;
 using CapaUI.Formularios.Principal.Pantallas.Usuarios;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -241,6 +242,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Empleados
 
         private void AbrirModalNuevo()
         {
+            if (!SesionPermisos.Tiene(Permiso.CrearEmpleado)) return;
             var repo  = App.Services.GetRequiredService<IEmpleadoRepository>();
             var modal = new EmpleadoModal(repo, null);
             modal.Cerrado  += CerrarModal;
@@ -250,6 +252,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Empleados
 
         private void AbrirModalEditar(EmpleadoDto empleado)
         {
+            if (!SesionPermisos.Tiene(Permiso.ModificarEmpleado)) return;
             var repo  = App.Services.GetRequiredService<IEmpleadoRepository>();
             var modal = new EmpleadoModal(repo, empleado);
             modal.Cerrado  += CerrarModal;
@@ -259,6 +262,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Empleados
 
         private void AbrirModalCrearUsuario(EmpleadoDto emp)
         {
+            if (!SesionPermisos.Tiene(Permiso.CrearUsuario)) return;
             var rolRepo     = App.Services.GetRequiredService<IRolRepository>();
             var usuarioRepo = App.Services.GetRequiredService<IUsuarioRepository>();
             var modal = new UsuarioModal(usuarioRepo, rolRepo,

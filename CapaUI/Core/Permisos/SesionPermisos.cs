@@ -33,7 +33,7 @@ namespace CapaUI.Core.Permisos
         public static bool Tiene(Permiso permiso)
         {
             var sesion = _sesionService?.SesionActual;
-            return sesion?.TieneAccion(permiso.ToString()) ?? false;
+            return sesion?.TieneAccion(permiso.NombreBaseDatos()) ?? false;
         }
 
         /// <summary>
@@ -50,8 +50,8 @@ namespace CapaUI.Core.Permisos
             if (sesion is null) return;
 
             var faltantes = System.Enum.GetValues<Permiso>()
-                .Where(p => !sesion.TieneAccion(p.ToString()))
-                .Select(p => p.ToString())
+                .Where(p => !sesion.TieneAccion(p.NombreBaseDatos()))
+                .Select(p => p.NombreBaseDatos())
                 .ToList();
 
             if (faltantes.Count == 0)

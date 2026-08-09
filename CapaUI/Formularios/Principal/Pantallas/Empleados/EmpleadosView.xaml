@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:CapaUI.Formularios.Principal.Pantallas.Empleados"
              xmlns:controls="clr-namespace:CapaUI.Core.Controls"
+             xmlns:permisos="clr-namespace:CapaUI.Core.Permisos"
              Background="#EAF1F8"
              Loaded="UserControl_Loaded"
              Unloaded="UserControl_Unloaded"
@@ -642,7 +643,7 @@
         <!-- ROW 5: ACTION BUTTONS -->
         <DockPanel Grid.Row="5" Margin="0,4,0,14" LastChildFill="False">
             <StackPanel DockPanel.Dock="Left" Orientation="Horizontal">
-                <Button Command="{Binding NuevoCommand}" Background="#16A34A"
+                <Button Command="{Binding NuevoCommand}" permisos:PermisoBehavior.Requiere="Crear Empleado" Background="#16A34A"
                         Style="{StaticResource ActionBtn}" Padding="22,0" Margin="0,0,8,0">
                     <StackPanel Orientation="Horizontal">
                         <Path Data="{StaticResource IconPlus}"
@@ -653,7 +654,7 @@
                                    Foreground="White" VerticalAlignment="Center"/>
                     </StackPanel>
                 </Button>
-                <Button Command="{Binding EditarCommand}" Background="#1E3A8A"
+                <Button Command="{Binding EditarCommand}" permisos:PermisoBehavior.Requiere="Modificar Empleado" Background="#1E3A8A"
                         Style="{StaticResource ActionBtn}" Padding="22,0">
                     <StackPanel Orientation="Horizontal">
                         <Path Data="{StaticResource IconPencil}"
@@ -664,7 +665,7 @@
                                    Foreground="White" VerticalAlignment="Center"/>
                     </StackPanel>
                 </Button>
-                <Button Command="{Binding ToggleEstadoCommand}" Background="#D97706"
+                <Button Command="{Binding ToggleEstadoCommand}" permisos:PermisoBehavior.Requiere="Eliminar Empleado" Background="#D97706"
                         Style="{StaticResource ActionBtn}" Padding="22,0" Margin="8,0,0,0">
                     <StackPanel Orientation="Horizontal">
                         <Path Data="{StaticResource IconToggle}"
@@ -675,7 +676,7 @@
                                    Foreground="White" VerticalAlignment="Center"/>
                     </StackPanel>
                 </Button>
-                <Button Command="{Binding CrearUsuarioCommand}" Background="#7C3AED"
+                <Button Command="{Binding CrearUsuarioCommand}" permisos:PermisoBehavior.Requiere="Crear Usuario" Background="#7C3AED"
                         Style="{StaticResource ActionBtn}" Padding="22,0" Margin="8,0,0,0">
                     <StackPanel Orientation="Horizontal">
                         <Path Data="{StaticResource IconUser}"

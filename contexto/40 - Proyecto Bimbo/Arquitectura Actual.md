@@ -13,6 +13,9 @@ aliases:
 > [!info] MOC del proyecto
 > Este nodo describe el estado actual de la arquitectura. Para el contexto completo de Claude Code, ver [[CLAUDE]].
 
+> [!success] Actualizado 2026-08-09 — RBAC aplicado en UI y gestión de roles
+> El menú, las acciones CRUD, la navegación y las aperturas de modal validan el permiso vigente mediante `SesionPermisos`. El contrato usa los 28 nombres literales de `acciones.nombre_accion`; `PermisoCatalogo` traduce los identificadores tipados de C# a valores como `Consultar Producto`. La pantalla `RolesView` permite administrar `acciones_roles` agrupadas por módulo; su repositorio exige `Modificar Configuración` para guardar. Ver [[Sesión 2026-08-09 - Implementación RBAC visual y gestión de roles]].
+
 > [!success] Actualizado 2026-07-23 — Sesión y permisos refactorizados (commit `f105047`, Emanuel)
 > **`SesionActual` y `servicioSesionActual` (holders estáticos en `CapaDominio`) eliminados.** Reemplazados por `IUsuarioSesionService` (Singleton en DI) + entidad `UsuarioSesion`. Fuente única de verdad de autenticación y permisos.
 > **Permisos ahora reales desde BD** (`acciones_roles`/`acciones`/`modulos`) — antes `SesionPermisos` tenía un `switch(idRol)` hardcodeado. `SesionPermisos` es ahora una fachada estática que delega en `IUsuarioSesionService`.
@@ -152,7 +155,7 @@ ProductosViewModel : RealtimeAwareViewModel
 | [[Módulo Contactos (Drill-down)\|Contactos Fabricantes]] | ✅ Completo | ContactosFabricantesView, ContactosFabricantesViewModel, ContactoFabricanteCrudRepository |
 | [[Módulo Contactos (Drill-down)\|Contactos Proveedores]] | ✅ Completo | ContactosProveedoresView, ContactosProveedoresViewModel, ContactoProveedorCrudRepository |
 | [[Buscador Universal Bimbo]] | ✅ Completo | Multi-entidad con Strategy + Mediator |
-| [[Módulo Usuarios]] | ✅ Completo (2026-07-23, refactor 2026-07-26) | UsuariosView, UsuariosViewModel, UsuarioRepository, UsuarioSesionService — CRUD + auth + permisos desde BD |
+| [[Módulo Usuarios]] | ✅ Completo (RBAC visual y roles 2026-08-09) | UsuariosView, RolesView, UsuarioRepository, RolPermisoRepository, UsuarioSesionService — CRUD + auth + permisos desde BD |
 | [[Módulo Empleados]] | ✅ Completo (2026-07-26) | EmpleadosView, EmpleadosViewModel, EmpleadoCrudRepository — CRUD completo, crea usuario desde empleado |
 | [[Módulo Bitácora]] | ✅ Completo (2026-07-26) | BitacoraView, BitacoraViewModel, BitacoraCrudRepository — solo lectura **por diseño** (auditoría), filtros usuario/módulo/acción/fecha |
 | [[Módulo Pesaje]] | ✅ Flujo rediseñado (2026-07-26) | PesajeView, PesajeViewModel, PesajeRepository, ProcesoDescargaModal (wizard + megamodal), SelectorProductosModal — ⚠️ datos de tara de prueba (P-023) |

@@ -12,11 +12,11 @@ namespace CapaUI.Core.Permisos
     ///
     /// Uso en XAML:
     ///   &lt;!-- OR: accede si tiene al menos uno --&gt;
-    ///   &lt;Button permisos:PermisoBehavior.Requiere="Empleados_Ver,Empleados_Crear"
+    ///   &lt;Button permisos:PermisoBehavior.Requiere="Consultar Empleado,Crear Empleado"
     ///           permisos:PermisoBehavior.Logica="OR" /&gt;
     ///
     ///   &lt;!-- AND: necesita todos --&gt;
-    ///   &lt;Button permisos:PermisoBehavior.Requiere="Empleados_Ver,Empleados_Modificar"
+    ///   &lt;Button permisos:PermisoBehavior.Requiere="Consultar Empleado,Modificar Empleado"
     ///           permisos:PermisoBehavior.Logica="AND" /&gt;
     /// </summary>
     public static class PermisoBehavior
@@ -52,12 +52,17 @@ namespace CapaUI.Core.Permisos
 
             var permisos = raw
                 .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                .Select(s => Enum.TryParse<Permiso>(s, out var p) ? (Permiso?)p : null)
+                .Select(s => PermisoCatalogo.IntentarResolver(s, out var p) ? (Permiso?)p : null)
                 .Where(p => p.HasValue)
                 .Select(p => p!.Value)
                 .ToArray();
 
-            if (permisos.Length == 0) return;
+            if (permisos.Length == 0)
+            {
+                Serilog.Log.Error("Configuración RBAC inválida en XAML: {Permisos}", raw);
+                element.Visibility = Visibility.Collapsed;
+                return;
+            }
 
             bool tiene = GetLogica(element) == LogicaPermiso.OR
                 ? SesionPermisos.TieneAlguno(permisos)

@@ -15,6 +15,7 @@ using CapaUI.Formularios.Principal.Pantallas.Fabricantes;
 using CapaUI.Formularios.Principal.Pantallas.Pesaje;
 using CapaUI.Formularios.Principal.Pantallas.Productos;
 using CapaUI.Formularios.Principal.Pantallas.Proveedores;
+using CapaUI.Formularios.Principal.Pantallas.Roles;
 using CapaUI.Formularios.Principal.Pantallas.Usuarios;
 using CapaUI.Services.Picker;
 using CapaUI.ViewModels.Search;
@@ -73,6 +74,7 @@ namespace CapaUI
             services.AddTransient<UsuariosViewModel>();
             services.AddTransient<EmpleadosViewModel>();
             services.AddTransient<BitacoraViewModel>();
+            services.AddTransient<RolesViewModel>();
             services.AddTransient<LoginWindow>();
             services.AddTransient<MainViewModel>();
             services.AddTransient<MainWindow>();

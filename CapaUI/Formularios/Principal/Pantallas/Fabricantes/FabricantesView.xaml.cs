@@ -10,6 +10,7 @@ using CapaAplicacion.Fabricantes.Dtos;
 using CapaAplicacion.Fabricantes.Interfaces;
 using CapaAplicacion.Productos.Dtos;
 using CapaUI.Core.Controls;
+using CapaUI.Core.Permisos;
 using Microsoft.Extensions.DependencyInjection;
 using static CapaAplicacion.Common.EstadoRegistro;
 using WpfKey         = System.Windows.Input.KeyEventArgs;
@@ -225,6 +226,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Fabricantes
 
         private void AbrirModalNuevo()
         {
+            if (!SesionPermisos.Tiene(Permiso.CrearFabricante)) return;
             var repo  = App.Services.GetRequiredService<IFabricanteRepository>();
             var modal = new FabricanteModal(repo, null);
             modal.Cerrado  += CerrarModal;
@@ -234,6 +236,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Fabricantes
 
         private void AbrirModalEditar(FabricanteDto f)
         {
+            if (!SesionPermisos.Tiene(Permiso.ModificarFabricante)) return;
             var repo  = App.Services.GetRequiredService<IFabricanteRepository>();
             var modal = new FabricanteModal(repo, f);
             modal.Cerrado  += CerrarModal;

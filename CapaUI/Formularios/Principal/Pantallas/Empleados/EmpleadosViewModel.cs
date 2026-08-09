@@ -3,6 +3,7 @@ using CapaAplicacion.Empleados.Dtos;
 using CapaAplicacion.Empleados.Interfaces;
 using CapaAplicacion.Empleados.Queries;
 using CapaUI.Core.Controls;
+using CapaUI.Core.Permisos;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
@@ -246,16 +247,22 @@ public partial class EmpleadosViewModel : ObservableObject, IDisposable
 
     // ── Comandos CRUD ──────────────────────────────────────────────────
     [RelayCommand]
-    private void Nuevo() => SolicitarNuevo?.Invoke();
+    private void Nuevo()
+    {
+        if (SesionPermisos.Tiene(Permiso.CrearEmpleado)) SolicitarNuevo?.Invoke();
+    }
 
     [RelayCommand(CanExecute = nameof(HaySeleccionado))]
     private void Editar()
     {
-        if (Seleccionado is not null) SolicitarEditar?.Invoke(Seleccionado);
+        if (Seleccionado is not null && SesionPermisos.Tiene(Permiso.ModificarEmpleado)) SolicitarEditar?.Invoke(Seleccionado);
     }
 
     [RelayCommand(CanExecute = nameof(HaySeleccionado))]
-    private void CrearUsuario() => SolicitarCrearUsuario?.Invoke(Seleccionado!);
+    private void CrearUsuario()
+    {
+        if (Seleccionado is not null && SesionPermisos.Tiene(Permiso.CrearUsuario)) SolicitarCrearUsuario?.Invoke(Seleccionado);
+    }
 
     /// <summary>
     /// Cambia el estado del empleado seleccionado entre activo (1) e inactivo (2).
@@ -263,7 +270,7 @@ public partial class EmpleadosViewModel : ObservableObject, IDisposable
     [RelayCommand(CanExecute = nameof(HaySeleccionado))]
     private async Task ToggleEstadoAsync()
     {
-        if (Seleccionado is null) return;
+        if (Seleccionado is null || !SesionPermisos.Tiene(Permiso.EliminarEmpleado)) return;
         int nuevoEstado = Seleccionado.IdEstado == 1 ? 2 : 1;
         var r = await _repo.CambiarEstadoAsync(Seleccionado.IdEmpleado, nuevoEstado);
         if (!r.Success)

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -10,6 +10,7 @@ using System.Windows.Shapes;
 using System.Windows.Threading;
 using CapaAplicacion.Proveedores.Interfaces;
 using CapaAplicacion.Proveedores.Queries;
+using CapaUI.Core.Permisos;
 using CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales;
 using CapaUI.Formularios.Principal.Pantallas.Pesaje.Modelos;
 using Microsoft.Extensions.DependencyInjection;
@@ -230,7 +231,10 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
 
         /// <summary>Alta guiada: abre el proceso en modo wizard.</summary>
         private void BtnNuevoProceso_Click(object sender, RoutedEventArgs e)
-            => AbrirProcesoModal(ModoProceso.Wizard, null);
+        {
+            if (SesionPermisos.Tiene(Permiso.RegistrarEntrada))
+                AbrirProcesoModal(ModoProceso.Wizard, null);
+        }
 
         /// <summary>
         /// Único botón de edición de la pantalla: abre el megamodal con TODO el
@@ -238,12 +242,13 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
         /// </summary>
         private void BtnEditarProceso_Click(object sender, RoutedEventArgs e)
         {
-            if (_vm.SelectedCamion != null && !_vm.CamionCerrado)
+            if (SesionPermisos.Tiene(Permiso.ModificarPesaje) && _vm.SelectedCamion != null && !_vm.CamionCerrado)
                 AbrirProcesoModal(ModoProceso.Edicion, _vm.SelectedCamion);
         }
 
         private void BtnCamionQuitar_Click(object sender, RoutedEventArgs e)
         {
+            if (!SesionPermisos.Tiene(Permiso.CancelarPesaje)) return;
             if (_vm.SelectedCamion == null) return;
             PedirConfirmacion(BtnCamionQuitar,
                 $"¿Quitar el camión {_vm.SelectedCamion.Placa}? Se perderán sus productos y pesajes.",

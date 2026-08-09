@@ -3,6 +3,7 @@ using CapaAplicacion.Usuarios.Dtos;
 using CapaAplicacion.Usuarios.Interfaces;
 using CapaUI.Core.MVVM;
 using CapaUI.Core.Controls;
+using CapaUI.Core.Permisos;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
@@ -257,13 +258,13 @@ public partial class UsuariosViewModel : ObservableObject, IDisposable
     [RelayCommand(CanExecute = nameof(HaySeleccionado))]
     private void Editar()
     {
-        if (Seleccionado is not null) SolicitarEditar?.Invoke(Seleccionado);
+        if (Seleccionado is not null && SesionPermisos.Tiene(Permiso.ModificarUsuario)) SolicitarEditar?.Invoke(Seleccionado);
     }
 
     [RelayCommand(CanExecute = nameof(HaySeleccionado))]
     private async Task ToggleEstadoAsync()
     {
-        if (Seleccionado is null) return;
+        if (Seleccionado is null || !SesionPermisos.Tiene(Permiso.EliminarUsuario)) return;
         int nuevoEstado = Seleccionado.IdEstado == 1 ? 2 : 1;
         var r = await _usuarioRepo.CambiarEstadoAsync(Seleccionado.IdUsuario, nuevoEstado);
         if (!r.Success)

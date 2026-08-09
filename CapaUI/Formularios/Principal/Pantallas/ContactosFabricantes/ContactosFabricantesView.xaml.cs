@@ -9,6 +9,7 @@ using CapaAplicacion.Contactos.Fabricantes.Dtos;
 using CapaAplicacion.Contactos.Fabricantes.Interfaces;
 using CapaAplicacion.Fabricantes.Dtos;
 using CapaUI.Core.Controls;
+using CapaUI.Core.Permisos;
 using Microsoft.Extensions.DependencyInjection;
 using static CapaAplicacion.Common.EstadoRegistro;
 using WpfMouseButton = System.Windows.Input.MouseButtonEventArgs;
@@ -206,6 +207,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.ContactosFabricantes
 
         private async void BtnEliminarContacto_Click(object sender, RoutedEventArgs e)
         {
+            if (!SesionPermisos.Tiene(Permiso.ModificarFabricante)) return;
             if (sender is not Button btn || btn.Tag is not ContactoFabricanteDto c) return;
             var r = MessageBox.Show(
                 $"¿Eliminar el contacto «{c.Nombre}»?",
@@ -220,6 +222,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.ContactosFabricantes
 
         private void AbrirModalNuevo()
         {
+            if (!SesionPermisos.Tiene(Permiso.CrearFabricante)) return;
             if (_vm.FabricanteSeleccionado is null) return;
             var repo  = App.Services.GetRequiredService<IContactoFabricanteRepository>();
             var modal = new ContactoFabricanteModal(repo, _vm.FabricanteSeleccionado, null);
@@ -230,6 +233,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.ContactosFabricantes
 
         private void AbrirModalEditar(ContactoFabricanteDto c)
         {
+            if (!SesionPermisos.Tiene(Permiso.ModificarFabricante)) return;
             if (_vm.FabricanteSeleccionado is null) return;
             var repo  = App.Services.GetRequiredService<IContactoFabricanteRepository>();
             var modal = new ContactoFabricanteModal(repo, _vm.FabricanteSeleccionado, c);

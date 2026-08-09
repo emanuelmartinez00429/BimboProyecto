@@ -1,46 +1,84 @@
-namespace CapaUI.Core.Permisos
+namespace CapaUI.Core.Permisos;
+
+/// <summary>
+/// Contrato tipado de las 28 acciones existentes en public.acciones.
+/// El identificador C# no se compara directamente con la BD: use
+/// <see cref="PermisoCatalogo.NombreBaseDatos(Permiso)"/>.
+/// </summary>
+public enum Permiso
 {
-    /// <summary>
-    /// CONTRATO enum ↔ BD: cada valor de este enum DEBE existir literalmente
-    /// (mismo texto, mismo casing) en la columna <c>acciones.nombre_accion</c>
-    /// de Supabase. La comparación es <c>permiso.ToString()</c> contra ese string
-    /// (ver <see cref="SesionPermisos.Tiene"/>): si los nombres divergen, el
-    /// permiso desaparece EN SILENCIO (el botón no aparece, sin error).
-    /// - NO renombrar un valor sin migrar la fila correspondiente en `acciones`.
-    /// - NO agregar un valor sin crear su fila en `acciones` y asignarla a roles.
-    /// <see cref="SesionPermisos.ValidarContraBD"/> se ejecuta tras cada login y
-    /// loguea (Serilog) los valores del enum que la sesión no reconoce.
-    /// </summary>
-    public enum Permiso
-    {
-        Empleados_Ver,
-        Empleados_Crear,
-        Empleados_Modificar,
+    CrearProducto,
+    ModificarProducto,
+    EliminarProducto,
+    ConsultarProducto,
+    CrearEmpleado,
+    ModificarEmpleado,
+    EliminarEmpleado,
+    ConsultarEmpleado,
+    RegistrarEntrada,
+    ModificarPesaje,
+    CompletarPesaje,
+    CancelarPesaje,
+    ConsultarPesaje,
+    CrearProveedor,
+    ModificarProveedor,
+    EliminarProveedor,
+    CrearFabricante,
+    ModificarFabricante,
+    GenerarReporte,
+    ExportarReporte,
+    ConsultarReporte,
+    ModificarConfiguracion,
+    CrearUsuario,
+    ModificarUsuario,
+    EliminarUsuario,
+    ConsultarProveedor,
+    ConsultarFabricante,
+    ConsultarUsuario,
+}
 
-        Usuarios_Ver,
-        Usuarios_Crear,
-        Usuarios_Modificar,
+public static class PermisoCatalogo
+{
+    private static readonly IReadOnlyDictionary<Permiso, string> Nombres =
+        new Dictionary<Permiso, string>
+        {
+            [Permiso.CrearProducto] = "Crear Producto",
+            [Permiso.ModificarProducto] = "Modificar Producto",
+            [Permiso.EliminarProducto] = "Eliminar Producto",
+            [Permiso.ConsultarProducto] = "Consultar Producto",
+            [Permiso.CrearEmpleado] = "Crear Empleado",
+            [Permiso.ModificarEmpleado] = "Modificar Empleado",
+            [Permiso.EliminarEmpleado] = "Eliminar Empleado",
+            [Permiso.ConsultarEmpleado] = "Consultar Empleado",
+            [Permiso.RegistrarEntrada] = "Registrar Entrada",
+            [Permiso.ModificarPesaje] = "Modificar Pesaje",
+            [Permiso.CompletarPesaje] = "Completar Pesaje",
+            [Permiso.CancelarPesaje] = "Cancelar Pesaje",
+            [Permiso.ConsultarPesaje] = "Consultar Pesaje",
+            [Permiso.CrearProveedor] = "Crear Proveedor",
+            [Permiso.ModificarProveedor] = "Modificar Proveedor",
+            [Permiso.EliminarProveedor] = "Eliminar Proveedor",
+            [Permiso.CrearFabricante] = "Crear Fabricante",
+            [Permiso.ModificarFabricante] = "Modificar Fabricante",
+            [Permiso.GenerarReporte] = "Generar Reporte",
+            [Permiso.ExportarReporte] = "Exportar Reporte",
+            [Permiso.ConsultarReporte] = "Consultar Reporte",
+            [Permiso.ModificarConfiguracion] = "Modificar Configuración",
+            [Permiso.CrearUsuario] = "Crear Usuario",
+            [Permiso.ModificarUsuario] = "Modificar Usuario",
+            [Permiso.EliminarUsuario] = "Eliminar Usuario",
+            [Permiso.ConsultarProveedor] = "Consultar Proveedor",
+            [Permiso.ConsultarFabricante] = "Consultar Fabricante",
+            [Permiso.ConsultarUsuario] = "Consultar Usuario",
+        };
 
-        Productos_Ver,
-        Productos_Crear,
-        Productos_Modificar,
+    private static readonly IReadOnlyDictionary<string, Permiso> PorNombre =
+        Nombres.ToDictionary(x => x.Value, x => x.Key, StringComparer.Ordinal);
 
-        Categorias_Ver,
-        Categorias_Crear,
-        Categorias_Modificar,
+    public static string NombreBaseDatos(this Permiso permiso) => Nombres[permiso];
 
-        Fabricantes_Ver,
-        Fabricantes_Crear,
-        Fabricantes_Modificar,
+    public static bool IntentarResolver(string nombreBaseDatos, out Permiso permiso) =>
+        PorNombre.TryGetValue(nombreBaseDatos, out permiso);
 
-        Proveedores_Ver,
-        Proveedores_Crear,
-        Proveedores_Modificar,
-
-        Pesajes_Ver,
-        Pesajes_Crear,
-        Pesajes_Modificar,
-
-        Reportes_Ver,
-    }
+    public static IReadOnlyCollection<string> TodosLosNombres => Nombres.Values.ToArray();
 }

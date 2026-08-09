@@ -1,0 +1,75 @@
+﻿<UserControl x:Class="CapaUI.Formularios.Principal.Pantallas.Roles.RolesView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:permisos="clr-namespace:CapaUI.Core.Permisos"
+             Loaded="UserControl_Loaded">
+    <Grid Background="#F5F7FA">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Border Margin="28,24,28,12" Padding="22" Background="White" CornerRadius="10">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="320"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Text="Gestión de Roles" FontSize="26" FontWeight="SemiBold" Foreground="#172033"/>
+                    <TextBlock Margin="0,6,0,0" Text="Asigna acciones de cada módulo al rol seleccionado." Foreground="#667085"/>
+                </StackPanel>
+                <ComboBox Grid.Column="1" Height="42" Padding="12,0"
+                          ItemsSource="{Binding Roles}"
+                          SelectedItem="{Binding RolSeleccionado}"
+                          DisplayMemberPath="NombreRol"/>
+            </Grid>
+        </Border>
+
+        <Border Grid.Row="1" Margin="28,0,28,12" Padding="14,10" CornerRadius="7"
+                Background="#FFF7E6">
+            <TextBlock Text="{Binding Mensaje}" TextWrapping="Wrap" Foreground="#92400E"/>
+        </Border>
+
+        <ScrollViewer Grid.Row="2" Margin="28,0,28,12" VerticalScrollBarVisibility="Auto">
+            <ItemsControl ItemsSource="{Binding Modulos}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Margin="0,0,0,12" Padding="20" Background="White" CornerRadius="10">
+                            <StackPanel>
+                                <TextBlock Text="{Binding Nombre}" FontSize="18" FontWeight="SemiBold" Foreground="#1E3A8A"/>
+                                <TextBlock Text="{Binding Descripcion}" Margin="0,3,0,12" Foreground="#667085" TextWrapping="Wrap"/>
+                                <ItemsControl ItemsSource="{Binding Acciones}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <CheckBox Width="285" Margin="0,5,16,5"
+                                                      IsChecked="{Binding Asignada}"
+                                                      IsEnabled="{Binding DataContext.PuedeEditar, RelativeSource={RelativeSource AncestorType=UserControl}}">
+                                                <StackPanel>
+                                                    <TextBlock Text="{Binding Nombre}" FontWeight="SemiBold" Foreground="#344054"/>
+                                                    <TextBlock Text="{Binding Descripcion}" FontSize="11" Foreground="#98A2B3" TextWrapping="Wrap"/>
+                                                </StackPanel>
+                                            </CheckBox>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+
+        <Border Grid.Row="3" Padding="18" Background="White" BorderBrush="#E4E7EC" BorderThickness="0,1,0,0">
+            <Button HorizontalAlignment="Right" Width="190" Height="44"
+                    Content="Guardar permisos" Command="{Binding GuardarCommand}"
+                    Background="#1E3A8A" Foreground="White" BorderThickness="0" Cursor="Hand"
+                    permisos:PermisoBehavior.Requiere="Modificar Configuración"/>
+        </Border>
+    </Grid>
+</UserControl>

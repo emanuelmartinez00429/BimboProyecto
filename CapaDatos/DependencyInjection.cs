@@ -75,6 +75,7 @@ public static class DependencyInjection
         services.AddTransient<IUsuarioRepository, UsuarioRepository>();
         services.AddTransient<IRolRepository, RolRepository>();
         services.AddSingleton<IUsuarioSesionService, UsuarioSesionService>();
+        services.AddTransient<IRolPermisoRepository, RolPermisoRepository>();
 
         // Empleados — solo lectura por ahora (módulo en revisión)
         services.AddTransient<IEmpleadoRepository, EmpleadoCrudRepository>();

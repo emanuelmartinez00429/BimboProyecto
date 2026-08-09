@@ -8,5 +8,4 @@ public sealed class RolDto
 {
     public int    IdRol     { get; init; }
     public string NombreRol { get; init; } = string.Empty;
-    public int    IdEstado  { get; init; }
 }

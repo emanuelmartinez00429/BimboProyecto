@@ -17,5 +17,8 @@ namespace CapaDatos.Modelados.Usuarios
 
         [Column("descripcion_accion")]
         public string? descripcionAccion { get; set; }
+
+        [Column("created_at")]
+        public DateTime? createdAt { get; set; }
     }
 }

@@ -14,5 +14,8 @@ namespace CapaDatos.Modelados.Usuarios
 
         [Column("descripcion_modulo")]
         public string? descripcionModulo { get; set; }
+
+        [Column("created_at")]
+        public DateTime? createdAt { get; set; }
     }
 }

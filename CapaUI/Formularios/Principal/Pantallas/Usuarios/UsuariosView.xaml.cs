@@ -8,6 +8,7 @@ using System.Windows.Media.Animation;
 using CapaAplicacion.Usuarios.Dtos;
 using CapaAplicacion.Usuarios.Interfaces;
 using CapaUI.Core.Controls;
+using CapaUI.Core.Permisos;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace CapaUI.Formularios.Principal.Pantallas.Usuarios
@@ -258,6 +259,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Usuarios
 
         private void AbrirModalEditar(UsuarioVistaDto u)
         {
+            if (!SesionPermisos.Tiene(Permiso.ModificarUsuario)) return;
             var rolRepo       = App.Services.GetRequiredService<IRolRepository>();
             var usuarioRepo   = App.Services.GetRequiredService<IUsuarioRepository>();
             var modal = new UsuarioModal(usuarioRepo, rolRepo, u);

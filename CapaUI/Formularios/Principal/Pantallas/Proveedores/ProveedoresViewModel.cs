@@ -8,6 +8,7 @@ using CapaAplicacion.Productos.Queries;
 using CapaAplicacion.Conexion;
 using CapaAplicacion.Realtime;
 using CapaUI.Core.Controls;
+using CapaUI.Core.Permisos;
 using CapaUI.Core.MVVM;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -248,12 +249,15 @@ public partial class ProveedoresViewModel : RealtimeAwareViewModel
     };
 
     [RelayCommand]
-    private void Nuevo() => SolicitarNuevo?.Invoke();
+    private void Nuevo()
+    {
+        if (SesionPermisos.Tiene(Permiso.CrearProveedor)) SolicitarNuevo?.Invoke();
+    }
 
     [RelayCommand(CanExecute = nameof(HaySeleccionado))]
     private void Editar()
     {
-        if (Seleccionado is not null) SolicitarEditar?.Invoke(Seleccionado);
+        if (Seleccionado is not null && SesionPermisos.Tiene(Permiso.ModificarProveedor)) SolicitarEditar?.Invoke(Seleccionado);
     }
 
     [RelayCommand]

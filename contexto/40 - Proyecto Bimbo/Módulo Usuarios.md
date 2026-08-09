@@ -12,6 +12,7 @@ date: 2026-07-26
 
 ### CapaAplicacion — Interfaces
 - `CapaAplicacion/Usuarios/Interfaces/IRolRepository.cs`
+- `CapaAplicacion/Usuarios/Interfaces/IRolPermisoRepository.cs`
 - `CapaAplicacion/Usuarios/Interfaces/IUsuarioRepository.cs`
 - `CapaAplicacion/Usuarios/Interfaces/IUsuarioSesionService.cs`
 
@@ -20,15 +21,20 @@ date: 2026-07-26
 - `CapaAplicacion/Usuarios/DTOs/CrearUsuarioDto.cs`
 - `CapaAplicacion/Usuarios/DTOs/EmpleadoDto.cs` (4 campos: id, nombre, apellido, correo)
 - `CapaAplicacion/Usuarios/DTOs/RolDto.cs`
+- `CapaAplicacion/Usuarios/DTOs/ModuloAccionesDto.cs`
 - `CapaAplicacion/Usuarios/DTOs/UsuarioVistaDto.cs`
 
 ### CapaDatos — Modelos Supabase
 - `CapaDatos/Modelados/Usuarios/Accion.cs`
 - `CapaDatos/Modelados/Usuarios/AccionRol.cs`
 - `CapaDatos/Modelados/Usuarios/Modulo.cs`
+- `CapaDatos/Modelados/Usuarios/Roles.cs`
+
+Los cuatro modelos RBAC reflejan las tablas `acciones`, `acciones_roles`, `modulos` y `roles`. Incluyen sus columnas de auditoría `created_at`/`updated_at` cuando corresponden. `acciones_roles.id_estado` controla si la asignación está activa; la tabla `roles` vigente no contiene `id_estado`.
 
 ### CapaDatos — Repositorios
 - `CapaDatos/Repositories/Usuarios/RolRepository.cs`
+- `CapaDatos/Repositories/Usuarios/RolPermisoRepository.cs` — catálogo y asignaciones rol-acción
 - `CapaDatos/Repositories/Usuarios/UsuarioRepository.cs` (~312 líneas)
 - `CapaDatos/Services/UsuarioSesionService.cs` (~165 líneas)
 
@@ -42,6 +48,8 @@ date: 2026-07-26
 - `CapaUI/Formularios/Principal/Pantallas/Usuarios/UsuariosViewModel.cs` (~331 líneas)
 - `CapaUI/Formularios/Principal/Pantallas/Usuarios/UsuarioModal.xaml`
 - `CapaUI/Formularios/Principal/Pantallas/Usuarios/UsuarioModal.xaml.cs`
+- `CapaUI/Formularios/Principal/Pantallas/Roles/RolesView.xaml`
+- `CapaUI/Formularios/Principal/Pantallas/Roles/RolesViewModel.cs`
 
 ### Archivos eliminados (legacy)
 - ~~`SesionActual.cs`~~ → reemplazado por `IUsuarioSesionService`
@@ -85,6 +93,30 @@ UsuariosViewModel → UsuarioRepository.ObtenerPaginaAsync(page, filters)
     → Búsqueda: vista SQL vista_usuarios_busqueda (OR cross-tabla)
 ```
 
+### Administración de permisos por rol
+```
+MainWindow → RolesView → RolesViewModel
+    → RolRepository.ObtenerRolesAsync()
+    → RolPermisoRepository.ObtenerCatalogoAsync()
+        → modulos + acciones agrupadas por módulo
+    → seleccionar rol → ObtenerAccionesAsignadasAsync(idRol)
+    → marcar/desmarcar acciones → GuardarAsignacionesAsync(...)
+        → activa/desactiva acciones_roles mediante id_estado
+```
+
+La lectura exige `Usuarios_Ver` o `Usuarios_Modificar`; guardar exige `Usuarios_Modificar`. Los cambios afectan sesiones nuevas: un usuario ya autenticado debe volver a iniciar sesión para recargar su `HashSet` de acciones.
+
+### Aplicación de permisos
+```
+acciones_roles → UsuarioSesionService → SesionPermisos
+    ├─ PermisoBehavior.Requiere en menú y botones
+    ├─ MainViewModel bloquea navegación directa sin permiso
+    ├─ ViewModel valida antes de ejecutar comandos CRUD
+    └─ code-behind valida antes de abrir modales o eliminar
+```
+
+`PermisoBehavior` trabaja en modo cerrado: una cadena vacía o que no corresponda al catálogo `PermisoCatalogo` oculta el elemento y genera un error en Serilog. El XAML utiliza literalmente los 28 valores de `acciones.nombre_accion` (por ejemplo, `Consultar Producto`); el enum C# conserva identificadores sin espacios y `NombreBaseDatos()` realiza la traducción explícita. La base de datos/RLS continúa siendo la frontera final para solicitudes directas fuera del cliente WPF.
+
 ## Patrones en Uso
 - [[Repository Pattern]] — RolRepository, UsuarioRepository
 - [[Result Pattern]] — TryAsync + Result<T> en todos los repos
@@ -107,7 +139,7 @@ UsuariosViewModel → UsuarioRepository.ObtenerPaginaAsync(page, filters)
 
 > [!warning] Permisos desde BD
 > `acciones_roles` → `acciones` → `modulos`. 3 queries paralelas al login.
-> HashSet O(1). Cambios de permisos requieren re-login.
+> HashSet O(1). Los nombres se comparan con la nomenclatura literal de BD (`Crear Producto`, `Consultar Usuario`, etc.). Cambios de permisos requieren re-login.
 
 ## Preguntas Abiertas
 1. Búsqueda autocomplete sin UI en XAML (VM tiene debounce, XAML falta popup/listBox)
@@ -115,11 +147,13 @@ UsuariosViewModel → UsuarioRepository.ObtenerPaginaAsync(page, filters)
 3. Count duplicado (in-memory vs COUNT(*))
 4. Unicidad de email no validada explícitamente
 5. Naming inconsistente: alias_usuario vs CorreoUsuario (resuelto en P-019)
-6. Sin chequeo de permisos en la vista UsuariosView
+6. Auditoría de políticas RLS para confirmar la frontera final del backend
 
 ## Relaciones
 - [[Módulo Productos]] — patrón canónico que replica
 - [[Módulo Empleados]] — datos de empleados vinculados, lanza creación de usuario
 - [[Arquitectura Actual]] — estado del proyecto
+- [[Sesión 2026-08-09 - Alineación de modelados RBAC]] — correspondencia de los modelos con el esquema vigente
+- [[Sesión 2026-08-09 - Implementación RBAC visual y gestión de roles]] — aplicación visual, navegación y administración de asignaciones
 - [[ADR-007]] a [[ADR-013]] — decisiones del módulo
 - [[Deuda Técnica - Pendientes]] — P-NNN relacionados

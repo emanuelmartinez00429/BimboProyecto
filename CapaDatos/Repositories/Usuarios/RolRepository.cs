@@ -26,7 +26,6 @@ public class RolRepository : RepositorioBase, IRolRepository
                 {
                     IdRol     = r.idRol,
                     NombreRol = r.nombreRol,
-                    IdEstado  = r.idEstado,
                 })
                 .ToList();
         }, "Obtener roles");

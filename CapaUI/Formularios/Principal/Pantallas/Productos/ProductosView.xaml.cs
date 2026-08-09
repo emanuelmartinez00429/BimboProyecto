@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
@@ -11,6 +11,7 @@ using CapaAplicacion.Common;
 using CapaAplicacion.Productos.Dtos;
 using CapaAplicacion.Productos.Interfaces;
 using CapaUI.Core.Controls;
+using CapaUI.Core.Permisos;
 using Microsoft.Extensions.DependencyInjection;
 using static CapaAplicacion.Common.EstadoRegistro;
 using WpfKey         = System.Windows.Input.KeyEventArgs;
@@ -312,6 +313,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
 
         private void AbrirModalNuevo()
         {
+            if (!SesionPermisos.Tiene(Permiso.CrearProducto)) return;
             var repo  = App.Services.GetRequiredService<IProductoRepository>();
             var modal = new ProductoModal(repo, null);
             modal.Cerrado  += CerrarModal;
@@ -321,6 +323,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
 
         private void AbrirModalEditar(ProductoDto p)
         {
+            if (!SesionPermisos.Tiene(Permiso.ModificarProducto)) return;
             var repo  = App.Services.GetRequiredService<IProductoRepository>();
             var modal = new ProductoModal(repo, p);
             modal.Cerrado  += CerrarModal;

@@ -8,6 +8,7 @@ using CapaAplicacion.Common;
 using CapaAplicacion.Proveedores.Dtos;
 using CapaAplicacion.Proveedores.Interfaces;
 using CapaUI.Core.Controls;
+using CapaUI.Core.Permisos;
 using Microsoft.Extensions.DependencyInjection;
 using static CapaAplicacion.Common.EstadoRegistro;
 using WpfKey         = System.Windows.Input.KeyEventArgs;
@@ -210,6 +211,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Proveedores
 
         private void AbrirModalNuevo()
         {
+            if (!SesionPermisos.Tiene(Permiso.CrearProveedor)) return;
             var repo  = App.Services.GetRequiredService<IProveedorRepository>();
             var modal = new ProveedorModal(repo, null);
             modal.Cerrado  += CerrarModal;
@@ -219,6 +221,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Proveedores
 
         private void AbrirModalEditar(ProveedorDto p)
         {
+            if (!SesionPermisos.Tiene(Permiso.ModificarProveedor)) return;
             var repo  = App.Services.GetRequiredService<IProveedorRepository>();
             var modal = new ProveedorModal(repo, p);
             modal.Cerrado  += CerrarModal;

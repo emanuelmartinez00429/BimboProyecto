@@ -9,6 +9,7 @@ using CapaAplicacion.Fabricantes.Queries;
 using CapaAplicacion.Productos.Queries;
 using CapaAplicacion.Realtime;
 using CapaUI.Core.Controls;
+using CapaUI.Core.Permisos;
 using CapaUI.Core.MVVM;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -255,19 +256,22 @@ public partial class ContactosFabricantesViewModel : RealtimeAwareViewModel
     }
 
     [RelayCommand]
-    private void NuevoContacto() => SolicitarNuevoContacto?.Invoke();
+    private void NuevoContacto()
+    {
+        if (SesionPermisos.Tiene(Permiso.CrearFabricante)) SolicitarNuevoContacto?.Invoke();
+    }
 
     [RelayCommand(CanExecute = nameof(HayContactoSeleccionado))]
     private void EditarContacto()
     {
-        if (ContactoSeleccionado is not null)
+        if (ContactoSeleccionado is not null && SesionPermisos.Tiene(Permiso.ModificarFabricante))
             SolicitarEditarContacto?.Invoke(ContactoSeleccionado);
     }
 
     [RelayCommand(CanExecute = nameof(HayContactoSeleccionado))]
     private async Task EliminarContacto()
     {
-        if (ContactoSeleccionado is null) return;
+        if (ContactoSeleccionado is null || !SesionPermisos.Tiene(Permiso.ModificarFabricante)) return;
         var r = await _contactoRepo.DeleteAsync(ContactoSeleccionado.Id);
         if (!r.Success) { ErrorCarga = r.Error; return; }
         ContactoSeleccionado = null;

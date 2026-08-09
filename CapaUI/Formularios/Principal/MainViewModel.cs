@@ -20,6 +20,7 @@ namespace CapaUI.Formularios.Principal
         private readonly UniversalSearchViewModel _searchVm;
         private readonly IConexionMonitor         _conexionMonitor;
         private readonly Dictionary<string, Func<object>> _routes;
+        private readonly Dictionary<string, Permiso[]> _routePermissions;
         private bool _disposed;
 
         // ── Vista actual ─────────────────────────────────────────────────
@@ -66,12 +67,12 @@ namespace CapaUI.Formularios.Principal
         public string NombreRol     => _sesionService.SesionActual?.NombreRol  ?? "";
 
         // ── Visibilidad de módulos ───────────────────────────────────────
-        public bool VerPesajes     => SesionPermisos.TieneAlguno(Permiso.Pesajes_Ver,    Permiso.Pesajes_Crear,    Permiso.Pesajes_Modificar);
-        public bool VerEmpleados   => SesionPermisos.TieneAlguno(Permiso.Empleados_Ver,  Permiso.Empleados_Crear,  Permiso.Empleados_Modificar);
-        public bool VerUsuarios    => SesionPermisos.TieneAlguno(Permiso.Usuarios_Ver,   Permiso.Usuarios_Crear,   Permiso.Usuarios_Modificar);
-        public bool VerProductos   => SesionPermisos.TieneAlguno(Permiso.Productos_Ver,  Permiso.Productos_Crear,  Permiso.Productos_Modificar);
-        public bool VerProveedores => SesionPermisos.TieneAlguno(Permiso.Proveedores_Ver,Permiso.Proveedores_Crear,Permiso.Proveedores_Modificar);
-        public bool VerReportes    => SesionPermisos.Tiene(Permiso.Reportes_Ver);
+        public bool VerPesajes     => SesionPermisos.TieneAlguno(Permiso.ConsultarPesaje, Permiso.RegistrarEntrada, Permiso.ModificarPesaje, Permiso.CompletarPesaje, Permiso.CancelarPesaje);
+        public bool VerEmpleados   => SesionPermisos.TieneAlguno(Permiso.ConsultarEmpleado, Permiso.CrearEmpleado, Permiso.ModificarEmpleado, Permiso.EliminarEmpleado);
+        public bool VerUsuarios    => SesionPermisos.TieneAlguno(Permiso.ConsultarUsuario, Permiso.CrearUsuario, Permiso.ModificarUsuario, Permiso.EliminarUsuario);
+        public bool VerProductos   => SesionPermisos.TieneAlguno(Permiso.ConsultarProducto, Permiso.CrearProducto, Permiso.ModificarProducto, Permiso.EliminarProducto);
+        public bool VerProveedores => SesionPermisos.TieneAlguno(Permiso.ConsultarProveedor, Permiso.CrearProveedor, Permiso.ModificarProveedor, Permiso.EliminarProveedor);
+        public bool VerReportes    => SesionPermisos.TieneAlguno(Permiso.ConsultarReporte, Permiso.GenerarReporte, Permiso.ExportarReporte);
 
         // ── Eventos ──────────────────────────────────────────────────────
         public event EventHandler? CierreRequerido;
@@ -93,7 +94,7 @@ namespace CapaUI.Formularios.Principal
                 // Usuarios
                 [Routes.Usuarios]  = () => new UsuariosScreenVM(),
                 [Routes.Empleados] = () => new EmpleadosVM(),
-                [Routes.Roles]     = () => new ConstructionVM("Gestión de Roles",     "Usuarios"),
+                [Routes.Roles]     = () => new RolesVM(),
                 [Routes.Bitacora]  = () => new BitacoraVM(),
                 // Productos
                 [Routes.Productos]            = () => new ProductosVM(),
@@ -110,6 +111,23 @@ namespace CapaUI.Formularios.Principal
                 // Especiales
                 [Routes.Bienvenida] = () => new WelcomeVM(),
                 [Routes.MiUsuario]  = () => new ConstructionVM("Mi Usuario", ""),
+            };
+
+            _routePermissions = new Dictionary<string, Permiso[]>
+            {
+                [Routes.Usuarios] = [Permiso.ConsultarUsuario, Permiso.CrearUsuario, Permiso.ModificarUsuario, Permiso.EliminarUsuario],
+                [Routes.Empleados] = [Permiso.ConsultarEmpleado, Permiso.CrearEmpleado, Permiso.ModificarEmpleado, Permiso.EliminarEmpleado],
+                [Routes.Roles] = [Permiso.ModificarConfiguracion],
+                [Routes.Bitacora] = [Permiso.ConsultarUsuario],
+                [Routes.Productos] = [Permiso.ConsultarProducto, Permiso.CrearProducto, Permiso.ModificarProducto, Permiso.EliminarProducto],
+                [Routes.Proveedores] = [Permiso.ConsultarProveedor, Permiso.CrearProveedor, Permiso.ModificarProveedor, Permiso.EliminarProveedor],
+                [Routes.Fabricantes] = [Permiso.ConsultarFabricante, Permiso.CrearFabricante, Permiso.ModificarFabricante],
+                [Routes.Categorias] = [Permiso.ModificarConfiguracion],
+                [Routes.ContactosProveedores] = [Permiso.ConsultarProveedor, Permiso.CrearProveedor, Permiso.ModificarProveedor, Permiso.EliminarProveedor],
+                [Routes.ContactosFabricantes] = [Permiso.ConsultarFabricante, Permiso.CrearFabricante, Permiso.ModificarFabricante],
+                [Routes.Pesajes] = [Permiso.ConsultarPesaje, Permiso.RegistrarEntrada, Permiso.ModificarPesaje, Permiso.CompletarPesaje, Permiso.CancelarPesaje],
+                [Routes.Dashboard] = [Permiso.ConsultarReporte],
+                [Routes.CrearReportes] = [Permiso.GenerarReporte, Permiso.ExportarReporte],
             };
 
             VistaActual = new WelcomeVM();
@@ -132,6 +150,15 @@ namespace CapaUI.Formularios.Principal
         {
             if (string.IsNullOrEmpty(routeId)) return;
             if (!_routes.TryGetValue(routeId, out var factory)) return;
+            if (_routePermissions.TryGetValue(routeId, out var requeridos) &&
+                !SesionPermisos.TieneAlguno(requeridos))
+            {
+                Serilog.Log.Warning(
+                    "Navegación denegada a {Ruta} para el rol {Rol}",
+                    routeId,
+                    _sesionService.SesionActual?.IdRol);
+                return;
+            }
             VistaActual = factory();
         }
 
@@ -197,6 +224,7 @@ namespace CapaUI.Formularios.Principal
     public class UsuariosScreenVM          : ViewModelBase { }
     public class EmpleadosVM               : ViewModelBase { }
     public class BitacoraVM                : ViewModelBase { }
+    public class RolesVM                   : ViewModelBase { }
 
     public class ConstructionVM : ViewModelBase
     {

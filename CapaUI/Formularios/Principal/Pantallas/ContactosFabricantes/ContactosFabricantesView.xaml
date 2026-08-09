@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:CapaUI.Formularios.Principal.Pantallas.ContactosFabricantes"
              xmlns:controls="clr-namespace:CapaUI.Core.Controls"
+             xmlns:permisos="clr-namespace:CapaUI.Core.Permisos"
              Background="#EAF1F8"
              Loaded="UserControl_Loaded"
              Unloaded="UserControl_Unloaded"
@@ -399,7 +400,7 @@
                                    FontWeight="SemiBold" Foreground="#1E3A8A"/>
                     </StackPanel>
                 </Button>
-                <Button x:Name="BtnNuevoContacto" Style="{StaticResource ActionBtn}" Background="#16A34A"
+                <Button x:Name="BtnNuevoContacto" Style="{StaticResource ActionBtn}" Background="#16A34A" permisos:PermisoBehavior.Requiere="Crear Fabricante"
                         Padding="14,0" HorizontalAlignment="Right" Click="BtnNuevoContacto_Click">
                     <StackPanel Orientation="Horizontal">
                         <Path Data="{StaticResource IconPlus}" Stroke="White" StrokeThickness="2.2"
@@ -624,7 +625,7 @@
                                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                                             <Button Style="{StaticResource IconBtn}"
                                                     Tag="{Binding}"
-                                                    Click="BtnEditarContacto_Click"
+                                                    Click="BtnEditarContacto_Click" permisos:PermisoBehavior.Requiere="Modificar Fabricante"
                                                     ToolTip="Editar">
                                                 <Path Data="{StaticResource IconPencil}"
                                                       Stroke="#1E3A8A" StrokeThickness="1.5"
@@ -633,7 +634,7 @@
                                             </Button>
                                             <Button Style="{StaticResource IconBtnDanger}"
                                                     Tag="{Binding}"
-                                                    Click="BtnEliminarContacto_Click"
+                                                    Click="BtnEliminarContacto_Click" permisos:PermisoBehavior.Requiere="Modificar Fabricante"
                                                     ToolTip="Eliminar">
                                                 <Path Data="{StaticResource IconTrash}"
                                                       Stroke="#DC2626" StrokeThickness="1.5"

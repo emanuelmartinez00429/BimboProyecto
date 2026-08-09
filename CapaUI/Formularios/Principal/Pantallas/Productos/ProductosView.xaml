@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:CapaUI.Formularios.Principal.Pantallas.Productos"
              xmlns:controls="clr-namespace:CapaUI.Core.Controls"
+             xmlns:permisos="clr-namespace:CapaUI.Core.Permisos"
              Background="#EAF1F8"
              Loaded="UserControl_Loaded"
              Unloaded="UserControl_Unloaded"
@@ -801,7 +802,7 @@
         <!-- ROW 5: ACTION BUTTONS -->
         <DockPanel Grid.Row="5" Margin="0,4,0,14" LastChildFill="False">
             <StackPanel DockPanel.Dock="Left" Orientation="Horizontal">
-                <Button Command="{Binding NuevoCommand}"
+                <Button Command="{Binding NuevoCommand}" permisos:PermisoBehavior.Requiere="Crear Producto"
                         Background="#16A34A"
                         Style="{StaticResource ActionBtn}"
                         Padding="22,0"
@@ -817,7 +818,7 @@
                                    Foreground="White" VerticalAlignment="Center"/>
                     </StackPanel>
                 </Button>
-                <Button Command="{Binding EditarCommand}"
+                <Button Command="{Binding EditarCommand}" permisos:PermisoBehavior.Requiere="Modificar Producto"
                         Background="#1E3A8A"
                         Style="{StaticResource ActionBtn}"
                         Padding="22,0">

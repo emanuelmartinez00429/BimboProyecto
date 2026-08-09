@@ -7,6 +7,7 @@ using System.Windows.Media.Animation;
 using CapaAplicacion.Categorias.Dtos;
 using CapaAplicacion.Categorias.Interfaces;
 using CapaUI.Core.Controls;
+using CapaUI.Core.Permisos;
 using Microsoft.Extensions.DependencyInjection;
 using WpfMouseButton = System.Windows.Input.MouseButtonEventArgs;
 
@@ -206,6 +207,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Categorias
 
         private void AbrirModalNuevo()
         {
+            if (!SesionPermisos.Tiene(Permiso.ModificarConfiguracion)) return;
             var repo  = App.Services.GetRequiredService<ICategoriaRepository>();
             var modal = new CategoriaModal(repo, null);
             modal.Cerrado  += CerrarModal;
@@ -215,6 +217,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Categorias
 
         private void AbrirModalEditar(CategoriaDto c)
         {
+            if (!SesionPermisos.Tiene(Permiso.ModificarConfiguracion)) return;
             var repo  = App.Services.GetRequiredService<ICategoriaRepository>();
             var modal = new CategoriaModal(repo, c);
             modal.Cerrado  += CerrarModal;

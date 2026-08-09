@@ -17,5 +17,11 @@ namespace CapaDatos.Modelados.Usuarios
 
         [Column("id_estado")]
         public int idEstado { get; set; }
+
+        [Column("created_at")]
+        public DateTime? createdAt { get; set; }
+
+        [Column("updated_at")]
+        public DateTime? updatedAt { get; set; }
     }
 }
