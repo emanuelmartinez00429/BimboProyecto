@@ -112,3 +112,9 @@ Ejecutar una prueba funcional con un usuario Consulta después de recompilar e i
 
 - No se realizaron commits, push, migraciones ni cambios en políticas Supabase.
 - Se preservó el cambio previo del usuario en `contexto/.obsidian/graph.json`.
+
+## 02:03 — Verificación funcional posterior
+
+El usuario compiló la aplicación y confirmó que el RBAC funciona correctamente con una sesión real. El rol Consulta carga los botones del menú y las acciones que tiene asignadas. P-027 queda resuelto.
+
+Esta confirmación cierra la prueba funcional del cliente; la auditoría integral de políticas RLS continúa registrada por separado en el [[Plan de Seguridad - Roadmap 10-10]].

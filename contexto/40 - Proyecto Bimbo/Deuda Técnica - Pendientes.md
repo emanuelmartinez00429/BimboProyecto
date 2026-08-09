@@ -485,9 +485,9 @@ Por módulo queda solo lo que genuinamente varía: qué repositorio llamar y có
 
 El contrato del cliente ya coincide con las 28 acciones reales de Supabase y la auditoría estática no encuentra nombres inválidos. Antes de la corrección, el log mostraba sesiones con cero permisos porque el cliente comparaba contra la nomenclatura provisional con guiones bajos.
 
-**Pendiente de verificación:** iniciar la aplicación recompilada con un usuario de rol Consulta, confirmar que el menú muestre únicamente sus módulos y validar que las políticas RLS permitan leer las filas activas necesarias sin ampliar acceso de escritura.
+**Verificación realizada (2026-08-09):** el usuario compiló y probó la aplicación con el rol Consulta; el menú y las acciones se cargaron correctamente según sus permisos.
 
-**Estado:** `[ ] Pendiente — prueba funcional con datos y sesión real`
+**Estado:** `[x] Resuelto 2026-08-09 — prueba funcional confirmada por el usuario`
 
 ---
 
@@ -520,7 +520,7 @@ El contrato del cliente ya coincide con las 28 acciones reales de Supabase y la 
 | P-024 | Tara plana (trigger) vs por bulto (bultos teóricos) | `[ ]` Pendiente | [[Sesión 2026-07-26 - Rediseño del flujo de Pesajes]] |
 | P-025 | Repositorios de movimientos duplicados sin uso | `[ ]` Pendiente | [[Sesión 2026-07-26 - Rediseño del flujo de Pesajes]] |
 | P-026 | Puente VM → SuggestionSearchBox duplicado 9× | ✅ Resuelto | [[Sesión 2026-07-28 - Refactor del Buscador de Sugerencias (P-026)]] |
-| P-027 | Verificación funcional y RLS del RBAC con rol Consulta | `[ ]` Pendiente | [[Sesión 2026-08-09 - Implementación RBAC visual y gestión de roles]] |
+| P-027 | Verificación funcional del RBAC con rol Consulta | ✅ Resuelto | [[Sesión 2026-08-09 - Implementación RBAC visual y gestión de roles]] |
 
 ---
 
