@@ -720,7 +720,7 @@
                                                     <Border x:Name="DotPresentaciones" Width="4" Height="4" CornerRadius="2"
                                                             Background="{StaticResource AccentGreen}"
                                                             HorizontalAlignment="Left" Margin="-16,0,0,0" Visibility="Collapsed"/>
-                                                    <TextBlock x:Name="LblPresentaciones" Text="Gestión de Presentaciones"
+                                                    <TextBlock x:Name="LblPresentaciones" Text="Presentaciones"
                                                                Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="15"/>
                                                 </Grid>
                                             </Button>
