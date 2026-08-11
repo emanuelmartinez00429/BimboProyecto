@@ -109,6 +109,7 @@ Aunque se llame "i7", el de 10ª gen tiene una iGPU **~3–4× más débil**. El
 ## Relaciones
 
 - [[Sesión 2026-06-25 - Optimización de Rendimiento en Modales (DropShadowEffect)]] — ejecución del fix
+- [[WPF - Esqueleto con Shimmer (Skeleton Loading)]] — qué propiedades sí se pueden animar barato
 - [[WPF - DPI Awareness y Escalado Multi-Resolución]]
 - [[WPF - Texto Dentado en Fondos de Color]]
 - [[Arquitectura Actual]]

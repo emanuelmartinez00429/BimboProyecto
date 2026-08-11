@@ -5,6 +5,12 @@ namespace CapaAplicacion.Usuarios.Interfaces;
 
 public interface IRolPermisoRepository
 {
+    /// <summary>
+    /// Carga de un solo viaje todo lo que necesita la pantalla de Roles.
+    /// Evita re-consultar la BD cada vez que el usuario cambia de rol.
+    /// </summary>
+    Task<Result<RolesResumenDto>> ObtenerResumenAsync(CancellationToken ct = default);
+
     Task<Result<IReadOnlyList<ModuloAccionesDto>>> ObtenerCatalogoAsync(
         CancellationToken ct = default);
 

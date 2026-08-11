@@ -141,6 +141,8 @@ ProductosViewModel : RealtimeAwareViewModel
 | Drill-down navigation (panel toggle) | ContactosFabricantesView, ContactosProveedoresView | ✅ 2026-06-21 |
 | DPI Per-Monitor V2 + escalado multi-resolución | app.manifest + rendering en todas las vistas/modales | ✅ 2026-06-21 |
 | [[Detector-de-Conexion\|Detector/Monitor de Conexión]] | `IConexionMonitor`, semáforo online/degradado/offline | ✅ 2026-05-30 |
+| `SpanningGridPanel` (grilla de columnas con span) | CapaUI/Core/Controls/ — usado hoy solo por Roles | ✅ 2026-08-11 |
+| [[WPF - Esqueleto con Shimmer (Skeleton Loading)\|Esqueleto con shimmer]] | RolesView — primera pantalla con el efecto | ✅ 2026-08-11 |
 
 ---
 

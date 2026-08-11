@@ -5,6 +5,8 @@ using CapaAplicacion.Usuarios.Interfaces;
 using CapaDatos.Modelados.Usuarios;
 using ServicioConexión.Conexion;
 using Op = Supabase.Postgrest.Constants.Operator;
+using Ord = Supabase.Postgrest.Constants.Ordering;
+using UsuarioModel = CapaDatos.Modelados.Usuarios.Usuarios;
 
 namespace CapaDatos.Repositories.Usuarios;
 
@@ -14,6 +16,13 @@ public sealed class RolPermisoRepository : RepositorioBase, IRolPermisoRepositor
     private const int Inactivo = 2;
     private const string PermisoAdministrar = "Modificar Configuración";
 
+    // Caché de proceso: el catálogo de módulos/acciones es prácticamente estático
+    // (solo cambia con una migración de esquema). Evita repetir 2 round-trips a
+    // Supabase cada vez que el usuario navega a Roles, que era la causa real de
+    // los ~3s de pantalla en blanco en cada visita.
+    private static IReadOnlyList<ModuloAccionesDto>? _catalogoCache;
+    private static readonly SemaphoreSlim CatalogoLock = new(1, 1);
+
     private readonly IUsuarioSesionService _sesion;
 
     public RolPermisoRepository(IConexionMonitor conexion, IUsuarioSesionService sesion)
@@ -22,13 +31,82 @@ public sealed class RolPermisoRepository : RepositorioBase, IRolPermisoRepositor
         _sesion = sesion;
     }
 
+    public Task<Result<RolesResumenDto>> ObtenerResumenAsync(CancellationToken ct = default) =>
+        TryAsync(async () =>
+        {
+            ExigirLectura();
+
+            var catalogo = await CargarCatalogoAsync(ct);
+
+            var client = await ConexionSupabase.GetClientAsync();
+            var rolesTask = client.From<Roles>().Order("nombre_rol", Ord.Ascending).Get(ct);
+            var asignacionesTask = client
+                .From<AccionRol>()
+                .Filter("id_estado", Op.Equals, Activo.ToString())
+                .Get(ct);
+            await Task.WhenAll(rolesTask, asignacionesTask);
+
+            var accionesPorRol = new Dictionary<int, IReadOnlySet<int>>();
+            foreach (var grupo in (asignacionesTask.Result?.Models ?? new List<AccionRol>())
+                         .GroupBy(x => x.idRol))
+                accionesPorRol[grupo.Key] = grupo.Select(x => x.idAccion).ToHashSet();
+
+            return new RolesResumenDto
+            {
+                Roles = (rolesTask.Result?.Models ?? new List<Roles>())
+                    .Select(r => new RolDto { IdRol = r.idRol, NombreRol = r.nombreRol })
+                    .ToList(),
+                Modulos = catalogo,
+                AccionesPorRol = accionesPorRol,
+                UsuariosPorRol = await ContarUsuariosPorRolAsync(client, ct),
+            };
+        }, "Cargar configuración de roles");
+
+    /// <summary>
+    /// Conteo de usuarios por rol. Es información decorativa del selector, así
+    /// que un fallo acá (típicamente RLS sobre <c>usuarios</c>) no debe tumbar
+    /// la pantalla entera: se degrada a un diccionario vacío.
+    /// </summary>
+    private static async Task<IReadOnlyDictionary<int, int>> ContarUsuariosPorRolAsync(
+        Supabase.Client client,
+        CancellationToken ct)
+    {
+        try
+        {
+            var response = await client
+                .From<UsuarioModel>()
+                .Select("id_rol")
+                .Filter("id_estado", Op.Equals, Activo.ToString())
+                .Get(ct);
+
+            return (response?.Models ?? new List<UsuarioModel>())
+                .GroupBy(u => u.idRol)
+                .ToDictionary(g => g.Key, g => g.Count());
+        }
+        catch
+        {
+            return new Dictionary<int, int>();
+        }
+    }
+
     public Task<Result<IReadOnlyList<ModuloAccionesDto>>> ObtenerCatalogoAsync(
         CancellationToken ct = default) =>
         TryAsync(async () =>
         {
-            if (!_sesion.TienePermiso("Consultar Usuario") &&
-                !_sesion.TienePermiso(PermisoAdministrar))
-                throw new UnauthorizedAccessException("No tiene permiso para consultar la configuración de roles.");
+            ExigirLectura();
+            return await CargarCatalogoAsync(ct);
+        }, "Cargar catálogo de permisos");
+
+    private static async Task<IReadOnlyList<ModuloAccionesDto>> CargarCatalogoAsync(CancellationToken ct)
+    {
+        if (_catalogoCache is not null)
+            return _catalogoCache;
+
+        await CatalogoLock.WaitAsync(ct);
+        try
+        {
+            if (_catalogoCache is not null)
+                return _catalogoCache;
 
             var client = await ConexionSupabase.GetClientAsync();
             var accionesTask = client.From<Accion>().Get(ct);
@@ -38,7 +116,7 @@ public sealed class RolPermisoRepository : RepositorioBase, IRolPermisoRepositor
             var acciones = accionesTask.Result?.Models ?? new List<Accion>();
             var modulos = modulosTask.Result?.Models ?? new List<Modulo>();
 
-            return (IReadOnlyList<ModuloAccionesDto>)modulos
+            _catalogoCache = modulos
                 .OrderBy(m => m.nombreModulo)
                 .Select(m => new ModuloAccionesDto
                 {
@@ -58,16 +136,28 @@ public sealed class RolPermisoRepository : RepositorioBase, IRolPermisoRepositor
                 })
                 .Where(m => m.Acciones.Count > 0)
                 .ToList();
-        }, "Cargar catálogo de permisos");
+
+            return _catalogoCache;
+        }
+        finally
+        {
+            CatalogoLock.Release();
+        }
+    }
+
+    private void ExigirLectura()
+    {
+        if (!_sesion.TienePermiso("Consultar Usuario") &&
+            !_sesion.TienePermiso(PermisoAdministrar))
+            throw new UnauthorizedAccessException("No tiene permiso para consultar la configuración de roles.");
+    }
 
     public Task<Result<IReadOnlySet<int>>> ObtenerAccionesAsignadasAsync(
         int idRol,
         CancellationToken ct = default) =>
         TryAsync(async () =>
         {
-            if (!_sesion.TienePermiso("Consultar Usuario") &&
-                !_sesion.TienePermiso(PermisoAdministrar))
-                throw new UnauthorizedAccessException("No tiene permiso para consultar la configuración de roles.");
+            ExigirLectura();
 
             var client = await ConexionSupabase.GetClientAsync();
             var response = await client

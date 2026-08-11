@@ -491,6 +491,24 @@ El contrato del cliente ya coincide con las 28 acciones reales de Supabase y la 
 
 ---
 
+### P-028 · Verificar en runtime el rediseño de Roles y medir el shimmer
+
+**Archivos:** `CapaUI/Formularios/Principal/Pantallas/Roles/*`, `CapaUI/Core/Controls/SpanningGridPanel.cs`
+**Detectado en:** [[Sesión 2026-08-11 - Rediseño de Gestión de Roles y esqueleto con shimmer]]
+
+La pantalla se reescribió por completo pero **no se vio corriendo**: Visual Studio y la app estaban abiertos bloqueando los DLL de salida. Solo se comprobó que compila (0 errores) y que los BAML se generan.
+
+Quedan dos verificaciones:
+
+1. **Maquetado** — que el layout caiga como el mockup, en particular el `SpanningGridPanel` (grilla de 4 columnas en vista compacta / 2 en detalle, con el módulo ancho ocupando 2).
+2. **Costo del shimmer** — medir en la PC con iGPU **UHD 630** (la del caso de [[WPF - Rendimiento de Efectos y Niveles de Renderizado]]) con Administrador de tareas → GPU/CPU. El pico debe durar lo que dura el esqueleto y **volver a línea base al aparecer las tarjetas**; si queda elevado, el shimmer no se frenó al ocultarse.
+
+Hasta medirlo, [[WPF - Esqueleto con Shimmer (Skeleton Loading)]] queda en `lifecycle: draft`.
+
+**Estado:** `[ ] Pendiente`
+
+---
+
 ## Historial de resolución
 
 | ID | Descripción | Estado | Sesión |
@@ -521,6 +539,7 @@ El contrato del cliente ya coincide con las 28 acciones reales de Supabase y la 
 | P-025 | Repositorios de movimientos duplicados sin uso | `[ ]` Pendiente | [[Sesión 2026-07-26 - Rediseño del flujo de Pesajes]] |
 | P-026 | Puente VM → SuggestionSearchBox duplicado 9× | ✅ Resuelto | [[Sesión 2026-07-28 - Refactor del Buscador de Sugerencias (P-026)]] |
 | P-027 | Verificación funcional del RBAC con rol Consulta | ✅ Resuelto | [[Sesión 2026-08-09 - Implementación RBAC visual y gestión de roles]] |
+| P-028 | Verificar en runtime el rediseño de Roles y medir el shimmer | `[ ]` Pendiente | [[Sesión 2026-08-11 - Rediseño de Gestión de Roles y esqueleto con shimmer]] |
 
 ---
 
