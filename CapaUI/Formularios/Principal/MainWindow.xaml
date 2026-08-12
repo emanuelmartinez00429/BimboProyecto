@@ -901,7 +901,7 @@
                                     </ControlTemplate>
                                 </Button.Template>
                                 <TextBlock Text="← Volver a inicio"
-                                           FontFamily="Segoe UI" FontSize="12"
+                                           FontFamily="Segoe UI" FontSize="16"
                                            Foreground="#D9FFFFFF" TextAlignment="Center"/>
                             </Button>
                         </Border>
@@ -923,14 +923,14 @@
                                     <StackPanel VerticalAlignment="Center">
                                         <TextBlock Text="{Binding NombreUsuario}"
                                                    Foreground="White" FontFamily="Segoe UI"
-                                                   FontSize="13" FontWeight="SemiBold"
+                                                   FontSize="16" FontWeight="SemiBold"
                                                    TextTrimming="CharacterEllipsis" MaxWidth="130"/>
                                         <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
                                             <Border Width="5" Height="5" CornerRadius="3"
                                                     Background="{StaticResource AccentGreen}"
                                                     Margin="0,0,4,0" VerticalAlignment="Center"/>
                                             <TextBlock Text="{Binding NombreRol}"
-                                                       Foreground="#B3FFFFFF" FontFamily="Segoe UI" FontSize="11"/>
+                                                       Foreground="#B3FFFFFF" FontFamily="Segoe UI" FontSize="14"/>
                                         </StackPanel>
                                     </StackPanel>
                                 </StackPanel>

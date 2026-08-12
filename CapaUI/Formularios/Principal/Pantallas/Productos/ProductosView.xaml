@@ -125,7 +125,7 @@
             <Setter Property="Background" Value="#1E3A8A"/>
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="FontFamily" Value="Segoe UI"/>
-            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontSize" Value="13"/>
             <Setter Property="FontWeight" Value="Bold"/>
             <Setter Property="Height" Value="40"/>
             <Setter Property="HorizontalContentAlignment" Value="Center"/>
@@ -138,7 +138,7 @@
                             <TextBlock Text="{TemplateBinding Content}"
                                        Foreground="White"
                                        FontFamily="Segoe UI"
-                                       FontSize="11"
+                                       FontSize="13"
                                        FontWeight="Bold"
                                        HorizontalAlignment="Left"
                                        VerticalAlignment="Center"
@@ -154,7 +154,7 @@
             <Setter Property="Height" Value="40"/>
             <Setter Property="MinWidth" Value="120"/>
             <Setter Property="FontFamily" Value="Segoe UI"/>
-            <Setter Property="FontSize" Value="13.5"/>
+            <Setter Property="FontSize" Value="15.5"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="BorderThickness" Value="0"/>
@@ -195,7 +195,7 @@
             <Setter Property="Height" Value="28"/>
             <Setter Property="Padding" Value="4,0"/>
             <Setter Property="FontFamily" Value="Segoe UI"/>
-            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontSize" Value="15"/>
             <Setter Property="FontWeight" Value="Medium"/>
             <Setter Property="Foreground" Value="#1A1F2E"/>
             <Setter Property="Background" Value="White"/>
@@ -242,7 +242,7 @@
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="Foreground" Value="#6B7280"/>
             <Setter Property="FontFamily" Value="Segoe UI"/>
-            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontSize" Value="15"/>
             <Setter Property="Padding" Value="10,4"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="BorderThickness" Value="0"/>
@@ -364,14 +364,14 @@
                 </Border>
 
                 <StackPanel VerticalAlignment="Center">
-                    <TextBlock FontFamily="Segoe UI" FontSize="12" Foreground="#6B7280">
+                    <TextBlock FontFamily="Segoe UI" FontSize="14" Foreground="#6B7280">
                         <Run Text="Productos" FontWeight="Normal"/>
                         <Run Text=" / "/>
                         <Run Text="Gestión de Productos" FontWeight="SemiBold" Foreground="#1A1F2E"/>
                     </TextBlock>
                     <TextBlock Text="Catálogo de productos"
                                FontFamily="Segoe UI"
-                               FontSize="19"
+                               FontSize="21"
                                FontWeight="Bold"
                                Foreground="#1A1F2E"
                                Margin="0,2,0,0"/>
@@ -386,10 +386,10 @@
                         Padding="12,6" Margin="0,0,8,0">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                         <Border Width="6" Height="6" CornerRadius="3" Background="#1E3A8A" Margin="0,0,6,0" VerticalAlignment="Center"/>
-                        <TextBlock Text="TOTAL" FontFamily="Segoe UI" FontSize="11" FontWeight="SemiBold"
+                        <TextBlock Text="TOTAL" FontFamily="Segoe UI" FontSize="13" FontWeight="SemiBold"
                                    Foreground="#1E3A8A" VerticalAlignment="Center" Margin="0,0,6,0"/>
                         <TextBlock Text="{Binding TotalCount}"
-                                   FontFamily="Segoe UI" FontSize="13" FontWeight="Bold"
+                                   FontFamily="Segoe UI" FontSize="15" FontWeight="Bold"
                                    Foreground="#1E3A8A" VerticalAlignment="Center"/>
                     </StackPanel>
                 </Border>
@@ -399,10 +399,10 @@
                         Padding="12,6" Margin="0,0,8,0">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                         <Border Width="6" Height="6" CornerRadius="3" Background="#10B981" Margin="0,0,6,0" VerticalAlignment="Center"/>
-                        <TextBlock Text="ACTIVOS" FontFamily="Segoe UI" FontSize="11" FontWeight="SemiBold"
+                        <TextBlock Text="ACTIVOS" FontFamily="Segoe UI" FontSize="13" FontWeight="SemiBold"
                                    Foreground="#047857" VerticalAlignment="Center" Margin="0,0,6,0"/>
                         <TextBlock Text="{Binding ActivosCount}"
-                                   FontFamily="Segoe UI" FontSize="13" FontWeight="Bold"
+                                   FontFamily="Segoe UI" FontSize="15" FontWeight="Bold"
                                    Foreground="#047857" VerticalAlignment="Center"/>
                     </StackPanel>
                 </Border>
@@ -412,10 +412,10 @@
                         Padding="12,6">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                         <Border Width="6" Height="6" CornerRadius="3" Background="#9CA3AF" Margin="0,0,6,0" VerticalAlignment="Center"/>
-                        <TextBlock Text="INACTIVOS" FontFamily="Segoe UI" FontSize="11" FontWeight="SemiBold"
+                        <TextBlock Text="INACTIVOS" FontFamily="Segoe UI" FontSize="13" FontWeight="SemiBold"
                                    Foreground="#6B7280" VerticalAlignment="Center" Margin="0,0,6,0"/>
                         <TextBlock Text="{Binding InactivosCount}"
-                                   FontFamily="Segoe UI" FontSize="13" FontWeight="Bold"
+                                   FontFamily="Segoe UI" FontSize="15" FontWeight="Bold"
                                    Foreground="#6B7280" VerticalAlignment="Center"/>
                     </StackPanel>
                 </Border>
@@ -463,7 +463,7 @@
                                   Width="16" Height="16" Stretch="Uniform"
                                   Margin="0,0,6,0" VerticalAlignment="Center"/>
                             <TextBlock Text="Limpiar Filtros"
-                                       FontFamily="Segoe UI" FontSize="13.5" FontWeight="SemiBold"
+                                       FontFamily="Segoe UI" FontSize="15.5" FontWeight="SemiBold"
                                        Foreground="White" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
@@ -485,7 +485,7 @@
 
                     <TextBlock Grid.Column="0"
                                Text="ESTADO"
-                               FontFamily="Segoe UI" FontSize="10.5" FontWeight="Bold"
+                               FontFamily="Segoe UI" FontSize="12.5" FontWeight="Bold"
                                Foreground="#6B7280"
                                VerticalAlignment="Center"
                                Margin="0,0,10,0"/>
@@ -504,7 +504,7 @@
                                          Checked="EstadoFiltro_Changed">
                                 <StackPanel Orientation="Horizontal">
                                     <Border Width="6" Height="6" CornerRadius="3" Background="#10B981" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                                    <TextBlock Text="Habilitados" FontFamily="Segoe UI" FontSize="13"/>
+                                    <TextBlock Text="Habilitados" FontFamily="Segoe UI" FontSize="15"/>
                                 </StackPanel>
                             </RadioButton>
                             <RadioButton x:Name="RbDeshabilitados"
@@ -513,14 +513,14 @@
                                          Checked="EstadoFiltro_Changed">
                                 <StackPanel Orientation="Horizontal">
                                     <Border Width="6" Height="6" CornerRadius="3" Background="#94A3B8" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                                    <TextBlock Text="Deshabilitados" FontFamily="Segoe UI" FontSize="13"/>
+                                    <TextBlock Text="Deshabilitados" FontFamily="Segoe UI" FontSize="15"/>
                                 </StackPanel>
                             </RadioButton>
                             <RadioButton x:Name="RbTodos"
                                          GroupName="EstadoFiltro"
                                          Style="{StaticResource SegmentBtn}"
                                          Checked="EstadoFiltro_Changed">
-                                <TextBlock Text="Todos" FontFamily="Segoe UI" FontSize="13"/>
+                                <TextBlock Text="Todos" FontFamily="Segoe UI" FontSize="15"/>
                             </RadioButton>
                         </StackPanel>
                     </Border>
@@ -529,13 +529,13 @@
 
                     <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,12,0">
                         <TextBlock Text="Fabricante"
-                                   FontFamily="Segoe UI" FontSize="13.5"
+                                   FontFamily="Segoe UI" FontSize="15.5"
                                    Foreground="#1A1F2E"
                                    VerticalAlignment="Center"
                                    Margin="0,0,8,0"/>
                         <ComboBox x:Name="CmbFabricante"
                                   Width="170" Height="26"
-                                  FontFamily="Segoe UI" FontSize="13"
+                                  FontFamily="Segoe UI" FontSize="15"
                                   BorderBrush="#CBD5E1"
                                   IsEditable="True"
                                   IsTextSearchEnabled="False"
@@ -547,13 +547,13 @@
 
                     <StackPanel Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Center">
                         <TextBlock Text="Pa&#237;s"
-                                   FontFamily="Segoe UI" FontSize="13.5"
+                                   FontFamily="Segoe UI" FontSize="15.5"
                                    Foreground="#1A1F2E"
                                    VerticalAlignment="Center"
                                    Margin="0,0,8,0"/>
                         <ComboBox x:Name="CmbPais"
                                   Width="130" Height="26"
-                                  FontFamily="Segoe UI" FontSize="13"
+                                  FontFamily="Segoe UI" FontSize="15"
                                   BorderBrush="#CBD5E1"
                                   IsEditable="True"
                                   IsTextSearchEnabled="False"
@@ -587,7 +587,7 @@
                             Visibility="Collapsed"
                             VerticalAlignment="Center"
                             HorizontalAlignment="Center">
-                    <TextBlock FontFamily="Segoe UI" FontSize="14" Foreground="#6B7280" HorizontalAlignment="Center">
+                    <TextBlock FontFamily="Segoe UI" FontSize="16" Foreground="#6B7280" HorizontalAlignment="Center">
                         Sin resultados. Ajusta los filtros o pulsa <Bold>Limpiar Filtros</Bold>.
                     </TextBlock>
                 </StackPanel>
@@ -611,7 +611,7 @@
                         </Path.RenderTransform>
                     </Path>
                     <TextBlock Text="Cargando productos..."
-                               FontFamily="Segoe UI" FontSize="14" Foreground="#6B7280"
+                               FontFamily="Segoe UI" FontSize="16" Foreground="#6B7280"
                                VerticalAlignment="Center"/>
                 </StackPanel>
 
@@ -646,7 +646,7 @@
                                 <DataTemplate>
                                     <Border Background="#EFF6FF" CornerRadius="4" Padding="8,2" HorizontalAlignment="Center">
                                         <TextBlock Text="{Binding CodigoInterno}"
-                                                   FontFamily="Consolas" FontSize="12" FontWeight="Bold"
+                                                   FontFamily="Consolas" FontSize="14" FontWeight="Bold"
                                                    Foreground="#1E3A8A"/>
                                     </Border>
                                 </DataTemplate>
@@ -656,7 +656,7 @@
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding Nombre}"
-                                               FontFamily="Segoe UI" FontSize="13.5"
+                                               FontFamily="Segoe UI" FontSize="15.5"
                                                Foreground="#1A1F2E"
                                                TextTrimming="CharacterEllipsis"
                                                Padding="8,0"/>
@@ -667,7 +667,7 @@
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding Fabricante}"
-                                               FontFamily="Segoe UI" FontSize="13.5"
+                                               FontFamily="Segoe UI" FontSize="15.5"
                                                Foreground="#1A1F2E"
                                                TextTrimming="CharacterEllipsis"
                                                HorizontalAlignment="Center" Padding="8,0"/>
@@ -678,7 +678,7 @@
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding Pais}"
-                                               FontFamily="Segoe UI" FontSize="13.5"
+                                               FontFamily="Segoe UI" FontSize="15.5"
                                                Foreground="#1A1F2E"
                                                TextTrimming="CharacterEllipsis"
                                                HorizontalAlignment="Center" Padding="8,0"/>
@@ -689,7 +689,7 @@
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding Contenido}"
-                                               FontFamily="Segoe UI" FontSize="13.5" FontWeight="SemiBold"
+                                               FontFamily="Segoe UI" FontSize="15.5" FontWeight="SemiBold"
                                                Foreground="#1A1F2E"
                                                HorizontalAlignment="Center"
                                                Padding="8,0"/>
@@ -700,7 +700,7 @@
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding Presentacion}"
-                                               FontFamily="Segoe UI" FontSize="13.5"
+                                               FontFamily="Segoe UI" FontSize="15.5"
                                                Foreground="#1A1F2E"
                                                TextTrimming="CharacterEllipsis"
                                                HorizontalAlignment="Center" Padding="8,0"/>
@@ -712,7 +712,7 @@
                                 <DataTemplate>
                                     <Border Background="#F0F5FB" CornerRadius="999" Padding="10,2" HorizontalAlignment="Center">
                                         <TextBlock Text="{Binding Categoria}"
-                                                   FontFamily="Segoe UI" FontSize="12" FontWeight="SemiBold"
+                                                   FontFamily="Segoe UI" FontSize="14" FontWeight="SemiBold"
                                                    Foreground="#1E3A8A"/>
                                     </Border>
                                 </DataTemplate>
@@ -773,7 +773,7 @@
                     <DockPanel>
                         <TextBlock x:Name="PageInfoText"
                                    DockPanel.Dock="Left"
-                                   FontFamily="Segoe UI" FontSize="12"
+                                   FontFamily="Segoe UI" FontSize="14"
                                    Foreground="#9CA3AF"
                                    VerticalAlignment="Center"
                                    Text="{Binding PageInfo}"/>
@@ -814,7 +814,7 @@
                               Width="15" Height="15" Stretch="Uniform"
                               Margin="0,0,6,0" VerticalAlignment="Center"/>
                         <TextBlock Text="Nuevo"
-                                   FontFamily="Segoe UI" FontSize="13.5" FontWeight="SemiBold"
+                                   FontFamily="Segoe UI" FontSize="15.5" FontWeight="SemiBold"
                                    Foreground="White" VerticalAlignment="Center"/>
                     </StackPanel>
                 </Button>
@@ -829,7 +829,7 @@
                               Width="15" Height="15" Stretch="Uniform"
                               Margin="0,0,6,0" VerticalAlignment="Center"/>
                         <TextBlock Text="Editar"
-                                   FontFamily="Segoe UI" FontSize="13.5" FontWeight="SemiBold"
+                                   FontFamily="Segoe UI" FontSize="15.5" FontWeight="SemiBold"
                                    Foreground="White" VerticalAlignment="Center"/>
                     </StackPanel>
                 </Button>
@@ -843,7 +843,7 @@
                         Visibility="Collapsed">
                 <Border Width="6" Height="6" CornerRadius="3" Background="#1E3A8A" Margin="0,0,6,0" VerticalAlignment="Center"/>
                 <TextBlock x:Name="SelectedText"
-                           FontFamily="Segoe UI" FontSize="12"
+                           FontFamily="Segoe UI" FontSize="14"
                            Foreground="#6B7280"
                            VerticalAlignment="Center"
                            Text="{Binding TextoSeleccionado}"/>
