@@ -97,6 +97,21 @@ Qué quedó en su lugar:
 
 El análisis técnico del efecto queda archivado en [[WPF - Esqueleto con Shimmer (Skeleton Loading)]] con la sección "Por qué se revirtió", por si alguien lo reintenta.
 
+### Bug de concurrencia: `NullReferenceException` al abrir y cerrar rápido
+
+El usuario reportó que `UsuariosView.PoblarRoles()` explotaba al abrir y cerrar la pantalla rápido, y que el sistema "se sentía lento". Son dos caras del mismo problema. Documentado en [[Vista Descargada Durante un await (async void Loaded)]].
+
+**El crash:** `Loaded` es `async void`; después de `await _vm.CargarDatosAsync()` viene `PoblarRoles()`. Si el usuario cierra mientras carga, `Unloaded` pone `_vm = null!` y la continuación del await vuelve sobre una vista ya descargada.
+
+- `UsuariosView` / `BitacoraView`: se captura el VM **antes** del await y se compara con `ReferenceEquals` después. Se usa comparación por referencia y no contra null a propósito: el chequeo de null no cubre el abrir-cerrar-abrir rápido, donde `_vm` no es null pero es **otro** VM.
+- `PoblarRoles` / `PoblarFiltros` / `OnVmPropertyChanged`: guard `if (_vm == null) return;` como segunda línea.
+
+**La lentitud** (misma raíz, otro efecto): `UsuariosViewModel` no tenía `CancellationTokenSource`, así que cerrar la pantalla dejaba la consulta HTTP viva hasta terminar — abrir y cerrar varias veces acumulaba consultas compitiendo. Los repositorios **ya aceptaban `CancellationToken`**; simplemente nadie se lo pasaba. Se agregó CTS cancelado en `Dispose()`, el token en las llamadas y guards `if (_disposed) return;` tras cada await.
+
+**Hallazgo extra — el timer fantasma:** el patrón `Task.WhenAny(task, Task.Delay(TimeoutMs))` está en **9 ViewModels** y el `Task.Delay` nunca se cancela: cada carga de página dejaba un timer de 10 s vivo aunque la consulta volviera en 200 ms. Corregido en Usuarios con un `CancellationTokenSource` enlazado.
+
+Los otros 7 ViewModels **no crashean** (no tienen código después del await), pero les falta la cancelación y el arreglo del timer: quedó como **P-029**, sin tocarlos, para no meter riesgo en 7 módulos que hoy funcionan.
+
 ---
 
 ## Verificación

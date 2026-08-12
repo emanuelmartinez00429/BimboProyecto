@@ -507,6 +507,29 @@ Quedan dos verificaciones:
 
 ---
 
+### P-029 · Cancelación ausente en 7 ViewModels + timer fantasma del timeout
+
+**Archivos:** `ProductosViewModel`, `ProveedoresViewModel`, `FabricantesViewModel`, `CategoriasViewModel`, `EmpleadosViewModel`, `ContactosFabricantesViewModel`, `ContactosProveedoresViewModel`, `BitacoraViewModel`
+**Detectado en:** [[Sesión 2026-08-11 - Rediseño de Gestión de Roles]] — ver [[Vista Descargada Durante un await (async void Loaded)]]
+
+Dos problemas que van juntos, corregidos ya en `UsuariosViewModel` y pendientes en el resto:
+
+1. **Sin `CancellationTokenSource`.** `Dispose()` no cancela nada, así que cerrar una pantalla mientras carga deja la petición HTTP en vuelo hasta que termine sola. Abrir y cerrar rápido acumula consultas simultáneas compitiendo — se percibe como lentitud general de la app. Los repositorios **ya aceptan `CancellationToken`**; el problema es que nadie se lo pasa.
+
+2. **El `Task.Delay` del timeout nunca se cancela:**
+   ```csharp
+   if (await Task.WhenAny(task, Task.Delay(TimeoutMs)) != task) { ... }
+   ```
+   Cada carga de página deja un timer de 10 s vivo en el TimerQueue aunque la consulta haya vuelto en 200 ms.
+
+**Solución:** aplicar el mismo arreglo que ya tiene `UsuariosViewModel` (CTS cancelado en `Dispose`, token a todas las llamadas de repositorio, guard `if (_disposed) return;` después de cada `await`, y `Task.Delay` con token enlazado). La receta completa está en [[Vista Descargada Durante un await (async void Loaded)]].
+
+**No crashean:** ninguno de los 7 tiene código después del `await` en `Loaded`, así que no reproducen el `NullReferenceException`. Esto es rendimiento y prolijidad, no un bug visible.
+
+**Estado:** `[ ] Pendiente`
+
+---
+
 ## Historial de resolución
 
 | ID | Descripción | Estado | Sesión |
@@ -537,7 +560,8 @@ Quedan dos verificaciones:
 | P-025 | Repositorios de movimientos duplicados sin uso | `[ ]` Pendiente | [[Sesión 2026-07-26 - Rediseño del flujo de Pesajes]] |
 | P-026 | Puente VM → SuggestionSearchBox duplicado 9× | ✅ Resuelto | [[Sesión 2026-07-28 - Refactor del Buscador de Sugerencias (P-026)]] |
 | P-027 | Verificación funcional del RBAC con rol Consulta | ✅ Resuelto | [[Sesión 2026-08-09 - Implementación RBAC visual y gestión de roles]] |
-| P-028 | Verificar en runtime el rediseño de Roles y medir el shimmer | `[ ]` Pendiente | [[Sesión 2026-08-11 - Rediseño de Gestión de Roles]] |
+| P-028 | Verificar en runtime el rediseño de Roles | `[ ]` Pendiente | [[Sesión 2026-08-11 - Rediseño de Gestión de Roles]] |
+| P-029 | Cancelación ausente en 7 ViewModels + timer fantasma | `[ ]` Pendiente | [[Sesión 2026-08-11 - Rediseño de Gestión de Roles]] |
 
 ---
 

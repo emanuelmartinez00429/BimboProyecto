@@ -20,6 +20,7 @@ public partial class UsuariosViewModel : ObservableObject, IDisposable
     private readonly IUsuarioRepository _usuarioRepo;
     private readonly IRolRepository     _rolRepo;
     private readonly SuggestionDebouncer   _buscador = new();
+    private readonly CancellationTokenSource _cts = new();
     private bool _disposed;
 
     private string              _query          = "";
@@ -146,7 +147,9 @@ public partial class UsuariosViewModel : ObservableObject, IDisposable
         IsLoading  = true;
         ErrorCarga = string.Empty;
 
-        var rolesResult = await _rolRepo.ObtenerTodosAsync();
+        var rolesResult = await _rolRepo.ObtenerTodosAsync(_cts.Token);
+        if (_disposed) return;
+
         if (rolesResult.Success)
             Roles = rolesResult.Value!.ToList();
         else
@@ -172,8 +175,21 @@ public partial class UsuariosViewModel : ObservableObject, IDisposable
             _                            => null,
         };
 
-        var task = _usuarioRepo.ObtenerPaginaAsync(_page, PageSize, idEstado, _rolFiltro, _query);
-        if (await Task.WhenAny(task, Task.Delay(TimeoutMs)) != task)
+        var task = _usuarioRepo.ObtenerPaginaAsync(_page, PageSize, idEstado, _rolFiltro, _query, _cts.Token);
+
+        // El Task.Delay del timeout se cancela apenas gana la consulta. Sin esto,
+        // CADA carga de página dejaba un timer de 10 s vivo en el TimerQueue
+        // aunque la consulta hubiera vuelto en 200 ms: abrir y cerrar la pantalla
+        // varias veces iba acumulando timers.
+        var relojTimeout = CancellationTokenSource.CreateLinkedTokenSource(_cts.Token);
+        var demora = Task.Delay(TimeoutMs, relojTimeout.Token);
+        var ganador = await Task.WhenAny(task, demora);
+        relojTimeout.Cancel();
+        relojTimeout.Dispose();
+
+        if (_disposed) return;
+
+        if (ganador != task)
         {
             if (myGen != _loadGeneration) return;
             ErrorCarga = "La carga tardó demasiado. Intente de nuevo.";
@@ -182,7 +198,7 @@ public partial class UsuariosViewModel : ObservableObject, IDisposable
         }
 
         var r = await task;
-        if (myGen != _loadGeneration) return;
+        if (_disposed || myGen != _loadGeneration) return;
 
         if (!r.Success)
         {
@@ -314,6 +330,13 @@ public partial class UsuariosViewModel : ObservableObject, IDisposable
     {
         if (_disposed) return;
         _disposed = true;
+
+        // Corta las consultas en vuelo. Sin esto, cerrar la pantalla mientras
+        // cargaba dejaba la petición HTTP viva hasta terminar: abrir y cerrar
+        // rápido acumulaba consultas simultáneas compitiendo entre sí.
+        _cts.Cancel();
+        _cts.Dispose();
+
         _buscador.Dispose();
     }
 }

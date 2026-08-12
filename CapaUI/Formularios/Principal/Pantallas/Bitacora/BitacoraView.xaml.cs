@@ -35,7 +35,14 @@ namespace CapaUI.Formularios.Principal.Pantallas.Bitacora
             DataContext = _vm;
             DgBitacora.ItemsSource = _vm.PageRows;
 
-            await _vm.CargarDatosAsync();
+            // Se captura la instancia ANTES del await: si el usuario cierra la
+            // pantalla mientras carga, Unloaded pone _vm = null y la continuación
+            // volvería sobre una vista ya descargada. Se compara por referencia
+            // para cubrir también el abrir-cerrar-abrir rápido.
+            var vm = _vm;
+            await vm.CargarDatosAsync();
+            if (!ReferenceEquals(_vm, vm)) return;
+
             PoblarFiltros();
         }
 
@@ -55,6 +62,10 @@ namespace CapaUI.Formularios.Principal.Pantallas.Bitacora
 
         private void OnVmPropertyChanged(object? s, System.ComponentModel.PropertyChangedEventArgs ev)
         {
+            // Segunda línea de defensa: un PropertyChanged emitido justo durante
+            // el Unloaded llegaría con _vm ya anulado.
+            if (_vm == null) return;
+
             switch (ev.PropertyName)
             {
                 case nameof(BitacoraViewModel.PageRows):  RefrescarPaginacion(); break;
@@ -124,6 +135,8 @@ namespace CapaUI.Formularios.Principal.Pantallas.Bitacora
 
         private void PoblarFiltros()
         {
+            if (_vm == null) return;
+
             _suppressFilterChange = true;
 
             CmbModulo.Items.Clear();

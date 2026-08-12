@@ -111,6 +111,7 @@ Regla: `CapaAplicacion` **nunca** referencia `CapaDatos`.
 | Rendimiento WPF / efectos / GPU | [[WPF - Rendimiento de Efectos y Niveles de Renderizado]] |
 | Esqueleto de carga / shimmer (probado y revertido) | [[WPF - Esqueleto con Shimmer (Skeleton Loading)]] |
 | DPI y escalado multi-resolución | [[WPF - DPI Awareness y Escalado Multi-Resolución]] |
+| NRE al cerrar una pantalla que carga | [[Vista Descargada Durante un await (async void Loaded)]] |
 
 ---
 

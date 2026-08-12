@@ -36,7 +36,15 @@ namespace CapaUI.Formularios.Principal.Pantallas.Usuarios
             DataContext = _vm;
             DgUsuarios.ItemsSource = _vm.PageRows;
 
-            await _vm.CargarDatosAsync();
+            // Se captura la instancia ANTES del await. Si el usuario cierra la
+            // pantalla mientras carga, Unloaded pone _vm = null y la continuación
+            // del await volvería sobre una vista ya descargada.
+            // Se compara por referencia y no contra null para cubrir también el
+            // abrir-cerrar-abrir rápido: ahí _vm no es null, pero es OTRO VM.
+            var vm = _vm;
+            await vm.CargarDatosAsync();
+            if (!ReferenceEquals(_vm, vm)) return;
+
             PoblarRoles();
         }
 
@@ -56,6 +64,10 @@ namespace CapaUI.Formularios.Principal.Pantallas.Usuarios
 
         private void OnVmPropertyChanged(object? s, System.ComponentModel.PropertyChangedEventArgs ev)
         {
+            // Segunda línea de defensa: un PropertyChanged emitido justo durante
+            // el Unloaded llegaría con _vm ya anulado.
+            if (_vm == null) return;
+
             switch (ev.PropertyName)
             {
                 case nameof(UsuariosViewModel.PageRows):      RefrescarPaginacion();   break;
@@ -149,6 +161,8 @@ namespace CapaUI.Formularios.Principal.Pantallas.Usuarios
 
         private void PoblarRoles()
         {
+            if (_vm == null) return;
+
             _suppressFilterChange = true;
             CmbRol.Items.Clear();
             CmbRol.Items.Add(new ComboBoxItem { Content = "(Todos)", Tag = (int?)null });
