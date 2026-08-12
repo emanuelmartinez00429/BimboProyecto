@@ -121,9 +121,20 @@ public class ProductoCrudRepository : RepositorioBase, IProductoRepository
         int from = (page - 1) * size;
         int to   = from + size - 1;
 
+        // Los conteos van SIN el filtro de estado: las pastillas TOTAL/ACTIVOS/
+        // INACTIVOS desglosan justamente por estado, así que si se les pasa
+        // p_estado terminan todas acotadas al mismo subconjunto (p.ej. filtrando
+        // "Activos", TOTAL deja de ser el total real y pasa a valer lo mismo que
+        // ACTIVOS). Fabricante/país sí se respetan porque son ortogonales al estado.
+        var filtrosConteo = new ProductoFiltros
+        {
+            IdFabricante = filtros.IdFabricante,
+            IdPais       = filtros.IdPais,
+        };
+
         // Página + conteos en paralelo (conteos via RPC — sin descargar filas)
         var pageTask    = query.Order("id_producto", Ord.Ascending).Range(from, to).Get();
-        var conteosTask = GetConteosRpcAsync(filtros, client);
+        var conteosTask = GetConteosRpcAsync(filtrosConteo, client);
         await Task.WhenAll(pageTask, conteosTask);
 
         var items   = pageTask.Result?.Models.Select(Map).ToList() ?? [];

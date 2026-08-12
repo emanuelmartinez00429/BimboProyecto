@@ -53,13 +53,45 @@
                     </StackPanel>
                 </StackPanel>
 
+                <!-- Pastillas armadas a mano, igual que en Productos (ver
+                     ProductosView.xaml): Text bindea directo contra el
+                     DataContext, sin pasar por Content de un
+                     HeaderedContentControl + TemplateBinding, que no
+                     terminaba de reflejar el número en pantalla. -->
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                    <HeaderedContentControl Style="{StaticResource RolPastillaStat}" Tag="neutral"
-                                            Header="TOTAL" Content="{Binding TotalAcciones}"/>
-                    <HeaderedContentControl Style="{StaticResource RolPastillaStat}" Tag="good"
-                                            Header="ACTIVOS" Content="{Binding Activos}"/>
-                    <HeaderedContentControl Style="{StaticResource RolPastillaStat}" Tag="muted"
-                                            Header="INACTIVOS" Content="{Binding Inactivos}"/>
+                    <Border Background="#EEF2F8" CornerRadius="999"
+                            BorderBrush="{StaticResource RolBorder}" BorderThickness="1"
+                            Padding="12,6" Margin="0,0,8,0">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Ellipse Width="6" Height="6" Fill="{StaticResource RolBrand}"
+                                     Margin="0,0,6,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="TOTAL" FontSize="11" FontWeight="SemiBold"
+                                       Foreground="{StaticResource RolBrand}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                            <TextBlock Text="{Binding TotalAcciones}" FontSize="13" FontWeight="Bold"
+                                       Foreground="{StaticResource RolBrand}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Background="#ECFDF5" CornerRadius="999"
+                            BorderBrush="#D1FAE5" BorderThickness="1"
+                            Padding="12,6" Margin="0,0,8,0">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Ellipse Width="6" Height="6" Fill="#10B981" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="ACTIVOS" FontSize="11" FontWeight="SemiBold"
+                                       Foreground="#047857" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                            <TextBlock Text="{Binding Activos}" FontSize="13" FontWeight="Bold"
+                                       Foreground="#047857" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Background="#F3F4F6" CornerRadius="999"
+                            BorderBrush="#E5E7EB" BorderThickness="1" Padding="12,6">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Ellipse Width="6" Height="6" Fill="#9CA3AF" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="INACTIVOS" FontSize="11" FontWeight="SemiBold"
+                                       Foreground="#6B7280" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                            <TextBlock Text="{Binding Inactivos}" FontSize="13" FontWeight="Bold"
+                                       Foreground="#6B7280" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
                 </StackPanel>
             </Grid>
 
