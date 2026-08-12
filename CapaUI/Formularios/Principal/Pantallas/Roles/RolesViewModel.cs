@@ -93,6 +93,12 @@ public sealed partial class RolesViewModel : ObservableObject, IDisposable
     {
         _permisosRepo = permisosRepo;
         _sesion = sesion;
+
+        // Se fijan acá y no en CargarAsync: si se asignaran después del await, los
+        // selectores segmentados vivirían sin selección hasta que responda la BD y
+        // luego saltarían a su estado real, que es parte del parpadeo de maquetado.
+        OpcionEstado = OpcionesEstado[2];   // Todos
+        OpcionVista = OpcionesVista[0];     // Compacta
     }
 
     // ── Colecciones ────────────────────────────────────────────────────────

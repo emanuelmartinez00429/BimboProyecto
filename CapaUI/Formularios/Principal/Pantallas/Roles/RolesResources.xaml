@@ -198,11 +198,8 @@
                             <Setter TargetName="Fondo" Property="Background" Value="{StaticResource RolSurface}"/>
                             <Setter TargetName="Texto" Property="Foreground" Value="{StaticResource RolText}"/>
                             <Setter TargetName="Punto" Property="Opacity" Value="1"/>
-                            <Setter TargetName="Fondo" Property="Effect">
-                                <Setter.Value>
-                                    <DropShadowEffect BlurRadius="3" ShadowDepth="1" Opacity="0.14" Color="Black"/>
-                                </Setter.Value>
-                            </Setter>
+                            <Setter TargetName="Fondo" Property="BorderBrush" Value="#D7DCE5"/>
+                            <Setter TargetName="Fondo" Property="BorderThickness" Value="1"/>
                         </Trigger>
                         <MultiTrigger>
                             <MultiTrigger.Conditions>
@@ -354,9 +351,6 @@
              si se colapsara solo el Border, el panel igual le reservaría la celda. -->
         <Border x:Name="Tarjeta" Background="{StaticResource RolSurface}" CornerRadius="10"
                 BorderBrush="{StaticResource RolBorderCard}" BorderThickness="1">
-            <Border.Effect>
-                <DropShadowEffect BlurRadius="3" ShadowDepth="1" Opacity="0.08" Color="#1E3A8A"/>
-            </Border.Effect>
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>

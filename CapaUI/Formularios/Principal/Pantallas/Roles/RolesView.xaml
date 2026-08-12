@@ -19,7 +19,12 @@
         </Grid.RowDefinitions>
 
         <!-- ══════════════════ Encabezado + barra de herramientas ══════════════════ -->
-        <StackPanel Grid.Row="0" Margin="20,16,20,0">
+        <!-- Encabezado + barra de herramientas. Arrancan ocultos: dibujarlos sin
+             datos mostraba stats en 0, el selector de rol vacío y los segmentados
+             sin selección, y al llegar la respuesta se poblaba todo de golpe —
+             se percibía como si cargaran dos diseños distintos. -->
+        <StackPanel x:Name="EncabezadoRoles" Grid.Row="0" Margin="20,16,20,0"
+                    Visibility="Collapsed">
 
             <Grid Margin="0,0,0,12">
                 <Grid.ColumnDefinitions>
@@ -61,9 +66,6 @@
 
             <Border Background="{StaticResource RolSurface}" BorderBrush="{StaticResource RolBorder}"
                     BorderThickness="1" CornerRadius="10" Padding="12" Panel.ZIndex="5">
-                <Border.Effect>
-                    <DropShadowEffect BlurRadius="3" ShadowDepth="1" Opacity="0.04" Color="Black"/>
-                </Border.Effect>
 
                 <StackPanel>
                     <!-- ── Buscador + limpiar ──────────────────────────────────── -->
@@ -240,34 +242,34 @@
         <!-- ══════════════════════════ Cuerpo ══════════════════════════════════ -->
         <!-- Scroll horizontal en Auto: las tarjetas encogen hasta MinColumnWidth y,
              a partir de ahí, aparece la barra en vez de aplastarse hasta tapar el texto. -->
-        <ScrollViewer Grid.Row="1" Margin="0,12,0,0" Padding="20,0,20,16"
-                      VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-            <Grid>
-                <!-- Indicador de carga. Igual que en los demás formularios: la
-                     visibilidad la maneja el code-behind y NO un binding, así no
-                     hay un instante inicial (con DataContext todavía nulo) en el
-                     que el binding falle y se dibujen las dos capas encimadas. -->
-                <StackPanel x:Name="LoadingPanel"
-                            Margin="0,80,0,0"
-                            VerticalAlignment="Top"
-                            HorizontalAlignment="Center"
-                            Orientation="Horizontal">
-                    <Path x:Name="SpinnerPath"
-                          Data="M 12 2 A 10 10 0 1 1 2 12"
-                          Stroke="#1E3A8A" StrokeThickness="2.5"
-                          StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                          Width="22" Height="22" Stretch="Uniform"
-                          RenderTransformOrigin="0.5,0.5"
-                          Margin="0,0,10,0">
-                        <Path.RenderTransform>
-                            <RotateTransform/>
-                        </Path.RenderTransform>
-                    </Path>
-                    <TextBlock Text="Cargando roles..."
-                               FontFamily="Segoe UI" FontSize="14" Foreground="#6B7280"
-                               VerticalAlignment="Center"/>
-                </StackPanel>
+        <Grid Grid.Row="1">
+            <!-- Indicador de carga. Va FUERA del ScrollViewer para poder quedar
+                 centrado: adentro se mediría con alto infinito y el centrado no
+                 tendría efecto. La visibilidad la maneja el code-behind y NO un
+                 binding, así no hay un instante inicial (con DataContext todavía
+                 nulo) en el que el binding falle y se dibujen dos capas encimadas. -->
+            <StackPanel x:Name="LoadingPanel"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Center"
+                        Orientation="Horizontal">
+                <Path x:Name="SpinnerPath"
+                      Data="M 12 2 A 10 10 0 1 1 2 12"
+                      Stroke="#1E3A8A" StrokeThickness="2.5"
+                      StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                      Width="22" Height="22" Stretch="Uniform"
+                      RenderTransformOrigin="0.5,0.5"
+                      Margin="0,0,10,0">
+                    <Path.RenderTransform>
+                        <RotateTransform/>
+                    </Path.RenderTransform>
+                </Path>
+                <TextBlock Text="Cargando roles..."
+                           FontFamily="Segoe UI" FontSize="14" Foreground="#6B7280"
+                           VerticalAlignment="Center"/>
+            </StackPanel>
 
+            <ScrollViewer Margin="0,12,0,0" Padding="20,0,20,16"
+                          VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                 <!-- Contenido real -->
                 <StackPanel x:Name="ContenidoRoles" Visibility="Collapsed">
 
@@ -314,11 +316,12 @@
                                 HorizontalAlignment="Center"/>
                     </StackPanel>
                 </StackPanel>
-            </Grid>
-        </ScrollViewer>
+            </ScrollViewer>
+        </Grid>
 
         <!-- ═══════════════════════════ Pie ════════════════════════════════════ -->
-        <Border Grid.Row="2" Background="{StaticResource RolPie}" BorderBrush="#C9D9EC"
+        <Border x:Name="PieRoles" Grid.Row="2" Visibility="Collapsed"
+                Background="{StaticResource RolPie}" BorderBrush="#C9D9EC"
                 BorderThickness="0,1,0,0" Padding="20,10">
             <Grid>
                 <Grid.ColumnDefinitions>

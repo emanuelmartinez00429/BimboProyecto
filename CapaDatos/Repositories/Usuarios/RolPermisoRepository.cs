@@ -36,15 +36,21 @@ public sealed class RolPermisoRepository : RepositorioBase, IRolPermisoRepositor
         {
             ExigirLectura();
 
-            var catalogo = await CargarCatalogoAsync(ct);
-
             var client = await ConexionSupabase.GetClientAsync();
+
+            // Las cuatro consultas salen JUNTAS. Antes el catálogo y el conteo de
+            // usuarios se esperaban en serie alrededor del bloque del medio, así
+            // que abrir la pantalla costaba la SUMA de tres viajes de red en vez
+            // del más lento de todos.
+            var catalogoTask = CargarCatalogoAsync(ct);
             var rolesTask = client.From<Roles>().Order("nombre_rol", Ord.Ascending).Get(ct);
             var asignacionesTask = client
                 .From<AccionRol>()
                 .Filter("id_estado", Op.Equals, Activo.ToString())
                 .Get(ct);
-            await Task.WhenAll(rolesTask, asignacionesTask);
+            var usuariosTask = ContarUsuariosPorRolAsync(client, ct);
+
+            await Task.WhenAll(catalogoTask, rolesTask, asignacionesTask, usuariosTask);
 
             var accionesPorRol = new Dictionary<int, IReadOnlySet<int>>();
             foreach (var grupo in (asignacionesTask.Result?.Models ?? new List<AccionRol>())
@@ -56,9 +62,9 @@ public sealed class RolPermisoRepository : RepositorioBase, IRolPermisoRepositor
                 Roles = (rolesTask.Result?.Models ?? new List<Roles>())
                     .Select(r => new RolDto { IdRol = r.idRol, NombreRol = r.nombreRol })
                     .ToList(),
-                Modulos = catalogo,
+                Modulos = catalogoTask.Result,
                 AccionesPorRol = accionesPorRol,
-                UsuariosPorRol = await ContarUsuariosPorRolAsync(client, ct),
+                UsuariosPorRol = usuariosTask.Result,
             };
         }, "Cargar configuración de roles");
 

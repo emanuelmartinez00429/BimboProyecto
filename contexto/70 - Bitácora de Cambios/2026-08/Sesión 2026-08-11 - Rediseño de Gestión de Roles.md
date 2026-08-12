@@ -112,6 +112,18 @@ El usuario reportó que `UsuariosView.PoblarRoles()` explotaba al abrir y cerrar
 
 Los otros 7 ViewModels **no crashean** (no tienen código después del await), pero les falta la cancelación y el arreglo del timer: quedó como **P-029**, sin tocarlos, para no meter riesgo en 7 módulos que hoy funcionan.
 
+### Apertura lenta de Roles y parpadeo de maquetado
+
+El usuario reportó que Roles **no abre como los demás módulos**: tarda, y por medio segundo se ve un maquetado distinto antes del definitivo. Tres causas, todas corregidas.
+
+**1. Tres viajes de red en serie.** `ObtenerResumenAsync` esperaba el catálogo, después roles+asignaciones, y después el conteo de usuarios. La pantalla pagaba la **suma** de los tres. Ahora las cuatro consultas salen juntas en un solo `Task.WhenAll`: se paga el viaje más lento, no la suma.
+
+**2. Encabezado, barra de herramientas y pie dibujados sin datos.** Solo el cuerpo se ocultaba mientras cargaba; el resto se dibujaba con los stats en 0, el selector de rol vacío y los segmentados sin selección, y al llegar la respuesta se poblaba de golpe. **Eso era el "otro diseño" de medio segundo.** Ahora `ActualizarCarga()` muestra u oculta la pantalla entera, y el spinner quedó centrado (se movió fuera del `ScrollViewer`: adentro se mide con alto infinito y el centrado no tiene efecto).
+
+**3. `OpcionEstado` / `OpcionVista` se asignaban después del `await`.** Los selectores segmentados vivían sin selección hasta que respondía la BD y después saltaban a su estado real. Se movieron al **constructor** del ViewModel.
+
+**Además, se quitaron 7 `DropShadowEffect`** — uno por tarjeta de módulo (×6) más el de la barra de herramientas, y el del item seleccionado del segmentado se reemplazó por un borde. Las sombras son pixel shaders y ya están documentadas como el problema de rendimiento #1 del proyecto en [[WPF - Rendimiento de Efectos y Niveles de Renderizado]]; tener una por tarjeta contradecía esa guía. Quedan solo dos, ambas de elemento único: la insignia del encabezado y el popup del selector de rol.
+
 ---
 
 ## Verificación

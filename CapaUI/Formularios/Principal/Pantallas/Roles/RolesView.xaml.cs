@@ -50,9 +50,16 @@ public partial class RolesView : System.Windows.Controls.UserControl
     {
         if (_vm is null) return;
 
+        // Se muestra u oculta la pantalla ENTERA, no solo el cuerpo: el encabezado
+        // y el pie sin datos se ven como un maquetado distinto al final.
+        var contenido = _vm.IsLoading ? Visibility.Collapsed : Visibility.Visible;
+
+        EncabezadoRoles.Visibility = contenido;
+        ContenidoRoles.Visibility = contenido;
+        PieRoles.Visibility = contenido;
+
         if (_vm.IsLoading)
         {
-            ContenidoRoles.Visibility = Visibility.Collapsed;
             LoadingPanel.Visibility = Visibility.Visible;
             IniciarSpinner();
         }
@@ -60,7 +67,6 @@ public partial class RolesView : System.Windows.Controls.UserControl
         {
             LoadingPanel.Visibility = Visibility.Collapsed;
             DetenerSpinner();
-            ContenidoRoles.Visibility = Visibility.Visible;
         }
     }
 
