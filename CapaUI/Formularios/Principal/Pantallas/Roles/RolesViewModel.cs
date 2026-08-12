@@ -98,7 +98,6 @@ public sealed partial class RolesViewModel : ObservableObject, IDisposable
         // selectores segmentados vivirían sin selección hasta que responda la BD y
         // luego saltarían a su estado real, que es parte del parpadeo de maquetado.
         OpcionEstado = OpcionesEstado[2];   // Todos
-        OpcionVista = OpcionesVista[1];     // Detalle
     }
 
     // ── Colecciones ────────────────────────────────────────────────────────
@@ -110,12 +109,6 @@ public sealed partial class RolesViewModel : ObservableObject, IDisposable
         new OpcionSegmento { Etiqueta = "Activos",   ColorPunto = "#10B981", Valor = FiltroEstadoPermiso.Activos },
         new OpcionSegmento { Etiqueta = "Inactivos", ColorPunto = "#94A3B8", Valor = FiltroEstadoPermiso.Inactivos },
         new OpcionSegmento { Etiqueta = "Todos",     Valor = FiltroEstadoPermiso.Todos },
-    };
-
-    public IReadOnlyList<OpcionSegmento> OpcionesVista { get; } = new[]
-    {
-        new OpcionSegmento { Etiqueta = "Compacta", Valor = true },
-        new OpcionSegmento { Etiqueta = "Detalle",  Valor = false },
     };
 
     // ── Estado ─────────────────────────────────────────────────────────────
@@ -153,9 +146,6 @@ public sealed partial class RolesViewModel : ObservableObject, IDisposable
     [NotifyPropertyChangedFor(nameof(Filtrando))]
     private OpcionSegmento? _opcionEstado;
 
-    [ObservableProperty]
-    private OpcionSegmento? _opcionVista;
-
     [ObservableProperty] private bool _sinResultados;
 
     [ObservableProperty] private bool _selectorRolAbierto;
@@ -166,14 +156,12 @@ public sealed partial class RolesViewModel : ObservableObject, IDisposable
     public bool HayQuery => Query.Length > 0;
     public bool HayCambios => Cambios > 0;
     public int Inactivos => TotalAcciones - Activos;
-    public bool EsCompacta => OpcionVista?.Valor is true;
-
     /// <summary>
-    /// Cuatro columnas en los dos modos. Antes Detalle bajaba a 2, pero eso hacía
-    /// que alternar de vista reacomodara toda la grilla; y como la cantidad de
-    /// columnas resuelve al instante mientras los estilos de la tarjeta tardan un
-    /// frame, la pantalla llegaba a dibujarse en un estado híbrido.
-    /// La diferencia entre modos queda solo en la densidad de cada fila.
+    /// La pantalla tiene UN solo maquetado. Antes había modo Compacta y Detalle,
+    /// y eso era la causa del parpadeo: los estilos de la tarjeta se resolvían
+    /// con <c>RelativeSource AncestorType</c>, que tarda un frame, mientras que
+    /// esta propiedad se bindea directo al DataContext y resuelve al instante.
+    /// La pantalla llegaba a dibujarse en un estado híbrido antes de asentarse.
     /// </summary>
     public int ColumnasGrilla => 4;
     public bool EsSistemaSeleccionado => RolSeleccionado?.EsSistema == true;
@@ -266,9 +254,6 @@ public sealed partial class RolesViewModel : ObservableObject, IDisposable
             });
         }
 
-        OpcionEstado = OpcionesEstado[2];   // Todos
-        OpcionVista = OpcionesVista[0];     // Compacta
-
         _cargado = true;
         IsLoading = false;
 
@@ -310,8 +295,6 @@ public sealed partial class RolesViewModel : ObservableObject, IDisposable
     partial void OnQueryChanged(string value) => AplicarFiltro();
 
     partial void OnOpcionEstadoChanged(OpcionSegmento? value) => AplicarFiltro();
-
-    partial void OnOpcionVistaChanged(OpcionSegmento? value) => OnPropertyChanged(nameof(EsCompacta));
 
     // ── Comandos ───────────────────────────────────────────────────────────
 

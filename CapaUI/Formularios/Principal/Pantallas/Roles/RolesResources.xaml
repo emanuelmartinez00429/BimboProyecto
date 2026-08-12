@@ -279,9 +279,6 @@
                                         <TextBlock Text="CRÍTICA" FontSize="9" FontWeight="Bold"
                                                    Foreground="{StaticResource RolAmber}"/>
                                     </Border>
-                                    <Ellipse x:Name="PuntoCritico" Width="5" Height="5" Margin="6,0,0,0"
-                                             Fill="{StaticResource RolAmberDot}" VerticalAlignment="Center"
-                                             Visibility="Collapsed"/>
                                 </StackPanel>
                                 <TextBlock x:Name="Descripcion" Text="{Binding Descripcion}" FontSize="11"
                                            Foreground="{StaticResource RolMuted}" TextWrapping="Wrap"
@@ -318,27 +315,6 @@
                             <Setter Property="Opacity" Value="0.55"/>
                             <Setter Property="Cursor" Value="Arrow"/>
                         </Trigger>
-
-                        <!-- Modo compacto: fila de una sola línea -->
-                        <DataTrigger Binding="{Binding DataContext.EsCompacta, RelativeSource={RelativeSource AncestorType=UserControl}}" Value="True">
-                            <Setter TargetName="Fondo" Property="Padding" Value="7,4"/>
-                            <Setter TargetName="Fondo" Property="CornerRadius" Value="6"/>
-                            <Setter TargetName="Descripcion" Property="Visibility" Value="Collapsed"/>
-                            <Setter TargetName="Badge" Property="Visibility" Value="Collapsed"/>
-                            <Setter TargetName="Casilla" Property="Width" Value="14"/>
-                            <Setter TargetName="Casilla" Property="Height" Value="14"/>
-                            <Setter TargetName="Casilla" Property="Margin" Value="0,0,7,0"/>
-                            <Setter TargetName="Casilla" Property="VerticalAlignment" Value="Center"/>
-                            <Setter TargetName="Titulo" Property="FontSize" Value="12"/>
-                        </DataTrigger>
-                        <MultiDataTrigger>
-                            <MultiDataTrigger.Conditions>
-                                <Condition Binding="{Binding DataContext.EsCompacta, RelativeSource={RelativeSource AncestorType=UserControl}}" Value="True"/>
-                                <Condition Binding="{Binding EsCritica}" Value="True"/>
-                                <Condition Binding="{Binding Asignada}" Value="True"/>
-                            </MultiDataTrigger.Conditions>
-                            <Setter TargetName="PuntoCritico" Property="Visibility" Value="Visible"/>
-                        </MultiDataTrigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
@@ -463,19 +439,6 @@
                 <Setter TargetName="Insignia" Property="Background" Value="{StaticResource RolBrand}"/>
                 <Setter TargetName="IconoModulo" Property="Stroke" Value="White"/>
                 <Setter TargetName="BotonTodos" Property="Content" Value="Ninguno"/>
-            </DataTrigger>
-
-            <!-- Modo compacto: encabezado más bajo, sin descripción ni botón -->
-            <DataTrigger Binding="{Binding DataContext.EsCompacta, RelativeSource={RelativeSource AncestorType=UserControl}}" Value="True">
-                <Setter TargetName="Encabezado" Property="Padding" Value="11,7"/>
-                <Setter TargetName="DescModulo" Property="Visibility" Value="Collapsed"/>
-                <Setter TargetName="BotonTodos" Property="Visibility" Value="Collapsed"/>
-                <Setter TargetName="Insignia" Property="Width" Value="24"/>
-                <Setter TargetName="Insignia" Property="Height" Value="24"/>
-                <Setter TargetName="IconoModulo" Property="Width" Value="13"/>
-                <Setter TargetName="IconoModulo" Property="Height" Value="13"/>
-                <Setter TargetName="NombreModulo" Property="FontSize" Value="12.5"/>
-                <Setter TargetName="ListaPermisos" Property="Padding" Value="6"/>
             </DataTrigger>
         </DataTemplate.Triggers>
     </DataTemplate>

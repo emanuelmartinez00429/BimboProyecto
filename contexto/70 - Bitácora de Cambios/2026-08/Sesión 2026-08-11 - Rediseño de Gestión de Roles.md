@@ -124,17 +124,27 @@ El usuario reportó que Roles **no abre como los demás módulos**: tarda, y por
 
 **Además, se quitaron 7 `DropShadowEffect`** — uno por tarjeta de módulo (×6) más el de la barra de herramientas, y el del item seleccionado del segmentado se reemplazó por un borde. Las sombras son pixel shaders y ya están documentadas como el problema de rendimiento #1 del proyecto en [[WPF - Rendimiento de Efectos y Niveles de Renderizado]]; tener una por tarjeta contradecía esa guía. Quedan solo dos, ambas de elemento único: la insignia del encabezado y el popup del selector de rol.
 
-> [!important] La causa de fondo del parpadeo: `RelativeSource AncestorType` no resuelve en el primer frame
-> Las capturas del usuario mostraban un estado **híbrido**: 4 columnas (modo Compacta) **con** descripciones (modo Detalle). Ese híbrido delata el mecanismo:
+> [!bug] La causa real del doble maquetado (encontrada al tercer intento)
+> `RolesViewModel` **cambiaba el modo de vista a mitad de la carga**:
 >
-> - `ColumnasGrilla` se bindea **directo al DataContext** → resuelve al instante → 4 columnas.
-> - Los `DataTrigger` de la tarjeta usan `RelativeSource AncestorType=UserControl` → **ese recorrido del árbol no resuelve en el primer frame** → el trigger de Compacta no aplica y se dibuja el estado base de la plantilla, que es Detalle.
+> ```csharp
+> // Constructor
+> OpcionVista = OpcionesVista[1];     // Detalle  → se dibuja CON descripciones
 >
-> Medio segundo después el binding resuelve, el trigger aplica y la pantalla salta.
+> // CargarAsync, DESPUÉS del await del repositorio
+> OpcionVista = OpcionesVista[0];     // Compacta → salta a SIN descripciones
+> ```
 >
-> **La regla:** cuando un `DataTemplate` cambia de aspecto con un trigger que depende de `RelativeSource AncestorType`, **el estado base de la plantilla tiene que ser el estado por defecto de la app.** Si no coinciden, hay salto visual garantizado en el primer render.
+> Al mover la inicialización al constructor no se borró la asignación vieja que estaba después del `await`. El resultado: la pantalla se dibujaba en Detalle, esperaba la consulta, y saltaba a Compacta. **El "medio segundo" que veía el usuario era exactamente el tiempo de la consulta.**
+>
+> Los dos intentos anteriores (mover la inicialización al constructor, alinear el default con el estado base de la plantilla) atacaban el *timing de los triggers* — una hipótesis razonable pero equivocada. La causa era mucho más simple: dos asignaciones contradictorias separadas por un `await`.
 
-Aplicado: el modo por defecto pasó a **Detalle** (el que el usuario prefiere, con descripciones), que además **es el estado base de la plantilla** — así no hay nada que el trigger tenga que cambiar al arrancar. Y `ColumnasGrilla` quedó fijo en 4 para los dos modos: antes Detalle bajaba a 2, lo que reacomodaba toda la grilla al alternar y era la otra mitad del híbrido. La diferencia entre modos queda solo en la densidad de cada fila.
+**Solución definitiva: se eliminó el modo Compacta por completo.** Ya no existe el selector Compacta/Detalle ni ninguna de sus variantes de estilo. Con **un solo maquetado posible**, el síntoma no puede reaparecer por ninguna vía — ni por timing de triggers, ni por asignaciones tardías, ni por dobles disparos de `Loaded`.
+
+Efecto secundario bienvenido: se fueron ~6 `DataTrigger` con `RelativeSource AncestorType=UserControl` que se evaluaban por cada una de las 28 filas de permiso y las 6 tarjetas. Menos recorridos del árbol visual en cada apertura.
+
+> [!tip] La regla que queda
+> **Un valor de presentación no se asigna en dos lugares separados por un `await`.** Si el estado inicial va en el constructor, la asignación de después de la carga sobra — y mientras dure la consulta, la pantalla muestra un estado que después se contradice.
 
 ---
 
