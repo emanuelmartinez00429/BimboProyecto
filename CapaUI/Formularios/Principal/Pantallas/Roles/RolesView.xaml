@@ -292,7 +292,7 @@
                             <ItemsPanelTemplate>
                                 <ctrl:SpanningGridPanel Columns="{Binding ColumnasGrilla}"
                                                         ColumnSpacing="10" RowSpacing="10"
-                                                        MinColumnWidth="220"/>
+                                                        MinColumnWidth="250"/>
                             </ItemsPanelTemplate>
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemContainerStyle>

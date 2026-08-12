@@ -124,6 +124,18 @@ El usuario reportó que Roles **no abre como los demás módulos**: tarda, y por
 
 **Además, se quitaron 7 `DropShadowEffect`** — uno por tarjeta de módulo (×6) más el de la barra de herramientas, y el del item seleccionado del segmentado se reemplazó por un borde. Las sombras son pixel shaders y ya están documentadas como el problema de rendimiento #1 del proyecto en [[WPF - Rendimiento de Efectos y Niveles de Renderizado]]; tener una por tarjeta contradecía esa guía. Quedan solo dos, ambas de elemento único: la insignia del encabezado y el popup del selector de rol.
 
+> [!important] La causa de fondo del parpadeo: `RelativeSource AncestorType` no resuelve en el primer frame
+> Las capturas del usuario mostraban un estado **híbrido**: 4 columnas (modo Compacta) **con** descripciones (modo Detalle). Ese híbrido delata el mecanismo:
+>
+> - `ColumnasGrilla` se bindea **directo al DataContext** → resuelve al instante → 4 columnas.
+> - Los `DataTrigger` de la tarjeta usan `RelativeSource AncestorType=UserControl` → **ese recorrido del árbol no resuelve en el primer frame** → el trigger de Compacta no aplica y se dibuja el estado base de la plantilla, que es Detalle.
+>
+> Medio segundo después el binding resuelve, el trigger aplica y la pantalla salta.
+>
+> **La regla:** cuando un `DataTemplate` cambia de aspecto con un trigger que depende de `RelativeSource AncestorType`, **el estado base de la plantilla tiene que ser el estado por defecto de la app.** Si no coinciden, hay salto visual garantizado en el primer render.
+
+Aplicado: el modo por defecto pasó a **Detalle** (el que el usuario prefiere, con descripciones), que además **es el estado base de la plantilla** — así no hay nada que el trigger tenga que cambiar al arrancar. Y `ColumnasGrilla` quedó fijo en 4 para los dos modos: antes Detalle bajaba a 2, lo que reacomodaba toda la grilla al alternar y era la otra mitad del híbrido. La diferencia entre modos queda solo en la densidad de cada fila.
+
 ---
 
 ## Verificación

@@ -98,7 +98,7 @@ public sealed partial class RolesViewModel : ObservableObject, IDisposable
         // selectores segmentados vivirían sin selección hasta que responda la BD y
         // luego saltarían a su estado real, que es parte del parpadeo de maquetado.
         OpcionEstado = OpcionesEstado[2];   // Todos
-        OpcionVista = OpcionesVista[0];     // Compacta
+        OpcionVista = OpcionesVista[1];     // Detalle
     }
 
     // ── Colecciones ────────────────────────────────────────────────────────
@@ -154,7 +154,6 @@ public sealed partial class RolesViewModel : ObservableObject, IDisposable
     private OpcionSegmento? _opcionEstado;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(ColumnasGrilla))]
     private OpcionSegmento? _opcionVista;
 
     [ObservableProperty] private bool _sinResultados;
@@ -167,8 +166,16 @@ public sealed partial class RolesViewModel : ObservableObject, IDisposable
     public bool HayQuery => Query.Length > 0;
     public bool HayCambios => Cambios > 0;
     public int Inactivos => TotalAcciones - Activos;
-    public bool EsCompacta => OpcionVista?.Valor is not false;
-    public int ColumnasGrilla => EsCompacta ? 4 : 2;
+    public bool EsCompacta => OpcionVista?.Valor is true;
+
+    /// <summary>
+    /// Cuatro columnas en los dos modos. Antes Detalle bajaba a 2, pero eso hacía
+    /// que alternar de vista reacomodara toda la grilla; y como la cantidad de
+    /// columnas resuelve al instante mientras los estilos de la tarjeta tardan un
+    /// frame, la pantalla llegaba a dibujarse en un estado híbrido.
+    /// La diferencia entre modos queda solo en la densidad de cada fila.
+    /// </summary>
+    public int ColumnasGrilla => 4;
     public bool EsSistemaSeleccionado => RolSeleccionado?.EsSistema == true;
     public bool Filtrando =>
         !string.IsNullOrWhiteSpace(Query) || (OpcionEstado?.Valor is FiltroEstadoPermiso f && f != FiltroEstadoPermiso.Todos);
