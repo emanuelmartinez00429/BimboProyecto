@@ -361,9 +361,9 @@
 
                         <!-- El contador es también el atajo para activar/quitar el módulo entero -->
                         <Button x:Name="Contador" Grid.Column="2" Margin="8,0,0,0" Cursor="Hand"
-                                Command="{Binding DataContext.AlternarModuloCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                Command="{Binding Alternar}"
                                 CommandParameter="{Binding}"
-                                IsEnabled="{Binding DataContext.PuedeEditar, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                IsEnabled="{Binding PuedeEditar}"
                                 ToolTip="Activar o quitar todos los permisos del módulo">
                             <Button.Template>
                                 <ControlTemplate TargetType="Button">
@@ -392,9 +392,9 @@
                         <Button x:Name="BotonTodos" Grid.Column="3" Margin="8,0,0,0" Height="25" Padding="8,0"
                                 Style="{StaticResource RolBotonMini}" FontSize="11"
                                 Content="Todos"
-                                Command="{Binding DataContext.AlternarModuloCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                Command="{Binding Alternar}"
                                 CommandParameter="{Binding}"
-                                IsEnabled="{Binding DataContext.PuedeEditar, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
+                                IsEnabled="{Binding PuedeEditar}"/>
                     </Grid>
                 </Border>
 
@@ -413,9 +413,9 @@
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
                             <Button Style="{StaticResource RolFilaPermiso}"
-                                    Command="{Binding DataContext.AlternarAccionCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                    Command="{Binding Alternar}"
                                     CommandParameter="{Binding}"
-                                    IsEnabled="{Binding DataContext.PuedeEditar, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
+                                    IsEnabled="{Binding PuedeEditar}"/>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
@@ -441,47 +441,6 @@
                 <Setter TargetName="BotonTodos" Property="Content" Value="Ninguno"/>
             </DataTrigger>
         </DataTemplate.Triggers>
-    </DataTemplate>
-
-    <!-- ══ Item del selector de rol ═════════════════════════════════════════ -->
-    <DataTemplate x:Key="RolItemSelector">
-        <!-- Ancestro = ItemsControl y no UserControl: este template vive dentro de
-             un Popup, que se hospeda en su propio árbol visual y corta la búsqueda
-             de ancestros hacia la ventana. -->
-        <Button Cursor="Hand" HorizontalContentAlignment="Stretch"
-                Command="{Binding DataContext.SeleccionarRolCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                CommandParameter="{Binding}">
-            <Button.Template>
-                <ControlTemplate TargetType="Button">
-                    <Border x:Name="Fondo" Background="Transparent" CornerRadius="6" Padding="9,8">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <StackPanel>
-                                <TextBlock Text="{Binding Nombre}" FontSize="12.5" FontWeight="Bold"
-                                           Foreground="{StaticResource RolText}"/>
-                                <TextBlock Text="{Binding Resumen}" FontSize="10.5"
-                                           Foreground="{StaticResource RolText2}"/>
-                            </StackPanel>
-                            <Path x:Name="Tilde" Grid.Column="1" Style="{StaticResource RolIcono}"
-                                  Data="{StaticResource GeoCheck}" Width="14" Height="14" StrokeThickness="2.6"
-                                  Stroke="{StaticResource RolBrand}" Visibility="Collapsed"/>
-                        </Grid>
-                    </Border>
-                    <ControlTemplate.Triggers>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Fondo" Property="Background" Value="#F1F5FA"/>
-                        </Trigger>
-                        <DataTrigger Binding="{Binding EsSeleccionado}" Value="True">
-                            <Setter TargetName="Fondo" Property="Background" Value="{StaticResource RolRowHover}"/>
-                            <Setter TargetName="Tilde" Property="Visibility" Value="Visible"/>
-                        </DataTrigger>
-                    </ControlTemplate.Triggers>
-                </ControlTemplate>
-            </Button.Template>
-        </Button>
     </DataTemplate>
 
     <!-- ══ Botones de acción del pie ════════════════════════════════════════ -->

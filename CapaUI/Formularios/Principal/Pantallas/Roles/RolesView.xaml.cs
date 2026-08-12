@@ -17,6 +17,7 @@ public partial class RolesView : System.Windows.Controls.UserControl
 
     private RolesViewModel? _vm;
     private Storyboard? _spinnerStory;
+    private bool _suprimirCambioRol;
     private readonly List<DispatcherTimer> _temporizadores = new();
 
     public RolesView()
@@ -33,9 +34,59 @@ public partial class RolesView : System.Windows.Controls.UserControl
         _vm.PropertyChanged += OnVmPropertyChanged;
         DataContext = _vm;
 
-        // El XAML ya arranca mostrando el spinner: CargarAsync pone IsLoading=true
-        // de entrada y OnVmPropertyChanged se encarga del resto.
-        await _vm.CargarAsync();
+        // try/catch obligatorio: este manejador es async void, y una excepción
+        // que se escape de acá no la puede atrapar nadie — sube al dispatcher y
+        // tumba la aplicación entera.
+        try
+        {
+            // Se captura la instancia ANTES del await. Si el usuario cierra la
+            // pantalla mientras carga, Unloaded pone _vm = null y la continuación
+            // volvería sobre una vista ya descargada. Se compara por referencia
+            // para cubrir también el abrir-cerrar-abrir rápido, donde _vm no es
+            // null pero es OTRO ViewModel.
+            var vm = _vm;
+            await vm.CargarAsync();
+            if (!ReferenceEquals(_vm, vm)) return;
+
+            PoblarRoles();
+        }
+        catch (Exception ex)
+        {
+            Serilog.Log.Error(ex, "[Roles] Falló la carga inicial de la pantalla");
+            if (_vm is null) return;
+
+            // Sin esto la pantalla quedaría para siempre en "Cargando roles...".
+            _vm.MostrarErrorCarga("No se pudo cargar la configuración de roles.");
+        }
+    }
+
+    /// <summary>
+    /// Puebla el ComboBox con el mismo patrón que el resto de los formularios
+    /// (ver <c>UsuariosView.PoblarRoles</c>): items imperativos con el id en Tag
+    /// y una bandera para no disparar SelectionChanged mientras se repuebla.
+    /// </summary>
+    private void PoblarRoles()
+    {
+        if (_vm is null) return;
+
+        _suprimirCambioRol = true;
+        CmbRol.Items.Clear();
+
+        foreach (var rol in _vm.Roles)
+            CmbRol.Items.Add(new ComboBoxItem { Content = rol.Nombre, Tag = rol.IdRol });
+
+        if (CmbRol.Items.Count > 0)
+            CmbRol.SelectedIndex = 0;
+
+        _suprimirCambioRol = false;
+    }
+
+    private void CmbRol_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_vm is null || _suprimirCambioRol) return;
+        if (CmbRol.SelectedItem is not ComboBoxItem item || item.Tag is not int idRol) return;
+
+        _vm.SeleccionarRol(idRol);
     }
 
     private void OnVmPropertyChanged(object? s, System.ComponentModel.PropertyChangedEventArgs e)
@@ -50,16 +101,13 @@ public partial class RolesView : System.Windows.Controls.UserControl
     {
         if (_vm is null) return;
 
-        // Se muestra u oculta la pantalla ENTERA, no solo el cuerpo: el encabezado
-        // y el pie sin datos se ven como un maquetado distinto al final.
-        var contenido = _vm.IsLoading ? Visibility.Collapsed : Visibility.Visible;
-
-        EncabezadoRoles.Visibility = contenido;
-        ContenidoRoles.Visibility = contenido;
-        PieRoles.Visibility = contenido;
-
+        // Solo se alterna el area de tarjetas. El encabezado, el buscador, los
+        // filtros y el pie son parte fija del formulario y quedan visibles — el
+        // mismo criterio que Productos, Usuarios y Categorias, donde lo unico
+        // que se oculta mientras carga es el DataGrid.
         if (_vm.IsLoading)
         {
+            ContenidoRoles.Visibility = Visibility.Collapsed;
             LoadingPanel.Visibility = Visibility.Visible;
             IniciarSpinner();
         }
@@ -67,6 +115,7 @@ public partial class RolesView : System.Windows.Controls.UserControl
         {
             LoadingPanel.Visibility = Visibility.Collapsed;
             DetenerSpinner();
+            ContenidoRoles.Visibility = Visibility.Visible;
         }
     }
 

@@ -48,7 +48,7 @@ Las **asignaciones no se cachean**: son el dato que el usuario edita y debe veni
 
 **Seguimiento:** si en el futuro se agrega CRUD de roles o del catálogo de acciones, **hay que invalidar esas cachés estáticas al guardar**. Hoy no existe ese CRUD, por eso no se implementó la invalidación.
 
-**Consulta nueva:** el conteo de usuarios por rol lee `usuarios` filtrando por `id_estado`. Se hace con `.Select("id_rol")` para no traer columnas de más, y va envuelta en `try/catch` que degrada a diccionario vacío: es información decorativa del selector y un bloqueo de RLS no debe tumbar la pantalla.
+**Actualización 2026-08-12:** el conteo de usuarios por rol **se eliminó**. Solo alimentaba el subtítulo del selector de rol, y al reemplazar ese Popup a medida por un `ComboBox` estándar dejó de mostrarse — era un viaje de red desperdiciado en cada apertura. `ObtenerResumenAsync` quedó en **3 consultas en paralelo** (catálogo, roles, asignaciones). Ver [[Sesión 2026-08-12 - Estabilización de la pantalla de Roles]].
 
 ---
 

@@ -6,7 +6,6 @@ using CapaDatos.Modelados.Usuarios;
 using ServicioConexión.Conexion;
 using Op = Supabase.Postgrest.Constants.Operator;
 using Ord = Supabase.Postgrest.Constants.Ordering;
-using UsuarioModel = CapaDatos.Modelados.Usuarios.Usuarios;
 
 namespace CapaDatos.Repositories.Usuarios;
 
@@ -38,19 +37,16 @@ public sealed class RolPermisoRepository : RepositorioBase, IRolPermisoRepositor
 
             var client = await ConexionSupabase.GetClientAsync();
 
-            // Las cuatro consultas salen JUNTAS. Antes el catálogo y el conteo de
-            // usuarios se esperaban en serie alrededor del bloque del medio, así
-            // que abrir la pantalla costaba la SUMA de tres viajes de red en vez
-            // del más lento de todos.
+            // Las tres consultas salen JUNTAS: abrir la pantalla cuesta el viaje
+            // más lento y no la suma de todos.
             var catalogoTask = CargarCatalogoAsync(ct);
             var rolesTask = client.From<Roles>().Order("nombre_rol", Ord.Ascending).Get(ct);
             var asignacionesTask = client
                 .From<AccionRol>()
                 .Filter("id_estado", Op.Equals, Activo.ToString())
                 .Get(ct);
-            var usuariosTask = ContarUsuariosPorRolAsync(client, ct);
 
-            await Task.WhenAll(catalogoTask, rolesTask, asignacionesTask, usuariosTask);
+            await Task.WhenAll(catalogoTask, rolesTask, asignacionesTask);
 
             var accionesPorRol = new Dictionary<int, IReadOnlySet<int>>();
             foreach (var grupo in (asignacionesTask.Result?.Models ?? new List<AccionRol>())
@@ -64,36 +60,8 @@ public sealed class RolPermisoRepository : RepositorioBase, IRolPermisoRepositor
                     .ToList(),
                 Modulos = catalogoTask.Result,
                 AccionesPorRol = accionesPorRol,
-                UsuariosPorRol = usuariosTask.Result,
             };
         }, "Cargar configuración de roles");
-
-    /// <summary>
-    /// Conteo de usuarios por rol. Es información decorativa del selector, así
-    /// que un fallo acá (típicamente RLS sobre <c>usuarios</c>) no debe tumbar
-    /// la pantalla entera: se degrada a un diccionario vacío.
-    /// </summary>
-    private static async Task<IReadOnlyDictionary<int, int>> ContarUsuariosPorRolAsync(
-        Supabase.Client client,
-        CancellationToken ct)
-    {
-        try
-        {
-            var response = await client
-                .From<UsuarioModel>()
-                .Select("id_rol")
-                .Filter("id_estado", Op.Equals, Activo.ToString())
-                .Get(ct);
-
-            return (response?.Models ?? new List<UsuarioModel>())
-                .GroupBy(u => u.idRol)
-                .ToDictionary(g => g.Key, g => g.Count());
-        }
-        catch
-        {
-            return new Dictionary<int, int>();
-        }
-    }
 
     public Task<Result<IReadOnlyList<ModuloAccionesDto>>> ObtenerCatalogoAsync(
         CancellationToken ct = default) =>

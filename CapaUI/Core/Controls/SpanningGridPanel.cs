@@ -13,7 +13,9 @@ namespace CapaUI.Core.Controls;
 /// elementos de una fila a la misma altura. Acá cada fila calcula su propia
 /// altura y todos sus hijos se estiran a ella, que es lo que pide el diseño.
 ///
-/// Sin estado entre pasadas y sin bindings por hijo: el costo es O(hijos).
+/// Responsividad: <see cref="MinColumnWidth"/> **reduce la cantidad de
+/// columnas** cuando no hay espacio (4 → 3 → 2 → 1), en vez de encoger las
+/// existentes hasta tapar el texto.
 /// </summary>
 public class SpanningGridPanel : Panel
 {
@@ -34,17 +36,15 @@ public class SpanningGridPanel : Panel
             new FrameworkPropertyMetadata(0d, FrameworkPropertyMetadataOptions.AffectsMeasure));
 
     /// <summary>
-    /// Piso de ancho por columna. Hasta acá el panel es fluido; por debajo deja
-    /// de encoger y reporta un ancho mayor al disponible, lo que hace aparecer
-    /// la barra horizontal del <see cref="System.Windows.Controls.ScrollViewer"/>
-    /// contenedor en vez de aplastar el contenido hasta tapar el texto.
+    /// Ancho mínimo deseable por columna. Si no entran <see cref="Columns"/>
+    /// columnas de este ancho, el panel usa menos columnas.
     /// </summary>
     public static readonly DependencyProperty MinColumnWidthProperty =
         DependencyProperty.Register(
             nameof(MinColumnWidth), typeof(double), typeof(SpanningGridPanel),
             new FrameworkPropertyMetadata(0d, FrameworkPropertyMetadataOptions.AffectsMeasure));
 
-    /// <summary>Cuántas columnas ocupa el hijo. Se recorta al total de columnas.</summary>
+    /// <summary>Cuántas columnas ocupa el hijo. Se recorta al total vigente.</summary>
     public static readonly DependencyProperty ColumnSpanProperty =
         DependencyProperty.RegisterAttached(
             "ColumnSpan", typeof(int), typeof(SpanningGridPanel),
@@ -82,53 +82,65 @@ public class SpanningGridPanel : Panel
 
     protected override Size MeasureOverride(Size disponible)
     {
-        int columnas = Math.Max(1, Columns);
-        double anchoColumna = CalcularAnchoColumna(disponible.Width);
-        double alto = Distribuir(anchoColumna, arreglar: false);
-
-        // Se reporta el ancho que el panel NECESITA, no el que le ofrecieron.
-        // Cuando supera al disponible, el ScrollViewer contenedor lo detecta y
-        // saca la barra horizontal en lugar de recortar el contenido.
-        double anchoTotal = anchoColumna * columnas + ColumnSpacing * (columnas - 1);
-        return new Size(anchoTotal, alto);
+        var rejilla = CalcularRejilla(disponible.Width);
+        double alto = Recorrer(rejilla, medir: true, arreglar: false);
+        return new Size(rejilla.AnchoTotal, alto);
     }
 
     protected override Size ArrangeOverride(Size final)
     {
-        Distribuir(CalcularAnchoColumna(final.Width), arreglar: true);
+        // MISMA función pura que MeasureOverride, y NO se vuelve a medir acá.
+        //
+        // Medir dentro de ArrangeOverride con una restricción distinta a la de
+        // la medición hace que WPF dispare OnChildDesiredSizeChanged →
+        // InvalidateMeasure → otra pasada de layout. Si además measure y arrange
+        // reciben anchos distintos de forma sistemática (por ejemplo con scroll
+        // horizontal habilitado, donde la medición llega con ancho infinito),
+        // el layout NUNCA converge y la aplicación se traba.
+        Recorrer(CalcularRejilla(final.Width), medir: false, arreglar: true);
         return final;
     }
 
+    private readonly record struct Rejilla(int Columnas, double AnchoColumna, double AnchoTotal);
+
     /// <summary>
-    /// Reparte el ancho entre las columnas, sin bajar de <see cref="MinColumnWidth"/>.
-    /// Ancho infinito (típico dentro de un ScrollViewer con scroll horizontal
-    /// habilitado) significa "no hay restricción": se usa el mínimo.
+    /// Decide cuántas columnas entran y qué ancho tiene cada una. Es una función
+    /// pura del ancho disponible: medir y arreglar con el mismo ancho dan
+    /// exactamente el mismo resultado, que es lo que garantiza la convergencia.
     /// </summary>
-    private double CalcularAnchoColumna(double anchoDisponible)
+    private Rejilla CalcularRejilla(double anchoDisponible)
     {
+        int tope = Math.Max(1, Columns);
+        double gap = ColumnSpacing;
         double minimo = Math.Max(0, MinColumnWidth);
 
-        if (double.IsInfinity(anchoDisponible) || double.IsNaN(anchoDisponible))
-            return minimo;
+        // Sin restricción de ancho no hay nada que repartir: se usa el tope con
+        // el ancho mínimo, que es el tamaño natural del panel.
+        if (double.IsInfinity(anchoDisponible) || double.IsNaN(anchoDisponible) || anchoDisponible <= 0)
+        {
+            double natural = minimo;
+            return new Rejilla(tope, natural, natural * tope + gap * (tope - 1));
+        }
 
-        int columnas = Math.Max(1, Columns);
-        double repartido = (anchoDisponible - ColumnSpacing * (columnas - 1)) / columnas;
-        return Math.Max(minimo, Math.Max(0, repartido));
+        int columnas = tope;
+        if (minimo > 0)
+        {
+            // Cuántas columnas de ancho mínimo entran en el espacio disponible.
+            int caben = (int)Math.Floor((anchoDisponible + gap) / (minimo + gap));
+            columnas = Math.Clamp(caben, 1, tope);
+        }
+
+        double anchoColumna = Math.Max(0, (anchoDisponible - gap * (columnas - 1)) / columnas);
+        return new Rejilla(columnas, anchoColumna, anchoDisponible);
     }
 
     /// <summary>
     /// Empaquetado voraz: recorre los hijos en orden, los va poniendo en la fila
     /// actual mientras quepan y baja de fila cuando no. Una sola pasada sirve
     /// para medir y para arreglar, así el layout nunca se desincroniza.
-    ///
-    /// Mide siempre, también en la pasada de arreglo: dentro de un ScrollViewer
-    /// la medición llega con ancho infinito y el arreglo con el ancho real, así
-    /// que hay que volver a medir o el texto quedaría recortado según el ancho
-    /// equivocado. Medir con la misma restricción es un no-op para WPF.
     /// </summary>
-    private double Distribuir(double anchoColumna, bool arreglar)
+    private double Recorrer(Rejilla rejilla, bool medir, bool arreglar)
     {
-        int columnas = Math.Max(1, Columns);
         double gapCol = ColumnSpacing;
         double gapFila = RowSpacing;
 
@@ -145,36 +157,36 @@ public class SpanningGridPanel : Panel
             if (hijo.Visibility == Visibility.Collapsed)
                 continue;
 
-            int span = Math.Clamp(GetColumnSpan(hijo), 1, columnas);
-            double anchoHijo = anchoColumna * span + gapCol * (span - 1);
+            int span = Math.Clamp(GetColumnSpan(hijo), 1, rejilla.Columnas);
+            double anchoHijo = rejilla.AnchoColumna * span + gapCol * (span - 1);
 
-            if (columnaActual + span > columnas && columnaActual > 0)
+            if (columnaActual + span > rejilla.Columnas && columnaActual > 0)
             {
                 if (arreglar)
-                    ArreglarFila(hijos, inicioFila, i, anchoColumna, gapCol, y, altoFila);
+                    ArreglarFila(hijos, inicioFila, i, rejilla, gapCol, y, altoFila);
                 y += altoFila + gapFila;
                 columnaActual = 0;
                 altoFila = 0;
                 inicioFila = i;
             }
 
-            hijo.Measure(new Size(anchoHijo, double.PositiveInfinity));
+            if (medir)
+                hijo.Measure(new Size(anchoHijo, double.PositiveInfinity));
 
             altoFila = Math.Max(altoFila, hijo.DesiredSize.Height);
             columnaActual += span;
         }
 
         if (arreglar)
-            ArreglarFila(hijos, inicioFila, hijos.Count, anchoColumna, gapCol, y, altoFila);
+            ArreglarFila(hijos, inicioFila, hijos.Count, rejilla, gapCol, y, altoFila);
 
         return altoFila > 0 ? y + altoFila : Math.Max(0, y - gapFila);
     }
 
-    private void ArreglarFila(
+    private static void ArreglarFila(
         UIElementCollection hijos, int desde, int hasta,
-        double anchoColumna, double gapCol, double y, double altoFila)
+        Rejilla rejilla, double gapCol, double y, double altoFila)
     {
-        int columnas = Math.Max(1, Columns);
         double x = 0;
         int columnaActual = 0;
 
@@ -184,11 +196,11 @@ public class SpanningGridPanel : Panel
             if (hijo.Visibility == Visibility.Collapsed)
                 continue;
 
-            int span = Math.Clamp(GetColumnSpan(hijo), 1, columnas);
-            if (columnaActual + span > columnas && columnaActual > 0)
-                return;
+            int span = Math.Clamp(GetColumnSpan(hijo), 1, rejilla.Columnas);
+            if (columnaActual + span > rejilla.Columnas && columnaActual > 0)
+                continue;
 
-            double anchoHijo = anchoColumna * span + gapCol * (span - 1);
+            double anchoHijo = rejilla.AnchoColumna * span + gapCol * (span - 1);
             // Alto de fila completo: los hijos de una misma fila quedan parejos
             // (el equivalente de align-items: stretch).
             hijo.Arrange(new Rect(x, y, anchoHijo, altoFila));

@@ -21,6 +21,15 @@ public sealed partial class AccionItemVm : ObservableObject
     /// <summary>Marca visual de riesgo. Es criterio de UI, no una columna de la BD.</summary>
     public bool EsCritica { get; init; }
 
+    /// <summary>
+    /// El comando y el permiso viajan en el propio item para que la plantilla
+    /// bindee contra su DataContext. Antes se alcanzaban con
+    /// <c>RelativeSource AncestorType=UserControl</c>, que recorre ~20 niveles
+    /// del árbol visual por binding y se repetía en las 28 filas.
+    /// </summary>
+    public System.Windows.Input.ICommand? Alternar { get; init; }
+    public bool PuedeEditar { get; init; }
+
     [ObservableProperty] private bool _asignada;
     [ObservableProperty] private bool _visible = true;
 }
@@ -40,6 +49,10 @@ public sealed partial class ModuloItemVm : ObservableObject
     public IReadOnlyList<AccionItemVm> Acciones { get; init; } = Array.Empty<AccionItemVm>();
     public int Total => Acciones.Count;
 
+    /// <summary>Ver la nota en <see cref="AccionItemVm.Alternar"/>.</summary>
+    public System.Windows.Input.ICommand? Alternar { get; init; }
+    public bool PuedeEditar { get; init; }
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(Conteo), nameof(TodasActivas), nameof(NingunaActiva))]
     private int _activas;
@@ -55,16 +68,9 @@ public sealed partial class RolItemVm : ObservableObject
 {
     public int IdRol { get; init; }
     public string Nombre { get; init; } = string.Empty;
-    public int Usuarios { get; init; }
     public bool EsSistema { get; init; }
 
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(Resumen))]
-    private int _permisos;
-
-    [ObservableProperty] private bool _esSeleccionado;
-
-    public string Resumen => $"{Usuarios} usuarios · {Permisos} permisos";
+    [ObservableProperty] private int _permisos;
 }
 
 /// <summary>Opción de un selector segmentado (filtro de estado / modo de vista).</summary>
@@ -80,6 +86,19 @@ public sealed partial class RolesViewModel : ObservableObject, IDisposable
     private readonly IRolPermisoRepository _permisosRepo;
     private readonly IUsuarioSesionService _sesion;
     private readonly CancellationTokenSource _cts = new();
+
+    /// <summary>
+    /// Debounce del filtro de permisos. Cada <c>AplicarFiltro</c> escribe
+    /// <c>Visible</c> en 28 acciones + 6 módulos, y esa propiedad está bindeada a
+    /// <c>ContentPresenter.Visibility</c>, que invalida el measure del padre: sin
+    /// espera, cada tecla dispara una pasada de layout completa.
+    ///
+    /// No se reutiliza <c>SuggestionDebouncer</c> porque está tipado a
+    /// sugerencias y corta en seco con la query vacía — acá vaciar el buscador
+    /// tiene que volver a mostrar todo.
+    /// </summary>
+    private const int FiltroDebounceMs = 180;
+    private CancellationTokenSource? _ctsFiltro;
 
     /// <summary>Última versión guardada en BD por rol. Es la base contra la que se cuentan los cambios.</summary>
     private readonly Dictionary<int, HashSet<int>> _guardadoPorRol = new();
@@ -148,8 +167,6 @@ public sealed partial class RolesViewModel : ObservableObject, IDisposable
 
     [ObservableProperty] private bool _sinResultados;
 
-    [ObservableProperty] private bool _selectorRolAbierto;
-
     // ── Derivados ──────────────────────────────────────────────────────────
     public bool PuedeEditar => _sesion.TienePermiso("Modificar Configuración");
     public bool HayMensaje => !string.IsNullOrEmpty(Mensaje);
@@ -215,6 +232,8 @@ public sealed partial class RolesViewModel : ObservableObject, IDisposable
 
         var datos = resultado.Value!;
 
+        bool puedeEditar = PuedeEditar;
+
         foreach (var modulo in datos.Modulos)
         {
             bool ancho = modulo.Acciones.Count >= 6;
@@ -225,12 +244,16 @@ public sealed partial class RolesViewModel : ObservableObject, IDisposable
                 IconoKey = ResolverIcono(modulo.NombreModulo),
                 Span = ancho ? 2 : 1,
                 ColumnasInternas = ancho ? 2 : 1,
+                Alternar = AlternarModuloCommand,
+                PuedeEditar = puedeEditar,
                 Acciones = modulo.Acciones.Select(a => new AccionItemVm
                 {
                     IdAccion = a.IdAccion,
                     Nombre = a.NombreAccion,
                     Descripcion = a.DescripcionAccion ?? string.Empty,
                     EsCritica = EsAccionCritica(a.NombreAccion),
+                    Alternar = AlternarAccionCommand,
+                    PuedeEditar = puedeEditar,
                 }).ToArray(),
             });
         }
@@ -248,7 +271,6 @@ public sealed partial class RolesViewModel : ObservableObject, IDisposable
             {
                 IdRol = rol.IdRol,
                 Nombre = rol.NombreRol,
-                Usuarios = datos.UsuariosPorRol.TryGetValue(rol.IdRol, out var n) ? n : 0,
                 EsSistema = rol.NombreRol.Contains("admin", StringComparison.OrdinalIgnoreCase),
                 Permisos = asignadas.Count,
             });
@@ -262,9 +284,7 @@ public sealed partial class RolesViewModel : ObservableObject, IDisposable
 
     partial void OnRolSeleccionadoChanged(RolItemVm? anterior, RolItemVm? value)
     {
-        if (anterior is not null) anterior.EsSeleccionado = false;
         if (value is null) return;
-        value.EsSeleccionado = true;
 
         Mensaje = string.Empty;
         Query = string.Empty;
@@ -292,7 +312,24 @@ public sealed partial class RolesViewModel : ObservableObject, IDisposable
         AplicarFiltro();
     }
 
-    partial void OnQueryChanged(string value) => AplicarFiltro();
+    partial void OnQueryChanged(string value) => _ = FiltrarConEsperaAsync();
+
+    private async Task FiltrarConEsperaAsync()
+    {
+        _ctsFiltro?.Cancel();
+        _ctsFiltro?.Dispose();
+        _ctsFiltro = CancellationTokenSource.CreateLinkedTokenSource(_cts.Token);
+        var token = _ctsFiltro.Token;
+
+        try
+        {
+            await Task.Delay(FiltroDebounceMs, token);
+            if (token.IsCancellationRequested || _disposed) return;
+            AplicarFiltro();
+        }
+        // El usuario siguió escribiendo: la pasada anterior se descarta.
+        catch (OperationCanceledException) { }
+    }
 
     partial void OnOpcionEstadoChanged(OpcionSegmento? value) => AplicarFiltro();
 
@@ -349,16 +386,20 @@ public sealed partial class RolesViewModel : ObservableObject, IDisposable
     [RelayCommand]
     private void LimpiarBusqueda() => Query = string.Empty;
 
-    [RelayCommand]
-    private void SeleccionarRol(RolItemVm? rol)
+    /// <summary>Lo llama el ComboBox de la vista con el id que trae en el Tag.</summary>
+    public void SeleccionarRol(int idRol)
     {
-        SelectorRolAbierto = false;
+        var rol = Roles.FirstOrDefault(r => r.IdRol == idRol);
         if (rol is not null && rol != RolSeleccionado)
             RolSeleccionado = rol;
     }
 
-    [RelayCommand]
-    private void AlternarSelectorRol() => SelectorRolAbierto = !SelectorRolAbierto;
+    /// <summary>Deja la pantalla en un estado legible si la carga inicial falla.</summary>
+    public void MostrarErrorCarga(string mensaje)
+    {
+        MostrarError(mensaje);
+        IsLoading = false;
+    }
 
     [RelayCommand(CanExecute = nameof(HayCambios))]
     private void Descartar()
@@ -512,6 +553,7 @@ public sealed partial class RolesViewModel : ObservableObject, IDisposable
         // escribir sobre un ViewModel que ya no está en pantalla.
         _cts.Cancel();
         _cts.Dispose();
+        _ctsFiltro?.Dispose();
 
         Toast = null;
         Modulos.Clear();

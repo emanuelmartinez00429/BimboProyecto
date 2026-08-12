@@ -19,12 +19,11 @@
         </Grid.RowDefinitions>
 
         <!-- ══════════════════ Encabezado + barra de herramientas ══════════════════ -->
-        <!-- Encabezado + barra de herramientas. Arrancan ocultos: dibujarlos sin
-             datos mostraba stats en 0, el selector de rol vacío y los segmentados
-             sin selección, y al llegar la respuesta se poblaba todo de golpe —
-             se percibía como si cargaran dos diseños distintos. -->
-        <StackPanel x:Name="EncabezadoRoles" Grid.Row="0" Margin="20,16,20,0"
-                    Visibility="Collapsed">
+        <!-- Encabezado, buscador y filtros: parte fija del formulario, visibles
+             desde el primer frame. Solo el area de tarjetas depende de la BD, que
+             es lo unico que muestra el indicador de carga — igual que Productos,
+             Usuarios y Categorias, donde lo unico que se oculta es el DataGrid. -->
+        <StackPanel x:Name="EncabezadoRoles" Grid.Row="0" Margin="20,16,20,0">
 
             <Grid Margin="0,0,0,12">
                 <Grid.ColumnDefinitions>
@@ -179,55 +178,16 @@
 
                                 <TextBlock Text="ROL" Style="{StaticResource RolEtiquetaSeccion}" Margin="0,0,8,0"/>
 
-                                <!-- Selector de rol -->
-                                <Grid>
-                                    <ToggleButton x:Name="BotonRol" Width="232" Height="32" Padding="10,0"
-                                                  Cursor="Hand" IsChecked="{Binding SelectorRolAbierto, Mode=TwoWay}">
-                                        <ToggleButton.Template>
-                                            <ControlTemplate TargetType="ToggleButton">
-                                                <Border x:Name="Fondo" Background="White" CornerRadius="7"
-                                                        BorderBrush="{StaticResource RolBorderInput}" BorderThickness="1"
-                                                        Padding="{TemplateBinding Padding}">
-                                                    <Grid>
-                                                        <Grid.ColumnDefinitions>
-                                                            <ColumnDefinition Width="*"/>
-                                                            <ColumnDefinition Width="Auto"/>
-                                                        </Grid.ColumnDefinitions>
-                                                        <TextBlock Text="{Binding RolSeleccionado.Nombre}" FontSize="13"
-                                                                   FontWeight="Bold" Foreground="{StaticResource RolText}"
-                                                                   VerticalAlignment="Center"
-                                                                   TextTrimming="CharacterEllipsis"/>
-                                                        <Path Grid.Column="1" Style="{StaticResource RolIcono}"
-                                                              Data="{StaticResource GeoChevron}" Width="14" Height="14"
-                                                              StrokeThickness="2.2" Stroke="{StaticResource RolBrand}"/>
-                                                    </Grid>
-                                                </Border>
-                                                <ControlTemplate.Triggers>
-                                                    <Trigger Property="IsChecked" Value="True">
-                                                        <Setter TargetName="Fondo" Property="BorderBrush"
-                                                                Value="{StaticResource RolBrand}"/>
-                                                    </Trigger>
-                                                </ControlTemplate.Triggers>
-                                            </ControlTemplate>
-                                        </ToggleButton.Template>
-                                    </ToggleButton>
-
-                                    <Popup IsOpen="{Binding SelectorRolAbierto, Mode=TwoWay}" StaysOpen="False"
-                                           PlacementTarget="{Binding ElementName=BotonRol}" Placement="Bottom"
-                                           HorizontalOffset="-26" VerticalOffset="4" AllowsTransparency="True"
-                                           PopupAnimation="Fade">
-                                        <Border Background="White" BorderBrush="{StaticResource RolBorder}"
-                                                BorderThickness="1" CornerRadius="9" Padding="5" Width="258"
-                                                Margin="12">
-                                            <Border.Effect>
-                                                <DropShadowEffect BlurRadius="24" ShadowDepth="8" Opacity="0.28"
-                                                                  Color="#0F172A"/>
-                                            </Border.Effect>
-                                            <ItemsControl ItemsSource="{Binding Roles}"
-                                                          ItemTemplate="{StaticResource RolItemSelector}"/>
-                                        </Border>
-                                    </Popup>
-                                </Grid>
+                                <!-- Selector de rol. ComboBox estandar, igual que CmbRol en
+                                     Usuarios y CmbFabricante en Productos: WPF posiciona su propio
+                                     desplegable y lo reacomoda al maximizar o mover la ventana.
+                                     Antes esto era un Popup escrito a mano, que es una ventana
+                                     top-level aparte y quedaba descolgada en la esquina. -->
+                                <ComboBox x:Name="CmbRol" Width="200" Height="32"
+                                          FontFamily="Segoe UI" FontSize="13"
+                                          BorderBrush="{StaticResource RolBorderInput}"
+                                          VerticalContentAlignment="Center"
+                                          SelectionChanged="CmbRol_SelectionChanged"/>
                             </StackPanel>
                         </Grid>
                     </Border>
@@ -237,8 +197,6 @@
         </StackPanel>
 
         <!-- ══════════════════════════ Cuerpo ══════════════════════════════════ -->
-        <!-- Scroll horizontal en Auto: las tarjetas encogen hasta MinColumnWidth y,
-             a partir de ahí, aparece la barra en vez de aplastarse hasta tapar el texto. -->
         <Grid Grid.Row="1">
             <!-- Indicador de carga. Va FUERA del ScrollViewer para poder quedar
                  centrado: adentro se mediría con alto infinito y el centrado no
@@ -246,6 +204,7 @@
                  binding, así no hay un instante inicial (con DataContext todavía
                  nulo) en el que el binding falle y se dibujen dos capas encimadas. -->
             <StackPanel x:Name="LoadingPanel"
+                        Visibility="Collapsed"
                         VerticalAlignment="Center"
                         HorizontalAlignment="Center"
                         Orientation="Horizontal">
@@ -265,8 +224,12 @@
                            VerticalAlignment="Center"/>
             </StackPanel>
 
+            <!-- Sin scroll horizontal, como las otras 12 vistas. Con Auto, el
+                 ScrollViewer mide su contenido con ancho INFINITO y el panel
+                 terminaba midiendo y arreglando con anchos distintos: el layout
+                 no convergia y la pantalla se trababa. -->
             <ScrollViewer Margin="0,12,0,0" Padding="20,0,20,16"
-                          VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                          VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                 <!-- Contenido real -->
                 <StackPanel x:Name="ContenidoRoles" Visibility="Collapsed">
 
@@ -317,7 +280,7 @@
         </Grid>
 
         <!-- ═══════════════════════════ Pie ════════════════════════════════════ -->
-        <Border x:Name="PieRoles" Grid.Row="2" Visibility="Collapsed"
+        <Border x:Name="PieRoles" Grid.Row="2"
                 Background="{StaticResource RolPie}" BorderBrush="#C9D9EC"
                 BorderThickness="0,1,0,0" Padding="20,10">
             <Grid>

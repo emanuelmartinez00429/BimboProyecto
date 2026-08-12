@@ -18,6 +18,7 @@ namespace CapaUI.Formularios.Principal
     {
         private readonly IUsuarioSesionService     _sesionService;
         private readonly UniversalSearchViewModel _searchVm;
+        private string? _rutaActual;
         private readonly IConexionMonitor         _conexionMonitor;
         private readonly Dictionary<string, Func<object>> _routes;
         private readonly Dictionary<string, Permiso[]> _routePermissions;
@@ -159,6 +160,15 @@ namespace CapaUI.Formularios.Principal
                     _sesionService.SesionActual?.IdRol);
                 return;
             }
+
+            // Ya estamos en esa pantalla: no hay nada que hacer.
+            // Sin esta guarda, volver a tocar el mismo ítem del sidebar destruye
+            // la vista y la reconstruye entera — nuevo ViewModel y nueva consulta
+            // a la base de datos — porque los VM de ruta son clases y su igualdad
+            // es por referencia, así que el setter siempre detecta un cambio.
+            if (_rutaActual == routeId) return;
+
+            _rutaActual = routeId;
             VistaActual = factory();
         }
 
@@ -172,6 +182,7 @@ namespace CapaUI.Formularios.Principal
         [RelayCommand]
         private void Buscar(string? term)
         {
+            _rutaActual = null;
             VistaActual = _searchVm;
             if (!string.IsNullOrWhiteSpace(term))
                 _searchVm.TriggerSearch(term);

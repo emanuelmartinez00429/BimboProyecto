@@ -112,10 +112,11 @@ Regla: `CapaAplicacion` **nunca** referencia `CapaDatos`.
 | Esqueleto de carga / shimmer (probado y revertido) | [[WPF - Esqueleto con Shimmer (Skeleton Loading)]] |
 | DPI y escalado multi-resolución | [[WPF - DPI Awareness y Escalado Multi-Resolución]] |
 | NRE al cerrar una pantalla que carga | [[Vista Descargada Durante un await (async void Loaded)]] |
+| La UI se traba al redimensionar | [[WPF - Bucle de Layout por Medir en ArrangeOverride]] |
 
 ---
 
 ## Bitácora
 
 Las sesiones están en `70 - Bitácora de Cambios/`.  
-Sesión más reciente: [[Sesión 2026-08-11 - Rediseño de Gestión de Roles]]
+Sesión más reciente: [[Sesión 2026-08-12 - Estabilización de la pantalla de Roles]]

@@ -530,6 +530,48 @@ Dos problemas que van juntos, corregidos ya en `UsuariosViewModel` y pendientes 
 
 ---
 
+### P-030 · Verificación en runtime de la pantalla de Roles
+
+**Archivos:** `CapaUI/Formularios/Principal/Pantallas/Roles/*`, `CapaUI/Core/Controls/SpanningGridPanel.cs`, `MainViewModel.cs`
+**Detectado en:** [[Sesión 2026-08-12 - Estabilización de la pantalla de Roles]]
+
+La pantalla se reescribió a fondo pero **no se pudo ejecutar la app** desde la sesión. Pendiente probar a mano:
+
+1. **Traba:** maximizar con Roles abierto y redimensionar arrastrando el borde → debe responder fluido. Es la prueba directa del bucle de layout.
+2. **Desplegable:** maximizado, abrir el selector de rol → debe salir pegado bajo el ComboBox.
+3. **Responsive:** angostar la ventana → la grilla pasa de 4 a 3, 2 y 1 columna, sin barra horizontal.
+4. **Sin recarga duplicada:** clic repetido en "Gestión de Roles" → sin spinner nuevo ni consulta repetida.
+5. **Abrir/cerrar 15-20 veces** entre Roles y Productos → sin degradación.
+6. **Fallo de carga:** cortar la red y entrar → mensaje de error, no spinner infinito ni cierre.
+
+**Estado:** `[ ] Pendiente`
+
+---
+
+### P-031 · Frenos de rendimiento de toda la aplicación
+
+**Detectado en:** [[Sesión 2026-08-12 - Estabilización de la pantalla de Roles]] (auditoría completa de CapaUI)
+
+Hallazgos fuera de Roles, **no atacados** por decisión de alcance. Ordenados por impacto:
+
+| | Hallazgo |
+|---|---|
+| **G1** | **Login: ~2,7 s de `Task.Delay` artificiales, en serie con la red** (`LoginWindow.xaml.cs:163-212`). `AnimarStep` se espera *antes* de `LoginAsync()`. Además 103 `Dispatcher.Invoke` innecesarios (ya está en el hilo UI). |
+| **G2** | **`bimbo-logo.png` es 3000×1391 y se muestra a 50 px** (`MainWindow.xaml:151`), sin `DecodePixelWidth` → ~16,7 MB de RAM. `bimbo_no_bg.png` se recrea con `new BitmapImage(uri)` en cada apertura de modal (5 archivos). |
+| **G3** | **`CacheMode="BitmapCache"` sobre `Sidebar` y `BrandBlock`, cuyo `Width` se anima** (`MainWindow.xaml:127`, `:528`). Peor caso de BitmapCache: re-rasteriza el bitmap completo por frame. |
+| **G4** | **`DashboardView` tiene un `Storyboard RepeatBehavior="Forever"` que nunca se detiene** (`DashboardView.xaml:549`, sin `Unloaded`). Se acumula uno por cada visita. |
+| **G5** | **`PesajeView` es la única vista que no llama `_vm.Dispose()`** y suscribe `PropertyChanged` con lambda anónima no desuscribible (`PesajeView.xaml.cs:44`, `:55-62`). |
+| **G6** | **Guardar un proceso de descarga hace ~20 viajes de red en serie** (`PesajeViewModel.cs:189-238`). Son independientes → `Task.WhenAll`. |
+| **G7** | **`<DropShadowEffect Opacity="0"/>` no apaga el shader** (`ContactoFabricanteModal.xaml:222`, `ContactoProveedorModal.xaml:213`). Lo correcto es `Value="{x:Null}"`. |
+| **G8** | **`AddScoped` en WPF sin scopes** (`CapaAplicacion4/DependencyInjection.cs:15-18`) = singletons de facto. `CapaDatos` ya resolvió esto con Singleton explícito. |
+| **G9** | **`MainViewModel` dispone `_searchVm`**, instancia compartida de toda la sesión → la siguiente búsqueda lanza `ObjectDisposedException` (`MainViewModel.cs:142`, `:172`). |
+| **G10** | `ProductosView.ActualizarCarga()` y `CategoriasView.ActualizarCarga()` desreferencian `_vm` sin comprobar null. |
+| **G11** | Recursos duplicados en 8 vistas, re-parseados en cada navegación. Solo `RolesResources.xaml` usa `po:Freeze`. |
+
+**Estado:** `[ ] Pendiente`
+
+---
+
 ## Historial de resolución
 
 | ID | Descripción | Estado | Sesión |
@@ -562,6 +604,8 @@ Dos problemas que van juntos, corregidos ya en `UsuariosViewModel` y pendientes 
 | P-027 | Verificación funcional del RBAC con rol Consulta | ✅ Resuelto | [[Sesión 2026-08-09 - Implementación RBAC visual y gestión de roles]] |
 | P-028 | Verificar en runtime el rediseño de Roles | `[ ]` Pendiente | [[Sesión 2026-08-11 - Rediseño de Gestión de Roles]] |
 | P-029 | Cancelación ausente en 7 ViewModels + timer fantasma | `[ ]` Pendiente | [[Sesión 2026-08-11 - Rediseño de Gestión de Roles]] |
+| P-030 | Verificación en runtime de la pantalla de Roles | `[ ]` Pendiente | [[Sesión 2026-08-12 - Estabilización de la pantalla de Roles]] |
+| P-031 | Frenos de rendimiento de toda la aplicación | `[ ]` Pendiente 🔴 | [[Sesión 2026-08-12 - Estabilización de la pantalla de Roles]] |
 
 ---
 
