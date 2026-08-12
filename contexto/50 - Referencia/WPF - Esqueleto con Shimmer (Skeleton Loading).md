@@ -9,17 +9,22 @@ tags:
   - skeleton
   - shimmer
 date: 2026-08-11
-lifecycle: draft
+lifecycle: archived
 ---
 
 # WPF — Esqueleto con Shimmer (Skeleton Loading)
 
+> [!failure] Se probó en Bimbo y se revirtió — 2026-08-11
+> El efecto se implementó en Roles y Productos y **se dio marcha atrás el mismo día**: en la máquina del usuario producía artefactos visuales raros y lentitud. Se volvió al spinner con leyenda ("Cargando roles…", "Cargando productos…"), que es lo que usan el resto de los formularios.
+>
+> **Esta nota queda como referencia de vocabulario y de análisis técnico, no como algo vigente en el proyecto.** Nada de lo que describe existe hoy en el código: se borraron `ShimmerPresenter`, `Resources/Skeleton.xaml` y los estilos de esqueleto.
+>
+> Si alguien lo reintenta, leer primero la sección "Por qué se revirtió" al final.
+
 > [!abstract] Cómo lo llamamos
 > - **Esqueleto** (*skeleton screen* / *skeleton loader*): las cajas grises que ocupan de antemano el espacio que va a tener el contenido real. Término acuñado por Luke Wroblewski (2013).
 > - **Shimmer**: el brillo diagonal que barre esas cajas de izquierda a derecha en loop. Nombre popularizado por la librería `Shimmer` de Facebook (2015).
-> - **Los dos juntos: "esqueleto con shimmer"** (en inglés *shimmer skeleton*). De ahora en adelante, ese es el nombre del efecto en este proyecto.
->
-> **Implementado en `RolesView`** (2026-08-11): esqueleto en `RolesResources.xaml` → estilo `RolEsqueletoTarjeta`; shimmer en `RolesView.xaml` (`ShimmerTransform`) arrancado/frenado desde `RolesView.xaml.cs`. Es la primera pantalla del proyecto que lo usa.
+> - **Los dos juntos: "esqueleto con shimmer"** (en inglés *shimmer skeleton*). De ahora en adelante, ese es el nombre del efecto — aunque hoy no esté en uso.
 
 ---
 
@@ -77,7 +82,7 @@ El proyecto ya tiene ese patrón resuelto en `CategoriasView.DetenerSpinner()` �
 
 Con el catálogo cacheado, la segunda visita a Roles responde en milisegundos. El esqueleto igual se muestra, pero dura tan poco que **parpadea** en vez de leerse como una carga.
 
-La solución es un piso de tiempo (`RolesViewModel.DuracionMinimaEsqueletoMs = 1000`): si la consulta volvió antes, se espera la diferencia. Se empareja con la duración del barrido (también 1000 ms) para que se alcance a ver un shimmer entero.
+La solución era un piso de tiempo (`DuracionMinimaEsqueletoMs = 1000`, ya eliminado): si la consulta volvió antes, se espera la diferencia. Se empareja con la duración del barrido (también 1000 ms) para que se alcance a ver un shimmer entero.
 
 ```csharp
 private async Task SostenerEsqueletoAsync(long transcurridoMs)
@@ -176,3 +181,17 @@ La diferencia de fondo no es el costo por frame (que ya es ~2 órdenes de magnit
 - [[WPF - Rendimiento de Efectos y Niveles de Renderizado]] — por qué los `Effect` no se mezclan con animación
 - [[Animaciones WPF - Referencia de Easings]] — timings y por qué acá va `Linear`
 - [[Módulo Usuarios]] — el subsistema RBAC del que cuelga la pantalla de Roles
+
+---
+
+## Por qué se revirtió
+
+Se implementó completo y con las 4 palancas aplicadas, y aun así **en la máquina del usuario se veían artefactos raros y la interfaz se sentía lenta**. Se revirtió el mismo día.
+
+Lo que quedó aprendido, para quien lo reintente:
+
+- **El análisis de costo de este documento nunca se validó con una medición.** La tabla comparativa contra `DropShadowEffect` es aritmética sobre el pipeline, no números reales. La lección de fondo es la de siempre en este proyecto: acá el renderizado se comporta distinto según la GPU (ver [[WPF - Rendimiento de Efectos y Niveles de Renderizado]]), y **hay que medir antes de dar por bueno un efecto continuo**.
+- **Sospechoso principal de los artefactos**: el esqueleto y el contenido real convivían superpuestos en un `Grid`, cada uno con su `Visibility` bindeada. Mientras el `DataContext` es null los bindings fallan y **ambas capas quedan visibles a la vez** — eso explica el "se cargaban como dos tipos de diseño". Es un problema del patrón de dos capas bindeadas, no del shimmer en sí.
+- **Por eso el resto de los formularios no bindean la visibilidad del panel de carga**: la manejan desde el code-behind en `ActualizarCarga()`. Ese patrón no tiene el hueco del arranque, y es al que se volvió.
+
+**Lo vigente hoy en Bimbo es el spinner giratorio con leyenda** (`LoadingPanel` + `SpinnerPath` + `IniciarSpinner`/`DetenerSpinner`), presente en Productos, Categorías, Roles y el resto de los formularios.

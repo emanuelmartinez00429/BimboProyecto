@@ -109,7 +109,7 @@ Regla: `CapaAplicacion` **nunca** referencia `CapaDatos`.
 | Bugs conocidos de la SDK | [[Bug - Filter OR con Op.Equals en postgrest-csharp]] |
 | Configurar MCP Obsidian | [[MCP Obsidian - Configuracion Completa]] |
 | Rendimiento WPF / efectos / GPU | [[WPF - Rendimiento de Efectos y Niveles de Renderizado]] |
-| Esqueleto de carga / shimmer | [[WPF - Esqueleto con Shimmer (Skeleton Loading)]] |
+| Esqueleto de carga / shimmer (probado y revertido) | [[WPF - Esqueleto con Shimmer (Skeleton Loading)]] |
 | DPI y escalado multi-resolución | [[WPF - DPI Awareness y Escalado Multi-Resolución]] |
 
 ---
@@ -117,4 +117,4 @@ Regla: `CapaAplicacion` **nunca** referencia `CapaDatos`.
 ## Bitácora
 
 Las sesiones están en `70 - Bitácora de Cambios/`.  
-Sesión más reciente: [[Sesión 2026-08-11 - Rediseño de Gestión de Roles y esqueleto con shimmer]]
+Sesión más reciente: [[Sesión 2026-08-11 - Rediseño de Gestión de Roles]]

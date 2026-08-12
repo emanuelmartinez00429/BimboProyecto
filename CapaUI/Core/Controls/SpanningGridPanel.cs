@@ -33,6 +33,17 @@ public class SpanningGridPanel : Panel
             nameof(RowSpacing), typeof(double), typeof(SpanningGridPanel),
             new FrameworkPropertyMetadata(0d, FrameworkPropertyMetadataOptions.AffectsMeasure));
 
+    /// <summary>
+    /// Piso de ancho por columna. Hasta acá el panel es fluido; por debajo deja
+    /// de encoger y reporta un ancho mayor al disponible, lo que hace aparecer
+    /// la barra horizontal del <see cref="System.Windows.Controls.ScrollViewer"/>
+    /// contenedor en vez de aplastar el contenido hasta tapar el texto.
+    /// </summary>
+    public static readonly DependencyProperty MinColumnWidthProperty =
+        DependencyProperty.Register(
+            nameof(MinColumnWidth), typeof(double), typeof(SpanningGridPanel),
+            new FrameworkPropertyMetadata(0d, FrameworkPropertyMetadataOptions.AffectsMeasure));
+
     /// <summary>Cuántas columnas ocupa el hijo. Se recorta al total de columnas.</summary>
     public static readonly DependencyProperty ColumnSpanProperty =
         DependencyProperty.RegisterAttached(
@@ -57,6 +68,12 @@ public class SpanningGridPanel : Panel
         set => SetValue(RowSpacingProperty, value);
     }
 
+    public double MinColumnWidth
+    {
+        get => (double)GetValue(MinColumnWidthProperty);
+        set => SetValue(MinColumnWidthProperty, value);
+    }
+
     public static int GetColumnSpan(DependencyObject elemento) =>
         (int)elemento.GetValue(ColumnSpanProperty);
 
@@ -65,27 +82,55 @@ public class SpanningGridPanel : Panel
 
     protected override Size MeasureOverride(Size disponible)
     {
-        double ancho = double.IsInfinity(disponible.Width) ? 0 : disponible.Width;
-        return new Size(ancho, Distribuir(ancho, medir: true, arreglar: false));
+        int columnas = Math.Max(1, Columns);
+        double anchoColumna = CalcularAnchoColumna(disponible.Width);
+        double alto = Distribuir(anchoColumna, arreglar: false);
+
+        // Se reporta el ancho que el panel NECESITA, no el que le ofrecieron.
+        // Cuando supera al disponible, el ScrollViewer contenedor lo detecta y
+        // saca la barra horizontal en lugar de recortar el contenido.
+        double anchoTotal = anchoColumna * columnas + ColumnSpacing * (columnas - 1);
+        return new Size(anchoTotal, alto);
     }
 
     protected override Size ArrangeOverride(Size final)
     {
-        Distribuir(final.Width, medir: false, arreglar: true);
+        Distribuir(CalcularAnchoColumna(final.Width), arreglar: true);
         return final;
+    }
+
+    /// <summary>
+    /// Reparte el ancho entre las columnas, sin bajar de <see cref="MinColumnWidth"/>.
+    /// Ancho infinito (típico dentro de un ScrollViewer con scroll horizontal
+    /// habilitado) significa "no hay restricción": se usa el mínimo.
+    /// </summary>
+    private double CalcularAnchoColumna(double anchoDisponible)
+    {
+        double minimo = Math.Max(0, MinColumnWidth);
+
+        if (double.IsInfinity(anchoDisponible) || double.IsNaN(anchoDisponible))
+            return minimo;
+
+        int columnas = Math.Max(1, Columns);
+        double repartido = (anchoDisponible - ColumnSpacing * (columnas - 1)) / columnas;
+        return Math.Max(minimo, Math.Max(0, repartido));
     }
 
     /// <summary>
     /// Empaquetado voraz: recorre los hijos en orden, los va poniendo en la fila
     /// actual mientras quepan y baja de fila cuando no. Una sola pasada sirve
     /// para medir y para arreglar, así el layout nunca se desincroniza.
+    ///
+    /// Mide siempre, también en la pasada de arreglo: dentro de un ScrollViewer
+    /// la medición llega con ancho infinito y el arreglo con el ancho real, así
+    /// que hay que volver a medir o el texto quedaría recortado según el ancho
+    /// equivocado. Medir con la misma restricción es un no-op para WPF.
     /// </summary>
-    private double Distribuir(double anchoDisponible, bool medir, bool arreglar)
+    private double Distribuir(double anchoColumna, bool arreglar)
     {
         int columnas = Math.Max(1, Columns);
         double gapCol = ColumnSpacing;
         double gapFila = RowSpacing;
-        double anchoColumna = Math.Max(0, (anchoDisponible - gapCol * (columnas - 1)) / columnas);
 
         double y = 0;
         int columnaActual = 0;
@@ -113,8 +158,7 @@ public class SpanningGridPanel : Panel
                 inicioFila = i;
             }
 
-            if (medir)
-                hijo.Measure(new Size(anchoHijo, double.PositiveInfinity));
+            hijo.Measure(new Size(anchoHijo, double.PositiveInfinity));
 
             altoFila = Math.Max(altoFila, hijo.DesiredSize.Height);
             columnaActual += span;

@@ -1,5 +1,4 @@
-using System.Collections.ObjectModel;
-using System.Diagnostics;
+﻿using System.Collections.ObjectModel;
 using CapaAplicacion.Usuarios.Dtos;
 using CapaAplicacion.Usuarios.Interfaces;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -85,14 +84,6 @@ public sealed partial class RolesViewModel : ObservableObject, IDisposable
     /// <summary>Última versión guardada en BD por rol. Es la base contra la que se cuentan los cambios.</summary>
     private readonly Dictionary<int, HashSet<int>> _guardadoPorRol = new();
 
-    /// <summary>
-    /// Piso de tiempo que el esqueleto permanece en pantalla. Con el catálogo
-    /// cacheado la segunda visita responde en pocos milisegundos y el esqueleto
-    /// alcanzaría a parpadear: se sostiene para que el shimmer complete un
-    /// barrido y la carga se lea como una transición y no como un parpadeo.
-    /// </summary>
-    private const int DuracionMinimaEsqueletoMs = 1000;
-
     private bool _cargado;
     private bool _disposed;
 
@@ -123,7 +114,6 @@ public sealed partial class RolesViewModel : ObservableObject, IDisposable
 
     // ── Estado ─────────────────────────────────────────────────────────────
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(MostrarEsqueleto))]
     private bool _isLoading;
 
     [ObservableProperty]
@@ -167,7 +157,6 @@ public sealed partial class RolesViewModel : ObservableObject, IDisposable
 
     // ── Derivados ──────────────────────────────────────────────────────────
     public bool PuedeEditar => _sesion.TienePermiso("Modificar Configuración");
-    public bool MostrarEsqueleto => IsLoading && !_cargado;
     public bool HayMensaje => !string.IsNullOrEmpty(Mensaje);
     public bool HayQuery => Query.Length > 0;
     public bool HayCambios => Cambios > 0;
@@ -213,9 +202,7 @@ public sealed partial class RolesViewModel : ObservableObject, IDisposable
         IsLoading = true;
         Mensaje = string.Empty;
 
-        var reloj = Stopwatch.StartNew();
         var resultado = await _permisosRepo.ObtenerResumenAsync(_cts.Token);
-        await SostenerEsqueletoAsync(reloj.ElapsedMilliseconds);
         if (_disposed) return;
 
         if (!resultado.Success)
@@ -271,28 +258,8 @@ public sealed partial class RolesViewModel : ObservableObject, IDisposable
 
         _cargado = true;
         IsLoading = false;
-        OnPropertyChanged(nameof(MostrarEsqueleto));
 
         RolSeleccionado = Roles.FirstOrDefault();
-    }
-
-    /// <summary>
-    /// Completa <see cref="DuracionMinimaEsqueletoMs"/> si la consulta volvió antes.
-    /// Respeta el token: al salir de la pantalla no queda una espera colgada.
-    /// </summary>
-    private async Task SostenerEsqueletoAsync(long transcurridoMs)
-    {
-        long restante = DuracionMinimaEsqueletoMs - transcurridoMs;
-        if (restante <= 0) return;
-
-        try
-        {
-            await Task.Delay((int)restante, _cts.Token);
-        }
-        catch (OperationCanceledException)
-        {
-            // La vista se descargó mientras esperábamos: no hay nada que sostener.
-        }
     }
 
     partial void OnRolSeleccionadoChanged(RolItemVm? anterior, RolItemVm? value)

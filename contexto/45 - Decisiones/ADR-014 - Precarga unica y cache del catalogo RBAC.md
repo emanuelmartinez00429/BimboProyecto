@@ -55,6 +55,6 @@ Las **asignaciones no se cachean**: son el dato que el usuario edita y debe veni
 ## Relaciones
 
 - [[ADR-010 - Permisos desde BD en vez de switch hardcodeado]] — de dónde salen estos datos
-- [[Sesión 2026-08-11 - Rediseño de Gestión de Roles y esqueleto con shimmer]] — ejecución
+- [[Sesión 2026-08-11 - Rediseño de Gestión de Roles]] — ejecución
 - [[Módulo Usuarios]]
 - [[Arquitectura Actual]]

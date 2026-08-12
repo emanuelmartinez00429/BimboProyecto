@@ -16,7 +16,7 @@ public partial class RolesView : System.Windows.Controls.UserControl
     private static readonly Brush TildeAviso = Congelar("#4ADE80");
 
     private RolesViewModel? _vm;
-    private bool _shimmerActivo;
+    private Storyboard? _spinnerStory;
     private readonly List<DispatcherTimer> _temporizadores = new();
 
     public RolesView()
@@ -30,9 +30,62 @@ public partial class RolesView : System.Windows.Controls.UserControl
 
         _vm = App.Services.GetRequiredService<RolesViewModel>();
         _vm.Toast += MostrarAviso;
+        _vm.PropertyChanged += OnVmPropertyChanged;
         DataContext = _vm;
 
+        // El XAML ya arranca mostrando el spinner: CargarAsync pone IsLoading=true
+        // de entrada y OnVmPropertyChanged se encarga del resto.
         await _vm.CargarAsync();
+    }
+
+    private void OnVmPropertyChanged(object? s, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(RolesViewModel.IsLoading))
+            ActualizarCarga();
+    }
+
+    // ── Estado de carga ────────────────────────────────────────────────────
+
+    private void ActualizarCarga()
+    {
+        if (_vm is null) return;
+
+        if (_vm.IsLoading)
+        {
+            ContenidoRoles.Visibility = Visibility.Collapsed;
+            LoadingPanel.Visibility = Visibility.Visible;
+            IniciarSpinner();
+        }
+        else
+        {
+            LoadingPanel.Visibility = Visibility.Collapsed;
+            DetenerSpinner();
+            ContenidoRoles.Visibility = Visibility.Visible;
+        }
+    }
+
+    // ── Spinner ────────────────────────────────────────────────────────────
+
+    private void IniciarSpinner()
+    {
+        if (_spinnerStory != null) return;
+        _spinnerStory = new Storyboard();
+        var anim = new DoubleAnimation(0, 360, TimeSpan.FromSeconds(0.8))
+        { RepeatBehavior = RepeatBehavior.Forever };
+        Storyboard.SetTarget(anim, SpinnerPath);
+        Storyboard.SetTargetProperty(anim,
+            new PropertyPath("(UIElement.RenderTransform).(RotateTransform.Angle)"));
+        _spinnerStory.Children.Add(anim);
+        _spinnerStory.Begin();
+    }
+
+    private void DetenerSpinner()
+    {
+        if (_spinnerStory is null) return;
+        _spinnerStory.Stop();
+        _spinnerStory.Remove();         // desasocia el clock del elemento destino
+        _spinnerStory.Children.Clear(); // corta la referencia a SpinnerPath
+        _spinnerStory = null;
     }
 
     /// <summary>
@@ -42,7 +95,7 @@ public partial class RolesView : System.Windows.Controls.UserControl
     /// </summary>
     private void UserControl_Unloaded(object sender, RoutedEventArgs e)
     {
-        DetenerShimmer();
+        DetenerSpinner();
 
         foreach (var temporizador in _temporizadores)
             temporizador.Stop();
@@ -51,56 +104,10 @@ public partial class RolesView : System.Windows.Controls.UserControl
 
         if (_vm is null) return;
         _vm.Toast -= MostrarAviso;
+        _vm.PropertyChanged -= OnVmPropertyChanged;
         _vm.Dispose();
         _vm = null;
         DataContext = null;
-    }
-
-    // ── Shimmer del esqueleto ──────────────────────────────────────────────
-
-    /// <summary>
-    /// WPF NO detiene las animaciones de un elemento colapsado: el reloj sigue
-    /// tickeando e invalidando aunque no se dibuje nada, y un RepeatBehavior.Forever
-    /// sin frenar mantiene viva la referencia al elemento. Por eso el brillo se
-    /// enciende y se apaga siguiendo la visibilidad real del esqueleto.
-    /// </summary>
-    private void Esqueleto_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
-    {
-        if (e.NewValue is true)
-            IniciarShimmer();
-        else
-            DetenerShimmer();
-    }
-
-    private void IniciarShimmer()
-    {
-        if (_shimmerActivo) return;
-        _shimmerActivo = true;
-
-        // 1000 ms = el mismo piso que RolesViewModel.DuracionMinimaEsqueletoMs,
-        // así en la carga rápida se alcanza a ver un barrido entero.
-        var barrido = new DoubleAnimation(-1, 1, TimeSpan.FromMilliseconds(1000))
-        {
-            RepeatBehavior = RepeatBehavior.Forever,
-        };
-
-        // Sin easing: es un loop continuo — un EaseInOut haría que el brillo
-        // "frene" en los bordes y se notaría el corte.
-        // 20 fps en vez de los ~60 por defecto: en un barrido lento y difuso se
-        // ve idéntico y el TimeManager hace un tercio del trabajo.
-        Timeline.SetDesiredFrameRate(barrido, 20);
-
-        ShimmerTransform.BeginAnimation(TranslateTransform.XProperty, barrido);
-    }
-
-    private void DetenerShimmer()
-    {
-        if (!_shimmerActivo) return;
-        _shimmerActivo = false;
-
-        // null quita la animación de la propiedad y libera el AnimationClock.
-        ShimmerTransform.BeginAnimation(TranslateTransform.XProperty, null);
-        ShimmerTransform.X = -1;
     }
 
     private void MostrarAviso(string mensaje)

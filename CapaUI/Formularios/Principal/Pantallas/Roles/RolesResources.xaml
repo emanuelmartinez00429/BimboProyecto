@@ -48,8 +48,6 @@
     <SolidColorBrush x:Key="RolError"        Color="#B91C1C" po:Freeze="True"/>
     <SolidColorBrush x:Key="RolErrorBg"      Color="#FEF2F2" po:Freeze="True"/>
     <SolidColorBrush x:Key="RolErrorBorder"  Color="#FECACA" po:Freeze="True"/>
-    <SolidColorBrush x:Key="RolSkeleton"     Color="#E4E7EC" po:Freeze="True"/>
-    <SolidColorBrush x:Key="RolSkeletonSoft" Color="#F2F4F7" po:Freeze="True"/>
     <SolidColorBrush x:Key="RolFieldBg"      Color="#F7F9FC" po:Freeze="True"/>
     <SolidColorBrush x:Key="RolSegmentBg"    Color="#F3F4F6" po:Freeze="True"/>
     <SolidColorBrush x:Key="RolSegmentBd"    Color="#E5E7EB" po:Freeze="True"/>
@@ -662,38 +660,6 @@
                 <Setter Property="Foreground" Value="{StaticResource RolAmber}"/>
             </DataTrigger>
         </Style.Triggers>
-    </Style>
-
-    <!-- ══ Esqueleto de carga ═══════════════════════════════════════════════
-         Tarjeta prefabricada y estática: se dibuja apenas se monta la vista,
-         antes de que conteste la BD, para que la pantalla nunca quede en blanco. -->
-    <Style x:Key="RolEsqueletoTarjeta" TargetType="ContentControl">
-        <Setter Property="VerticalAlignment" Value="Top"/>
-        <Setter Property="Focusable" Value="False"/>
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="ContentControl">
-                    <Border Background="{StaticResource RolSurface}" CornerRadius="10"
-                            BorderBrush="{StaticResource RolBorderSoft}" BorderThickness="1"
-                            Padding="11,9">
-                        <StackPanel>
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                                <Border Width="24" Height="24" CornerRadius="7"
-                                        Background="{StaticResource RolSkeleton}" Margin="0,0,9,0"/>
-                                <Border Width="110" Height="12" CornerRadius="4" VerticalAlignment="Center"
-                                        Background="{StaticResource RolSkeleton}"/>
-                            </StackPanel>
-                            <Border Height="26" CornerRadius="6" Margin="0,0,0,5"
-                                    Background="{StaticResource RolSkeletonSoft}"/>
-                            <Border Height="26" CornerRadius="6" Margin="0,0,0,5"
-                                    Background="{StaticResource RolSkeletonSoft}"/>
-                            <Border Height="26" CornerRadius="6"
-                                    Background="{StaticResource RolSkeletonSoft}"/>
-                        </StackPanel>
-                    </Border>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
     </Style>
 
 </ResourceDictionary>

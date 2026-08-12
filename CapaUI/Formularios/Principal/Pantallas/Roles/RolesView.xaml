@@ -238,50 +238,38 @@
         </StackPanel>
 
         <!-- ══════════════════════════ Cuerpo ══════════════════════════════════ -->
+        <!-- Scroll horizontal en Auto: las tarjetas encogen hasta MinColumnWidth y,
+             a partir de ahí, aparece la barra en vez de aplastarse hasta tapar el texto. -->
         <ScrollViewer Grid.Row="1" Margin="0,12,0,0" Padding="20,0,20,16"
-                      VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                      VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
             <Grid>
-                <!-- Esqueleto con shimmer: se dibuja de entrada, antes de que
-                     conteste la BD. El brillo es UN solo rectángulo por encima de
-                     todas las tarjetas, no uno por caja: 1 animación en vez de ~24.
-                     Ver [[WPF - Esqueleto con Shimmer (Skeleton Loading)]]. -->
-                <Grid x:Name="Esqueleto" ClipToBounds="True" IsHitTestVisible="False"
-                      VerticalAlignment="Top"
-                      IsVisibleChanged="Esqueleto_IsVisibleChanged"
-                      Visibility="{Binding MostrarEsqueleto, Converter={StaticResource BoolToVisibility}}">
-
-                    <ctrl:SpanningGridPanel Columns="4" ColumnSpacing="10" RowSpacing="10">
-                        <ContentControl Style="{StaticResource RolEsqueletoTarjeta}"/>
-                        <ContentControl Style="{StaticResource RolEsqueletoTarjeta}"/>
-                        <ContentControl Style="{StaticResource RolEsqueletoTarjeta}"/>
-                        <ContentControl Style="{StaticResource RolEsqueletoTarjeta}"/>
-                        <ContentControl Style="{StaticResource RolEsqueletoTarjeta}"
-                                        ctrl:SpanningGridPanel.ColumnSpan="2"/>
-                        <ContentControl Style="{StaticResource RolEsqueletoTarjeta}"/>
-                    </ctrl:SpanningGridPanel>
-
-                    <!-- Este brush NO lleva po:Freeze: un Freezable congelado no se
-                         puede animar. Se anima RelativeTransform (espacio 0..1), así
-                         no hace falta conocer el ancho ni bindear a ActualWidth. -->
-                    <Rectangle>
-                        <Rectangle.Fill>
-                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0.35">
-                                <GradientStop Offset="0.35" Color="#00FFFFFF"/>
-                                <GradientStop Offset="0.50" Color="#99FFFFFF"/>
-                                <GradientStop Offset="0.65" Color="#00FFFFFF"/>
-                                <LinearGradientBrush.RelativeTransform>
-                                    <TranslateTransform x:Name="ShimmerTransform" X="-1"/>
-                                </LinearGradientBrush.RelativeTransform>
-                            </LinearGradientBrush>
-                        </Rectangle.Fill>
-                    </Rectangle>
-                </Grid>
+                <!-- Indicador de carga. Igual que en los demás formularios: la
+                     visibilidad la maneja el code-behind y NO un binding, así no
+                     hay un instante inicial (con DataContext todavía nulo) en el
+                     que el binding falle y se dibujen las dos capas encimadas. -->
+                <StackPanel x:Name="LoadingPanel"
+                            Margin="0,80,0,0"
+                            VerticalAlignment="Top"
+                            HorizontalAlignment="Center"
+                            Orientation="Horizontal">
+                    <Path x:Name="SpinnerPath"
+                          Data="M 12 2 A 10 10 0 1 1 2 12"
+                          Stroke="#1E3A8A" StrokeThickness="2.5"
+                          StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                          Width="22" Height="22" Stretch="Uniform"
+                          RenderTransformOrigin="0.5,0.5"
+                          Margin="0,0,10,0">
+                        <Path.RenderTransform>
+                            <RotateTransform/>
+                        </Path.RenderTransform>
+                    </Path>
+                    <TextBlock Text="Cargando roles..."
+                               FontFamily="Segoe UI" FontSize="14" Foreground="#6B7280"
+                               VerticalAlignment="Center"/>
+                </StackPanel>
 
                 <!-- Contenido real -->
-                <StackPanel>
-                    <StackPanel.Visibility>
-                        <Binding Path="MostrarEsqueleto" Converter="{StaticResource InverseBoolToVisibility}"/>
-                    </StackPanel.Visibility>
+                <StackPanel x:Name="ContenidoRoles" Visibility="Collapsed">
 
                     <!-- Franja de aviso -->
                     <Border Style="{StaticResource RolAlertaBorde}" Margin="0,0,0,12"
@@ -301,7 +289,8 @@
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
                                 <ctrl:SpanningGridPanel Columns="{Binding ColumnasGrilla}"
-                                                        ColumnSpacing="10" RowSpacing="10"/>
+                                                        ColumnSpacing="10" RowSpacing="10"
+                                                        MinColumnWidth="220"/>
                             </ItemsPanelTemplate>
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemContainerStyle>

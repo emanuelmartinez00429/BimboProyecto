@@ -24,11 +24,11 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
     {
         private ProductosViewModel _vm = null!;
         private bool _suppressFilterChange = false;
-        private Storyboard? _spinnerStory;
         private List<FiltroItem> _todosFabricantes = new();
         private System.ComponentModel.ICollectionView? _fabricantesView;
         private List<FiltroItem> _todosPaises = new();
         private System.ComponentModel.ICollectionView? _paisesView;
+        private Storyboard? _spinnerStory;
 
         public ProductosView()
         {
