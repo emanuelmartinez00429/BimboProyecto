@@ -30,13 +30,6 @@ namespace CapaUI.Formularios.Principal.Pantallas.Proveedores
             TxtModalContext.Text = _esNuevo ? "NUEVO REGISTRO" : "EDICIÓN";
             TxtModalTitle.Text   = _esNuevo ? "Crear proveedor"  : "Editar proveedor";
 
-            try
-            {
-                var uri = new Uri("pack://application:,,,/CapaUI;component/Resources/bimbo_no_bg.png");
-                ModalLogo.Source = new BitmapImage(uri);
-            }
-            catch { }
-
             if (!_esNuevo && _proveedor != null)
             {
                 TxtNombre.Text    = _proveedor.Nombre;

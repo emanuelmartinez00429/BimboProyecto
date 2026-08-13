@@ -314,6 +314,7 @@
                     <TextBlock Text="Cargando categor&#237;as..." FontFamily="Segoe UI" FontSize="16" Foreground="#6B7280" VerticalAlignment="Center"/>
                 </StackPanel>
                 <DataGrid Grid.Row="0" x:Name="DgCategorias" AutoGenerateColumns="False" CanUserAddRows="False"
+                          IsReadOnly="True"
                           CanUserSortColumns="False" HeadersVisibility="Column" GridLinesVisibility="None"
                           SelectionMode="Single" SelectionUnit="FullRow" Background="White" BorderThickness="0"
                           AlternationCount="2" RowStyle="{StaticResource ProductRowStyle}" CellStyle="{StaticResource ProductCellStyle}"

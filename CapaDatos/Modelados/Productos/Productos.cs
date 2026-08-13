@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Supabase;
 using Supabase.Postgrest.Attributes;
 using Supabase.Postgrest.Models;
+using CapaDatos.Modelados.Pesajes;
 
 namespace CapaDatos.Modelados.Productos
 {
@@ -31,11 +32,11 @@ namespace CapaDatos.Modelados.Productos
         [Column("id_estado")]
         public int idEstado { get; set; }
 
-        //[Column("peso_teorico")]
-        //public decimal pesoTeorico { get; set; }
+        [Column("peso_teorico")]
+        public decimal? pesoTeorico { get; set; }
 
-        //[Column("id_tara")]
-        //public int idTara { get; set; }
+        [Column("id_tara")]
+        public int? idTara { get; set; }
 
         [Column("id_categoria")]
         public int idCategoria { get; set; }
@@ -46,6 +47,15 @@ namespace CapaDatos.Modelados.Productos
         [Column("id_pais")]
         public int idPais { get; set; }
 
+        [Column("precio_por_kg")]
+        public decimal? precioPorKg { get; set; }
+
+        [Column("created_at")]
+        public DateTime? createdAt { get; set; }
+
+        [Column("updated_at")]
+        public DateTime? updatedAt { get; set; }
+
         /// <summary>
         /// Esto va a permitir que no tenga que estar duplicando modelados
         /// usando las navegaciones para las relaciones
@@ -54,11 +64,14 @@ namespace CapaDatos.Modelados.Productos
         public Fabricante Fabricante { get; set; }
         public Categoria Categoria { get; set; }
         public Paises Paises { get; set; }
+        public Tara? tara { get; set; }
 
         public string nombre_Presentacion => presentacion_producto?.nombrePresentacion ?? "Sin presentación";
         public string nombre_Fabricante => Fabricante?.nombreFabricante ?? "Sin fabricante";
+        public string nombre_Proveedor => Fabricante?.Proveedores?.nombreProveedor ?? "Sin proveedor";
         public string nombre_Categoria => Categoria?.nombreCategoria ?? "Sin categoría";
         public string nombre_Pais => Paises?.nombrePais ?? "Sin país";
+        public string descripcion_Tara => tara?.descripcionTara ?? "Sin tara";
 
     }
 }

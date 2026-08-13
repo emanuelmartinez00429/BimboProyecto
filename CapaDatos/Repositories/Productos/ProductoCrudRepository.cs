@@ -20,7 +20,7 @@ public class ProductoCrudRepository : RepositorioBase, IProductoRepository
     public ProductoCrudRepository(IConexionMonitor conexion) : base(conexion) { }
 
     private const string Select =
-        "*, presentacion_producto(*), fabricante(*), categoria(*), paises(*)";
+        "*, presentacion_producto(*), fabricante(*, proveedores(*)), categoria(*), paises(*), tara(*)";
 
     private static ProductoDto Map(Modelados.Productos.Productos p) => new()
     {
@@ -30,6 +30,7 @@ public class ProductoCrudRepository : RepositorioBase, IProductoRepository
         Contenido      = p.contenidoProducto ?? string.Empty,
         Presentacion   = p.nombre_Presentacion,
         Fabricante     = p.nombre_Fabricante,
+        Proveedor      = p.nombre_Proveedor,
         Categoria      = p.nombre_Categoria,
         Pais           = p.nombre_Pais,
         IdEstado       = p.idEstado,
@@ -37,6 +38,12 @@ public class ProductoCrudRepository : RepositorioBase, IProductoRepository
         IdCategoria    = p.idCategoria,
         IdPais         = p.idPais,
         IdPresentacion = p.idPresentacion,
+        PesoTeorico    = p.pesoTeorico,
+        IdTara         = p.idTara,
+        Tara           = p.descripcion_Tara,
+        PrecioPorKg    = p.precioPorKg,
+        CreatedAt      = p.createdAt,
+        UpdatedAt      = p.updatedAt,
     };
 
     // ── Lectura ───────────────────────────────────────────────────────────────
@@ -78,6 +85,9 @@ public class ProductoCrudRepository : RepositorioBase, IProductoRepository
                 idCategoria       = dto.IdCategoria,
                 idPais            = dto.IdPais,
                 idEstado          = dto.IdEstado,
+                pesoTeorico       = dto.PesoTeorico,
+                idTara            = dto.IdTara,
+                precioPorKg       = dto.PrecioPorKg,
             };
             var resultado = await client.From<Modelados.Productos.Productos>().Insert(nuevo);
             return resultado.Models.First().idProducto;
@@ -97,6 +107,9 @@ public class ProductoCrudRepository : RepositorioBase, IProductoRepository
                 .Set(p => p.idCategoria,       dto.IdCategoria)
                 .Set(p => p.idPais,            dto.IdPais)
                 .Set(p => p.idEstado,          dto.IdEstado)
+                .Set(p => p.pesoTeorico,       dto.PesoTeorico)
+                .Set(p => p.idTara,            dto.IdTara)
+                .Set(p => p.precioPorKg,       dto.PrecioPorKg)
                 .Update();
         }, "Actualizar producto");
 

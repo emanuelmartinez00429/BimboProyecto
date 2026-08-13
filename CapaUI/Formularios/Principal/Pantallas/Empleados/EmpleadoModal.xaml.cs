@@ -33,13 +33,6 @@ namespace CapaUI.Formularios.Principal.Pantallas.Empleados
             TxtModalContext.Text = _esNuevo ? "NUEVO REGISTRO" : "EDICIÓN";
             TxtModalTitle.Text   = _esNuevo ? "Crear empleado"  : "Editar empleado";
 
-            try
-            {
-                var uri = new Uri("pack://application:,,,/CapaUI;component/Resources/bimbo_no_bg.png");
-                ModalLogo.Source = new BitmapImage(uri);
-            }
-            catch { }
-
             if (!_esNuevo && _empleado != null)
             {
                 RowEstado.Visibility = Visibility.Visible;

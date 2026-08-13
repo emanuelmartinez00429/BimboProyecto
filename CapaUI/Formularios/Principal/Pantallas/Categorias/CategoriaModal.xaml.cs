@@ -29,13 +29,6 @@ namespace CapaUI.Formularios.Principal.Pantallas.Categorias
             TxtModalContext.Text = _esNuevo ? "NUEVO REGISTRO" : "EDICIÓN";
             TxtModalTitle.Text   = _esNuevo ? "Crear categoría"  : "Editar categoría";
 
-            try
-            {
-                var uri = new Uri("pack://application:,,,/CapaUI;component/Resources/bimbo_no_bg.png");
-                ModalLogo.Source = new BitmapImage(uri);
-            }
-            catch { }
-
             if (!_esNuevo && _categoria != null)
             {
                 TxtNombre.Text      = _categoria.Nombre;

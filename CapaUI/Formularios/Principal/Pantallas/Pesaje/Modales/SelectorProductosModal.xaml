@@ -240,6 +240,7 @@
 
                         <DataGrid x:Name="DgProductos"
                                   AutoGenerateColumns="False" CanUserAddRows="False" CanUserSortColumns="False"
+                                  IsReadOnly="True"
                                   HeadersVisibility="Column" GridLinesVisibility="None"
                                   SelectionMode="Single" SelectionUnit="FullRow"
                                   Background="Transparent" BorderThickness="0"

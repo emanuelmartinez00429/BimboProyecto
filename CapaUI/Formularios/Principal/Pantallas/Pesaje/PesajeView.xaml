@@ -452,6 +452,7 @@
                                        FontFamily="Segoe UI" FontSize="14.5" Foreground="#9CA3AF"
                                        HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center"/>
                             <DataGrid x:Name="DgProductos" AutoGenerateColumns="False" CanUserAddRows="False"
+                                      IsReadOnly="True"
                                       CanUserSortColumns="False" HeadersVisibility="Column" GridLinesVisibility="None"
                                       SelectionMode="Single" SelectionUnit="FullRow" Background="White" BorderThickness="0"
                                       AlternationCount="2" RowStyle="{StaticResource PgRow}" CellStyle="{StaticResource PgCell}"
@@ -620,6 +621,7 @@
                                    FontFamily="Segoe UI" FontSize="14.5" Foreground="#9CA3AF"
                                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         <DataGrid x:Name="DgEntradas" AutoGenerateColumns="False" CanUserAddRows="False"
+                                  IsReadOnly="True"
                                   CanUserSortColumns="False" HeadersVisibility="Column" GridLinesVisibility="None"
                                   SelectionMode="Single" SelectionUnit="FullRow" Background="White" BorderThickness="0"
                                   AlternationCount="2" RowStyle="{StaticResource PgRow}" CellStyle="{StaticResource PgCell}"

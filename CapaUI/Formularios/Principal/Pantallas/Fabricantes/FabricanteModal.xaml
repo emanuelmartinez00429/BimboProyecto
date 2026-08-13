@@ -146,10 +146,6 @@
 
                 <Border Background="#2E000000" BorderBrush="#1FFFFFFF" BorderThickness="0,1,0,0" Padding="28,14">
                     <DockPanel LastChildFill="False">
-                        <Border DockPanel.Dock="Left" Background="White" CornerRadius="6" Padding="12,4" VerticalAlignment="Center">
-                            <Border.Effect><DropShadowEffect Color="Black" BlurRadius="6" ShadowDepth="1" Opacity="0.15"/></Border.Effect>
-                            <Image x:Name="ModalLogo" Height="26" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality"/>
-                        </Border>
                         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
                             <Button Content="Volver" Click="BtnCerrar_Click" Background="#1AFFFFFF" Foreground="White"
                                     FontFamily="Segoe UI" FontSize="17" FontWeight="SemiBold"

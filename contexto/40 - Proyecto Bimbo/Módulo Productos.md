@@ -17,7 +17,7 @@ tags:
 
 ```
 CapaAplicacion4/Productos/
-  Dtos/ProductoDto.cs          → DTO con FKs para UI
+  Dtos/ProductoDto.cs          → DTO con FKs, peso, precio y auditoría para UI
   Dtos/FiltroItem.cs           → { int? Id, string Nombre } para ComboBox
   Queries/PagedResult.cs       → { Items, Total, Activos, Inactivos }
   Queries/ProductoFiltros.cs   → { IdEstado, IdFabricante, IdPais }
@@ -40,7 +40,7 @@ CapaUI/Formularios/Principal/Pantallas/Productos/
   ProductosView.xaml           → layout con DataGrid, filtros, paginación, spinner
   ProductosView.xaml.cs        → code-behind: DI, highlight, modal, spinner animation
   ProductosViewModel.cs        → ObservableObject + IProductoRepository + IRealtimeService
-  ProductoModal.xaml           → modal crear/editar
+  ProductoModal.xaml           → modal crear/editar + campos de peso, tara, precio y auditoría
   ProductoModal.xaml.cs        → acepta ProductoDto?
 ```
 
@@ -64,6 +64,20 @@ UserControl_Loaded
             → PageRows, TotalCount, ActivosCount, InactivosCount
     └── _realtime.SuscribirAsync("productos", OnCambioProducto)
 ```
+
+> [!info] Campos de producto expuestos
+> La consulta paginada incluye `nombre_producto`, `id_estado`, `peso_teorico`,
+> `id_tara`, `id_categoria`, `contenido`, `id_pais`, `created_at`, `updated_at`
+> y `precio_por_kg`. Para la tara se solicita además su navegación y el modal
+> muestra `descripcion_tara` al editar. La lupa del campo queda como marcador
+> visual hasta implementar el selector de taras.
+
+> [!info] Contenido y unidad de medida
+> `productos.contenido` se persiste como un solo texto. En el modal se edita como
+> valor libre + unidad (`g`, `kg`, `ml`, `l`, `oz`): al abrir un registro, una
+> unidad reconocida al final se separa y se selecciona en el ComboBox; al guardar,
+> ambos valores se unen con un espacio. Si el texto no termina en una unidad
+> reconocida, se conserva íntegramente y el ComboBox muestra `(Sin seleccionar)`.
 
 > [!note] Conteos reales
 > `GetConteosAsync` ejecuta dos `Get()` con `Select("id_producto")` — una sin filtro de estado (total) y otra con `id_estado = 1` (activos). Cuenta `Models.Count` en el cliente. No usa `CountType.Exact`. Ver [[Paginación y Búsqueda - Arquitectura Detallada]].

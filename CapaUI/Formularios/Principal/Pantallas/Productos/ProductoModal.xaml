@@ -205,6 +205,18 @@
                                    HorizontalAlignment="Right" Margin="0,0,12,0"/>
                         <ComboBox Grid.Column="1" x:Name="CmbFabricanteModal" Style="{StaticResource ModalCombo}"/>
                     </Grid>
+                    <!-- Row: Proveedor (derivado del fabricante, solo lectura) -->
+                    <Grid Margin="0,0,0,12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="140"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="Proveedor"
+                                   FontFamily="Segoe UI" FontSize="16.5" FontWeight="Medium"
+                                   Foreground="#F2FFFFFF" VerticalAlignment="Center"
+                                   HorizontalAlignment="Right" Margin="0,0,12,0"/>
+                        <TextBox Grid.Column="1" x:Name="TxtProveedor" Style="{StaticResource ModalInput}" IsReadOnly="True"/>
+                    </Grid>
                     <!-- Row: Categoría -->
                     <Grid Margin="0,0,0,12">
                         <Grid.ColumnDefinitions>
@@ -229,13 +241,70 @@
                                    Foreground="#F2FFFFFF" VerticalAlignment="Center"
                                    HorizontalAlignment="Right" Margin="0,0,12,0"/>
                         <TextBox Grid.Column="1" x:Name="TxtContenido" Style="{StaticResource ModalInput}" Margin="0,0,4,0"/>
-                        <ComboBox Grid.Column="2" x:Name="CmbUnidad" Style="{StaticResource ModalCombo}" Height="34">
+                        <ComboBox Grid.Column="2" x:Name="CmbUnidad" Style="{StaticResource ModalCombo}" Height="34" SelectedIndex="0">
+                            <ComboBoxItem Content="(Sin seleccionar)"/>
                             <ComboBoxItem Content="g"/>
                             <ComboBoxItem Content="kg"/>
                             <ComboBoxItem Content="ml"/>
                             <ComboBoxItem Content="l"/>
                             <ComboBoxItem Content="oz"/>
                         </ComboBox>
+                    </Grid>
+                    <!-- Row: Peso teórico -->
+                    <Grid Margin="0,0,0,12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="140"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="Peso teórico"
+                                   FontFamily="Segoe UI" FontSize="16.5" FontWeight="Medium"
+                                   Foreground="#F2FFFFFF" VerticalAlignment="Center"
+                                   HorizontalAlignment="Right" Margin="0,0,12,0"/>
+                        <TextBox Grid.Column="1" x:Name="TxtPesoTeorico" Style="{StaticResource ModalInput}"/>
+                    </Grid>
+                    <!-- Row: Tara (selector pendiente) -->
+                    <Grid Margin="0,0,0,12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="140"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="32"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="Tara"
+                                   FontFamily="Segoe UI" FontSize="16.5" FontWeight="Medium"
+                                   Foreground="#F2FFFFFF" VerticalAlignment="Center"
+                                   HorizontalAlignment="Right" Margin="0,0,12,0"/>
+                        <TextBox Grid.Column="1" x:Name="TxtTara" Style="{StaticResource ModalInput}" IsReadOnly="True"/>
+                        <Button Grid.Column="2" Width="30" Height="30" Background="White"
+                                BorderBrush="#7FFFFFFF" BorderThickness="1" Cursor="Hand" Margin="4,0,0,0"
+                                FocusVisualStyle="{x:Null}" VerticalAlignment="Center" ToolTip="Selector de tara (próximamente)">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                                            BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="4">
+                                        <Path Data="{StaticResource IconSearchM}" Stroke="#1E3A8A" StrokeThickness="2.5"
+                                              StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                              Width="14" Height="14" Stretch="Uniform"/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="Bd" Property="Background" Value="#EFF6FF"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                    </Grid>
+                    <!-- Row: Precio por kg -->
+                    <Grid Margin="0,0,0,12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="140"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="Precio por kg"
+                                   FontFamily="Segoe UI" FontSize="16.5" FontWeight="Medium"
+                                   Foreground="#F2FFFFFF" VerticalAlignment="Center"
+                                   HorizontalAlignment="Right" Margin="0,0,12,0"/>
+                        <TextBox Grid.Column="1" x:Name="TxtPrecioPorKg" Style="{StaticResource ModalInput}"/>
                     </Grid>
                     <!-- Row: País -->
                     <Grid Margin="0,0,0,12">
@@ -257,6 +326,29 @@
                             <ComboBoxItem Content="Nicaragua"/>
                             <ComboBoxItem Content="Costa Rica"/>
                         </ComboBox>
+                    </Grid>
+                    <!-- Row: Auditoría -->
+                    <Grid Margin="0,0,0,12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="140"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="Creado"
+                                   FontFamily="Segoe UI" FontSize="16.5" FontWeight="Medium"
+                                   Foreground="#F2FFFFFF" VerticalAlignment="Center"
+                                   HorizontalAlignment="Right" Margin="0,0,12,0"/>
+                        <TextBox Grid.Column="1" x:Name="TxtCreatedAt" Style="{StaticResource ModalInput}" IsReadOnly="True"/>
+                    </Grid>
+                    <Grid Margin="0,0,0,12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="140"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="Actualizado"
+                                   FontFamily="Segoe UI" FontSize="16.5" FontWeight="Medium"
+                                   Foreground="#F2FFFFFF" VerticalAlignment="Center"
+                                   HorizontalAlignment="Right" Margin="0,0,12,0"/>
+                        <TextBox Grid.Column="1" x:Name="TxtUpdatedAt" Style="{StaticResource ModalInput}" IsReadOnly="True"/>
                     </Grid>
                     <!-- Row: Estado -->
                     <Grid Margin="0,0,0,0">
@@ -301,20 +393,6 @@
                         BorderBrush="#1FFFFFFF" BorderThickness="0,1,0,0"
                         Padding="28,14">
                     <DockPanel LastChildFill="False">
-                        <!-- Logo -->
-                        <Border DockPanel.Dock="Left"
-                                Background="White"
-                                CornerRadius="6"
-                                Padding="12,4"
-                                VerticalAlignment="Center">
-                            <Border.Effect>
-                                <DropShadowEffect Color="Black" BlurRadius="6" ShadowDepth="1" Opacity="0.15"/>
-                            </Border.Effect>
-                            <Image x:Name="ModalLogo"
-                                   Height="26"
-                                   Stretch="Uniform"
-                                   RenderOptions.BitmapScalingMode="HighQuality"/>
-                        </Border>
                         <!-- Buttons -->
                         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
                             <!-- Volver -->
