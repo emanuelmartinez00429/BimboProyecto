@@ -10,13 +10,12 @@ using System.Windows.Media.Animation;
 using CapaAplicacion.Common;
 using CapaAplicacion.Productos.Dtos;
 using CapaAplicacion.Productos.Interfaces;
+using CapaAplicacion.Productos.Queries;
 using CapaUI.Core.Controls;
 using CapaUI.Core.Permisos;
 using Microsoft.Extensions.DependencyInjection;
 using static CapaAplicacion.Common.EstadoRegistro;
-using WpfKey         = System.Windows.Input.KeyEventArgs;
 using WpfMouseButton = System.Windows.Input.MouseButtonEventArgs;
-using Key            = System.Windows.Input.Key;
 
 namespace CapaUI.Formularios.Principal.Pantallas.Productos
 {
@@ -24,15 +23,25 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
     {
         private ProductosViewModel _vm = null!;
         private bool _suppressFilterChange = false;
-        private List<FiltroItem> _todosFabricantes = new();
-        private System.ComponentModel.ICollectionView? _fabricantesView;
-        private List<FiltroItem> _todosPaises = new();
-        private System.ComponentModel.ICollectionView? _paisesView;
         private Storyboard? _spinnerStory;
+
+        // Combos de filtro: toda la mecánica (sentinela "(Todos)", autocompletado
+        // en memoria, limpieza) vive en ComboFiltro, no replicada por combo.
+        private readonly ComboFiltro _filtroFabricante;
+        private readonly ComboFiltro _filtroPais;
+        private readonly ComboFiltro _filtroProveedor;
 
         public ProductosView()
         {
             InitializeComponent();
+
+            _filtroFabricante = new ComboFiltro(CmbFabricante);
+            _filtroPais       = new ComboFiltro(CmbPais);
+            _filtroProveedor  = new ComboFiltro(CmbProveedor);
+
+            _filtroFabricante.SeleccionCambiada += id => { if (_vm != null) _vm.FabricanteIdFiltro = id; };
+            _filtroPais.SeleccionCambiada       += id => { if (_vm != null) _vm.PaisIdFiltro       = id; };
+            _filtroProveedor.SeleccionCambiada  += id => { if (_vm != null) _vm.ProveedorIdFiltro  = id; };
         }
 
         private async void UserControl_Loaded(object sender, RoutedEventArgs e)
@@ -71,10 +80,10 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
         {
             _suppressFilterChange = true;
             RbHabilitados.IsChecked = true;
-            if (_fabricantesView != null) _fabricantesView.Filter = null;
-            CmbFabricante.SelectedIndex = 0;
-            if (_paisesView != null) _paisesView.Filter = null;
-            CmbPais.SelectedIndex = 0;
+            RbOrdenId.IsChecked     = true;
+            _filtroFabricante.Reiniciar();
+            _filtroPais.Reiniciar();
+            _filtroProveedor.Reiniciar();
             _suppressFilterChange = false;
         }
 
@@ -91,8 +100,11 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
                     SelectedInfo.Visibility = _vm.HaySeleccionado ? Visibility.Visible : Visibility.Collapsed;
                     break;
                 case nameof(ProductosViewModel.Seleccionado):    SeleccionarEnTabla();    break;
-                case nameof(ProductosViewModel.Fabricantes):     PoblarFabricantes();     break;
-                case nameof(ProductosViewModel.Paises):          PoblarPaises();          break;
+                // Fabricantes se repuebla también cuando cambia el proveedor:
+                // el ViewModel reacota la lista y dispara este mismo aviso.
+                case nameof(ProductosViewModel.Fabricantes):  _filtroFabricante.Poblar(_vm.Fabricantes); break;
+                case nameof(ProductosViewModel.Paises):       _filtroPais.Poblar(_vm.Paises);            break;
+                case nameof(ProductosViewModel.Proveedores):  _filtroProveedor.Poblar(_vm.Proveedores);  break;
             }
         }
 
@@ -152,69 +164,17 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
                 _vm.EstadoFiltro = EstadoFilter.Todos;
         }
 
-        private void CmbFabricante_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        /// <summary>
+        /// Orden alfabético. El listado y el salto de página del buscador leen
+        /// el mismo valor desde el ViewModel, así que no pueden divergir.
+        /// </summary>
+        private void Orden_Changed(object sender, RoutedEventArgs e)
         {
             if (_vm == null || _suppressFilterChange) return;
-            var selected = CmbFabricante.SelectedItem as FiltroItem;
-            _vm.FabricanteIdFiltro = selected?.Id;
-            if (_fabricantesView != null) _fabricantesView.Filter = null;
-        }
 
-        private void CmbFabricante_PreviewKeyUp(object sender, WpfKey e)
-        {
-            if (e.Key is Key.Return or Key.Enter or Key.Up or Key.Down or Key.Escape or Key.Tab)
-                return;
-
-            if (_fabricantesView == null) return;
-            var texto = CmbFabricante.Text?.Trim() ?? "";
-            _fabricantesView.Filter = string.IsNullOrEmpty(texto)
-                ? null
-                : o => o is FiltroItem f && (f.Nombre?.Contains(texto, StringComparison.OrdinalIgnoreCase) == true);
-            CmbFabricante.IsDropDownOpen = true;
-        }
-
-        private void CmbPais_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (_vm == null || _suppressFilterChange) return;
-            var selected = CmbPais.SelectedItem as FiltroItem;
-            _vm.PaisIdFiltro = selected?.Id;
-            // Al seleccionar, quitar el filtro de texto para que el dropdown muestre todo la próxima vez
-            if (_paisesView != null) _paisesView.Filter = null;
-        }
-
-        private void CmbPais_PreviewKeyUp(object sender, WpfKey e)
-        {
-            if (e.Key is Key.Return or Key.Enter or Key.Up or Key.Down or Key.Escape or Key.Tab)
-                return;
-
-            if (_paisesView == null) return;
-            var texto = CmbPais.Text?.Trim() ?? "";
-            _paisesView.Filter = string.IsNullOrEmpty(texto)
-                ? null
-                : o => o is FiltroItem f && (f.Nombre?.Contains(texto, StringComparison.OrdinalIgnoreCase) == true);
-            CmbPais.IsDropDownOpen = true;
-        }
-
-        private void PoblarFabricantes()
-        {
-            _suppressFilterChange = true;
-            _todosFabricantes = new List<FiltroItem> { new FiltroItem { Id = null, Nombre = "(Todos)" } };
-            _todosFabricantes.AddRange(_vm.Fabricantes);
-            _fabricantesView = CollectionViewSource.GetDefaultView(_todosFabricantes);
-            CmbFabricante.ItemsSource = _fabricantesView;
-            CmbFabricante.SelectedIndex = 0;
-            _suppressFilterChange = false;
-        }
-
-        private void PoblarPaises()
-        {
-            _suppressFilterChange = true;
-            _todosPaises = new List<FiltroItem> { new FiltroItem { Id = null, Nombre = "(Todos)" } };
-            _todosPaises.AddRange(_vm.Paises);
-            _paisesView = CollectionViewSource.GetDefaultView(_todosPaises);
-            CmbPais.ItemsSource   = _paisesView;
-            CmbPais.SelectedIndex = 0;
-            _suppressFilterChange = false;
+            _vm.Orden = RbOrdenAZ.IsChecked == true  ? OrdenProducto.NombreAsc
+                      : RbOrdenZA.IsChecked == true  ? OrdenProducto.NombreDesc
+                      : OrdenProducto.IdAsc;
         }
 
         // ── Search ────────────────────────────────────────────────────

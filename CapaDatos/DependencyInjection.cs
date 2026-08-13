@@ -56,6 +56,10 @@ public static class DependencyInjection
         // Formulario de productos (DTO con FKs)
         services.AddTransient<IProductoRepository, ProductoCrudRepository>();
 
+        // Lectura uniforme de catálogos chicos (alimenta el selector genérico de lupa)
+        services.AddTransient<CapaAplicacion.Common.Catalogos.ICatalogoRepository,
+                              Repositories.Catalogos.CatalogoRepository>();
+
         // Formularios de catálogo
         services.AddTransient<IProveedorRepository, ProveedorCrudRepository>();
         services.AddTransient<IFabricanteRepository, FabricanteCrudRepository>();

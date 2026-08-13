@@ -12,6 +12,41 @@
         <Geometry x:Key="IconCheckM">M20,6 L9,17 l-5,-5</Geometry>
         <Geometry x:Key="IconSearchM">M11,4 a7,7 0 1 1 0,14 a7,7 0 0 1 0,-14 z M20,20 l-4.3,-4.3</Geometry>
 
+        <!-- Botón de lupa de los campos de catálogo. Antes el template estaba
+             copiado inline en cada campo; vive una sola vez acá. -->
+        <Style x:Key="LupaBtn" TargetType="Button">
+            <Setter Property="Width" Value="30"/>
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#7FFFFFFF"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Margin" Value="4,0,0,0"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="4">
+                            <Path Data="{StaticResource IconSearchM}"
+                                  Stroke="#1E3A8A" StrokeThickness="2.5"
+                                  StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                  Width="14" Height="14" Stretch="Uniform"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#EFF6FF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <Style x:Key="ModalSegBtn" TargetType="RadioButton">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="Foreground" Value="#CCFFFFFF"/>
@@ -59,7 +94,8 @@
                 </Border.Background>
             </Border>
 
-            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <ScrollViewer x:Name="FormHost"
+                          VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
             <StackPanel>
                 <!-- Top color stripe -->
                 <Border Height="4">
@@ -165,69 +201,61 @@
                                    Foreground="#F2FFFFFF" VerticalAlignment="Center"
                                    HorizontalAlignment="Right" Margin="0,0,12,0"/>
                         <TextBox Grid.Column="1" x:Name="TxtPresentacion" Style="{StaticResource ModalInput}" IsReadOnly="True"/>
-                        <Button Grid.Column="2"
-                                Width="30" Height="30"
-                                Background="White"
-                                BorderBrush="#7FFFFFFF" BorderThickness="1"
-                                Cursor="Hand" Margin="4,0,0,0"
-                                FocusVisualStyle="{x:Null}"
-                                VerticalAlignment="Center">
-                            <Button.Template>
-                                <ControlTemplate TargetType="Button">
-                                    <Border x:Name="Bd"
-                                            Background="{TemplateBinding Background}"
-                                            BorderBrush="{TemplateBinding BorderBrush}"
-                                            BorderThickness="{TemplateBinding BorderThickness}"
-                                            CornerRadius="4">
-                                        <Path Data="{StaticResource IconSearchM}"
-                                              Stroke="#1E3A8A" StrokeThickness="2.5"
-                                              StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                                              Width="14" Height="14" Stretch="Uniform"/>
-                                    </Border>
-                                    <ControlTemplate.Triggers>
-                                        <Trigger Property="IsMouseOver" Value="True">
-                                            <Setter TargetName="Bd" Property="Background" Value="#EFF6FF"/>
-                                        </Trigger>
-                                    </ControlTemplate.Triggers>
-                                </ControlTemplate>
-                            </Button.Template>
-                        </Button>
+                        <Button Grid.Column="2" x:Name="BtnBuscarPresentacion"
+                                Style="{StaticResource LupaBtn}"
+                                Click="BuscarPresentacion_Click"
+                                ToolTip="Seleccionar presentación"/>
                     </Grid>
-                    <!-- Row: Fabricante -->
+                    <!-- Row: Proveedor (acota la lupa de Fabricante) -->
                     <Grid Margin="0,0,0,12">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="140"/>
                             <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="Fabricante"
-                                   FontFamily="Segoe UI" FontSize="16.5" FontWeight="Medium"
-                                   Foreground="#F2FFFFFF" VerticalAlignment="Center"
-                                   HorizontalAlignment="Right" Margin="0,0,12,0"/>
-                        <ComboBox Grid.Column="1" x:Name="CmbFabricanteModal" Style="{StaticResource ModalCombo}"/>
-                    </Grid>
-                    <!-- Row: Proveedor (derivado del fabricante, solo lectura) -->
-                    <Grid Margin="0,0,0,12">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="140"/>
-                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="32"/>
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="0" Text="Proveedor"
                                    FontFamily="Segoe UI" FontSize="16.5" FontWeight="Medium"
                                    Foreground="#F2FFFFFF" VerticalAlignment="Center"
                                    HorizontalAlignment="Right" Margin="0,0,12,0"/>
                         <TextBox Grid.Column="1" x:Name="TxtProveedor" Style="{StaticResource ModalInput}" IsReadOnly="True"/>
+                        <Button Grid.Column="2" x:Name="BtnBuscarProveedor"
+                                Style="{StaticResource LupaBtn}"
+                                Click="BuscarProveedor_Click"
+                                ToolTip="Seleccionar proveedor (acota los fabricantes)"/>
+                    </Grid>
+                    <!-- Row: Fabricante -->
+                    <Grid Margin="0,0,0,12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="140"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="32"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="Fabricante"
+                                   FontFamily="Segoe UI" FontSize="16.5" FontWeight="Medium"
+                                   Foreground="#F2FFFFFF" VerticalAlignment="Center"
+                                   HorizontalAlignment="Right" Margin="0,0,12,0"/>
+                        <TextBox Grid.Column="1" x:Name="TxtFabricante" Style="{StaticResource ModalInput}" IsReadOnly="True"/>
+                        <Button Grid.Column="2" x:Name="BtnBuscarFabricante"
+                                Style="{StaticResource LupaBtn}"
+                                Click="BuscarFabricante_Click"
+                                ToolTip="Seleccionar fabricante"/>
                     </Grid>
                     <!-- Row: Categoría -->
                     <Grid Margin="0,0,0,12">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="140"/>
                             <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="32"/>
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="0" Text="Categor&#237;a"
                                    FontFamily="Segoe UI" FontSize="16.5" FontWeight="Medium"
                                    Foreground="#F2FFFFFF" VerticalAlignment="Center"
                                    HorizontalAlignment="Right" Margin="0,0,12,0"/>
-                        <ComboBox Grid.Column="1" x:Name="CmbCategoriaModal" Style="{StaticResource ModalCombo}"/>
+                        <TextBox Grid.Column="1" x:Name="TxtCategoria" Style="{StaticResource ModalInput}" IsReadOnly="True"/>
+                        <Button Grid.Column="2" x:Name="BtnBuscarCategoria"
+                                Style="{StaticResource LupaBtn}"
+                                Click="BuscarCategoria_Click"
+                                ToolTip="Seleccionar categoría"/>
                     </Grid>
                     <!-- Row: Contenido -->
                     <Grid Margin="0,0,0,12">
@@ -262,7 +290,7 @@
                                    HorizontalAlignment="Right" Margin="0,0,12,0"/>
                         <TextBox Grid.Column="1" x:Name="TxtPesoTeorico" Style="{StaticResource ModalInput}"/>
                     </Grid>
-                    <!-- Row: Tara (selector pendiente) -->
+                    <!-- Row: Tara -->
                     <Grid Margin="0,0,0,12">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="140"/>
@@ -274,25 +302,10 @@
                                    Foreground="#F2FFFFFF" VerticalAlignment="Center"
                                    HorizontalAlignment="Right" Margin="0,0,12,0"/>
                         <TextBox Grid.Column="1" x:Name="TxtTara" Style="{StaticResource ModalInput}" IsReadOnly="True"/>
-                        <Button Grid.Column="2" Width="30" Height="30" Background="White"
-                                BorderBrush="#7FFFFFFF" BorderThickness="1" Cursor="Hand" Margin="4,0,0,0"
-                                FocusVisualStyle="{x:Null}" VerticalAlignment="Center" ToolTip="Selector de tara (próximamente)">
-                            <Button.Template>
-                                <ControlTemplate TargetType="Button">
-                                    <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
-                                            BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="4">
-                                        <Path Data="{StaticResource IconSearchM}" Stroke="#1E3A8A" StrokeThickness="2.5"
-                                              StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                                              Width="14" Height="14" Stretch="Uniform"/>
-                                    </Border>
-                                    <ControlTemplate.Triggers>
-                                        <Trigger Property="IsMouseOver" Value="True">
-                                            <Setter TargetName="Bd" Property="Background" Value="#EFF6FF"/>
-                                        </Trigger>
-                                    </ControlTemplate.Triggers>
-                                </ControlTemplate>
-                            </Button.Template>
-                        </Button>
+                        <Button Grid.Column="2" x:Name="BtnBuscarTara"
+                                Style="{StaticResource LupaBtn}"
+                                Click="BuscarTara_Click"
+                                ToolTip="Seleccionar tara"/>
                     </Grid>
                     <!-- Row: Precio por kg -->
                     <Grid Margin="0,0,0,12">
@@ -311,21 +324,17 @@
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="140"/>
                             <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="32"/>
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="0" Text="Pa&#237;s importado"
                                    FontFamily="Segoe UI" FontSize="16.5" FontWeight="Medium"
                                    Foreground="#F2FFFFFF" VerticalAlignment="Center"
                                    HorizontalAlignment="Right" Margin="0,0,12,0"/>
-                        <ComboBox Grid.Column="1" x:Name="CmbPaisModal" Style="{StaticResource ModalCombo}">
-                            <ComboBoxItem Content="Honduras"/>
-                            <ComboBoxItem Content="Guatemala"/>
-                            <ComboBoxItem Content="Uruguay"/>
-                            <ComboBoxItem Content="Belice"/>
-                            <ComboBoxItem Content="M&#233;xico"/>
-                            <ComboBoxItem Content="El Salvador"/>
-                            <ComboBoxItem Content="Nicaragua"/>
-                            <ComboBoxItem Content="Costa Rica"/>
-                        </ComboBox>
+                        <TextBox Grid.Column="1" x:Name="TxtPais" Style="{StaticResource ModalInput}" IsReadOnly="True"/>
+                        <Button Grid.Column="2" x:Name="BtnBuscarPais"
+                                Style="{StaticResource LupaBtn}"
+                                Click="BuscarPais_Click"
+                                ToolTip="Seleccionar país"/>
                     </Grid>
                     <!-- Row: Auditoría -->
                     <Grid Margin="0,0,0,12">
@@ -476,6 +485,13 @@
                 </Border>
             </StackPanel>
             </ScrollViewer>
+
+            <!-- Selector de catálogo: REEMPLAZA al formulario dentro del mismo
+                 marco (no se superpone). El modal muestra solo la tabla y se
+                 reajusta a su alto; al elegir un item vuelve el formulario.
+                 El formulario queda colapsado, no destruido: volver es
+                 instantáneo y no se pierde nada de lo ya cargado. -->
+            <ContentControl x:Name="SelectorHost" Visibility="Collapsed"/>
         </Grid>
     </Border>
 </UserControl>

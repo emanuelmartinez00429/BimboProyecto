@@ -6,6 +6,8 @@ using CapaAplicacion.Productos.Interfaces;
 using CapaAplicacion.Productos.Queries;
 using CapaAplicacion.Conexion;
 using CapaAplicacion.Realtime;
+using CapaAplicacion.Common.Catalogos;
+using CapaUI.Core.Catalogos;
 using CapaUI.Core.Controls;
 using CapaUI.Core.Permisos;
 using CapaUI.Core.MVVM;
@@ -24,12 +26,18 @@ public enum EstadoFilter { Habilitados, Deshabilitados, Todos }
 public partial class ProductosViewModel : RealtimeAwareViewModel
 {
     private readonly IProductoRepository _repo;
+    private readonly ICatalogoRepository _catalogos;
     private readonly SuggestionDebouncer _buscador = new();
 
-    private string       _query              = "";
-    private EstadoFilter _estadoFiltro       = EstadoFilter.Habilitados;
-    private int?         _fabricanteIdFiltro;
-    private int?         _paisIdFiltro;
+    /// <summary>Catálogo completo; <see cref="Fabricantes"/> es su vista acotada por proveedor.</summary>
+    private List<FiltroItem> _todosFabricantes = new();
+
+    private string        _query             = "";
+    private EstadoFilter  _estadoFiltro      = EstadoFilter.Habilitados;
+    private int?          _fabricanteIdFiltro;
+    private int?          _paisIdFiltro;
+    private int?          _proveedorIdFiltro;
+    private OrdenProducto _orden             = OrdenProducto.IdAsc;
     private int          _page               = 1;
     private int          _filteredCount;
     private int?         _pendingSelectionId;
@@ -65,6 +73,7 @@ public partial class ProductosViewModel : RealtimeAwareViewModel
     [ObservableProperty] private int              _inactivosCount;
     [ObservableProperty] private List<FiltroItem> _fabricantes = new();
     [ObservableProperty] private List<FiltroItem> _paises      = new();
+    [ObservableProperty] private List<FiltroItem> _proveedores = new();
     [ObservableProperty] private string           _errorCarga  = "";
 
     public bool   HaySeleccionado   => Seleccionado is not null;
@@ -136,6 +145,37 @@ public partial class ProductosViewModel : RealtimeAwareViewModel
         }
     }
 
+    /// <summary>
+    /// Proveedor. Encadena con Fabricante: la vista reacota el combo de
+    /// fabricantes cuando esto cambia.
+    /// </summary>
+    public int? ProveedorIdFiltro
+    {
+        get => _proveedorIdFiltro;
+        set
+        {
+            if (_proveedorIdFiltro == value) return;
+            _proveedorIdFiltro = value;
+            OnPropertyChanged();
+            ReacotarFabricantes();
+            _page = 1;
+            _ = CargarPaginaAsync();
+        }
+    }
+
+    public OrdenProducto Orden
+    {
+        get => _orden;
+        set
+        {
+            if (_orden == value) return;
+            _orden = value;
+            OnPropertyChanged();
+            _page = 1;
+            _ = CargarPaginaAsync();
+        }
+    }
+
     public int Page
     {
         get => _page;
@@ -155,11 +195,12 @@ public partial class ProductosViewModel : RealtimeAwareViewModel
     public event Action<ProductoDto>? SolicitarEditar;
     public event Action?              FiltrosLimpiados;
 
-    public ProductosViewModel(IProductoRepository repo, IRealtimeService realtime,
-                              IConexionMonitor conexionMonitor)
+    public ProductosViewModel(IProductoRepository repo, ICatalogoRepository catalogos,
+                              IRealtimeService realtime, IConexionMonitor conexionMonitor)
         : base(realtime, conexionMonitor)
     {
-        _repo = repo;
+        _repo      = repo;
+        _catalogos = catalogos;
     }
 
     public async Task CargarDatosAsync()
@@ -167,22 +208,54 @@ public partial class ProductosViewModel : RealtimeAwareViewModel
         IsLoading  = true;
         ErrorCarga = string.Empty;
 
-        var fabTask  = _repo.GetFabricantesAsync();
-        var paisTask = _repo.GetPaisesAsync();
-        await Task.WhenAll(fabTask, paisTask);
+        // Catálogos desde la caché de sesión: la segunda entrada a la pantalla
+        // no vuelve a pegarle a la red.
+        var fabTask  = CatalogoCache.ObtenerParaComboAsync(Catalogos.Fabricantes(_catalogos));
+        var paisTask = CatalogoCache.ObtenerParaComboAsync(Catalogos.Paises(_catalogos));
+        var provTask = CatalogoCache.ObtenerParaComboAsync(Catalogos.Proveedores(_catalogos));
+        await Task.WhenAll(fabTask, paisTask, provTask);
 
         var rFab = fabTask.Result;
         if (!rFab.Success) { ErrorCarga = rFab.Error; IsLoading = false; return; }
-        Fabricantes = rFab.Value!.ToList();
+        _todosFabricantes = rFab.Value!.ToList();
+        Fabricantes = _todosFabricantes;
 
         var rPaises = paisTask.Result;
         if (!rPaises.Success) { ErrorCarga = rPaises.Error; IsLoading = false; return; }
         Paises = rPaises.Value!.ToList();
 
+        var rProv = provTask.Result;
+        if (!rProv.Success) { ErrorCarga = rProv.Error; IsLoading = false; return; }
+        Proveedores = rProv.Value!.ToList();
+
         await CargarPaginaAsync();
 
         // Observar() registra el token de baja — se cancela en Dispose() automáticamente
         Observar("productos", OnCambioProducto);
+
+        // Si cambian los fabricantes, la lista cacheada queda vieja y la cascada
+        // proveedor → fabricante mentiría.
+        Observar("fabricante", _ => CatalogoCache.Invalidar("fabricantes"));
+    }
+
+    /// <summary>
+    /// Fabricantes visibles según el proveedor elegido. Filtrado en memoria
+    /// sobre la lista ya cacheada: cambiar de proveedor no consulta nada.
+    /// </summary>
+    private void ReacotarFabricantes()
+    {
+        Fabricantes = _proveedorIdFiltro is null
+            ? _todosFabricantes
+            : _todosFabricantes.Where(f => f.IdPadre == _proveedorIdFiltro).ToList();
+
+        // Un fabricante que ya no pertenece al proveedor dejaría un filtro
+        // imposible (cero filas sin explicación): se limpia.
+        if (_fabricanteIdFiltro is not null &&
+            !Fabricantes.Any(f => f.Id == _fabricanteIdFiltro))
+        {
+            _fabricanteIdFiltro = null;
+            OnPropertyChanged(nameof(FabricanteIdFiltro));
+        }
     }
 
     public void RefrescarDatos() => _ = CargarPaginaAsync();
@@ -274,12 +347,12 @@ public partial class ProductosViewModel : RealtimeAwareViewModel
         if (enPagina is not null) { Seleccionado = enPagina; return; }
 
         _pendingSelectionId = p.Id;
-        _ = NavegarAPaginaDeProductoAsync(p.Id);
+        _ = NavegarAPaginaDeProductoAsync(p);
     }
 
-    private async Task NavegarAPaginaDeProductoAsync(int idProducto)
+    private async Task NavegarAPaginaDeProductoAsync(ProductoDto producto)
     {
-        var r = await _repo.GetPaginaDeProductoAsync(idProducto, PageSize, BuildFiltros());
+        var r = await _repo.GetPaginaDeProductoAsync(producto, PageSize, BuildFiltros());
         if (!r.Success) { _pendingSelectionId = null; ErrorCarga = r.Error; return; }
 
         _page = r.Value;
@@ -300,6 +373,8 @@ public partial class ProductosViewModel : RealtimeAwareViewModel
         },
         IdFabricante = _fabricanteIdFiltro,
         IdPais       = _paisIdFiltro,
+        IdProveedor  = _proveedorIdFiltro,
+        Orden        = _orden,
     };
 
     [RelayCommand]
@@ -320,6 +395,8 @@ public partial class ProductosViewModel : RealtimeAwareViewModel
         _estadoFiltro       = EstadoFilter.Habilitados;
         _fabricanteIdFiltro = null;
         _paisIdFiltro       = null;
+        _proveedorIdFiltro  = null;
+        _orden              = OrdenProducto.IdAsc;
         _page = 1;
         FiltrosLimpiados?.Invoke();
         _ = CargarPaginaAsync();

@@ -19,8 +19,33 @@ public class ProductoCrudRepository : RepositorioBase, IProductoRepository
 {
     public ProductoCrudRepository(IConexionMonitor conexion) : base(conexion) { }
 
-    private const string Select =
-        "*, presentacion_producto(*), fabricante(*, proveedores(*)), categoria(*), paises(*), tara(*)";
+    /// <summary>
+    /// El embed de fabricante pasa a <c>!inner</c> SOLO cuando se filtra por
+    /// proveedor: productos no tiene id_proveedor, así que el filtro viaja por
+    /// el recurso anidado y necesita inner join. Dejarlo fijo descartaría en
+    /// silencio los productos sin fabricante.
+    /// </summary>
+    private static string SelectPara(ProductoFiltros filtros)
+    {
+        string fabricante = filtros.IdProveedor.HasValue
+            ? "fabricante!inner(*, proveedores(*))"
+            : "fabricante(*, proveedores(*))";
+
+        return $"*, presentacion_producto(*), {fabricante}, categoria(*), paises(*), tara(*)";
+    }
+
+    /// <summary>
+    /// Columna y dirección del orden activo. Fuente única: la usan tanto el
+    /// listado como el cálculo de "en qué página cae este producto", que de
+    /// otro modo se desincronizarían y el buscador saltaría a la página
+    /// equivocada.
+    /// </summary>
+    private static (string columna, Ord direccion) ColumnaOrden(OrdenProducto orden) => orden switch
+    {
+        OrdenProducto.NombreAsc  => ("nombre_producto", Ord.Ascending),
+        OrdenProducto.NombreDesc => ("nombre_producto", Ord.Descending),
+        _                        => ("id_producto",     Ord.Ascending),
+    };
 
     private static ProductoDto Map(Modelados.Productos.Productos p) => new()
     {
@@ -66,8 +91,8 @@ public class ProductoCrudRepository : RepositorioBase, IProductoRepository
         TryAsync(GetCategoriasInternal, "Cargar categorías");
 
     public Task<Result<int>> GetPaginaDeProductoAsync(
-        int idProducto, int size, ProductoFiltros filtros, CancellationToken ct = default) =>
-        TryAsync(() => GetPaginaDeProductoInternal(idProducto, size, filtros), "Calcular página de producto");
+        ProductoDto producto, int size, ProductoFiltros filtros, CancellationToken ct = default) =>
+        TryAsync(() => GetPaginaDeProductoInternal(producto, size, filtros), "Calcular página de producto");
 
     // ── Escritura ─────────────────────────────────────────────────────────────
 
@@ -129,7 +154,7 @@ public class ProductoCrudRepository : RepositorioBase, IProductoRepository
         int page, int size, ProductoFiltros filtros)
     {
         var client = await ConexionSupabase.GetClientAsync();
-        var query  = AplicarFiltros(client.From<Modelados.Productos.Productos>().Select(Select), filtros);
+        var query  = AplicarFiltros(client.From<Modelados.Productos.Productos>().Select(SelectPara(filtros)), filtros);
 
         int from = (page - 1) * size;
         int to   = from + size - 1;
@@ -143,10 +168,13 @@ public class ProductoCrudRepository : RepositorioBase, IProductoRepository
         {
             IdFabricante = filtros.IdFabricante,
             IdPais       = filtros.IdPais,
+            IdProveedor  = filtros.IdProveedor,
         };
 
+        var (colOrden, dirOrden) = ColumnaOrden(filtros.Orden);
+
         // Página + conteos en paralelo (conteos via RPC — sin descargar filas)
-        var pageTask    = query.Order("id_producto", Ord.Ascending).Range(from, to).Get();
+        var pageTask    = query.Order(colOrden, dirOrden).Range(from, to).Get();
         var conteosTask = GetConteosRpcAsync(filtrosConteo, client);
         await Task.WhenAll(pageTask, conteosTask);
 
@@ -166,7 +194,7 @@ public class ProductoCrudRepository : RepositorioBase, IProductoRepository
         string termino, ProductoFiltros filtros)
     {
         var client = await ConexionSupabase.GetClientAsync();
-        var query  = AplicarFiltros(client.From<Modelados.Productos.Productos>().Select(Select), filtros);
+        var query  = AplicarFiltros(client.From<Modelados.Productos.Productos>().Select(SelectPara(filtros)), filtros);
 
         var resultado = await query
             .Or(new List<IPostgrestQueryFilter>
@@ -222,13 +250,28 @@ public class ProductoCrudRepository : RepositorioBase, IProductoRepository
             .ToList();
     }
 
-    private async Task<int> GetPaginaDeProductoInternal(int idProducto, int size, ProductoFiltros filtros)
+    /// <summary>
+    /// Cuenta cuántos productos van ANTES que este con el orden activo. Tiene
+    /// que usar la misma columna que el listado (ver <see cref="ColumnaOrden"/>):
+    /// contar por id mientras la grilla ordena por nombre manda al usuario a la
+    /// página equivocada.
+    /// </summary>
+    private async Task<int> GetPaginaDeProductoInternal(ProductoDto producto, int size, ProductoFiltros filtros)
     {
         var client = await ConexionSupabase.GetClientAsync();
-        var query  = AplicarFiltros(
+
+        var (columna, direccion) = ColumnaOrden(filtros.Orden);
+
+        // "Antes que" se invierte con el orden descendente.
+        var comparador = direccion == Ord.Ascending ? Op.LessThan : Op.GreaterThan;
+        var valor = columna == "nombre_producto"
+            ? producto.Nombre
+            : producto.Id.ToString();
+
+        var query = AplicarFiltros(
             client.From<Modelados.Productos.Productos>()
                   .Select("id_producto")
-                  .Filter("id_producto", Op.LessThan, idProducto.ToString()),
+                  .Filter(columna, comparador, valor),
             filtros);
 
         var result  = await query.Get();
@@ -244,6 +287,11 @@ public class ProductoCrudRepository : RepositorioBase, IProductoRepository
             query = query.Filter("id_fabricante", Op.Equals, filtros.IdFabricante.Value.ToString());
         if (filtros.IdPais.HasValue)
             query = query.Filter("id_pais",       Op.Equals, filtros.IdPais.Value.ToString());
+
+        // Filtro sobre el recurso embebido; requiere el !inner de SelectPara.
+        if (filtros.IdProveedor.HasValue)
+            query = query.Filter("fabricante.id_proveedor", Op.Equals, filtros.IdProveedor.Value.ToString());
+
         return query;
     }
 
@@ -258,6 +306,7 @@ public class ProductoCrudRepository : RepositorioBase, IProductoRepository
         if (filtros.IdEstado.HasValue)     parametros["p_estado"] = filtros.IdEstado.Value;
         if (filtros.IdFabricante.HasValue) parametros["p_fab"]    = filtros.IdFabricante.Value;
         if (filtros.IdPais.HasValue)       parametros["p_pais"]   = filtros.IdPais.Value;
+        if (filtros.IdProveedor.HasValue)  parametros["p_prov"]   = filtros.IdProveedor.Value;
 
         var response = await client.Rpc("contar_productos", parametros);
         var json     = response?.Content;

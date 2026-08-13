@@ -527,6 +527,7 @@
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
                     <TextBlock Grid.Column="0"
@@ -571,9 +572,65 @@
                         </StackPanel>
                     </Border>
 
-                    <Border Grid.Column="2"/>
+                    <!-- Orden alfabético. Reusa SegmentBtn, el mismo estilo del filtro de estado. -->
+                    <StackPanel Grid.Column="2" Orientation="Horizontal"
+                                VerticalAlignment="Center" HorizontalAlignment="Left"
+                                Margin="18,0,0,0">
+                        <TextBlock Text="ORDEN"
+                                   FontFamily="Segoe UI" FontSize="12.5" FontWeight="Bold"
+                                   Foreground="#6B7280"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,10,0"/>
+                        <Border Background="#F3F4F6"
+                                CornerRadius="8"
+                                BorderBrush="#E5E7EB" BorderThickness="1"
+                                Padding="3"
+                                VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal">
+                                <RadioButton x:Name="RbOrdenId"
+                                             GroupName="OrdenProductos"
+                                             IsChecked="True"
+                                             Style="{StaticResource SegmentBtn}"
+                                             Checked="Orden_Changed"
+                                             ToolTip="Orden natural por código de registro">
+                                    <TextBlock Text="Por defecto" FontFamily="Segoe UI" FontSize="15"/>
+                                </RadioButton>
+                                <RadioButton x:Name="RbOrdenAZ"
+                                             GroupName="OrdenProductos"
+                                             Style="{StaticResource SegmentBtn}"
+                                             Checked="Orden_Changed"
+                                             ToolTip="Nombre ascendente">
+                                    <TextBlock Text="A-Z" FontFamily="Segoe UI" FontSize="15"/>
+                                </RadioButton>
+                                <RadioButton x:Name="RbOrdenZA"
+                                             GroupName="OrdenProductos"
+                                             Style="{StaticResource SegmentBtn}"
+                                             Checked="Orden_Changed"
+                                             ToolTip="Nombre descendente">
+                                    <TextBlock Text="Z-A" FontFamily="Segoe UI" FontSize="15"/>
+                                </RadioButton>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
 
                     <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,12,0">
+                        <TextBlock Text="Proveedor"
+                                   FontFamily="Segoe UI" FontSize="15.5"
+                                   Foreground="#1A1F2E"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,8,0"/>
+                        <ComboBox x:Name="CmbProveedor"
+                                  Width="150" Height="26"
+                                  FontFamily="Segoe UI" FontSize="15"
+                                  BorderBrush="#CBD5E1"
+                                  IsEditable="True"
+                                  IsTextSearchEnabled="False"
+                                  StaysOpenOnEdit="True"
+                                  DisplayMemberPath="Nombre"
+                                  ToolTip="Acota la lista de fabricantes"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,12,0">
                         <TextBlock Text="Fabricante"
                                    FontFamily="Segoe UI" FontSize="15.5"
                                    Foreground="#1A1F2E"
@@ -586,12 +643,10 @@
                                   IsEditable="True"
                                   IsTextSearchEnabled="False"
                                   StaysOpenOnEdit="True"
-                                  DisplayMemberPath="Nombre"
-                                  SelectionChanged="CmbFabricante_SelectionChanged"
-                                  PreviewKeyUp="CmbFabricante_PreviewKeyUp"/>
+                                  DisplayMemberPath="Nombre"/>
                     </StackPanel>
 
-                    <StackPanel Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Center">
+                    <StackPanel Grid.Column="5" Orientation="Horizontal" VerticalAlignment="Center">
                         <TextBlock Text="Pa&#237;s"
                                    FontFamily="Segoe UI" FontSize="15.5"
                                    Foreground="#1A1F2E"
@@ -604,9 +659,7 @@
                                   IsEditable="True"
                                   IsTextSearchEnabled="False"
                                   StaysOpenOnEdit="True"
-                                  DisplayMemberPath="Nombre"
-                                  SelectionChanged="CmbPais_SelectionChanged"
-                                  PreviewKeyUp="CmbPais_PreviewKeyUp"/>
+                                  DisplayMemberPath="Nombre"/>
                     </StackPanel>
                 </Grid>
             </StackPanel>
