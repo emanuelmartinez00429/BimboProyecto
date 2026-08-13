@@ -36,6 +36,12 @@ Si el usuario pregunta algo tipo **"Yo soy a los animales como...?"** (o similar
 | `70 - Bitácora de Cambios/AAAA-MM` | **Notas de sesión** con fecha (todo lo que hiciste) | Conocimiento atemporal |
 | `_templates` | Plantillas copy-paste (no editar el contenido de trabajo aquí) | — |
 
+**Nota sobre `.claude/`:**
+- `.claude/settings.json` — configuración global compartida (commiteado)
+- `.claude/hooks/` — automatizaciones (scripts que detectan contexto y sugieren skills)
+- `.claude/skills/` — skills locales del proyecto (recetas de cómo hacer algo)
+- **Todas versionadas en git** — se replican a cualquier agente que clone el repo
+
 **Regla de decisión rápida:**
 - ¿Hice algo hoy? → **nota de sesión** en `70`.
 - ¿Eso reveló una decisión de fondo? → además un **ADR** en `45`.
@@ -148,12 +154,50 @@ Los backups que genera cada recoloreo (`graph.json.backup-*`) están gitignoread
 
 ---
 
-## 9. Vía rápida opcional (solo Claude Code)
+## 9. Skills e inyección de contexto del proyecto (`.claude/`)
 
-Claude tiene skills (`wiki-query`, `wiki-capture`, `wiki-update`) que automatizan búsqueda y captura. **Los demás agentes ignoran esta sección** y trabajan con markdown plano siguiendo las reglas de arriba — el resultado es el mismo. Las skills nunca son requisito para contribuir.
+### Sistema de hooks + skills automatizados
+
+Proyecto Bimbo usa **3 niveles de inyección de contexto** para cualquier agente (Claude, Codex, Copilot, etc.):
+
+1. **`.claude/settings.json`** (commiteado) — configuración compartida, hooks globales
+2. **`.claude/hooks/`** — scripts que se ejecutan en eventos (`UserPromptSubmit`, `SessionStart`), detectan contexto y sugieren skills
+3. **`.claude/skills/`** — recetas/automatizaciones locales del proyecto
+
+### Hooks activos
+
+| Hook | Evento | Qué hace |
+|---|---|---|
+| `vault-trigger.js` | SessionStart + UserPromptSubmit | Lee bóveda Obsidian (test de conexión "pregunta clave") |
+| `diagram-auto-suggest.js` | UserPromptSubmit | Detecta solicitudes de diagrama, sugiere `/diagram-design` |
+
+### Skills disponibles
+
+| Skill | Cuándo se usa | Activación |
+|---|---|---|
+| `diagram-design` | Cualquier solicitud de diagrama | Automática (hook `diagram-auto-suggest.js`) u manual `/diagram-design` |
+
+**Ventaja:** El usuario no tiene que recordar qué skill usar — el hook lo detecta y lo sugiere automáticamente.
+
+### Cómo agregar una skill nueva
+
+1. Crear `.claude/skills/NOMBRE.md` con frontmatter YAML + documentación
+2. (Opcional) Crear hook en `.claude/hooks/NAME.js` que la detecte automáticamente
+3. Registrar el hook en `.claude/settings.json` bajo `UserPromptSubmit` u otro evento
+4. Documentar en esta sección de `AGENTS.md`
+5. Commitear todo junto
+
+**Ejemplo real:** `diagram-design` fue agregada así — ver commit de 2026-08-12.
 
 ---
-## 10. Regla de fuente de verdad (CRÍTICO)
+
+## 10. Vía rápida opcional (solo Claude Code)
+
+Claude tiene skills genéricas (`wiki-query`, `wiki-capture`, `wiki-update`) que automatizan búsqueda y captura. **Los demás agentes ignoran esta sección** y trabajan con markdown plano siguiendo las reglas de arriba — el resultado es el mismo. Las skills nunca son requisito para contribuir.
+
+---
+
+## 11. Regla de fuente de verdad (CRÍTICO)
 - El contenido de los archivos del vault (contexto/ y vault anterior) es 
   SIEMPRE la única fuente de verdad. Tu memoria de conversaciones o 
   sesiones anteriores NUNCA tiene prioridad sobre el contenido actual 
