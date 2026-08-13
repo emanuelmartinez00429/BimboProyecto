@@ -62,11 +62,6 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
         /// </summary>
         public bool MostrarEstadoVacio => !IsLoading && CamionesActivos == 0;
 
-        /// <summary>Hay camiones ya cerrados aunque ninguno esté descargándose.</summary>
-        public bool HayCerrados => Camiones.Any(c => c.Estado == "Cerrado");
-
-        public int CerradosCount => Camiones.Count(c => c.Estado == "Cerrado");
-
         public event Action<string>? Toast;
 
         public PesajeViewModel(IPesajeRepository repo, IUsuarioSesionService sesionService)
@@ -122,9 +117,9 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             if (!r.Success) { Toast?.Invoke(r.Error ?? "Error al cargar productos"); return; }
             foreach (var p in r.Value!) camion.Productos.Add(MapProducto(p, camion.Proveedor));
 
-            // El prorrateo de la tara extra depende del total de bultos declarados,
+            // Los totales de tara extra del camión son la suma de la de sus productos,
             // que recién se conoce con los productos ya cargados.
-            camion.NotificarTaraExtra();
+            camion.NotificarTotales();
         }
 
         // ══════════════════════════════════════════════════════════════════════
@@ -150,44 +145,19 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
         // ══════════════════════════════════════════════════════════════════════
         //  Camiones
         // ══════════════════════════════════════════════════════════════════════
-        public async Task<int?> RegistrarCamionAsync(string placa, string proveedor, int? idProveedor, string obs, double taraExtraTotal = 0)
-        {
-            if (idProveedor is null) { Toast?.Invoke("Selecciona un proveedor válido"); return null; }
-            if (!HaySesionActiva("registrar camión")) return null;
-            var r = await _repo.CrearCamionAsync(idProveedor.Value, placa, obs, taraExtraTotal, UsuarioActual);
-            if (!r.Success) { Toast?.Invoke(r.Error ?? "No se pudo registrar"); return null; }
-
-            await RecargarCamionesAsync(seleccionarId: r.Value);
-            Toast?.Invoke("Camión registrado");
-            return r.Value;
-        }
-
-        public async Task ActualizarCamionAsync(CamionPesaje c, string placa, string proveedor, int? idProveedor, string obs, double taraExtraTotal)
-        {
-            if (idProveedor is null) { Toast?.Invoke("Selecciona un proveedor válido"); return; }
-            var r = await _repo.ActualizarCamionAsync(c.Id, idProveedor.Value, placa, obs, taraExtraTotal);
-            if (!r.Success) { Toast?.Invoke(r.Error ?? "No se pudo actualizar"); return; }
-
-            c.Placa = placa; c.Proveedor = proveedor; c.IdProveedor = idProveedor; c.Observaciones = obs;
-            c.TaraExtraTotal = taraExtraTotal;
-            foreach (var p in c.Productos) p.ProveedorNombre = proveedor;
-            c.NotificarTaraExtra();
-            OnPropertyChanged(nameof(SelectedCamion));
-            RecalcularFilas();
-            Toast?.Invoke("Camión actualizado");
-        }
-
         /// <summary>
-        /// Persiste el proceso de descarga completo (camión + productos + tara extra)
-        /// en una sola operación, tanto para alta (wizard) como para edición (megamodal).
+        /// Persiste el proceso de descarga completo (camión + productos) en una sola
+        /// operación, tanto para alta (wizard) como para edición (megamodal).
         /// <para/>
         /// Orden: primero el camión (para tener su id), después los productos quitados,
         /// después los nuevos, y al final las actualizaciones de los ya existentes.
         /// Si falla el camión se corta: sin id no hay dónde colgar los productos.
+        /// <para/>
+        /// La tara extra NO se toca acá: se pesa por entrada, no por camión.
         /// </summary>
         public async Task<bool> GuardarProcesoAsync(
             CamionPesaje? camionExistente,
-            string placa, string proveedor, int? idProveedor, string obs, double taraExtraTotal,
+            string placa, string proveedor, int? idProveedor, string obs,
             IReadOnlyList<(int IdMovProducto, int IdProducto, double PesoManifestado, int BultosDeclarados)> productos,
             IReadOnlyList<int> idsQuitados)
         {
@@ -198,13 +168,13 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
 
             if (camionExistente is null)
             {
-                var rNuevo = await _repo.CrearCamionAsync(idProveedor.Value, placa, obs, taraExtraTotal, UsuarioActual);
+                var rNuevo = await _repo.CrearCamionAsync(idProveedor.Value, placa, obs, UsuarioActual);
                 if (!rNuevo.Success) { Toast?.Invoke(rNuevo.Error ?? "No se pudo registrar el camión"); return false; }
                 idCamion = rNuevo.Value;
             }
             else
             {
-                var rEdit = await _repo.ActualizarCamionAsync(camionExistente.Id, idProveedor.Value, placa, obs, taraExtraTotal);
+                var rEdit = await _repo.ActualizarCamionAsync(camionExistente.Id, idProveedor.Value, placa, obs);
                 if (!rEdit.Success) { Toast?.Invoke(rEdit.Error ?? "No se pudo actualizar el camión"); return false; }
                 idCamion = camionExistente.Id;
             }
@@ -339,14 +309,12 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
                 if (!ra.Success) { Toast?.Invoke(ra.Error ?? "No se pudo editar"); return; }
             }
 
-            // La tara extra se pesa UNA sola vez para todo el camión: a esta pesada le
-            // toca la parte proporcional a sus bultos. Se calcula acá (fuente única de
-            // verdad), no se confía en lo que traiga el snapshot del modal.
-            double taraExtraProrrateada = SelectedCamion.TaraExtraPorBulto * snapshot.Bultos;
-
+            // La tara extra es un peso real que se captura en el modal (las tarimas que
+            // vinieron con esta pesada). Ya no se prorratea nada: si no se pesó acá, se
+            // carga después el total y el sistema lo reparte entre las pesadas.
             var r = await _repo.CrearEntradaAsync(
-                producto.Id, producto.IdProducto, snapshot.Bruto, taraExtraProrrateada,
-                snapshot.Bultos, snapshot.Observaciones, UsuarioActual);
+                producto.Id, producto.IdProducto, snapshot.Bruto, snapshot.TaraExtra,
+                snapshot.Observaciones, UsuarioActual);
             if (!r.Success) { Toast?.Invoke(r.Error ?? "No se pudo guardar el pesaje"); return; }
 
             int id = producto.Id;
@@ -368,6 +336,79 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             SelectedEntrada  = null;
             RecalcularFilas();
             Toast?.Invoke("Entrada eliminada");
+        }
+
+        // ══════════════════════════════════════════════════════════════════════
+        //  Tara extra — reparto de un total ya pesado
+        // ══════════════════════════════════════════════════════════════════════
+
+        /// <summary>
+        /// Reparte una tara extra TOTAL ya pesada entre las pesadas del alcance elegido
+        /// (un producto o el camión entero) y la escribe en cada entrada.
+        /// <para/>
+        /// Es un UPDATE en el lugar, NO el patrón anular+insertar que usa la edición de un
+        /// pesaje: reemitir N ids, fechas y usuarios destruiría la auditoría de pesadas que
+        /// no se están corrigiendo — sólo se les está completando un dato.
+        /// <para/>
+        /// Pre-vuelo obligatorio: si alguna pesada quedara con neto ≤ 0 no se escribe NADA.
+        /// No hay transacción (son N PATCH sueltos), y el <c>peso_neto</c> es lo que se le
+        /// paga al proveedor: mejor fallar entero que dejar un reparto a medias.
+        /// </summary>
+        public async Task<bool> RepartirTaraExtraAsync(IReadOnlyList<EntradaPesaje> entradas, double totalKg)
+        {
+            if (SelectedCamion is null) return false;
+            if (!HaySesionActiva("repartir la tara extra")) return false;
+
+            if (entradas.Count == 0)
+            {
+                Toast?.Invoke("Registrá al menos una pesada antes de cargar la tara extra.");
+                return false;
+            }
+            if (totalKg < 0) { Toast?.Invoke("La tara extra no puede ser negativa."); return false; }
+
+            var cuotas = PesajeCalc.RepartirTaraExtra(totalKg, entradas.Count);
+
+            // Pre-vuelo: ninguna escritura hasta saber que todas pasan el CHECK.
+            for (int i = 0; i < entradas.Count; i++)
+            {
+                double neto = entradas[i].Bruto - entradas[i].TaraInd - cuotas[i];
+                if (neto <= 0)
+                {
+                    double max = PesajeCalc.TaraExtraMaximaRepartible(
+                        entradas.Select(x => (x.Bruto, x.TaraInd)));
+                    Toast?.Invoke(
+                        $"No se puede repartir {totalKg:N2} kg: una pesada quedaría con neto {neto:N2} kg. " +
+                        $"Máximo repartible: {max:N2} kg.");
+                    return false;
+                }
+            }
+
+            int fallidas = 0;
+            for (int i = 0; i < entradas.Count; i++)
+            {
+                var e = entradas[i];
+                double taraTotal = e.TaraInd + cuotas[i];
+                var r = await _repo.ActualizarTaraExtraEntradaAsync(
+                    e.Id, cuotas[i], taraTotal, e.Bruto - taraTotal);
+                if (!r.Success)
+                {
+                    fallidas++;
+                    Serilog.Log.Error("PesajeVM: falló el reparto de tara extra en la entrada {Id}: {Error}",
+                        e.Id, r.Error);
+                }
+            }
+
+            int? idProd = SelectedProducto?.Id;
+            await CargarProductosAsync(SelectedCamion);
+            SelectedProducto = idProd.HasValue
+                ? SelectedCamion.Productos.FirstOrDefault(x => x.Id == idProd.Value)
+                : null;
+            RecalcularFilas();
+
+            Toast?.Invoke(fallidas == 0
+                ? $"Tara extra repartida entre {entradas.Count} pesada(s)"
+                : $"Atención: {fallidas} de {entradas.Count} pesadas no se actualizaron. Volvé a aplicar el total.");
+            return fallidas == 0;
         }
 
         // ══════════════════════════════════════════════════════════════════════
@@ -428,8 +469,6 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             OnPropertyChanged(nameof(CamionesTexto));
             OnPropertyChanged(nameof(PuedeAgregarCamion));
             OnPropertyChanged(nameof(MostrarEstadoVacio));
-            OnPropertyChanged(nameof(HayCerrados));
-            OnPropertyChanged(nameof(CerradosCount));
         }
 
         private static CamionPesaje MapCamion(CamionDto c) => new()
@@ -437,7 +476,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             Id = c.Id, Placa = c.Placa, Proveedor = c.Proveedor, IdProveedor = c.IdProveedor,
             FechaAsignacion = c.FechaAsignacion, Observaciones = c.Observaciones,
             Estado = c.Cerrado ? "Cerrado" : "Abierto",
-            TaraExtraTotal = c.TaraExtraTotal,
+            TaraExtraLegado = c.TaraExtraLegado,
         };
 
         private static ProductoCamion MapProducto(MovProductoDto p, string proveedor)
@@ -449,11 +488,16 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
                 PesoManifestado = p.PesoManifestado, BultosDeclarados = p.BultosDeclarados,
                 Observaciones = p.Observaciones, Estado = p.Cerrado ? "Cerrado" : "Abierto", ProveedorNombre = proveedor,
             };
+            // Único punto donde conviven la entrada y los datos del producto: acá se calcula
+            // la estimación de bultos, que no se persiste.
             foreach (var e in p.Entradas)
                 pc.Entradas.Add(new EntradaPesaje
                 {
                     Id = e.Id, Bruto = e.Bruto, TaraInd = e.TaraInd, TaraExtra = e.TaraExtra,
-                    TaraTotal = e.TaraTotal, Neto = e.Neto, Bultos = e.Bultos, Fecha = e.Fecha, Hora = e.Hora,
+                    TaraTotal = e.TaraTotal, Neto = e.Neto, Fecha = e.Fecha, Hora = e.Hora,
+                    BultosCapturados = e.BultosCapturados,
+                    BultosTeoricos = PesajeCalc.BultosTeoricos(
+                        e.Bruto, e.TaraExtra, p.PesoTeorico, p.TaraUnitaria),
                     Observaciones = e.Observaciones, ProdId = p.Id, ProdNombre = p.Nombre,
                 });
             pc.NotificarAgregados();

@@ -29,9 +29,12 @@ namespace CapaDatos.Modelados.Pesajes
         public string? observaciones { get; set; }
 
         /// <summary>
-        /// Tara extra TOTAL del camión (tarimas, forros, separadores): se pesa una sola
-        /// vez para toda la carga. La app la prorratea entre los bultos declarados al
-        /// insertar cada entrada — ver PesajeCalc.TaraExtraPorBulto.
+        /// LEGADO — tara extra total del camión en el flujo anterior, que la app prorrateaba
+        /// entre los bultos declarados al insertar cada entrada.
+        /// <para/>
+        /// Ya NO se escribe: la tara extra se pesa y se guarda por entrada
+        /// (<c>entradas_producto.peso_tara_extra</c>), y el total es la suma de esas filas.
+        /// Se conserva de solo lectura para no perder el dato de los camiones viejos.
         /// </summary>
         [Column("peso_tara_extra")]
         public decimal pesoTaraExtra { get; set; }

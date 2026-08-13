@@ -119,4 +119,4 @@ Regla: `CapaAplicacion` **nunca** referencia `CapaDatos`.
 ## Bitácora
 
 Las sesiones están en `70 - Bitácora de Cambios/`.  
-Sesión más reciente: [[Sesión 2026-08-12 - Estabilización de la pantalla de Roles]]
+Sesión más reciente: [[Sesión 2026-08-13 - Pesaje solo bruto y tara extra pesada]]

@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.Linq;
 using System.Windows.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -7,51 +9,87 @@ using CommunityToolkit.Mvvm.ComponentModel;
 namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modelos
 {
     /// <summary>
-    /// Modelos en memoria de la pantalla de Recepción de Materia Prima (Fase 1).
-    /// Equivalen a la semilla del diseño. La persistencia real
-    /// (movimientos/movimiento_productos/entradas_producto) es Fase 2.
+    /// Modelos en memoria de la pantalla de Recepción de Materia Prima.
+    /// La persistencia real vive en movimientos/movimiento_productos/entradas_producto.
     /// </summary>
     public static class PesajeCalc
     {
         public static int Round(double n) => (int)Math.Round(n, MidpointRounding.AwayFromZero);
 
-        public static double CalcTaraInd(int bultosDeclarados, double taraUnitaria)
-            => Round(bultosDeclarados) * taraUnitaria;
-
         public static string HoraAhora() => DateTime.Now.ToString("hh:mm tt");
         public static string FechaHoy()  => DateTime.Now.ToString("dd/MM/yyyy");
 
         /// <summary>
-        /// Reparte la tara extra TOTAL del camión (se pesa una sola vez: tarimas, forros,
-        /// separadores) entre todos los bultos declarados de la carga. Así, cuando se
-        /// termina de pesar todo, la suma de taras extra atribuidas equivale al total real.
-        /// Devuelve 0 si no hay bultos declarados (evita división por cero).
-        /// </summary>
-        public static double TaraExtraPorBulto(double taraExtraTotal, int bultosDeclaradosCamion)
-            => bultosDeclaradosCamion > 0 ? taraExtraTotal / bultosDeclaradosCamion : 0;
-
-        /// <summary>
-        /// Bultos teóricos: cuántos bultos representa el peso bruto que acaba de marcar la
-        /// báscula. Cada bulto pesa: producto + su empaque + su parte de la tara extra.
+        /// Bultos estimados de una pesada: al bruto se le quita la tara extra que se pesó
+        /// junto con la carga (las tarimas) y el resto se divide por lo que pesa UN bulto
+        /// completo — el producto más su propio empaque.
         /// <para/>
-        /// Devuelve <c>null</c> cuando el cálculo no es confiable (bruto no positivo, o
-        /// falta el peso teórico del producto) — la UI muestra "—" en ese caso en vez de
-        /// un número inventado.
+        /// <c>bultos = (bruto − tara_extra_de_esta_entrada) / (peso_teorico + tara_empaque)</c>
         /// <para/>
-        /// OJO: usa la tara de empaque POR BULTO, mientras que el trigger de BD la aplica
-        /// PLANA al calcular el peso neto guardado. Inconsistencia conocida y documentada
-        /// (ver Deuda Técnica); este indicador es informativo y no altera el neto.
+        /// Es un INDICADOR APROXIMADO, nunca un dato capturado: no se persiste. Devuelve
+        /// <c>null</c> cuando no hay forma de calcularlo con sentido (bruto no positivo, sin
+        /// peso teórico en el catálogo, o el bruto no alcanza a cubrir la tara extra) — la UI
+        /// muestra "—" en vez de un número inventado.
         /// </summary>
         public static double? BultosTeoricos(
-            double pesoBruto, double pesoTeoricoUnitario, double taraEmpaqueUnitaria, double taraExtraPorBulto)
+            double pesoBruto, double taraExtraEntrada,
+            double pesoTeoricoUnitario, double taraEmpaqueUnitaria)
         {
             if (pesoBruto <= 0) return null;
             if (pesoTeoricoUnitario <= 0) return null;   // sin peso teórico no hay cómo calcular
 
-            double pesoPorBulto = pesoTeoricoUnitario + taraEmpaqueUnitaria + taraExtraPorBulto;
+            double pesoProducto = pesoBruto - taraExtraEntrada;
+            if (pesoProducto <= 0) return null;
+
+            double pesoPorBulto = pesoTeoricoUnitario + taraEmpaqueUnitaria;
             if (pesoPorBulto <= 0) return null;
 
-            return pesoBruto / pesoPorBulto;
+            return pesoProducto / pesoPorBulto;
+        }
+
+        /// <summary>
+        /// La estimación de bultos no es confiable porque no se pesó la tara extra de esa
+        /// entrada: el peso de las tarimas se está contando como si fuera producto.
+        /// </summary>
+        public static bool BultosSonAproximados(double taraExtraEntrada) => taraExtraEntrada <= 0;
+
+        /// <summary>
+        /// Reparte un total en <paramref name="n"/> cuotas iguales redondeadas; el residuo del
+        /// redondeo va a la última. Garantiza que la suma de las cuotas dé el total EXACTO, que
+        /// es lo que hace literalmente cierto que "la tara extra total es la suma de las entradas".
+        /// </summary>
+        public static double[] RepartirTaraExtra(double total, int n, int decimales = 2)
+        {
+            if (n <= 0) return Array.Empty<double>();
+
+            var cuotas = new double[n];
+            double cuota = Math.Round(total / n, decimales, MidpointRounding.AwayFromZero);
+            double acumulado = 0;
+
+            for (int i = 0; i < n - 1; i++)
+            {
+                cuotas[i] = cuota;
+                acumulado += cuota;
+            }
+            cuotas[n - 1] = Math.Round(total - acumulado, decimales, MidpointRounding.AwayFromZero);
+            return cuotas;
+        }
+
+        /// <summary>
+        /// Tara extra máxima que se puede repartir sin que ninguna pesada quede con neto ≤ 0
+        /// (la BD lo rechaza con un CHECK). Como el reparto es uniforme, el techo lo marca la
+        /// pesada de menor margen: <c>min(bruto − tara_individual) × cantidad de pesadas</c>.
+        /// </summary>
+        public static double TaraExtraMaximaRepartible(IEnumerable<(double Bruto, double TaraInd)> entradas)
+        {
+            var margenes = entradas.Select(e => e.Bruto - e.TaraInd).ToList();
+            if (margenes.Count == 0) return 0;
+
+            double menor = margenes.Min();
+            if (menor <= 0) return 0;
+
+            double maximo = menor * margenes.Count - 0.01;   // estrictamente menor, no igual
+            return Math.Max(0, Math.Floor(maximo * 100) / 100);
         }
     }
 
@@ -66,7 +104,24 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modelos
         public double TaraExtra { get; set; }
         public double TaraTotal { get; set; }
         public double Neto      { get; set; }
-        public int    Bultos    { get; set; }
+
+        /// <summary>Indicador calculado a partir del peso. Nunca se persiste. Null = no calculable.</summary>
+        public double? BultosTeoricos { get; set; }
+
+        /// <summary>
+        /// Bultos que capturó el operario a mano en el flujo VIEJO
+        /// (<c>numero_bultos_recibido</c>). Null en las entradas nuevas, donde ya no se captura.
+        /// </summary>
+        public int? BultosCapturados { get; set; }
+
+        /// <summary>Lo que muestra la grilla: el dato real si existe, si no la estimación.</summary>
+        public string BultosTexto => BultosCapturados.HasValue
+            ? BultosCapturados.Value.ToString("N0", CultureInfo.InvariantCulture)
+            : BultosTeoricos?.ToString("N2", CultureInfo.InvariantCulture) ?? "—";
+
+        /// <summary>La estimación no es confiable: no se pesó la tara extra de esta entrada.</summary>
+        public bool BultosAproximados => !BultosCapturados.HasValue && TaraExtra <= 0;
+
         public string Fecha     { get; set; } = "";
         public string Hora      { get; set; } = "";
         public string Observaciones { get; set; } = "";
@@ -99,9 +154,25 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modelos
 
         public ObservableCollection<EntradaPesaje> Entradas { get; } = new();
 
-        // ── Agregados (idénticos a calcAgregadosProducto del diseño) ──────────
+        // ── Agregados ─────────────────────────────────────────────────────────
         public double PesoRecibido => Entradas.Sum(e => e.Neto);
 
+        /// <summary>
+        /// Tara extra registrada de este producto: la SUMA de lo pesado en cada entrada.
+        /// Es la fuente de verdad — el total nunca se guarda por separado.
+        /// </summary>
+        public double TaraExtraRegistrada => Entradas.Sum(e => e.TaraExtra);
+
+        /// <summary>Pesadas a las que todavía no se les cargó la tara extra.</summary>
+        public int PesadasSinTaraExtra => Entradas.Count(e => e.TaraExtra <= 0);
+
+        /// <summary>Hay pesadas sin tara extra: sus bultos estimados son aproximados.</summary>
+        public bool FaltaTaraExtra => Entradas.Count > 0 && PesadasSinTaraExtra > 0;
+
+        /// <summary>Bultos estimados recibidos: la suma de las estimaciones de cada pesada.</summary>
+        public double BultosEstimados => Entradas.Sum(e => e.BultosTeoricos ?? 0);
+
+        // Proporción del manifiesto, basada en PESO (no en los bultos, que ya no se capturan).
         public double BultosRecibidos => PesoManifestado > 0
             ? PesoRecibido * BultosDeclarados / PesoManifestado
             : 0;
@@ -137,6 +208,10 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modelos
         public void NotificarAgregados()
         {
             OnPropertyChanged(nameof(PesoRecibido));
+            OnPropertyChanged(nameof(TaraExtraRegistrada));
+            OnPropertyChanged(nameof(PesadasSinTaraExtra));
+            OnPropertyChanged(nameof(FaltaTaraExtra));
+            OnPropertyChanged(nameof(BultosEstimados));
             OnPropertyChanged(nameof(BultosRecibidos));
             OnPropertyChanged(nameof(BultosRestantes));
             OnPropertyChanged(nameof(PctRestante));
@@ -159,35 +234,29 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modelos
         [ObservableProperty] private string _estado = "Abierto";
 
         /// <summary>
-        /// Tara extra TOTAL de la carga (tarimas, forros, separadores) — se pesa una
-        /// sola vez para todo el camión, no por pesada.
+        /// LEGADO — <c>movimientos.peso_tara_extra</c> del flujo anterior, donde la tara extra
+        /// se pesaba una vez por camión y se prorrateaba por bultos declarados. Solo lectura:
+        /// nunca se vuelve a escribir. Sirve para reconocer camiones cargados con el flujo viejo.
+        /// La tara extra vigente vive en cada entrada (<c>ProductoCamion.TaraExtraRegistrada</c>).
         /// </summary>
-        [ObservableProperty]
-        [NotifyPropertyChangedFor(nameof(TaraExtraPorBulto))]
-        [NotifyPropertyChangedFor(nameof(FaltaTaraExtra))]
-        private double _taraExtraTotal;
+        public double TaraExtraLegado { get; set; }
+
+        /// <summary>El camión trae tara extra cargada con el esquema anterior.</summary>
+        public bool EsLegado => TaraExtraLegado > 0;
 
         public ObservableCollection<ProductoCamion> Productos { get; } = new();
 
-        /// <summary>Suma de los bultos declarados de todos los productos de la carga.</summary>
-        public int BultosDeclaradosTotal => Productos.Sum(p => p.BultosDeclarados);
+        /// <summary>Tara extra de todo el camión: la suma de la registrada en cada producto.</summary>
+        public double TaraExtraRegistrada => Productos.Sum(p => p.TaraExtraRegistrada);
 
-        /// <summary>Parte de la tara extra que le toca a cada bulto de la carga.</summary>
-        public double TaraExtraPorBulto =>
-            PesajeCalc.TaraExtraPorBulto(TaraExtraTotal, BultosDeclaradosTotal);
+        /// <summary>Pesadas del camión entero (todos los productos) sin tara extra cargada.</summary>
+        public int PesadasSinTaraExtra => Productos.Sum(p => p.PesadasSinTaraExtra);
 
-        /// <summary>
-        /// True si todavía no se registró la tara extra: los netos y los bultos teóricos
-        /// pueden no ser correctos hasta que se ingrese.
-        /// </summary>
-        public bool FaltaTaraExtra => TaraExtraTotal <= 0;
-
-        /// <summary>Recalcula lo que depende de los bultos declarados de los productos.</summary>
-        public void NotificarTaraExtra()
+        /// <summary>Recalcula los agregados que dependen de las entradas de los productos.</summary>
+        public void NotificarTotales()
         {
-            OnPropertyChanged(nameof(BultosDeclaradosTotal));
-            OnPropertyChanged(nameof(TaraExtraPorBulto));
-            OnPropertyChanged(nameof(FaltaTaraExtra));
+            OnPropertyChanged(nameof(TaraExtraRegistrada));
+            OnPropertyChanged(nameof(PesadasSinTaraExtra));
         }
     }
 }

@@ -279,47 +279,9 @@
                             </StackPanel>
                         </StackPanel>
 
-                        <Border x:Name="SepProductos" Height="1" Background="#1AFFFFFF" Margin="0,20,0,20"/>
-
-                        <!-- ══ SECCIÓN 3 · TARA EXTRA ══ -->
-                        <StackPanel x:Name="SecTaraExtra">
-                            <StackPanel Orientation="Horizontal">
-                                <Border Style="{StaticResource PasoChip}">
-                                    <TextBlock Text="3" FontFamily="Segoe UI" FontSize="13" FontWeight="Bold"
-                                               Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                </Border>
-                                <TextBlock Text="Tara extra de la carga" Style="{StaticResource SeccionTitulo}"
-                                           VerticalAlignment="Center"/>
-                            </StackPanel>
-                            <TextBlock Style="{StaticResource SeccionAyuda}" Margin="34,4,0,12"
-                                       Text="Pesá la tara extra (tarimas, forros, separadores) una sola vez para toda la carga. El sistema la reparte automáticamente entre los bultos declarados al registrar cada pesaje."/>
-
-                            <StackPanel Margin="34,0,0,0">
-                                <TextBlock Text="Peso de tara extra total (kg)" Style="{StaticResource MLabel}"/>
-                                <TextBox x:Name="TxtTaraExtra" Style="{StaticResource MInput}"
-                                         Margin="0,0,0,12" Text="0" TextChanged="TaraExtra_Changed"/>
-
-                                <Border Background="#14FFFFFF" CornerRadius="8" Padding="14,12"
-                                        BorderBrush="#26FFFFFF" BorderThickness="1">
-                                    <StackPanel>
-                                        <Grid Margin="0,0,0,6">
-                                            <TextBlock Text="Bultos declarados en la carga" FontFamily="Segoe UI"
-                                                       FontSize="12.5" Foreground="#D9FFFFFF"/>
-                                            <TextBlock x:Name="TxtBultosTotales" HorizontalAlignment="Right"
-                                                       FontFamily="Segoe UI" FontSize="12.5" FontWeight="SemiBold"
-                                                       Foreground="White"/>
-                                        </Grid>
-                                        <Grid>
-                                            <TextBlock Text="Tara extra por bulto" FontFamily="Segoe UI"
-                                                       FontSize="12.5" Foreground="#D9FFFFFF"/>
-                                            <TextBlock x:Name="TxtTaraPorBulto" HorizontalAlignment="Right"
-                                                       FontFamily="Segoe UI" FontSize="12.5" FontWeight="SemiBold"
-                                                       Foreground="#86EFAC"/>
-                                        </Grid>
-                                    </StackPanel>
-                                </Border>
-                            </StackPanel>
-                        </StackPanel>
+                        <!-- La tara extra ya no se pide acá: no se puede estimar por
+                             adelantado, se pesa. Se carga desde la pantalla de pesaje con
+                             el botón «Tara extra», en cualquier momento del proceso. -->
 
                     </StackPanel>
                 </ScrollViewer>

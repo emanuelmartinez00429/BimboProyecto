@@ -391,7 +391,7 @@
                         </ListBox>
 
                         <!-- Toolbar camiones — un solo botón de edición: abre el megamodal
-                             con todo el proceso (camión + productos + tara extra).
+                             con todo el proceso (camión + productos).
 
                              Grilla 2×2 uniforme, no WrapPanel: en el WrapPanel cada botón
                              medía lo que medía su texto ("Nueva descarga" vs "Quitar"), así
@@ -567,7 +567,21 @@
                                     <TextBlock Text="Pesar" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>
-                            <TextBlock Text="Para agregar, editar o quitar productos usá «Editar proceso»"
+                            <!-- La tara extra (tarimas) se pesa aparte y se reparte entre las
+                                 pesadas ya registradas del producto o de todo el camión. -->
+                            <Button x:Name="BtnProdTaraExtra" Style="{StaticResource ToolBtn}" Margin="0,0,8,0"
+                                    Click="BtnProdTaraExtra_Click"
+                                    permisos:PermisoBehavior.Requiere="Modificar Pesaje"
+                                    ToolTip="Cargar el peso de las tarimas y repartirlo entre las pesadas">
+                                <StackPanel Orientation="Horizontal">
+                                    <Path Data="{StaticResource IcoPack}" Stroke="#1E3A8A" StrokeThickness="2" Width="13" Height="13" Stretch="Uniform" Margin="0,0,7,0" VerticalAlignment="Center" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                                    <TextBlock Text="Tara extra" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                            <TextBlock x:Name="TxtAvisoTaraProducto" FontFamily="Segoe UI" FontSize="13.5"
+                                       Foreground="#B45309" FontWeight="SemiBold" VerticalAlignment="Center"
+                                       Margin="0,0,10,0" Visibility="Collapsed"/>
+                            <TextBlock Text="Productos: usá «Editar proceso»"
                                        FontFamily="Segoe UI" FontSize="13.5" Foreground="#9CA3AF"
                                        VerticalAlignment="Center"/>
                         </WrapPanel>
@@ -653,7 +667,20 @@
                                         </Style>
                                     </DataGridTextColumn.ElementStyle>
                                 </DataGridTextColumn>
-                                <DataGridTextColumn Header="BULTOS" Binding="{Binding Bultos}" Width="76" ElementStyle="{StaticResource EntText}"/>
+                                <!-- Los bultos ya no se capturan: se estiman desde el peso. En ámbar
+                                     cuando la pesada no tiene tara extra y la estimación es alta. -->
+                                <DataGridTextColumn Header="BULTOS (EST.)" Binding="{Binding BultosTexto}" Width="96">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock" BasedOn="{StaticResource EntText}">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding BultosAproximados}" Value="True">
+                                                    <Setter Property="Foreground" Value="#B45309"/>
+                                                    <Setter Property="ToolTip" Value="Aproximado: esta pesada no tiene tara extra registrada"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
                                 <DataGridTextColumn Header="FECHA" Binding="{Binding Fecha}" Width="92" ElementStyle="{StaticResource EntText}"/>
                                 <DataGridTextColumn Header="HORA" Binding="{Binding Hora}" Width="70" ElementStyle="{StaticResource EntText}"/>
                             </DataGrid.Columns>
@@ -715,7 +742,7 @@
                            FontFamily="Segoe UI" FontSize="21" FontWeight="Bold" Foreground="#1A1F2E"
                            HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap"/>
 
-                <TextBlock Text="Iniciá un nuevo proceso para registrar la placa, los productos que trae el camión y la tara extra de la carga."
+                <TextBlock Text="Iniciá un nuevo proceso para registrar la placa y los productos que trae el camión."
                            FontFamily="Segoe UI" FontSize="15.5" Foreground="#6B7280"
                            HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap"
                            Margin="0,10,0,26"/>
@@ -751,14 +778,7 @@
                         </ControlTemplate>
                     </Button.Template>
                 </Button>
-
-                <!-- Los camiones ya cerrados siguen accesibles desde acá -->
-                <Button x:Name="BtnVerCerrados" HorizontalAlignment="Center" Margin="0,18,0,0"
-                        Background="Transparent" BorderThickness="0" Cursor="Hand"
-                        Visibility="Collapsed" FocusVisualStyle="{x:Null}" Click="BtnVerCerrados_Click">
-                    <TextBlock x:Name="TxtVerCerrados" FontFamily="Segoe UI" FontSize="15"
-                               Foreground="#1E3A8A" TextDecorations="Underline"/>
-                </Button>
+                <!-- Los camiones cerrados no se listan acá: van a ir en la sección de históricos. -->
             </StackPanel>
         </Border>
 

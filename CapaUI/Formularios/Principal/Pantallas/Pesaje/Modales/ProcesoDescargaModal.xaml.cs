@@ -60,13 +60,12 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
         string Proveedor,
         int?   IdProveedor,
         string Observaciones,
-        double TaraExtraTotal,
         IReadOnlyList<ProductoEnProceso> Productos);
 
     /// <summary>
     /// Proceso de descarga: un único componente con dos modos.
     /// <para/>
-    /// <b>Wizard</b> — alta guiada paso a paso (camión → productos → tara extra),
+    /// <b>Wizard</b> — alta guiada paso a paso (camión → productos),
     /// con instrucciones escritas en cada sección y navegación Atrás/Siguiente.
     /// <para/>
     /// <b>Edición</b> — "megamodal": las mismas tres secciones, todas visibles a la
@@ -77,7 +76,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
     /// </summary>
     public partial class ProcesoDescargaModal : System.Windows.Controls.UserControl
     {
-        private const int TotalPasos = 3;
+        private const int TotalPasos = 2;
 
         private readonly ModoProceso _modo;
         private readonly CamionPesaje? _camion;   // solo en modo Edición
@@ -119,7 +118,6 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
         {
             TxtPlaca.Text     = c.Placa;
             TxtObs.Text       = c.Observaciones;
-            TxtTaraExtra.Text = c.TaraExtraTotal.ToString(CultureInfo.InvariantCulture);
 
             CmbProveedor.SelectedItem = _proveedores.FirstOrDefault(p => p.Id == c.IdProveedor)
                                      ?? _proveedores.FirstOrDefault(p => p.Nombre == c.Proveedor);
@@ -160,9 +158,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
         {
             SecCamion.Visibility     = Visibility.Visible;
             SecProductos.Visibility  = Visibility.Visible;
-            SecTaraExtra.Visibility  = Visibility.Visible;
             SepCamion.Visibility     = Visibility.Visible;
-            SepProductos.Visibility  = Visibility.Visible;
         }
 
         // ── Navegación del wizard ───────────────────────────────────────────
@@ -173,11 +169,9 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
 
             SecCamion.Visibility    = _paso == 1 ? Visibility.Visible : Visibility.Collapsed;
             SecProductos.Visibility = _paso == 2 ? Visibility.Visible : Visibility.Collapsed;
-            SecTaraExtra.Visibility = _paso == 3 ? Visibility.Visible : Visibility.Collapsed;
 
-            // En wizard cada paso va solo: los separadores sobran.
+            // En wizard cada paso va solo: el separador sobra.
             SepCamion.Visibility    = Visibility.Collapsed;
-            SepProductos.Visibility = Visibility.Collapsed;
 
             TxtEyebrow.Text      = $"PASO {_paso} DE {TotalPasos}";
             BtnAtras.Visibility  = _paso > 1 ? Visibility.Visible : Visibility.Collapsed;
@@ -220,7 +214,6 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
                 prov?.Nombre ?? "",
                 prov?.Id,
                 TxtObs.Text.Trim(),
-                LeerTaraExtra(),
                 _productos.ToList()));
         }
 
@@ -249,11 +242,6 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
                     }
                     return true;
 
-                case 3:
-                    if (LeerTaraExtra() < 0)
-                    { error = "La tara extra no puede ser negativa."; return false; }
-                    return true;
-
                 default:
                     return true;
             }
@@ -266,9 +254,6 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
             error = "";
             return true;
         }
-
-        private double LeerTaraExtra() =>
-            double.TryParse(TxtTaraExtra.Text, NumberStyles.Any, CultureInfo.InvariantCulture, out var v) ? v : 0;
 
         // ── Productos ───────────────────────────────────────────────────────
 
@@ -358,24 +343,9 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
             ActualizarUI();
         }
 
-        private void TaraExtra_Changed(object sender, TextChangedEventArgs e)
-        {
-            if (_cargando) return;
-            ActualizarUI();
-        }
-
         private void ActualizarUI()
         {
             PanelSinProductos.Visibility = _productos.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
-
-            int bultosTotales = _productos.Sum(p => p.BultosDeclarados);
-            TxtBultosTotales.Text = bultosTotales.ToString("N0", CultureInfo.InvariantCulture);
-
-            double taraExtra = LeerTaraExtra();
-            double porBulto  = PesajeCalc.TaraExtraPorBulto(taraExtra, bultosTotales);
-            TxtTaraPorBulto.Text = bultosTotales > 0
-                ? $"{porBulto.ToString("N3", CultureInfo.InvariantCulture)} kg"
-                : "—";
 
             TxtPie.Text = _modo == ModoProceso.Edicion
                 ? $"{_productos.Count} producto(s) en la carga"

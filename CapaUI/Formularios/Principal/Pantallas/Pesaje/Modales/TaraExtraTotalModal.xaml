@@ -1,0 +1,174 @@
+<UserControl x:Class="CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales.TaraExtraTotalModal"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Width="620"
+             UseLayoutRounding="True"
+             TextOptions.TextRenderingMode="Grayscale"
+             TextOptions.TextFormattingMode="Display">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/CapaUI;component/Formularios/Principal/Pantallas/Pesaje/Modales/PesajeModalStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Border CornerRadius="10" ClipToBounds="True">
+        <Border.Effect><DropShadowEffect Color="Black" BlurRadius="24" ShadowDepth="8" Opacity="0.55"/></Border.Effect>
+        <Grid>
+            <Border CornerRadius="10">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="#2B5797" Offset="0"/><GradientStop Color="#1E3A8A" Offset="0.55"/><GradientStop Color="#1E40AF" Offset="1"/>
+                    </LinearGradientBrush>
+                </Border.Background>
+            </Border>
+
+            <StackPanel>
+                <Border Height="4">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                            <GradientStop Color="#34D399" Offset="0"/><GradientStop Color="#60A5FA" Offset="0.5"/><GradientStop Color="#818CF8" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Border.Background>
+                </Border>
+
+                <!-- ══ Header ══ -->
+                <Grid Margin="26,18,26,14">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                    <Border Width="40" Height="40" CornerRadius="10" Background="#24FFFFFF" Margin="0,0,14,0" VerticalAlignment="Center">
+                        <Path Data="{StaticResource MIcoPack}" Stroke="White" StrokeThickness="1.6" Width="22" Height="22" Stretch="Uniform"
+                              StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                    </Border>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <TextBlock Text="TARA EXTRA YA PESADA" FontFamily="Segoe UI" FontSize="10.5" FontWeight="SemiBold" Foreground="#A6FFFFFF"/>
+                        <TextBlock x:Name="TxtTitulo" FontFamily="Segoe UI" FontSize="19" FontWeight="Bold" Foreground="White" Margin="0,2,0,0"/>
+                    </StackPanel>
+                    <Button Grid.Column="2" Style="{StaticResource CloseBtn}" VerticalAlignment="Top" Click="Cerrar_Click"/>
+                </Grid>
+
+                <Border Height="1" Background="#26FFFFFF"/>
+
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" MaxHeight="440">
+                    <StackPanel Margin="26,18,26,18">
+
+                        <TextBlock FontFamily="Segoe UI" FontSize="12.5" Foreground="#C4FFFFFF" TextWrapping="Wrap" Margin="0,0,0,14"
+                                   Text="Pesá las tarimas, forros y separadores y cargá el total acá. El sistema lo reparte en partes iguales entre las pesadas ya registradas, y lo resta del peso de producto."/>
+
+                        <!-- ══ Alcance ══ -->
+                        <TextBlock Text="¿A qué se le reparte?" Style="{StaticResource MLabel}"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,14">
+                            <RadioButton x:Name="RbAlcanceProducto" Style="{StaticResource MSegBtn}" GroupName="Alcance"
+                                         Content="Este producto" IsChecked="True" Checked="Alcance_Changed" Margin="0,0,8,0"/>
+                            <RadioButton x:Name="RbAlcanceCamion" Style="{StaticResource MSegBtn}" GroupName="Alcance"
+                                         Content="Todo el camión" Checked="Alcance_Changed"/>
+                        </StackPanel>
+
+                        <!-- ══ Modo de captura ══ -->
+                        <TextBlock Text="¿Cómo lo pesaste?" Style="{StaticResource MLabel}"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,14">
+                            <RadioButton x:Name="RbModoTotal" Style="{StaticResource MSegBtn}" GroupName="Modo"
+                                         Content="Todo de una vez" IsChecked="True" Checked="Modo_Changed" Margin="0,0,8,0"/>
+                            <RadioButton x:Name="RbModoParciales" Style="{StaticResource MSegBtn}" GroupName="Modo"
+                                         Content="Sumar pesadas parciales" Checked="Modo_Changed"/>
+                        </StackPanel>
+
+                        <!-- ══ Modo TOTAL ══ -->
+                        <StackPanel x:Name="PanelTotal">
+                            <TextBlock Text="Peso total de la tara extra (kg)" Style="{StaticResource MLabel}"/>
+                            <Grid Margin="0,0,0,4">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="10"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <TextBox x:Name="TxtTotal" Style="{StaticResource MInput}" TextChanged="Campo_Changed"/>
+                                <Button Grid.Column="2" x:Name="BtnUsarRegistrado" Style="{StaticResource GhostBtn}"
+                                        Content="Usar lo ya registrado" Click="UsarRegistrado_Click"
+                                        ToolTip="Copia la tara extra que ya tienen las pesadas, para sumarle lo nuevo"/>
+                            </Grid>
+                        </StackPanel>
+
+                        <!-- ══ Modo PARCIALES ══ -->
+                        <StackPanel x:Name="PanelParciales" Visibility="Collapsed">
+                            <TextBlock Text="Peso de esta tarima o bulto de tarimas (kg)" Style="{StaticResource MLabel}"/>
+                            <Grid Margin="0,0,0,10">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="10"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <TextBox x:Name="TxtParcial" Style="{StaticResource MInput}" KeyDown="Parcial_KeyDown"/>
+                                <Button Grid.Column="2" Style="{StaticResource GhostBtn}" Content="+ Agregar" Click="AgregarParcial_Click"/>
+                            </Grid>
+
+                            <Border Background="#14FFFFFF" CornerRadius="8" BorderBrush="#26FFFFFF" BorderThickness="1"
+                                    Padding="12,10" Margin="0,0,0,4">
+                                <StackPanel>
+                                    <TextBlock x:Name="TxtSinParciales" Text="Todavía no agregaste ninguna pesada parcial."
+                                               FontFamily="Segoe UI" FontSize="12" Foreground="#99FFFFFF"/>
+                                    <ItemsControl x:Name="LstParciales">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Grid Margin="0,3">
+                                                    <TextBlock Text="{Binding Texto}" FontFamily="Segoe UI" FontSize="13"
+                                                               Foreground="White" VerticalAlignment="Center"/>
+                                                    <Button HorizontalAlignment="Right" Style="{StaticResource GhostBtn}"
+                                                            Content="Quitar" Padding="10,3" FontSize="11.5"
+                                                            Click="QuitarParcial_Click" Tag="{Binding}"/>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+
+                        <!-- ══ Tarjeta de impacto ══ -->
+                        <Border Background="#14FFFFFF" CornerRadius="8" BorderBrush="#26FFFFFF" BorderThickness="1"
+                                Padding="14,12" Margin="0,14,0,0">
+                            <StackPanel>
+                                <Grid Margin="0,0,0,6">
+                                    <TextBlock Text="Pesadas alcanzadas" FontFamily="Segoe UI" FontSize="12.5" Foreground="#D9FFFFFF"/>
+                                    <TextBlock x:Name="TxtPesadas" HorizontalAlignment="Right" FontFamily="Segoe UI" FontSize="12.5" FontWeight="SemiBold" Foreground="White"/>
+                                </Grid>
+                                <Grid Margin="0,0,0,6">
+                                    <TextBlock Text="Tara extra ya registrada" FontFamily="Segoe UI" FontSize="12.5" Foreground="#D9FFFFFF"/>
+                                    <TextBlock x:Name="TxtYaRegistrada" HorizontalAlignment="Right" FontFamily="Segoe UI" FontSize="12.5" FontWeight="SemiBold" Foreground="White"/>
+                                </Grid>
+                                <Grid Margin="0,0,0,6">
+                                    <TextBlock Text="Se repartirá (nuevo total)" FontFamily="Segoe UI" FontSize="12.5" Foreground="#D9FFFFFF"/>
+                                    <TextBlock x:Name="TxtARepartir" HorizontalAlignment="Right" FontFamily="Segoe UI" FontSize="12.5" FontWeight="Bold" Foreground="#86EFAC"/>
+                                </Grid>
+                                <Grid>
+                                    <TextBlock Text="Promedio por pesada" FontFamily="Segoe UI" FontSize="12.5" Foreground="#D9FFFFFF"/>
+                                    <TextBlock x:Name="TxtPromedio" HorizontalAlignment="Right" FontFamily="Segoe UI" FontSize="12.5" FontWeight="SemiBold" Foreground="White"/>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Ya hay tara cargada: aplicar reemplaza el reparto actual -->
+                        <Border x:Name="AvisoReemplazo" Background="#40D97706" CornerRadius="6" Padding="10,8" Margin="0,12,0,0" Visibility="Collapsed">
+                            <TextBlock x:Name="TxtAvisoReemplazo" FontFamily="Segoe UI" FontSize="11.5" Foreground="#FDE68A" TextWrapping="Wrap"/>
+                        </Border>
+
+                        <!-- Bloqueante: el reparto dejaría alguna pesada con neto <= 0 -->
+                        <Border x:Name="AvisoError" Background="#40DC2626" CornerRadius="6" Padding="10,8" Margin="0,10,0,0" Visibility="Collapsed">
+                            <TextBlock x:Name="TxtAvisoError" FontFamily="Segoe UI" FontSize="11.5" Foreground="#FECACA" TextWrapping="Wrap"/>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <!-- ══ Footer ══ -->
+                <Border Background="#2E000000" BorderBrush="#1FFFFFFF" BorderThickness="0,1,0,0" Padding="26,14">
+                    <Grid>
+                        <TextBlock x:Name="TxtPie" FontFamily="Segoe UI" FontSize="12" Foreground="#99FFFFFF" VerticalAlignment="Center"/>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                            <Button Style="{StaticResource GhostBtn}" Content="Cancelar" Click="Cerrar_Click" Margin="0,0,10,0"/>
+                            <Button x:Name="BtnAplicar" Style="{StaticResource SolidBtn}" Click="Aplicar_Click">
+                                <StackPanel Orientation="Horizontal">
+                                    <Path Data="{StaticResource MIcoCheck}" Stroke="#1E3A8A" StrokeThickness="2.4" Width="14" Height="14"
+                                          Stretch="Uniform" Margin="0,0,8,0" VerticalAlignment="Center"
+                                          StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                                    <TextBlock Text="Aplicar y repartir" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </StackPanel>
+        </Grid>
+    </Border>
+</UserControl>

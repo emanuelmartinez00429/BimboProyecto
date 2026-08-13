@@ -24,12 +24,6 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
         private Action? _pendingConfirm;
         private int _modalGen;
 
-        /// <summary>
-        /// El usuario pidió ver los camiones cerrados aunque no haya ninguno abierto:
-        /// se oculta el estado vacío hasta que vuelva a cargarse la pantalla.
-        /// </summary>
-        private bool _verHistorico;
-
         /// <summary>Animación del spinner de la carga inicial.</summary>
         private Storyboard? _spinnerCarga;
 
@@ -95,6 +89,17 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             // Agregar/editar/quitar productos vive en el megamodal; acá solo se pesa.
             BtnProdPesar.IsEnabled = hayProducto && prodAbierto && !cerrado;
 
+            // La tara extra se reparte entre pesadas ya registradas: sin pesadas no hay nada
+            // que repartir.
+            BtnProdTaraExtra.IsEnabled = hayCamion && !cerrado
+                                      && _vm.SelectedCamion!.Productos.Any(p => p.Entradas.Count > 0);
+
+            int sinTara = hayCamion ? _vm.SelectedCamion!.PesadasSinTaraExtra : 0;
+            TxtAvisoTaraProducto.Visibility = sinTara > 0 ? Visibility.Visible : Visibility.Collapsed;
+            TxtAvisoTaraProducto.Text = sinTara == 1
+                ? "1 pesada sin tara extra — bultos aproximados"
+                : $"{sinTara} pesadas sin tara extra — bultos aproximados";
+
             BtnEntEditar.IsEnabled = hayEntrada && !cerrado;
             BtnEntQuitar.IsEnabled = hayEntrada && !cerrado;
 
@@ -103,7 +108,6 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
 
         /// <summary>
         /// Muestra el estado vacío cuando no hay ningún camión descargándose.
-        /// Si existen camiones cerrados, ofrece el enlace para verlos sin salir.
         /// <para/>
         /// Mientras carga se muestra el indicador de carga en su lugar: el VM ya
         /// devuelve MostrarEstadoVacio=false durante la carga para no mostrar el
@@ -118,21 +122,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             CargandoInicial.Visibility = cargandoPrimeraVez ? Visibility.Visible : Visibility.Collapsed;
             if (cargandoPrimeraVez) IniciarSpinnerCarga(); else DetenerSpinnerCarga();
 
-            bool vacio = _vm.MostrarEstadoVacio && !_verHistorico;
-            EstadoVacio.Visibility = vacio ? Visibility.Visible : Visibility.Collapsed;
-
-            if (!vacio) return;
-
-            BtnVerCerrados.Visibility = _vm.HayCerrados ? Visibility.Visible : Visibility.Collapsed;
-            TxtVerCerrados.Text = _vm.CerradosCount == 1
-                ? "Hay 1 camión cerrado — ver historial"
-                : $"Hay {_vm.CerradosCount} camiones cerrados — ver historial";
-        }
-
-        private void BtnVerCerrados_Click(object sender, RoutedEventArgs e)
-        {
-            _verHistorico = true;
-            ActualizarEstadoVacio();
+            EstadoVacio.Visibility = _vm.MostrarEstadoVacio ? Visibility.Visible : Visibility.Collapsed;
         }
 
         // ── Spinner de la carga inicial ────────────────────────────────────
@@ -281,6 +271,13 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
                 AbrirPesajeModal(p, null);
         }
 
+        private void BtnProdTaraExtra_Click(object sender, RoutedEventArgs e)
+        {
+            if (_vm.SelectedCamion is not null && !_vm.CamionCerrado
+                && SesionPermisos.Tiene(Permiso.ModificarPesaje))
+                AbrirTaraExtraModal();
+        }
+
         // ── Entradas ─────────────────────────────────────────────────────────
         private void BtnEntEditar_Click(object sender, RoutedEventArgs e)
         {
@@ -327,16 +324,37 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
 
                 bool ok = await _vm.GuardarProcesoAsync(
                     camion, r.Placa, r.Proveedor, r.IdProveedor, r.Observaciones,
-                    r.TaraExtraTotal, productos, modal.IdsProductosQuitados);
+                    productos, modal.IdsProductosQuitados);
 
                 if (!ok) return;   // el VM ya avisó por Toast; el modal queda abierto
 
-                _verHistorico = false;
                 CerrarModal();
                 SincronizarSeleccion();
                 ActualizarUI();
             };
 
+            MostrarModal(modal);
+        }
+
+        /// <summary>
+        /// Abre el modal para cargar una tara extra ya pesada y repartirla entre las pesadas
+        /// del producto seleccionado o de todo el camión.
+        /// </summary>
+        private void AbrirTaraExtraModal()
+        {
+            if (_vm.SelectedCamion == null) return;
+
+            var modal = new TaraExtraTotalModal(_vm.SelectedCamion, _vm.SelectedProducto);
+            modal.Cerrado += CerrarModal;
+            modal.Confirmado += async r =>
+            {
+                bool ok = await _vm.RepartirTaraExtraAsync(r.Entradas, r.Total);
+                if (!ok) return;   // el VM ya avisó por Toast; el modal queda abierto
+
+                CerrarModal();
+                SincronizarSeleccion();
+                ActualizarUI();
+            };
             MostrarModal(modal);
         }
 

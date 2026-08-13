@@ -12,11 +12,12 @@ public class CamionDto
     public bool   Cerrado         { get; init; }
 
     /// <summary>
-    /// Tara extra TOTAL del camión (movimientos.peso_tara_extra): tarimas, forros y
-    /// separadores, pesados una sola vez para toda la carga. Se prorratea entre los
-    /// bultos declarados al registrar cada pesada.
+    /// LEGADO — <c>movimientos.peso_tara_extra</c> del flujo anterior, donde la tara extra se
+    /// pesaba una vez por camión y se prorrateaba entre los bultos declarados. Solo lectura:
+    /// nunca se vuelve a escribir. Sirve para reconocer camiones cargados con el flujo viejo.
+    /// La tara extra vigente se pesa y se guarda en cada entrada.
     /// </summary>
-    public double TaraExtraTotal { get; init; }
+    public double TaraExtraLegado { get; init; }
 }
 
 /// <summary>Producto de un camión (`movimiento_productos` + join a producto y su tara).</summary>
@@ -55,7 +56,13 @@ public class EntradaDto
     public double TaraExtra     { get; init; }
     public double TaraTotal     { get; init; }
     public double Neto          { get; init; }
-    public int    Bultos        { get; init; }
+
+    /// <summary>
+    /// <c>numero_bultos_recibido</c>. Null en las entradas nuevas: los bultos ya no se capturan,
+    /// se estiman a partir del peso. Solo tiene valor en las pesadas del flujo anterior.
+    /// </summary>
+    public int?   BultosCapturados { get; init; }
+
     public string Fecha         { get; init; } = string.Empty;
     public string Hora          { get; init; } = string.Empty;
     public string Observaciones { get; init; } = string.Empty;

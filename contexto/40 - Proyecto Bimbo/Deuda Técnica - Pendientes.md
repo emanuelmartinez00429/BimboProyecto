@@ -436,6 +436,8 @@ Ambas conviven **a propósito**: cambiar el trigger alteraría el `peso_neto` de
 
 **Solución:** resolver junto con P-023 — con las taras reales cargadas se puede determinar cuál interpretación corresponde y alinear ambos lados.
 
+> **Actualización 2026-08-13** — el rediseño de pesajes ([[Sesión 2026-08-13 - Pesaje solo bruto y tara extra pesada]]) **no cerró este ítem, le cambió la forma**. La fórmula de bultos dejó de incluir la tara extra prorrateada, pero sigue usando la tara de empaque **por bulto** en el divisor mientras el trigger la resta **plana** una vez por pesada. Además ahora el indicador es más visible (columna «BULTOS (EST.)» y campo en el modal), así que el error de P-023 se nota más.
+
 **Estado:** `[ ] Pendiente — bloqueado por P-023`
 
 ---
@@ -572,6 +574,50 @@ Hallazgos fuera de Roles, **no atacados** por decisión de alcance. Ordenados po
 
 ---
 
+### P-032 · 🔴 El reparto de tara extra no es transaccional (N updates sueltos)
+
+**Detectado en:** [[Sesión 2026-08-13 - Pesaje solo bruto y tara extra pesada]]
+
+`PesajeViewModel.RepartirTaraExtraAsync` reparte un total entre N pesadas con **N PATCH independientes** de PostgREST (`ActualizarTaraExtraEntradaAsync`, uno por entrada). No hay transacción: si la red se corta a mitad, unas filas quedan con la cuota nueva y otras con la vieja, y `Σ entradas` deja de ser el total real.
+
+**Mitigaciones ya implementadas:**
+- **Pre-vuelo**: se validan las N pesadas contra el `CHECK peso_neto > 0` **antes** de escribir ninguna, así el fallo más probable (una pesada de bruto chico) no produce escrituras parciales.
+- **Auto-reparable**: como el total se deriva de `Σ entradas`, reabrir el modal muestra el total real que quedó; volver a aplicar reparte todo desde cero. No hay estado que reconciliar.
+- Se avisa por Toast cuántas filas fallaron.
+
+**Solución de fondo:** un RPC de Postgres que reciba `(id_mov_producto | id_movimiento, total)` y haga el reparto en una sola transacción del lado del servidor.
+
+**Estado:** `[ ] Pendiente`
+
+---
+
+### P-033 · Sin verificar: ¿el trigger de pesajes cubre UPDATE?
+
+**Detectado en:** [[Sesión 2026-08-13 - Pesaje solo bruto y tara extra pesada]]
+
+El reparto de tara extra hace `UPDATE` de `peso_tara_extra` sobre entradas ya insertadas. **No se pudo comprobar** si `trg_calcular_pesos_entrada` está declarado `BEFORE INSERT` o `BEFORE INSERT OR UPDATE`: el MCP de Supabase de esa sesión apuntaba a otro proyecto (`mxarlisuueovxvttytcm`), no al de Bimbo (`bzmmrifjgzlvsphctais`).
+
+**Mitigación implementada:** `PesajeRepository.ActualizarTaraExtraEntradaAsync` escribe también `peso_tara_total` y `peso_neto`, calculados en el cliente con la misma fórmula del trigger. La fila queda consistente corra o no el trigger.
+
+**Qué falta verificar** (SQL de solo lectura en Supabase Studio):
+```sql
+select t.tgname, pg_get_triggerdef(t.oid) from pg_trigger t
+join pg_class c on c.oid = t.tgrelid
+where c.relname = 'entradas_producto' and not t.tgisinternal;
+
+select column_name, is_generated from information_schema.columns
+where table_name = 'entradas_producto';
+
+select polname, polcmd from pg_policy where polrelid = 'entradas_producto'::regclass;
+```
+
+- Si `peso_tara_total`/`peso_neto` fueran `GENERATED ALWAYS` → poner `PesajeRepository.EscribirDerivados = false`.
+- Si RLS bloquea `UPDATE` de `entradas_producto` para el rol de la app → el modo "tara extra total" no funciona y hace falta una política nueva.
+
+**Estado:** `[ ] Pendiente — verificación en BD`
+
+---
+
 ## Historial de resolución
 
 | ID | Descripción | Estado | Sesión |
@@ -606,6 +652,8 @@ Hallazgos fuera de Roles, **no atacados** por decisión de alcance. Ordenados po
 | P-029 | Cancelación ausente en 7 ViewModels + timer fantasma | `[ ]` Pendiente | [[Sesión 2026-08-11 - Rediseño de Gestión de Roles]] |
 | P-030 | Verificación en runtime de la pantalla de Roles | `[ ]` Pendiente | [[Sesión 2026-08-12 - Estabilización de la pantalla de Roles]] |
 | P-031 | Frenos de rendimiento de toda la aplicación | `[ ]` Pendiente 🔴 | [[Sesión 2026-08-12 - Estabilización de la pantalla de Roles]] |
+| P-032 | Reparto de tara extra sin transacción (N updates) | `[ ]` Pendiente 🔴 | [[Sesión 2026-08-13 - Pesaje solo bruto y tara extra pesada]] |
+| P-033 | Verificar si el trigger de pesajes cubre UPDATE | `[ ]` Pendiente | [[Sesión 2026-08-13 - Pesaje solo bruto y tara extra pesada]] |
 
 ---
 

@@ -26,9 +26,12 @@ public class PesajeRepository : RepositorioBase, IPesajeRepository
         TryAsync(async () =>
         {
             var client = await ConexionSupabase.GetClientAsync();
+            // Solo camiones ABIERTOS: los cerrados salen de la pantalla hasta que exista la
+            // sección de históricos. El reporte que se abre al cerrar usa el objeto en memoria,
+            // así que sigue funcionando aunque el camión ya no vuelva en esta consulta.
             var res = await client.From<Movimiento>()
                 .Select("*, proveedores(*)")
-                .Filter("id_estado", Op.In, new List<object> { EstadosPesaje.Abierto, EstadosPesaje.Cerrado })
+                .Filter("id_estado", Op.Equals, EstadosPesaje.Abierto.ToString())
                 .Order("fecha_asignacion", Ord.Descending)
                 .Get();
 
@@ -41,12 +44,12 @@ public class PesajeRepository : RepositorioBase, IPesajeRepository
                 FechaAsignacion = m.fechaAsignacion.ToString("dd/MM/yyyy"),
                 Observaciones   = m.observaciones ?? "",
                 Cerrado         = m.idEstado == EstadosPesaje.Cerrado,
-                TaraExtraTotal  = (double)m.pesoTaraExtra,
+                TaraExtraLegado = (double)m.pesoTaraExtra,
             }).ToList();
             return lista;
         }, "Cargar camiones");
 
-    public Task<Result<int>> CrearCamionAsync(int idProveedor, string placa, string observaciones, double taraExtraTotal, int idUsuario, CancellationToken ct = default) =>
+    public Task<Result<int>> CrearCamionAsync(int idProveedor, string placa, string observaciones, int idUsuario, CancellationToken ct = default) =>
         TryAsync(async () =>
         {
             var client = await ConexionSupabase.GetClientAsync();
@@ -58,13 +61,19 @@ public class PesajeRepository : RepositorioBase, IPesajeRepository
                 idUsuario       = idUsuario,
                 idEstado        = EstadosPesaje.Abierto,
                 observaciones   = string.IsNullOrWhiteSpace(observaciones) ? null : observaciones,
-                pesoTaraExtra   = (decimal)taraExtraTotal,
+                // Columna del flujo viejo (tara extra por camión, prorrateada por bultos).
+                // Se deja en 0: la tara extra vigente vive en cada entrada.
+                pesoTaraExtra   = 0m,
             };
             var r = await client.From<Movimiento>().Insert(nuevo);
             return r.Models.First().idMovimiento;
         }, "Registrar camión");
 
-    public Task<Result> ActualizarCamionAsync(int idMovimiento, int idProveedor, string placa, string observaciones, double taraExtraTotal, CancellationToken ct = default) =>
+    /// <summary>
+    /// NO toca <c>peso_tara_extra</c> a propósito: es una columna del flujo anterior y editar un
+    /// camión legado le borraría su tara histórica. La tara extra vigente se guarda por entrada.
+    /// </summary>
+    public Task<Result> ActualizarCamionAsync(int idMovimiento, int idProveedor, string placa, string observaciones, CancellationToken ct = default) =>
         TryAsync(async () =>
         {
             var client = await ConexionSupabase.GetClientAsync();
@@ -73,7 +82,6 @@ public class PesajeRepository : RepositorioBase, IPesajeRepository
                 .Set(m => m.idProveedor,   idProveedor)
                 .Set(m => m.placaVehiculo, placa)
                 .Set(m => m.observaciones, string.IsNullOrWhiteSpace(observaciones) ? null : observaciones)
-                .Set(m => m.pesoTaraExtra, (decimal)taraExtraTotal)
                 .Update();
         }, "Actualizar camión");
 
@@ -207,7 +215,7 @@ public class PesajeRepository : RepositorioBase, IPesajeRepository
     // ══════════════════════════════════════════════════════════════════════
     //  Pesajes (entradas)
     // ══════════════════════════════════════════════════════════════════════
-    public Task<Result<int>> CrearEntradaAsync(int idMovProducto, int idProducto, double bruto, double taraExtra, int bultos, string observaciones, int idUsuario, CancellationToken ct = default) =>
+    public Task<Result<int>> CrearEntradaAsync(int idMovProducto, int idProducto, double bruto, double taraExtra, string observaciones, int idUsuario, CancellationToken ct = default) =>
         TryAsync(async () =>
         {
             var client = await ConexionSupabase.GetClientAsync();
@@ -218,7 +226,9 @@ public class PesajeRepository : RepositorioBase, IPesajeRepository
                 idProducto           = idProducto,
                 pesoBruto            = (decimal)bruto,
                 pesoTaraExtra        = (decimal)taraExtra,
-                numeroBultosRecibido = bultos,
+                // Los bultos ya no se capturan: son un indicador que se calcula desde el peso.
+                // Se deja NULL en vez de persistir una estimación como si fuera un dato medido.
+                numeroBultosRecibido = null,
                 fechaEntrada         = DateOnly.FromDateTime(ahora),
                 horaEntrada          = TimeOnly.FromDateTime(ahora),
                 idUsuario            = idUsuario,
@@ -228,6 +238,33 @@ public class PesajeRepository : RepositorioBase, IPesajeRepository
             var r = await client.From<EntradaProducto>().Insert(nueva);
             return r.Models.First().idPesaje;
         }, "Registrar pesaje");
+
+    /// <summary>
+    /// El trigger de BD puede o no cubrir UPDATE. Escribir también los derivados deja la fila
+    /// consistente en los dos casos: si el trigger corre, los recalcula con la misma fórmula y
+    /// da igual; si no corre, valen los que mandamos.
+    /// <para/>
+    /// Poner en <c>false</c> SOLO si <c>peso_tara_total</c> / <c>peso_neto</c> resultan ser
+    /// columnas GENERATED ALWAYS (PostgREST devolvería error al intentar escribirlas).
+    /// </summary>
+    private const bool EscribirDerivados = true;
+
+    public Task<Result> ActualizarTaraExtraEntradaAsync(int idPesaje, double taraExtra, double taraTotal, double neto, CancellationToken ct = default) =>
+        TryAsync(async () =>
+        {
+            var client = await ConexionSupabase.GetClientAsync();
+            var q = client.From<EntradaProducto>()
+                .Where(e => e.idPesaje == idPesaje)
+                .Set(e => e.pesoTaraExtra, (decimal)taraExtra);
+
+            // peso_tara_individual NO se toca: la calcula el trigger desde el catálogo y no
+            // cambia al repartir la tara extra.
+            if (EscribirDerivados)
+                q = q.Set(e => e.pesoTaraTotal, (decimal)taraTotal)
+                     .Set(e => e.pesoNeto,      (decimal)neto);
+
+            await q.Update();
+        }, "Actualizar tara extra del pesaje");
 
     public Task<Result> AnularEntradaAsync(int idPesaje, CancellationToken ct = default) =>
         TryAsync(async () =>
@@ -248,7 +285,9 @@ public class PesajeRepository : RepositorioBase, IPesajeRepository
         TaraExtra     = (double)e.pesoTaraExtra,
         TaraTotal     = (double)e.pesoTaraTotal,
         Neto          = (double)e.pesoNeto,
-        Bultos        = e.numeroBultosRecibido ?? 0,
+        // Sin `?? 0`: null distingue "entrada nueva, no se capturan bultos" de
+        // "entrada vieja que capturó 0".
+        BultosCapturados = e.numeroBultosRecibido,
         Fecha         = e.fechaEntrada.ToString("dd/MM/yyyy"),
         Hora          = e.horaEntrada.ToString("hh:mm tt"),
         Observaciones = e.observaciones ?? "",

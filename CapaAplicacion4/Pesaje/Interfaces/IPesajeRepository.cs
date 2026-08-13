@@ -12,8 +12,8 @@ public interface IPesajeRepository
 {
     // ── Camiones (movimientos) ──────────────────────────────────────────────
     Task<Result<IReadOnlyList<CamionDto>>> GetCamionesActivosAsync(CancellationToken ct = default);
-    Task<Result<int>> CrearCamionAsync(int idProveedor, string placa, string observaciones, double taraExtraTotal, int idUsuario, CancellationToken ct = default);
-    Task<Result>      ActualizarCamionAsync(int idMovimiento, int idProveedor, string placa, string observaciones, double taraExtraTotal, CancellationToken ct = default);
+    Task<Result<int>> CrearCamionAsync(int idProveedor, string placa, string observaciones, int idUsuario, CancellationToken ct = default);
+    Task<Result>      ActualizarCamionAsync(int idMovimiento, int idProveedor, string placa, string observaciones, CancellationToken ct = default);
     Task<Result>      CerrarCamionAsync(int idMovimiento, CancellationToken ct = default);
     Task<Result>      AnularCamionAsync(int idMovimiento, CancellationToken ct = default);
 
@@ -25,6 +25,14 @@ public interface IPesajeRepository
     Task<Result>      SetEstadoProductoAsync(int idMovProducto, bool cerrado, CancellationToken ct = default);
 
     // ── Pesajes (entradas_producto) ─────────────────────────────────────────
-    Task<Result<int>> CrearEntradaAsync(int idMovProducto, int idProducto, double bruto, double taraExtra, int bultos, string observaciones, int idUsuario, CancellationToken ct = default);
+    Task<Result<int>> CrearEntradaAsync(int idMovProducto, int idProducto, double bruto, double taraExtra, string observaciones, int idUsuario, CancellationToken ct = default);
+
+    /// <summary>
+    /// Escribe la tara extra de una pesada ya registrada (UPDATE en el lugar, NO anular+insertar:
+    /// preserva id, fecha, hora y usuario del pesaje). Se usa al repartir un total entre las
+    /// pesadas de un producto o de un camión. Recibe también los derivados ya calculados para
+    /// que la fila quede consistente aunque el trigger de BD no cubra UPDATE.
+    /// </summary>
+    Task<Result>      ActualizarTaraExtraEntradaAsync(int idPesaje, double taraExtra, double taraTotal, double neto, CancellationToken ct = default);
     Task<Result>      AnularEntradaAsync(int idPesaje, CancellationToken ct = default);
 }
