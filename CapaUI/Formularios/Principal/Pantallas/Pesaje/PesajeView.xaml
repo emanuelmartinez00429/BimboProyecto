@@ -25,7 +25,7 @@
         <!-- ── Card header de panel ── -->
         <Style x:Key="PanelTitle" TargetType="TextBlock">
             <Setter Property="FontFamily" Value="Segoe UI"/>
-            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontSize" Value="15"/>
             <Setter Property="FontWeight" Value="Bold"/>
             <Setter Property="Foreground" Value="#1A1F2E"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
@@ -36,7 +36,7 @@
             <Setter Property="Height" Value="32"/>
             <Setter Property="Padding" Value="12,0"/>
             <Setter Property="FontFamily" Value="Segoe UI"/>
-            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontSize" Value="14"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Foreground" Value="#1E3A8A"/>
             <Setter Property="Background" Value="White"/>
@@ -88,7 +88,7 @@
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="Foreground" Value="#6B7280"/>
             <Setter Property="FontFamily" Value="Segoe UI"/>
-            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontSize" Value="13"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Padding" Value="11,0"/>
             <Setter Property="Height" Value="26"/>
@@ -121,7 +121,7 @@
             <Setter Property="Background" Value="#1E3A8A"/>
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="FontFamily" Value="Segoe UI"/>
-            <Setter Property="FontSize" Value="9.5"/>
+            <Setter Property="FontSize" Value="11.5"/>
             <Setter Property="FontWeight" Value="Bold"/>
             <Setter Property="Height" Value="32"/>
             <Setter Property="Template">
@@ -129,7 +129,7 @@
                     <ControlTemplate TargetType="DataGridColumnHeader">
                         <Border Background="#1E3A8A" Padding="10,0">
                             <TextBlock Text="{TemplateBinding Content}" Foreground="White"
-                                       FontFamily="Segoe UI" FontSize="9.5" FontWeight="Bold"
+                                       FontFamily="Segoe UI" FontSize="11.5" FontWeight="Bold"
                                        VerticalAlignment="Center"/>
                         </Border>
                     </ControlTemplate>
@@ -188,7 +188,7 @@
         <!-- Texto de celda (Entradas) -->
         <Style x:Key="EntText" TargetType="TextBlock">
             <Setter Property="FontFamily" Value="Segoe UI"/>
-            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontSize" Value="14"/>
             <Setter Property="Foreground" Value="#1A1F2E"/>
             <Setter Property="Margin" Value="10,0"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
@@ -231,10 +231,10 @@
                               Width="20" Height="20" Stretch="Uniform"/>
                     </Border>
                     <StackPanel VerticalAlignment="Center">
-                        <TextBlock FontFamily="Segoe UI" FontSize="11" Foreground="#6B7280">
+                        <TextBlock FontFamily="Segoe UI" FontSize="13" Foreground="#6B7280">
                             <Run Text="Producción"/><Run Text="  /  "/><Run Text="Recepción de Materia Prima" FontWeight="SemiBold" Foreground="#1A1F2E"/>
                         </TextBlock>
-                        <TextBlock Text="Recepción de materia prima" FontFamily="Segoe UI" FontSize="19"
+                        <TextBlock Text="Recepción de materia prima" FontFamily="Segoe UI" FontSize="21"
                                    FontWeight="Bold" Foreground="#1A1F2E" Margin="0,2,0,0"/>
                     </StackPanel>
                 </StackPanel>
@@ -243,15 +243,15 @@
                     <Border Background="#EEF2F8" CornerRadius="999" Padding="12,6" Margin="0,0,8,0">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <Border Width="6" Height="6" CornerRadius="3" Background="#1E3A8A" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                            <TextBlock Text="CAMIONES" FontFamily="Segoe UI" FontSize="11" FontWeight="SemiBold" Foreground="#1E3A8A" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                            <TextBlock Text="{Binding CamionesTexto}" FontFamily="Segoe UI" FontSize="13" FontWeight="Bold" Foreground="#1E3A8A" VerticalAlignment="Center"/>
+                            <TextBlock Text="CAMIONES" FontFamily="Segoe UI" FontSize="13" FontWeight="SemiBold" Foreground="#1E3A8A" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding CamionesTexto}" FontFamily="Segoe UI" FontSize="15" FontWeight="Bold" Foreground="#1E3A8A" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Border>
                     <Border Background="#ECFDF5" CornerRadius="999" Padding="12,6" Margin="0,0,8,0">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <Border Width="6" Height="6" CornerRadius="3" Background="#10B981" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                            <TextBlock Text="ACTIVOS" FontFamily="Segoe UI" FontSize="11" FontWeight="SemiBold" Foreground="#047857" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                            <TextBlock Text="{Binding CamionesActivos}" FontFamily="Segoe UI" FontSize="13" FontWeight="Bold" Foreground="#047857" VerticalAlignment="Center"/>
+                            <TextBlock Text="ACTIVOS" FontFamily="Segoe UI" FontSize="13" FontWeight="SemiBold" Foreground="#047857" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding CamionesActivos}" FontFamily="Segoe UI" FontSize="15" FontWeight="Bold" Foreground="#047857" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Border>
                     <Button x:Name="BtnCerrarTodos" Style="{StaticResource ToolBtn}" Height="36" Click="BtnCerrarTodos_Click">
@@ -286,7 +286,7 @@
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Text="Camiones de Entrega" Style="{StaticResource PanelTitle}"/>
                                 <Border Background="#EFF6FF" CornerRadius="999" Padding="7,1" Margin="8,0,0,0" VerticalAlignment="Center">
-                                    <TextBlock Text="{Binding CamionesCount}" FontFamily="Segoe UI" FontSize="10.5" FontWeight="Bold" Foreground="#1E3A8A"/>
+                                    <TextBlock Text="{Binding CamionesCount}" FontFamily="Segoe UI" FontSize="12.5" FontWeight="Bold" Foreground="#1E3A8A"/>
                                 </Border>
                             </StackPanel>
                         </Border>
@@ -340,11 +340,11 @@
                                             <ColumnDefinition Width="78"/>
                                         </Grid.ColumnDefinitions>
                                         <Border Style="{StaticResource CodeChip}" Grid.Column="0">
-                                            <TextBlock Text="{Binding Id}" FontFamily="Consolas" FontSize="11.5" FontWeight="Bold" Foreground="#1E3A8A"/>
+                                            <TextBlock Text="{Binding Id}" FontFamily="Consolas" FontSize="13.5" FontWeight="Bold" Foreground="#1E3A8A"/>
                                         </Border>
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="6,0">
-                                            <TextBlock Text="{Binding Placa}" FontFamily="Segoe UI" FontSize="13" FontWeight="Bold" Foreground="#1A1F2E"/>
-                                            <TextBlock Text="{Binding Proveedor}" FontFamily="Segoe UI" FontSize="11" Foreground="#6B7280" TextTrimming="CharacterEllipsis"/>
+                                            <TextBlock Text="{Binding Placa}" FontFamily="Segoe UI" FontSize="15" FontWeight="Bold" Foreground="#1A1F2E"/>
+                                            <TextBlock Text="{Binding Proveedor}" FontFamily="Segoe UI" FontSize="13" Foreground="#6B7280" TextTrimming="CharacterEllipsis"/>
                                         </StackPanel>
                                         <Border Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Center"
                                                 CornerRadius="999" Padding="8,3">
@@ -371,7 +371,7 @@
                                                         </Style>
                                                     </Border.Style>
                                                 </Border>
-                                                <TextBlock Text="{Binding Estado}" FontFamily="Segoe UI" FontSize="11.5" FontWeight="Bold" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding Estado}" FontFamily="Segoe UI" FontSize="13.5" FontWeight="Bold" VerticalAlignment="Center">
                                                     <TextBlock.Style>
                                                         <Style TargetType="TextBlock">
                                                             <Setter Property="Foreground" Value="#6B7280"/>
@@ -441,7 +441,7 @@
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="Tabla de Movimiento de Materia Prima" Style="{StaticResource PanelTitle}"/>
                                 </StackPanel>
-                                <TextBlock HorizontalAlignment="Right" VerticalAlignment="Center" FontFamily="Segoe UI" FontSize="11" Foreground="#6B7280">
+                                <TextBlock HorizontalAlignment="Right" VerticalAlignment="Center" FontFamily="Segoe UI" FontSize="13" Foreground="#6B7280">
                                     <Run Text="Camión "/><Run Text="{Binding SelectedCamion.Placa}" FontWeight="Bold" Foreground="#1A1F2E"/>
                                 </TextBlock>
                             </Grid>
@@ -449,7 +449,7 @@
 
                         <Grid Grid.Row="1">
                             <TextBlock x:Name="MovEmpty" Text="Selecciona un camión para ver sus productos"
-                                       FontFamily="Segoe UI" FontSize="12.5" Foreground="#9CA3AF"
+                                       FontFamily="Segoe UI" FontSize="14.5" Foreground="#9CA3AF"
                                        HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center"/>
                             <DataGrid x:Name="DgProductos" AutoGenerateColumns="False" CanUserAddRows="False"
                                       CanUserSortColumns="False" HeadersVisibility="Column" GridLinesVisibility="None"
@@ -465,7 +465,7 @@
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
                                                 <Border Style="{StaticResource CodeChip}" HorizontalAlignment="Left" Margin="10,0">
-                                                    <TextBlock Text="{Binding ProductoCodigo}" FontFamily="Consolas" FontSize="11" FontWeight="Bold" Foreground="#1E3A8A"/>
+                                                    <TextBlock Text="{Binding ProductoCodigo}" FontFamily="Consolas" FontSize="13" FontWeight="Bold" Foreground="#1E3A8A"/>
                                                 </Border>
                                             </DataTemplate>
                                         </DataGridTemplateColumn.CellTemplate>
@@ -473,14 +473,14 @@
                                     <DataGridTemplateColumn Header="PRODUCTO" Width="1.3*">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
-                                                <TextBlock Text="{Binding ProductoNombre}" FontFamily="Segoe UI" FontSize="12.5" FontWeight="SemiBold" Foreground="#1A1F2E" TextTrimming="CharacterEllipsis" Margin="10,0"/>
+                                                <TextBlock Text="{Binding ProductoNombre}" FontFamily="Segoe UI" FontSize="14.5" FontWeight="SemiBold" Foreground="#1A1F2E" TextTrimming="CharacterEllipsis" Margin="10,0"/>
                                             </DataTemplate>
                                         </DataGridTemplateColumn.CellTemplate>
                                     </DataGridTemplateColumn>
                                     <DataGridTemplateColumn Header="PROVEEDOR" Width="1*">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
-                                                <TextBlock Text="{Binding ProveedorNombre}" FontFamily="Segoe UI" FontSize="11.5" Foreground="#6B7280" TextTrimming="CharacterEllipsis" Margin="10,0"/>
+                                                <TextBlock Text="{Binding ProveedorNombre}" FontFamily="Segoe UI" FontSize="13.5" Foreground="#6B7280" TextTrimming="CharacterEllipsis" Margin="10,0"/>
                                             </DataTemplate>
                                         </DataGridTemplateColumn.CellTemplate>
                                     </DataGridTemplateColumn>
@@ -512,7 +512,7 @@
                                                                 </Style>
                                                             </Border.Style>
                                                         </Border>
-                                                        <TextBlock Text="{Binding Estado}" FontFamily="Segoe UI" FontSize="11.5" FontWeight="Bold" VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding Estado}" FontFamily="Segoe UI" FontSize="13.5" FontWeight="Bold" VerticalAlignment="Center">
                                                             <TextBlock.Style>
                                                                 <Style TargetType="TextBlock">
                                                                     <Setter Property="Foreground" Value="#6B7280"/>
@@ -532,7 +532,7 @@
                                     <DataGridTemplateColumn Header="BULTOS REST." Width="84">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
-                                                <TextBlock Text="{Binding BultosRestantes, StringFormat=N1}" FontFamily="Segoe UI" FontSize="12" FontWeight="Bold" Foreground="#1A1F2E" HorizontalAlignment="Center"/>
+                                                <TextBlock Text="{Binding BultosRestantes, StringFormat=N1}" FontFamily="Segoe UI" FontSize="14" FontWeight="Bold" Foreground="#1A1F2E" HorizontalAlignment="Center"/>
                                             </DataTemplate>
                                         </DataGridTemplateColumn.CellTemplate>
                                     </DataGridTemplateColumn>
@@ -549,7 +549,7 @@
                                                             </Border.RenderTransform>
                                                         </Border>
                                                     </Border>
-                                                    <TextBlock Text="{Binding ProgresoTexto}" FontFamily="Segoe UI" FontSize="11" FontWeight="Bold" Foreground="#6B7280" HorizontalAlignment="Center" Margin="0,3,0,0"/>
+                                                    <TextBlock Text="{Binding ProgresoTexto}" FontFamily="Segoe UI" FontSize="13" FontWeight="Bold" Foreground="#6B7280" HorizontalAlignment="Center" Margin="0,3,0,0"/>
                                                 </StackPanel>
                                             </DataTemplate>
                                         </DataGridTemplateColumn.CellTemplate>
@@ -568,7 +568,7 @@
                                 </StackPanel>
                             </Button>
                             <TextBlock Text="Para agregar, editar o quitar productos usá «Editar proceso»"
-                                       FontFamily="Segoe UI" FontSize="11.5" Foreground="#9CA3AF"
+                                       FontFamily="Segoe UI" FontSize="13.5" Foreground="#9CA3AF"
                                        VerticalAlignment="Center"/>
                         </WrapPanel>
                     </Grid>
@@ -589,7 +589,7 @@
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Text="Entradas de Materia Prima" Style="{StaticResource PanelTitle}"/>
                                 <Border Background="#EFF6FF" CornerRadius="999" Padding="7,1" Margin="8,0,0,0" VerticalAlignment="Center">
-                                    <TextBlock Text="{Binding FilasEntradas.Count}" FontFamily="Segoe UI" FontSize="10.5" FontWeight="Bold" Foreground="#1E3A8A"/>
+                                    <TextBlock Text="{Binding FilasEntradas.Count}" FontFamily="Segoe UI" FontSize="12.5" FontWeight="Bold" Foreground="#1E3A8A"/>
                                 </Border>
                             </StackPanel>
                             <Border HorizontalAlignment="Right" Background="#F7F9FC" BorderBrush="#D8E1EC" BorderThickness="1" CornerRadius="7" Padding="2">
@@ -603,7 +603,7 @@
 
                     <Grid Grid.Row="1">
                         <TextBlock x:Name="EntEmpty" Text="Aún no hay pesajes registrados"
-                                   FontFamily="Segoe UI" FontSize="12.5" Foreground="#9CA3AF"
+                                   FontFamily="Segoe UI" FontSize="14.5" Foreground="#9CA3AF"
                                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         <DataGrid x:Name="DgEntradas" AutoGenerateColumns="False" CanUserAddRows="False"
                                   CanUserSortColumns="False" HeadersVisibility="Column" GridLinesVisibility="None"
@@ -619,7 +619,7 @@
                                     <DataGridTextColumn.ElementStyle>
                                         <Style TargetType="TextBlock">
                                             <Setter Property="FontFamily" Value="Consolas"/>
-                                            <Setter Property="FontSize" Value="11.5"/>
+                                            <Setter Property="FontSize" Value="13.5"/>
                                             <Setter Property="Foreground" Value="#9CA3AF"/>
                                             <Setter Property="Margin" Value="10,0"/>
                                             <Setter Property="VerticalAlignment" Value="Center"/>
@@ -630,7 +630,7 @@
                                     <DataGridTextColumn.ElementStyle>
                                         <Style TargetType="TextBlock">
                                             <Setter Property="FontFamily" Value="Segoe UI"/>
-                                            <Setter Property="FontSize" Value="12"/>
+                                            <Setter Property="FontSize" Value="14"/>
                                             <Setter Property="FontWeight" Value="SemiBold"/>
                                             <Setter Property="Foreground" Value="#1A1F2E"/>
                                             <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
@@ -645,7 +645,7 @@
                                     <DataGridTextColumn.ElementStyle>
                                         <Style TargetType="TextBlock">
                                             <Setter Property="FontFamily" Value="Segoe UI"/>
-                                            <Setter Property="FontSize" Value="12"/>
+                                            <Setter Property="FontSize" Value="14"/>
                                             <Setter Property="FontWeight" Value="Bold"/>
                                             <Setter Property="Foreground" Value="#1E3A8A"/>
                                             <Setter Property="Margin" Value="10,0"/>
@@ -693,7 +693,7 @@
                     <Path.RenderTransform><RotateTransform/></Path.RenderTransform>
                 </Path>
                 <TextBlock Text="Cargando camiones en proceso de descarga..."
-                           FontFamily="Segoe UI" FontSize="14" Foreground="#6B7280"
+                           FontFamily="Segoe UI" FontSize="16" Foreground="#6B7280"
                            VerticalAlignment="Center"/>
             </StackPanel>
         </Border>
@@ -712,11 +712,11 @@
                 </Border>
 
                 <TextBlock Text="Actualmente no hay camiones descargándose"
-                           FontFamily="Segoe UI" FontSize="19" FontWeight="Bold" Foreground="#1A1F2E"
+                           FontFamily="Segoe UI" FontSize="21" FontWeight="Bold" Foreground="#1A1F2E"
                            HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap"/>
 
                 <TextBlock Text="Iniciá un nuevo proceso para registrar la placa, los productos que trae el camión y la tara extra de la carga."
-                           FontFamily="Segoe UI" FontSize="13.5" Foreground="#6B7280"
+                           FontFamily="Segoe UI" FontSize="15.5" Foreground="#6B7280"
                            HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap"
                            Margin="0,10,0,26"/>
 
@@ -734,7 +734,7 @@
                                           VerticalAlignment="Center"
                                           StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
                                     <TextBlock Text="Iniciar nuevo proceso de descarga" Foreground="White"
-                                               FontFamily="Segoe UI" FontSize="14.5" FontWeight="SemiBold"
+                                               FontFamily="Segoe UI" FontSize="16.5" FontWeight="SemiBold"
                                                VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Border>
@@ -756,7 +756,7 @@
                 <Button x:Name="BtnVerCerrados" HorizontalAlignment="Center" Margin="0,18,0,0"
                         Background="Transparent" BorderThickness="0" Cursor="Hand"
                         Visibility="Collapsed" FocusVisualStyle="{x:Null}" Click="BtnVerCerrados_Click">
-                    <TextBlock x:Name="TxtVerCerrados" FontFamily="Segoe UI" FontSize="13"
+                    <TextBlock x:Name="TxtVerCerrados" FontFamily="Segoe UI" FontSize="15"
                                Foreground="#1E3A8A" TextDecorations="Underline"/>
                 </Button>
             </StackPanel>
@@ -770,7 +770,7 @@
             <Border Background="White" CornerRadius="10" BorderBrush="#D8E1EC" BorderThickness="1" Padding="14" Width="240">
                 <Border.Effect><DropShadowEffect Color="#0F172A" BlurRadius="20" ShadowDepth="6" Opacity="0.25"/></Border.Effect>
                 <StackPanel>
-                    <TextBlock x:Name="ConfirmText" FontFamily="Segoe UI" FontSize="12.5" Foreground="#1A1F2E" TextWrapping="Wrap" Margin="0,0,0,12"/>
+                    <TextBlock x:Name="ConfirmText" FontFamily="Segoe UI" FontSize="14.5" Foreground="#1A1F2E" TextWrapping="Wrap" Margin="0,0,0,12"/>
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                         <Button Content="Cancelar" Style="{StaticResource ToolBtn}" Margin="0,0,8,0" Click="ConfirmCancel_Click"/>
                         <Button Content="Quitar" Style="{StaticResource ToolBtn}" Background="#DC2626" Foreground="White" BorderBrush="#DC2626" Click="ConfirmOk_Click"/>

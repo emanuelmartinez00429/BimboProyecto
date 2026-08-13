@@ -16,7 +16,7 @@
             <Setter Property="Height" Value="38"/>
             <Setter Property="Padding" Value="10,0"/>
             <Setter Property="FontFamily" Value="Segoe UI"/>
-            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="FontSize" Value="17"/>
             <Setter Property="Foreground" Value="#1A1F2E"/>
             <Setter Property="Background" Value="White"/>
             <Setter Property="BorderBrush" Value="#7FFFFFFF"/>
@@ -89,10 +89,10 @@
                         </Border>
                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
                             <TextBlock x:Name="TxtModalContext"
-                                       FontFamily="Segoe UI" FontSize="11" FontWeight="SemiBold"
+                                       FontFamily="Segoe UI" FontSize="13" FontWeight="SemiBold"
                                        Foreground="#A6FFFFFF"/>
                             <TextBlock x:Name="TxtModalTitle"
-                                       FontFamily="Segoe UI" FontSize="21" FontWeight="Bold"
+                                       FontFamily="Segoe UI" FontSize="23" FontWeight="Bold"
                                        Foreground="White" Margin="0,2,0,0"/>
                         </StackPanel>
                         <Button Grid.Column="2" Width="30" Height="30"
@@ -134,10 +134,10 @@
                                   Width="16" Height="16" Stretch="Uniform"/>
                         </Border>
                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                            <TextBlock Text="PROVEEDOR" FontFamily="Segoe UI" FontSize="11" FontWeight="Bold"
+                            <TextBlock Text="PROVEEDOR" FontFamily="Segoe UI" FontSize="13" FontWeight="Bold"
                                        Foreground="#80FFFFFF"/>
                             <TextBlock x:Name="TxtProveedorNombre"
-                                       FontFamily="Segoe UI" FontSize="15" FontWeight="SemiBold"
+                                       FontFamily="Segoe UI" FontSize="17" FontWeight="SemiBold"
                                        Foreground="White"/>
                         </StackPanel>
                     </Grid>
@@ -145,15 +145,15 @@
 
                 <!-- Formulario -->
                 <StackPanel Margin="24,16,24,18">
-                    <TextBlock Text="Nombre completo" FontFamily="Segoe UI" FontSize="13" FontWeight="SemiBold"
+                    <TextBlock Text="Nombre completo" FontFamily="Segoe UI" FontSize="15" FontWeight="SemiBold"
                                Foreground="#CCFFFFFF" Margin="0,0,0,4"/>
                     <TextBox x:Name="TxtNombre" Style="{StaticResource ModalInput}" Margin="0,0,0,12"/>
 
-                    <TextBlock Text="Teléfono" FontFamily="Segoe UI" FontSize="13" FontWeight="SemiBold"
+                    <TextBlock Text="Teléfono" FontFamily="Segoe UI" FontSize="15" FontWeight="SemiBold"
                                Foreground="#CCFFFFFF" Margin="0,0,0,4"/>
                     <TextBox x:Name="TxtTelefono" Style="{StaticResource ModalInput}" Margin="0,0,0,12"/>
 
-                    <TextBlock Text="Correo electrónico" FontFamily="Segoe UI" FontSize="13" FontWeight="SemiBold"
+                    <TextBlock Text="Correo electrónico" FontFamily="Segoe UI" FontSize="15" FontWeight="SemiBold"
                                Foreground="#CCFFFFFF" Margin="0,0,0,4"/>
                     <TextBox x:Name="TxtCorreo" Style="{StaticResource ModalInput}" Margin="0,0,0,0"/>
 
@@ -165,7 +165,7 @@
                         </Grid.ColumnDefinitions>
                         <Button Grid.Column="0" Height="42" Content="Cancelar"
                                 Background="#1EFFFFFF" BorderThickness="0"
-                                Foreground="White" FontFamily="Segoe UI" FontSize="15"
+                                Foreground="White" FontFamily="Segoe UI" FontSize="17"
                                 FontWeight="SemiBold" Cursor="Hand" FocusVisualStyle="{x:Null}"
                                 Click="BtnCerrar_Click">
                             <Button.Template>
@@ -183,7 +183,7 @@
                         </Button>
                         <Button x:Name="BtnGuardar" Grid.Column="2" Height="42"
                                 Background="#16A34A" BorderThickness="0"
-                                Foreground="White" FontFamily="Segoe UI" FontSize="15"
+                                Foreground="White" FontFamily="Segoe UI" FontSize="17"
                                 FontWeight="SemiBold" Cursor="Hand" FocusVisualStyle="{x:Null}"
                                 Tag="Agregar"
                                 Click="BtnGuardar_Click">
@@ -199,7 +199,7 @@
                                                   StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
                                                   Width="14" Height="14" Stretch="Uniform" Margin="0,0,6,0"/>
                                             <TextBlock Text="{TemplateBinding Tag}"
-                                                       FontFamily="Segoe UI" FontSize="15" FontWeight="SemiBold"
+                                                       FontFamily="Segoe UI" FontSize="17" FontWeight="SemiBold"
                                                        Foreground="White"/>
                                         </StackPanel>
                                     </Border>
