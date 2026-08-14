@@ -71,7 +71,9 @@ namespace CapaDatos.Modelados.Productos
         public string nombre_Proveedor => Fabricante?.Proveedores?.nombreProveedor ?? "Sin proveedor";
         public string nombre_Categoria => Categoria?.nombreCategoria ?? "Sin categoría";
         public string nombre_Pais => Paises?.nombrePais ?? "Sin país";
-        public string descripcion_Tara => tara?.descripcionTara ?? "Sin tara";
+        // descripcion_tara viene de la BD con saltos de linea al final; sin Trim el
+        // TextBox lo toma como segunda linea y el texto se ve corrido hacia arriba.
+        public string descripcion_Tara => string.IsNullOrWhiteSpace(tara?.descripcionTara) ? "Sin tara" : tara!.descripcionTara!.Trim();
 
     }
 }

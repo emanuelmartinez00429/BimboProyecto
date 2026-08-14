@@ -225,6 +225,6 @@ namespace CapaUI.Formularios.Principal.Pantallas.Fabricantes
             ModalOverlay.Visibility = Visibility.Collapsed; ModalContent.Content = null;
         }
 
-        private void OnFabricanteGuardado() { CerrarModal(); _vm.RefrescarDatos(); }
+        private void OnFabricanteGuardado() { CerrarModal(); _vm.RefrescarTrasGuardar(); }
     }
 }

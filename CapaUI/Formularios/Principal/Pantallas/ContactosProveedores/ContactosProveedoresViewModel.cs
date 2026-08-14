@@ -233,10 +233,14 @@ public partial class ContactosProveedoresViewModel : RealtimeAwareViewModel
         await CargarContactosAsync();
     }
 
-    public async Task CargarContactosAsync()
+    /// <summary>
+    /// En modo silencioso no levanta IsLoadingContactos: se usa al volver del
+    /// modal de guardado, para que la lista no se vacie y vuelva a aparecer.
+    /// </summary>
+    public async Task CargarContactosAsync(bool silencioso = false)
     {
         if (ProveedorSeleccionado is null) return;
-        IsLoadingContactos = true;
+        if (!silencioso) IsLoadingContactos = true;
         ErrorCarga         = string.Empty;
 
         var r = await _contactoRepo.GetByProveedorAsync(ProveedorSeleccionado.Id);

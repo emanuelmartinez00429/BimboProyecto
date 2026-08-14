@@ -57,7 +57,11 @@ public partial class ContactoProveedorModal : UserControl
             return;
         }
 
+        // Guardar es un viaje de red: sin este aviso la espera se lee como
+        // que la aplicacion se colgo.
+        var etiquetaGuardar  = BtnGuardar.Tag;
         BtnGuardar.IsEnabled = false;
+        BtnGuardar.Tag       = "Guardando...";
         try
         {
             var dto = new ContactoProveedorDto
@@ -98,6 +102,7 @@ public partial class ContactoProveedorModal : UserControl
         }
         finally
         {
+            BtnGuardar.Tag       = etiquetaGuardar;
             BtnGuardar.IsEnabled = true;
         }
     }

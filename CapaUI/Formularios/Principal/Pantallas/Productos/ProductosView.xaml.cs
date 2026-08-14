@@ -307,7 +307,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
         private void OnProductoGuardado()
         {
             CerrarModal();
-            _vm.RefrescarDatos();
+            _vm.RefrescarTrasGuardar();
         }
     }
 }

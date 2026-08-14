@@ -213,7 +213,11 @@ namespace CapaUI.Formularios.Principal.Pantallas.Usuarios
             }
 
             int idRol = (int)rolItem.Tag;
+            // Guardar es un viaje de red: sin este aviso la espera se lee como
+            // que la aplicacion se colgo.
+            var etiquetaGuardar  = BtnGuardar.Content;
             BtnGuardar.IsEnabled = false;
+            BtnGuardar.Content   = "Guardando...";
 
             try
             {
@@ -264,6 +268,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Usuarios
             }
             finally
             {
+                BtnGuardar.Content   = etiquetaGuardar;
                 BtnGuardar.IsEnabled = true;
             }
         }

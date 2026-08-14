@@ -245,7 +245,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Proveedores
         private void OnProveedorGuardado()
         {
             CerrarModal();
-            _vm.RefrescarDatos();
+            _vm.RefrescarTrasGuardar();
         }
     }
 }

@@ -241,7 +241,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Categorias
         private void OnCategoriaGuardada()
         {
             CerrarModal();
-            _vm.RefrescarDatos();
+            _vm.RefrescarTrasGuardar();
         }
     }
 }

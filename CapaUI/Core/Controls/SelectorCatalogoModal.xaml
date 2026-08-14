@@ -15,7 +15,7 @@
         <!-- Mismos colores que la grilla de Productos: alternas #E8F0FA,
              hover #C8D8F0 y selección verde #C2F2E0 con barra #34D399. -->
         <Style x:Key="CatRow" TargetType="DataGridRow">
-            <Setter Property="Height" Value="37"/>
+            <Setter Property="Height" Value="40"/>
             <Setter Property="Background" Value="White"/>
             <Setter Property="BorderBrush" Value="#EEF2F8"/>
             <Setter Property="BorderThickness" Value="0,0,0,1"/>
@@ -84,7 +84,10 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="DataGridCell">
                         <Border Background="{TemplateBinding Background}" BorderThickness="0" Padding="0">
-                            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Left"/>
+                            <!-- Stretch, no Left: asi la celda ocupa toda la columna y manda
+                                 la alineacion de cada plantilla (el circulo se centra, el
+                                 texto arranca a la izquierda). -->
+                            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Stretch"/>
                         </Border>
                     </ControlTemplate>
                 </Setter.Value>
@@ -92,14 +95,14 @@
         </Style>
 
         <Style x:Key="CatHeader" TargetType="DataGridColumnHeader">
-            <Setter Property="Height" Value="34"/>
+            <Setter Property="Height" Value="38"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="DataGridColumnHeader">
                         <Border Background="#22449B" BorderBrush="#33FFFFFF" BorderThickness="0,0,1,0">
                             <TextBlock Text="{TemplateBinding Content}"
                                        Foreground="#E8EEFB"
-                                       FontFamily="Segoe UI" FontSize="11.5" FontWeight="Bold"
+                                       FontFamily="Segoe UI" FontSize="13" FontWeight="Bold"
                                        HorizontalAlignment="Left" VerticalAlignment="Center"
                                        Padding="12,0"/>
                         </Border>
@@ -110,7 +113,7 @@
 
         <Style x:Key="CatCellText" TargetType="TextBlock">
             <Setter Property="FontFamily" Value="Segoe UI"/>
-            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontSize" Value="15.5"/>
             <Setter Property="Foreground" Value="#1A1F2E"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
             <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
@@ -123,11 +126,11 @@
 
         <!-- Botón de página sobre el fondo azul -->
         <Style x:Key="CatPageBtn" TargetType="Button">
-            <Setter Property="MinWidth" Value="28"/>
-            <Setter Property="Height" Value="26"/>
-            <Setter Property="Padding" Value="4,0"/>
+            <Setter Property="MinWidth" Value="32"/>
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="Padding" Value="5,0"/>
             <Setter Property="FontFamily" Value="Segoe UI"/>
-            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontSize" Value="15"/>
             <Setter Property="Foreground" Value="#E8EEFB"/>
             <Setter Property="Background" Value="#1AFFFFFF"/>
             <Setter Property="BorderBrush" Value="#40FFFFFF"/>
@@ -168,13 +171,13 @@
         <!-- Botón secundario del pie -->
         <Style x:Key="CatGhostBtn" TargetType="Button">
             <Setter Property="FontFamily" Value="Segoe UI"/>
-            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="FontSize" Value="17"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="Background" Value="#1AFFFFFF"/>
             <Setter Property="BorderBrush" Value="#4CFFFFFF"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding" Value="20,8"/>
+            <Setter Property="Padding" Value="22,9"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             <Setter Property="Template">
@@ -215,10 +218,10 @@
                     </Border>
                     <StackPanel VerticalAlignment="Center">
                         <TextBlock Text="SELECCI&#211;N"
-                                   FontFamily="Segoe UI" FontSize="11" FontWeight="Bold"
+                                   FontFamily="Segoe UI" FontSize="14" FontWeight="Bold"
                                    Foreground="#A8BEEA" Margin="0,0,0,1"/>
                         <TextBlock x:Name="TxtTitulo" Text="Seleccionar"
-                                   FontFamily="Segoe UI" FontSize="19" FontWeight="Bold"
+                                   FontFamily="Segoe UI" FontSize="24" FontWeight="Bold"
                                    Foreground="White"/>
                     </StackPanel>
                 </StackPanel>
@@ -251,7 +254,7 @@
                 <DockPanel LastChildFill="False">
                     <TextBlock DockPanel.Dock="Left"
                                Text="Doble clic en una fila para elegirla directamente"
-                               FontFamily="Segoe UI" FontSize="12.5"
+                               FontFamily="Segoe UI" FontSize="14.5"
                                Foreground="#9FB4E2" VerticalAlignment="Center"/>
                     <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
                         <Button Content="Cancelar" Click="Cerrar_Click"
@@ -270,7 +273,7 @@
                                                   Width="14" Height="14" Stretch="Uniform"
                                                   Margin="0,0,7,0" VerticalAlignment="Center"/>
                                             <TextBlock Text="Seleccionar"
-                                                       FontFamily="Segoe UI" FontSize="15" FontWeight="Bold"
+                                                       FontFamily="Segoe UI" FontSize="17" FontWeight="Bold"
                                                        Foreground="White" VerticalAlignment="Center"/>
                                         </StackPanel>
                                     </Border>
@@ -295,7 +298,7 @@
                     Padding="22,0,22,12" Visibility="Collapsed">
                 <DockPanel>
                     <TextBlock x:Name="TxtPageInfo" DockPanel.Dock="Left"
-                               FontFamily="Segoe UI" FontSize="12.5" Foreground="#9FB4E2"
+                               FontFamily="Segoe UI" FontSize="14.5" Foreground="#9FB4E2"
                                VerticalAlignment="Center"/>
                     <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right">
                         <Button x:Name="BtnPrimera"  Content="&#171;"  Style="{StaticResource CatPageBtn}" Click="Primera_Click"  Margin="0,0,3,0"/>
@@ -325,7 +328,7 @@
                                               MostrarPistaTeclado="False"/>
 
                 <TextBlock Grid.Row="1" x:Name="TxtContador"
-                           FontFamily="Segoe UI" FontSize="12.5" FontWeight="SemiBold"
+                           FontFamily="Segoe UI" FontSize="14.5" FontWeight="SemiBold"
                            Foreground="#A8BEEA" Margin="2,10,0,8"/>
 
                 <!-- Tarjeta blanca de la tabla, sobre el azul -->
@@ -389,18 +392,18 @@
 
                         <TextBlock x:Name="TxtVacio" Text="Sin resultados."
                                    Visibility="Collapsed"
-                                   FontFamily="Segoe UI" FontSize="14.5" Foreground="#6B7280"
+                                   FontFamily="Segoe UI" FontSize="16.5" Foreground="#6B7280"
                                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
 
                         <StackPanel x:Name="PanelCargando" Orientation="Horizontal"
                                     Visibility="Collapsed"
                                     HorizontalAlignment="Center" VerticalAlignment="Center">
                             <TextBlock Text="Cargando..."
-                                       FontFamily="Segoe UI" FontSize="14.5" Foreground="#6B7280"/>
+                                       FontFamily="Segoe UI" FontSize="16.5" Foreground="#6B7280"/>
                         </StackPanel>
 
                         <TextBlock x:Name="TxtError" Visibility="Collapsed"
-                                   FontFamily="Segoe UI" FontSize="13.5" Foreground="#B91C1C"
+                                   FontFamily="Segoe UI" FontSize="15" Foreground="#B91C1C"
                                    TextWrapping="Wrap" MaxWidth="420"
                                    HorizontalAlignment="Center" VerticalAlignment="Center"
                                    TextAlignment="Center"/>

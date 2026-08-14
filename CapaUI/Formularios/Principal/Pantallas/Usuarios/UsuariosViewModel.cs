@@ -160,12 +160,20 @@ public partial class UsuariosViewModel : ObservableObject, IDisposable
 
     public void RefrescarDatos() => _ = CargarPaginaAsync();
 
+    /// <summary>
+    /// Refresco despues de guardar en el modal. En modo silencioso no levanta
+    /// IsLoading, asi la grilla no se vacia y vuelve (el "parpadeo de recarga"
+    /// que se veia al guardar): las filas viejas siguen en pantalla hasta que
+    /// llegan las nuevas.
+    /// </summary>
+    public void RefrescarTrasGuardar() => _ = CargarPaginaAsync(silencioso: true);
+
     private const int TimeoutMs = 10_000;
 
-    private async Task CargarPaginaAsync()
+    private async Task CargarPaginaAsync(bool silencioso = false)
     {
         int myGen  = ++_loadGeneration;
-        IsLoading  = true;
+        if (!silencioso) IsLoading = true;
         ErrorCarga = string.Empty;
 
         int? idEstado = _estadoFiltro switch

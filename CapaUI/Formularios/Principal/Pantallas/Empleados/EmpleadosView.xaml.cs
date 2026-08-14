@@ -288,13 +288,13 @@ namespace CapaUI.Formularios.Principal.Pantallas.Empleados
         private void OnUsuarioGuardado()
         {
             CerrarModal();
-            _vm.RefrescarDatos();
+            _vm.RefrescarTrasGuardar();
         }
 
         private void OnEmpleadoGuardado()
         {
             CerrarModal();
-            _vm.RefrescarDatos();
+            _vm.RefrescarTrasGuardar();
         }
     }
 }

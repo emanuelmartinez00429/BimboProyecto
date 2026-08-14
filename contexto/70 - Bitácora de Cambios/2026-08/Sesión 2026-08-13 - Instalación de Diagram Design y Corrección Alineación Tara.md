@@ -1,5 +1,5 @@
 ---
-title: "Sesión 2026-08-13 — Instalación de Diagram Design, Diagrama CapaUI, Corrección Alineación Tara y Fix de Filtros ComboBox"
+title: "Sesión 2026-08-13 — Instalación de Diagram Design, Diagrama CapaUI, Corrección Alineación Tara, Fix de Filtros ComboBox y Tamaño de Letra en Modales"
 tags:
   - sesion
   - diagramas
@@ -7,15 +7,16 @@ tags:
   - productos
   - fabricantes
   - combobox
+  - modales
   - antigravity
 date: 2026-08-13
 autor_cambios: Antigravity (Gemini 3.6 Flash / Gemini 3.7 Flash)
 ---
 
-# Sesión 2026-08-13 — Instalación de Diagram Design, Diagrama CapaUI, Corrección Alineación Tara y Fix de Filtros ComboBox
+# Sesión 2026-08-13 — Instalación de Diagram Design, Diagrama CapaUI, Corrección Alineación Tara, Fix de Filtros ComboBox y Tamaño de Letra en Modales
 
 > [!success] Resultado
-> Se instaló la habilidad `diagram-design` con regla de disparo automático, se generó el diagrama arquitectónico de `CapaUI`, se corrigió la alineación vertical de la columna **TARA** en Productos y se solucionó el bug en los ComboBoxes de filtro donde la primera letra escrita se borraba. Además, se configuró la navegación por flechas para que solo recorra visualmente las opciones y el filtrado se confirme exclusivamente al presionar **Enter** o hacer clic.
+> Se instaló la habilidad `diagram-design` con regla de disparo automático, se generó el diagrama arquitectónico de `CapaUI`, se corrigió la alineación vertical de la columna **TARA** en Productos, se solucionó el bug en los ComboBoxes de filtro (primera letra borrada y navegación por flechas con confirmación en Enter) y se incrementó el tamaño de fuente y altura de los inputs en los modales de la aplicación para mejorar su legibilidad.
 
 ---
 
@@ -91,13 +92,28 @@ autor_cambios: Antigravity (Gemini 3.6 Flash / Gemini 3.7 Flash)
 
 ---
 
-## 5. Verificación
+## 5. Aumento de Tamaño de Letra en TextBoxes y Combos de Modales
+
+### Problema Registrado
+- El texto dentro de los campos de entrada (`TextBox` y `ComboBox`) de los modales (como el modal de Producto, Usuario, Fabricante, etc.) se veía pequeño (`13.5px`) en comparación con las etiquetas (`16.5px`) y el resto de la interfaz.
+
+### Cambios Aplicados
+- **`CapaUI/Resources/Styles.xaml`**:
+  - `ModalInput`: Se aumentó el tamaño de letra de `13.5` a **`16.5`**, la altura a **`38px`**, el padding a `12,0` y el radio de esquinas a `6px`.
+  - `ModalCombo`: Se aumentó el tamaño de letra de `13.5` a **`16.5`** y la altura a **`38px`**.
+- **`CapaUI/Formularios/Principal/Pantallas/Productos/ProductoModal.xaml`**:
+  - `LupaBtn`: Se ajustó a `36x36px` con icono `16x16px` y radio `6px` para alinearse armónicamente con la nueva altura de los campos de texto.
+  - `CmbUnidad`: Se removió el alto fijo en línea para que herede los `38px` y `16.5px` de fuente del estilo compartido.
+
+---
+
+## 6. Verificación
 
 - **Compilación de la solución:** `dotnet build BimboProyecto.sln` finalizó con **0 errores**.
 - **Prueba funcional:** 
-  - Al escribir, la primera letra permanece intacta y filtra la lista en tiempo real.
-  - Al pulsar flecha abajo (↓) o arriba (↑), el usuario puede moverse libremente por la lista sin que la tabla cambie ni parpadee.
-  - Al presionar **Enter** (o hacer clic con el ratón), la opción seleccionada se confirma, se cierra el desplegable y la tabla se filtra con el nuevo valor.
+  - Los campos de texto en los modales ahora muestran una tipografía de `16.5px`, cómoda y perfectamente legible.
+  - La primera letra en los combos de filtro permanece intacta al tipear.
+  - Las flechas de teclado navegan visualmente sin recargar la tabla hasta pulsar Enter.
   - La columna TARA en la tabla de Productos permanece centrada verticalmente en una sola línea.
 
 ---

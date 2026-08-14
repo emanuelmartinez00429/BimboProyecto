@@ -298,7 +298,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Usuarios
         private void OnUsuarioGuardado()
         {
             CerrarModal();
-            _vm.RefrescarDatos();
+            _vm.RefrescarTrasGuardar();
         }
     }
 }

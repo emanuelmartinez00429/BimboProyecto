@@ -185,7 +185,10 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
                 return;
             }
 
+            // Guardar es un viaje de red: sin este aviso el segundo de espera se
+            // lee como que la aplicacion se colgo.
             BtnGuardar.IsEnabled = false;
+            BtnGuardar.Content   = "Guardando...";
             try
             {
                 if (!TryParseDecimal(TxtPesoTeorico.Text, "El peso teórico", out var pesoTeorico) ||
@@ -237,6 +240,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
             }
             finally
             {
+                BtnGuardar.Content   = "Guardar";
                 BtnGuardar.IsEnabled = true;
             }
         }

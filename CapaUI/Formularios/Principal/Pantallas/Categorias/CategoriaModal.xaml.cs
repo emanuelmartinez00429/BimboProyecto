@@ -50,7 +50,11 @@ namespace CapaUI.Formularios.Principal.Pantallas.Categorias
                 return;
             }
 
+            // Guardar es un viaje de red: sin este aviso la espera se lee como
+            // que la aplicacion se colgo.
+            var etiquetaGuardar  = BtnGuardar.Content;
             BtnGuardar.IsEnabled = false;
+            BtnGuardar.Content   = "Guardando...";
             try
             {
                 var dto = new CategoriaDto
@@ -81,6 +85,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Categorias
             }
             finally
             {
+                BtnGuardar.Content   = etiquetaGuardar;
                 BtnGuardar.IsEnabled = true;
             }
         }

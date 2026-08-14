@@ -55,7 +55,7 @@ public class CatalogoRepository : RepositorioBase, ICatalogoRepository
             t => new FiltroItem
             {
                 Id          = t.idTara,
-                Nombre      = t.descripcionTara ?? $"Tara {t.idTara}",
+                Nombre      = string.IsNullOrWhiteSpace(t.descripcionTara) ? $"Tara {t.idTara}" : t.descripcionTara.Trim(),
                 Descripcion = $"{t.pesoTaraEnvalaje:N2} kg",
             },
             ct), "Cargar taras");

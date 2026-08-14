@@ -148,7 +148,7 @@
                                     </ControlTemplate>
                                 </Button.Template>
                             </Button>
-                            <Button x:Name="BtnGuardar" Click="BtnGuardar_Click" Foreground="White"
+                            <Button x:Name="BtnGuardar" Content="Guardar" Click="BtnGuardar_Click" Foreground="White"
                                     FontFamily="Segoe UI" FontSize="17" FontWeight="Bold"
                                     BorderBrush="#15803D" BorderThickness="1" Padding="22,9" Cursor="Hand" FocusVisualStyle="{x:Null}">
                                 <Button.Background>
@@ -166,7 +166,7 @@
                                                 <Path Data="M20,6 L9,17 l-5,-5" Stroke="White" StrokeThickness="2.6"
                                                       StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
                                                       Width="14" Height="14" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center"/>
-                                                <TextBlock Text="Guardar" FontFamily="Segoe UI" FontSize="17" FontWeight="Bold" Foreground="White" VerticalAlignment="Center"/>
+                                                <TextBlock Text="{Binding Content, RelativeSource={RelativeSource TemplatedParent}}" FontFamily="Segoe UI" FontSize="17" FontWeight="Bold" Foreground="White" VerticalAlignment="Center"/>
                                             </StackPanel>
                                         </Border>
                                         <ControlTemplate.Triggers>

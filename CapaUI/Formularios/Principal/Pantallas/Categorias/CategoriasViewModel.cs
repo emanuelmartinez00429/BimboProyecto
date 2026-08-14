@@ -130,6 +130,16 @@ public partial class CategoriasViewModel : RealtimeAwareViewModel
 
     public void RefrescarDatos() => _ = CargarPaginaAsync();
 
+    /// <summary>
+    /// Refresco despues de guardar en el modal. Va por la via silenciosa a
+    /// proposito: <see cref="CargarPaginaAsync"/> levanta IsLoading y la grilla
+    /// se vacia y vuelve, que es el "parpadeo de recarga" que se ve al guardar.
+    /// Aca las filas viejas siguen en pantalla y se reemplazan recien cuando
+    /// llegan las nuevas.
+    /// </summary>
+    public void RefrescarTrasGuardar() =>
+        _ = CargarPaginaSilenciosamenteAsync(actualizarFilas: true, esInsert: false);
+
     // Al volver la conexión, recarga todo (Observar es idempotente → no duplica suscripción).
     protected override Task OnReconexionAsync() => CargarDatosAsync();
 
@@ -314,11 +324,21 @@ public partial class CategoriasViewModel : RealtimeAwareViewModel
         }
     }
 
+    /// <summary>
+    /// Guarda contra refrescos silenciosos superpuestos. Al guardar en el modal
+    /// se dispara uno, y el eco de Realtime de ese mismo cambio llega mientras
+    /// todavia esta en vuelo: sin esta bandera se pagaba dos veces la misma
+    /// consulta. Descartar el eco es seguro porque la consulta en vuelo arranco
+    /// despues de la escritura, asi que ya trae el cambio.
+    /// </summary>
+    private bool _refrescoSilencioso;
+
     private async Task CargarPaginaSilenciosamenteAsync(bool actualizarFilas, bool esInsert)
     {
         try
         {
-            if (IsLoading) return;
+            if (IsLoading || _refrescoSilencioso) return;
+            _refrescoSilencioso = true;
 
             int genCapturada = _loadGeneration;
             var filtros = BuildFiltros();
@@ -369,6 +389,10 @@ public partial class CategoriasViewModel : RealtimeAwareViewModel
         catch (Exception ex)
         {
             Serilog.Log.Error(ex, "CategoriasVM: error inesperado en silent refresh");
+        }
+        finally
+        {
+            _refrescoSilencioso = false;
         }
     }
 

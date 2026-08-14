@@ -257,7 +257,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.ContactosFabricantes
         private async void OnContactoGuardado()
         {
             CerrarModal();
-            await _vm.CargarContactosAsync();
+            await _vm.CargarContactosAsync(silencioso: true);
         }
 
         // ── Paginación ──────────────────────────────────────

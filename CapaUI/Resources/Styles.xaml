@@ -123,9 +123,9 @@
 
     <!-- ── Modal ComboBox ──────────────────────────────────────────────── -->
     <Style x:Key="ModalCombo" TargetType="ComboBox">
-        <Setter Property="Height" Value="34"/>
+        <Setter Property="Height" Value="38"/>
         <Setter Property="FontFamily" Value="Segoe UI"/>
-        <Setter Property="FontSize" Value="13.5"/>
+        <Setter Property="FontSize" Value="16.5"/>
         <Setter Property="Foreground" Value="#1A1F2E"/>
         <Setter Property="Background" Value="White"/>
         <Setter Property="BorderBrush" Value="#7FFFFFFF"/>
@@ -135,10 +135,10 @@
 
     <!-- ── Modal TextBox ───────────────────────────────────────────────── -->
     <Style x:Key="ModalInput" TargetType="TextBox">
-        <Setter Property="Height" Value="34"/>
-        <Setter Property="Padding" Value="10,0"/>
+        <Setter Property="Height" Value="38"/>
+        <Setter Property="Padding" Value="12,0"/>
         <Setter Property="FontFamily" Value="Segoe UI"/>
-        <Setter Property="FontSize" Value="13.5"/>
+        <Setter Property="FontSize" Value="16.5"/>
         <Setter Property="Foreground" Value="#1A1F2E"/>
         <Setter Property="Background" Value="White"/>
         <Setter Property="BorderBrush" Value="#7FFFFFFF"/>
@@ -152,10 +152,11 @@
                             Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}"
-                            CornerRadius="4">
+                            CornerRadius="6">
                         <ScrollViewer x:Name="PART_ContentHost"
                                       Margin="{TemplateBinding Padding}"
-                                      VerticalAlignment="Center"/>
+                                      VerticalAlignment="Center"
+                                      VerticalScrollBarVisibility="Disabled"/>
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsFocused" Value="True">
