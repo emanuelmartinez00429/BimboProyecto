@@ -208,11 +208,38 @@ public partial class ProductosViewModel : RealtimeAwareViewModel
         IsLoading  = true;
         ErrorCarga = string.Empty;
 
-        // Catálogos desde la caché de sesión: la segunda entrada a la pantalla
-        // no vuelve a pegarle a la red.
-        var fabTask  = CatalogoCache.ObtenerParaComboAsync(Catalogos.Fabricantes(_catalogos));
-        var paisTask = CatalogoCache.ObtenerParaComboAsync(Catalogos.Paises(_catalogos));
-        var provTask = CatalogoCache.ObtenerParaComboAsync(Catalogos.Proveedores(_catalogos));
+        // Catálogos desde la caché de sesión: la segunda entrada a la pantalla no
+        // espera a la red, y la revalidación de fondo corrige el combo si alguien
+        // tocó la tabla.
+        //
+        // El repoblado se saltea cuando ese filtro está en uso: ComboFiltro.Poblar
+        // vuelve a "(Todos)" sin notificar, así que repoblar por detrás dejaría el
+        // combo diciendo "(Todos)" con la grilla todavía filtrada. La lista nueva
+        // igual queda cacheada y entra en el próximo poblado.
+        var fabTask  = CatalogoCache.ObtenerParaComboAsync(
+            Catalogos.Fabricantes(_catalogos),
+            alRevalidar: lista =>
+            {
+                if (Disposed || _fabricanteIdFiltro is not null) return;
+                _todosFabricantes = lista.ToList();
+                ReacotarFabricantes();
+            });
+
+        var paisTask = CatalogoCache.ObtenerParaComboAsync(
+            Catalogos.Paises(_catalogos),
+            alRevalidar: lista =>
+            {
+                if (Disposed || _paisIdFiltro is not null) return;
+                Paises = lista.ToList();
+            });
+
+        var provTask = CatalogoCache.ObtenerParaComboAsync(
+            Catalogos.Proveedores(_catalogos),
+            alRevalidar: lista =>
+            {
+                if (Disposed || _proveedorIdFiltro is not null) return;
+                Proveedores = lista.ToList();
+            });
         await Task.WhenAll(fabTask, paisTask, provTask);
 
         var rFab = fabTask.Result;

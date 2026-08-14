@@ -69,6 +69,7 @@ namespace CapaDatos.Modelados.Productos
         public string nombre_Presentacion => presentacion_producto?.nombrePresentacion ?? "Sin presentación";
         public string nombre_Fabricante => Fabricante?.nombreFabricante ?? "Sin fabricante";
         public string nombre_Proveedor => Fabricante?.Proveedores?.nombreProveedor ?? "Sin proveedor";
+        public int?   id_Proveedor     => Fabricante?.idProveedor;
         public string nombre_Categoria => Categoria?.nombreCategoria ?? "Sin categoría";
         public string nombre_Pais => Paises?.nombrePais ?? "Sin país";
         // descripcion_tara viene de la BD con saltos de linea al final; sin Trim el

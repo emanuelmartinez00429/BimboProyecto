@@ -72,6 +72,9 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
                 _idCategoria    = _producto.IdCategoria;
                 _idPais         = _producto.IdPais;
                 _idTara         = _producto.IdTara;
+                // Sin esto la lupa de fabricantes abria sin alcance y listaba
+                // todos, aunque el formulario ya mostrara un proveedor.
+                _idProveedor    = _producto.IdProveedor;
 
                 RbActivo.IsChecked   = _producto.IdEstado == 1;
                 RbInactivo.IsChecked = _producto.IdEstado != 1;

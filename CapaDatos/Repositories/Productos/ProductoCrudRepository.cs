@@ -60,6 +60,7 @@ public class ProductoCrudRepository : RepositorioBase, IProductoRepository
         Pais           = p.nombre_Pais,
         IdEstado       = p.idEstado,
         IdFabricante   = p.idFabricante,
+        IdProveedor    = p.id_Proveedor,
         IdCategoria    = p.idCategoria,
         IdPais         = p.idPais,
         IdPresentacion = p.idPresentacion,

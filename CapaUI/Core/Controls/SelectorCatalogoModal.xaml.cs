@@ -56,6 +56,13 @@ public partial class SelectorCatalogoModal : UserControl, IDisposable
     private string _query = string.Empty;
     private bool   _dispuesto;
 
+    /// <summary>
+    /// Vive lo que vive el modal. Aparte de <c>_cts</c>, que se recrea en cada
+    /// tecla del buscador: acá cuelga la revalidación de fondo, que tiene que
+    /// abortarse al cerrar la lupa y no cuando el usuario sigue escribiendo.
+    /// </summary>
+    private readonly CancellationTokenSource _ctsVida = new();
+
     public SelectorCatalogoModal(CatalogoConfig cfg)
     {
         _cfg = cfg ?? throw new ArgumentNullException(nameof(cfg));
@@ -89,7 +96,13 @@ public partial class SelectorCatalogoModal : UserControl, IDisposable
     {
         MostrarCargando(true);
 
-        var r = await CatalogoCache.ObtenerCompletoAsync(_cfg, UmbralMemoria);
+        // El callback repinta si la revalidación encontró la tabla cambiada: la
+        // lupa abre con lo que ya estaba en memoria y se corrige sola en el acto.
+        var r = await CatalogoCache.ObtenerCompletoAsync(
+            _cfg, UmbralMemoria,
+            alRevalidar: lista => { if (!_dispuesto) PintarEnMemoria(lista, preservarSeleccion: true); },
+            _ctsVida.Token);
+
         if (_dispuesto) return;
 
         if (!r.Success)
@@ -101,15 +114,7 @@ public partial class SelectorCatalogoModal : UserControl, IDisposable
 
         if (r.Value is { } completo)
         {
-            // Cabe entero: filtrado en memoria, sin paginación ni red por tecla.
-            _todas = completo.Select(i => new FilaCatalogo(i)).ToList();
-            _vista = CollectionViewSource.GetDefaultView(_todas);
-            _vista.Filter = FiltroEnMemoria;
-
-            Dg.ItemsSource = _vista;
-            FooterPaginacion.Visibility = Visibility.Collapsed;
-            MostrarCargando(false);
-            RefrescarConteoEnMemoria();
+            PintarEnMemoria(completo, preservarSeleccion: false);
             return;
         }
 
@@ -119,6 +124,33 @@ public partial class SelectorCatalogoModal : UserControl, IDisposable
     }
 
     // ── Modo memoria ──────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Vuelca la lista completa a la tabla: filtrado en memoria, sin paginación
+    /// ni red por tecla. Se llama al abrir y otra vez si la revalidación trajo
+    /// cambios, por eso <paramref name="preservarSeleccion"/>: en el repintado
+    /// hay que devolverle al usuario la fila que tenía marcada. El texto buscado
+    /// se conserva solo — <see cref="FiltroEnMemoria"/> lee el campo _query.
+    /// </summary>
+    private void PintarEnMemoria(IReadOnlyList<FiltroItem> items, bool preservarSeleccion)
+    {
+        int? idMarcado = preservarSeleccion
+            ? (Dg.SelectedItem as FilaCatalogo)?.Item.Id
+            : null;
+
+        _todas = items.Select(i => new FilaCatalogo(i)).ToList();
+        _vista = CollectionViewSource.GetDefaultView(_todas);
+        _vista.Filter = FiltroEnMemoria;
+
+        Dg.ItemsSource = _vista;
+        FooterPaginacion.Visibility = Visibility.Collapsed;
+
+        if (idMarcado is not null)
+            Dg.SelectedItem = _todas.FirstOrDefault(f => f.Item.Id == idMarcado);
+
+        MostrarCargando(false);
+        RefrescarConteoEnMemoria();
+    }
 
     private bool FiltroEnMemoria(object obj)
     {
@@ -360,6 +392,9 @@ public partial class SelectorCatalogoModal : UserControl, IDisposable
         _cts?.Cancel();
         _cts?.Dispose();
         _cts = null;
+
+        _ctsVida.Cancel();
+        _ctsVida.Dispose();
     }
 
     /// <summary>

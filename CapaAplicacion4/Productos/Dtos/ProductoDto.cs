@@ -13,6 +13,10 @@ public class ProductoDto
     public string Pais           { get; init; } = string.Empty;
     public int    IdEstado       { get; init; }
     public int    IdFabricante   { get; init; }
+    /// <summary>Proveedor del fabricante. Es el que acota la lupa de fabricantes
+    /// al abrir el modal: sin este dato el selector arranca sin alcance y lista
+    /// todos los fabricantes, no los del proveedor que muestra el formulario.</summary>
+    public int?   IdProveedor    { get; init; }
     public int    IdCategoria    { get; init; }
     public int    IdPais         { get; init; }
     public int    IdPresentacion { get; init; }
