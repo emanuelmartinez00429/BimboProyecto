@@ -618,6 +618,34 @@ select polname, polcmd from pg_policy where polrelid = 'entradas_producto'::regc
 
 ---
 
+### P-034 · Invalidación de caché apoyada en tablas que no publican en Realtime
+
+**Detectado en:** [[Sesión 2026-08-13 - Guardado fluido y caché de catálogos que no vencía]]
+
+`ProductosViewModel.cs:238` hace `Observar("fabricante", _ => CatalogoCache.Invalidar("fabricantes"))`, pero la tabla no está en la publicación de Realtime. Verificado contra la base:
+
+```sql
+select tablename from pg_publication_tables where pubname = 'supabase_realtime';
+-- categoria, empleados, entradas_producto, movimiento_productos,
+-- movimientos, paises, productos, usuarios
+```
+
+Faltan `presentacion_producto`, `fabricante`, `proveedores` y `tara`. **Ese handler no se ejecuta nunca** y nadie se dio cuenta: el modo de falla es silencioso.
+
+Hay además un desalineo latente: `RealtimeService.cs:38` mapea la PK bajo la clave `"taras"`, pero la tabla real se llama `tara`. Si algún día se publica, la suscripción no encontraría su PK.
+
+**Mitigación implementada:** la caché ya no depende de esto — [[ADR-015 - Cache de catalogos mostrar y revalidar]] la revalida en cada apertura. El handler quedó en su lugar porque no molesta y vuelve a servir si se publica la tabla.
+
+**Solución de fondo**, si se quiere ahorrar la consulta por apertura:
+
+1. `ALTER PUBLICATION supabase_realtime ADD TABLE presentacion_producto, fabricante, proveedores, tara;`
+2. Corregir `"taras"` → `"tara"` en `_pkColumns`.
+3. Un suscriptor **de vida larga** a nivel de aplicación: `RealtimeService` cierra el canal con el último suscriptor, y los `Observar` viven en los ViewModels, así que un cambio hecho con esa pantalla cerrada no lo escucharía nadie.
+
+**Estado:** `[ ] Pendiente`
+
+---
+
 ## Historial de resolución
 
 | ID | Descripción | Estado | Sesión |
@@ -654,6 +682,7 @@ select polname, polcmd from pg_policy where polrelid = 'entradas_producto'::regc
 | P-031 | Frenos de rendimiento de toda la aplicación | `[ ]` Pendiente 🔴 | [[Sesión 2026-08-12 - Estabilización de la pantalla de Roles]] |
 | P-032 | Reparto de tara extra sin transacción (N updates) | `[ ]` Pendiente 🔴 | [[Sesión 2026-08-13 - Pesaje solo bruto y tara extra pesada]] |
 | P-033 | Verificar si el trigger de pesajes cubre UPDATE | `[ ]` Pendiente | [[Sesión 2026-08-13 - Pesaje solo bruto y tara extra pesada]] |
+| P-034 | Invalidación de caché sobre tablas no publicadas en Realtime | `[ ]` Pendiente | [[Sesión 2026-08-13 - Guardado fluido y caché de catálogos que no vencía]] |
 
 ---
 
@@ -667,3 +696,4 @@ select polname, polcmd from pg_policy where polrelid = 'entradas_producto'::regc
 - [[Sesión 2026-07-28 - Fix Refresco del Popup de Sugerencias (9 módulos)]] — origen de P-026
 - [[Sesión 2026-07-28 - Refactor del Buscador de Sugerencias (P-026)]] — resolución de P-026
 - [[Sesión 2026-08-09 - Implementación RBAC visual y gestión de roles]] — origen de P-027
+- [[Sesión 2026-08-13 - Guardado fluido y caché de catálogos que no vencía]] — origen de P-034

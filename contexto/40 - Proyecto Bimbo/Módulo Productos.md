@@ -292,6 +292,26 @@ Lifecycle del canal:
 > [!warning] CanUserAddRows="False"
 > Todos los DataGrid deben tener esta propiedad para evitar filas inline.
 
+> [!tip] Refresco después de guardar (desde 2026-08-13)
+> `OnProductoGuardado` llama a `_vm.RefrescarTrasGuardar()`, **no** a `RefrescarDatos()`.
+> La diferencia importa: `CargarPaginaAsync` levanta `IsLoading` y la grilla se vacía y
+> vuelve — se ve como que el formulario se recarga solo. La vía silenciosa deja las filas
+> viejas en pantalla y las reemplaza recién cuando llegan las nuevas. El mismo patrón está
+> replicado en los ocho modales de edición.
+> Ver [[Sesión 2026-08-13 - Guardado fluido y caché de catálogos que no vencía]].
+
+> [!bug] `ProductoDto.IdProveedor` es el que acota la lupa de fabricantes
+> El DTO lleva tanto `Proveedor` (nombre, para mostrar) como `IdProveedor`. Si el modal no
+> inicializa `_idProveedor` con él, `Catalogos.Fabricantes(_catalogos, null)` consulta sin
+> filtro y la lupa lista **todos** los fabricantes aunque el formulario muestre un proveedor.
+> Ese id sale de `Productos.id_Proveedor => Fabricante?.idProveedor`; ya viene en la consulta
+> porque el select es `fabricante(*, proveedores(*))`.
+
+> [!info] Los catálogos de las lupas se revalidan en cada apertura
+> `CatalogoCache` devuelve lo cacheado al instante y vuelve a consultar por detrás; solo
+> repinta si la lista cambió. No tiene vencimiento por tiempo ni depende de Realtime — las
+> tablas de catálogo **no** están publicadas. Ver [[ADR-015 - Cache de catalogos mostrar y revalidar]].
+
 > [!tip] Patrón vigente del buscador (desde 2026-07-28)
 > Todo el wiring vive en el ViewModel + un binding. **No hay code-behind de sugerencias.**
 >
