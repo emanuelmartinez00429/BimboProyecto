@@ -331,9 +331,11 @@
                            FontFamily="Segoe UI" FontSize="14.5" FontWeight="SemiBold"
                            Foreground="#A8BEEA" Margin="2,10,0,8"/>
 
-                <!-- Tarjeta blanca de la tabla, sobre el azul -->
-                <Border Grid.Row="2" CornerRadius="8" Background="White" ClipToBounds="True"
-                        MinHeight="200" MaxHeight="330">
+                <!-- Tarjeta blanca de la tabla, sobre el azul. Sin Min/MaxHeight:
+                     el renglón "*" del Grid padre ya recibe una altura fija de
+                     verdad (ProductoModal.RootGrid la congela en OnLoaded), así
+                     que esta Border la hereda tal cual y no se mueve al buscar. -->
+                <Border Grid.Row="2" CornerRadius="8" Background="White" ClipToBounds="True">
                     <Grid>
                         <DataGrid x:Name="Dg"
                                   AutoGenerateColumns="False"

@@ -106,7 +106,7 @@
         <Border.Effect>
             <DropShadowEffect Color="Black" BlurRadius="24" ShadowDepth="8" Opacity="0.55"/>
         </Border.Effect>
-        <Grid>
+        <Grid x:Name="RootGrid">
             <!-- Gradient background -->
             <Border CornerRadius="10">
                 <Border.Background>
@@ -118,6 +118,9 @@
                 </Border.Background>
             </Border>
 
+            <!-- Alto fijado en OnLoaded (code-behind) al alto natural del
+                 formulario: el marco no se redimensiona ni al cambiar a modo
+                 tabla ni al filtrar dentro de ella (ver RootGrid en el .cs). -->
             <ScrollViewer x:Name="FormHost"
                           VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
             <StackPanel>

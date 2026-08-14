@@ -10,6 +10,7 @@ using System.Globalization;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Threading;
 
 namespace CapaUI.Formularios.Principal.Pantallas.Productos
 {
@@ -88,7 +89,29 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
                 RbActivo.IsChecked   = _producto.IdEstado == 1;
                 RbInactivo.IsChecked = _producto.IdEstado != 1;
             }
+
+            FijarAlturaOriginal();
         }
+
+        /// <summary>
+        /// Congela el marco al alto que ocupa el formulario recién cargado.
+        /// Sin esto, el modal se auto-dimensiona a su contenido: cambiar a modo
+        /// tabla (<see cref="AbrirSelector"/>) y volver a filtrar dentro de ella
+        /// hacía que el marco creciera o encogiera con la cantidad de filas
+        /// visibles (el Border de la tabla solo tenía un rango Min/Max, no un
+        /// alto fijo). Al fijar RootGrid.Height una sola vez, el renglón "*" de
+        /// la tabla queda con una altura de verdad —ya no depende de su
+        /// contenido— y el marco se mantiene del tamaño del modal original en
+        /// ambos modos.
+        /// Se difiere un tick (DispatcherPriority.Loaded) para leer el alto ya
+        /// asentado tras el primer layout completo, no uno a medio popular.
+        /// </summary>
+        private void FijarAlturaOriginal() =>
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                if (double.IsNaN(RootGrid.Height))
+                    RootGrid.Height = RootGrid.ActualHeight;
+            }), DispatcherPriority.Loaded);
 
         private void BtnCerrar_Click(object sender, RoutedEventArgs e) => Cerrado?.Invoke();
 
