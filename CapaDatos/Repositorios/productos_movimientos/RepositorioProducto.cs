@@ -169,19 +169,19 @@ namespace CapaDatos.Repositorios.productos_movimientos
                     .Get();
 
                 var todos = resultado?.Models ?? new List<Productos>();
+                // idFabricante/idPais son nullable (la columna lo es); acá solo
+                // interesan los productos que sí tienen el catálogo cargado.
                 var fabricantes = todos
-                    .Where(p => p.Fabricante != null)
-                    .Select(p => (p.idFabricante, p.Fabricante!.nombreFabricante))
-                    .DistinctBy(x => x.idFabricante)
-                    .OrderBy(x => x.nombreFabricante)
-                    .Select(x => (x.idFabricante, x.nombreFabricante))
+                    .Where(p => p.Fabricante != null && p.idFabricante.HasValue)
+                    .Select(p => (id: p.idFabricante!.Value, nombre: p.Fabricante!.nombreFabricante))
+                    .DistinctBy(x => x.id)
+                    .OrderBy(x => x.nombre)
                     .ToList();
                 var paises = todos
-                    .Where(p => p.Paises != null)
-                    .Select(p => (p.idPais, p.Paises!.nombrePais))
-                    .DistinctBy(x => x.idPais)
-                    .OrderBy(x => x.nombrePais)
-                    .Select(x => (x.idPais, x.nombrePais))
+                    .Where(p => p.Paises != null && p.idPais.HasValue)
+                    .Select(p => (id: p.idPais!.Value, nombre: p.Paises!.nombrePais))
+                    .DistinctBy(x => x.id)
+                    .OrderBy(x => x.nombre)
                     .ToList();
 
                 return (fabricantes, paises);

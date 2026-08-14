@@ -3,8 +3,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:controls="clr-namespace:CapaUI.Core.Controls"
              Width="820"
-             MaxWidth="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Border}}"
-             MaxHeight="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=Border}}"
+             MaxWidth="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Border}, Converter={StaticResource RestarMargen}, ConverterParameter=48}"
+             MaxHeight="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=Border}, Converter={StaticResource RestarMargen}, ConverterParameter=48}"
              UseLayoutRounding="True"
              TextOptions.TextRenderingMode="Grayscale"
              TextOptions.TextFormattingMode="Display">

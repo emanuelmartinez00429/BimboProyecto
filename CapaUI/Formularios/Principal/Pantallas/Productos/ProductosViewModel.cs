@@ -260,9 +260,39 @@ public partial class ProductosViewModel : RealtimeAwareViewModel
         // Observar() registra el token de baja — se cancela en Dispose() automáticamente
         Observar("productos", OnCambioProducto);
 
-        // Si cambian los fabricantes, la lista cacheada queda vieja y la cascada
-        // proveedor → fabricante mentiría.
-        Observar("fabricante", _ => CatalogoCache.Invalidar("fabricantes"));
+        foreach (var (tabla, clave) in TablasDeJoin)
+            Observar(tabla, _ => OnCambioCatalogo(clave));
+    }
+
+    /// <summary>
+    /// Tablas que aportan columnas a la grilla vía join, con la clave de caché de
+    /// su catálogo. Esos nombres no viven en `productos`: renombrar un fabricante
+    /// no dispara ningún evento de esa tabla, así que sin estas suscripciones la
+    /// columna se queda con el nombre viejo hasta volver a entrar a la pantalla.
+    /// </summary>
+    private static readonly (string Tabla, string ClaveCache)[] TablasDeJoin =
+    {
+        ("fabricante",            "fabricantes"),
+        ("proveedores",           "proveedores"),
+        ("categoria",             "categorias"),
+        ("paises",                "paises"),
+        ("presentacion_producto", "presentaciones"),
+        ("tara",                  "taras"),
+        ("unidad_medida",         "unidades"),
+    };
+
+    /// <summary>
+    /// Cambió un catálogo del join: la lista cacheada queda vieja (y con ella la
+    /// cascada proveedor → fabricante) y la grilla muestra el nombre anterior.
+    /// El refresco va por la vía silenciosa, y su bandera interna colapsa la
+    /// ráfaga si un mismo cambio emite varios eventos seguidos.
+    /// </summary>
+    private void OnCambioCatalogo(string claveCache)
+    {
+        if (Disposed) return;
+
+        CatalogoCache.Invalidar(claveCache);
+        _ = CargarPaginaSilenciosamenteAsync(actualizarFilas: true, esInsert: false);
     }
 
     /// <summary>

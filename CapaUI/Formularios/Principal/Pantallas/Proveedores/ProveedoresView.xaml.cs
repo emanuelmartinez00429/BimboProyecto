@@ -68,7 +68,14 @@ namespace CapaUI.Formularios.Principal.Pantallas.Proveedores
         {
             switch (ev.PropertyName)
             {
-                case nameof(ProveedoresViewModel.PageRows):        RefrescarPaginacion(); break;
+                case nameof(ProveedoresViewModel.PageRows):
+                    DgProveedores.ItemsSource = _vm.PageRows;   // único punto donde hay filas nuevas
+                    RefrescarPaginacion();
+                    break;
+                // Realtime puede crecer TotalPages sin tocar PageRows (INSERT con el
+                // usuario en la vieja última página) — sin este case los botones
+                // numerados quedan viejos hasta recargar el módulo.
+                case nameof(ProveedoresViewModel.TotalPages):      RefrescarPaginacion(); break;
                 case nameof(ProveedoresViewModel.IsLoading):       ActualizarCarga();     break;
                 case nameof(ProveedoresViewModel.NoResults):
                     EmptyState.Visibility = _vm.NoResults ? Visibility.Visible : Visibility.Collapsed;
@@ -156,10 +163,13 @@ namespace CapaUI.Formularios.Principal.Pantallas.Proveedores
                 AbrirModalEditar(_vm.Seleccionado);
         }
 
+        /// <summary>
+        /// Solo el árbol de botones. El rebind de la grilla vive en el case de
+        /// PageRows — ver el comentario de ese case.
+        /// </summary>
         private void RefrescarPaginacion()
         {
             if (_vm == null) return;
-            DgProveedores.ItemsSource = _vm.PageRows;
 
             PaginacionPanel.Items.Clear();
             int total   = _vm.TotalPages;

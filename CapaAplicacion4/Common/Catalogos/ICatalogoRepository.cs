@@ -26,8 +26,13 @@ public interface ICatalogoRepository
     Task<Result<PagedResult<FiltroItem>>> GetCategoriasAsync(
         string termino, int page, int size, CancellationToken ct = default);
 
+    /// <summary>
+    /// Unidades de medida, opcionalmente acotadas a una categoría (masa, volumen,
+    /// conteo — <c>tipo_unidad</c>). Mismo patrón de acotamiento que
+    /// <see cref="GetFabricantesAsync"/> con <c>idProveedor</c>.
+    /// </summary>
     Task<Result<PagedResult<FiltroItem>>> GetUnidadesAsync(
-        string termino, int page, int size, CancellationToken ct = default);
+        string termino, int page, int size, int? idTipoUnidad = null, CancellationToken ct = default);
 
     Task<Result<PagedResult<FiltroItem>>> GetPaisesAsync(
         string termino, int page, int size, CancellationToken ct = default);

@@ -62,6 +62,12 @@ namespace CapaUI.Formularios.Principal.Pantallas.ContactosProveedores
                     DgProveedores.ItemsSource = _vm.PageRows;
                     RefrescarPaginacion();
                     break;
+                // Realtime puede crecer TotalPages sin tocar PageRows (INSERT con el
+                // usuario en la vieja última página) — sin este case los botones
+                // numerados quedan viejos hasta recargar el módulo.
+                case nameof(ContactosProveedoresViewModel.TotalPages):
+                    RefrescarPaginacion();
+                    break;
                 case nameof(ContactosProveedoresViewModel.IsLoading):
                     ActualizarCargaProveedores();
                     break;

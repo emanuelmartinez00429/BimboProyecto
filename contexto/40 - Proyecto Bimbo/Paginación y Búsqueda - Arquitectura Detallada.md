@@ -396,6 +396,9 @@ return (previos / size) + 1;                 // página 1-based
 
 ## 6. Integración Realtime
 
+> [!warning] Desactualizado hasta 2026-08-14
+> Esta sección tenía pseudocódigo de una versión anterior de `OnCambioProducto` (INSERT siempre recargaba con spinner vía `CargarPaginaAsync`). Desde la sesión "Realtime Silent Refresh Productos" (2026-05-26) el INSERT usa `CargarPaginaSilenciosamenteAsync` (sin spinner) con una heurística que decide si tocar `PageRows` o no. Lo de abajo refleja el código real.
+
 ### Flujo de evento
 
 ```
@@ -416,25 +419,62 @@ PostgreSQL (INSERT o UPDATE en tabla "productos")
 ```csharp
 private void OnCambioProducto(CambioRealtime cambio)
 {
-    if (_disposed) return;
-
+    if (Disposed) return;
     bool afectaPaginaActual = cambio.IdRegistro.HasValue
         && PageRows.Any(p => p.Id == cambio.IdRegistro.Value);
 
-    if (string.Equals(cambio.Operacion, "INSERT", OrdinalIgnoreCase))
-    {
-        // INSERT: siempre recargar — no sabemos en qué página caerá
-        _ = CargarPaginaAsync();
-    }
-    else if (string.Equals(cambio.Operacion, "UPDATE", OrdinalIgnoreCase))
+    if (string.Equals(cambio.Operacion, "INSERT", StringComparison.OrdinalIgnoreCase))
+        _ = CargarPaginaSilenciosamenteAsync(actualizarFilas: true, esInsert: true);
+    else if (string.Equals(cambio.Operacion, "UPDATE", StringComparison.OrdinalIgnoreCase))
     {
         if (afectaPaginaActual || !cambio.IdRegistro.HasValue)
-            _ = CargarPaginaAsync();       // fila visible → refrescar tabla
+            _ = CargarPaginaSilenciosamenteAsync(actualizarFilas: true, esInsert: false);
         else
-            _ = RefrescarConteosAsync();   // fila en otra página → solo chips
+            _ = RefrescarConteosAsync();
     }
 }
 ```
+
+No hay `case` para `DELETE` — queda sin manejar en este handler.
+
+### `CargarPaginaSilenciosamenteAsync` — el método clave
+
+```csharp
+int nuevoFilteredCount = ResolverFilteredCount(pagina, filtros);
+int nuevoTotalPages    = Math.Max(1, (int)Math.Ceiling(nuevoFilteredCount / (double)PageSize));
+
+// A propósito: un INSERT que crea una página nueva mientras el usuario está
+// parado en la vieja última página NO reasigna PageRows — no le saca de abajo
+// las filas que está mirando.
+bool debeActualizarFilas = actualizarFilas && (!esInsert || _page == nuevoTotalPages);
+
+TotalCount     = pagina.Total;
+ActivosCount   = pagina.Activos;
+InactivosCount = pagina.Inactivos;
+_filteredCount = nuevoFilteredCount;
+
+if (debeActualizarFilas)
+{
+    int? idSeleccionadoAntes = Seleccionado?.Id;
+    PageRows = new ObservableCollection<ProductoDto>(pagina.Items);
+    if (idSeleccionadoAntes.HasValue)
+        Seleccionado = PageRows.FirstOrDefault(x => x.Id == idSeleccionadoAntes.Value);
+}
+
+OnPropertyChanged(nameof(TotalPages));
+OnPropertyChanged(nameof(PageInfo));
+OnPropertyChanged(nameof(NoResults));
+NotifyPaginationCanExecuteChanged();
+```
+
+`RefrescarConteosAsync` (UPDATE fuera de la página visible) sigue el mismo patrón — actualiza conteos y notifica `TotalPages`/`PageInfo`/`NoResults`/`CanExecute`, pero nunca reasigna `PageRows` salvo el caso especial de retroceder una página si la actual quedó vacía por soft-delete.
+
+> [!danger] El gap que esto dejaba: los botones numerados de página
+> `TotalPages` **sí** se recalcula y notifica correctamente en el ViewModel en el caso de arriba (`debeActualizarFilas = false`). Los botones `«/‹/›/»` (bindeados a `Command`, con `CanExecute` leyendo `TotalPages` directo) también quedan correctos.
+>
+> Pero el `ItemsControl` de números de página (`PaginacionPanel` en el XAML, poblado a mano por `RefrescarPaginacion()` en el code-behind) **solo se reconstruía cuando cambiaba `PageRows`** — el `switch` de `OnVmPropertyChanged` no tenía ningún `case` para `TotalPages`. Resultado: un INSERT que crecía el total de páginas mientras el usuario estaba en la última página vieja dejaba los botones numerados con el árbol viejo (ej. `1…10,11`) hasta cerrar y reabrir el módulo — aunque tocar "siguiente" internamente ya llevara a una página que el ViewModel sabía que existía.
+>
+> **Corregido el 2026-08-14** agregando `case nameof(XxxViewModel.TotalPages): RefrescarPaginacion(); break;` junto al `case` de `PageRows` en los 6 módulos que comparten este patrón (Productos, Categorías, Fabricantes, Proveedores, ContactosFabricantes, ContactosProveedores). Ver [[Sesión 2026-08-14 - Fix boton de paginacion desincronizado de Realtime]].
 
 ### RefrescarConteosAsync (solo chips, sin tocar tabla)
 
@@ -448,7 +488,7 @@ private async Task RefrescarConteosAsync()
     TotalCount     = pagina.Total;
     ActivosCount   = pagina.Activos;
     InactivosCount = pagina.Inactivos;
-    _filteredCount = filtros.IdEstado switch { 1 => pagina.Activos, 2 => pagina.Inactivos, _ => pagina.Total };
+    _filteredCount = ResolverFilteredCount(pagina, filtros);
 
     // Si la página actual quedó vacía (soft-delete del último elemento)
     if (PageRows.Count > 0 && pagina.Items.Count == 0 && _page > 1)

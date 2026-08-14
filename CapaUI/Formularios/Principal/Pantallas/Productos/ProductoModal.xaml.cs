@@ -7,6 +7,7 @@ using CapaUI.Core.Controls;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Globalization;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -21,12 +22,15 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
 
         // IDs de respaldo de los campos de catálogo. Los textos son solo la
         // etiqueta visible; lo que se persiste es esto.
-        private int  _idPresentacion;
-        private int  _idFabricante;
-        private int  _idCategoria;
-        private int  _idPais;
+        // Nullable: las cuatro columnas lo son en la base, hay productos sin
+        // presentación/fabricante/categoría/país cargados.
+        private int? _idPresentacion;
+        private int? _idFabricante;
+        private int? _idCategoria;
+        private int? _idPais;
         private int? _idTara;
         private int? _idProveedor;
+        private int? _idUnidadContenido;
 
         private SelectorCatalogoModal? _selectorAbierto;
 
@@ -43,20 +47,25 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
             Loaded += OnLoaded;
         }
 
-        private void OnLoaded(object sender, RoutedEventArgs e)
+        private async void OnLoaded(object sender, RoutedEventArgs e)
         {
             TxtModalContext.Text = _esNuevo ? "NUEVO REGISTRO" : "EDICIÓN";
             TxtModalTitle.Text   = _esNuevo ? "Crear producto"  : "Editar producto";
 
-            // Sin consultas al abrir: los nombres de los catálogos ya vienen
-            // resueltos dentro del DTO. Cada catálogo se carga recién al abrir
+            // Único catálogo que sí hace falta cargar al abrir (no por lupa): el
+            // combo de unidad necesita sus opciones antes de poder seleccionar la
+            // que traiga el producto.
+            await CargarUnidadesAsync();
+
+            // Sin más consultas al abrir: los nombres de los demás catálogos ya
+            // vienen resueltos dentro del DTO. Cada uno se carga recién al abrir
             // su lupa.
             if (!_esNuevo && _producto != null)
             {
                 TxtCodigo.Text       = _producto.CodigoInterno;
                 TxtNombre.Text       = _producto.Nombre;
                 TxtPresentacion.Text = _producto.Presentacion;
-                CargarContenido(_producto.Contenido);
+                CargarContenido(_producto.Contenido, _producto.IdUnidad);
                 TxtPesoTeorico.Text  = FormatearDecimal(_producto.PesoTeorico);
                 TxtTara.Text         = _producto.Tara;
                 TxtProveedor.Text    = _producto.Proveedor;
@@ -89,7 +98,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
             AbrirSelector(Catalogos.Presentaciones(_catalogos), item =>
             {
                 TxtPresentacion.Text = item.Nombre;
-                _idPresentacion      = item.Id ?? 0;
+                _idPresentacion      = item.Id;
             });
 
         private void BuscarTara_Click(object sender, RoutedEventArgs e) =>
@@ -103,14 +112,14 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
             AbrirSelector(Catalogos.Categorias(_catalogos), item =>
             {
                 TxtCategoria.Text = item.Nombre;
-                _idCategoria      = item.Id ?? 0;
+                _idCategoria      = item.Id;
             });
 
         private void BuscarPais_Click(object sender, RoutedEventArgs e) =>
             AbrirSelector(Catalogos.Paises(_catalogos), item =>
             {
                 TxtPais.Text = item.Nombre;
-                _idPais      = item.Id ?? 0;
+                _idPais      = item.Id;
             });
 
         /// <summary>
@@ -125,10 +134,10 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
                 TxtProveedor.Text = item.Nombre;
                 _idProveedor      = item.Id;
 
-                if (cambio && _idFabricante != 0)
+                if (cambio && _idFabricante.HasValue)
                 {
                     TxtFabricante.Text = string.Empty;
-                    _idFabricante      = 0;
+                    _idFabricante      = null;
                 }
             });
 
@@ -141,7 +150,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
             AbrirSelector(Catalogos.Fabricantes(_catalogos, _idProveedor), item =>
             {
                 TxtFabricante.Text = item.Nombre;
-                _idFabricante      = item.Id ?? 0;
+                _idFabricante      = item.Id;
 
                 // Elegir fabricante directo mantiene el proveedor coherente.
                 if (item.IdPadre.HasValue) _idProveedor = item.IdPadre;
@@ -212,6 +221,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
                     IdPresentacion = _idPresentacion,
                     PesoTeorico    = pesoTeorico,
                     IdTara         = _idTara,
+                    IdUnidad       = _idUnidadContenido,
                     PrecioPorKg    = precioPorKg,
                 };
 
@@ -252,12 +262,54 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
             valor?.ToString("0.##", CultureInfo.CurrentCulture) ?? string.Empty;
 
         /// <summary>
-        /// Separa una unidad conocida que venga al final del campo legado
-        /// <c>contenido</c>, sin perder el texto completo si no tiene unidad.
+        /// Puebla el combo desde el catálogo real (<c>unidad_medida</c>), no de una
+        /// lista fija en el XAML. Sin filtro de categoría: el contenido de un
+        /// producto puede ser masa (g, kg) o volumen (ml, l). El <see cref="ComboBoxItem.Tag"/>
+        /// guarda el id real de la unidad; <c>Content</c> es la abreviatura, igual
+        /// que mostraba la lista hardcodeada de antes.
         /// </summary>
-        private void CargarContenido(string contenido)
+        private async Task CargarUnidadesAsync()
+        {
+            CmbUnidad.Items.Clear();
+            CmbUnidad.Items.Add(new ComboBoxItem { Content = "(Sin seleccionar)", Tag = null });
+
+            var r = await CatalogoCache.ObtenerParaComboAsync(Catalogos.Unidades(_catalogos));
+            if (r.Success)
+            {
+                foreach (var u in r.Value!)
+                    CmbUnidad.Items.Add(new ComboBoxItem { Content = u.Descripcion, Tag = u.Id });
+            }
+
+            CmbUnidad.SelectedIndex = 0;
+        }
+
+        /// <summary>
+        /// Selecciona la unidad por id cuando el producto ya la tiene (dato
+        /// estructurado, vía <c>productos.id_unidad</c>). Si no la tiene —dato
+        /// viejo o de prueba sin id_unidad—, cae al sufijo de texto legado dentro
+        /// de <c>contenido</c>, igual que antes de este cambio.
+        /// </summary>
+        private void CargarContenido(string contenido, int? idUnidad)
         {
             var texto = contenido.Trim();
+
+            if (idUnidad.HasValue)
+            {
+                var directo = CmbUnidad.Items.OfType<ComboBoxItem>()
+                    .FirstOrDefault(i => i.Tag is int id && id == idUnidad.Value);
+                if (directo is not null)
+                {
+                    CmbUnidad.SelectedItem = directo;
+                    _idUnidadContenido = idUnidad;
+
+                    var sufijoDirecto = $" {directo.Content}";
+                    TxtContenido.Text = texto.EndsWith(sufijoDirecto, StringComparison.OrdinalIgnoreCase)
+                        ? texto[..^sufijoDirecto.Length].TrimEnd()
+                        : texto;
+                    return;
+                }
+            }
+
             foreach (ComboBoxItem item in CmbUnidad.Items.OfType<ComboBoxItem>().Skip(1))
             {
                 var unidad = item.Content?.ToString() ?? string.Empty;
@@ -266,26 +318,38 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
 
                 TxtContenido.Text = texto[..^sufijo.Length].TrimEnd();
                 CmbUnidad.SelectedItem = item;
+                _idUnidadContenido = item.Tag as int?;
                 return;
             }
 
             TxtContenido.Text = texto;
             CmbUnidad.SelectedIndex = 0;
+            _idUnidadContenido = null;
         }
 
         /// <summary>
-        /// Persiste contenido y unidad en la misma columna, separados por un espacio.
+        /// Persiste contenido y unidad en la misma columna, separados por un
+        /// espacio (compatibilidad con el buscador y el picker de Pesaje, que
+        /// siguen leyendo <c>contenido</c> como texto). De paso deja
+        /// <see cref="_idUnidadContenido"/> listo para el DTO — esa es la fuente
+        /// estructurada que ahora viaja además del texto.
         /// </summary>
         private string ObtenerContenido()
         {
             var contenido = TxtContenido.Text.Trim();
-            var unidad = CmbUnidad.SelectedItem is ComboBoxItem item
-                ? item.Content?.ToString()
-                : null;
+            string? unidad = null;
 
-            if (string.IsNullOrWhiteSpace(contenido) ||
-                string.IsNullOrWhiteSpace(unidad) ||
-                unidad == "(Sin seleccionar)")
+            if (CmbUnidad.SelectedItem is ComboBoxItem item && item.Tag is int idUnidad)
+            {
+                unidad = item.Content?.ToString();
+                _idUnidadContenido = idUnidad;
+            }
+            else
+            {
+                _idUnidadContenido = null;
+            }
+
+            if (string.IsNullOrWhiteSpace(contenido) || string.IsNullOrWhiteSpace(unidad))
                 return contenido;
 
             var sufijo = $" {unidad}";

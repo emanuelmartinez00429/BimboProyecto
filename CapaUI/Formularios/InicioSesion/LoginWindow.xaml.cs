@@ -5,9 +5,12 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using System.Windows.Media.Imaging;
 using CapaAplicacion.Auth.Interfaces;
 using CapaAplicacion.Usuarios.Interfaces;
+using CapaDatos.Modelados;
 using CapaDatos.Repositorios;
+using CapaUI.Core.Empresa;
 
 namespace CapaUI.Formularios.InicioSesion
 {
@@ -41,11 +44,41 @@ namespace CapaUI.Formularios.InicioSesion
                     TxtEmail.GhostSuffix = empresa.DominioCorreo;
                 else
                     TxtEmail.GhostSuffix = "@gmail.com";
+
+                await AplicarLogoEmpresaAsync(empresa);
             }
             catch (Exception ex)
             {
                 Debug.WriteLine($"[LoginWindow] Error cargando dominio: {ex.Message}");
                 TxtEmail.GhostSuffix = "@gmail.com";
+            }
+        }
+
+        /// <summary>
+        /// Reemplaza el logo empacado por el de <c>empresa.logo_empresa</c>, bajado y
+        /// cacheado localmente vía <see cref="LogoEmpresaCache"/>. Si no hay logo
+        /// configurado o falla la descarga, se queda con el logo por defecto que ya
+        /// trae el XAML — nunca deja el login sin imagen.
+        /// </summary>
+        private async Task AplicarLogoEmpresaAsync(Empresa? empresa)
+        {
+            var rutaLocal = await LogoEmpresaCache.ObtenerRutaLocalAsync(empresa?.LogoEmpresa);
+            if (rutaLocal is null) return;
+
+            try
+            {
+                var bitmap = new BitmapImage();
+                bitmap.BeginInit();
+                bitmap.CacheOption = BitmapCacheOption.OnLoad; // carga y suelta el archivo
+                bitmap.UriSource = new Uri(rutaLocal, UriKind.Absolute);
+                bitmap.EndInit();
+                bitmap.Freeze();
+
+                LogoImage.Source = bitmap;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[LoginWindow] Error aplicando logo de empresa: {ex.Message}");
             }
         }
 

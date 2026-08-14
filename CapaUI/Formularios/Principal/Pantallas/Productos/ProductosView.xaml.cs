@@ -91,7 +91,15 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
         {
             switch (ev.PropertyName)
             {
-                case nameof(ProductosViewModel.PageRows):        RefrescarPaginacion();   break;
+                case nameof(ProductosViewModel.PageRows):
+                    DgProductos.ItemsSource = _vm.PageRows;   // único punto donde hay filas nuevas
+                    RefrescarPaginacion();
+                    break;
+                // Realtime puede crecer TotalPages sin tocar PageRows (INSERT con el
+                // usuario parado en la vieja última página, a propósito no le saca las
+                // filas de abajo) — sin este case los botones numerados quedan con el
+                // árbol viejo hasta recargar el módulo, aunque TotalPages ya esté bien.
+                case nameof(ProductosViewModel.TotalPages):      RefrescarPaginacion();   break;
                 case nameof(ProductosViewModel.IsLoading):       ActualizarCarga();       break;
                 case nameof(ProductosViewModel.NoResults):
                     EmptyState.Visibility = _vm.NoResults ? Visibility.Visible : Visibility.Collapsed;
@@ -211,10 +219,16 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
 
         // ── Pagination ────────────────────────────────────────────────
 
+        /// <summary>
+        /// Reconstruye SOLO el árbol de botones de página. No rebindea la grilla:
+        /// las filas se asignan en el case de PageRows, que es el único momento en
+        /// que hay filas nuevas. Mezclar ambas cosas acá hacía que un aviso de
+        /// TotalPages (que llega antes de pedir los datos) repintara la grilla con
+        /// las filas de la página anterior.
+        /// </summary>
         private void RefrescarPaginacion()
         {
             if (_vm == null) return;
-            DgProductos.ItemsSource = _vm.PageRows;
 
             PaginacionPanel.Items.Clear();
             int total   = _vm.TotalPages;

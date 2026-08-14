@@ -31,7 +31,7 @@ public class ProductoCrudRepository : RepositorioBase, IProductoRepository
             ? "fabricante!inner(*, proveedores(*))"
             : "fabricante(*, proveedores(*))";
 
-        return $"*, presentacion_producto(*), {fabricante}, categoria(*), paises(*), tara(*)";
+        return $"*, presentacion_producto(*), {fabricante}, categoria(*), paises(*), tara(*, unidad_medida(*)), unidad_medida(*)";
     }
 
     /// <summary>
@@ -67,6 +67,8 @@ public class ProductoCrudRepository : RepositorioBase, IProductoRepository
         PesoTeorico    = p.pesoTeorico,
         IdTara         = p.idTara,
         Tara           = p.descripcion_Tara,
+        IdUnidad       = p.idUnidad,
+        Unidad         = p.abreviatura_Unidad,
         PrecioPorKg    = p.precioPorKg,
         CreatedAt      = p.createdAt,
         UpdatedAt      = p.updatedAt,
@@ -113,6 +115,7 @@ public class ProductoCrudRepository : RepositorioBase, IProductoRepository
                 idEstado          = dto.IdEstado,
                 pesoTeorico       = dto.PesoTeorico,
                 idTara            = dto.IdTara,
+                idUnidad          = dto.IdUnidad,
                 precioPorKg       = dto.PrecioPorKg,
             };
             var resultado = await client.From<Modelados.Productos.Productos>().Insert(nuevo);
@@ -135,6 +138,7 @@ public class ProductoCrudRepository : RepositorioBase, IProductoRepository
                 .Set(p => p.idEstado,          dto.IdEstado)
                 .Set(p => p.pesoTeorico,       dto.PesoTeorico)
                 .Set(p => p.idTara,            dto.IdTara)
+                .Set(p => p.idUnidad,          dto.IdUnidad)
                 .Set(p => p.precioPorKg,       dto.PrecioPorKg)
                 .Update();
         }, "Actualizar producto");

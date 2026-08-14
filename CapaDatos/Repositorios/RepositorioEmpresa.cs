@@ -6,6 +6,12 @@ namespace CapaDatos.Repositorios
     public static class RepositorioEmpresa
     {
         /// <summary>
+        /// Bucket público (solo lectura) donde vive el logo de la empresa. Público porque
+        /// el login lo necesita antes de que exista una sesión autenticada.
+        /// </summary>
+        private const string BucketLogos = "empresa-logos";
+
+        /// <summary>
         /// Obtiene el primer registro de empresa (siempre hay uno).
         /// </summary>
         public static async Task<Empresa?> ObtenerAsync()
@@ -14,6 +20,27 @@ namespace CapaDatos.Repositorios
             using var ctsObtener = new CancellationTokenSource(TimeSpan.FromSeconds(ConexionSupabase.TimeoutSeconds));
             var result = await client.From<Empresa>().Limit(1).Get(ctsObtener.Token);
             return result?.Models?.FirstOrDefault();
+        }
+
+        /// <summary>
+        /// Descarga el logo del bucket <c>empresa-logos</c> directo al archivo local indicado.
+        /// La librería de Storage no acepta <see cref="CancellationToken"/>, así que el timeout
+        /// se aplica carrereando la descarga contra un <see cref="Task.Delay"/>.
+        /// </summary>
+        public static async Task DescargarLogoAsync(string rutaStorage, string rutaLocalDestino)
+        {
+            var client = await ConexionSupabase.GetClientAsync();
+
+            var descarga = client.Storage.From(BucketLogos)
+                .DownloadPublicFile(rutaStorage, rutaLocalDestino, null, null);
+            var timeout = Task.Delay(TimeSpan.FromSeconds(ConexionSupabase.TimeoutSeconds));
+
+            var terminó = await Task.WhenAny(descarga, timeout);
+            if (terminó == timeout)
+                throw new TimeoutException(
+                    $"Descarga del logo '{rutaStorage}' superó {ConexionSupabase.TimeoutSeconds}s.");
+
+            await descarga; // re-lanza si la descarga falló
         }
 
         /// <summary>

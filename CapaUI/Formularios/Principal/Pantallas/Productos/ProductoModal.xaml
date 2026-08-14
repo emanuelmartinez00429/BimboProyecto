@@ -2,6 +2,8 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              Width="1020"
+             MaxWidth="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Border}, Converter={StaticResource RestarMargen}, ConverterParameter=48}"
+             MaxHeight="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=Border}, Converter={StaticResource RestarMargen}, ConverterParameter=48}"
              UseLayoutRounding="True"
              TextOptions.TextRenderingMode="Grayscale"
              TextOptions.TextFormattingMode="Display">
@@ -100,8 +102,7 @@
     </UserControl.Resources>
 
     <!-- Modal container with gradient background -->
-    <Border CornerRadius="10" ClipToBounds="True"
-            MaxHeight="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=Border}}">
+    <Border CornerRadius="10" ClipToBounds="True">
         <Border.Effect>
             <DropShadowEffect Color="Black" BlurRadius="24" ShadowDepth="8" Opacity="0.55"/>
         </Border.Effect>
@@ -276,14 +277,8 @@
                     </StackPanel>
                     <StackPanel Grid.Row="2" Grid.Column="1" Style="{StaticResource CampoModal}">
                         <TextBlock Text="Unidad" Style="{StaticResource EtiquetaCampo}"/>
-                        <ComboBox x:Name="CmbUnidad" Style="{StaticResource ModalCombo}" SelectedIndex="0">
-                            <ComboBoxItem Content="(Sin seleccionar)"/>
-                            <ComboBoxItem Content="g"/>
-                            <ComboBoxItem Content="kg"/>
-                            <ComboBoxItem Content="ml"/>
-                            <ComboBoxItem Content="l"/>
-                            <ComboBoxItem Content="oz"/>
-                        </ComboBox>
+                        <!-- Items poblados en OnLoaded desde unidad_medida (catálogo real), no hardcodeados -->
+                        <ComboBox x:Name="CmbUnidad" Style="{StaticResource ModalCombo}"/>
                     </StackPanel>
                     <StackPanel Grid.Row="2" Grid.Column="2" Style="{StaticResource CampoModal}">
                         <TextBlock Text="Peso te&#243;rico" Style="{StaticResource EtiquetaCampo}"/>

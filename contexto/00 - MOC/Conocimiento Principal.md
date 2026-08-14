@@ -75,6 +75,8 @@ Las rosas son rojas.
 - [[ADR-013 - Eliminacion de SesionActual y servicioSesionActual legacy]]
 - [[ADR-014 - Precarga unica y cache del catalogo RBAC]]
 - [[ADR-015 - Cache de catalogos mostrar y revalidar]]
+- [[ADR-016 - Logo de empresa dinamico en login con cache por nombre de archivo]]
+- [[ADR-017 - Catalogo real de unidad_medida con categoria y su uso en Tara]]
 
 ### Módulos documentados
 - [[Módulo Productos]] — patrón de referencia para todos los demás
@@ -120,4 +122,4 @@ Regla: `CapaAplicacion` **nunca** referencia `CapaDatos`.
 ## Bitácora
 
 Las sesiones están en `70 - Bitácora de Cambios/`.  
-Sesión más reciente: [[Sesión 2026-08-13 - Guardado fluido y caché de catálogos que no vencía]]
+Sesión más reciente: [[Sesión 2026-08-14 - Regresion la grilla mostraba la pagina anterior]]

@@ -618,11 +618,11 @@ select polname, polcmd from pg_policy where polrelid = 'entradas_producto'::regc
 
 ---
 
-### P-034 · Invalidación de caché apoyada en tablas que no publican en Realtime
+### ~~P-034~~ · 🟡 Invalidación de caché apoyada en tablas que no publican en Realtime — parcialmente resuelto 2026-08-14
 
 **Detectado en:** [[Sesión 2026-08-13 - Guardado fluido y caché de catálogos que no vencía]]
 
-`ProductosViewModel.cs:238` hace `Observar("fabricante", _ => CatalogoCache.Invalidar("fabricantes"))`, pero la tabla no está en la publicación de Realtime. Verificado contra la base:
+`ProductosViewModel.cs:238` hacía `Observar("fabricante", _ => CatalogoCache.Invalidar("fabricantes"))`, pero la tabla no estaba en la publicación de Realtime. Verificado contra la base en su momento:
 
 ```sql
 select tablename from pg_publication_tables where pubname = 'supabase_realtime';
@@ -630,17 +630,73 @@ select tablename from pg_publication_tables where pubname = 'supabase_realtime';
 -- movimientos, paises, productos, usuarios
 ```
 
-Faltan `presentacion_producto`, `fabricante`, `proveedores` y `tara`. **Ese handler no se ejecuta nunca** y nadie se dio cuenta: el modo de falla es silencioso.
+Faltaban `presentacion_producto`, `fabricante`, `proveedores` y `tara`. **Ese handler no se ejecutaba nunca** y nadie se había dado cuenta: el modo de falla es silencioso.
 
-Hay además un desalineo latente: `RealtimeService.cs:38` mapea la PK bajo la clave `"taras"`, pero la tabla real se llama `tara`. Si algún día se publica, la suscripción no encontraría su PK.
+Había además un desalineo latente: `RealtimeService.cs:38` mapeaba la PK bajo la clave `"taras"`, pero la tabla real se llama `tara`.
 
-**Mitigación implementada:** la caché ya no depende de esto — [[ADR-015 - Cache de catalogos mostrar y revalidar]] la revalida en cada apertura. El handler quedó en su lugar porque no molesta y vuelve a servir si se publica la tabla.
+**Resuelto en [[Sesión 2026-08-14 - Realtime en columnas de join de Productos]]**, a raíz de un reporte relacionado pero distinto (las columnas de la grilla de Productos que salen de un join no se actualizaban en vivo). Se hicieron los dos primeros pasos de la solución de fondo:
 
-**Solución de fondo**, si se quiere ahorrar la consulta por apertura:
+1. ✅ `ALTER PUBLICATION supabase_realtime ADD TABLE fabricante, proveedores, presentacion_producto, tara, unidad_medida;` — migración `publicar_catalogos_en_realtime` aplicada y verificada (8 → 13 tablas).
+2. ✅ Corregido `"taras"` → `"tara"` en `_pkColumns`, y agregado `["unidad_medida"] = "id_unidad"`.
+3. ⬜ **Sigue pendiente.** Un suscriptor **de vida larga** a nivel de aplicación: `RealtimeService` cierra el canal con el último suscriptor, y los `Observar` viven en los ViewModels, así que un cambio hecho con **todas** las pantallas relevantes cerradas no lo escucharía nadie. No bloqueó el caso de Productos porque su suscripción vive con la pantalla y `CargarDatosAsync` reconsulta al reabrirla — pero si en el futuro otra caché global (no acotada a una pantalla activa) necesita invalidación por Realtime, este punto 3 vuelve a ser necesario.
 
-1. `ALTER PUBLICATION supabase_realtime ADD TABLE presentacion_producto, fabricante, proveedores, tara;`
-2. Corregir `"taras"` → `"tara"` en `_pkColumns`.
-3. Un suscriptor **de vida larga** a nivel de aplicación: `RealtimeService` cierra el canal con el último suscriptor, y los `Observar` viven en los ViewModels, así que un cambio hecho con esa pantalla cerrada no lo escucharía nadie.
+`CatalogoCache` (la caché de las lupas) sigue sin depender de esto — [[ADR-015 - Cache de catalogos mostrar y revalidar]] la revalida en cada apertura por diseño, independientemente de si la publicación está al día.
+
+**Estado:** `[~] Parcialmente resuelto — falta el punto 3 (suscriptor de vida larga), solo si se necesita`
+
+---
+
+### P-035 · Política del bucket `empresa-logos` sin verificar + falta el módulo que sube el logo
+
+**Detectado en:** [[Sesión 2026-08-14 - Logo de empresa dinamico en login]]
+
+El login (`LoginWindow`) ahora lee `empresa.logo_empresa` y baja el archivo del bucket de Supabase Storage `empresa-logos` con `DownloadPublicFile` — **se asumió que el bucket es de lectura pública**, por consistencia con que la tabla `empresa` ya tiene lectura anónima (se lee `dominio_correo` antes de loguearse). Esa política **no se verificó** contra la configuración real del proyecto Supabase.
+
+Si el bucket resultara privado, la descarga falla en silencio (`LogoEmpresaCache` lo loguea con `Serilog.Log.Warning` y devuelve `null`) y el login se queda con el logo empacado por defecto — no rompe nada, pero el logo dinámico nunca se ve.
+
+Además, el diseño de caché ([[ADR-016 - Logo de empresa dinamico en login con cache por nombre de archivo]]) asume que cada logo nuevo llega con un **nombre de archivo distinto** al anterior (es la clave de versión). Si el futuro módulo de configuración llega a reescribir `logo_empresa` reutilizando el mismo nombre, el caché local se queda con la versión vieja hasta que se borre a mano.
+
+Y, de fondo, **el módulo de configuración que sube el logo y llama a `RepositorioEmpresa.ActualizarLogoAsync` todavía no existe** — esta sesión resolvió solo el lado de lectura/caché.
+
+**Solución de fondo:**
+
+1. Confirmar en el dashboard de Supabase (o vía `list_tables`/políticas de Storage) que `empresa-logos` es público de solo lectura, o ajustar `RepositorioEmpresa.DescargarLogoAsync` para autenticarse si no lo es.
+2. Al construir el módulo de configuración, exigir que cada subida genere un nombre de archivo distinto (timestamp o GUID en el nombre), o agregar invalidación explícita del caché local si se decide reutilizar nombres.
+3. Construir el módulo de configuración en sí (subida + validación de imagen + `ActualizarLogoAsync`).
+
+**Estado:** `[ ] Pendiente`
+
+---
+
+### P-036 · Tara y Presentaciones no tienen pantalla CRUD — el combo de unidad filtrado a masa no tiene dónde vivir
+
+**Detectado en:** [[Sesión 2026-08-14 - Catalogo de unidad_medida con categoria]]
+
+`unidad_medida` ahora tiene categoría (`tipo_unidad`: Masa/Volumen/Conteo — ver [[ADR-017 - Catalogo real de unidad_medida con categoria y su uso en Tara]]) y `tara.id_unidad` ya es un dato real en la base (antes "kg" era solo la convención del nombre `peso_tara_envalaje`). `CatalogoRepository.GetUnidadesAsync(..., idTipoUnidad)` y `Catalogos.Unidades(r, idTipoUnidad)` ya están listos para poblar un combo de unidad filtrado a solo Masa.
+
+El problema: **hoy no existe ninguna pantalla para crear o editar filas de `tara`** en la app — solo una lupa de solo lectura (`Catalogos.Taras` + `SelectorCatalogoModal`) para *elegir* una tara ya existente al editar un Producto. Los datos de `tara` se cargan directo en Supabase (por eso también es el origen del dato de prueba de P-023). El combo filtrado a Masa, entonces, no tiene ningún formulario donde mostrarse todavía. Mismo hueco existe para **Presentaciones** — confirmado por el usuario en la misma sesión, señalado a propósito para resolver después.
+
+**Solución de fondo:** construir un CRUD mínimo de Tara (grilla + modal, mismo patrón que Categorías/Fabricantes) con el combo de unidad ya integrado (`Catalogos.Unidades(r, idTipoUnidadMasa)`), y el equivalente para Presentaciones. Conviene resolver junto con P-023 (limpiar el dato de prueba de `tara`), ya que ambos requieren tocar esa tabla.
+
+**Estado:** `[ ] Pendiente`
+
+---
+
+### P-037 · El control de paginación es code-behind duplicado 9× sin validación de rango
+
+**Detectado en:** [[Sesión 2026-08-14 - Regresion la grilla mostraba la pagina anterior]]
+
+Hallazgos de la investigación de esa regresión. Ninguno causó el bug reportado, pero los tres son fragilidad real del mismo componente:
+
+1. **El setter de `Page` no clampea.** `ProductosViewModel.cs:179-192` acepta cualquier entero: no valida contra `TotalPages` ni contra `1`. Los botones numerados asignan `_vm.Page = pg` directo, y los `CanExecute` solo protegen las flechas `« ‹ › »`. Si `_page > TotalPages`, `CalcularPaginas` devuelve un árbol donde **ningún botón queda resaltado** (ningún `p == current`), y `PageInfo` calcula un rango inválido. Es alcanzable por Realtime: un DELETE que reduce el total mientras el usuario está en la última página deja `_page` apuntando a una página que ya no existe.
+
+2. **El resaltado del botón activo es un snapshot de `Style`, no un binding.** Se decide una sola vez al construir el botón (`p == current ? ActivePageBtn : PageBtn`). No hay `case nameof(Page)` en el switch de `OnVmPropertyChanged`, así que el resaltado depende enteramente de que se dispare `PageRows` o `TotalPages` para corregirse.
+
+3. **Está copiado literal en 9 archivos.** `CalcularPaginas` y `RefrescarPaginacion` viven duplicados en Productos, Categorías, Fabricantes, Proveedores, ContactosFabricantes, ContactosProveedores, Usuarios, Empleados y Bitácora (más `SelectorCatalogoModal` y `SelectorProductosModal`). Se verificó que `CalcularPaginas` es **aritméticamente correcta** para todo `1 <= current <= total` (simulados 9 casos, sin repetidos ni fuera de rango ni elipsis dobles) y que las 9 copias son idénticas — pero cualquier corrección futura hay que aplicarla 9 veces. Es la misma queja de fondo que P-004 sobre este mismo code-behind.
+
+Además, `Usuarios`, `Empleados` y `Bitacora` todavía tienen `DgX.ItemsSource = _vm.PageRows` **dentro** de su `RefrescarPaginacion()` (la forma que causó la regresión de esta sesión). Hoy no exhiben el bug porque no tienen Realtime y por lo tanto no recibieron el `case TotalPages` — pero si algún día se les agrega Realtime siguiendo el checklist, hay que separar las responsabilidades primero.
+
+**Solución de fondo:** extraer un `UserControl` de paginación compartido con `ItemsSource` bindeado a una colección calculada, y clampear `Page` en el setter (o en un único lugar del VM base). Eso cierra los tres puntos de una vez y elimina las 9 copias. Es un refactor, no un fix — por eso quedó fuera del alcance de la sesión que lo detectó.
 
 **Estado:** `[ ] Pendiente`
 
@@ -682,7 +738,10 @@ Hay además un desalineo latente: `RealtimeService.cs:38` mapea la PK bajo la cl
 | P-031 | Frenos de rendimiento de toda la aplicación | `[ ]` Pendiente 🔴 | [[Sesión 2026-08-12 - Estabilización de la pantalla de Roles]] |
 | P-032 | Reparto de tara extra sin transacción (N updates) | `[ ]` Pendiente 🔴 | [[Sesión 2026-08-13 - Pesaje solo bruto y tara extra pesada]] |
 | P-033 | Verificar si el trigger de pesajes cubre UPDATE | `[ ]` Pendiente | [[Sesión 2026-08-13 - Pesaje solo bruto y tara extra pesada]] |
-| P-034 | Invalidación de caché sobre tablas no publicadas en Realtime | `[ ]` Pendiente | [[Sesión 2026-08-13 - Guardado fluido y caché de catálogos que no vencía]] |
+| P-034 | Invalidación de caché sobre tablas no publicadas en Realtime | 🟡 Parcial | [[Sesión 2026-08-13 - Guardado fluido y caché de catálogos que no vencía]] → [[Sesión 2026-08-14 - Realtime en columnas de join de Productos]] |
+| P-035 | Política del bucket `empresa-logos` sin verificar + falta módulo de configuración para subir logo | `[ ]` Pendiente | [[Sesión 2026-08-14 - Logo de empresa dinamico en login]] |
+| P-036 | Tara y Presentaciones sin pantalla CRUD — combo de unidad filtrado a masa sin dónde vivir | `[ ]` Pendiente | [[Sesión 2026-08-14 - Catalogo de unidad_medida con categoria]] |
+| P-037 | Paginación: code-behind duplicado 9× sin clamp de `Page` ni binding del resaltado | `[ ]` Pendiente | [[Sesión 2026-08-14 - Regresion la grilla mostraba la pagina anterior]] |
 
 ---
 
@@ -697,3 +756,7 @@ Hay además un desalineo latente: `RealtimeService.cs:38` mapea la PK bajo la cl
 - [[Sesión 2026-07-28 - Refactor del Buscador de Sugerencias (P-026)]] — resolución de P-026
 - [[Sesión 2026-08-09 - Implementación RBAC visual y gestión de roles]] — origen de P-027
 - [[Sesión 2026-08-13 - Guardado fluido y caché de catálogos que no vencía]] — origen de P-034
+- [[Sesión 2026-08-14 - Realtime en columnas de join de Productos]] — resolución parcial de P-034
+- [[Sesión 2026-08-14 - Logo de empresa dinamico en login]] — origen de P-035
+- [[Sesión 2026-08-14 - Catalogo de unidad_medida con categoria]] — origen de P-036
+- [[Sesión 2026-08-14 - Regresion la grilla mostraba la pagina anterior]] — origen de P-037

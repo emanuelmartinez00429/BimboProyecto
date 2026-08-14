@@ -64,7 +64,14 @@ namespace CapaUI.Formularios.Principal.Pantallas.Categorias
         {
             switch (ev.PropertyName)
             {
-                case nameof(CategoriasViewModel.PageRows):        RefrescarPaginacion();    break;
+                case nameof(CategoriasViewModel.PageRows):
+                    DgCategorias.ItemsSource = _vm.PageRows;   // único punto donde hay filas nuevas
+                    RefrescarPaginacion();
+                    break;
+                // Realtime puede crecer TotalPages sin tocar PageRows (INSERT con el
+                // usuario en la vieja última página) — sin este case los botones
+                // numerados quedan viejos hasta recargar el módulo.
+                case nameof(CategoriasViewModel.TotalPages):      RefrescarPaginacion();    break;
                 case nameof(CategoriasViewModel.IsLoading):       ActualizarCarga();        break;
                 case nameof(CategoriasViewModel.NoResults):
                     EmptyState.Visibility = _vm.NoResults ? Visibility.Visible : Visibility.Collapsed;
@@ -152,10 +159,13 @@ namespace CapaUI.Formularios.Principal.Pantallas.Categorias
                 AbrirModalEditar(_vm.Seleccionado);
         }
 
+        /// <summary>
+        /// Solo el árbol de botones. El rebind de la grilla vive en el case de
+        /// PageRows — ver el comentario de ese case.
+        /// </summary>
         private void RefrescarPaginacion()
         {
             if (_vm == null) return;
-            DgCategorias.ItemsSource = _vm.PageRows;
 
             PaginacionPanel.Items.Clear();
             int total   = _vm.TotalPages;

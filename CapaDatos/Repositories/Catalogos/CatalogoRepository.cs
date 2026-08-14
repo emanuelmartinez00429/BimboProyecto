@@ -44,11 +44,14 @@ public class CatalogoRepository : RepositorioBase, ICatalogoRepository
             },
             ct), "Cargar presentaciones");
 
-    /// <summary>tara no tiene columna de estado; su etiqueta es la descripción.</summary>
+    /// <summary>
+    /// tara no tiene columna de estado; su etiqueta es la descripción. La unidad
+    /// ya no se asume "kg" — viene con join a <c>unidad_medida</c>.
+    /// </summary>
     public Task<Result<PagedResult<FiltroItem>>> GetTarasAsync(
         string termino, int page, int size, CancellationToken ct = default) =>
         TryAsync(() => PagedInternalAsync<Tara>(
-            null,
+            q => q.Select("*, unidad_medida(*)"),
             ["descripcion_tara"],
             "descripcion_tara",
             termino, page, size,
@@ -56,7 +59,7 @@ public class CatalogoRepository : RepositorioBase, ICatalogoRepository
             {
                 Id          = t.idTara,
                 Nombre      = string.IsNullOrWhiteSpace(t.descripcionTara) ? $"Tara {t.idTara}" : t.descripcionTara.Trim(),
-                Descripcion = $"{t.pesoTaraEnvalaje:N2} kg",
+                Descripcion = $"{t.pesoTaraEnvalaje:N2} {t.abreviatura_Unidad}",
             },
             ct), "Cargar taras");
 
@@ -77,10 +80,22 @@ public class CatalogoRepository : RepositorioBase, ICatalogoRepository
             },
             ct), "Cargar categorías");
 
+    /// <summary>
+    /// Sin <paramref name="idTipoUnidad"/> trae todas las unidades activas
+    /// (usado por el combo de contenido, que puede ser masa o volumen). Con
+    /// valor, acota a esa categoría — es lo que va a usar el día que exista un
+    /// combo de unidad para tara, filtrado a solo Masa.
+    /// </summary>
     public Task<Result<PagedResult<FiltroItem>>> GetUnidadesAsync(
-        string termino, int page, int size, CancellationToken ct = default) =>
+        string termino, int page, int size, int? idTipoUnidad = null, CancellationToken ct = default) =>
         TryAsync(() => PagedInternalAsync<UnidadMedida>(
-            null,
+            q =>
+            {
+                q = q.Filter("id_estado", Op.Equals, EstadoRegistro.Activo.ToString());
+                if (idTipoUnidad.HasValue)
+                    q = q.Filter("id_tipo_unidad", Op.Equals, idTipoUnidad.Value.ToString());
+                return q;
+            },
             ["nombre_unidad", "abreviatura"],
             "nombre_unidad",
             termino, page, size,
@@ -89,6 +104,7 @@ public class CatalogoRepository : RepositorioBase, ICatalogoRepository
                 Id          = u.idUnidad,
                 Nombre      = u.nombreUnidad,
                 Descripcion = u.abreviatura ?? string.Empty,
+                Activo      = u.idEstado == EstadoRegistro.Activo,
             },
             ct), "Cargar unidades");
 

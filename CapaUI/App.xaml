@@ -9,6 +9,7 @@
             </ResourceDictionary.MergedDictionaries>
             <conv:BoolToVisibilityConverter x:Key="BoolToVisibility"/>
             <conv:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibility"/>
+            <conv:RestarMargenConverter x:Key="RestarMargen"/>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

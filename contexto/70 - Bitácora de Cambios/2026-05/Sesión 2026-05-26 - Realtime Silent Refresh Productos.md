@@ -197,6 +197,9 @@ private async Task CargarPaginaSilenciosamenteAsync(bool actualizarFilas, bool e
 | UPDATE en otra página | — | ❌ | Sin cambio | ✅ | Preservada (no se toca) |
 | Acción del usuario | Filtro, paginación, carga inicial | ✅ | ✅ | ✅ | Via `_pendingSelectionId` |
 
+> [!danger] Adenda 2026-08-14 — efecto colateral no visto en esta sesión
+> La fila `INSERT | _page < nuevoTotalPages | Filas: Sin cambio` de la tabla de arriba es correcta en el ViewModel: `TotalPages` se recalcula y notifica bien. Pero el `ItemsControl` de números de página en el code-behind de la vista (`PaginacionPanel`/`RefrescarPaginacion()`) solo se reconstruía cuando cambiaba `PageRows` — nunca se agregó un `case` para `TotalPages` en el `switch` de `OnVmPropertyChanged`. Resultado: en ese caso exacto, los botones numerados quedaban con el árbol viejo hasta recargar el módulo, aunque el usuario reportó que "el número de página decía 12 pero ir a la última llevaba a la 1" — porque el árbol de botones seguía siendo el de 11 páginas. Corregido (y replicado a los 5 módulos gemelos) en [[Sesión 2026-08-14 - Fix boton de paginacion desincronizado de Realtime]].
+
 ---
 
 ## Edge cases cubiertos
@@ -220,3 +223,4 @@ Si `Seleccionado` apuntaba a un objeto y `PageRows` se reconstruye, la referenci
 - [[Sesión 2026-05-24 - Implementación Gestor Realtime Completa]] — Implementación original del Realtime en ProductosViewModel
 - [[Módulo Productos]] — Documentación actualizada del módulo
 - [[Plan de Implementación - Gestor Realtime]] — Plan base del que deriva este refinamiento
+- [[Sesión 2026-08-14 - Fix boton de paginacion desincronizado de Realtime]] — corrige el efecto colateral en `PaginacionPanel` (adenda arriba)

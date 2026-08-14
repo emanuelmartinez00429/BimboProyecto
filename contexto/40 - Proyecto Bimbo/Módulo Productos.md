@@ -67,17 +67,31 @@ UserControl_Loaded
 
 > [!info] Campos de producto expuestos
 > La consulta paginada incluye `nombre_producto`, `id_estado`, `peso_teorico`,
-> `id_tara`, `id_categoria`, `contenido`, `id_pais`, `created_at`, `updated_at`
-> y `precio_por_kg`. Para la tara se solicita además su navegación y el modal
-> muestra `descripcion_tara` al editar. La lupa del campo queda como marcador
-> visual hasta implementar el selector de taras.
+> `id_tara`, `id_unidad`, `id_categoria`, `contenido`, `id_pais`, `created_at`,
+> `updated_at` y `precio_por_kg`. Para tara y unidad se solicita además su
+> navegación (`tara(*, unidad_medida(*))`, `unidad_medida(*)`); el modal muestra
+> `descripcion_tara` al editar y la lupa de tara (`BuscarTara_Click` +
+> `SelectorCatalogoModal`) ya está implementada, no es un marcador visual.
 
 > [!info] Contenido y unidad de medida
-> `productos.contenido` se persiste como un solo texto. En el modal se edita como
-> valor libre + unidad (`g`, `kg`, `ml`, `l`, `oz`): al abrir un registro, una
-> unidad reconocida al final se separa y se selecciona en el ComboBox; al guardar,
-> ambos valores se unen con un espacio. Si el texto no termina en una unidad
-> reconocida, se conserva íntegramente y el ComboBox muestra `(Sin seleccionar)`.
+> `productos.contenido` se sigue persistiendo como un solo texto (`"500 g"`) por
+> compatibilidad con el buscador universal y el picker de Pesaje, que lo leen así.
+> Pero desde [[ADR-017 - Catalogo real de unidad_medida con categoria y su uso en Tara]]
+> el combo "Unidad" del modal ya no es una lista fija en el XAML: se puebla en
+> `OnLoaded` desde la tabla real `unidad_medida` (`CatalogoCache.ObtenerParaComboAsync`,
+> sin filtro de categoría — el contenido puede ser masa o volumen), y la selección
+> se persiste además como dato estructurado en `productos.id_unidad` (columna que
+> ya existía en Supabase con su FK, pero el modelo C# la tenía comentada). Al
+> abrir un registro existente se prioriza `id_unidad` para preseleccionar el
+> combo; el sufijo de texto al final de `contenido` queda como fallback solo para
+> filas viejas sin `id_unidad` (la mayoría de las 505 filas de prueba son texto
+> `"Contenido N"` sin unidad reconocible, y se quedan así).
+>
+> `unidad_medida` ahora tiene categoría (`tipo_unidad`: Masa/Volumen/Conteo) y
+> estado (FK a `estado_general`, igual que `fabricante`/`presentacion_producto`).
+> `tara.id_unidad` también es un dato real ahora (antes "kg" era solo una
+> convención del nombre de columna `peso_tara_envalaje`) — sin combo propio
+> todavía porque no existe pantalla para editar `tara` (ver P-036).
 
 > [!note] Conteos reales
 > `GetConteosAsync` ejecuta dos `Get()` con `Select("id_producto")` — una sin filtro de estado (total) y otra con `id_estado = 1` (activos). Cuenta `Models.Count` en el cliente. No usa `CountType.Exact`. Ver [[Paginación y Búsqueda - Arquitectura Detallada]].
@@ -270,6 +284,34 @@ WebSocket (Supabase Realtime)
 Lifecycle del canal:
 - `SuscribirAsync` al terminar `CargarDatosAsync` → abre canal WebSocket
 - `Dispose()` → `Desuscribir` → cierra canal si era el último suscriptor
+
+### Realtime en las columnas de join (desde 2026-08-14)
+
+Siete columnas de la grilla (`FABRICANTE`, `PROVEEDOR`, `CATEGORÍA`, `PAÍS`, `PRESENTACIÓN`, `TARA`, unidad) **no salen de `productos`** — salen de `SelectPara`, que hace join contra `fabricante`, `proveedores`, `categoria`, `paises`, `presentacion_producto`, `tara(*, unidad_medida(*))` y `unidad_medida`. Un `UPDATE` en esas tablas no toca ninguna fila de `productos`, así que `Observar("productos", …)` solo no alcanza para que esas columnas se actualicen en vivo.
+
+`CargarDatosAsync` suscribe además cada tabla de `TablasDeJoin` (tabla → clave de `CatalogoCache`):
+
+```csharp
+foreach (var (tabla, clave) in TablasDeJoin)
+    Observar(tabla, _ => OnCambioCatalogo(clave));
+
+private void OnCambioCatalogo(string claveCache)
+{
+    if (Disposed) return;
+    CatalogoCache.Invalidar(claveCache);
+    _ = CargarPaginaSilenciosamenteAsync(actualizarFilas: true, esInsert: false);
+}
+```
+
+> [!warning] Requiere que la tabla esté publicada en Realtime
+> `Observar` no falla si la tabla no está en `supabase_realtime` — simplemente nunca llega ningún evento, en silencio. Antes de agregar una tabla nueva a `TablasDeJoin`, confirmar que está publicada:
+> ```sql
+> select tablename from pg_publication_tables where pubname = 'supabase_realtime';
+> ```
+> Fue justo la causa de que esto no funcionara hasta 2026-08-14: cuatro de las cinco tablas del join no estaban publicadas. Ver [[Sesión 2026-08-14 - Realtime en columnas de join de Productos]] y P-034 en [[Deuda Técnica - Pendientes]].
+
+> [!info] El modal no se beneficia de esto en vivo
+> `ProductoModal` recibe el `ProductoDto` que la grilla tenía capturado al abrirse. Si el fabricante cambia mientras el modal está abierto, el modal sigue mostrando el nombre viejo hasta que se cierra y se reabre.
 
 ---
 

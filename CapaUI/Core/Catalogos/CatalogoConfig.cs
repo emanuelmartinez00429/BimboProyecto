@@ -45,10 +45,16 @@ public static class Catalogos
         "categorias", "Seleccionar categoría", "Buscar categoría...",
         (t, p, s, ct) => r.GetCategoriasAsync(t, p, s, ct));
 
-    public static CatalogoConfig Unidades(ICatalogoRepository r) => new(
-        "unidades", "Seleccionar unidad", "Buscar unidad...",
-        (t, p, s, ct) => r.GetUnidadesAsync(t, p, s, ct),
-        MostrarEstado: false);
+    /// <summary>
+    /// Unidades, opcionalmente acotadas a una categoría (masa, volumen, conteo).
+    /// Mismo patrón de acotamiento que <see cref="Fabricantes"/>. Sin acotar es lo
+    /// que usa el combo de contenido (puede ser masa o volumen); acotada a Masa es
+    /// lo que va a usar el día que exista un editor de tara.
+    /// </summary>
+    public static CatalogoConfig Unidades(ICatalogoRepository r, int? idTipoUnidad = null) => new(
+        idTipoUnidad is null ? "unidades" : $"unidades:{idTipoUnidad}",
+        "Seleccionar unidad", "Buscar unidad...",
+        (t, p, s, ct) => r.GetUnidadesAsync(t, p, s, idTipoUnidad, ct));
 
     public static CatalogoConfig Paises(ICatalogoRepository r) => new(
         "paises", "Seleccionar país", "Buscar país...",

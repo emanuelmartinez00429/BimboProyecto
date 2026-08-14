@@ -49,7 +49,8 @@ public class RealtimeService : IRealtimeService
         ["contactos_proveedor"]    = "id_contacto_proveedor",
         ["presentacion_producto"]  = "id_presentacion",
         ["paises"]                 = "id_pais",
-        ["taras"]                  = "id_tara",
+        ["tara"]                   = "id_tara",
+        ["unidad_medida"]          = "id_unidad",
         ["tarimas"]                = "id_tarima",
     };
 
