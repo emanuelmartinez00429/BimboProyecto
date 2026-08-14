@@ -155,24 +155,52 @@
                         </DockPanel>
                     </Border>
 
-                    <!-- ── ESTADO DE CONEXIÓN + SEARCH BAR ── -->
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center"
+                    <!-- ── ESTADO DE CONEXIÓN + SEARCH BAR ──
+                         Grid y no StackPanel: en un StackPanel horizontal los
+                         hijos se miden con ancho infinito, así que el buscador
+                         nunca se enteraba de que sobraba espacio y terminaba
+                         recortado por la columna en vez de achicarse. Acá la
+                         píldora recibe un ancho real (columna "*") y el semáforo
+                         de conexión toma solo lo suyo. -->
+                    <Grid x:Name="ZonaBusqueda" Grid.Column="1" VerticalAlignment="Center"
                           WindowChrome.IsHitTestVisibleInChrome="True">
+                        <Grid.ColumnDefinitions>
+                            <!-- Auto + espaciador al final, no "*": con "*" la
+                                 columna del buscador se quedaba con todo el
+                                 ancho sobrante y empujaba el semáforo hasta la
+                                 derecha. Así los dos quedan pegados a la
+                                 izquierda y el sobrante se va al espaciador.
+                                 El MaxWidth de la columna evita que la píldora
+                                 crezca sin control en pantallas anchas. -->
+                            <ColumnDefinition Width="Auto" MaxWidth="480"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
 
-                        <!-- Semáforo de conexión (arriba a la izquierda del contenido) -->
-
-
-                        <Border x:Name="SearchPill"
+                        <!-- Visibility atada al ancho de esta zona, no al de la
+                             ventana: así contempla de una sola vez los dos casos
+                             que la achican — ventana chica y sidebar expandido
+                             (BrandBlock ocupa 226 px y se los quita a esta
+                             columna). Al colapsar el menú el buscador vuelve
+                             solo. El semáforo de conexión no se oculta: es la
+                             señal de que la app sigue viva. -->
+                        <Border x:Name="SearchPill" Grid.Column="0"
                                 Background="#1FFFFFFF"
                                 BorderBrush="#15FFFFFF" BorderThickness="1"
                                 CornerRadius="22" Height="38"
-                                HorizontalAlignment="Left" MaxWidth="480"
-                                Margin="16,0" Padding="14,0">
+                                HorizontalAlignment="Left"
+                                Margin="16,0" Padding="14,0"
+                                Visibility="{Binding ActualWidth, ElementName=ZonaBusqueda,
+                                             Converter={StaticResource AnchoMinimoAVisibilidad},
+                                             ConverterParameter=250}">
 
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="300"/>
+                                    <!-- "*" con MinWidth en vez de 300 fijo: el campo se
+                                         encoge con la ventana pero nunca por debajo de
+                                         donde deja de poder escribirse. -->
+                                    <ColumnDefinition Width="*" MinWidth="70"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
 
@@ -211,12 +239,17 @@
                                              KeyDown="TxtSearch_KeyDown"/>
                                 </Grid>
 
-                                <!-- Ctrl+K hint -->
+                                <!-- Ctrl+K hint. Es lo primero que se va al
+                                     apretarse el espacio: es una ayuda, no una
+                                     función, y libera ~60 px para el campo. -->
                                 <Border Grid.Column="2" Background="#15FFFFFF"
                                         BorderBrush="#20FFFFFF" BorderThickness="1"
                                         CornerRadius="4" Padding="5,1"
                                         VerticalAlignment="Center" Margin="8,0,0,0"
-                                        IsHitTestVisible="False">
+                                        IsHitTestVisible="False"
+                                        Visibility="{Binding ActualWidth, ElementName=ZonaBusqueda,
+                                                     Converter={StaticResource AnchoMinimoAVisibilidad},
+                                                     ConverterParameter=480}">
                                     <TextBlock Text="Ctrl+K" Foreground="#D9FFFFFF"
                                                FontFamily="Consolas" FontSize="12"
                                                VerticalAlignment="Center"/>
@@ -224,31 +257,54 @@
                             </Grid>
                         </Border>
                         
-                        <Border x:Name="ConnPill"
+                        <!-- El ToolTip lleva el estado real (no un rótulo fijo):
+                             cuando la palabra se oculta, pasar el mouse sigue
+                             siendo la forma de leerlo. -->
+                        <Border x:Name="ConnPill" Grid.Column="1"
                             Background="#1FFFFFFF"
                             BorderBrush="#15FFFFFF" BorderThickness="1"
                             CornerRadius="14" Height="28"
                             Margin="2,0,0,0" Padding="10,0"
                             VerticalAlignment="Center"
-                            ToolTip="Estado de conexión">
+                            ToolTip="{Binding EstadoTexto}">
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <Ellipse Width="9" Height="9" Margin="0,0,7,0"
+                                <Ellipse Width="9" Height="9"
                                     Fill="{Binding EstadoBrush}"/>
-                                    <TextBlock Text="{Binding EstadoTexto}" Foreground="White"
+                                <!-- La palabra se va antes que el buscador: el punto
+                                     y su color ya comunican el estado. -->
+                                <TextBlock Text="{Binding EstadoTexto}" Foreground="White"
                                     FontFamily="Segoe UI" FontSize="14"
-                                    VerticalAlignment="Center"/> 
+                                    VerticalAlignment="Center" Margin="7,0,0,0"
+                                    Visibility="{Binding ActualWidth, ElementName=ZonaBusqueda,
+                                                 Converter={StaticResource AnchoMinimoAVisibilidad},
+                                                 ConverterParameter=420}"/>
                             </StackPanel>
                         </Border>
-                        
-                    </StackPanel>
+
+                    </Grid>
 
                     <!-- ── ACCIONES DERECHA ── -->
                     <StackPanel Grid.Column="2" Orientation="Horizontal"
                                 VerticalAlignment="Center" Margin="0,0,8,0"
                                 WindowChrome.IsHitTestVisibleInChrome="True">
 
-                        <!-- Notificaciones -->
-                        <Grid VerticalAlignment="Center">
+                        <!-- Notificaciones.
+                             Se oculta junto con Configuración cuando la ventana
+                             se pone chica: entre las cuatro cosas de la barra,
+                             el buscador y el estado de red son las que hacen
+                             falta a mano, y estas dos son las que pueden
+                             esperar a que se agrande la ventana.
+
+                             El umbral mira el ancho de la VENTANA, no el de la
+                             zona del buscador: estos botones viven en la columna
+                             Auto de la derecha, así que ocultarlos ensancha esa
+                             zona — atarlo a ella se realimentaría y los botones
+                             parpadearían al aparecer y desaparecer solos. -->
+                        <Grid VerticalAlignment="Center"
+                              Visibility="{Binding ActualWidth,
+                                           RelativeSource={RelativeSource AncestorType={x:Type Window}},
+                                           Converter={StaticResource AnchoMinimoAVisibilidad},
+                                           ConverterParameter=1060}">
                             <Button x:Name="BtnNotif"
                                     Style="{StaticResource TopBarIconButton}"
                                     WindowChrome.IsHitTestVisibleInChrome="True"
@@ -448,11 +504,15 @@
                             </Popup>
                         </Grid>
 
-                        <!-- Configuración -->
+                        <!-- Configuración. Mismo umbral que Notificaciones. -->
                         <Button Style="{StaticResource TopBarIconButton}"
                                 WindowChrome.IsHitTestVisibleInChrome="True"
                                 Width="42" Height="42"
-                                ToolTip="Configuración">
+                                ToolTip="Configuración"
+                                Visibility="{Binding ActualWidth,
+                                             RelativeSource={RelativeSource AncestorType={x:Type Window}},
+                                             Converter={StaticResource AnchoMinimoAVisibilidad},
+                                             ConverterParameter=1060}">
                             <Viewbox Width="18" Height="18">
                                 <Canvas Width="24" Height="24">
                                     <Path Data="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"
@@ -465,12 +525,16 @@
 
                         <Border Width="1" Height="24" Background="#26FFFFFF" Margin="8,0"/>
 
-                        <!-- Cerrar sesión -->
+                        <!-- Cerrar sesión. En ventana angosta el rótulo se lleva
+                             ~95 px que le hacen falta al buscador, así que bajo
+                             el umbral queda el icono solo; el ToolTip cubre la
+                             pérdida del texto. -->
                         <Button Style="{StaticResource LogoutButton}"
                                 WindowChrome.IsHitTestVisibleInChrome="True"
-                                Command="{Binding CerrarSesionCommand}" >
+                                Command="{Binding CerrarSesionCommand}"
+                                ToolTip="Cerrar sesión">
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <Viewbox Width="20" Height="20" Margin="0,0,6,0">
+                                <Viewbox Width="20" Height="20">
                                     <Canvas Width="15" Height="24">
                                         <Path Data="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"
                                               Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"
@@ -484,9 +548,13 @@
                                     </Canvas>
                                 </Viewbox>
                                 <TextBlock Text="Cerrar Sesión"
-                                           Margin="5"
+                                           Margin="11,5,5,5"
                                     VerticalAlignment="Center"
-                                    Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"/>    
+                                    Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"
+                                    Visibility="{Binding ActualWidth,
+                                                 RelativeSource={RelativeSource AncestorType={x:Type Window}},
+                                                 Converter={StaticResource AnchoMinimoAVisibilidad},
+                                                 ConverterParameter=1150}"/>
                             </StackPanel>
                         </Button>
 

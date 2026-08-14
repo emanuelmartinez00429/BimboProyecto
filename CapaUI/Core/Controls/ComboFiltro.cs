@@ -5,6 +5,7 @@ using System.Linq;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
+using CapaAplicacion.Common;
 using CapaAplicacion.Productos.Dtos;
 
 namespace CapaUI.Core.Controls;
@@ -124,10 +125,12 @@ public sealed class ComboFiltro
         try
         {
             var textoFiltro = texto.Trim();
+            // TextoBusqueda.Contiene y no Contains(OrdinalIgnoreCase): ignora
+            // mayúsculas Y tildes, igual que el buscador contra el servidor, así
+            // "azucar" encuentra "AZÚCAR" en los dos lados.
             _vista.Filter = string.IsNullOrEmpty(textoFiltro)
                 ? null
-                : o => o is FiltroItem f
-                    && f.Nombre?.Contains(textoFiltro, StringComparison.OrdinalIgnoreCase) == true;
+                : o => o is FiltroItem f && TextoBusqueda.Contiene(f.Nombre, textoFiltro);
 
             _combo.IsDropDownOpen = true;
 

@@ -101,11 +101,8 @@ public class PickerProductoRepository : RepositorioBase, IPickerProductoReposito
             query = query.Filter("id_fabricante", Op.In, idsFabricante);
 
         if (!string.IsNullOrWhiteSpace(termino))
-            query = query.Or(new List<IPostgrestQueryFilter>
-            {
-                new QueryFilter("nombre_producto", Op.ILike, $"%{termino}%"),
-                new QueryFilter("codigo_producto", Op.ILike, $"%{termino}%"),
-            });
+            query = query.Filter("busqueda_producto", Op.ILike,
+                                 $"%{TextoBusqueda.Normalizar(termino)}%");
 
         return query;
     }
@@ -137,11 +134,7 @@ public class PickerProductoRepository : RepositorioBase, IPickerProductoReposito
         var resultado = await client.From<ProductosModel>()
             .Select(Select)
             .Filter("id_fabricante", Op.In, idsFabricante)
-            .Or(new List<IPostgrestQueryFilter>
-            {
-                new QueryFilter("nombre_producto", Op.ILike, $"%{termino}%"),
-                new QueryFilter("codigo_producto", Op.ILike, $"%{termino}%"),
-            })
+            .Filter("busqueda_producto", Op.ILike, $"%{TextoBusqueda.Normalizar(termino)}%")
             .Order("nombre_producto", Ord.Ascending)
             .Limit(10)
             .Get();
@@ -155,11 +148,7 @@ public class PickerProductoRepository : RepositorioBase, IPickerProductoReposito
 
         var resultado = await client.From<ProductosModel>()
             .Select(Select)
-            .Or(new List<IPostgrestQueryFilter>
-            {
-                new QueryFilter("nombre_producto", Op.ILike, $"%{termino}%"),
-                new QueryFilter("codigo_producto", Op.ILike, $"%{termino}%"),
-            })
+            .Filter("busqueda_producto", Op.ILike, $"%{TextoBusqueda.Normalizar(termino)}%")
             .Order("nombre_producto", Ord.Ascending)
             .Limit(10)
             .Get();

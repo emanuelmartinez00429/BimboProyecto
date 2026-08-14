@@ -30,6 +30,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
         private readonly ComboFiltro _filtroFabricante;
         private readonly ComboFiltro _filtroPais;
         private readonly ComboFiltro _filtroProveedor;
+        private readonly ComboFiltro _filtroCategoria;
 
         public ProductosView()
         {
@@ -38,10 +39,12 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
             _filtroFabricante = new ComboFiltro(CmbFabricante);
             _filtroPais       = new ComboFiltro(CmbPais);
             _filtroProveedor  = new ComboFiltro(CmbProveedor);
+            _filtroCategoria  = new ComboFiltro(CmbCategoria);
 
             _filtroFabricante.SeleccionCambiada += id => { if (_vm != null) _vm.FabricanteIdFiltro = id; };
             _filtroPais.SeleccionCambiada       += id => { if (_vm != null) _vm.PaisIdFiltro       = id; };
             _filtroProveedor.SeleccionCambiada  += id => { if (_vm != null) _vm.ProveedorIdFiltro  = id; };
+            _filtroCategoria.SeleccionCambiada  += id => { if (_vm != null) _vm.CategoriaIdFiltro  = id; };
         }
 
         private async void UserControl_Loaded(object sender, RoutedEventArgs e)
@@ -84,6 +87,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
             _filtroFabricante.Reiniciar();
             _filtroPais.Reiniciar();
             _filtroProveedor.Reiniciar();
+            _filtroCategoria.Reiniciar();
             _suppressFilterChange = false;
         }
 
@@ -113,6 +117,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
                 case nameof(ProductosViewModel.Fabricantes):  _filtroFabricante.Poblar(_vm.Fabricantes); break;
                 case nameof(ProductosViewModel.Paises):       _filtroPais.Poblar(_vm.Paises);            break;
                 case nameof(ProductosViewModel.Proveedores):  _filtroProveedor.Poblar(_vm.Proveedores);  break;
+                case nameof(ProductosViewModel.Categorias):   _filtroCategoria.Poblar(_vm.Categorias);   break;
             }
         }
 
@@ -189,10 +194,17 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
 
         // El popup se alimenta por binding (SuggestItems="{Binding SuggestItems}").
         // Acá solo queda la reacción de la tabla, que es responsabilidad de la vista.
+        //
+        // Elegir una sugerencia abre el modal de edición de una — no hace falta
+        // el paso intermedio de buscar la fila y tocar "Editar". El DTO ya viene
+        // completo en la sugerencia, así que el modal no espera el salto de
+        // página que SeleccionarSugerencia dispara para ubicarlo en la grilla.
         private void SearchBox_ItemSelected(object? sender, SuggestionItemData e)
         {
-            _vm.SeleccionarSugerencia((ProductoDto)e.Source);
+            var producto = (ProductoDto)e.Source;
+            _vm.SeleccionarSugerencia(producto);
             SeleccionarEnTabla();
+            AbrirModalEditar(producto);
         }
 
         private void SeleccionarEnTabla()

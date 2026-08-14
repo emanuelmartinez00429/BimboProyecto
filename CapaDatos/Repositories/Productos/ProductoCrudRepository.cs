@@ -168,12 +168,13 @@ public class ProductoCrudRepository : RepositorioBase, IProductoRepository
         // INACTIVOS desglosan justamente por estado, así que si se les pasa
         // p_estado terminan todas acotadas al mismo subconjunto (p.ej. filtrando
         // "Activos", TOTAL deja de ser el total real y pasa a valer lo mismo que
-        // ACTIVOS). Fabricante/país sí se respetan porque son ortogonales al estado.
+        // ACTIVOS). Fabricante/país/categoría sí se respetan porque son ortogonales al estado.
         var filtrosConteo = new ProductoFiltros
         {
             IdFabricante = filtros.IdFabricante,
             IdPais       = filtros.IdPais,
             IdProveedor  = filtros.IdProveedor,
+            IdCategoria  = filtros.IdCategoria,
         };
 
         var (colOrden, dirOrden) = ColumnaOrden(filtros.Orden);
@@ -201,12 +202,14 @@ public class ProductoCrudRepository : RepositorioBase, IProductoRepository
         var client = await ConexionSupabase.GetClientAsync();
         var query  = AplicarFiltros(client.From<Modelados.Productos.Productos>().Select(SelectPara(filtros)), filtros);
 
+        // Un solo filtro contra busqueda_producto (columna generada = nombre +
+        // codigo, ya en minusculas y sin tildes) en vez del OR sobre las dos
+        // columnas crudas: asi "azucar" encuentra "AZÚCAR". El termino se
+        // normaliza del mismo modo para que los dos lados coincidan.
+        var aguja = TextoBusqueda.Normalizar(termino);
+
         var resultado = await query
-            .Or(new List<IPostgrestQueryFilter>
-            {
-                new QueryFilter("nombre_producto", Op.ILike, $"%{termino}%"),
-                new QueryFilter("codigo_producto",  Op.ILike, $"%{termino}%"),
-            })
+            .Filter("busqueda_producto", Op.ILike, $"%{aguja}%")
             .Order("nombre_producto",  Ord.Ascending)
             .Limit(10)
             .Get();
@@ -292,6 +295,8 @@ public class ProductoCrudRepository : RepositorioBase, IProductoRepository
             query = query.Filter("id_fabricante", Op.Equals, filtros.IdFabricante.Value.ToString());
         if (filtros.IdPais.HasValue)
             query = query.Filter("id_pais",       Op.Equals, filtros.IdPais.Value.ToString());
+        if (filtros.IdCategoria.HasValue)
+            query = query.Filter("id_categoria",  Op.Equals, filtros.IdCategoria.Value.ToString());
 
         // Filtro sobre el recurso embebido; requiere el !inner de SelectPara.
         if (filtros.IdProveedor.HasValue)
@@ -312,6 +317,7 @@ public class ProductoCrudRepository : RepositorioBase, IProductoRepository
         if (filtros.IdFabricante.HasValue) parametros["p_fab"]    = filtros.IdFabricante.Value;
         if (filtros.IdPais.HasValue)       parametros["p_pais"]   = filtros.IdPais.Value;
         if (filtros.IdProveedor.HasValue)  parametros["p_prov"]   = filtros.IdProveedor.Value;
+        if (filtros.IdCategoria.HasValue)  parametros["p_cat"]    = filtros.IdCategoria.Value;
 
         var response = await client.Rpc("contar_productos", parametros);
         var json     = response?.Content;

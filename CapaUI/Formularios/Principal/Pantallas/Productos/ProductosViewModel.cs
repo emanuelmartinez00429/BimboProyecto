@@ -37,6 +37,7 @@ public partial class ProductosViewModel : RealtimeAwareViewModel
     private int?          _fabricanteIdFiltro;
     private int?          _paisIdFiltro;
     private int?          _proveedorIdFiltro;
+    private int?          _categoriaIdFiltro;
     private OrdenProducto _orden             = OrdenProducto.IdAsc;
     private int          _page               = 1;
     private int          _filteredCount;
@@ -74,6 +75,7 @@ public partial class ProductosViewModel : RealtimeAwareViewModel
     [ObservableProperty] private List<FiltroItem> _fabricantes = new();
     [ObservableProperty] private List<FiltroItem> _paises      = new();
     [ObservableProperty] private List<FiltroItem> _proveedores = new();
+    [ObservableProperty] private List<FiltroItem> _categorias  = new();
     [ObservableProperty] private string           _errorCarga  = "";
 
     public bool   HaySeleccionado   => Seleccionado is not null;
@@ -139,6 +141,19 @@ public partial class ProductosViewModel : RealtimeAwareViewModel
         {
             if (_paisIdFiltro == value) return;
             _paisIdFiltro = value;
+            OnPropertyChanged();
+            _page = 1;
+            _ = CargarPaginaAsync();
+        }
+    }
+
+    public int? CategoriaIdFiltro
+    {
+        get => _categoriaIdFiltro;
+        set
+        {
+            if (_categoriaIdFiltro == value) return;
+            _categoriaIdFiltro = value;
             OnPropertyChanged();
             _page = 1;
             _ = CargarPaginaAsync();
@@ -240,7 +255,15 @@ public partial class ProductosViewModel : RealtimeAwareViewModel
                 if (Disposed || _proveedorIdFiltro is not null) return;
                 Proveedores = lista.ToList();
             });
-        await Task.WhenAll(fabTask, paisTask, provTask);
+
+        var catTask = CatalogoCache.ObtenerParaComboAsync(
+            Catalogos.Categorias(_catalogos),
+            alRevalidar: lista =>
+            {
+                if (Disposed || _categoriaIdFiltro is not null) return;
+                Categorias = lista.ToList();
+            });
+        await Task.WhenAll(fabTask, paisTask, provTask, catTask);
 
         var rFab = fabTask.Result;
         if (!rFab.Success) { ErrorCarga = rFab.Error; IsLoading = false; return; }
@@ -254,6 +277,10 @@ public partial class ProductosViewModel : RealtimeAwareViewModel
         var rProv = provTask.Result;
         if (!rProv.Success) { ErrorCarga = rProv.Error; IsLoading = false; return; }
         Proveedores = rProv.Value!.ToList();
+
+        var rCat = catTask.Result;
+        if (!rCat.Success) { ErrorCarga = rCat.Error; IsLoading = false; return; }
+        Categorias = rCat.Value!.ToList();
 
         await CargarPaginaAsync();
 
@@ -441,6 +468,7 @@ public partial class ProductosViewModel : RealtimeAwareViewModel
         IdFabricante = _fabricanteIdFiltro,
         IdPais       = _paisIdFiltro,
         IdProveedor  = _proveedorIdFiltro,
+        IdCategoria  = _categoriaIdFiltro,
         Orden        = _orden,
     };
 
@@ -463,8 +491,18 @@ public partial class ProductosViewModel : RealtimeAwareViewModel
         _fabricanteIdFiltro = null;
         _paisIdFiltro       = null;
         _proveedorIdFiltro  = null;
+        _categoriaIdFiltro  = null;
         _orden              = OrdenProducto.IdAsc;
         _page = 1;
+
+        // Los campos se pisan directo arriba, sin pasar por el setter de
+        // ProveedorIdFiltro — así que ReacotarFabricantes() nunca corre solo.
+        // Sin este llamado, Fabricantes se queda con la lista angosta del
+        // proveedor que estaba filtrado (p. ej. solo "Canasa"), aunque el combo
+        // ya muestre "(Todos)": la selección visual se limpia pero la lista de
+        // opciones detrás sigue acotada al proveedor anterior.
+        ReacotarFabricantes();
+
         FiltrosLimpiados?.Invoke();
         _ = CargarPaginaAsync();
     }

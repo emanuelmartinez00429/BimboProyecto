@@ -20,6 +20,43 @@
         <Geometry x:Key="IconLogout">M9,21 H5 a2,2 0 0 1,-2,-2 V5 a2,2 0 0 1,2,-2 h4 M16,17 l5,-5 -5,-5 M21,12 H9</Geometry>
         <Geometry x:Key="IconBox">M21,16 V8 a2,2 0 0 0,-1,-1.73 l-7,-4 a2,2 0 0 0,-2,0 l-7,4 A2,2 0 0 0,3,8 v8 a2,2 0 0 0,1,1.73 l7,4 a2,2 0 0 0,2,0 l7,-4 A2,2 0 0 0,21,16 z</Geometry>
 
+        <!-- ── Celda de filtro de catálogo (Proveedor · Fabricante · Categoría · País) ──
+             Las tres piezas viven acá una sola vez: antes cada combo repetía las
+             mismas ocho propiedades inline y cada uno tenía su propio Width, que
+             es lo que rompía la simetría de la barra. -->
+        <Style x:Key="CeldaFiltro" TargetType="Grid">
+            <!-- Sin Margin: la separación entre grupos la pone el panel
+                 (EspacioHorizontal), que además la descuenta al decidir el corte
+                 de línea. Un margen acá se le escaparía de esa cuenta. -->
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <Style x:Key="EtiquetaFiltro" TargetType="TextBlock">
+            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="FontSize" Value="15.5"/>
+            <Setter Property="Foreground" Value="#1A1F2E"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,0,8,0"/>
+        </Style>
+
+        <Style x:Key="ComboFiltroBox" TargetType="ComboBox">
+            <Setter Property="Height" Value="26"/>
+            <!-- Sin Width: se estira con lo que el panel le reparta a su celda.
+                 MinWidth es el piso de legibilidad: por debajo de esto el panel
+                 baja el grupo de línea en vez de seguir achicándolo (que es lo
+                 que producía los "(Todos" recortados). -->
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="MinWidth" Value="120"/>
+            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="BorderBrush" Value="#CBD5E1"/>
+            <Setter Property="IsEditable" Value="True"/>
+            <Setter Property="IsTextSearchEnabled" Value="False"/>
+            <Setter Property="StaysOpenOnEdit" Value="True"/>
+            <Setter Property="DisplayMemberPath" Value="Nombre"/>
+            <Setter Property="KeyboardNavigation.DirectionalNavigation" Value="Cycle"/>
+        </Style>
+
         <!-- DataGrid Row Style -->
         <Style x:Key="ProductRowStyle" TargetType="DataGridRow">
             <Setter Property="Height" Value="36"/>
@@ -387,15 +424,27 @@
         </Grid.RowDefinitions>
 
         <!-- ROW 0: PAGE HEADER -->
-        <Grid Grid.Row="0">
+        <Grid Grid.Row="0" x:Name="EncabezadoPagina">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <!-- Left: Icon + breadcrumb + title -->
-            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                <Border Width="38" Height="38"
+            <!-- Left: Icon + breadcrumb + title.
+                 Grid y no StackPanel horizontal: ahí los hijos se miden con
+                 ancho infinito, así que los TextBlock nunca se enteraban de que
+                 había que recortar y la columna los cortaba a la mitad de una
+                 letra. Con la columna "*" reciben un ancho real y el
+                 TextTrimming los degrada con puntos suspensivos — se resuelve en
+                 la misma fila, sin robarle alto a la tabla. -->
+            <Grid Grid.Column="0" VerticalAlignment="Center" Margin="0,0,12,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Border Grid.Column="0"
+                        Width="38" Height="38"
                         Background="#1E3A8A"
                         CornerRadius="8"
                         Margin="0,0,12,0"
@@ -409,8 +458,10 @@
                           Width="20" Height="20" Stretch="Uniform"/>
                 </Border>
 
-                <StackPanel VerticalAlignment="Center">
-                    <TextBlock FontFamily="Segoe UI" FontSize="14" Foreground="#6B7280">
+                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                    <TextBlock FontFamily="Segoe UI" FontSize="14" Foreground="#6B7280"
+                               TextTrimming="CharacterEllipsis"
+                               ToolTip="Productos / Gestión de Productos">
                         <Run Text="Productos" FontWeight="Normal"/>
                         <Run Text=" / "/>
                         <Run Text="Gestión de Productos" FontWeight="SemiBold" Foreground="#1A1F2E"/>
@@ -420,20 +471,32 @@
                                FontSize="21"
                                FontWeight="Bold"
                                Foreground="#1A1F2E"
-                               Margin="0,2,0,0"/>
+                               Margin="0,2,0,0"
+                               TextTrimming="CharacterEllipsis"
+                               ToolTip="Catálogo de productos"/>
                 </StackPanel>
-            </StackPanel>
+            </Grid>
 
-            <!-- Right: Stats chips -->
+            <!-- Right: Stats chips.
+                 Los rótulos se ocultan cuando el encabezado se angosta, y las
+                 pastillas quedan como punto + número. Liberan ~200 px, que es de
+                 donde sale el espacio para que el título no tenga que recortarse:
+                 el color del punto ya distingue las tres, y el ToolTip conserva
+                 el significado. El TextTrimming del título sigue puesto como
+                 último recurso, pero con esto rara vez llega a activarse. -->
             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Right">
                 <Border Background="#EEF2F8"
                         CornerRadius="999"
                         BorderBrush="#D8E1EC" BorderThickness="1"
-                        Padding="12,6" Margin="0,0,8,0">
+                        Padding="12,6" Margin="0,0,8,0"
+                        ToolTip="Total de productos">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                         <Border Width="6" Height="6" CornerRadius="3" Background="#1E3A8A" Margin="0,0,6,0" VerticalAlignment="Center"/>
                         <TextBlock Text="TOTAL" FontFamily="Segoe UI" FontSize="13" FontWeight="SemiBold"
-                                   Foreground="#1E3A8A" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                   Foreground="#1E3A8A" VerticalAlignment="Center" Margin="0,0,6,0"
+                                   Visibility="{Binding ActualWidth, ElementName=EncabezadoPagina,
+                                                Converter={StaticResource AnchoMinimoAVisibilidad},
+                                                ConverterParameter=690}"/>
                         <TextBlock Text="{Binding TotalCount}"
                                    FontFamily="Segoe UI" FontSize="15" FontWeight="Bold"
                                    Foreground="#1E3A8A" VerticalAlignment="Center"/>
@@ -442,11 +505,15 @@
                 <Border Background="#ECFDF5"
                         CornerRadius="999"
                         BorderBrush="#D1FAE5" BorderThickness="1"
-                        Padding="12,6" Margin="0,0,8,0">
+                        Padding="12,6" Margin="0,0,8,0"
+                        ToolTip="Productos activos">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                         <Border Width="6" Height="6" CornerRadius="3" Background="#10B981" Margin="0,0,6,0" VerticalAlignment="Center"/>
                         <TextBlock Text="ACTIVOS" FontFamily="Segoe UI" FontSize="13" FontWeight="SemiBold"
-                                   Foreground="#047857" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                   Foreground="#047857" VerticalAlignment="Center" Margin="0,0,6,0"
+                                   Visibility="{Binding ActualWidth, ElementName=EncabezadoPagina,
+                                                Converter={StaticResource AnchoMinimoAVisibilidad},
+                                                ConverterParameter=690}"/>
                         <TextBlock Text="{Binding ActivosCount}"
                                    FontFamily="Segoe UI" FontSize="15" FontWeight="Bold"
                                    Foreground="#047857" VerticalAlignment="Center"/>
@@ -455,11 +522,15 @@
                 <Border Background="#F3F4F6"
                         CornerRadius="999"
                         BorderBrush="#E5E7EB" BorderThickness="1"
-                        Padding="12,6">
+                        Padding="12,6"
+                        ToolTip="Productos inactivos">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                         <Border Width="6" Height="6" CornerRadius="3" Background="#9CA3AF" Margin="0,0,6,0" VerticalAlignment="Center"/>
                         <TextBlock Text="INACTIVOS" FontFamily="Segoe UI" FontSize="13" FontWeight="SemiBold"
-                                   Foreground="#6B7280" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                   Foreground="#6B7280" VerticalAlignment="Center" Margin="0,0,6,0"
+                                   Visibility="{Binding ActualWidth, ElementName=EncabezadoPagina,
+                                                Converter={StaticResource AnchoMinimoAVisibilidad},
+                                                ConverterParameter=690}"/>
                         <TextBlock Text="{Binding InactivosCount}"
                                    FontFamily="Segoe UI" FontSize="15" FontWeight="Bold"
                                    Foreground="#6B7280" VerticalAlignment="Center"/>
@@ -469,11 +540,14 @@
         </Grid>
 
         <!-- ROW 2: TOOLBAR CARD -->
-        <Border Grid.Row="2"
+        <!-- ClipToBounds: red de seguridad para que ningún grupo que no entre
+             llegue a dibujarse fuera de la tarjeta. -->
+        <Border Grid.Row="2" x:Name="TarjetaToolbar"
                 Background="White"
                 CornerRadius="10"
                 BorderBrush="#D8E1EC" BorderThickness="1"
-                Padding="12">
+                Padding="12"
+                ClipToBounds="True">
             <Border.Effect>
                 <DropShadowEffect Color="Black" BlurRadius="10" ShadowDepth="2" Opacity="0.06"/>
             </Border.Effect>
@@ -494,23 +568,34 @@
                         Placeholder="Buscar producto por código o nombre..."
                         ItemSelected="SearchBox_ItemSelected"/>
 
-                    <!-- Limpiar Filtros button -->
+                    <!-- Limpiar Filtros button.
+                         En ventana angosta el rótulo le come el ancho al
+                         buscador, que es lo que sí tiene que quedar usable: bajo
+                         el umbral el botón se queda con el icono solo. El
+                         ToolTip queda siempre, así el icono nunca es un jeroglífico. -->
                     <Button Grid.Column="1"
                             Command="{Binding LimpiarFiltrosCommand}"
                             Background="#4A6FA8"
                             Style="{StaticResource ActionBtn}"
                             Padding="16,0"
                             Height="38"
-                            MinWidth="0">
+                            MinWidth="0"
+                            ToolTip="Limpiar filtros">
                         <StackPanel Orientation="Horizontal">
-                            <Path Data="{StaticResource IconFilter}"
+                            <Path x:Name="IconoLimpiar"
+                                  Data="{StaticResource IconFilter}"
                                   Stroke="White" StrokeThickness="1.8"
                                   StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
                                   Width="16" Height="16" Stretch="Uniform"
-                                  Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                  VerticalAlignment="Center"/>
                             <TextBlock Text="Limpiar Filtros"
                                        FontFamily="Segoe UI" FontSize="15.5" FontWeight="SemiBold"
-                                       Foreground="White" VerticalAlignment="Center"/>
+                                       Foreground="White" VerticalAlignment="Center"
+                                       Margin="6,0,0,0"
+                                       Visibility="{Binding ActualWidth,
+                                                    ElementName=TarjetaToolbar,
+                                                    Converter={StaticResource AnchoMinimoAVisibilidad},
+                                                    ConverterParameter=760}"/>
                         </StackPanel>
                     </Button>
                 </Grid>
@@ -519,63 +604,74 @@
                 <Border BorderBrush="#E5E7EB" BorderThickness="0,0,0,1" Margin="0,10,0,10"
                         SnapsToDevicePixels="True"/>
 
-                <!-- Sub-row B: Filters -->
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
+                <!-- Sub-row B: Filters.
+                     PanelFiltrosFluido: todos los grupos van en una sola línea
+                     mientras entren, los combos absorben el ancho sobrante (de
+                     ahí Peso="1"), y cuando ya no caben sin achicarse por debajo
+                     de su MinWidth — el punto donde el texto dejaría de leerse —
+                     los que sobran bajan a una línea nueva que vuelve a repartir
+                     el ancho completo, así ninguna queda con un hueco al final.
 
-                    <TextBlock Grid.Column="0"
-                               Text="ESTADO"
-                               FontFamily="Segoe UI" FontSize="12.5" FontWeight="Bold"
-                               Foreground="#6B7280"
-                               VerticalAlignment="Center"
-                               Margin="0,0,10,0"/>
+                     Las pastillas segmentadas van con Peso 0: conservan su ancho
+                     natural en vez de estirarse.
 
-                    <Border Grid.Column="1"
-                            Background="#F3F4F6"
-                            CornerRadius="8"
-                            BorderBrush="#E5E7EB" BorderThickness="1"
-                            Padding="3"
-                            VerticalAlignment="Center">
-                        <StackPanel Orientation="Horizontal">
-                            <RadioButton x:Name="RbHabilitados"
-                                         GroupName="EstadoFiltro"
-                                         IsChecked="True"
-                                         Style="{StaticResource SegmentBtn}"
-                                         Checked="EstadoFiltro_Changed">
-                                <StackPanel Orientation="Horizontal">
-                                    <Border Width="6" Height="6" CornerRadius="3" Background="#10B981" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                                    <TextBlock Text="Habilitados" FontFamily="Segoe UI" FontSize="15"/>
-                                </StackPanel>
-                            </RadioButton>
-                            <RadioButton x:Name="RbDeshabilitados"
-                                         GroupName="EstadoFiltro"
-                                         Style="{StaticResource SegmentBtn}"
-                                         Checked="EstadoFiltro_Changed">
-                                <StackPanel Orientation="Horizontal">
-                                    <Border Width="6" Height="6" CornerRadius="3" Background="#94A3B8" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                                    <TextBlock Text="Deshabilitados" FontFamily="Segoe UI" FontSize="15"/>
-                                </StackPanel>
-                            </RadioButton>
-                            <RadioButton x:Name="RbTodos"
-                                         GroupName="EstadoFiltro"
-                                         Style="{StaticResource SegmentBtn}"
-                                         Checked="EstadoFiltro_Changed">
-                                <TextBlock Text="Todos" FontFamily="Segoe UI" FontSize="15"/>
-                            </RadioButton>
-                        </StackPanel>
-                    </Border>
+                     Las etiquetas van a su ancho natural (sin SharedSizeGroup):
+                     igualarlas a la más larga dejaba a "País" separada de su
+                     combo por un hueco que no se explicaba solo. Los combos
+                     igual terminan todos del mismo ancho, porque cada celda
+                     recibe la misma porción del sobrante y su parte fija
+                     (etiqueta + margen) se descuenta antes.
+
+                     MaxLineas frena el envolvido: seguir apilando le come alto
+                     a la tabla, así que al llegar al tope el acomodo se congela
+                     y lo que no entra se recorta contra el borde de la tarjeta. -->
+                <controls:PanelFiltrosFluido EspacioHorizontal="16" EspacioVertical="12"
+                                             MaxLineas="4">
+
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock Text="ESTADO"
+                                   FontFamily="Segoe UI" FontSize="12.5" FontWeight="Bold"
+                                   Foreground="#6B7280"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,10,0"/>
+
+                        <Border Background="#F3F4F6"
+                                CornerRadius="8"
+                                BorderBrush="#E5E7EB" BorderThickness="1"
+                                Padding="3"
+                                VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal">
+                                <RadioButton x:Name="RbHabilitados"
+                                             GroupName="EstadoFiltro"
+                                             IsChecked="True"
+                                             Style="{StaticResource SegmentBtn}"
+                                             Checked="EstadoFiltro_Changed">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Border Width="6" Height="6" CornerRadius="3" Background="#10B981" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Habilitados" FontFamily="Segoe UI" FontSize="15"/>
+                                    </StackPanel>
+                                </RadioButton>
+                                <RadioButton x:Name="RbDeshabilitados"
+                                             GroupName="EstadoFiltro"
+                                             Style="{StaticResource SegmentBtn}"
+                                             Checked="EstadoFiltro_Changed">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Border Width="6" Height="6" CornerRadius="3" Background="#94A3B8" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Deshabilitados" FontFamily="Segoe UI" FontSize="15"/>
+                                    </StackPanel>
+                                </RadioButton>
+                                <RadioButton x:Name="RbTodos"
+                                             GroupName="EstadoFiltro"
+                                             Style="{StaticResource SegmentBtn}"
+                                             Checked="EstadoFiltro_Changed">
+                                    <TextBlock Text="Todos" FontFamily="Segoe UI" FontSize="15"/>
+                                </RadioButton>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
 
                     <!-- Orden alfabético. Reusa SegmentBtn, el mismo estilo del filtro de estado. -->
-                    <StackPanel Grid.Column="2" Orientation="Horizontal"
-                                VerticalAlignment="Center" HorizontalAlignment="Left"
-                                Margin="18,0,0,0">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                         <TextBlock Text="ORDEN"
                                    FontFamily="Segoe UI" FontSize="12.5" FontWeight="Bold"
                                    Foreground="#6B7280"
@@ -613,58 +709,49 @@
                         </Border>
                     </StackPanel>
 
-                    <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,12,0">
-                        <TextBlock Text="Proveedor"
-                                   FontFamily="Segoe UI" FontSize="15.5"
-                                   Foreground="#1A1F2E"
-                                   VerticalAlignment="Center"
-                                   Margin="0,0,8,0"/>
-                        <ComboBox x:Name="CmbProveedor"
-                                  Width="150" Height="26"
-                                  FontFamily="Segoe UI" FontSize="15"
-                                  BorderBrush="#CBD5E1"
-                                  IsEditable="True"
-                                  IsTextSearchEnabled="False"
-                                  StaysOpenOnEdit="True"
-                                  DisplayMemberPath="Nombre"
-                                  ToolTip="Acota la lista de fabricantes"
-                                  KeyboardNavigation.DirectionalNavigation="Cycle"/>
-                    </StackPanel>
+                    <!-- Los cuatro catálogos: Peso="1" → se reparten en partes
+                         iguales todo el ancho que sobre en su línea. -->
+                    <Grid Style="{StaticResource CeldaFiltro}" controls:PanelFiltrosFluido.Peso="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="Proveedor" Style="{StaticResource EtiquetaFiltro}"/>
+                        <ComboBox Grid.Column="1" x:Name="CmbProveedor"
+                                  Style="{StaticResource ComboFiltroBox}"
+                                  ToolTip="Acota la lista de fabricantes"/>
+                    </Grid>
 
-                    <StackPanel Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,12,0">
-                        <TextBlock Text="Fabricante"
-                                   FontFamily="Segoe UI" FontSize="15.5"
-                                   Foreground="#1A1F2E"
-                                   VerticalAlignment="Center"
-                                   Margin="0,0,8,0"/>
-                        <ComboBox x:Name="CmbFabricante"
-                                  Width="170" Height="26"
-                                  FontFamily="Segoe UI" FontSize="15"
-                                  BorderBrush="#CBD5E1"
-                                  IsEditable="True"
-                                  IsTextSearchEnabled="False"
-                                  StaysOpenOnEdit="True"
-                                  DisplayMemberPath="Nombre"
-                                  KeyboardNavigation.DirectionalNavigation="Cycle"/>
-                    </StackPanel>
+                    <Grid Style="{StaticResource CeldaFiltro}" controls:PanelFiltrosFluido.Peso="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="Fabricante" Style="{StaticResource EtiquetaFiltro}"/>
+                        <ComboBox Grid.Column="1" x:Name="CmbFabricante"
+                                  Style="{StaticResource ComboFiltroBox}"/>
+                    </Grid>
 
-                    <StackPanel Grid.Column="5" Orientation="Horizontal" VerticalAlignment="Center">
-                        <TextBlock Text="Pa&#237;s"
-                                   FontFamily="Segoe UI" FontSize="15.5"
-                                   Foreground="#1A1F2E"
-                                   VerticalAlignment="Center"
-                                   Margin="0,0,8,0"/>
-                        <ComboBox x:Name="CmbPais"
-                                  Width="130" Height="26"
-                                  FontFamily="Segoe UI" FontSize="15"
-                                  BorderBrush="#CBD5E1"
-                                  IsEditable="True"
-                                  IsTextSearchEnabled="False"
-                                  StaysOpenOnEdit="True"
-                                  DisplayMemberPath="Nombre"
-                                  KeyboardNavigation.DirectionalNavigation="Cycle"/>
-                    </StackPanel>
-                </Grid>
+                    <Grid Style="{StaticResource CeldaFiltro}" controls:PanelFiltrosFluido.Peso="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="Categor&#237;a" Style="{StaticResource EtiquetaFiltro}"/>
+                        <ComboBox Grid.Column="1" x:Name="CmbCategoria"
+                                  Style="{StaticResource ComboFiltroBox}"/>
+                    </Grid>
+
+                    <Grid Style="{StaticResource CeldaFiltro}" controls:PanelFiltrosFluido.Peso="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="Pa&#237;s" Style="{StaticResource EtiquetaFiltro}"/>
+                        <ComboBox Grid.Column="1" x:Name="CmbPais"
+                                  Style="{StaticResource ComboFiltroBox}"/>
+                    </Grid>
+                </controls:PanelFiltrosFluido>
             </StackPanel>
         </Border>
 
