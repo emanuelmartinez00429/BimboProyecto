@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
+using System.Windows.Input;
 using System.Windows.Media;
 using CapaAplicacion.Productos.Dtos;
 using CapaUI.Core.Catalogos;
@@ -79,6 +80,9 @@ public partial class SelectorCatalogoModal : UserControl, IDisposable
             .AddValueChanged(SearchBox, OnQueryChanged);
 
         await CargarInicialAsync();
+
+        // Cursor en el buscador al abrir: se puede tipear, o bajar con ↓ directo.
+        SearchBox.EnfocarCaja();
     }
 
     private async Task CargarInicialAsync()
@@ -105,7 +109,7 @@ public partial class SelectorCatalogoModal : UserControl, IDisposable
             Dg.ItemsSource = _vista;
             FooterPaginacion.Visibility = Visibility.Collapsed;
             MostrarCargando(false);
-            ActualizarVacio(_vista.Cast<object>().Any());
+            RefrescarConteoEnMemoria();
             return;
         }
 
@@ -146,6 +150,7 @@ public partial class SelectorCatalogoModal : UserControl, IDisposable
 
         Dg.ItemsSource = pagina.Items.Select(i => new FilaCatalogo(i)).ToList();
         ActualizarVacio(pagina.Items.Count > 0);
+        ActualizarContador(pagina.Items.Count, _total);
         RefrescarPaginacion();
     }
 
@@ -208,7 +213,7 @@ public partial class SelectorCatalogoModal : UserControl, IDisposable
         {
             // Memoria: refresco inmediato, sin red ni debounce.
             _vista.Refresh();
-            ActualizarVacio(_vista.Cast<object>().Any());
+            RefrescarConteoEnMemoria();
             return;
         }
 
@@ -230,7 +235,67 @@ public partial class SelectorCatalogoModal : UserControl, IDisposable
 
     // ── Interacción ───────────────────────────────────────────────────────────
 
-    private void Fila_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    /// <summary>
+    /// Navegación con flechas entre el buscador y la tabla.
+    ///
+    /// Va en PreviewKeyDown del UserControl (tunneling: baja de la raíz a la
+    /// hoja) para llegar antes que el TextBox del buscador, que se queda con
+    /// Escape. Down/Up/Enter sí pasan porque SuggestionSearchBox los ignora
+    /// cuando no tiene sugerencias, que es como se usa acá.
+    /// </summary>
+    private void OnPreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        switch (e.Key)
+        {
+            case Key.Escape:
+                Cerrado?.Invoke();
+                e.Handled = true;
+                break;
+
+            // Del buscador a la tabla.
+            case Key.Down when SearchBox.IsKeyboardFocusWithin:
+                BajarALaTabla();
+                e.Handled = true;
+                break;
+
+            // De la primera fila, de vuelta al buscador.
+            case Key.Up when Dg.IsKeyboardFocusWithin && Dg.SelectedIndex <= 0:
+                SearchBox.EnfocarCaja();
+                e.Handled = true;
+                break;
+
+            case Key.Enter:
+                if (Dg.SelectedItem is FilaCatalogo) Confirmar();
+                else if (SearchBox.IsKeyboardFocusWithin) BajarALaTabla();
+                e.Handled = true;
+                break;
+        }
+    }
+
+    /// <summary>Marca la primera fila (o la ya marcada) y le pasa el foco.</summary>
+    private void BajarALaTabla()
+    {
+        if (Dg.Items.Count == 0) return;
+
+        if (Dg.SelectedIndex < 0) Dg.SelectedIndex = 0;
+        Dg.ScrollIntoView(Dg.Items[Dg.SelectedIndex]);
+
+        // Con virtualización el contenedor puede no existir todavía.
+        Dg.UpdateLayout();
+        if (Dg.ItemContainerGenerator.ContainerFromIndex(Dg.SelectedIndex) is DataGridRow fila)
+            fila.Focus();
+        else
+            Dg.Focus();
+    }
+
+    private void Dg_SelectionChanged(object sender, SelectionChangedEventArgs e) =>
+        BtnElegir.IsEnabled = Dg.SelectedItem is FilaCatalogo;
+
+    private void Dg_DoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e) => Confirmar();
+
+    private void Elegir_Click(object sender, RoutedEventArgs e) => Confirmar();
+
+    private void Confirmar()
     {
         if (Dg.SelectedItem is FilaCatalogo fila)
             Seleccionado?.Invoke(fila.Item);
@@ -257,6 +322,22 @@ public partial class SelectorCatalogoModal : UserControl, IDisposable
 
     private void ActualizarVacio(bool hayFilas) =>
         TxtVacio.Visibility = hayFilas ? Visibility.Collapsed : Visibility.Visible;
+
+    /// <summary>Vacío + contador para el modo memoria, en un solo lugar.</summary>
+    private void RefrescarConteoEnMemoria()
+    {
+        int visibles = _vista?.Cast<object>().Count() ?? 0;
+        ActualizarVacio(visibles > 0);
+        ActualizarContador(visibles, _todas?.Count ?? 0);
+    }
+
+    /// <summary>"Mostrando N de M" — N es lo visible tras filtrar, M el total.</summary>
+    private void ActualizarContador(int mostrados, int total)
+    {
+        TxtContador.Text = mostrados == total
+            ? $"Mostrando {total} registro{(total == 1 ? "" : "s")}"
+            : $"Mostrando {mostrados} de {total} registros";
+    }
 
     private void MostrarError(string mensaje)
     {

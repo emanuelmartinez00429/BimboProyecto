@@ -91,7 +91,10 @@
                           Width="12" Height="12" Stretch="Uniform"/>
                 </Button>
 
-                <Border Grid.Column="3"
+                <!-- Pista de navegación del popup. Se oculta cuando el control se
+                     usa solo como caja de texto (sin sugerencias), donde no
+                     habría nada que recorrer con las flechas. -->
+                <Border x:Name="PistaTeclado" Grid.Column="3"
                         Background="#EEF2F8" CornerRadius="3" Padding="5,2" Margin="4,0,0,0">
                     <TextBlock Text="&#x2191;&#x2193; Enter"
                                FontFamily="Consolas" FontSize="16"

@@ -38,6 +38,27 @@ public partial class SuggestionSearchBox : UserControl
         set => SetValue(PlaceholderProperty, value);
     }
 
+    /// <summary>
+    /// Muestra la pista "↑↓ Enter" de navegación del popup. Ponerla en false
+    /// cuando el control se usa solo como caja de texto estilizada, sin
+    /// <see cref="SuggestItems"/>: ahí el popup nunca abre y la pista confunde.
+    /// </summary>
+    public static readonly DependencyProperty MostrarPistaTecladoProperty =
+        DependencyProperty.Register(nameof(MostrarPistaTeclado), typeof(bool), typeof(SuggestionSearchBox),
+            new PropertyMetadata(true, OnMostrarPistaTecladoChanged));
+
+    public bool MostrarPistaTeclado
+    {
+        get => (bool)GetValue(MostrarPistaTecladoProperty);
+        set => SetValue(MostrarPistaTecladoProperty, value);
+    }
+
+    private static void OnMostrarPistaTecladoChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is SuggestionSearchBox box && box.PistaTeclado is not null)
+            box.PistaTeclado.Visibility = (bool)e.NewValue ? Visibility.Visible : Visibility.Collapsed;
+    }
+
     public static readonly DependencyProperty SuggestItemsProperty =
         DependencyProperty.Register(nameof(SuggestItems), typeof(IReadOnlyList<SuggestionItemData>),
             typeof(SuggestionSearchBox),
@@ -161,6 +182,13 @@ public partial class SuggestionSearchBox : UserControl
             ? Visibility.Collapsed : Visibility.Visible;
         _updatingText = false;
     }
+
+    /// <summary>
+    /// Pone el cursor en la caja de texto. Lo necesita quien navega con flechas
+    /// entre el buscador y una lista externa (p. ej. el selector de catálogo),
+    /// porque enfocar el UserControl no llega al TextBox interno.
+    /// </summary>
+    public void EnfocarCaja() => TxtBusqueda.Focus();
 
     private void TxtBusqueda_PreviewKeyDown(object sender, KeyEventArgs e)
     {

@@ -22,6 +22,8 @@ public sealed class ComboFiltro
     private List<FiltroItem>           _items = new();
     private ICollectionView?           _vista;
     private bool                       _silenciado;
+    private bool                       _filtrando;
+    private int?                       _idConfirmado;
 
     /// <summary>Id elegido, o null cuando está en "(Todos)".</summary>
     public event Action<int?>? SeleccionCambiada;
@@ -31,8 +33,10 @@ public sealed class ComboFiltro
         _combo      = combo;
         TextoTodos  = textoTodos;
 
-        _combo.SelectionChanged += OnSelectionChanged;
+        _combo.PreviewKeyDown   += OnPreviewKeyDown;
         _combo.PreviewKeyUp     += OnPreviewKeyUp;
+        _combo.SelectionChanged += OnSelectionChanged;
+        _combo.DropDownClosed   += OnDropDownClosed;
     }
 
     public string TextoTodos { get; }
@@ -48,6 +52,7 @@ public sealed class ComboFiltro
         _vista = CollectionViewSource.GetDefaultView(_items);
         _combo.ItemsSource   = _vista;
         _combo.SelectedIndex = 0;
+        _idConfirmado        = null;
 
         _silenciado = false;
     }
@@ -58,19 +63,50 @@ public sealed class ComboFiltro
         _silenciado = true;
         if (_vista is not null) _vista.Filter = null;
         _combo.SelectedIndex = 0;
-        _silenciado = false;
+        _idConfirmado        = null;
+        _silenciado          = false;
+    }
+
+    private void OnPreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key is Key.Enter or Key.Return)
+        {
+            ConfirmarSeleccion();
+            e.Handled = true;
+            return;
+        }
+
+        if (e.Key is Key.Escape)
+        {
+            CancelarSeleccion();
+            e.Handled = true;
+            return;
+        }
+
+        if (e.Key is Key.Down or Key.Up)
+        {
+            if (!_combo.IsDropDownOpen)
+            {
+                _combo.IsDropDownOpen = true;
+            }
+        }
     }
 
     private void OnSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (_silenciado) return;
+        if (_silenciado || _filtrando) return;
 
-        var elegido = _combo.SelectedItem as FiltroItem;
-
-        // Quitar el filtro de texto para que el próximo despliegue muestre todo.
-        if (_vista is not null) _vista.Filter = null;
-
-        SeleccionCambiada?.Invoke(elegido?.Id);
+        // Si el desplegable está abierto, la selección puede ser por navegación con flechas;
+        // no disparamos el filtro hasta que el usuario confirme con Enter o cierre el desplegable.
+        if (!_combo.IsDropDownOpen)
+        {
+            var elegido = _combo.SelectedItem as FiltroItem;
+            if (elegido != null && elegido.Id != _idConfirmado)
+            {
+                _idConfirmado = elegido.Id;
+                SeleccionCambiada?.Invoke(_idConfirmado);
+            }
+        }
     }
 
     private void OnPreviewKeyUp(object sender, KeyEventArgs e)
@@ -80,12 +116,60 @@ public sealed class ComboFiltro
 
         if (_vista is null) return;
 
-        var texto = _combo.Text?.Trim() ?? string.Empty;
-        _vista.Filter = string.IsNullOrEmpty(texto)
-            ? null
-            : o => o is FiltroItem f
-                && f.Nombre?.Contains(texto, StringComparison.OrdinalIgnoreCase) == true;
+        var textBox = _combo.Template?.FindName("PART_EditableTextBox", _combo) as TextBox;
+        var texto = textBox?.Text ?? _combo.Text ?? string.Empty;
+        int caretPos = textBox?.CaretIndex ?? texto.Length;
 
-        _combo.IsDropDownOpen = true;
+        _filtrando = true;
+        try
+        {
+            var textoFiltro = texto.Trim();
+            _vista.Filter = string.IsNullOrEmpty(textoFiltro)
+                ? null
+                : o => o is FiltroItem f
+                    && f.Nombre?.Contains(textoFiltro, StringComparison.OrdinalIgnoreCase) == true;
+
+            _combo.IsDropDownOpen = true;
+
+            if (textBox != null && textBox.Text != texto)
+            {
+                textBox.Text = texto;
+                textBox.CaretIndex = Math.Min(caretPos, textBox.Text.Length);
+            }
+        }
+        finally
+        {
+            _filtrando = false;
+        }
+    }
+
+    private void OnDropDownClosed(object? sender, EventArgs e)
+    {
+        if (_silenciado) return;
+        ConfirmarSeleccion();
+    }
+
+    private void ConfirmarSeleccion()
+    {
+        var elegido = _combo.SelectedItem as FiltroItem;
+
+        _silenciado = true;
+        if (_vista is not null) _vista.Filter = null;
+        if (elegido != null) _combo.SelectedItem = elegido;
+        _combo.IsDropDownOpen = false;
+        _silenciado = false;
+
+        _idConfirmado = elegido?.Id;
+        SeleccionCambiada?.Invoke(_idConfirmado);
+    }
+
+    private void CancelarSeleccion()
+    {
+        _silenciado = true;
+        if (_vista is not null) _vista.Filter = null;
+        var previo = _items.FirstOrDefault(i => i.Id == _idConfirmado) ?? _items.FirstOrDefault();
+        if (previo != null) _combo.SelectedItem = previo;
+        _combo.IsDropDownOpen = false;
+        _silenciado = false;
     }
 }

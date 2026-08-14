@@ -1,19 +1,21 @@
 ---
-title: "Sesión 2026-08-13 — Instalación de Diagram Design, Diagrama CapaUI y Corrección Alineación Tara en Productos"
+title: "Sesión 2026-08-13 — Instalación de Diagram Design, Diagrama CapaUI, Corrección Alineación Tara y Fix de Filtros ComboBox"
 tags:
   - sesion
   - diagramas
   - ui
   - productos
+  - fabricantes
+  - combobox
   - antigravity
 date: 2026-08-13
 autor_cambios: Antigravity (Gemini 3.6 Flash / Gemini 3.7 Flash)
 ---
 
-# Sesión 2026-08-13 — Instalación de Diagram Design, Diagrama CapaUI y Corrección Alineación Tara en Productos
+# Sesión 2026-08-13 — Instalación de Diagram Design, Diagrama CapaUI, Corrección Alineación Tara y Fix de Filtros ComboBox
 
 > [!success] Resultado
-> Se instaló y configuró la habilidad de diagramación `diagram-design` con regla de activación automática ante la palabra "diagrama"/"digrama". Se generó el diagrama arquitectónico interactivo en HTML+SVG de la `CapaUI` y se corrigió el problema de alineación vertical y recorte de texto en la columna **TARA** del catálogo de productos.
+> Se instaló la habilidad `diagram-design` con regla de disparo automático, se generó el diagrama arquitectónico de `CapaUI`, se corrigió la alineación vertical de la columna **TARA** en Productos y se solucionó el bug en los ComboBoxes de filtro donde la primera letra escrita se borraba. Además, se configuró la navegación por flechas para que solo recorra visualmente las opciones y el filtrado se confirme exclusivamente al presionar **Enter** o hacer clic.
 
 ---
 
@@ -66,10 +68,37 @@ autor_cambios: Antigravity (Gemini 3.6 Flash / Gemini 3.7 Flash)
 
 ---
 
-## 4. Verificación
+## 4. Corrección de ComboBoxes: Primera Letra y Confirmación de Selección con Enter
 
-- **Compilación de la solución:** `dotnet build BimboProyecto.sln` finalizó en **0 errores** y 2 advertencias preexistentes de signaturas en `RolesViewModel`.
-- **Prueba visual:** El texto de la columna **TARA** ya no salta de línea ni se desplaza hacia arriba; se mantiene alineado en una sola línea centrada verticalmente al medio de la fila de 36px.
+### Problemas Registrados
+1. Al enfocar un ComboBox de filtro y comenzar a escribir por primera vez, la primera letra ingresada se borraba de la nada.
+2. Al navegar con las flechas (↑ / ↓), cada cambio de elemento disparaba la selección de inmediato recargando la tabla, en lugar de solo resaltar visualmente la opción y esperar a que el usuario presione **Enter**.
+
+### Causa Raíz
+- **Bug 1 (Primera letra):** Al escribir la primera letra, el ítem `(Todos)` era removido por el filtro, lo que hacía que WPF pusiera `SelectedItem = null`. Esto disparaba sincrónicamente `SelectionChanged`, reseteando el filtro y vaciando el texto de la caja.
+- **Bug 2 (Selección prematura con flechas):** WPF dispara `SelectionChanged` cada vez que el cursor de las flechas se desplaza entre los elementos del ComboBox. Al no distinguir entre navegación transitoria y confirmación del usuario, el filtro de la tabla se aplicaba en cada pulsación de flecha.
+
+### Cambios Aplicados
+- **`CapaUI/Core/Controls/ComboFiltro.cs`**:
+  - **Diferimiento de selección con Enter:** Se agregó `PreviewKeyDown` para interceptar `Key.Enter` / `Key.Return`. Al presionar Enter, se invoca `ConfirmarSeleccion()` cerrando el desplegable y notificando el cambio de ID (`SeleccionCambiada`).
+  - **Navegación pura con flechas:** Mientras el menú desplegable esté abierto (`IsDropDownOpen == true`), los eventos de `SelectionChanged` provocados por las flechas (↑ / ↓) no notifican a la vista; solo mueven el cursor visual.
+  - **Cancelación con Escape:** Al presionar `Key.Escape`, se restaura la selección previa y se cierra el desplegable sin alterar el filtro de la tabla.
+  - **Bandera `_filtrando` y preservación de cursor:** Evita la deselección al tipear el primer caracter y restaura el `CaretIndex`.
+- **`CapaUI/Formularios/Principal/Pantallas/Fabricantes/FabricantesView.*`**:
+  - Migración completa de `CmbPais` a `ComboFiltro` y adición de `KeyboardNavigation.DirectionalNavigation="Cycle"`.
+- **`CapaUI/Formularios/Principal/Pantallas/Productos/ProductosView.xaml`**:
+  - Adición de `KeyboardNavigation.DirectionalNavigation="Cycle"` en `CmbProveedor`, `CmbFabricante` y `CmbPais`.
+
+---
+
+## 5. Verificación
+
+- **Compilación de la solución:** `dotnet build BimboProyecto.sln` finalizó con **0 errores**.
+- **Prueba funcional:** 
+  - Al escribir, la primera letra permanece intacta y filtra la lista en tiempo real.
+  - Al pulsar flecha abajo (↓) o arriba (↑), el usuario puede moverse libremente por la lista sin que la tabla cambie ni parpadee.
+  - Al presionar **Enter** (o hacer clic con el ratón), la opción seleccionada se confirma, se cierra el desplegable y la tabla se filtra con el nuevo valor.
+  - La columna TARA en la tabla de Productos permanece centrada verticalmente en una sola línea.
 
 ---
 

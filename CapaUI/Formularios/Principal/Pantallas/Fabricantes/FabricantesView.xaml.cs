@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -24,12 +24,14 @@ namespace CapaUI.Formularios.Principal.Pantallas.Fabricantes
         private FabricantesViewModel _vm = null!;
         private bool _suppressFilterChange = false;
         private Storyboard? _spinnerStory;
-        private List<FiltroItem> _todosPaises = new();
-        private System.ComponentModel.ICollectionView? _paisesView;
+        private readonly ComboFiltro _filtroPais;
 
         public FabricantesView()
         {
             InitializeComponent();
+
+            _filtroPais = new ComboFiltro(CmbPais);
+            _filtroPais.SeleccionCambiada += id => { if (_vm != null) _vm.PaisIdFiltro = id; };
         }
 
         private async void UserControl_Loaded(object sender, RoutedEventArgs e)
@@ -65,8 +67,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Fabricantes
         {
             _suppressFilterChange = true;
             RbHabilitados.IsChecked = true;
-            if (_paisesView != null) _paisesView.Filter = null;
-            CmbPais.SelectedIndex = 0;
+            _filtroPais.Reiniciar();
             _suppressFilterChange = false;
         }
 
@@ -83,7 +84,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Fabricantes
                     SelectedInfo.Visibility = _vm.HaySeleccionado ? Visibility.Visible : Visibility.Collapsed;
                     break;
                 case nameof(FabricantesViewModel.Seleccionado):    SeleccionarEnTabla();    break;
-                case nameof(FabricantesViewModel.Paises):          PoblarPaises();          break;
+                case nameof(FabricantesViewModel.Paises):          _filtroPais.Poblar(_vm.Paises); break;
             }
         }
 
@@ -135,36 +136,6 @@ namespace CapaUI.Formularios.Principal.Pantallas.Fabricantes
                 _vm.EstadoFiltro = EstadoFilter.Deshabilitados;
             else
                 _vm.EstadoFiltro = EstadoFilter.Todos;
-        }
-
-        private void CmbPais_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (_vm == null || _suppressFilterChange) return;
-            var selected = CmbPais.SelectedItem as FiltroItem;
-            _vm.PaisIdFiltro = selected?.Id;
-            if (_paisesView != null) _paisesView.Filter = null;
-        }
-
-        private void CmbPais_PreviewKeyUp(object sender, WpfKey e)
-        {
-            if (e.Key is Key.Return or Key.Enter or Key.Up or Key.Down or Key.Escape or Key.Tab) return;
-            if (_paisesView == null) return;
-            var texto = CmbPais.Text?.Trim() ?? "";
-            _paisesView.Filter = string.IsNullOrEmpty(texto)
-                ? null
-                : o => o is FiltroItem f && (f.Nombre?.Contains(texto, StringComparison.OrdinalIgnoreCase) == true);
-            CmbPais.IsDropDownOpen = true;
-        }
-
-        private void PoblarPaises()
-        {
-            _suppressFilterChange = true;
-            _todosPaises = new List<FiltroItem> { new FiltroItem { Id = null, Nombre = "(Todos)" } };
-            _todosPaises.AddRange(_vm.Paises);
-            _paisesView = CollectionViewSource.GetDefaultView(_todosPaises);
-            CmbPais.ItemsSource   = _paisesView;
-            CmbPais.SelectedIndex = 0;
-            _suppressFilterChange = false;
         }
 
         private void SearchBox_ItemSelected(object? sender, SuggestionItemData e)
