@@ -93,6 +93,24 @@ UserControl_Loaded
 > convención del nombre de columna `peso_tara_envalaje`) — sin combo propio
 > todavía porque no existe pantalla para editar `tara` (ver P-036).
 
+> [!danger] Las FK de `productos` son NULLABLE — el modelo debe reflejarlo
+> `id_presentacion`, `id_fabricante`, `id_categoria`, `id_pais`, `id_unidad`, `id_tara`,
+> `peso_teorico`, `precio_por_kg` y `contenido` **admiten NULL en la base**. Solo
+> `id_producto`, `codigo_producto`, `nombre_producto` e `id_estado` son obligatorios.
+>
+> Declarar cualquiera de esas columnas como value type sin `?` (ej. `int` en vez de
+> `int?`) hace que Newtonsoft lance al deserializar una fila con NULL, y **falla la
+> consulta entera, no la fila** — la página completa queda sin cargar y la grilla
+> se queda mostrando la anterior sin avisar nada. Pasó de verdad el 2026-08-14:
+> 175 productos con `id_presentacion` en NULL dejaron muertas las páginas 11 a 14.
+> Ver [[Sesión 2026-08-14 - Modelo desalineado del esquema tumbaba paginas enteras]] y P-038.
+>
+> Al agregar una columna al modelo, verificar siempre su nullabilidad real:
+> ```sql
+> select column_name, data_type, is_nullable from information_schema.columns
+> where table_schema='public' and table_name='productos' order by ordinal_position;
+> ```
+
 > [!note] Conteos reales
 > `GetConteosAsync` ejecuta dos `Get()` con `Select("id_producto")` — una sin filtro de estado (total) y otra con `id_estado = 1` (activos). Cuenta `Models.Count` en el cliente. No usa `CountType.Exact`. Ver [[Paginación y Búsqueda - Arquitectura Detallada]].
 

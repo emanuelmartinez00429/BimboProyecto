@@ -702,6 +702,35 @@ Además, `Usuarios`, `Empleados` y `Bitacora` todavía tienen `DgX.ItemsSource =
 
 ---
 
+### P-038 · 🔴 Modelos C# desalineados del esquema + el error de carga no llega al usuario
+
+**Detectado en:** [[Sesión 2026-08-14 - Modelo desalineado del esquema tumbaba paginas enteras]]
+
+Tres problemas de la misma familia, descubiertos al diagnosticar un bug que costó tres rondas de reporte.
+
+**1. El desalineo modelo↔esquema falla en bloque y en silencio.** `Productos.cs` declaraba como `int` cuatro columnas que en la base son NULLABLE. Una sola fila con NULL hacía que Newtonsoft lanzara y **fallara la consulta entera** — no la fila, la página completa. Ya corregido para `productos`, pero:
+
+- **`ProductosInsertar.cs` sigue desalineado**: `id_presentacion`, `id_fabricante`, `id_categoria`, `id_pais`, `id_tara` como `int` y `peso_teorico` como `decimal`, todas nullable en la base. Hoy solo lo usa `RepositorioProducto.ingresarProducto` (estático, legacy, sin llamadores activos), así que no explota — pero explotaría apenas se use.
+- **El resto de las tablas no se auditó.** Conviene una pasada comparando cada modelo de `CapaDatos/Modelados/` contra `information_schema.columns`: cualquier value type (`int`, `decimal`, `DateTime`, `bool`) declarado sin `?` sobre una columna `is_nullable = YES` es la misma bomba.
+
+```sql
+-- Para auditar: lista las columnas nullable de una tabla
+select column_name, data_type, is_nullable
+from information_schema.columns
+where table_schema='public' and table_name='<tabla>'
+order by ordinal_position;
+```
+
+**2. `ErrorCarga` no se muestra.** `ProductosViewModel.CargarPaginaAsync` asigna `ErrorCarga = r.Error` en su return temprano de error, pero eso nunca llegó a la pantalla — el usuario vio una grilla con datos viejos, sin ningún aviso de que la carga había fallado. Con el mensaje visible, este bug se diagnosticaba en minutos en vez de tres rondas. Verificar si `ErrorCarga` está bindeado en las vistas y, si no, mostrarlo (mismo tratamiento en los módulos gemelos).
+
+**3. El return temprano deja la grilla mintiendo.** Los cuatro caminos de salida de `CargarPaginaAsync` (timeout, generación invalidada, `!r.Success`) no tocan `PageRows`, así que la pantalla sigue mostrando la página anterior como si fuera la pedida — mientras `Page`, `PageInfo` y los botones ya avanzaron. Aunque se arregle el punto 2, conviene decidir qué debe mostrar la grilla cuando una página falla: vaciarse, quedarse con un estado de error explícito, o revertir `Page` al valor anterior.
+
+**Riesgo:** alto. El punto 1 puede dejar cualquier pantalla inutilizable con un solo registro mal cargado, y el punto 2 hace que se diagnostique a ciegas.
+
+**Estado:** `[ ] Pendiente`
+
+---
+
 ## Historial de resolución
 
 | ID | Descripción | Estado | Sesión |
@@ -742,6 +771,7 @@ Además, `Usuarios`, `Empleados` y `Bitacora` todavía tienen `DgX.ItemsSource =
 | P-035 | Política del bucket `empresa-logos` sin verificar + falta módulo de configuración para subir logo | `[ ]` Pendiente | [[Sesión 2026-08-14 - Logo de empresa dinamico en login]] |
 | P-036 | Tara y Presentaciones sin pantalla CRUD — combo de unidad filtrado a masa sin dónde vivir | `[ ]` Pendiente | [[Sesión 2026-08-14 - Catalogo de unidad_medida con categoria]] |
 | P-037 | Paginación: code-behind duplicado 9× sin clamp de `Page` ni binding del resaltado | `[ ]` Pendiente | [[Sesión 2026-08-14 - Regresion la grilla mostraba la pagina anterior]] |
+| P-038 | Modelos C# desalineados del esquema + `ErrorCarga` no llega al usuario | `[ ]` Pendiente 🔴 | [[Sesión 2026-08-14 - Modelo desalineado del esquema tumbaba paginas enteras]] |
 
 ---
 
@@ -760,3 +790,4 @@ Además, `Usuarios`, `Empleados` y `Bitacora` todavía tienen `DgX.ItemsSource =
 - [[Sesión 2026-08-14 - Logo de empresa dinamico en login]] — origen de P-035
 - [[Sesión 2026-08-14 - Catalogo de unidad_medida con categoria]] — origen de P-036
 - [[Sesión 2026-08-14 - Regresion la grilla mostraba la pagina anterior]] — origen de P-037
+- [[Sesión 2026-08-14 - Modelo desalineado del esquema tumbaba paginas enteras]] — origen de P-038

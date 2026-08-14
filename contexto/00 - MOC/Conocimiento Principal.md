@@ -122,4 +122,4 @@ Regla: `CapaAplicacion` **nunca** referencia `CapaDatos`.
 ## Bitácora
 
 Las sesiones están en `70 - Bitácora de Cambios/`.  
-Sesión más reciente: [[Sesión 2026-08-14 - Regresion la grilla mostraba la pagina anterior]]
+Sesión más reciente: [[Sesión 2026-08-14 - Modelo desalineado del esquema tumbaba paginas enteras]]
