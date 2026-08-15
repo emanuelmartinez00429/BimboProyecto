@@ -214,6 +214,7 @@ namespace CapaUI.Formularios.Principal
             _subMap["proveedores"]           = new(DotProveedores,          LblProveedores,          "productos");
             _subMap["fabricantes"]           = new(DotFabricantes,          LblFabricantes,          "productos");
             _subMap["categorias"]            = new(DotCategorias,           LblCategorias,           "productos");
+            _subMap["presentaciones"]        = new(DotPresentaciones,       LblPresentaciones,       "productos");
             _subMap["contactos-proveedores"] = new(DotContactosProveedores, LblContactosProveedores, "productos");
             _subMap["contactos-fabricantes"] = new(DotContactosFabricantes, LblContactosFabricantes, "productos");
 
@@ -659,7 +660,7 @@ namespace CapaUI.Formularios.Principal
         private static int GetSubCount(string moduleId) => moduleId switch
         {
             "usuarios"  => 4,
-            "productos" => 6,
+            "productos" => 7,
             "pesajes"   => 1,
             "reportes"  => 2,
             _           => 0

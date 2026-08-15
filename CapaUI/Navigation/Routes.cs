@@ -17,6 +17,7 @@ public static class Routes
     public const string Proveedores          = "proveedores";
     public const string Fabricantes          = "fabricantes";
     public const string Categorias           = "categorias";
+    public const string Presentaciones       = "presentaciones";
     public const string ContactosProveedores = "contactos-proveedores";
     public const string ContactosFabricantes = "contactos-fabricantes";
 

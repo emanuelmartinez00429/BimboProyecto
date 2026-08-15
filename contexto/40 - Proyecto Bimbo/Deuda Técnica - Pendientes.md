@@ -678,7 +678,9 @@ El problema: **hoy no existe ninguna pantalla para crear o editar filas de `tara
 
 **Solución de fondo:** construir un CRUD mínimo de Tara (grilla + modal, mismo patrón que Categorías/Fabricantes) con el combo de unidad ya integrado (`Catalogos.Unidades(r, idTipoUnidadMasa)`), y el equivalente para Presentaciones. Conviene resolver junto con P-023 (limpiar el dato de prueba de `tara`), ya que ambos requieren tocar esa tabla.
 
-**Estado:** `[ ] Pendiente`
+**Estado:** `[~] Parcial — Presentaciones resuelto 2026-08-15, Tara sigue pendiente`
+
+La mitad de Presentaciones se cerró en [[Sesión 2026-08-15 - Modulo CRUD de Presentaciones]]: `CapaUI/.../Pantallas/Presentaciones/` con grilla, filtros de estado y orden, y modal de alta/edición. Ese módulo sirve de plantilla directa para el de Tara — la diferencia es que Tara además necesita el combo de unidad filtrado a Masa y arrastra el dato de prueba de P-023.
 
 ---
 
@@ -749,6 +751,30 @@ Mientras tanto, buscar con tilde en cualquiera de esos módulos sigue sin encont
 
 ---
 
+### P-040 · Fabricantes y Categorías pasan el filtro de estado al RPC de conteos y las tres pastillas dejan de informar
+
+**Archivos:** `CapaDatos/Repositories/Fabricantes/FabricanteCrudRepository.cs` (`GetConteosRpcAsync`), `CapaDatos/Repositories/Categorias/CategoriaCrudRepository.cs` (ídem)
+**Detectado en:** [[Sesión 2026-08-15 - Modulo CRUD de Presentaciones]]
+
+Las pastillas del header —TOTAL, ACTIVOS, INACTIVOS— existen justamente para **desglosar por estado**. Ambos repositorios le pasan `p_estado` al RPC de conteos cuando hay filtro de estado activo, así que las tres terminan calculadas sobre el mismo subconjunto:
+
+| Filtro activo | Lo que se ve | Lo que debería verse |
+|---|---|---|
+| Habilitados | TOTAL = ACTIVOS, INACTIVOS = 0 | los tres números reales |
+| Deshabilitados | TOTAL = INACTIVOS, ACTIVOS = 0 | los tres números reales |
+
+O sea: apenas se toca el filtro de estado, el indicador deja de indicar. Con "Todos" funciona por casualidad, porque ahí no se manda el parámetro.
+
+`ProductoCrudRepository.GetPagedInternal` ya lo hace bien y tiene el comentario que lo explica: arma un `ProductoFiltros` aparte para los conteos, **sin** `IdEstado`, conservando los filtros que sí son ortogonales al estado (fabricante, país, proveedor, categoría). `PresentacionCrudRepository` siguió ese mismo criterio desde el arranque.
+
+**Riesgo:** bajo en consecuencias (no corrompe datos, no rompe la grilla) pero es información incorrecta en pantalla: el usuario lee "0 inactivos" cuando hay inactivos.
+
+**Solución:** en ambos repositorios, construir el objeto de filtros de los conteos sin `IdEstado`, igual que Productos. Los RPC `contar_fabricantes` y `contar_categorias` ya tratan el parámetro como opcional (`DEFAULT NULL`), así que **no hace falta migración**: alcanza con no mandarlo.
+
+**Estado:** `[ ] Pendiente`
+
+---
+
 ## Historial de resolución
 
 | ID | Descripción | Estado | Sesión |
@@ -787,10 +813,11 @@ Mientras tanto, buscar con tilde en cualquiera de esos módulos sigue sin encont
 | P-033 | Verificar si el trigger de pesajes cubre UPDATE | `[ ]` Pendiente | [[Sesión 2026-08-13 - Pesaje solo bruto y tara extra pesada]] |
 | P-034 | Invalidación de caché sobre tablas no publicadas en Realtime | 🟡 Parcial | [[Sesión 2026-08-13 - Guardado fluido y caché de catálogos que no vencía]] → [[Sesión 2026-08-14 - Realtime en columnas de join de Productos]] |
 | P-035 | Política del bucket `empresa-logos` sin verificar + falta módulo de configuración para subir logo | `[ ]` Pendiente | [[Sesión 2026-08-14 - Logo de empresa dinamico en login]] |
-| P-036 | Tara y Presentaciones sin pantalla CRUD — combo de unidad filtrado a masa sin dónde vivir | `[ ]` Pendiente | [[Sesión 2026-08-14 - Catalogo de unidad_medida con categoria]] |
+| P-036 | Tara y Presentaciones sin pantalla CRUD — combo de unidad filtrado a masa sin dónde vivir | `[~]` Parcial — Presentaciones ✅, Tara pendiente | [[Sesión 2026-08-15 - Modulo CRUD de Presentaciones]] |
 | P-037 | Paginación: code-behind duplicado 9× sin clamp de `Page` ni binding del resaltado | `[ ]` Pendiente | [[Sesión 2026-08-14 - Regresion la grilla mostraba la pagina anterior]] |
 | P-038 | Modelos C# desalineados del esquema + `ErrorCarga` no llega al usuario | `[ ]` Pendiente 🔴 | [[Sesión 2026-08-14 - Modelo desalineado del esquema tumbaba paginas enteras]] |
 | P-039 | Búsqueda sin tildes solo en Productos — faltan 7 tablas | `[ ]` Pendiente | [[ADR-018 - Busqueda insensible a mayusculas y tildes con columna generada]] |
+| P-040 | Conteos de Fabricantes/Categorías filtrados por estado — las 3 pastillas dejan de informar | `[ ]` Pendiente | [[Sesión 2026-08-15 - Modulo CRUD de Presentaciones]] |
 
 ---
 

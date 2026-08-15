@@ -7,6 +7,7 @@
         xmlns:provs="clr-namespace:CapaUI.Formularios.Principal.Pantallas.Proveedores"
         xmlns:fabs="clr-namespace:CapaUI.Formularios.Principal.Pantallas.Fabricantes"
         xmlns:cats="clr-namespace:CapaUI.Formularios.Principal.Pantallas.Categorias"
+        xmlns:pres="clr-namespace:CapaUI.Formularios.Principal.Pantallas.Presentaciones"
         xmlns:cfabs="clr-namespace:CapaUI.Formularios.Principal.Pantallas.ContactosFabricantes"
         xmlns:cprovs="clr-namespace:CapaUI.Formularios.Principal.Pantallas.ContactosProveedores"
         xmlns:pesaje="clr-namespace:CapaUI.Formularios.Principal.Pantallas.Pesaje"
@@ -56,6 +57,9 @@
             </DataTemplate>
             <DataTemplate DataType="{x:Type local:CategoriasVM}">
                 <cats:CategoriasView/>
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type local:PresentacionesVM}">
+                <pres:PresentacionesView/>
             </DataTemplate>
             <DataTemplate DataType="{x:Type local:ContactosFabricantesVM}">
                 <cfabs:ContactosFabricantesView/>
@@ -842,6 +846,17 @@
                                                             Background="{StaticResource AccentGreen}"
                                                             HorizontalAlignment="Left" Margin="-16,0,0,0" Visibility="Collapsed"/>
                                                     <TextBlock x:Name="LblCategorias" Text="Gestión de Categorías"
+                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="15"/>
+                                                </Grid>
+                                            </Button>
+                                            <Button Style="{StaticResource SidebarSubButton}" Tag="presentaciones"
+                                                    permisos:PermisoBehavior.Requiere="Modificar Configuración"
+                                                    Padding="48,10,16,10" Click="BtnSub_Click">
+                                                <Grid>
+                                                    <Border x:Name="DotPresentaciones" Width="4" Height="4" CornerRadius="2"
+                                                            Background="{StaticResource AccentGreen}"
+                                                            HorizontalAlignment="Left" Margin="-16,0,0,0" Visibility="Collapsed"/>
+                                                    <TextBlock x:Name="LblPresentaciones" Text="Gestión de Presentaciones"
                                                                Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="15"/>
                                                 </Grid>
                                             </Button>
