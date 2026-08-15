@@ -161,6 +161,21 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
             });
 
         /// <summary>
+        /// El campo de catálogo (TextBox de solo lectura) funciona como botón:
+        /// un clic sobre el texto dispara el mismo <see cref="Button.Click"/> de
+        /// la lupa emparejada (referencia en <c>Tag</c>), así el combobox completo
+        /// abre la tabla de selección sin duplicar la lógica de cada catálogo.
+        /// </summary>
+        private void TxtCatalogo_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is FrameworkElement campo && campo.Tag is Button lupa)
+            {
+                e.Handled = true;
+                lupa.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            }
+        }
+
+        /// <summary>
         /// Elegir proveedor acota la lupa de fabricante. Si el fabricante ya
         /// cargado no pertenece al proveedor nuevo se limpia, para no dejar una
         /// combinación imposible que después falle al guardar.

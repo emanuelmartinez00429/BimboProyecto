@@ -231,7 +231,9 @@
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="44"/>
                             </Grid.ColumnDefinitions>
-                            <TextBox Grid.Column="0" x:Name="TxtPresentacion" Style="{StaticResource ModalInput}" IsReadOnly="True" TabIndex="30"/>
+                            <TextBox Grid.Column="0" x:Name="TxtPresentacion" Style="{StaticResource ModalInput}" IsReadOnly="True" TabIndex="30"
+                                     Cursor="Hand" PreviewMouseLeftButtonUp="TxtCatalogo_PreviewMouseLeftButtonUp"
+                                     Tag="{Binding ElementName=BtnBuscarPresentacion}"/>
                             <Button Grid.Column="1" x:Name="BtnBuscarPresentacion" TabIndex="31"
                                     Style="{StaticResource LupaBtn}"
                                     Click="BuscarPresentacion_Click"
@@ -247,7 +249,9 @@
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="44"/>
                             </Grid.ColumnDefinitions>
-                            <TextBox Grid.Column="0" x:Name="TxtCategoria" Style="{StaticResource ModalInput}" IsReadOnly="True" TabIndex="40"/>
+                            <TextBox Grid.Column="0" x:Name="TxtCategoria" Style="{StaticResource ModalInput}" IsReadOnly="True" TabIndex="40"
+                                     Cursor="Hand" PreviewMouseLeftButtonUp="TxtCatalogo_PreviewMouseLeftButtonUp"
+                                     Tag="{Binding ElementName=BtnBuscarCategoria}"/>
                             <Button Grid.Column="1" x:Name="BtnBuscarCategoria" TabIndex="41"
                                     Style="{StaticResource LupaBtn}"
                                     Click="BuscarCategoria_Click"
@@ -261,7 +265,9 @@
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="44"/>
                             </Grid.ColumnDefinitions>
-                            <TextBox Grid.Column="0" x:Name="TxtProveedor" Style="{StaticResource ModalInput}" IsReadOnly="True" TabIndex="50"/>
+                            <TextBox Grid.Column="0" x:Name="TxtProveedor" Style="{StaticResource ModalInput}" IsReadOnly="True" TabIndex="50"
+                                     Cursor="Hand" PreviewMouseLeftButtonUp="TxtCatalogo_PreviewMouseLeftButtonUp"
+                                     Tag="{Binding ElementName=BtnBuscarProveedor}"/>
                             <Button Grid.Column="1" x:Name="BtnBuscarProveedor" TabIndex="51"
                                     Style="{StaticResource LupaBtn}"
                                     Click="BuscarProveedor_Click"
@@ -275,7 +281,9 @@
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="44"/>
                             </Grid.ColumnDefinitions>
-                            <TextBox Grid.Column="0" x:Name="TxtFabricante" Style="{StaticResource ModalInput}" IsReadOnly="True" TabIndex="60"/>
+                            <TextBox Grid.Column="0" x:Name="TxtFabricante" Style="{StaticResource ModalInput}" IsReadOnly="True" TabIndex="60"
+                                     Cursor="Hand" PreviewMouseLeftButtonUp="TxtCatalogo_PreviewMouseLeftButtonUp"
+                                     Tag="{Binding ElementName=BtnBuscarFabricante}"/>
                             <Button Grid.Column="1" x:Name="BtnBuscarFabricante" TabIndex="61"
                                     Style="{StaticResource LupaBtn}"
                                     Click="BuscarFabricante_Click"
@@ -306,7 +314,9 @@
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="44"/>
                             </Grid.ColumnDefinitions>
-                            <TextBox Grid.Column="0" x:Name="TxtTara" Style="{StaticResource ModalInput}" IsReadOnly="True" TabIndex="100"/>
+                            <TextBox Grid.Column="0" x:Name="TxtTara" Style="{StaticResource ModalInput}" IsReadOnly="True" TabIndex="100"
+                                     Cursor="Hand" PreviewMouseLeftButtonUp="TxtCatalogo_PreviewMouseLeftButtonUp"
+                                     Tag="{Binding ElementName=BtnBuscarTara}"/>
                             <Button Grid.Column="1" x:Name="BtnBuscarTara" TabIndex="101"
                                     Style="{StaticResource LupaBtn}"
                                     Click="BuscarTara_Click"
@@ -324,7 +334,9 @@
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="44"/>
                             </Grid.ColumnDefinitions>
-                            <TextBox Grid.Column="0" x:Name="TxtPais" Style="{StaticResource ModalInput}" IsReadOnly="True" TabIndex="120"/>
+                            <TextBox Grid.Column="0" x:Name="TxtPais" Style="{StaticResource ModalInput}" IsReadOnly="True" TabIndex="120"
+                                     Cursor="Hand" PreviewMouseLeftButtonUp="TxtCatalogo_PreviewMouseLeftButtonUp"
+                                     Tag="{Binding ElementName=BtnBuscarPais}"/>
                             <Button Grid.Column="1" x:Name="BtnBuscarPais" TabIndex="121"
                                     Style="{StaticResource LupaBtn}"
                                     Click="BuscarPais_Click"
