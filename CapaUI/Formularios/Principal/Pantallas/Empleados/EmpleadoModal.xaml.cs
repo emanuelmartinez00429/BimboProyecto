@@ -50,6 +50,10 @@ namespace CapaUI.Formularios.Principal.Pantallas.Empleados
             {
                 RowEstado.Visibility = Visibility.Collapsed;
             }
+
+            // Foco en el primer campo al abrir: el usuario no tiene que
+            // clickear nada para empezar a escribir.
+            TxtNombre.Focus();
         }
 
         private void BtnCerrar_Click(object sender, RoutedEventArgs e) => Cerrado?.Invoke();

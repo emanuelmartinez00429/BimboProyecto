@@ -44,6 +44,10 @@ public partial class ContactoFabricanteModal : UserControl
             TxtTelefono.Text = _contacto.Telefono;
             TxtCorreo.Text   = _contacto.Correo;
         }
+
+        // Foco en el primer campo al abrir: el usuario no tiene que clickear
+        // nada para empezar a escribir.
+        TxtNombre.Focus();
     }
 
     private void BtnCerrar_Click(object sender, RoutedEventArgs e) => Cerrado?.Invoke();

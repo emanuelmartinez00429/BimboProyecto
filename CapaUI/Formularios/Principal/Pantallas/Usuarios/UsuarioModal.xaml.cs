@@ -136,6 +136,10 @@ namespace CapaUI.Formularios.Principal.Pantallas.Usuarios
                 RbActivo.IsChecked   = _usuario.IdEstado == 1;
                 RbInactivo.IsChecked = _usuario.IdEstado != 1;
             }
+
+            // Foco en el primer campo al abrir: el usuario no tiene que
+            // clickear nada para empezar a escribir.
+            CmbEmpleado.Focus();
         }
 
         // ── Auto-email al seleccionar empleado ───────────────────────────

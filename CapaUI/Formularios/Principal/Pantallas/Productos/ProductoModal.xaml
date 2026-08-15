@@ -6,7 +6,8 @@
              MaxHeight="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=Border}, Converter={StaticResource RestarMargen}, ConverterParameter=48}"
              UseLayoutRounding="True"
              TextOptions.TextRenderingMode="Grayscale"
-             TextOptions.TextFormattingMode="Display">
+             xmlns:controls="clr-namespace:CapaUI.Core.Controls"
+             TextOptions.TextFormattingMode="Display" controls:AtajoGuardar.Boton="{Binding ElementName=BtnGuardar}">
 
     <UserControl.Resources>
         <Geometry x:Key="IconBoxM">M21,16 V8 a2,2 0 0 0,-1,-1.73 l-7,-4 a2,2 0 0 0,-2,0 l-7,4 A2,2 0 0 0,3,8 v8 a2,2 0 0 0,1,1.73 l7,4 a2,2 0 0 0,2,0 l7,-4 A2,2 0 0 0,21,16 z</Geometry>
@@ -208,11 +209,11 @@
                     <!-- Fila 1: Codigo | Nombre | Presentacion -->
                     <StackPanel Grid.Row="0" Grid.Column="0" Style="{StaticResource CampoModal}">
                         <TextBlock Text="C&#243;digo interno" Style="{StaticResource EtiquetaCampo}"/>
-                        <TextBox x:Name="TxtCodigo" Style="{StaticResource ModalInput}"/>
+                        <TextBox x:Name="TxtCodigo" Style="{StaticResource ModalInput}" TabIndex="10"/>
                     </StackPanel>
                     <StackPanel Grid.Row="0" Grid.Column="1" Style="{StaticResource CampoModal}">
                         <TextBlock Text="Nombre producto" Style="{StaticResource EtiquetaCampo}"/>
-                        <TextBox x:Name="TxtNombre" Style="{StaticResource ModalInput}"/>
+                        <TextBox x:Name="TxtNombre" Style="{StaticResource ModalInput}" TabIndex="20"/>
                     </StackPanel>
                     <StackPanel Grid.Row="0" Grid.Column="2" Style="{StaticResource CampoModal}">
                         <TextBlock Text="Presentaci&#243;n" Style="{StaticResource EtiquetaCampo}"/>
@@ -221,8 +222,8 @@
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="44"/>
                             </Grid.ColumnDefinitions>
-                            <TextBox Grid.Column="0" x:Name="TxtPresentacion" Style="{StaticResource ModalInput}" IsReadOnly="True"/>
-                            <Button Grid.Column="1" x:Name="BtnBuscarPresentacion"
+                            <TextBox Grid.Column="0" x:Name="TxtPresentacion" Style="{StaticResource ModalInput}" IsReadOnly="True" TabIndex="30"/>
+                            <Button Grid.Column="1" x:Name="BtnBuscarPresentacion" TabIndex="31"
                                     Style="{StaticResource LupaBtn}"
                                     Click="BuscarPresentacion_Click"
                                     ToolTip="Seleccionar presentación"/>
@@ -237,8 +238,8 @@
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="44"/>
                             </Grid.ColumnDefinitions>
-                            <TextBox Grid.Column="0" x:Name="TxtCategoria" Style="{StaticResource ModalInput}" IsReadOnly="True"/>
-                            <Button Grid.Column="1" x:Name="BtnBuscarCategoria"
+                            <TextBox Grid.Column="0" x:Name="TxtCategoria" Style="{StaticResource ModalInput}" IsReadOnly="True" TabIndex="40"/>
+                            <Button Grid.Column="1" x:Name="BtnBuscarCategoria" TabIndex="41"
                                     Style="{StaticResource LupaBtn}"
                                     Click="BuscarCategoria_Click"
                                     ToolTip="Seleccionar categoría"/>
@@ -251,8 +252,8 @@
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="44"/>
                             </Grid.ColumnDefinitions>
-                            <TextBox Grid.Column="0" x:Name="TxtProveedor" Style="{StaticResource ModalInput}" IsReadOnly="True"/>
-                            <Button Grid.Column="1" x:Name="BtnBuscarProveedor"
+                            <TextBox Grid.Column="0" x:Name="TxtProveedor" Style="{StaticResource ModalInput}" IsReadOnly="True" TabIndex="50"/>
+                            <Button Grid.Column="1" x:Name="BtnBuscarProveedor" TabIndex="51"
                                     Style="{StaticResource LupaBtn}"
                                     Click="BuscarProveedor_Click"
                                     ToolTip="Seleccionar proveedor (acota los fabricantes)"/>
@@ -265,8 +266,8 @@
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="44"/>
                             </Grid.ColumnDefinitions>
-                            <TextBox Grid.Column="0" x:Name="TxtFabricante" Style="{StaticResource ModalInput}" IsReadOnly="True"/>
-                            <Button Grid.Column="1" x:Name="BtnBuscarFabricante"
+                            <TextBox Grid.Column="0" x:Name="TxtFabricante" Style="{StaticResource ModalInput}" IsReadOnly="True" TabIndex="60"/>
+                            <Button Grid.Column="1" x:Name="BtnBuscarFabricante" TabIndex="61"
                                     Style="{StaticResource LupaBtn}"
                                     Click="BuscarFabricante_Click"
                                     ToolTip="Seleccionar fabricante"/>
@@ -276,16 +277,16 @@
                     <!-- Fila 3: Contenido | Unidad | Peso teorico -->
                     <StackPanel Grid.Row="2" Grid.Column="0" Style="{StaticResource CampoModal}">
                         <TextBlock Text="Contenido" Style="{StaticResource EtiquetaCampo}"/>
-                        <TextBox x:Name="TxtContenido" Style="{StaticResource ModalInput}"/>
+                        <TextBox x:Name="TxtContenido" Style="{StaticResource ModalInput}" TabIndex="70"/>
                     </StackPanel>
                     <StackPanel Grid.Row="2" Grid.Column="1" Style="{StaticResource CampoModal}">
                         <TextBlock Text="Unidad" Style="{StaticResource EtiquetaCampo}"/>
                         <!-- Items poblados en OnLoaded desde unidad_medida (catálogo real), no hardcodeados -->
-                        <ComboBox x:Name="CmbUnidad" Style="{StaticResource ModalCombo}"/>
+                        <ComboBox x:Name="CmbUnidad" Style="{StaticResource ModalCombo}" TabIndex="80"/>
                     </StackPanel>
                     <StackPanel Grid.Row="2" Grid.Column="2" Style="{StaticResource CampoModal}">
                         <TextBlock Text="Peso te&#243;rico" Style="{StaticResource EtiquetaCampo}"/>
-                        <TextBox x:Name="TxtPesoTeorico" Style="{StaticResource ModalInput}"/>
+                        <TextBox x:Name="TxtPesoTeorico" Style="{StaticResource ModalInput}" TabIndex="90"/>
                     </StackPanel>
 
                     <!-- Fila 4: Tara | Precio por kg | Pais importado -->
@@ -296,8 +297,8 @@
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="44"/>
                             </Grid.ColumnDefinitions>
-                            <TextBox Grid.Column="0" x:Name="TxtTara" Style="{StaticResource ModalInput}" IsReadOnly="True"/>
-                            <Button Grid.Column="1" x:Name="BtnBuscarTara"
+                            <TextBox Grid.Column="0" x:Name="TxtTara" Style="{StaticResource ModalInput}" IsReadOnly="True" TabIndex="100"/>
+                            <Button Grid.Column="1" x:Name="BtnBuscarTara" TabIndex="101"
                                     Style="{StaticResource LupaBtn}"
                                     Click="BuscarTara_Click"
                                     ToolTip="Seleccionar tara"/>
@@ -305,7 +306,7 @@
                     </StackPanel>
                     <StackPanel Grid.Row="3" Grid.Column="1" Style="{StaticResource CampoModal}">
                         <TextBlock Text="Precio por kg" Style="{StaticResource EtiquetaCampo}"/>
-                        <TextBox x:Name="TxtPrecioPorKg" Style="{StaticResource ModalInput}"/>
+                        <TextBox x:Name="TxtPrecioPorKg" Style="{StaticResource ModalInput}" TabIndex="110"/>
                     </StackPanel>
                     <StackPanel Grid.Row="3" Grid.Column="2" Style="{StaticResource CampoModal}">
                         <TextBlock Text="Pa&#237;s importado" Style="{StaticResource EtiquetaCampo}"/>
@@ -314,8 +315,8 @@
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="44"/>
                             </Grid.ColumnDefinitions>
-                            <TextBox Grid.Column="0" x:Name="TxtPais" Style="{StaticResource ModalInput}" IsReadOnly="True"/>
-                            <Button Grid.Column="1" x:Name="BtnBuscarPais"
+                            <TextBox Grid.Column="0" x:Name="TxtPais" Style="{StaticResource ModalInput}" IsReadOnly="True" TabIndex="120"/>
+                            <Button Grid.Column="1" x:Name="BtnBuscarPais" TabIndex="121"
                                     Style="{StaticResource LupaBtn}"
                                     Click="BuscarPais_Click"
                                     ToolTip="Seleccionar país"/>
@@ -325,11 +326,11 @@
                     <!-- Fila 5: Creado | Actualizado | Estado -->
                     <StackPanel Grid.Row="4" Grid.Column="0" Style="{StaticResource CampoModal}">
                         <TextBlock Text="Creado" Style="{StaticResource EtiquetaCampo}"/>
-                        <TextBox x:Name="TxtCreatedAt" Style="{StaticResource ModalInputAuditoria}" IsReadOnly="True"/>
+                        <TextBox x:Name="TxtCreatedAt" Style="{StaticResource ModalInputAuditoria}" IsReadOnly="True" IsTabStop="False"/>
                     </StackPanel>
                     <StackPanel Grid.Row="4" Grid.Column="1" Style="{StaticResource CampoModal}">
                         <TextBlock Text="Actualizado" Style="{StaticResource EtiquetaCampo}"/>
-                        <TextBox x:Name="TxtUpdatedAt" Style="{StaticResource ModalInputAuditoria}" IsReadOnly="True"/>
+                        <TextBox x:Name="TxtUpdatedAt" Style="{StaticResource ModalInputAuditoria}" IsReadOnly="True" IsTabStop="False"/>
                     </StackPanel>
                     <StackPanel Grid.Row="4" Grid.Column="2" Style="{StaticResource CampoModal}">
                         <TextBlock Text="Estado" Style="{StaticResource EtiquetaCampo}"/>
@@ -341,6 +342,7 @@
                                 <RadioButton x:Name="RbActivo"
                                              GroupName="EstadoModal"
                                              IsChecked="True"
+                                             TabIndex="130"
                                              Style="{StaticResource ModalSegBtn}">
                                     <StackPanel Orientation="Horizontal">
                                         <Border Width="6" Height="6" CornerRadius="3" Background="#10B981" Margin="0,0,5,0" VerticalAlignment="Center"/>
@@ -349,6 +351,7 @@
                                 </RadioButton>
                                 <RadioButton x:Name="RbInactivo"
                                              GroupName="EstadoModal"
+                                             TabIndex="131"
                                              Style="{StaticResource ModalSegBtn}">
                                     <StackPanel Orientation="Horizontal">
                                         <Border Width="6" Height="6" CornerRadius="3" Background="#94A3B8" Margin="0,0,5,0" VerticalAlignment="Center"/>

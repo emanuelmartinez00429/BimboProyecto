@@ -41,6 +41,10 @@ namespace CapaUI.Formularios.Principal.Pantallas.Proveedores
                 RbActivo.IsChecked   = _proveedor.IdEstado == EstadoRegistro.Activo;
                 RbInactivo.IsChecked = _proveedor.IdEstado != EstadoRegistro.Activo;
             }
+
+            // Foco en el primer campo al abrir: el usuario no tiene que
+            // clickear nada para empezar a escribir.
+            TxtNombre.Focus();
         }
 
         private void BtnCerrar_Click(object sender, RoutedEventArgs e) => Cerrado?.Invoke();

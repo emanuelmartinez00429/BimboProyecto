@@ -91,6 +91,9 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
             }
 
             FijarAlturaOriginal();
+            // Foco en el primer campo al abrir: el usuario no tiene que
+            // clickear nada para empezar a escribir.
+            TxtCodigo.Focus();
         }
 
         /// <summary>

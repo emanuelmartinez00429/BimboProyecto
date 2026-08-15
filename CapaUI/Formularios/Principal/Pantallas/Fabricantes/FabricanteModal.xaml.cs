@@ -79,6 +79,10 @@ namespace CapaUI.Formularios.Principal.Pantallas.Fabricantes
                 CmbProveedor.SelectedIndex = 0;
                 CmbPais.SelectedIndex      = 0;
             }
+
+            // Foco en el primer campo al abrir: el usuario no tiene que
+            // clickear nada para empezar a escribir.
+            TxtNombre.Focus();
         }
 
         private void BtnCerrar_Click(object sender, RoutedEventArgs e) => Cerrado?.Invoke();

@@ -6,7 +6,8 @@
              MaxHeight="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=Border}, Converter={StaticResource RestarMargen}, ConverterParameter=48}"
              UseLayoutRounding="True"
              TextOptions.TextRenderingMode="Grayscale"
-             TextOptions.TextFormattingMode="Display">
+             xmlns:controls="clr-namespace:CapaUI.Core.Controls"
+             TextOptions.TextFormattingMode="Display" controls:AtajoGuardar.Boton="{Binding ElementName=BtnGuardar}">
 
     <UserControl.Resources>
         <Geometry x:Key="IconTagM">M20.59,13.41 l-7.17,7.17 a2,2 0 0 1,-2.83,0 L2,12 V2 h10 l8.59,8.59 a2,2 0 0 1,0,2.82 z M7,7 h.01</Geometry>

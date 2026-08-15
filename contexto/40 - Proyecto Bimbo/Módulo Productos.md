@@ -375,6 +375,13 @@ private void OnCambioCatalogo(string claveCache)
 > Ese id sale de `Productos.id_Proveedor => Fabricante?.idProveedor`; ya viene en la consulta
 > porque el select es `fabricante(*, proveedores(*))`.
 
+> [!tip] Tooltip, recorte "…" y Ctrl+Enter son de todo el modal, no de Productos
+> `TextoResponsivo` (recorte/tooltip cuando el campo no entra) y `AtajoGuardar` (Ctrl+Enter
+> dispara el Guardar real vía `ButtonAutomationPeer`, sin duplicar su lógica) son
+> comportamientos adjuntos cableados en el `Style` compartido `ModalInput`/`ModalCombo` y en la
+> raíz de cada modal — cubren los 8 modales de edición, no son específicos de este. Ver
+> [[Sesión 2026-08-14 - Tooltip, recorte, orden de tabulacion y atajo Ctrl+Enter en los modales]].
+
 > [!info] Los catálogos de las lupas se revalidan en cada apertura
 > `CatalogoCache` devuelve lo cacheado al instante y vuelve a consultar por detrás; solo
 > repinta si la lista cambió. No tiene vencimiento por tiempo ni depende de Realtime — las

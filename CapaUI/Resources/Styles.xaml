@@ -1,5 +1,6 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:controls="clr-namespace:CapaUI.Core.Controls">
 
     <!-- ── Colores de marca ─────────────────────────────────────────────── -->
     <Color x:Key="BrandColor">#1E3A8A</Color>
@@ -131,7 +132,40 @@
         <Setter Property="BorderBrush" Value="#7FFFFFFF"/>
         <Setter Property="BorderThickness" Value="1"/>
         <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <!-- Sin template propio: el ComboBox usa el suyo por defecto, cuyo borde
+             ya está atado a BorderBrush/BorderThickness por TemplateBinding, así
+             que alcanza con un Style.Trigger — no hace falta reescribir el
+             template completo del combo solo para el foco. IsKeyboardFocusWithin
+             en vez de IsFocused: el foco real cae en una parte interna del
+             control (el ToggleButton/editor), no en el ComboBox en sí. -->
+        <Style.Triggers>
+            <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                <Setter Property="Background" Value="#C2F2E0"/>
+                <Setter Property="BorderBrush" Value="#34D399"/>
+                <Setter Property="BorderThickness" Value="3"/>
+                <Setter Property="Effect" Value="{StaticResource FocoCampoModal}"/>
+            </Trigger>
+        </Style.Triggers>
     </Style>
+
+    <!-- ── Foco de los campos de modal ─────────────────────────────────────
+         Compartido entre ModalInput y ModalCombo: antes el foco solo cambiaba
+         el borde de "#7FFFFFFF" (blanco translúcido, 1px) a blanco sólido —
+         contra el fondo blanco del propio campo esa diferencia es casi
+         imperceptible, que era justamente la queja ("casi no se nota lo que
+         está seleccionado"). El verde es el mismo #34D399 de la barra
+         indicadora de fila seleccionada en las tablas (y #C2F2E0 el mismo
+         relleno de esa misma selección) — mismo lenguaje visual de "esto es
+         lo elegido" que ya conoce el usuario, no un color inventado. -->
+    <!-- x:Shared="False" es obligatorio acá: un Effect es un Freezable con un
+         solo "dueño" posible a la vez. Sin esto, ModalInput y ModalCombo (y
+         cada instancia de cada uno, en cada modal) comparten el mismo objeto,
+         y tabular rápido entre varios campos hace que WPF se lo dispute y
+         tire InvalidOperationException ("InvalidPropertyValue") desde el
+         motor de propiedades. Con x:Shared="False" cada Setter que lo pide
+         recibe una instancia nueva — no hay nada que disputarse. -->
+    <DropShadowEffect x:Key="FocoCampoModal" x:Shared="False"
+                       Color="#34D399" BlurRadius="12" ShadowDepth="0" Opacity="0.7"/>
 
     <!-- ── Modal TextBox ───────────────────────────────────────────────── -->
     <Style x:Key="ModalInput" TargetType="TextBox">
@@ -145,6 +179,17 @@
         <Setter Property="BorderThickness" Value="1"/>
         <Setter Property="VerticalContentAlignment" Value="Center"/>
         <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <!-- Todo modal es responsive (Width/MaxWidth atados al tamaño real de
+             la ventana) y estos campos pueden angostarse hasta que un valor
+             largo (nombre de fabricante, de proveedor…) deje de entrar.
+             TextoResponsivo cubre los dos casos con un solo Setter, heredado
+             por todo lo BasedOn en esto (ModalInputAuditoria incluida):
+             - Solo lectura (campos de catálogo elegidos por lupa): recorta
+               con "…" y deja el texto completo en el ToolTip.
+             - Editable: no toca el texto (le comería el input), solo agrega
+               el ToolTip cuando lo tipeado no entra.
+             Ver [[TextoResponsivo]] / CapaUI/Core/Controls/TextoResponsivo.cs. -->
+        <Setter Property="controls:TextoResponsivo.Activo" Value="True"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="TextBox">
@@ -153,14 +198,47 @@
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}"
                             CornerRadius="6">
-                        <ScrollViewer x:Name="PART_ContentHost"
-                                      Margin="{TemplateBinding Padding}"
-                                      VerticalAlignment="Center"
-                                      VerticalScrollBarVisibility="Disabled"/>
+                        <Grid>
+                            <ScrollViewer x:Name="PART_ContentHost"
+                                          Margin="{TemplateBinding Padding}"
+                                          VerticalAlignment="Center"
+                                          VerticalScrollBarVisibility="Disabled"/>
+                            <!-- Recorte visual "…" para los campos EDITABLES (Nombre,
+                                 Código…): acá no se puede tocar TextBox.Text como hace
+                                 TextoResponsivo con los de solo lectura — eso le comería
+                                 al usuario lo que está tipeando. En cambio, este
+                                 TextBlock se superpone tapando el ScrollViewer y usa
+                                 TextTrimming="CharacterEllipsis" nativo (WPF lo calcula
+                                 solo, sin medir nada a mano); solo se ve cuando el campo
+                                 no tiene foco, así que mientras se escribe el usuario ve
+                                 el TextBox real con su scroll y su cursor normales. -->
+                            <TextBlock Text="{TemplateBinding Text}"
+                                       TextTrimming="CharacterEllipsis"
+                                       TextWrapping="NoWrap"
+                                       IsHitTestVisible="False"
+                                       Visibility="Collapsed"
+                                       x:Name="PART_Recorte"
+                                       Margin="{TemplateBinding Padding}"
+                                       VerticalAlignment="Center"
+                                       Background="{TemplateBinding Background}"
+                                       Foreground="{TemplateBinding Foreground}"
+                                       FontFamily="{TemplateBinding FontFamily}"
+                                       FontSize="{TemplateBinding FontSize}"/>
+                        </Grid>
                     </Border>
                     <ControlTemplate.Triggers>
+                        <!-- Borde grueso (3px) + relleno verde claro + resplandor: el mismo
+                             lenguaje que "fila seleccionada" en las tablas (borde #34D399,
+                             relleno #C2F2E0), perceptible tanto sobre el blanco del campo
+                             como sobre el azul del modal. -->
                         <Trigger Property="IsFocused" Value="True">
-                            <Setter TargetName="Bd" Property="BorderBrush" Value="White"/>
+                            <Setter TargetName="Bd" Property="Background" Value="#C2F2E0"/>
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="#34D399"/>
+                            <Setter TargetName="Bd" Property="BorderThickness" Value="3"/>
+                            <Setter TargetName="Bd" Property="Effect" Value="{StaticResource FocoCampoModal}"/>
+                        </Trigger>
+                        <Trigger Property="IsFocused" Value="False">
+                            <Setter TargetName="PART_Recorte" Property="Visibility" Value="Visible"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
