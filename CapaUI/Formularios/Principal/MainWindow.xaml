@@ -111,20 +111,31 @@
             <!-- ══════════════════════════════════════════════════════════
                  TOP BAR  (56 px)
             ══════════════════════════════════════════════════════════ -->
+            <!-- DockPanel y no Grid de columnas Auto/*/Auto: en un Grid, TODAS
+                 las columnas Auto son igual de rígidas — ninguna cede espacio a
+                 otra, sin importar el orden en que aparezcan. Si el total (marca
+                 + acciones) llegaba a superar el ancho real de la ventana (una
+                 ventana angosta más el sidebar expandido empujando la marca a
+                 226px), lo que se salía del borde derecho eran los botones de
+                 ventana — porque son lo último del Grid, no porque el layout
+                 los priorizara para desaparecer.
+
+                 En un DockPanel, en cambio, cada hijo Dock="Right" reclama su
+                 porción del borde derecho EN EL ORDEN en que se declara, contra
+                 el rectángulo que quedaba libre hasta ese momento — es decir,
+                 el primero en la lista tiene prioridad garantizada. Por eso acá
+                 los botones de ventana van primero (apenas después de la marca),
+                 así se llevan su franja del borde derecho pase lo que pase con
+                 el resto; "Acciones" se declara después (cede si hace falta,
+                 vía sus umbrales de Visibility ya existentes) y la zona de
+                 búsqueda queda última, ocupando lo que sobra — que es
+                 exactamente su rol hasta ahora. -->
             <Border Grid.Row="0" Background="#1E3A8A"
                     BorderBrush="#20000000" BorderThickness="0,0,0,1">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <!-- brand block -->
-                        <ColumnDefinition Width="*"/>
-                        <!-- search -->
-                        <ColumnDefinition Width="Auto"/>
-                        <!-- actions -->
-                    </Grid.ColumnDefinitions>
+                <DockPanel LastChildFill="True">
 
                     <!-- ── BRAND BLOCK (mismo ancho que sidebar, anima junto) ── -->
-                    <Border x:Name="BrandBlock" Grid.Column="0" Width="226"
+                    <Border x:Name="BrandBlock" DockPanel.Dock="Left" Width="226"
                             Background="#1E3A8A"
                             CacheMode="BitmapCache"
                             BorderBrush="#2EFFFFFF" BorderThickness="0,0,1,0">
@@ -155,136 +166,42 @@
                         </DockPanel>
                     </Border>
 
-                    <!-- ── ESTADO DE CONEXIÓN + SEARCH BAR ──
-                         Grid y no StackPanel: en un StackPanel horizontal los
-                         hijos se miden con ancho infinito, así que el buscador
-                         nunca se enteraba de que sobraba espacio y terminaba
-                         recortado por la columna en vez de achicarse. Acá la
-                         píldora recibe un ancho real (columna "*") y el semáforo
-                         de conexión toma solo lo suyo. -->
-                    <Grid x:Name="ZonaBusqueda" Grid.Column="1" VerticalAlignment="Center"
-                          WindowChrome.IsHitTestVisibleInChrome="True">
-                        <Grid.ColumnDefinitions>
-                            <!-- Auto + espaciador al final, no "*": con "*" la
-                                 columna del buscador se quedaba con todo el
-                                 ancho sobrante y empujaba el semáforo hasta la
-                                 derecha. Así los dos quedan pegados a la
-                                 izquierda y el sobrante se va al espaciador.
-                                 El MaxWidth de la columna evita que la píldora
-                                 crezca sin control en pantallas anchas. -->
-                            <ColumnDefinition Width="Auto" MaxWidth="480"/>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
+                    <!-- ── BOTONES DE VENTANA — minimizar / maximizar / cerrar ──
+                         Van primero en el orden de los Dock="Right": son los que
+                         SIEMPRE tienen que verse (control nativo de la ventana,
+                         sin ellos no hay forma de cerrarla salvo Alt+F4), así que
+                         se llevan su franja del borde derecho antes que
+                         cualquier otra cosa. Nunca se ocultan ni se achican. -->
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal"
+                                VerticalAlignment="Center" Margin="0,0,8,0"
+                                WindowChrome.IsHitTestVisibleInChrome="True">
+                        <Button Style="{StaticResource TopBarIconButton}"
+                                WindowChrome.IsHitTestVisibleInChrome="True"
+                                ToolTip="Minimizar" Click="BtnMinimizar_Click">
+                            <TextBlock Text="&#xE921;" FontFamily="Segoe MDL2 Assets" FontSize="10"
+                                       Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Button>
+                        <Button Style="{StaticResource TopBarIconButton}"
+                                WindowChrome.IsHitTestVisibleInChrome="True"
+                                ToolTip="Maximizar / Restaurar" Click="BtnMaximizar_Click">
+                            <TextBlock Text="&#xE922;" FontFamily="Segoe MDL2 Assets" FontSize="10"
+                                       Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Button>
+                        <Button Style="{StaticResource TopBarIconButton}"
+                                WindowChrome.IsHitTestVisibleInChrome="True"
+                                ToolTip="Cerrar" Click="BtnCerrarVentana_Click">
+                            <TextBlock Text="&#xE8BB;" FontFamily="Segoe MDL2 Assets" FontSize="11"
+                                       Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Button>
+                    </StackPanel>
 
-                        <!-- Visibility atada al ancho de esta zona, no al de la
-                             ventana: así contempla de una sola vez los dos casos
-                             que la achican — ventana chica y sidebar expandido
-                             (BrandBlock ocupa 226 px y se los quita a esta
-                             columna). Al colapsar el menú el buscador vuelve
-                             solo. El semáforo de conexión no se oculta: es la
-                             señal de que la app sigue viva. -->
-                        <Border x:Name="SearchPill" Grid.Column="0"
-                                Background="#1FFFFFFF"
-                                BorderBrush="#15FFFFFF" BorderThickness="1"
-                                CornerRadius="22" Height="38"
-                                HorizontalAlignment="Left"
-                                Margin="16,0" Padding="14,0"
-                                Visibility="{Binding ActualWidth, ElementName=ZonaBusqueda,
-                                             Converter={StaticResource AnchoMinimoAVisibilidad},
-                                             ConverterParameter=250}">
-
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <!-- "*" con MinWidth en vez de 300 fijo: el campo se
-                                         encoge con la ventana pero nunca por debajo de
-                                         donde deja de poder escribirse. -->
-                                    <ColumnDefinition Width="*" MinWidth="70"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-
-                                <!-- lupa -->
-                                <Viewbox Grid.Column="0" Width="15" Height="15"
-                                         VerticalAlignment="Center" Margin="0,0,8,0">
-                                    <Canvas Width="24" Height="24">
-                                        <Ellipse Canvas.Left="2.5" Canvas.Top="2.5"
-                                                 Width="13" Height="13"
-                                                 Stroke="White" StrokeThickness="2.2"/>
-                                        <Line X1="14.5" Y1="14.5" X2="21" Y2="21"
-                                              Stroke="White" StrokeThickness="2.2"
-                                              StrokeEndLineCap="Round"/>
-                                    </Canvas>
-                                </Viewbox>
-
-                                <!-- input -->
-                                <Grid Grid.Column="1" VerticalAlignment="Center">
-                                    <TextBlock x:Name="SearchPlaceholder"
-                                               Padding="1"
-                                               Text="Buscar módulo o ajustes…"
-                                               Foreground="#8CFFFFFF"
-                                               FontFamily="Segoe UI" FontSize="15"
-                                               VerticalAlignment="Center"
-                                               IsHitTestVisible="False"/>
-                                    <TextBox x:Name="TxtSearch"
-                                             Background="Transparent" BorderThickness="0"
-                                             FontFamily="Segoe UI" FontSize="15"
-                                             Foreground="White" CaretBrush="White"
-                                             SelectionBrush="#4CFFFFFF"
-                                             VerticalAlignment="Center"
-                                             WindowChrome.IsHitTestVisibleInChrome="True"
-                                             TextChanged="TxtSearch_Changed"
-                                             GotFocus="TxtSearch_GotFocus"
-                                             LostFocus="TxtSearch_LostFocus"
-                                             KeyDown="TxtSearch_KeyDown"/>
-                                </Grid>
-
-                                <!-- Ctrl+K hint. Es lo primero que se va al
-                                     apretarse el espacio: es una ayuda, no una
-                                     función, y libera ~60 px para el campo. -->
-                                <Border Grid.Column="2" Background="#15FFFFFF"
-                                        BorderBrush="#20FFFFFF" BorderThickness="1"
-                                        CornerRadius="4" Padding="5,1"
-                                        VerticalAlignment="Center" Margin="8,0,0,0"
-                                        IsHitTestVisible="False"
-                                        Visibility="{Binding ActualWidth, ElementName=ZonaBusqueda,
-                                                     Converter={StaticResource AnchoMinimoAVisibilidad},
-                                                     ConverterParameter=480}">
-                                    <TextBlock Text="Ctrl+K" Foreground="#D9FFFFFF"
-                                               FontFamily="Consolas" FontSize="12"
-                                               VerticalAlignment="Center"/>
-                                </Border>
-                            </Grid>
-                        </Border>
-                        
-                        <!-- El ToolTip lleva el estado real (no un rótulo fijo):
-                             cuando la palabra se oculta, pasar el mouse sigue
-                             siendo la forma de leerlo. -->
-                        <Border x:Name="ConnPill" Grid.Column="1"
-                            Background="#1FFFFFFF"
-                            BorderBrush="#15FFFFFF" BorderThickness="1"
-                            CornerRadius="14" Height="28"
-                            Margin="2,0,0,0" Padding="10,0"
-                            VerticalAlignment="Center"
-                            ToolTip="{Binding EstadoTexto}">
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <Ellipse Width="9" Height="9"
-                                    Fill="{Binding EstadoBrush}"/>
-                                <!-- La palabra se va antes que el buscador: el punto
-                                     y su color ya comunican el estado. -->
-                                <TextBlock Text="{Binding EstadoTexto}" Foreground="White"
-                                    FontFamily="Segoe UI" FontSize="14"
-                                    VerticalAlignment="Center" Margin="7,0,0,0"
-                                    Visibility="{Binding ActualWidth, ElementName=ZonaBusqueda,
-                                                 Converter={StaticResource AnchoMinimoAVisibilidad},
-                                                 ConverterParameter=420}"/>
-                            </StackPanel>
-                        </Border>
-
-                    </Grid>
-
-                    <!-- ── ACCIONES DERECHA ── -->
-                    <StackPanel Grid.Column="2" Orientation="Horizontal"
+                    <!-- ── ACCIONES DERECHA (notificaciones, configuración, cerrar sesión) ──
+                         Segundo Dock="Right": se lleva lo que queda del borde
+                         derecho DESPUÉS de que los botones de ventana ya
+                         reclamaron el suyo. Sus propios umbrales de Visibility
+                         (Notif/Config <1060, texto de Cerrar Sesión <1150) son
+                         los que ceden espacio cuando la ventana se achica. -->
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal"
                                 VerticalAlignment="Center" Margin="0,0,8,0"
                                 WindowChrome.IsHitTestVisibleInChrome="True">
 
@@ -558,29 +475,164 @@
                             </StackPanel>
                         </Button>
 
-                        <Border Width="1" Height="24" Background="#26FFFFFF" Margin="8,0"/>
-
-                        <!-- Minimizar / Maximizar / Cerrar -->
-                        <Button Style="{StaticResource TopBarIconButton}"
-                                WindowChrome.IsHitTestVisibleInChrome="True"
-                                ToolTip="Minimizar" Click="BtnMinimizar_Click">
-                            <TextBlock Text="&#xE921;" FontFamily="Segoe MDL2 Assets" FontSize="10"
-                                       Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Button>
-                        <Button Style="{StaticResource TopBarIconButton}"
-                                WindowChrome.IsHitTestVisibleInChrome="True"
-                                ToolTip="Maximizar / Restaurar" Click="BtnMaximizar_Click">
-                            <TextBlock Text="&#xE922;" FontFamily="Segoe MDL2 Assets" FontSize="10"
-                                       Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Button>
-                        <Button Style="{StaticResource TopBarIconButton}"
-                                WindowChrome.IsHitTestVisibleInChrome="True"
-                                ToolTip="Cerrar" Click="BtnCerrarVentana_Click">
-                            <TextBlock Text="&#xE8BB;" FontFamily="Segoe MDL2 Assets" FontSize="11"
-                                       Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Button>
                     </StackPanel>
-                </Grid>
+
+                    <!-- ── ESTADO DE CONEXIÓN + SEARCH BAR ──
+                         Último hijo del DockPanel, sin Dock: es el que llena lo
+                         que sobra después de que la marca y los dos grupos de la
+                         derecha reclamaron lo suyo — el mismo rol que cumplía la
+                         columna "*" antes. Adentro sigue siendo un Grid (no un
+                         StackPanel): en un StackPanel horizontal los hijos se
+                         miden con ancho infinito, así que el buscador nunca se
+                         enteraba de que sobraba espacio y terminaba recortado en
+                         vez de achicarse. La píldora recibe un ancho real
+                         (columna "*") y el semáforo de conexión toma solo lo
+                         suyo. -->
+                    <Grid x:Name="ZonaBusqueda" VerticalAlignment="Center"
+                          WindowChrome.IsHitTestVisibleInChrome="True">
+                        <Grid.ColumnDefinitions>
+                            <!-- "*" con MaxWidth, no "Auto" con MaxWidth: son dos
+                                 cosas distintas y esa fue la causa del corte.
+                                 "Auto" siempre toma el ancho natural de su
+                                 contenido — MaxWidth solo le baja el TECHO, nunca
+                                 le da un PISO que se adapte al espacio real. Con
+                                 la ventana angosta, la columna Auto seguía
+                                 pidiendo su ancho natural (~350px) aunque a
+                                 ZonaBusqueda solo le quedaran ~200: como ninguna
+                                 otra columna Auto puede prestarle ese faltante
+                                 (así funciona Grid — ninguna Auto cede a otra),
+                                 el sobrante se dibujaba fuera del borde real de
+                                 la ventana. "*" sí participa del algoritmo de
+                                 achique: pide todo lo que el MaxWidth le permite,
+                                 pero cede de verdad cuando no hay tanto. El
+                                 espaciador ya no hace falta — de sobrar ancho por
+                                 encima del MaxWidth, ese resto queda sin usar
+                                 dentro del propio Grid (incoloro, mismo azul de
+                                 fondo), efecto idéntico al que cumplía antes. -->
+                            <ColumnDefinition Width="*" MaxWidth="720"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Visibility atada al ancho de esta zona, no al de la
+                             ventana: así contempla de una sola vez los dos casos
+                             que la achican — ventana chica y sidebar expandido
+                             (BrandBlock ocupa 226 px y se los quita a esta
+                             columna). Al colapsar el menú el buscador vuelve
+                             solo. El semáforo de conexión no se oculta: es la
+                             señal de que la app sigue viva.
+
+                             HorizontalAlignment="Stretch", no "Left": con "*" la
+                             columna ya calcula el ancho real disponible: Stretch
+                             deja que la píldora lo ocupe entero (por eso ahora sí
+                             se achica de verdad) en vez de quedarse en su tamaño
+                             natural aunque le sobre o falte espacio. -->
+                        <Border x:Name="SearchPill" Grid.Column="0"
+                                Background="#1FFFFFFF"
+                                BorderBrush="#15FFFFFF" BorderThickness="1"
+                                CornerRadius="22" Height="38"
+                                HorizontalAlignment="Stretch"
+                                Margin="16,0" Padding="14,0"
+                                Visibility="{Binding ActualWidth, ElementName=ZonaBusqueda,
+                                             Converter={StaticResource AnchoMinimoAVisibilidad},
+                                             ConverterParameter=200}">
+
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <!-- "*" con MinWidth en vez de 300 fijo: el campo se
+                                         encoge con la ventana pero nunca por debajo de
+                                         donde deja de poder escribirse. 45, no 70: con
+                                         la píldora ahora sí achicándose de verdad (ver
+                                         columna "*" de ZonaBusqueda), conviene que
+                                         aguante más antes de tener que ocultarse entera. -->
+                                    <ColumnDefinition Width="*" MinWidth="45"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <!-- lupa -->
+                                <Viewbox Grid.Column="0" Width="15" Height="15"
+                                         VerticalAlignment="Center" Margin="0,0,8,0">
+                                    <Canvas Width="24" Height="24">
+                                        <Ellipse Canvas.Left="2.5" Canvas.Top="2.5"
+                                                 Width="13" Height="13"
+                                                 Stroke="White" StrokeThickness="2.2"/>
+                                        <Line X1="14.5" Y1="14.5" X2="21" Y2="21"
+                                              Stroke="White" StrokeThickness="2.2"
+                                              StrokeEndLineCap="Round"/>
+                                    </Canvas>
+                                </Viewbox>
+
+                                <!-- input -->
+                                <Grid Grid.Column="1" VerticalAlignment="Center">
+                                    <!-- TextTrimming como red de seguridad: el texto
+                                         natural del placeholder pide más ancho del que
+                                         a veces hay disponible; sin esto se dibujaba
+                                         igual, más allá del borde de su propia celda. -->
+                                    <TextBlock x:Name="SearchPlaceholder"
+                                               Padding="1"
+                                               Text="Buscar módulo o ajustes…"
+                                               Foreground="#8CFFFFFF"
+                                               FontFamily="Segoe UI" FontSize="15"
+                                               VerticalAlignment="Center"
+                                               TextTrimming="CharacterEllipsis"
+                                               IsHitTestVisible="False"/>
+                                    <TextBox x:Name="TxtSearch"
+                                             Background="Transparent" BorderThickness="0"
+                                             FontFamily="Segoe UI" FontSize="15"
+                                             Foreground="White" CaretBrush="White"
+                                             SelectionBrush="#4CFFFFFF"
+                                             VerticalAlignment="Center"
+                                             WindowChrome.IsHitTestVisibleInChrome="True"
+                                             TextChanged="TxtSearch_Changed"
+                                             GotFocus="TxtSearch_GotFocus"
+                                             LostFocus="TxtSearch_LostFocus"
+                                             KeyDown="TxtSearch_KeyDown"/>
+                                </Grid>
+
+                                <!-- Ctrl+K hint. Es lo primero que se va al
+                                     apretarse el espacio: es una ayuda, no una
+                                     función, y libera ~60 px para el campo. -->
+                                <Border Grid.Column="2" Background="#15FFFFFF"
+                                        BorderBrush="#20FFFFFF" BorderThickness="1"
+                                        CornerRadius="4" Padding="5,1"
+                                        VerticalAlignment="Center" Margin="8,0,0,0"
+                                        IsHitTestVisible="False"
+                                        Visibility="{Binding ActualWidth, ElementName=ZonaBusqueda,
+                                                     Converter={StaticResource AnchoMinimoAVisibilidad},
+                                                     ConverterParameter=480}">
+                                    <TextBlock Text="Ctrl+K" Foreground="#D9FFFFFF"
+                                               FontFamily="Consolas" FontSize="12"
+                                               VerticalAlignment="Center"/>
+                                </Border>
+                            </Grid>
+                        </Border>
+                        
+                        <!-- El ToolTip lleva el estado real (no un rótulo fijo):
+                             cuando la palabra se oculta, pasar el mouse sigue
+                             siendo la forma de leerlo. -->
+                        <Border x:Name="ConnPill" Grid.Column="1"
+                            Background="#1FFFFFFF"
+                            BorderBrush="#15FFFFFF" BorderThickness="1"
+                            CornerRadius="14" Height="28"
+                            Margin="2,0,0,0" Padding="10,0"
+                            VerticalAlignment="Center"
+                            ToolTip="{Binding EstadoTexto}">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Ellipse Width="9" Height="9"
+                                    Fill="{Binding EstadoBrush}"/>
+                                <!-- La palabra se va antes que el buscador: el punto
+                                     y su color ya comunican el estado. -->
+                                <TextBlock Text="{Binding EstadoTexto}" Foreground="White"
+                                    FontFamily="Segoe UI" FontSize="14"
+                                    VerticalAlignment="Center" Margin="7,0,0,0"
+                                    Visibility="{Binding ActualWidth, ElementName=ZonaBusqueda,
+                                                 Converter={StaticResource AnchoMinimoAVisibilidad},
+                                                 ConverterParameter=420}"/>
+                            </StackPanel>
+                        </Border>
+
+                    </Grid>
+                </DockPanel>
             </Border>
 
             <!-- ══════════════════════════════════════════════════════════
