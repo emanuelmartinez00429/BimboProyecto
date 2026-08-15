@@ -731,6 +731,24 @@ order by ordinal_position;
 
 ---
 
+### P-039 · Búsqueda insensible a tildes solo se aplicó a Productos — faltan 7 tablas
+
+**Detectado en:** sesión 2026-08-14, junto con el filtro de Categoría y el rediseño de la barra de filtros.
+
+Se implementó el patrón completo (función `sin_tildes()`, columna generada `STORED` + índice GIN de trigramas, `TextoBusqueda.cs` en C#) y se aplicó a Productos: buscador con sugerencias, picker de Pesaje, y los 4 combos de filtro vía `ComboFiltro`. Decisión y alternativas descartadas en [[ADR-018 - Busqueda insensible a mayusculas y tildes con columna generada]].
+
+**Falta replicarlo en:**
+- Fabricantes, Proveedores, Categorías, Empleados, Usuarios, Bitácora (cada uno con su propia migración: columna generada + índice, siguiendo el molde de `productos.busqueda_producto`)
+- El buscador universal (`ProductoSearchRepository`, `EmpleadoRepository` en `CapaDatos/Repositories/Search/`)
+
+Mientras tanto, buscar con tilde en cualquiera de esos módulos sigue sin encontrar resultados sin tilde (y viceversa) — inconsistente con Productos, que ya sí funciona.
+
+**Riesgo:** bajo (no rompe nada, es una funcionalidad incompleta, no un bug) pero visible para el usuario — la inconsistencia entre módulos genera la pregunta de "¿por qué en Productos sí y acá no?".
+
+**Estado:** `[ ] Pendiente`
+
+---
+
 ## Historial de resolución
 
 | ID | Descripción | Estado | Sesión |
@@ -772,6 +790,7 @@ order by ordinal_position;
 | P-036 | Tara y Presentaciones sin pantalla CRUD — combo de unidad filtrado a masa sin dónde vivir | `[ ]` Pendiente | [[Sesión 2026-08-14 - Catalogo de unidad_medida con categoria]] |
 | P-037 | Paginación: code-behind duplicado 9× sin clamp de `Page` ni binding del resaltado | `[ ]` Pendiente | [[Sesión 2026-08-14 - Regresion la grilla mostraba la pagina anterior]] |
 | P-038 | Modelos C# desalineados del esquema + `ErrorCarga` no llega al usuario | `[ ]` Pendiente 🔴 | [[Sesión 2026-08-14 - Modelo desalineado del esquema tumbaba paginas enteras]] |
+| P-039 | Búsqueda sin tildes solo en Productos — faltan 7 tablas | `[ ]` Pendiente | [[ADR-018 - Busqueda insensible a mayusculas y tildes con columna generada]] |
 
 ---
 
@@ -791,3 +810,4 @@ order by ordinal_position;
 - [[Sesión 2026-08-14 - Catalogo de unidad_medida con categoria]] — origen de P-036
 - [[Sesión 2026-08-14 - Regresion la grilla mostraba la pagina anterior]] — origen de P-037
 - [[Sesión 2026-08-14 - Modelo desalineado del esquema tumbaba paginas enteras]] — origen de P-038
+- [[ADR-018 - Busqueda insensible a mayusculas y tildes con columna generada]] — origen de P-039

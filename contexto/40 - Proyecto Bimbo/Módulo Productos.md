@@ -20,13 +20,13 @@ CapaAplicacion4/Productos/
   Dtos/ProductoDto.cs          → DTO con FKs, peso, precio y auditoría para UI
   Dtos/FiltroItem.cs           → { int? Id, string Nombre } para ComboBox
   Queries/PagedResult.cs       → { Items, Total, Activos, Inactivos }
-  Queries/ProductoFiltros.cs   → { IdEstado, IdFabricante, IdPais }
+  Queries/ProductoFiltros.cs   → { IdEstado, IdFabricante, IdPais, IdProveedor, IdCategoria } (desde 2026-08-14)
   Interfaces/IProductoRepository.cs
     GetPagedAsync               → paginación server-side + conteos
-    BuscarSugerenciasAsync      → ILike server-side, Limit 10
+    BuscarSugerenciasAsync      → ILike server-side (columna normalizada, ver búsqueda sin tildes), Limit 10
     GetFabricantesAsync         → ComboBox fabricantes
     GetPaisesAsync              → ComboBox países
-    GetCategoriasAsync          → ComboBox categorías (para modal)
+    GetCategoriasAsync          → ComboBox categorías (para modal Y para el filtro de la grilla, desde 2026-08-14)
     GetPaginaDeProductoAsync    → calcula en qué página está un producto (cross-page search)
     CreateAsync / UpdateAsync / DeleteAsync (soft)
 
@@ -129,7 +129,7 @@ TxtBusqueda.TextChanged
     ↓ SuggestionSearchBox.OnSuggestItemsChanged → SuggestionsPopup.IsOpen = true
 
 Enter / Click
-    ↓ SeleccionarSugerencia(ProductoDto p)
+    ↓ SeleccionarSugerencia(ProductoDto p)     ← código de vista, ver abajo
     │
     ├── CASO A: producto está en PageRows (misma página)
     │       → Seleccionado = enPagina  (no recarga)
@@ -146,6 +146,12 @@ Enter / Click
 
 > [!important] `_pendingSelectionId`
 > Es el mecanismo de selección diferida cross-page. Se asigna antes de `CargarPaginaAsync()` y se consume al final de ese método. Si la carga falla, se limpia (`_pendingSelectionId = null`) para evitar selecciones fantasma.
+
+> [!note] Desde 2026-08-14 — elegir una sugerencia abre el modal de edición directo
+> `ProductosView.SearchBox_ItemSelected` ya no se limita a seleccionar la fila: llama a `AbrirModalEditar(producto)` con el DTO que trae la sugerencia (no espera el salto de página, que sigue corriendo en paralelo solo para dejar la grilla consistente cuando se cierra el modal). Un solo paso — elegir del buscador ya deja al usuario editando.
+
+> [!note] Búsqueda insensible a mayúsculas y tildes (desde 2026-08-14)
+> `BuscarSugerenciasAsync` ya no hace `OR` sobre `nombre_producto`/`codigo_producto`: filtra contra la columna generada `productos.busqueda_producto` (ambas columnas concatenadas, ya en minúsculas y sin tildes), normalizando el término con `TextoBusqueda.Normalizar()` antes de mandarlo. Así "azucar" encuentra "AZÚCAR". Decisión completa, alternativas descartadas y qué tablas faltan migrar: [[ADR-018 - Busqueda insensible a mayusculas y tildes con columna generada]].
 
 ---
 
@@ -205,43 +211,39 @@ del ViewModel, disparando efectos secundarios.
 
 ## Filtros — ComboBox buscables
 
-Tanto **Fabricante** como **País** son ComboBox editables con filtrado en memoria.
-Ver: [[Sesión 2026-05-26 - ComboBox Fabricante Buscable]]
+> [!warning] Esta sección describía el patrón original (`ICollectionView` + handlers `PreviewKeyUp`/`SelectionChanged` copiados por combo). **Ya no es así** — extraído a la clase `ComboFiltro` (ver abajo). Se deja constancia acá porque el patrón viejo puede seguir copiado en otros módulos que no pasaron por el mismo refactor.
 
-### Patrón: `ICollectionView` + `IsEditable`
+Cuatro ComboBox editables con filtrado en memoria: **Proveedor**, **Fabricante** (encadenado a Proveedor), **Categoría** (agregado 2026-08-14) y **País**.
 
-```
-CargarDatosAsync() carga la lista completa una sola vez
-    ↓ GetFabricantesAsync() / GetPaisesAsync()  ← HTTP call al inicio
-    ↓ PoblarFabricantes() / PoblarPaises()      ← en PropertyChanged del ViewModel
-    ↓ CollectionViewSource.GetDefaultView(lista)
-    → _fabricantesView / _paisesView  (ICollectionView)
-    → asignado a CmbXxx.ItemsSource
+### Patrón actual: `CapaUI/Core/Controls/ComboFiltro.cs`
 
-PreviewKeyUp (cada tecla)
-    ↓ CmbXxx.Text → predicado Contains (OrdinalIgnoreCase)
-    ↓ _xxxView.Filter = predicado   ← filtra en memoria, cero HTTP
-    ↓ CmbXxx.IsDropDownOpen = true
+Toda la mecánica de un combo de filtro (sentinela `"(Todos)"`, `ICollectionView` + filtro en memoria, apertura/cierre, `Escape` cancela, `Enter`/cierre de dropdown confirma) vive en **una sola clase**, instanciada una vez por combo:
 
-SelectionChanged
-    ↓ _xxxView.Filter = null        ← limpia para próxima apertura
-    ↓ _vm.XxxIdFiltro = selected?.Id
-    ↓ CargarPaginaAsync()           ← recarga con filtro server-side
+```csharp
+// Code-behind de la vista — un ComboFiltro por combo
+_filtroFabricante = new ComboFiltro(CmbFabricante);
+_filtroCategoria  = new ComboFiltro(CmbCategoria);
+// ...
 
-LimpiarFiltros
-    ↓ _xxxView.Filter = null
-    ↓ CmbXxx.SelectedIndex = 0     ← vuelve a "(Todos)"
+_filtroFabricante.SeleccionCambiada += id => { if (_vm != null) _vm.FabricanteIdFiltro = id; };
+_filtroCategoria.SeleccionCambiada  += id => { if (_vm != null) _vm.CategoriaIdFiltro  = id; };
+
+// Cuando el VM repuebla la lista (PropertyChanged)
+case nameof(ProductosViewModel.Categorias): _filtroCategoria.Poblar(_vm.Categorias); break;
 ```
 
-### Propiedades XAML requeridas
+El filtrado en memoria (`OnPreviewKeyUp` → `_vista.Filter = ...`) usa `TextoBusqueda.Contiene()`, no `string.Contains(OrdinalIgnoreCase)` — ignora tildes además de mayúsculas, igual que el buscador server-side. Ver [[ADR-018 - Busqueda insensible a mayusculas y tildes con columna generada]].
+
+> [!danger] Trampa real, ya mordió una vez — cascada Proveedor → Fabricante
+> `ProveedorIdFiltro` (el setter de la propiedad, no el campo privado) es el **único** lugar que llama `ReacotarFabricantes()`, que reacota `Fabricantes` a los del proveedor elegido. Si algo pisa `_proveedorIdFiltro` directo (el campo, no la propiedad) — como hacía `LimpiarFiltros()` hasta que se corrigió el 2026-08-14 — `Fabricantes` se queda con la lista angosta del proveedor anterior aunque el combo ya muestre "(Todos)": la selección visual se limpia pero las opciones detrás no. **Regla:** cualquier código nuevo que toque `_proveedorIdFiltro` tiene que pasar por la propiedad, o llamar `ReacotarFabricantes()` a mano después.
+
+### Propiedades XAML requeridas (siguen vigentes)
 
 ```xml
 <ComboBox IsEditable="True"
           IsTextSearchEnabled="False"
           StaysOpenOnEdit="True"
-          DisplayMemberPath="Nombre"
-          PreviewKeyUp="CmbXxx_PreviewKeyUp"
-          SelectionChanged="CmbXxx_SelectionChanged"/>
+          DisplayMemberPath="Nombre"/>
 ```
 
 | Propiedad | Por qué es necesaria |
@@ -251,8 +253,14 @@ LimpiarFiltros
 | `StaysOpenOnEdit` | Mantiene dropdown abierto mientras se filtra |
 | `DisplayMemberPath` | Muestra `Nombre` de `FiltroItem` en el campo |
 
-> [!note] Filtrado client-side
-> No se hace ninguna llamada HTTP al escribir. Los ítems ya están en `_todosFabricantes` / `_todosPaises` desde la carga inicial. `ICollectionView.Filter` opera en memoria.
+Ya no hace falta `PreviewKeyUp`/`SelectionChanged` en el XAML — `ComboFiltro` se suscribe solo en su constructor.
+
+### Barra de filtros responsive (desde 2026-08-14)
+
+Los cuatro combos + las dos pastillas segmentadas (ESTADO, ORDEN) viven dentro de `controls:PanelFiltrosFluido`, no un `Grid`/`WrapPanel` a mano: mantiene todo en una línea mientras entra y reparte en líneas equilibradas cuando no. Diseño y por qué ningún panel nativo de WPF alcanzaba: [[Panel de Filtros Fluido - Barra responsive con prioridad y equilibrado]].
+
+> [!note] Filtrado client-side de cada combo
+> No se hace ninguna llamada HTTP al escribir dentro de un combo. Los ítems ya están en memoria (`_todosFabricantes`, `Categorias`, etc.) desde la carga inicial. El `Filter` de `ICollectionView` opera en memoria.
 
 ---
 

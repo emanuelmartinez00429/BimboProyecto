@@ -82,7 +82,7 @@ Dtos/
   FiltroItem.cs        — { int? Id, string Nombre } para ComboBox de filtros
 Queries/
   PagedResult.cs       — { IReadOnlyList<T> Items, int Total, int Activos, int Inactivos }
-  ProductoFiltros.cs   — { int? IdEstado, int? IdFabricante, int? IdPais }
+  ProductoFiltros.cs   — { int? IdEstado, int? IdFabricante, int? IdPais, int? IdProveedor, int? IdCategoria }
 Interfaces/
   IProductoRepository.cs — contrato para el formulario
 ```
@@ -93,6 +93,7 @@ Task<PagedResult<ProductoDto>>   GetPagedAsync(int page, int size, ProductoFiltr
 Task<IReadOnlyList<ProductoDto>> BuscarSugerenciasAsync(string termino, ProductoFiltros filtros, ct);
 Task<IReadOnlyList<FiltroItem>>  GetFabricantesAsync(ct);
 Task<IReadOnlyList<FiltroItem>>  GetPaisesAsync(ct);
+Task<IReadOnlyList<FiltroItem>>  GetCategoriasAsync(ct);   // también alimenta el filtro de la grilla, no solo el modal
 ```
 
 ### CapaDatos/Repositories/
