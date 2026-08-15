@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -37,6 +38,13 @@ namespace CapaUI.Formularios.InicioSesion
 
         private async void LoginWindow_Loaded(object sender, RoutedEventArgs e)
         {
+            // Lo primero, antes de cualquier await: si ya hay un logo cacheado de una
+            // corrida anterior, se pinta al instante. Así el usuario nunca ve el salto
+            // "logo empacado → logo real" en el caso normal (que es casi siempre) —
+            // ese salto era lo que se percibía como "está descargando la imagen".
+            var rutaYaMostrada = LogoEmpresaCache.ObtenerRutaCacheadaSinRed();
+            if (rutaYaMostrada is not null) AplicarImagenLogo(rutaYaMostrada);
+
             try
             {
                 var empresa = await RepositorioEmpresa.ObtenerAsync();
@@ -45,7 +53,7 @@ namespace CapaUI.Formularios.InicioSesion
                 else
                     TxtEmail.GhostSuffix = "@gmail.com";
 
-                await AplicarLogoEmpresaAsync(empresa);
+                await AplicarLogoEmpresaAsync(empresa, rutaYaMostrada);
             }
             catch (Exception ex)
             {
@@ -55,16 +63,36 @@ namespace CapaUI.Formularios.InicioSesion
         }
 
         /// <summary>
-        /// Reemplaza el logo empacado por el de <c>empresa.logo_empresa</c>, bajado y
-        /// cacheado localmente vía <see cref="LogoEmpresaCache"/>. Si no hay logo
-        /// configurado o falla la descarga, se queda con el logo por defecto que ya
-        /// trae el XAML — nunca deja el login sin imagen.
+        /// Resuelve el logo vigente contra <c>empresa.logo_empresa</c>. Si el archivo
+        /// que ya se mostró (<paramref name="rutaYaMostrada"/>) sigue siendo el mismo,
+        /// no hace nada — evita un reemplazo de imagen innecesario. Si es la primera
+        /// vez en esta máquina o el logo cambió de verdad, ahí sí puede haber descarga
+        /// real: se muestra el spinner chico solo mientras dura esa espera.
         /// </summary>
-        private async Task AplicarLogoEmpresaAsync(Empresa? empresa)
+        private async Task AplicarLogoEmpresaAsync(Empresa? empresa, string? rutaYaMostrada)
         {
-            var rutaLocal = await LogoEmpresaCache.ObtenerRutaLocalAsync(empresa?.LogoEmpresa);
-            if (rutaLocal is null) return;
+            var rutaStorage = empresa?.LogoEmpresa;
+            if (string.IsNullOrWhiteSpace(rutaStorage)) return;
 
+            bool yaEsElVigente = rutaYaMostrada is not null &&
+                string.Equals(Path.GetFileName(rutaYaMostrada), Path.GetFileName(rutaStorage),
+                    StringComparison.OrdinalIgnoreCase);
+            if (yaEsElVigente) return;
+
+            IniciarLogoSpinner();
+            try
+            {
+                var rutaLocal = await LogoEmpresaCache.ObtenerRutaLocalAsync(rutaStorage);
+                if (rutaLocal is not null) AplicarImagenLogo(rutaLocal);
+            }
+            finally
+            {
+                DetenerLogoSpinner();
+            }
+        }
+
+        private void AplicarImagenLogo(string rutaLocal)
+        {
             try
             {
                 var bitmap = new BitmapImage();
@@ -80,6 +108,25 @@ namespace CapaUI.Formularios.InicioSesion
             {
                 Debug.WriteLine($"[LoginWindow] Error aplicando logo de empresa: {ex.Message}");
             }
+        }
+
+        /// <summary>
+        /// Mismo patrón que el spinner grande del panel de "Iniciando sesión" (más
+        /// abajo en este archivo): <c>BeginAnimation</c> desde code-behind, nunca un
+        /// <c>Visibility</c> bindeado en XAML — ver la nota de por qué en el XAML.
+        /// </summary>
+        private void IniciarLogoSpinner()
+        {
+            LogoSpinner.Visibility = Visibility.Visible;
+            var spinAnim = new DoubleAnimation(0, 360, new Duration(TimeSpan.FromSeconds(1)))
+                { RepeatBehavior = RepeatBehavior.Forever };
+            LogoSpinnerRotate.BeginAnimation(RotateTransform.AngleProperty, spinAnim);
+        }
+
+        private void DetenerLogoSpinner()
+        {
+            LogoSpinnerRotate.BeginAnimation(RotateTransform.AngleProperty, null);
+            LogoSpinner.Visibility = Visibility.Collapsed;
         }
 
         // ── Chrome ───────────────────────────────────────────────────────────

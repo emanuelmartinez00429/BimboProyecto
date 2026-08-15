@@ -1,4 +1,5 @@
 using System.IO;
+using System.Linq;
 using CapaDatos.Repositorios;
 
 namespace CapaUI.Core.Empresa;
@@ -21,13 +22,39 @@ public static class LogoEmpresaCache
         "BimboPesaje", "LogoEmpresa");
 
     /// <summary>
+    /// Devuelve el logo que ya está en caché, sin tocar la red ni la base — para
+    /// pintarlo al instante apenas abre el login, antes incluso de esperar la
+    /// consulta de <c>empresa</c>. <see cref="LimpiarVersionesViejas"/> garantiza
+    /// que nunca queda más de un archivo real en la carpeta, así que alcanza con
+    /// tomar el primero que haya (ignorando `.tmp` de una descarga interrumpida).
+    /// </summary>
+    public static string? ObtenerRutaCacheadaSinRed()
+    {
+        try
+        {
+            if (!Directory.Exists(CacheDir)) return null;
+
+            return Directory.EnumerateFiles(CacheDir)
+                .FirstOrDefault(f => !f.EndsWith(".tmp", StringComparison.OrdinalIgnoreCase));
+        }
+        catch
+        {
+            return null; // mejor esfuerzo — el caller se queda con el logo empacado
+        }
+    }
+
+    /// <summary>
     /// Devuelve la ruta local del logo vigente, descargándolo si hace falta.
     /// Devuelve <c>null</c> si no hay logo configurado o si la descarga falla — en
     /// ambos casos el caller debe quedarse con el logo empacado por defecto.
     /// </summary>
     public static async Task<string?> ObtenerRutaLocalAsync(string? rutaStorage)
     {
-        if (string.IsNullOrWhiteSpace(rutaStorage)) return null;
+        if (string.IsNullOrWhiteSpace(rutaStorage))
+        {
+            Serilog.Log.Debug("LogoEmpresaCache: empresa.logo_empresa vacío — sin logo que cachear.");
+            return null;
+        }
 
         var nombreArchivo = Path.GetFileName(rutaStorage);
         if (string.IsNullOrWhiteSpace(nombreArchivo)) return null;
@@ -37,6 +64,7 @@ public static class LogoEmpresaCache
 
         if (File.Exists(rutaLocal) && new FileInfo(rutaLocal).Length > 0)
         {
+            Serilog.Log.Debug("LogoEmpresaCache: cache-hit, sin red. {Ruta}", rutaLocal);
             LimpiarVersionesViejas(nombreArchivo);
             return rutaLocal;
         }
@@ -44,6 +72,7 @@ public static class LogoEmpresaCache
         var rutaTemp = rutaLocal + ".tmp";
         try
         {
+            Serilog.Log.Debug("LogoEmpresaCache: cache-miss, descargando '{Ruta}'.", rutaStorage);
             await RepositorioEmpresa.DescargarLogoAsync(rutaStorage, rutaTemp);
             File.Move(rutaTemp, rutaLocal, overwrite: true);
             LimpiarVersionesViejas(nombreArchivo);

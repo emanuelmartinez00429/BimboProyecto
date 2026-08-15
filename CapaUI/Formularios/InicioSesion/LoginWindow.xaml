@@ -34,11 +34,36 @@
                     </LinearGradientBrush>
                 </Border.Background>
                 <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="32">
-                    <Image x:Name="LogoImage"
-                           Source="pack://application:,,,/CapaUI;component/Resources/bimbo_no_bg.png"
-                           Width="275" Height="205" Stretch="Uniform" Margin="0,0,0,28"
-                           RenderOptions.BitmapScalingMode="HighQuality"
-                           SnapsToDevicePixels="True"/>
+                    <!-- Grid para poder superponer el spinner chico sobre el logo mientras
+                         se resuelve/descarga una versión nueva (LogoEmpresaCache). Visibility
+                         del spinner se maneja SOLO desde code-behind (IniciarLogoSpinner /
+                         DetenerLogoSpinner) — nunca bindeada, para no repetir el problema
+                         documentado en [[WPF - Esqueleto con Shimmer (Skeleton Loading)]]. -->
+                    <Grid Margin="0,0,0,28" Width="275" Height="205">
+                        <Image x:Name="LogoImage"
+                               Source="pack://application:,,,/CapaUI;component/Resources/bimbo_no_bg.png"
+                               Stretch="Uniform"
+                               RenderOptions.BitmapScalingMode="HighQuality"
+                               SnapsToDevicePixels="True"/>
+                        <Grid x:Name="LogoSpinner" Width="40" Height="40" Visibility="Collapsed">
+                            <Ellipse StrokeThickness="3" Stroke="#33FFFFFF" Fill="Transparent"/>
+                            <Canvas Width="40" Height="40">
+                                <Canvas.RenderTransform>
+                                    <RotateTransform x:Name="LogoSpinnerRotate" CenterX="20" CenterY="20"/>
+                                </Canvas.RenderTransform>
+                                <Path StrokeThickness="3" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                      Fill="Transparent" Stroke="White">
+                                    <Path.Data>
+                                        <PathGeometry>
+                                            <PathFigure StartPoint="20,2" IsClosed="False">
+                                                <ArcSegment Point="38,20" Size="18,18" SweepDirection="Clockwise" IsLargeArc="False"/>
+                                            </PathFigure>
+                                        </PathGeometry>
+                                    </Path.Data>
+                                </Path>
+                            </Canvas>
+                        </Grid>
+                    </Grid>
                     <TextBlock Text="Portal Interno"
                                FontFamily="Segoe UI" FontSize="25" FontWeight="Bold"
                                Foreground="White" TextAlignment="Center" Margin="0,0,0,10"/>
