@@ -122,4 +122,4 @@ Regla: `CapaAplicacion` **nunca** referencia `CapaDatos`.
 ## Bitácora
 
 Las sesiones están en `70 - Bitácora de Cambios/`.  
-Sesión más reciente: [[Sesión 2026-08-14 - Modelo desalineado del esquema tumbaba paginas enteras]]
+Sesión más reciente: [[Sesión 2026-08-14 - Scroll horizontal con Shift en DataGrid]]

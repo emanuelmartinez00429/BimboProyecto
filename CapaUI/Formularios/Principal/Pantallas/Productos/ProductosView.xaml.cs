@@ -36,6 +36,8 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
         {
             InitializeComponent();
 
+            ScrollHorizontalConShift.Habilitar(DgProductos);
+
             _filtroFabricante = new ComboFiltro(CmbFabricante);
             _filtroPais       = new ComboFiltro(CmbPais);
             _filtroProveedor  = new ComboFiltro(CmbProveedor);
