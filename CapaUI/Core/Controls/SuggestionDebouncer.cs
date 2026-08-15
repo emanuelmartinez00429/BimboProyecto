@@ -25,7 +25,7 @@ namespace CapaUI.Core.Controls;
 public sealed class SuggestionDebouncer : IDisposable
 {
     /// <summary>Tiempo de espera antes de disparar la búsqueda, en ms.</summary>
-    public const int DebounceMs = 300;
+    public const int DebounceMs = 200;
 
     private CancellationTokenSource? _cts;
 
