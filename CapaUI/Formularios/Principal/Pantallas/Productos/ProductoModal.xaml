@@ -46,6 +46,15 @@
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter TargetName="Bd" Property="Background" Value="#EFF6FF"/>
                             </Trigger>
+                            <!-- Mismo lenguaje de foco que ModalInput/ModalCombo (Styles.xaml,
+                                 mergeado a nivel App): sin esto, FocusVisualStyle="{x:Null}"
+                                 de arriba dejaba la lupa sin ningún indicio visual al llegar
+                                 por Tab. -->
+                            <Trigger Property="IsFocused" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#C2F2E0"/>
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="#34D399"/>
+                                <Setter TargetName="Bd" Property="BorderThickness" Value="3"/>
+                            </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>

@@ -46,8 +46,26 @@ Como el `Setter Property="controls:TextoResponsivo.Activo" Value="True"` y el `T
 - `ModalCombo`: no tiene `ControlTemplate` propio (usa el del tema), así que alcanzó con un `Style.Trigger` sobre `IsKeyboardFocusWithin` (no `IsFocused`: el foco real de un `ComboBox` cae en una parte interna — el `ToggleButton`/editor —, no en el control en sí), con los mismos tres colores.
 - Recurso compartido `FocoCampoModal` (`DropShadowEffect`, color `#34D399`) para no duplicar el efecto entre los dos estilos.
 
-> [!bug] `InvalidOperationException` al mantener Tab presionado
-> Reportado por el usuario con el stack trace completo del motor de propiedades de WPF (`DependencyObject.GetEffectiveValue`), apuntando a `InvalidPropertyValue`. Causa: `FocoCampoModal` es un `Effect` — un `Freezable`, que solo puede tener **un dueño** a la vez. Sin congelarlo, `ModalInput` y `ModalCombo` (y cada instancia de cada uno, en los 8 modales) compartían el mismo objeto; tabular rápido hacía que varios campos se lo disputaran casi al mismo tiempo y el motor de propiedades tiraba la excepción. Se corrigió agregando `x:Shared="False"` a la declaración del recurso: cada `Setter` que lo pide recibe una instancia nueva, no hay nada que disputarse.
+> [!bug] `InvalidOperationException` al tabular rápido — dos diagnósticos equivocados antes del correcto
+> Reportado por el usuario con el stack del motor de propiedades de WPF: `DependencyObject.GetEffectiveValue` → `((DeferredReference)…).GetValue(…)` → falla `dp.IsValidValue(value)` → throw.
+>
+> La primera versión del foco usaba un `DropShadowEffect` declarado como recurso compartido (`FocoCampoModal`) y aplicado con `<Setter Property="Effect" Value="{StaticResource FocoCampoModal}"/>` desde `ModalInput`, `ModalCombo` y `LupaBtn`.
+>
+> | Intento | Hipótesis | Resultado |
+> |---|---|---|
+> | 1 · `x:Shared="False"` | Los elementos se disputan la propiedad del `Freezable` | ❌ siguió fallando |
+> | 2 · `po:Freeze="True"` | Lo mismo, resuelto congelándolo | ❌ siguió fallando |
+> | 3 · **quitar el efecto** | El `StaticResource` a veces no resuelve | ✅ |
+>
+> **Los dos primeros intentos atacaban la propiedad del objeto** (quién es "dueño" del `Freezable`). La causa real estaba escrita hacía rato en este mismo repo, en `RolesResources.xaml`:
+>
+> > *"un `ResourceDictionary` suelto se parsea antes de colgarse del árbol, y un `StaticResource` hacia recursos de Application **puede no resolverse**"*
+>
+> Un `StaticResource` que no resuelve devuelve `UnsetValue`, y `IsValidValue(UnsetValue)` es `false` — exactamente el throw del stack. Nada que ver con congelar ni con clonar.
+>
+> **Solución: se eliminó el `DropShadowEffect` por completo**, en vez de un tercer intento de esquivar el mecanismo. El foco quedó como fondo `#C2F2E0` + borde `#34D399` de 3px, **todos valores literales** — sin recurso compartido que pueda no resolverse. Y además queda más fiel a lo pedido: las tablas, que son la referencia visual, tampoco usan resplandor. De paso se ahorra un shader recalculado en cada cambio de foco (relacionado con P-031).
+>
+> **Lección:** cuando el stack muestra `DeferredReference` + `IsValidValue` fallando, sospechar primero de **un `StaticResource` que no resuelve**, no del tipo del valor. Y si dos intentos de arreglar un mecanismo fallan, eliminar el mecanismo suele ser mejor que un tercer intento.
 
 ## 3. Orden de tabulación explícito en `ProductoModal`
 
@@ -69,6 +87,15 @@ controls:AtajoGuardar.Boton="{Binding ElementName=BtnGuardar}"
 ```
 
 **Bug encontrado y corregido en la propia implementación:** el primer intento comprobaba solo `e.Key == Key.Enter` y el usuario reportó que no disparaba el guardado. Se corrigió a `e.Key is Key.Enter or Key.Return` — el mismo patrón defensivo que ya usan `ComboFiltro` y `SuggestionSearchBox` en este proyecto para la misma tecla.
+
+> [!bug] Ctrl+Enter dejaba de funcionar después de usar una lupa
+> Reportado por el usuario: *"regreso de una tabla al modal y al dar ctrl + enter no se guarda"*.
+>
+> **Causa:** `AbrirSelector` colapsa `FormHost` y muestra la tabla; al elegir un item, `CerrarSelector` destruye el selector (`Dispose()` + `Content = null`) y repone `FormHost`, **pero nunca restauraba el foco de teclado**. El elemento enfocado vivía dentro del selector recién destruido, así que el foco quedaba fuera del modal.
+>
+> Eso deja mudo a `AtajoGuardar` porque `PreviewKeyDown` es un evento de **túnel**: viaja desde la raíz del árbol *hacia el elemento enfocado*. Si el foco no está dentro del modal, la raíz del modal no queda en la ruta del evento y el handler nunca corre. Síntoma exacto: el atajo anda al abrir el modal y muere apenas se usa una lupa.
+>
+> **Solución:** `AbrirSelector` guarda `Keyboard.FocusedElement` en `_focoPrevio` (que es la propia lupa que se tocó) y `CerrarSelector` se lo devuelve **después** de reponer `FormHost.Visibility` — no se puede enfocar algo colapsado. Si ese elemento ya no acepta foco, cae a `TxtCodigo` antes que dejar el modal sin foco. De paso arregla la tabulación, que también quedaba muerta al volver de una lupa.
 
 ---
 

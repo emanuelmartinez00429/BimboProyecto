@@ -143,7 +143,6 @@
                 <Setter Property="Background" Value="#C2F2E0"/>
                 <Setter Property="BorderBrush" Value="#34D399"/>
                 <Setter Property="BorderThickness" Value="3"/>
-                <Setter Property="Effect" Value="{StaticResource FocoCampoModal}"/>
             </Trigger>
         </Style.Triggers>
     </Style>
@@ -157,16 +156,6 @@
          indicadora de fila seleccionada en las tablas (y #C2F2E0 el mismo
          relleno de esa misma selección) — mismo lenguaje visual de "esto es
          lo elegido" que ya conoce el usuario, no un color inventado. -->
-    <!-- x:Shared="False" es obligatorio acá: un Effect es un Freezable con un
-         solo "dueño" posible a la vez. Sin esto, ModalInput y ModalCombo (y
-         cada instancia de cada uno, en cada modal) comparten el mismo objeto,
-         y tabular rápido entre varios campos hace que WPF se lo dispute y
-         tire InvalidOperationException ("InvalidPropertyValue") desde el
-         motor de propiedades. Con x:Shared="False" cada Setter que lo pide
-         recibe una instancia nueva — no hay nada que disputarse. -->
-    <DropShadowEffect x:Key="FocoCampoModal" x:Shared="False"
-                       Color="#34D399" BlurRadius="12" ShadowDepth="0" Opacity="0.7"/>
-
     <!-- ── Modal TextBox ───────────────────────────────────────────────── -->
     <Style x:Key="ModalInput" TargetType="TextBox">
         <Setter Property="Height" Value="38"/>
@@ -235,7 +224,6 @@
                             <Setter TargetName="Bd" Property="Background" Value="#C2F2E0"/>
                             <Setter TargetName="Bd" Property="BorderBrush" Value="#34D399"/>
                             <Setter TargetName="Bd" Property="BorderThickness" Value="3"/>
-                            <Setter TargetName="Bd" Property="Effect" Value="{StaticResource FocoCampoModal}"/>
                         </Trigger>
                         <Trigger Property="IsFocused" Value="False">
                             <Setter TargetName="PART_Recorte" Property="Visibility" Value="Visible"/>

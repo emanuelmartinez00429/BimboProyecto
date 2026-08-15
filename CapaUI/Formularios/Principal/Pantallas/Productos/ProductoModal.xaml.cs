@@ -10,6 +10,7 @@ using System.Globalization;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Threading;
 
 namespace CapaUI.Formularios.Principal.Pantallas.Productos
@@ -34,6 +35,17 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
         private int? _idUnidadContenido;
 
         private SelectorCatalogoModal? _selectorAbierto;
+
+        /// <summary>
+        /// Qué tenía el foco antes de abrir la tabla de selección (normalmente la
+        /// propia lupa). Al cerrarla hay que devolvérselo: el elemento enfocado
+        /// vivía dentro del selector, que se destruye, y el foco de teclado queda
+        /// fuera del modal. Eso no solo corta la tabulación — también deja mudo a
+        /// Ctrl+Enter, porque PreviewKeyDown es un evento de túnel que baja hasta
+        /// el elemento enfocado: si el foco no está dentro del modal, el handler
+        /// de AtajoGuardar nunca queda en la ruta del evento.
+        /// </summary>
+        private IInputElement? _focoPrevio;
 
         public event Action? Cerrado;
         public event Action? Guardado;
@@ -199,6 +211,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
                 CerrarSelector();
             };
 
+            _focoPrevio             = Keyboard.FocusedElement;
             _selectorAbierto        = selector;
             SelectorHost.Content    = selector;
             SelectorHost.Visibility = Visibility.Visible;
@@ -212,6 +225,12 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
             SelectorHost.Content    = null;
             SelectorHost.Visibility = Visibility.Collapsed;
             FormHost.Visibility     = Visibility.Visible;
+
+            // Después de reponer FormHost — no se puede enfocar algo colapsado.
+            // Si el elemento previo ya no sirve, se cae al primer campo antes que
+            // dejar el modal sin foco.
+            if (_focoPrevio is UIElement anterior && anterior.Focus()) return;
+            TxtCodigo.Focus();
         }
 
         private async void BtnGuardar_Click(object sender, RoutedEventArgs e)

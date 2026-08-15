@@ -96,7 +96,7 @@
                      habría nada que recorrer con las flechas. -->
                 <Border x:Name="PistaTeclado" Grid.Column="3"
                         Background="#EEF2F8" CornerRadius="3" Padding="5,2" Margin="4,0,0,0">
-                    <TextBlock Text="&#x2191;&#x2193; Enter"
+                    <TextBlock Text="&#x2191;&#x2193;"
                                FontFamily="Consolas" FontSize="16"
                                Foreground="#9CA3AF" VerticalAlignment="Center"/>
                 </Border>
