@@ -218,6 +218,28 @@ Claude tiene skills genéricas (`wiki-query`, `wiki-capture`, `wiki-update`) que
   una versión "reconstruida" de memoria.
 
 
+## 12. Cómo trabaja el agente con Fernando (estilo de sesión)
+
+Esto no es sobre código — es sobre **cómo comportarse en la conversación** con el dueño del proyecto. Viene de patrones repetidos en varias sesiones; cualquier agente nuevo (Claude u otro) debería replicarlo desde el arranque, no aprenderlo a los golpes.
+
+- **Nombre de sesión / autor que gestiona al agente: Fernando.** Cuando el sistema pida identificar quién maneja la sesión (para nombrarla, loguearla, etc.), usar **"Claude Fernando"** como convención — y si el dueño abre otra sesión/instancia de Claude en paralelo con otro rol, nombrarla **"Claude <nombre de esa persona>"**, no genérico.
+
+- **Toda sesión de este proyecto la gestiona Fernando.** Es el único autor/solicitante — nunca "el usuario" genérico. Al nombrar o titular una sesión (herramientas de gestión de sesión del agente, `set_session_title` o equivalente), prefijar el título con **"Fernando — "** seguido del tema, salvo que él pida otra convención explícita. Aplica también a sesiones históricas encontradas sin ese prefijo: renombrarlas al detectarlas, sin esperar a que lo pida de nuevo.
+
+- **Fuente viva > memoria cacheada.** Antes de responder sobre estado/pendientes/deuda técnica del proyecto: `git fetch` + leer el archivo real (bóveda o código), nunca asumir que lo memorizado en una sesión anterior sigue vigente. Señalar explícitamente si hay diferencia entre lo cacheado y lo actual. Ver sección 11 arriba (mismo principio).
+
+- **Rama actual, no `master` fijo.** El proyecto avanza en ramas `feat/faseN-descripción` que se mergean a `master` al cerrar la fase. Una rama de fase puede estar adelantada Y atrasada respecto a `origin/master` a la vez. Antes de responder sobre estado de desarrollo: `git branch --show-current` + comparar divergencia real, y reportar en la respuesta qué rama se consultó. No dar por sentado cuál es "la fase actual".
+
+- **Calibrar preguntas ambiguas, no asumir un modo fijo.** No toda pregunta rara tiene significado oculto, y no toda pregunta es literal — investigar a fondo (leer archivos completos, grep) solo cuando hay señal real (se conecta con un patrón ya establecido, hay insistencia, hay framing deliberado de misterio). Si no hay señal, responder directo sin inventar complejidad.
+
+- **Entender antes de insistir.** Si Fernando reformula o repite la misma pregunta más de una vez, es señal de que la primera respuesta no dio en el blanco. No repetir la misma explicación — cambiar de enfoque, usar el contexto acumulado de la conversación para inferir qué busca realmente, y dar una respuesta concreta en vez de seguir pidiendo aclaración.
+
+- **Sin parches de compromiso.** Rechaza soluciones "aceptables a medias" (TTLs, ventanas de tolerancia, "funciona casi siempre") aunque sean más simples — para él, un bug que ocurre con menos frecuencia sigue siendo el mismo bug. Antes de proponer un parche con tolerancia temporal, buscar el diseño que elimina el problema de raíz. Si hay un trade-off real, presentar la comparación explícita (costo, velocidad, modo de falla) y dejarlo elegir — no elegir por él.
+
+- **Cambios puramente visuales/layout no generan nota de sesión.** Reordenar botones, espaciados, estilos XAML → solo código + commit, sin tocar `contexto/`. Pero si el trabajo visual revela algo reutilizable (un patrón, un componente nuevo, un gotcha de WPF, un bug real) eso **sí** va documentado — en el nodo que le corresponde por taxonomía (`20 - Patrones`, `50 - Referencia`, etc.), no como nota de sesión genérica. La regla nunca fue "no documentar", fue "no generar ruido en la bitácora por puro polish".
+
+- **Patrón para agregar automatización nueva (hooks + skills).** Cuando haga falta que un comportamiento sea determinístico en vez de depender de que el modelo "se acuerde" de una instrucción de texto (confirmado con el test de conexión de la bóveda — instrucciones en `CLAUDE.md`/`AGENTS.md` fallaron, un hook `UserPromptSubmit`/`SessionStart` con regex sí funciona): crear `.claude/hooks/NOMBRE.js`, registrarlo en `.claude/settings.json`, documentar la skill asociada en `.claude/skills/` y sumar la entrada en la sección 9 de este archivo. Ver `diagram-design` como implementación de referencia.
+
 ## Relaciones
 
 - [[Conocimiento Principal]] — dashboard/índice de la bóveda
