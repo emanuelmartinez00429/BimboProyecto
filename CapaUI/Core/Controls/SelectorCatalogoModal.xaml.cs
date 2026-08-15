@@ -304,7 +304,7 @@ public partial class SelectorCatalogoModal : UserControl, IDisposable
         }
     }
 
-    /// <summary>Marca la primera fila (o la ya marcada) y le pasa el foco.</summary>
+    /// <summary>Marca la primera fila (o la ya marcada) y le pasa el foco a la celda.</summary>
     private void BajarALaTabla()
     {
         if (Dg.Items.Count == 0) return;
@@ -314,10 +314,23 @@ public partial class SelectorCatalogoModal : UserControl, IDisposable
 
         // Con virtualización el contenedor puede no existir todavía.
         Dg.UpdateLayout();
-        if (Dg.ItemContainerGenerator.ContainerFromIndex(Dg.SelectedIndex) is DataGridRow fila)
-            fila.Focus();
+
+        var contenedor = Dg.ItemContainerGenerator
+            .ContainerFromIndex(Dg.SelectedIndex) as DataGridRow;
+
+        if (contenedor != null)
+        {
+            // Enfocar la primera celda de la fila para que ↑/↓ funcionen
+            // dentro del DataGrid sin necesitar un segundo Down.
+            Dg.CurrentCell = new DataGridCellInfo(Dg.Items[Dg.SelectedIndex],
+                                                  Dg.Columns[0]);
+            contenedor.MoveFocus(
+                new TraversalRequest(FocusNavigationDirection.First));
+        }
         else
+        {
             Dg.Focus();
+        }
     }
 
     private void Dg_SelectionChanged(object sender, SelectionChangedEventArgs e) =>
