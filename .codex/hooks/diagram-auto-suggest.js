@@ -27,7 +27,7 @@ process.stdin.on("end", () => {
       "organigrama", "org chart", "árbol", "tree",
       "red", "network", "grafo", "graph",
       "componentes", "componente", "infra", "infraestructura",
-      "entidad-relación", "er", "entity relationship",
+      "entidad-relación", "entity relationship",
       "línea de tiempo", "timeline", "cronograma",
       "gantt", "kanban",
       "diagrama de clase", "class diagram", "uml",

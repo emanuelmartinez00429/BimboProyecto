@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using CapaUI.Core.MVVM;
+using CapaUI.Services.Empresa;
 
 namespace CapaUI.Formularios.Dashboard
 {
@@ -103,13 +104,7 @@ namespace CapaUI.Formularios.Dashboard
                     new GradientStop(Color.FromRgb(0xFB, 0xBF, 0x24), 1),
                 }),
                 new Point(0, 0.5), new Point(1, 0.5)),
-            _ => new LinearGradientBrush(
-                new GradientStopCollection(new[]
-                {
-                    new GradientStop(Color.FromRgb(0x1E, 0x3A, 0x8A), 0),
-                    new GradientStop(Color.FromRgb(0x3B, 0x82, 0xF6), 1),
-                }),
-                new Point(0, 0.5), new Point(1, 0.5)),
+            _ => (Brush)Application.Current.Resources["EmpresaPrimaryGradientBrush"],
         };
 
         public MermaItemVM(string name, double pct, int kg)

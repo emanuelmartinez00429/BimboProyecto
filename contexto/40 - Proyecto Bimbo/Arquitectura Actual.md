@@ -13,6 +13,12 @@ aliases:
 > [!info] MOC del proyecto
 > Este nodo describe el estado actual de la arquitectura. Para el contexto completo de Claude Code, ver [[CLAUDE]].
 
+> [!success] Actualizado 2026-08-15 — Usuarios protegido contra autoadministración
+> La cuenta de la sesión no puede cambiar su propio rol ni estado. UI y repositorio comparan `IdUsuario`; Supabase protege `id_rol`/`id_estado` con `auth.uid()`, permisos por campo y una política UPDATE limitada a `authenticated`. `ActualizarUltimoAccesoAsync` continúa permitido. Ver [[ADR-020 - Defensa en profundidad contra autoadministracion de usuarios]].
+
+> [!success] Actualizado 2026-08-14 — Configuración de empresa y tema dinámico global
+> El engranaje abre un modal protegido por `Modificar Configuración` para editar la fila singleton de `empresa`, reemplazar el logo y aplicar el color corporativo al login, shell, vistas y modales. La escritura usa `IEmpresaRepository`/`EmpresaRepository`, Storage `empresa-logos` y RLS alineado con el permiso de la aplicación. El cliente no escribe `updated_at`; ese campo queda reservado a la automatización de base de datos. Ver [[Módulo Configuración de Empresa]] y [[ADR-019 - Configuración de empresa y tema dinámico global]].
+
 > [!success] Actualizado 2026-08-09 — RBAC aplicado en UI y gestión de roles
 > El menú, las acciones CRUD, la navegación y las aperturas de modal validan el permiso vigente mediante `SesionPermisos`. El contrato usa los 28 nombres literales de `acciones.nombre_accion`; `PermisoCatalogo` traduce los identificadores tipados de C# a valores como `Consultar Producto`. La pantalla `RolesView` permite administrar `acciones_roles` agrupadas por módulo; su repositorio exige `Modificar Configuración` para guardar. Ver [[Sesión 2026-08-09 - Implementación RBAC visual y gestión de roles]].
 
@@ -160,6 +166,7 @@ ProductosViewModel : RealtimeAwareViewModel
 | [[Módulo Empleados]] | ✅ Completo (2026-07-26) | EmpleadosView, EmpleadosViewModel, EmpleadoCrudRepository — CRUD completo, crea usuario desde empleado |
 | [[Módulo Bitácora]] | ✅ Completo (2026-07-26) | BitacoraView, BitacoraViewModel, BitacoraCrudRepository — solo lectura **por diseño** (auditoría), filtros usuario/módulo/acción/fecha |
 | [[Módulo Pesaje]] | ✅ Flujo rediseñado (2026-07-26) | PesajeView, PesajeViewModel, PesajeRepository, ProcesoDescargaModal (wizard + megamodal), SelectorProductosModal — ⚠️ datos de tara de prueba (P-023) |
+| [[Módulo Configuración de Empresa]] | ✅ Implementado; validación visual manual pendiente (2026-08-15) | ConfiguracionEmpresaModal, ConfiguracionEmpresaViewModel, EmpresaRepository, EmpresaThemeService, LogoEmpresaCache, IconoSidebarCache |
 
 ### Navegación entre módulos
 

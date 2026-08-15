@@ -21,7 +21,7 @@
             <Border CornerRadius="10">
                 <Border.Background>
                     <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                        <GradientStop Color="#2B5797" Offset="0"/><GradientStop Color="#1E3A8A" Offset="0.55"/><GradientStop Color="#1E40AF" Offset="1"/>
+                        <GradientStop Color="{DynamicResource EmpresaPrimaryDarkColor}" Offset="0"/><GradientStop Color="{DynamicResource EmpresaPrimaryColor}" Offset="0.55"/><GradientStop Color="{DynamicResource EmpresaPrimaryDarkColor}" Offset="1"/>
                     </LinearGradientBrush>
                 </Border.Background>
             </Border>
@@ -30,7 +30,7 @@
                 <Border Height="4">
                     <Border.Background>
                         <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                            <GradientStop Color="#34D399" Offset="0"/><GradientStop Color="#60A5FA" Offset="0.5"/><GradientStop Color="#818CF8" Offset="1"/>
+                            <GradientStop Color="#34D399" Offset="0"/><GradientStop Color="{DynamicResource EmpresaPrimaryLighterColor}" Offset="0.5"/><GradientStop Color="{DynamicResource EmpresaPrimaryLightColor}" Offset="1"/>
                         </LinearGradientBrush>
                     </Border.Background>
                 </Border>
@@ -161,7 +161,7 @@
                             <Button Style="{StaticResource GhostBtn}" Content="Cancelar" Click="Cerrar_Click" Margin="0,0,10,0"/>
                             <Button x:Name="BtnAplicar" Style="{StaticResource SolidBtn}" Click="Aplicar_Click">
                                 <StackPanel Orientation="Horizontal">
-                                    <Path Data="{StaticResource MIcoCheck}" Stroke="#1E3A8A" StrokeThickness="2.4" Width="14" Height="14"
+                                    <Path Data="{StaticResource MIcoCheck}" Stroke="{DynamicResource EmpresaPrimaryBrush}" StrokeThickness="2.4" Width="14" Height="14"
                                           Stretch="Uniform" Margin="0,0,8,0" VerticalAlignment="Center"
                                           StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
                                     <TextBlock Text="Aplicar y repartir" VerticalAlignment="Center"/>

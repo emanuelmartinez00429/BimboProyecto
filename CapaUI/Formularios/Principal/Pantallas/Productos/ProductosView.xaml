@@ -170,7 +170,7 @@
 
         <!-- DataGrid Column Header Style -->
         <Style TargetType="DataGridColumnHeader">
-            <Setter Property="Background" Value="#1E3A8A"/>
+            <Setter Property="Background" Value="{DynamicResource EmpresaPrimaryBrush}"/>
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="FontFamily" Value="Segoe UI"/>
             <Setter Property="FontSize" Value="13"/>
@@ -180,7 +180,7 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="DataGridColumnHeader">
-                        <Border Background="#1E3A8A"
+                        <Border Background="{DynamicResource EmpresaPrimaryBrush}"
                                 BorderBrush="#1EFFFFFF"
                                 BorderThickness="0,0,1,0">
                             <TextBlock Text="{TemplateBinding Content}"
@@ -265,7 +265,7 @@
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter TargetName="Bd" Property="Background" Value="#EEF2F8"/>
-                                <Setter TargetName="Bd" Property="BorderBrush" Value="#1E3A8A"/>
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource EmpresaPrimaryBrush}"/>
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
                                 <Setter Property="Foreground" Value="#CBD5E1"/>
@@ -279,10 +279,10 @@
 
         <!-- Active Page Button Style -->
         <Style x:Key="ActivePageBtn" TargetType="Button" BasedOn="{StaticResource PageBtn}">
-            <Setter Property="Background" Value="#1E3A8A"/>
+            <Setter Property="Background" Value="{DynamicResource EmpresaPrimaryBrush}"/>
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="BorderBrush" Value="#1E3A8A"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource EmpresaPrimaryBrush}"/>
         </Style>
 
         <!-- Segmented Radio Button Style -->
@@ -445,12 +445,12 @@
 
                 <Border Grid.Column="0"
                         Width="38" Height="38"
-                        Background="#1E3A8A"
+                        Background="{DynamicResource EmpresaPrimaryBrush}"
                         CornerRadius="8"
                         Margin="0,0,12,0"
                         VerticalAlignment="Center">
                     <Border.Effect>
-                        <DropShadowEffect Color="#1E3A8A" BlurRadius="8" ShadowDepth="2" Opacity="0.3"/>
+                        <DropShadowEffect Color="{DynamicResource EmpresaPrimaryColor}" BlurRadius="8" ShadowDepth="2" Opacity="0.3"/>
                     </Border.Effect>
                     <Path Data="{StaticResource IconBox}"
                           Stroke="White" StrokeThickness="1.5"
@@ -491,15 +491,15 @@
                         Padding="12,6" Margin="0,0,8,0"
                         ToolTip="Total de productos">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <Border Width="6" Height="6" CornerRadius="3" Background="#1E3A8A" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                        <Border Width="6" Height="6" CornerRadius="3" Background="{DynamicResource EmpresaPrimaryBrush}" Margin="0,0,6,0" VerticalAlignment="Center"/>
                         <TextBlock Text="TOTAL" FontFamily="Segoe UI" FontSize="13" FontWeight="SemiBold"
-                                   Foreground="#1E3A8A" VerticalAlignment="Center" Margin="0,0,6,0"
+                                   Foreground="{DynamicResource EmpresaPrimaryBrush}" VerticalAlignment="Center" Margin="0,0,6,0"
                                    Visibility="{Binding ActualWidth, ElementName=EncabezadoPagina,
                                                 Converter={StaticResource AnchoMinimoAVisibilidad},
                                                 ConverterParameter=690}"/>
                         <TextBlock Text="{Binding TotalCount}"
                                    FontFamily="Segoe UI" FontSize="15" FontWeight="Bold"
-                                   Foreground="#1E3A8A" VerticalAlignment="Center"/>
+                                   Foreground="{DynamicResource EmpresaPrimaryBrush}" VerticalAlignment="Center"/>
                     </StackPanel>
                 </Border>
                 <Border Background="#ECFDF5"
@@ -575,7 +575,7 @@
                          ToolTip queda siempre, así el icono nunca es un jeroglífico. -->
                     <Button Grid.Column="1"
                             Command="{Binding LimpiarFiltrosCommand}"
-                            Background="#4A6FA8"
+                            Background="{DynamicResource EmpresaPrimaryDarkBrush}"
                             Style="{StaticResource ActionBtn}"
                             Padding="16,0"
                             Height="38"
@@ -790,7 +790,7 @@
                             Orientation="Horizontal">
                     <Path x:Name="SpinnerPath"
                           Data="M 12 2 A 10 10 0 1 1 2 12"
-                          Stroke="#1E3A8A" StrokeThickness="2.5"
+                          Stroke="{DynamicResource EmpresaPrimaryBrush}" StrokeThickness="2.5"
                           StrokeStartLineCap="Round" StrokeEndLineCap="Round"
                           Width="22" Height="22" Stretch="Uniform"
                           RenderTransformOrigin="0.5,0.5"
@@ -840,7 +840,7 @@
                                     <Border Background="#EFF6FF" CornerRadius="4" Padding="8,2" HorizontalAlignment="Left" Margin="8,0">
                                         <TextBlock Text="{Binding CodigoInterno}"
                                                    FontFamily="Segoe UI" FontSize="15.5" FontWeight="Bold"
-                                                   Foreground="#1E3A8A"/>
+                                                   Foreground="{DynamicResource EmpresaPrimaryBrush}"/>
                                     </Border>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
@@ -943,7 +943,7 @@
                                     <Border Background="#F0F5FB" CornerRadius="999" Padding="10,2" HorizontalAlignment="Left" Margin="8,0">
                                         <TextBlock Text="{Binding Categoria}"
                                                    FontFamily="Segoe UI" FontSize="15.5" FontWeight="SemiBold"
-                                                   Foreground="#1E3A8A"/>
+                                                   Foreground="{DynamicResource EmpresaPrimaryBrush}"/>
                                     </Border>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
@@ -964,7 +964,7 @@
                                 <DataTemplate>
                                     <Grid HorizontalAlignment="Center">
                                         <Border Width="20" Height="20" CornerRadius="4"
-                                                Background="#1E3A8A"
+                                                Background="{DynamicResource EmpresaPrimaryBrush}"
                                                 HorizontalAlignment="Center">
                                             <Border.Style>
                                                 <Style TargetType="Border">
@@ -977,7 +977,7 @@
                                                 </Style>
                                             </Border.Style>
                                             <Border.Effect>
-                                                <DropShadowEffect Color="#1E3A8A" BlurRadius="4" ShadowDepth="1" Opacity="0.3"/>
+                                                <DropShadowEffect Color="{DynamicResource EmpresaPrimaryColor}" BlurRadius="4" ShadowDepth="1" Opacity="0.3"/>
                                             </Border.Effect>
                                             <Path Data="{StaticResource IconCheck}"
                                                   Stroke="White" StrokeThickness="2.8"
@@ -1060,7 +1060,7 @@
                     </StackPanel>
                 </Button>
                 <Button Command="{Binding EditarCommand}" permisos:PermisoBehavior.Requiere="Modificar Producto"
-                        Background="#1E3A8A"
+                        Background="{DynamicResource EmpresaPrimaryBrush}"
                         Style="{StaticResource ActionBtn}"
                         Padding="22,0">
                     <StackPanel Orientation="Horizontal">
@@ -1082,7 +1082,7 @@
                         VerticalAlignment="Center"
                         Margin="16,0"
                         Visibility="Collapsed">
-                <Border Width="6" Height="6" CornerRadius="3" Background="#1E3A8A" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                <Border Width="6" Height="6" CornerRadius="3" Background="{DynamicResource EmpresaPrimaryBrush}" Margin="0,0,6,0" VerticalAlignment="Center"/>
                 <TextBlock x:Name="SelectedText"
                            FontFamily="Segoe UI" FontSize="14"
                            Foreground="#6B7280"

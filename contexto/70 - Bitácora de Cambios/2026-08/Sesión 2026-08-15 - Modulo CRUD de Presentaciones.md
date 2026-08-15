@@ -51,7 +51,7 @@ Verificado contra la base viva antes de escribir nada, no de memoria:
 > [!warning] Los conteos van SIN `p_estado` — Fabricantes y Categorías lo hacen mal
 > Las pastillas TOTAL/ACTIVOS/INACTIVOS desglosan **por estado**. Si al RPC de conteos se le pasa el filtro de estado, las tres quedan acotadas al mismo subconjunto: filtrando "Deshabilitados" se ve ACTIVOS = 0 y TOTAL = INACTIVOS, o sea las tres dejan de informar.
 >
-> `ProductoCrudRepository` ya excluye el estado a propósito. `FabricanteCrudRepository` y `CategoriaCrudRepository` **sí** lo pasan y tienen el defecto. Acá se siguió el criterio de Productos; el defecto de los otros dos quedó registrado como **P-040**.
+> `ProductoCrudRepository` ya excluye el estado a propósito. `FabricanteCrudRepository` y `CategoriaCrudRepository` **sí** lo pasan y tienen el defecto. Acá se siguió el criterio de Productos; el defecto de los otros dos quedó registrado como **P-041**.
 
 - `DependencyInjection.cs` — `IPresentacionRepository → PresentacionCrudRepository`.
 
@@ -87,7 +87,7 @@ Verificado contra la base viva antes de escribir nada, no de memoria:
 - `CatalogoRepository.GetPresentacionesAsync` — sigue con `id_estado = Activo` hardcodeado. Está bien: la lupa **debe** ofrecer solo activas. Por eso el CRUD tiene repositorio propio.
 - Realtime — cero cambios, ya estaba todo.
 - Permisos — se reusó `Modificar Configuración`; no se tocó la tabla `acciones`, ni el enum `Permiso`, ni la pantalla de Roles.
-- El defecto de conteos de Fabricantes/Categorías — solo registrado (P-040), no corregido.
+- El defecto de conteos de Fabricantes/Categorías — solo registrado (P-041), no corregido.
 - Migraciones SQL — ninguna. Las que este módulo necesitaba ya estaban aplicadas.
 - No se probó la paginación: la tabla tiene 2 filas y `PageSize` es 50.
 
@@ -96,7 +96,7 @@ Verificado contra la base viva antes de escribir nada, no de memoria:
 ## Relaciones
 
 - [[Módulo Productos]] — patrón de referencia del que salió el diseño del modal
-- [[Deuda Técnica - Pendientes]] — P-036 (mitad resuelta), P-040 (nuevo)
+- [[Deuda Técnica - Pendientes]] — P-036 (mitad resuelta), P-041 (nuevo)
 - [[Checklist - Replicar Módulo con Realtime]]
 - [[ADR-015 - Cache de catalogos mostrar y revalidar]]
 - [[Sesión 2026-08-14 - Catalogo de unidad_medida con categoria]] — sesión que abrió P-036

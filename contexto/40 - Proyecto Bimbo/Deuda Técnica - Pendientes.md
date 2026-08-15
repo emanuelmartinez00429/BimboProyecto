@@ -646,25 +646,20 @@ Había además un desalineo latente: `RealtimeService.cs:38` mapeaba la PK bajo 
 
 ---
 
-### P-035 · Política del bucket `empresa-logos` sin verificar + falta el módulo que sube el logo
+### P-035 · Configuración de empresa implementada; falta validación manual y confirmar trigger de `updated_at`
 
 **Detectado en:** [[Sesión 2026-08-14 - Logo de empresa dinamico en login]]
 
-El login (`LoginWindow`) ahora lee `empresa.logo_empresa` y baja el archivo del bucket de Supabase Storage `empresa-logos` con `DownloadPublicFile` — **se asumió que el bucket es de lectura pública**, por consistencia con que la tabla `empresa` ya tiene lectura anónima (se lee `dominio_correo` antes de loguearse). Esa política **no se verificó** contra la configuración real del proyecto Supabase.
+El módulo, el bucket y sus políticas ya se verificaron e implementaron. `empresa-logos` mantiene lectura pública; INSERT/UPDATE/DELETE exigen un usuario autenticado con `Modificar Configuración`. Cada reemplazo genera un nombre único, actualiza la fila y elimina versiones anteriores; el caché local también se actualiza.
 
-Si el bucket resultara privado, la descarga falla en silencio (`LogoEmpresaCache` lo loguea con `Serilog.Log.Warning` y devuelve `null`) y el login se queda con el logo empacado por defecto — no rompe nada, pero el logo dinámico nunca se ve.
-
-Además, el diseño de caché ([[ADR-016 - Logo de empresa dinamico en login con cache por nombre de archivo]]) asume que cada logo nuevo llega con un **nombre de archivo distinto** al anterior (es la clave de versión). Si el futuro módulo de configuración llega a reescribir `logo_empresa` reutilizando el mismo nombre, el caché local se queda con la versión vieja hasta que se borre a mano.
-
-Y, de fondo, **el módulo de configuración que sube el logo y llama a `RepositorioEmpresa.ActualizarLogoAsync` todavía no existe** — esta sesión resolvió solo el lado de lectura/caché.
+Durante la inspección remota no apareció un trigger asociado a `public.empresa` en `information_schema.triggers`. Por instrucción funcional, la aplicación no escribe `updated_at` y tampoco se creó un trigger sustituto. Antes de considerar cerrado el flujo completo hay que confirmar el trigger en el entorno objetivo y ejecutar la prueba visual/manual.
 
 **Solución de fondo:**
 
-1. Confirmar en el dashboard de Supabase (o vía `list_tables`/políticas de Storage) que `empresa-logos` es público de solo lectura, o ajustar `RepositorioEmpresa.DescargarLogoAsync` para autenticarse si no lo es.
-2. Al construir el módulo de configuración, exigir que cada subida genere un nombre de archivo distinto (timestamp o GUID en el nombre), o agregar invalidación explícita del caché local si se decide reutilizar nombres.
-3. Construir el módulo de configuración en sí (subida + validación de imagen + `ActualizarLogoAsync`).
+1. Confirmar que el trigger automático de `updated_at` esté adjunto a `public.empresa` en el entorno objetivo.
+2. Probar manualmente apertura por permiso, guardado, reemplazo repetido del logo, reinicio de la aplicación y propagación del tema.
 
-**Estado:** `[ ] Pendiente`
+**Estado:** `[~] Parcialmente resuelto — implementación y seguridad listas; validación manual/trigger pendientes`
 
 ---
 
@@ -751,10 +746,24 @@ Mientras tanto, buscar con tilde en cualquiera de esos módulos sigue sin encont
 
 ---
 
-### P-040 · Fabricantes y Categorías pasan el filtro de estado al RPC de conteos y las tres pastillas dejan de informar
+### P-040 · Carga inicial de `icono_sidebar` pendiente en Storage
+
+**Detectado en:** [[Sesión 2026-08-15 - Icono dinámico del sidebar]]
+
+El código ya permite seleccionar, subir, cachear y mostrar `empresa.icono_sidebar`, conservando `Resources/bimbo-logo.png` como fallback. Sin embargo, la fila `empresa.id_empresa = 1` seguía con `icono_sidebar = 'sin_icono'` al último intento verificado. La carga automatizada no se completó porque el MCP dedicado estaba en modo solo lectura y el canal administrativo falló por transporte.
+
+**Solución:** iniciar sesión con `Modificar Configuración`, seleccionar `CapaUI/Resources/bimbo-logo.png` en el nuevo campo del modal y guardar; alternativamente, repetir la carga inicial cuando exista un canal Supabase de escritura disponible. Verificar después que la ruta quede guardada y que el objeto sea descargable públicamente.
+
+**Estado:** `[ ] Pendiente`
+
+---
+
+### P-041 · Fabricantes y Categorías pasan el filtro de estado al RPC de conteos y las tres pastillas dejan de informar
 
 **Archivos:** `CapaDatos/Repositories/Fabricantes/FabricanteCrudRepository.cs` (`GetConteosRpcAsync`), `CapaDatos/Repositories/Categorias/CategoriaCrudRepository.cs` (ídem)
 **Detectado en:** [[Sesión 2026-08-15 - Modulo CRUD de Presentaciones]]
+
+> Se numeró P-041 al fusionar: nació como P-040 en la rama de Presentaciones y chocó con el P-040 de la rama de configuración de empresa, que ya estaba publicado.
 
 Las pastillas del header —TOTAL, ACTIVOS, INACTIVOS— existen justamente para **desglosar por estado**. Ambos repositorios le pasan `p_estado` al RPC de conteos cuando hay filtro de estado activo, así que las tres terminan calculadas sobre el mismo subconjunto:
 
@@ -812,12 +821,13 @@ O sea: apenas se toca el filtro de estado, el indicador deja de indicar. Con "To
 | P-032 | Reparto de tara extra sin transacción (N updates) | `[ ]` Pendiente 🔴 | [[Sesión 2026-08-13 - Pesaje solo bruto y tara extra pesada]] |
 | P-033 | Verificar si el trigger de pesajes cubre UPDATE | `[ ]` Pendiente | [[Sesión 2026-08-13 - Pesaje solo bruto y tara extra pesada]] |
 | P-034 | Invalidación de caché sobre tablas no publicadas en Realtime | 🟡 Parcial | [[Sesión 2026-08-13 - Guardado fluido y caché de catálogos que no vencía]] → [[Sesión 2026-08-14 - Realtime en columnas de join de Productos]] |
-| P-035 | Política del bucket `empresa-logos` sin verificar + falta módulo de configuración para subir logo | `[ ]` Pendiente | [[Sesión 2026-08-14 - Logo de empresa dinamico en login]] |
+| P-035 | Configuración de empresa lista; validar flujo manual y trigger de `updated_at` | `[~]` Parcial | [[Sesión 2026-08-14 - Módulo de configuración de empresa y tema dinámico]] |
 | P-036 | Tara y Presentaciones sin pantalla CRUD — combo de unidad filtrado a masa sin dónde vivir | `[~]` Parcial — Presentaciones ✅, Tara pendiente | [[Sesión 2026-08-15 - Modulo CRUD de Presentaciones]] |
 | P-037 | Paginación: code-behind duplicado 9× sin clamp de `Page` ni binding del resaltado | `[ ]` Pendiente | [[Sesión 2026-08-14 - Regresion la grilla mostraba la pagina anterior]] |
 | P-038 | Modelos C# desalineados del esquema + `ErrorCarga` no llega al usuario | `[ ]` Pendiente 🔴 | [[Sesión 2026-08-14 - Modelo desalineado del esquema tumbaba paginas enteras]] |
 | P-039 | Búsqueda sin tildes solo en Productos — faltan 7 tablas | `[ ]` Pendiente | [[ADR-018 - Busqueda insensible a mayusculas y tildes con columna generada]] |
-| P-040 | Conteos de Fabricantes/Categorías filtrados por estado — las 3 pastillas dejan de informar | `[ ]` Pendiente | [[Sesión 2026-08-15 - Modulo CRUD de Presentaciones]] |
+| P-040 | Carga inicial de `icono_sidebar` pendiente en Storage | `[ ]` Pendiente | [[Sesión 2026-08-15 - Icono dinámico del sidebar]] |
+| P-041 | Conteos de Fabricantes/Categorías filtrados por estado — las 3 pastillas dejan de informar | `[ ]` Pendiente | [[Sesión 2026-08-15 - Modulo CRUD de Presentaciones]] |
 
 ---
 
@@ -834,7 +844,9 @@ O sea: apenas se toca el filtro de estado, el indicador deja de indicar. Con "To
 - [[Sesión 2026-08-13 - Guardado fluido y caché de catálogos que no vencía]] — origen de P-034
 - [[Sesión 2026-08-14 - Realtime en columnas de join de Productos]] — resolución parcial de P-034
 - [[Sesión 2026-08-14 - Logo de empresa dinamico en login]] — origen de P-035
+- [[Sesión 2026-08-14 - Módulo de configuración de empresa y tema dinámico]] — resolución parcial de P-035
 - [[Sesión 2026-08-14 - Catalogo de unidad_medida con categoria]] — origen de P-036
 - [[Sesión 2026-08-14 - Regresion la grilla mostraba la pagina anterior]] — origen de P-037
 - [[Sesión 2026-08-14 - Modelo desalineado del esquema tumbaba paginas enteras]] — origen de P-038
 - [[ADR-018 - Busqueda insensible a mayusculas y tildes con columna generada]] — origen de P-039
+- [[Sesión 2026-08-15 - Icono dinámico del sidebar]] — origen de P-040

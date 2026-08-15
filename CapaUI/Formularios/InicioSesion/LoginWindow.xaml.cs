@@ -8,10 +8,11 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using CapaAplicacion.Auth.Interfaces;
+using CapaAplicacion.Empresa.Dtos;
+using CapaAplicacion.Empresa.Interfaces;
 using CapaAplicacion.Usuarios.Interfaces;
-using CapaDatos.Modelados;
-using CapaDatos.Repositorios;
 using CapaUI.Core.Empresa;
+using CapaUI.Services.Empresa;
 
 namespace CapaUI.Formularios.InicioSesion
 {
@@ -21,17 +22,27 @@ namespace CapaUI.Formularios.InicioSesion
 
         private readonly IAuthService _authService;
         private readonly IUsuarioSesionService _sesionService;
+        private readonly IEmpresaRepository _empresaRepository;
+        private readonly LogoEmpresaCache _logoCache;
+        private readonly EmpresaThemeService _themeService;
         private bool _pwdVisible = false;
 
-        private static readonly SolidColorBrush _brandBrush   = new(Color.FromRgb(0x1E, 0x3A, 0x8A));
         private static readonly SolidColorBrush _borderBrush  = new(Color.FromRgb(0xD8, 0xDC, 0xE4));
         private static readonly SolidColorBrush _successBrush = new(Color.FromRgb(0x10, 0xB9, 0x81));
         private static readonly SolidColorBrush _primaryBrush = new(Color.FromRgb(0x1A, 0x1F, 0x2E));
 
-        public LoginWindow(IAuthService authService, IUsuarioSesionService sesionService)
+        public LoginWindow(
+            IAuthService authService,
+            IUsuarioSesionService sesionService,
+            IEmpresaRepository empresaRepository,
+            LogoEmpresaCache logoCache,
+            EmpresaThemeService themeService)
         {
             _authService    = authService;
             _sesionService  = sesionService;
+            _empresaRepository = empresaRepository;
+            _logoCache = logoCache;
+            _themeService = themeService;
             InitializeComponent();
             Loaded += LoginWindow_Loaded;
         }
@@ -42,12 +53,17 @@ namespace CapaUI.Formularios.InicioSesion
             // corrida anterior, se pinta al instante. Así el usuario nunca ve el salto
             // "logo empacado → logo real" en el caso normal (que es casi siempre) —
             // ese salto era lo que se percibía como "está descargando la imagen".
-            var rutaYaMostrada = LogoEmpresaCache.ObtenerRutaCacheadaSinRed();
+            var rutaYaMostrada = _logoCache.ObtenerRutaCacheadaSinRed();
             if (rutaYaMostrada is not null) AplicarImagenLogo(rutaYaMostrada);
 
             try
             {
-                var empresa = await RepositorioEmpresa.ObtenerAsync();
+                var resultadoEmpresa = await _empresaRepository.ObtenerAsync();
+                if (!resultadoEmpresa.Success)
+                    throw new InvalidOperationException(resultadoEmpresa.Error);
+
+                var empresa = resultadoEmpresa.Value;
+                _themeService.Aplicar(empresa?.ColorEmpresa);
                 if (!string.IsNullOrWhiteSpace(empresa?.DominioCorreo))
                     TxtEmail.GhostSuffix = empresa.DominioCorreo;
                 else
@@ -69,7 +85,7 @@ namespace CapaUI.Formularios.InicioSesion
         /// vez en esta máquina o el logo cambió de verdad, ahí sí puede haber descarga
         /// real: se muestra el spinner chico solo mientras dura esa espera.
         /// </summary>
-        private async Task AplicarLogoEmpresaAsync(Empresa? empresa, string? rutaYaMostrada)
+        private async Task AplicarLogoEmpresaAsync(EmpresaDto? empresa, string? rutaYaMostrada)
         {
             var rutaStorage = empresa?.LogoEmpresa;
             if (string.IsNullOrWhiteSpace(rutaStorage)) return;
@@ -82,7 +98,7 @@ namespace CapaUI.Formularios.InicioSesion
             IniciarLogoSpinner();
             try
             {
-                var rutaLocal = await LogoEmpresaCache.ObtenerRutaLocalAsync(rutaStorage);
+                var rutaLocal = await _logoCache.ObtenerRutaLocalAsync(rutaStorage);
                 if (rutaLocal is not null) AplicarImagenLogo(rutaLocal);
             }
             finally
@@ -146,11 +162,11 @@ namespace CapaUI.Formularios.InicioSesion
         {
             var border = GetParentBorder(sender as FrameworkElement);
             if (border == null) return;
-            border.BorderBrush = _brandBrush;
+            border.BorderBrush = EmpresaThemeService.ObtenerBrushPrincipalActual();
             border.Effect = new System.Windows.Media.Effects.DropShadowEffect
             {
                 BlurRadius = 8, ShadowDepth = 0,
-                Color = Color.FromRgb(0x1E, 0x3A, 0x8A), Opacity = 0.12
+                Color = EmpresaThemeService.ObtenerColorPrincipalActual(), Opacity = 0.12
             };
         }
 
@@ -278,7 +294,7 @@ namespace CapaUI.Formularios.InicioSesion
 
         private async System.Threading.Tasks.Task AnimarStep(Border dot, TextBlock label, int desde, int hasta)
         {
-            dot.BorderBrush  = _brandBrush;
+            dot.BorderBrush  = EmpresaThemeService.ObtenerBrushPrincipalActual();
             label.Foreground = _primaryBrush;
             label.FontWeight = FontWeights.SemiBold;
 

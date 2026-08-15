@@ -37,7 +37,7 @@
                                 BorderThickness="{TemplateBinding BorderThickness}"
                                 CornerRadius="6">
                             <Path Data="{StaticResource IconSearchM}"
-                                  Stroke="#1E3A8A" StrokeThickness="2.2"
+                                  Stroke="{DynamicResource EmpresaPrimaryBrush}" StrokeThickness="2.2"
                                   StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
                                   Width="17" Height="17" Stretch="Uniform"
                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -121,9 +121,9 @@
             <Border CornerRadius="10">
                 <Border.Background>
                     <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                        <GradientStop Color="#2B5797" Offset="0"/>
-                        <GradientStop Color="#1E3A8A" Offset="0.55"/>
-                        <GradientStop Color="#1E40AF" Offset="1"/>
+                        <GradientStop Color="{DynamicResource EmpresaPrimaryDarkColor}" Offset="0"/>
+                        <GradientStop Color="{DynamicResource EmpresaPrimaryColor}" Offset="0.55"/>
+                        <GradientStop Color="{DynamicResource EmpresaPrimaryDarkColor}" Offset="1"/>
                     </LinearGradientBrush>
                 </Border.Background>
             </Border>
@@ -139,8 +139,8 @@
                     <Border.Background>
                         <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
                             <GradientStop Color="#34D399" Offset="0"/>
-                            <GradientStop Color="#60A5FA" Offset="0.5"/>
-                            <GradientStop Color="#818CF8" Offset="1"/>
+                            <GradientStop Color="{DynamicResource EmpresaPrimaryLighterColor}" Offset="0.5"/>
+                            <GradientStop Color="{DynamicResource EmpresaPrimaryLightColor}" Offset="1"/>
                         </LinearGradientBrush>
                     </Border.Background>
                 </Border>

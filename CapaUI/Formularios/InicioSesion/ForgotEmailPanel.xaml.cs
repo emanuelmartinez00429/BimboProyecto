@@ -4,6 +4,7 @@ using System.Windows.Controls;
 using WpfColor  = System.Windows.Media.Color;
 using WpfBrush  = System.Windows.Media.SolidColorBrush;
 using WpfEffect = System.Windows.Media.Effects.DropShadowEffect;
+using CapaUI.Services.Empresa;
 
 namespace CapaUI.Formularios.InicioSesion
 {
@@ -13,7 +14,6 @@ namespace CapaUI.Formularios.InicioSesion
         private static readonly Regex _emailRegex =
             new(@"^[^@\s]+@[^@\s]+\.[^@\s]+$", RegexOptions.Compiled);
 
-        private static readonly WpfBrush _brandBrush  = new(WpfColor.FromRgb(0x1E, 0x3A, 0x8A));
         private static readonly WpfBrush _borderBrush = new(WpfColor.FromRgb(0xD8, 0xDC, 0xE4));
 
         public ForgotEmailPanel(LoginWindow win)
@@ -33,11 +33,11 @@ namespace CapaUI.Formularios.InicioSesion
 
         private void Email_GotFocus(object sender, RoutedEventArgs e)
         {
-            EmailBorder.BorderBrush = _brandBrush;
+            EmailBorder.BorderBrush = EmpresaThemeService.ObtenerBrushPrincipalActual();
             EmailBorder.Effect = new WpfEffect
             {
                 BlurRadius = 8, ShadowDepth = 0,
-                Color = WpfColor.FromRgb(0x1E, 0x3A, 0x8A), Opacity = 0.12
+                Color = EmpresaThemeService.ObtenerColorPrincipalActual(), Opacity = 0.12
             };
         }
 

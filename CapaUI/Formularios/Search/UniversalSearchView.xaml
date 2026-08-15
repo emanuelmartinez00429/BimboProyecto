@@ -18,7 +18,7 @@
 
         <!-- Título -->
         <TextBlock Grid.Row="0" Text="Búsqueda Universal"
-                   FontSize="22" FontWeight="Bold" Foreground="#1E3A8A"
+                   FontSize="22" FontWeight="Bold" Foreground="{DynamicResource EmpresaPrimaryBrush}"
                    Margin="0,0,0,16"/>
 
         <!-- Caja de búsqueda -->

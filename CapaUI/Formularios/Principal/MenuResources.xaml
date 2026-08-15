@@ -4,19 +4,19 @@
     <!-- ═══════════════════════════════════════════
          COLORES / BRUSHES
     ═══════════════════════════════════════════ -->
-    <SolidColorBrush x:Key="TopBarBrush"      Color="#1E3A8A"/>
+    <SolidColorBrush x:Key="TopBarBrush"      Color="{DynamicResource EmpresaPrimaryColor}"/>
     <SolidColorBrush x:Key="AccentGreen"      Color="#34D399"/>
     <SolidColorBrush x:Key="AccentGreenLight" Color="#6EE7B7"/>
     <SolidColorBrush x:Key="SurfaceGray"      Color="#F4F5F7"/>
 
     <LinearGradientBrush x:Key="SidebarGradient" StartPoint="0,0" EndPoint="0,1">
-        <GradientStop Color="#1E3A8A" Offset="0"/>
-        <GradientStop Color="#1E40AF" Offset="1"/>
+        <GradientStop Color="{DynamicResource EmpresaPrimaryColor}" Offset="0"/>
+        <GradientStop Color="{DynamicResource EmpresaPrimaryDarkColor}" Offset="1"/>
     </LinearGradientBrush>
 
     <LinearGradientBrush x:Key="AvatarGradient" StartPoint="0,0" EndPoint="1,1">
-        <GradientStop Color="#60A5FA" Offset="0"/>
-        <GradientStop Color="#1E40AF" Offset="1"/>
+        <GradientStop Color="{DynamicResource EmpresaPrimaryLighterColor}" Offset="0"/>
+        <GradientStop Color="{DynamicResource EmpresaPrimaryDarkColor}" Offset="1"/>
     </LinearGradientBrush>
 
     <!-- ═══════════════════════════════════════════

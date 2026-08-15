@@ -22,8 +22,8 @@
     <conv:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibility"/>
 
     <!-- ══ Paleta ═══════════════════════════════════════════════════════════ -->
-    <SolidColorBrush x:Key="RolBrand"        Color="#1E3A8A" po:Freeze="True"/>
-    <SolidColorBrush x:Key="RolBrandAlt"     Color="#2563EB" po:Freeze="True"/>
+    <SolidColorBrush x:Key="RolBrand"        Color="{DynamicResource EmpresaPrimaryColor}" po:Freeze="True"/>
+    <SolidColorBrush x:Key="RolBrandAlt"     Color="{DynamicResource EmpresaPrimaryBrightColor}" po:Freeze="True"/>
     <SolidColorBrush x:Key="RolText"         Color="#1A1F2E" po:Freeze="True"/>
     <SolidColorBrush x:Key="RolText2"        Color="#64748B" po:Freeze="True"/>
     <SolidColorBrush x:Key="RolMuted"        Color="#94A3B8" po:Freeze="True"/>
@@ -42,7 +42,7 @@
     <SolidColorBrush x:Key="RolAmberBg"      Color="#FFFBEB" po:Freeze="True"/>
     <SolidColorBrush x:Key="RolAmberBorder"  Color="#FDE68A" po:Freeze="True"/>
     <SolidColorBrush x:Key="RolAmberDot"     Color="#F59E0B" po:Freeze="True"/>
-    <SolidColorBrush x:Key="RolInfo"         Color="#1E40AF" po:Freeze="True"/>
+    <SolidColorBrush x:Key="RolInfo"         Color="{DynamicResource EmpresaPrimaryDarkColor}" po:Freeze="True"/>
     <SolidColorBrush x:Key="RolInfoBg"       Color="#EFF6FF" po:Freeze="True"/>
     <SolidColorBrush x:Key="RolInfoBorder"   Color="#BFDBFE" po:Freeze="True"/>
     <SolidColorBrush x:Key="RolError"        Color="#B91C1C" po:Freeze="True"/>
@@ -58,8 +58,8 @@
     </LinearGradientBrush>
 
     <LinearGradientBrush x:Key="RolInsignia" StartPoint="0,0" EndPoint="1,1" po:Freeze="True">
-        <GradientStop Offset="0" Color="#1E3A8A"/>
-        <GradientStop Offset="1" Color="#2563EB"/>
+        <GradientStop Offset="0" Color="{DynamicResource EmpresaPrimaryColor}"/>
+        <GradientStop Offset="1" Color="{DynamicResource EmpresaPrimaryBrightColor}"/>
     </LinearGradientBrush>
 
     <LinearGradientBrush x:Key="RolCardHeader" StartPoint="0,0" EndPoint="0,1" po:Freeze="True">
@@ -425,7 +425,7 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Fondo" Property="Background" Value="#172554"/>
+                            <Setter TargetName="Fondo" Property="Background" Value="{DynamicResource EmpresaPrimaryDarkerBrush}"/>
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter TargetName="Fondo" Property="Background" Value="#E2E8F0"/>

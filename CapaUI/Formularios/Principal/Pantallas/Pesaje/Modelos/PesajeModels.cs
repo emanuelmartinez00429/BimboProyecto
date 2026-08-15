@@ -201,7 +201,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modelos
         public Brush ProgresoColor => PctRestante <= 0
             ? Brushes.ForestGreen
             : PctRestante < 40
-                ? (Brush)new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2563EB"))
+                ? (Brush)CapaUI.Services.Empresa.EmpresaThemeService.ObtenerBrushPrincipalActual()
                 : (Brush)new SolidColorBrush((Color)ColorConverter.ConvertFromString("#D97706"));
 
         /// <summary>Recalcula los agregados tras cambios en Entradas.</summary>

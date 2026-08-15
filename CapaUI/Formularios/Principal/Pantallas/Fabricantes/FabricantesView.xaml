@@ -94,14 +94,14 @@
         </Style>
 
         <Style TargetType="DataGridColumnHeader">
-            <Setter Property="Background" Value="#1E3A8A"/><Setter Property="Foreground" Value="White"/>
+            <Setter Property="Background" Value="{DynamicResource EmpresaPrimaryBrush}"/><Setter Property="Foreground" Value="White"/>
             <Setter Property="FontFamily" Value="Segoe UI"/><Setter Property="FontSize" Value="13"/>
             <Setter Property="FontWeight" Value="Bold"/><Setter Property="Height" Value="40"/>
             <Setter Property="HorizontalContentAlignment" Value="Center"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="DataGridColumnHeader">
-                        <Border Background="#1E3A8A" BorderBrush="#1EFFFFFF" BorderThickness="0,0,1,0">
+                        <Border Background="{DynamicResource EmpresaPrimaryBrush}" BorderBrush="#1EFFFFFF" BorderThickness="0,0,1,0">
                             <TextBlock Text="{TemplateBinding Content}" Foreground="White" FontFamily="Segoe UI"
                                        FontSize="13" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="8,0"/>
                         </Border>
@@ -153,7 +153,7 @@
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter TargetName="Bd" Property="Background" Value="#EEF2F8"/>
-                                <Setter TargetName="Bd" Property="BorderBrush" Value="#1E3A8A"/>
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource EmpresaPrimaryBrush}"/>
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False"><Setter Property="Foreground" Value="#CBD5E1"/><Setter Property="Cursor" Value="Arrow"/></Trigger>
                         </ControlTemplate.Triggers>
@@ -163,8 +163,8 @@
         </Style>
 
         <Style x:Key="ActivePageBtn" TargetType="Button" BasedOn="{StaticResource PageBtn}">
-            <Setter Property="Background" Value="#1E3A8A"/><Setter Property="Foreground" Value="White"/>
-            <Setter Property="FontWeight" Value="Bold"/><Setter Property="BorderBrush" Value="#1E3A8A"/>
+            <Setter Property="Background" Value="{DynamicResource EmpresaPrimaryBrush}"/><Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="Bold"/><Setter Property="BorderBrush" Value="{DynamicResource EmpresaPrimaryBrush}"/>
         </Style>
 
         <Style x:Key="SegmentBtn" TargetType="RadioButton">
@@ -236,8 +236,8 @@
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
             <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                <Border Width="38" Height="38" Background="#1E3A8A" CornerRadius="8" Margin="0,0,12,0" VerticalAlignment="Center">
-                    <Border.Effect><DropShadowEffect Color="#1E3A8A" BlurRadius="8" ShadowDepth="2" Opacity="0.3"/></Border.Effect>
+                <Border Width="38" Height="38" Background="{DynamicResource EmpresaPrimaryBrush}" CornerRadius="8" Margin="0,0,12,0" VerticalAlignment="Center">
+                    <Border.Effect><DropShadowEffect Color="{DynamicResource EmpresaPrimaryColor}" BlurRadius="8" ShadowDepth="2" Opacity="0.3"/></Border.Effect>
                     <Path Data="{StaticResource IconFactory}" Stroke="White" StrokeThickness="1.5"
                           StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
                           Width="20" Height="20" Stretch="Uniform"/>
@@ -254,9 +254,9 @@
             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Right">
                 <Border Background="#EEF2F8" CornerRadius="999" BorderBrush="#D8E1EC" BorderThickness="1" Padding="12,6" Margin="0,0,8,0">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <Border Width="6" Height="6" CornerRadius="3" Background="#1E3A8A" Margin="0,0,6,0" VerticalAlignment="Center"/>
-                        <TextBlock Text="TOTAL" FontFamily="Segoe UI" FontSize="13" FontWeight="SemiBold" Foreground="#1E3A8A" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                        <TextBlock Text="{Binding TotalCount}" FontFamily="Segoe UI" FontSize="15" FontWeight="Bold" Foreground="#1E3A8A" VerticalAlignment="Center"/>
+                        <Border Width="6" Height="6" CornerRadius="3" Background="{DynamicResource EmpresaPrimaryBrush}" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="TOTAL" FontFamily="Segoe UI" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource EmpresaPrimaryBrush}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                        <TextBlock Text="{Binding TotalCount}" FontFamily="Segoe UI" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource EmpresaPrimaryBrush}" VerticalAlignment="Center"/>
                     </StackPanel>
                 </Border>
                 <Border Background="#ECFDF5" CornerRadius="999" BorderBrush="#D1FAE5" BorderThickness="1" Padding="12,6" Margin="0,0,8,0">
@@ -292,7 +292,7 @@
                         HighlightIndex="{Binding HighlightIndex, Mode=TwoWay}"
                         Placeholder="Buscar fabricante por nombre..."
                         ItemSelected="SearchBox_ItemSelected"/>
-                    <Button Grid.Column="1" Command="{Binding LimpiarFiltrosCommand}" Background="#4A6FA8"
+                    <Button Grid.Column="1" Command="{Binding LimpiarFiltrosCommand}" Background="{DynamicResource EmpresaPrimaryDarkBrush}"
                             Style="{StaticResource ActionBtn}" Padding="16,0" Height="38" MinWidth="0">
                         <StackPanel Orientation="Horizontal">
                             <Path Data="{StaticResource IconFilter}" Stroke="White" StrokeThickness="1.8"
@@ -360,7 +360,7 @@
                     </TextBlock>
                 </StackPanel>
                 <StackPanel Grid.Row="0" x:Name="LoadingPanel" Visibility="Collapsed" VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Horizontal">
-                    <Path x:Name="SpinnerPath" Data="M 12 2 A 10 10 0 1 1 2 12" Stroke="#1E3A8A" StrokeThickness="2.5"
+                    <Path x:Name="SpinnerPath" Data="M 12 2 A 10 10 0 1 1 2 12" Stroke="{DynamicResource EmpresaPrimaryBrush}" StrokeThickness="2.5"
                           StrokeStartLineCap="Round" StrokeEndLineCap="Round" Width="22" Height="22" Stretch="Uniform"
                           RenderTransformOrigin="0.5,0.5" Margin="0,0,10,0">
                         <Path.RenderTransform><RotateTransform/></Path.RenderTransform>
@@ -417,7 +417,7 @@
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <Grid HorizontalAlignment="Center">
-                                        <Border Width="20" Height="20" CornerRadius="4" Background="#1E3A8A" HorizontalAlignment="Center">
+                                        <Border Width="20" Height="20" CornerRadius="4" Background="{DynamicResource EmpresaPrimaryBrush}" HorizontalAlignment="Center">
                                             <Border.Style>
                                                 <Style TargetType="Border">
                                                     <Setter Property="Visibility" Value="Collapsed"/>
@@ -426,7 +426,7 @@
                                                     </Style.Triggers>
                                                 </Style>
                                             </Border.Style>
-                                            <Border.Effect><DropShadowEffect Color="#1E3A8A" BlurRadius="4" ShadowDepth="1" Opacity="0.3"/></Border.Effect>
+                                            <Border.Effect><DropShadowEffect Color="{DynamicResource EmpresaPrimaryColor}" BlurRadius="4" ShadowDepth="1" Opacity="0.3"/></Border.Effect>
                                             <Path Data="{StaticResource IconCheck}" Stroke="White" StrokeThickness="2.8"
                                                   StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
                                                   Width="11" Height="11" Stretch="Uniform"/>
@@ -477,7 +477,7 @@
                         <TextBlock Text="Nuevo" FontFamily="Segoe UI" FontSize="15.5" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"/>
                     </StackPanel>
                 </Button>
-                <Button Command="{Binding EditarCommand}" permisos:PermisoBehavior.Requiere="Modificar Fabricante" Background="#1E3A8A" Style="{StaticResource ActionBtn}" Padding="22,0">
+                <Button Command="{Binding EditarCommand}" permisos:PermisoBehavior.Requiere="Modificar Fabricante" Background="{DynamicResource EmpresaPrimaryBrush}" Style="{StaticResource ActionBtn}" Padding="22,0">
                     <StackPanel Orientation="Horizontal">
                         <Path Data="{StaticResource IconPencil}" Stroke="White" StrokeThickness="2.2"
                               StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
@@ -487,7 +487,7 @@
                 </Button>
             </StackPanel>
             <StackPanel DockPanel.Dock="Left" x:Name="SelectedInfo" Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0" Visibility="Collapsed">
-                <Border Width="6" Height="6" CornerRadius="3" Background="#1E3A8A" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                <Border Width="6" Height="6" CornerRadius="3" Background="{DynamicResource EmpresaPrimaryBrush}" Margin="0,0,6,0" VerticalAlignment="Center"/>
                 <TextBlock FontFamily="Segoe UI" FontSize="14" Foreground="#6B7280" VerticalAlignment="Center" Text="{Binding TextoSeleccionado}"/>
             </StackPanel>
         </DockPanel>
