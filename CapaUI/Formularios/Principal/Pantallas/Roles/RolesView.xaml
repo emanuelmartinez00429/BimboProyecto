@@ -35,7 +35,7 @@
                     <Border Width="38" Height="38" CornerRadius="10" Background="{StaticResource RolInsignia}"
                             Margin="0,0,13,0">
                         <Border.Effect>
-                            <DropShadowEffect BlurRadius="12" ShadowDepth="4" Opacity="0.4" Color="#1E3A8A"/>
+                            <DropShadowEffect BlurRadius="12" ShadowDepth="4" Opacity="0.4" Color="{DynamicResource EmpresaPrimaryColor}"/>
                         </Border.Effect>
                         <Path Style="{StaticResource RolIcono}" Data="{StaticResource GeoEscudo}"
                               Width="20" Height="20" StrokeThickness="1.9" Stroke="White"/>
@@ -160,7 +160,7 @@
                                 IsEnabled="{Binding Filtrando}">
                             <Button.Template>
                                 <ControlTemplate TargetType="Button">
-                                    <Border x:Name="Fondo" Background="#4A6FA8" BorderBrush="#3A5F98"
+                                    <Border x:Name="Fondo" Background="{DynamicResource EmpresaPrimaryDarkBrush}" BorderBrush="{DynamicResource EmpresaPrimaryDarkerBrush}"
                                             BorderThickness="1" CornerRadius="8" Padding="{TemplateBinding Padding}">
                                         <StackPanel Orientation="Horizontal">
                                             <Path Style="{StaticResource RolIcono}" Data="{StaticResource GeoFiltros}"
@@ -171,7 +171,7 @@
                                     </Border>
                                     <ControlTemplate.Triggers>
                                         <Trigger Property="IsMouseOver" Value="True">
-                                            <Setter TargetName="Fondo" Property="Background" Value="#3A5F98"/>
+                                            <Setter TargetName="Fondo" Property="Background" Value="{DynamicResource EmpresaPrimaryDarkerBrush}"/>
                                         </Trigger>
                                         <Trigger Property="IsEnabled" Value="False">
                                             <Setter TargetName="Fondo" Property="Background" Value="#EEF2F7"/>
@@ -242,7 +242,7 @@
                         Orientation="Horizontal">
                 <Path x:Name="SpinnerPath"
                       Data="M 12 2 A 10 10 0 1 1 2 12"
-                      Stroke="#1E3A8A" StrokeThickness="2.5"
+                      Stroke="{DynamicResource EmpresaPrimaryBrush}" StrokeThickness="2.5"
                       StrokeStartLineCap="Round" StrokeEndLineCap="Round"
                       Width="22" Height="22" Stretch="Uniform"
                       RenderTransformOrigin="0.5,0.5"

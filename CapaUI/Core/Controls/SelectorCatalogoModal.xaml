@@ -163,7 +163,7 @@
 
         <Style x:Key="CatPageBtnActivo" TargetType="Button" BasedOn="{StaticResource CatPageBtn}">
             <Setter Property="Background" Value="White"/>
-            <Setter Property="Foreground" Value="#1E3A8A"/>
+            <Setter Property="Foreground" Value="{DynamicResource EmpresaPrimaryBrush}"/>
             <Setter Property="FontWeight" Value="Bold"/>
             <Setter Property="BorderBrush" Value="White"/>
         </Style>

@@ -5,6 +5,7 @@ using WpfBrush     = System.Windows.Media.SolidColorBrush;
 using WpfEffect    = System.Windows.Media.Effects.DropShadowEffect;
 using WpfBrushes   = System.Windows.Media.Brushes;
 using WpfColorConv = System.Windows.Media.ColorConverter;
+using CapaUI.Services.Empresa;
 
 namespace CapaUI.Formularios.InicioSesion
 {
@@ -14,7 +15,6 @@ namespace CapaUI.Formularios.InicioSesion
         private readonly string _email;
         private bool _show1 = false, _show2 = false;
 
-        private static readonly WpfBrush _brandBrush    = new(WpfColor.FromRgb(0x1E, 0x3A, 0x8A));
         private static readonly WpfBrush _successBrush  = new(WpfColor.FromRgb(0x10, 0xB9, 0x81));
         private static readonly WpfBrush _borderBrush   = new(WpfColor.FromRgb(0xD8, 0xDC, 0xE4));
         private static readonly WpfBrush _disabledBrush = new(WpfColor.FromRgb(0x9C, 0xA3, 0xAF));
@@ -37,8 +37,8 @@ namespace CapaUI.Formularios.InicioSesion
         {
             if (GetBorder(sender as FrameworkElement) is { } b)
             {
-                b.BorderBrush = _brandBrush;
-                b.Effect = new WpfEffect { BlurRadius = 8, ShadowDepth = 0, Color = WpfColor.FromRgb(0x1E, 0x3A, 0x8A), Opacity = 0.12 };
+                b.BorderBrush = EmpresaThemeService.ObtenerBrushPrincipalActual();
+                b.Effect = new WpfEffect { BlurRadius = 8, ShadowDepth = 0, Color = EmpresaThemeService.ObtenerColorPrincipalActual(), Opacity = 0.12 };
             }
         }
 

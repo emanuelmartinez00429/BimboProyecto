@@ -31,7 +31,19 @@ namespace CapaDatos.Modelados
         [Column("logo_empresa")]
         public string? LogoEmpresa { get; set; }
 
+        [Column("icono_sidebar")]
+        public string? IconoSidebar { get; set; }
+
+        [Column("created_at")]
+        public DateTimeOffset? CreatedAt { get; set; }
+
+        [Column("updated_at")]
+        public DateTimeOffset? UpdatedAt { get; set; }
+
         [Column("dominio_correo")]
         public string? DominioCorreo { get; set; }
+
+        [Column("color_empresa")]
+        public string? ColorEmpresa { get; set; }
     }
 }

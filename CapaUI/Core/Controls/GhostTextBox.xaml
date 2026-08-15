@@ -26,7 +26,7 @@
                  FontFamily="Segoe UI" FontSize="14"
                  Foreground="#1A1F2E"
                  VerticalContentAlignment="Center"
-                 CaretBrush="#1E3A8A"
+                 CaretBrush="{DynamicResource EmpresaPrimaryBrush}"
                  TextChanged="InnerBox_TextChanged"
                  PreviewKeyDown="InnerBox_PreviewKeyDown"
                  GotFocus="InnerBox_GotFocus"

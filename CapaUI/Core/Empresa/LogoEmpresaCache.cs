@@ -1,6 +1,6 @@
 using System.IO;
 using System.Linq;
-using CapaDatos.Repositorios;
+using CapaAplicacion.Empresa.Interfaces;
 
 namespace CapaUI.Core.Empresa;
 
@@ -10,13 +10,17 @@ namespace CapaUI.Core.Empresa;
 /// El nombre del archivo en Storage (columna <c>empresa.logo_empresa</c>) hace de
 /// clave de versión: cuando el módulo de configuración (todavía no construido) suba
 /// un logo nuevo va a guardar una ruta distinta (así ya funciona
-/// <see cref="RepositorioEmpresa.ActualizarLogoAsync"/>). Por eso no hace falta comparar
+/// el repositorio de empresa). Por eso no hace falta comparar
 /// hashes ni fechas para "detectar el cambio" — un archivo local con ese nombre ya
 /// garantiza que es la misma versión, y un nombre distinto dispara la descarga solo,
 /// la próxima vez que se abra el login.
 /// </summary>
-public static class LogoEmpresaCache
+public sealed class LogoEmpresaCache
 {
+    private readonly IEmpresaRepository _repo;
+
+    public LogoEmpresaCache(IEmpresaRepository repo) => _repo = repo;
+
     private static readonly string CacheDir = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
         "BimboPesaje", "LogoEmpresa");
@@ -28,7 +32,7 @@ public static class LogoEmpresaCache
     /// que nunca queda más de un archivo real en la carpeta, así que alcanza con
     /// tomar el primero que haya (ignorando `.tmp` de una descarga interrumpida).
     /// </summary>
-    public static string? ObtenerRutaCacheadaSinRed()
+    public string? ObtenerRutaCacheadaSinRed()
     {
         try
         {
@@ -48,7 +52,7 @@ public static class LogoEmpresaCache
     /// Devuelve <c>null</c> si no hay logo configurado o si la descarga falla — en
     /// ambos casos el caller debe quedarse con el logo empacado por defecto.
     /// </summary>
-    public static async Task<string?> ObtenerRutaLocalAsync(string? rutaStorage)
+    public async Task<string?> ObtenerRutaLocalAsync(string? rutaStorage)
     {
         if (string.IsNullOrWhiteSpace(rutaStorage))
         {
@@ -73,7 +77,9 @@ public static class LogoEmpresaCache
         try
         {
             Serilog.Log.Debug("LogoEmpresaCache: cache-miss, descargando '{Ruta}'.", rutaStorage);
-            await RepositorioEmpresa.DescargarLogoAsync(rutaStorage, rutaTemp);
+            var resultado = await _repo.DescargarLogoAsync(rutaStorage, rutaTemp);
+            if (!resultado.Success)
+                throw new InvalidOperationException(resultado.Error);
             File.Move(rutaTemp, rutaLocal, overwrite: true);
             LimpiarVersionesViejas(nombreArchivo);
             return rutaLocal;
@@ -84,6 +90,19 @@ public static class LogoEmpresaCache
             try { if (File.Exists(rutaTemp)) File.Delete(rutaTemp); } catch { /* mejor esfuerzo */ }
             return null;
         }
+    }
+
+    public string ActualizarDesdeArchivoLocal(string rutaStorage, string rutaArchivoLocal)
+    {
+        var nombreArchivo = Path.GetFileName(rutaStorage);
+        if (string.IsNullOrWhiteSpace(nombreArchivo))
+            throw new InvalidOperationException("La ruta del logo en Storage no es válida.");
+
+        Directory.CreateDirectory(CacheDir);
+        var destino = Path.Combine(CacheDir, nombreArchivo);
+        File.Copy(rutaArchivoLocal, destino, overwrite: true);
+        LimpiarVersionesViejas(nombreArchivo);
+        return destino;
     }
 
     /// <summary>

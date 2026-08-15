@@ -7,6 +7,25 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="Resources/Styles.xaml"/>
             </ResourceDictionary.MergedDictionaries>
+
+            <Color x:Key="EmpresaPrimaryColor">#1E3A8A</Color>
+            <Color x:Key="EmpresaPrimaryDarkColor">#1E40AF</Color>
+            <Color x:Key="EmpresaPrimaryDarkerColor">#172554</Color>
+            <Color x:Key="EmpresaPrimaryBrightColor">#2563EB</Color>
+            <Color x:Key="EmpresaPrimaryLightColor">#3B82F6</Color>
+            <Color x:Key="EmpresaPrimaryLighterColor">#60A5FA</Color>
+
+            <SolidColorBrush x:Key="EmpresaPrimaryBrush" Color="{DynamicResource EmpresaPrimaryColor}"/>
+            <SolidColorBrush x:Key="EmpresaPrimaryDarkBrush" Color="{DynamicResource EmpresaPrimaryDarkColor}"/>
+            <SolidColorBrush x:Key="EmpresaPrimaryDarkerBrush" Color="{DynamicResource EmpresaPrimaryDarkerColor}"/>
+            <SolidColorBrush x:Key="EmpresaPrimaryBrightBrush" Color="{DynamicResource EmpresaPrimaryBrightColor}"/>
+            <SolidColorBrush x:Key="EmpresaPrimaryLightBrush" Color="{DynamicResource EmpresaPrimaryLightColor}"/>
+            <SolidColorBrush x:Key="EmpresaPrimaryLighterBrush" Color="{DynamicResource EmpresaPrimaryLighterColor}"/>
+            <LinearGradientBrush x:Key="EmpresaPrimaryGradientBrush" StartPoint="0,0.5" EndPoint="1,0.5">
+                <GradientStop Color="{DynamicResource EmpresaPrimaryColor}" Offset="0"/>
+                <GradientStop Color="{DynamicResource EmpresaPrimaryLightColor}" Offset="1"/>
+            </LinearGradientBrush>
+
             <conv:BoolToVisibilityConverter x:Key="BoolToVisibility"/>
             <conv:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibility"/>
             <conv:RestarMargenConverter x:Key="RestarMargen"/>

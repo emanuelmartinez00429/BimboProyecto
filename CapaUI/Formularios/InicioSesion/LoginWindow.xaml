@@ -29,7 +29,7 @@
             <Border Grid.Column="0" ClipToBounds="True">
                 <Border.Background>
                     <LinearGradientBrush StartPoint="0.35,0" EndPoint="0.65,1">
-                        <GradientStop Color="#1E3A8A" Offset="0"/>
+                        <GradientStop Color="{DynamicResource EmpresaPrimaryColor}" Offset="0"/>
                         <GradientStop Color="#152A66" Offset="1"/>
                     </LinearGradientBrush>
                 </Border.Background>
@@ -248,7 +248,7 @@
                                 </Canvas.RenderTransform>
                                 <Path StrokeThickness="4" StrokeStartLineCap="Round" StrokeEndLineCap="Round" Fill="Transparent">
                                     <Path.Stroke>
-                                        <SolidColorBrush Color="#1E3A8A"/>
+                                        <SolidColorBrush Color="{DynamicResource EmpresaPrimaryColor}"/>
                                     </Path.Stroke>
                                     <Path.Data>
                                         <PathGeometry>
@@ -276,7 +276,7 @@
 
                         <!-- Progress bar -->
                         <Border Grid.Row="4" x:Name="ProgressTrack" Height="4" CornerRadius="2" Background="#E5E7EB">
-                            <Border x:Name="ProgressBar" CornerRadius="2" Background="#1E3A8A"
+                            <Border x:Name="ProgressBar" CornerRadius="2" Background="{DynamicResource EmpresaPrimaryBrush}"
                                     HorizontalAlignment="Left" Width="0"/>
                         </Border>
 

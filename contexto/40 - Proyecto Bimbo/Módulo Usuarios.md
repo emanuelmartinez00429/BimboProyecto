@@ -84,6 +84,18 @@ UsuariosView → doble clic fila → UsuarioModal(usuario)
     → BtnGuardar_Click → _usuarioRepo.ActualizarAsync(dto)
 ```
 
+### Protección contra autoadministración
+
+Desde 2026-08-15 ningún usuario, incluido un administrador, puede cambiar su propio rol ni deshabilitar su cuenta desde este módulo:
+
+- `UsuariosViewModel` deshabilita Editar/Cambiar estado y muestra una advertencia cuando `Seleccionado.IdUsuario` coincide con `IUsuarioSesionService.SesionActual.IdUsuario`.
+- El doble clic pasa por `EditarCommand`; ya no evita el `CanExecute`.
+- `UsuarioRepository` repite la comparación antes de cualquier viaje de red.
+- Supabase protege `id_rol` e `id_estado` con `trg_proteger_campos_sensibles_usuario`, comparando `usuarios.uuid_usuario` con `auth.uid()`.
+- `update_Usuarios` dejó de estar abierto a `public`: solo aplica a `authenticated` y permite la fila propia para campos no sensibles o la administración de terceros según `Modificar Usuario`/`Eliminar Usuario`.
+
+`ActualizarUltimoAccesoAsync` permanece vigente: el trigger no bloquea `ultimo_acceso`. Ver [[ADR-020 - Defensa en profundidad contra autoadministracion de usuarios]].
+
 ### Consulta del grid
 ```
 UsuariosViewModel → UsuarioRepository.ObtenerPaginaAsync(page, filters)
@@ -129,6 +141,7 @@ acciones_roles → UsuarioSesionService → SesionPermisos
 - [[ADR-012 - Paginacion server-side con timeout y generacion counter]] — protección race conditions
 - [[ADR-013 - Eliminacion de SesionActual y servicioSesionActual legacy]] — limpieza de estáticos
 - [[ADR-005 - Vista SQL para Búsquedas Cross-Tabla]] — vista_usuarios_busqueda
+- [[ADR-020 - Defensa en profundidad contra autoadministracion de usuarios]] — bloqueo UI, repositorio y base de datos
 
 ## Cadenas Críticas
 

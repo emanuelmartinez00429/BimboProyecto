@@ -198,8 +198,8 @@ namespace CapaUI.Formularios.Principal.Pantallas.Usuarios
 
         private void DgUsuarios_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
-            if (_vm?.Seleccionado != null)
-                AbrirModalEditar(_vm.Seleccionado);
+            if (_vm?.EditarCommand.CanExecute(null) == true)
+                _vm.EditarCommand.Execute(null);
         }
 
         private void SeleccionarEnTabla()
@@ -273,7 +273,8 @@ namespace CapaUI.Formularios.Principal.Pantallas.Usuarios
 
         private void AbrirModalEditar(UsuarioVistaDto u)
         {
-            if (!SesionPermisos.Tiene(Permiso.ModificarUsuario)) return;
+            if (!SesionPermisos.Tiene(Permiso.ModificarUsuario) ||
+                _vm.EsUsuarioSesionActual) return;
             var rolRepo       = App.Services.GetRequiredService<IRolRepository>();
             var usuarioRepo   = App.Services.GetRequiredService<IUsuarioRepository>();
             var modal = new UsuarioModal(usuarioRepo, rolRepo, u);

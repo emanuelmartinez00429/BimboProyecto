@@ -10,6 +10,7 @@ using CapaUI.Formularios.Principal.Pantallas.Bitacora;
 using CapaUI.Formularios.Principal.Pantallas.Categorias;
 using CapaUI.Formularios.Principal.Pantallas.ContactosFabricantes;
 using CapaUI.Formularios.Principal.Pantallas.ContactosProveedores;
+using CapaUI.Formularios.Principal.Pantallas.Configuracion;
 using CapaUI.Formularios.Principal.Pantallas.Empleados;
 using CapaUI.Formularios.Principal.Pantallas.Fabricantes;
 using CapaUI.Formularios.Principal.Pantallas.Pesaje;
@@ -18,6 +19,8 @@ using CapaUI.Formularios.Principal.Pantallas.Proveedores;
 using CapaUI.Formularios.Principal.Pantallas.Roles;
 using CapaUI.Formularios.Principal.Pantallas.Usuarios;
 using CapaUI.Services.Picker;
+using CapaUI.Services.Empresa;
+using CapaUI.Core.Empresa;
 using CapaUI.ViewModels.Search;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
@@ -53,6 +56,7 @@ namespace CapaUI
                 .CreateLogger();
 
             _ = Services; // fuerza inicialización en el hilo UI (el getter ya crea el provider)
+            Services.GetRequiredService<EmpresaThemeService>().CargarCacheSinRed();
             ShutdownMode = ShutdownMode.OnExplicitShutdown;
             MostrarLogin();
         }
@@ -63,6 +67,9 @@ namespace CapaUI
             services.AddDataLayer();
             services.AddApplicationLayer();
             services.AddSingleton<IPickerService, PickerService>();
+            services.AddSingleton<EmpresaThemeService>();
+            services.AddSingleton<LogoEmpresaCache>();
+            services.AddSingleton<IconoSidebarCache>();
             services.AddTransient<UniversalSearchViewModel>();
             services.AddTransient<ProductosViewModel>();
             services.AddTransient<PesajeViewModel>();
@@ -75,6 +82,7 @@ namespace CapaUI
             services.AddTransient<EmpleadosViewModel>();
             services.AddTransient<BitacoraViewModel>();
             services.AddTransient<RolesViewModel>();
+            services.AddTransient<ConfiguracionEmpresaViewModel>();
             services.AddTransient<LoginWindow>();
             services.AddTransient<MainViewModel>();
             services.AddTransient<MainWindow>();

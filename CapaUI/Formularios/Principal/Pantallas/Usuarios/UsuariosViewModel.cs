@@ -19,6 +19,7 @@ public partial class UsuariosViewModel : ObservableObject, IDisposable
 {
     private readonly IUsuarioRepository _usuarioRepo;
     private readonly IRolRepository     _rolRepo;
+    private readonly IUsuarioSesionService _sesionService;
     private readonly SuggestionDebouncer   _buscador = new();
     private readonly CancellationTokenSource _cts = new();
     private bool _disposed;
@@ -38,7 +39,9 @@ public partial class UsuariosViewModel : ObservableObject, IDisposable
     [ObservableProperty] private IReadOnlyList<SuggestionItemData>? _suggestItems;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HaySeleccionado), nameof(TextoSeleccionado))]
+    [NotifyPropertyChangedFor(nameof(HaySeleccionado), nameof(TextoSeleccionado),
+        nameof(EsUsuarioSesionActual), nameof(MostrarAdvertenciaAutogestion),
+        nameof(PuedeAdministrarSeleccionado))]
     [NotifyCanExecuteChangedFor(nameof(EditarCommand))]
     [NotifyCanExecuteChangedFor(nameof(ToggleEstadoCommand))]
     private UsuarioVistaDto? _seleccionado;
@@ -59,6 +62,10 @@ public partial class UsuariosViewModel : ObservableObject, IDisposable
 
     // ── Propiedades derivadas ──────────────────────────────────────────
     public bool   HaySeleccionado   => Seleccionado is not null;
+    public bool EsUsuarioSesionActual => Seleccionado is not null &&
+        Seleccionado.IdUsuario == _sesionService.SesionActual?.IdUsuario;
+    public bool MostrarAdvertenciaAutogestion => EsUsuarioSesionActual;
+    public bool PuedeAdministrarSeleccionado => HaySeleccionado && !EsUsuarioSesionActual;
     public string TextoSeleccionado => Seleccionado is null
         ? ""
         : $"{Seleccionado.CorreoUsuario} · {Seleccionado.NombreEmpleado}";
@@ -135,10 +142,14 @@ public partial class UsuariosViewModel : ObservableObject, IDisposable
     public event Action?                 FiltrosLimpiados;
 
     // ── Constructor ────────────────────────────────────────────────────
-    public UsuariosViewModel(IUsuarioRepository usuarioRepo, IRolRepository rolRepo)
+    public UsuariosViewModel(
+        IUsuarioRepository usuarioRepo,
+        IRolRepository rolRepo,
+        IUsuarioSesionService sesionService)
     {
         _usuarioRepo = usuarioRepo;
         _rolRepo     = rolRepo;
+        _sesionService = sesionService;
     }
 
     // ── Carga ──────────────────────────────────────────────────────────
@@ -279,13 +290,13 @@ public partial class UsuariosViewModel : ObservableObject, IDisposable
     }
 
     // ── Comandos CRUD ──────────────────────────────────────────────────
-    [RelayCommand(CanExecute = nameof(HaySeleccionado))]
+    [RelayCommand(CanExecute = nameof(PuedeAdministrarSeleccionado))]
     private void Editar()
     {
         if (Seleccionado is not null && SesionPermisos.Tiene(Permiso.ModificarUsuario)) SolicitarEditar?.Invoke(Seleccionado);
     }
 
-    [RelayCommand(CanExecute = nameof(HaySeleccionado))]
+    [RelayCommand(CanExecute = nameof(PuedeAdministrarSeleccionado))]
     private async Task ToggleEstadoAsync()
     {
         if (Seleccionado is null || !SesionPermisos.Tiene(Permiso.EliminarUsuario)) return;

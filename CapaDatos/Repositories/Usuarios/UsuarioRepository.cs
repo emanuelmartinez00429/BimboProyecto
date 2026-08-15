@@ -13,7 +13,14 @@ namespace CapaDatos.Repositories.Usuarios;
 
 public class UsuarioRepository : RepositorioBase, IUsuarioRepository
 {
-    public UsuarioRepository(IConexionMonitor conexion) : base(conexion) { }
+    private readonly IUsuarioSesionService _sesionService;
+
+    public UsuarioRepository(
+        IConexionMonitor conexion,
+        IUsuarioSesionService sesionService) : base(conexion)
+    {
+        _sesionService = sesionService;
+    }
 
     // ── Lectura ──────────────────────────────────────────────────────────────
 
@@ -212,6 +219,7 @@ public class UsuarioRepository : RepositorioBase, IUsuarioRepository
     public Task<Result> ActualizarAsync(ActualizarUsuarioDto dto, CancellationToken ct = default) =>
         TryAsync(async () =>
         {
+            ExigirUsuarioObjetivoDistinto(dto.IdUsuario);
             var client = await ConexionSupabase.GetClientAsync();
             var query = client.From<UsuariosModel>()
                 .Where(u => u.idUsuario == dto.IdUsuario);
@@ -235,6 +243,7 @@ public class UsuarioRepository : RepositorioBase, IUsuarioRepository
     public Task<Result> CambiarEstadoAsync(int idUsuario, int idEstado, CancellationToken ct = default) =>
         TryAsync(async () =>
         {
+            ExigirUsuarioObjetivoDistinto(idUsuario);
             var client = await ConexionSupabase.GetClientAsync();
             var response = await client.From<UsuariosModel>()
                 .Where(u => u.idUsuario == idUsuario)
@@ -245,6 +254,16 @@ public class UsuarioRepository : RepositorioBase, IUsuarioRepository
                 throw new InvalidOperationException(
                     "No se pudo cambiar el estado del usuario. Verifique los permisos de la tabla 'usuarios'.");
         }, "Cambiar estado de usuario");
+
+    private void ExigirUsuarioObjetivoDistinto(int idUsuarioObjetivo)
+    {
+        var sesion = _sesionService.SesionActual
+            ?? throw new UnauthorizedAccessException("No existe una sesión activa.");
+
+        if (sesion.IdUsuario == idUsuarioObjetivo)
+            throw new UnauthorizedAccessException(
+                "No puedes cambiar tu propio rol ni deshabilitar tu cuenta desde este módulo.");
+    }
 
     // ── Mapping ─────────────────────────────────────────────────────────────
 

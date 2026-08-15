@@ -11,7 +11,13 @@ using System.Windows.Media.Animation;
 using CapaAplicacion.Conexion;
 using CapaAplicacion.Realtime;
 using CapaAplicacion.Usuarios.Interfaces;
+using CapaAplicacion.Empresa.Dtos;
+using CapaAplicacion.Empresa.Interfaces;
+using CapaUI.Core.Empresa;
+using CapaUI.Core.Permisos;
+using CapaUI.Formularios.Principal.Pantallas.Configuracion;
 using CapaUI.Navigation;
+using Microsoft.Extensions.DependencyInjection;
 using WpfColor = System.Windows.Media.Color;
 using WpfColorConverter = System.Windows.Media.ColorConverter;
 
@@ -26,6 +32,8 @@ namespace CapaUI.Formularios.Principal
         private readonly IUsuarioSesionService _sesionService;
         private readonly IRealtimeService      _realtimeService;
         private readonly IConexionMonitor      _conexionMonitor;
+        private readonly IEmpresaRepository    _empresaRepository;
+        private readonly IconoSidebarCache     _iconoSidebarCache;
 
         // ── Estado del sidebar ────────────────────────────────────────────
         private bool   _collapsed      = false;
@@ -120,11 +128,14 @@ namespace CapaUI.Formularios.Principal
         // ─────────────────────────────────────────────────────────────────
 
         public MainWindow(MainViewModel vm, IUsuarioSesionService sesionService,
-                          IRealtimeService realtimeService, IConexionMonitor conexionMonitor)
+                          IRealtimeService realtimeService, IConexionMonitor conexionMonitor,
+                          IEmpresaRepository empresaRepository, IconoSidebarCache iconoSidebarCache)
         {
             _sesionService   = sesionService;
             _realtimeService = realtimeService;
             _conexionMonitor = conexionMonitor;
+            _empresaRepository = empresaRepository;
+            _iconoSidebarCache = iconoSidebarCache;
             DataContext    = vm;
             InitializeComponent();
 
@@ -195,7 +206,7 @@ namespace CapaUI.Formularios.Principal
             return IntPtr.Zero;
         }
 
-        private void OnLoaded(object sender, RoutedEventArgs e)
+        private async void OnLoaded(object sender, RoutedEventArgs e)
         {
             // Módulos
             _moduleMap["usuarios"]  = new(SubUsuarios,  ChevUsuariosRot,  IndUsuarios,  ExpUsuarios,  IcoUsuarios);
@@ -226,6 +237,28 @@ namespace CapaUI.Formularios.Principal
 
             // Arrancar el monitor de conexión (ya estamos logueados y en el hilo de UI)
             _conexionMonitor.Iniciar();
+            await CargarIconoSidebarAsync();
+        }
+
+        private async Task CargarIconoSidebarAsync(string? rutaStorage = null)
+        {
+            try
+            {
+                if (rutaStorage is null)
+                {
+                    var resultado = await _empresaRepository.ObtenerAsync();
+                    if (!resultado.Success) return;
+                    rutaStorage = resultado.Value?.IconoSidebar;
+                }
+
+                var rutaLocal = await _iconoSidebarCache.ObtenerRutaLocalAsync(rutaStorage);
+                if (!string.IsNullOrWhiteSpace(rutaLocal))
+                    ImgIconoSidebar.Source = new System.Windows.Media.Imaging.BitmapImage(new Uri(rutaLocal));
+            }
+            catch (Exception ex)
+            {
+                Serilog.Log.Warning(ex, "No se pudo aplicar el ícono dinámico del sidebar");
+            }
         }
 
         // ══════════════════════════════════════════════════════════════════
@@ -482,6 +515,48 @@ namespace CapaUI.Formularios.Principal
         // ══════════════════════════════════════════════════════════════════
         private void BtnNotif_Click(object sender, RoutedEventArgs e)
             => NotifPopup.IsOpen = !NotifPopup.IsOpen;
+
+        private void BtnConfiguracion_Click(object sender, RoutedEventArgs e)
+        {
+            if (!SesionPermisos.Tiene(Permiso.ModificarConfiguracion) ||
+                ConfiguracionOverlay.Visibility == Visibility.Visible)
+                return;
+
+            NotifPopup.IsOpen = false;
+            var vm = App.Services.GetRequiredService<ConfiguracionEmpresaViewModel>();
+            var modal = new ConfiguracionEmpresaModal(vm);
+            vm.SolicitarCierre += CerrarConfiguracion;
+            vm.Guardado += OnConfiguracionGuardada;
+
+            ConfiguracionContent.Content = modal;
+            ConfiguracionOverlay.Visibility = Visibility.Visible;
+        }
+
+        private void CerrarConfiguracion()
+        {
+            if (ConfiguracionContent.Content is ConfiguracionEmpresaModal modal)
+            {
+                modal.ViewModel.SolicitarCierre -= CerrarConfiguracion;
+                modal.ViewModel.Guardado -= OnConfiguracionGuardada;
+            }
+
+            ConfiguracionOverlay.Visibility = Visibility.Collapsed;
+            ConfiguracionContent.Content = null;
+        }
+
+        private async void OnConfiguracionGuardada(EmpresaGuardadaDto resultado)
+        {
+            await CargarIconoSidebarAsync(resultado.Empresa.IconoSidebar);
+            CerrarConfiguracion();
+            if (resultado.Advertencias.Count > 0)
+            {
+                MessageBox.Show(
+                    string.Join(Environment.NewLine, resultado.Advertencias),
+                    "Configuración guardada con advertencias",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+            }
+        }
 
         // ══════════════════════════════════════════════════════════════════
         //  BÚSQUEDA

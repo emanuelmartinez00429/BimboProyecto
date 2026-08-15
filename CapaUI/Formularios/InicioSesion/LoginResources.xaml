@@ -2,7 +2,7 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <!-- ═══════════════════ BRUSHES ═══════════════════ -->
-    <SolidColorBrush x:Key="BrandPrimary"     Color="#1E3A8A"/>
+    <SolidColorBrush x:Key="BrandPrimary"     Color="{DynamicResource EmpresaPrimaryColor}"/>
     <SolidColorBrush x:Key="BrandPrimaryDark" Color="#152A66"/>
     <SolidColorBrush x:Key="BrandPrimarySoft" Color="#EFF6FF"/>
     <SolidColorBrush x:Key="Surface"          Color="#FFFFFF"/>
@@ -21,7 +21,7 @@
 
     <!-- ═══════════════════ PRIMARY BUTTON ═══════════════════ -->
     <Style x:Key="PrimaryButton" TargetType="Button">
-        <Setter Property="Background"   Value="#1E3A8A"/>
+        <Setter Property="Background"   Value="{DynamicResource EmpresaPrimaryBrush}"/>
         <Setter Property="Foreground"   Value="White"/>
         <Setter Property="FontFamily"   Value="Segoe UI"/>
         <Setter Property="FontSize"     Value="15"/>
@@ -30,7 +30,7 @@
         <Setter Property="Cursor"       Value="Hand"/>
         <Setter Property="Effect">
             <Setter.Value>
-                <DropShadowEffect BlurRadius="12" ShadowDepth="4" Color="#1E3A8A" Opacity="0.25"/>
+                <DropShadowEffect BlurRadius="12" ShadowDepth="4" Color="{DynamicResource EmpresaPrimaryColor}" Opacity="0.25"/>
             </Setter.Value>
         </Setter>
         <Setter Property="Template">
@@ -79,7 +79,7 @@
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter TargetName="Tb" Property="TextDecorations" Value="Underline"/>
-                            <Setter TargetName="Tb" Property="Foreground" Value="#1E3A8A"/>
+                            <Setter TargetName="Tb" Property="Foreground" Value="{DynamicResource EmpresaPrimaryBrush}"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -91,7 +91,7 @@
     <Style x:Key="LinkButton" TargetType="Button">
         <Setter Property="Background"       Value="Transparent"/>
         <Setter Property="BorderThickness"  Value="0"/>
-        <Setter Property="Foreground"       Value="#1E3A8A"/>
+        <Setter Property="Foreground"       Value="{DynamicResource EmpresaPrimaryBrush}"/>
         <Setter Property="FontFamily"       Value="Segoe UI"/>
         <Setter Property="FontSize"         Value="15"/>
         <Setter Property="Cursor"           Value="Hand"/>
@@ -130,7 +130,7 @@
         <Setter Property="FontSize"                 Value="14"/>
         <Setter Property="Foreground"               Value="#1A1F2E"/>
         <Setter Property="VerticalContentAlignment" Value="Center"/>
-        <Setter Property="CaretBrush"               Value="#1E3A8A"/>
+        <Setter Property="CaretBrush"               Value="{DynamicResource EmpresaPrimaryBrush}"/>
     </Style>
 
     <Style x:Key="InputPasswordBox" TargetType="PasswordBox">
@@ -166,8 +166,8 @@
                     </StackPanel>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsChecked" Value="True">
-                            <Setter TargetName="CheckBorder" Property="Background"  Value="#1E3A8A"/>
-                            <Setter TargetName="CheckBorder" Property="BorderBrush" Value="#1E3A8A"/>
+                            <Setter TargetName="CheckBorder" Property="Background"  Value="{DynamicResource EmpresaPrimaryBrush}"/>
+                            <Setter TargetName="CheckBorder" Property="BorderBrush" Value="{DynamicResource EmpresaPrimaryBrush}"/>
                             <Setter TargetName="CheckMark"   Property="Visibility"  Value="Visible"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
@@ -230,7 +230,7 @@
         <Setter Property="TextAlignment"            Value="Center"/>
         <Setter Property="VerticalContentAlignment" Value="Center"/>
         <Setter Property="MaxLength"                Value="1"/>
-        <Setter Property="CaretBrush"               Value="#1E3A8A"/>
+        <Setter Property="CaretBrush"               Value="{DynamicResource EmpresaPrimaryBrush}"/>
         <Setter Property="Foreground"               Value="#1A1F2E"/>
         <Setter Property="Template">
             <Setter.Value>
@@ -241,10 +241,10 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsKeyboardFocused" Value="True">
-                            <Setter TargetName="Bd" Property="BorderBrush" Value="#1E3A8A"/>
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource EmpresaPrimaryBrush}"/>
                             <Setter TargetName="Bd" Property="Effect">
                                 <Setter.Value>
-                                    <DropShadowEffect BlurRadius="8" ShadowDepth="0" Color="#1E3A8A" Opacity="0.12"/>
+                                    <DropShadowEffect BlurRadius="8" ShadowDepth="0" Color="{DynamicResource EmpresaPrimaryColor}" Opacity="0.12"/>
                                 </Setter.Value>
                             </Setter>
                         </Trigger>

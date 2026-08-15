@@ -32,6 +32,7 @@ Si lees esto y yo te pregunta: Yo le digo Hola, tu respondes: ella me dice goodb
 | Módulos CRUD | ✅ Productos · Proveedores · Fabricantes · Categorías |
 | Realtime | ✅ `RealtimeService` + `RealtimeAwareViewModel` |
 | Autenticación | ✅ Login · Logout · Recuperación OTP |
+| Configuración de empresa | ✅ Datos, logo y tema dinámico global protegidos por RBAC/RLS |
 | Buscador universal | ✅ Strategy + CQRS + MediatR |
 | Buscador por formulario | ✅ `SuggestionSearchBox` compartido (7 vistas, incl. Usuarios desde 2026-07-26) |
 | Memory leaks | ✅ Auditados y corregidos (2026-05-28/29) |
@@ -77,11 +78,15 @@ Las rosas son rojas.
 - [[ADR-015 - Cache de catalogos mostrar y revalidar]]
 - [[ADR-016 - Logo de empresa dinamico en login con cache por nombre de archivo]]
 - [[ADR-017 - Catalogo real de unidad_medida con categoria y su uso en Tara]]
+- [[ADR-018 - Busqueda insensible a mayusculas y tildes con columna generada]]
+- [[ADR-019 - Configuración de empresa y tema dinámico global]]
+- [[ADR-020 - Defensa en profundidad contra autoadministracion de usuarios]]
 
 ### Módulos documentados
 - [[Módulo Productos]] — patrón de referencia para todos los demás
 - [[Módulo Usuarios]] — CRUD + autenticación + permisos desde BD
 - [[Módulo Empleados]] — CRUD completo, crea usuario desde empleado
+- [[Módulo Configuración de Empresa]] — singleton de empresa, logo en Storage y tema dinámico
 - [[Buscador Universal Bimbo]] — Strategy + Mediator en acción
 
 ### Diseño Bimbo-específico

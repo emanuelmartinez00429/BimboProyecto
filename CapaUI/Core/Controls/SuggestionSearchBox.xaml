@@ -27,7 +27,7 @@
 
                 <Path Grid.Column="0"
                       Data="{StaticResource IconSearch}"
-                      Stroke="#1E3A8A" StrokeThickness="2.5"
+                      Stroke="{DynamicResource EmpresaPrimaryBrush}" StrokeThickness="2.5"
                       StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
                       Width="16" Height="16" Stretch="Uniform"
                       Margin="0,0,8,0" VerticalAlignment="Center"/>
@@ -233,7 +233,7 @@
                                             </Border.Style>
                                             <TextBlock Text="{Binding Codigo}"
                                                        FontFamily="Consolas" FontSize="11.5" FontWeight="Bold"
-                                                       Foreground="#1E3A8A"/>
+                                                       Foreground="{DynamicResource EmpresaPrimaryBrush}"/>
                                         </Border>
 
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center">

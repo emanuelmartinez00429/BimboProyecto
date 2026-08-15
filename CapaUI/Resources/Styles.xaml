@@ -3,7 +3,6 @@
                     xmlns:controls="clr-namespace:CapaUI.Core.Controls">
 
     <!-- ── Colores de marca ─────────────────────────────────────────────── -->
-    <Color x:Key="BrandColor">#1E3A8A</Color>
     <Color x:Key="BrandDarkColor">#1E2D5E</Color>
     <Color x:Key="BrandLightColor">#3B5BD6</Color>
     <Color x:Key="AccentColor">#10B981</Color>
@@ -13,7 +12,7 @@
     <Color x:Key="TextSecondaryColor">#6B7280</Color>
     <Color x:Key="SurfaceColor">#F9FAFB</Color>
 
-    <SolidColorBrush x:Key="BrandBrush"          Color="{StaticResource BrandColor}"/>
+    <SolidColorBrush x:Key="BrandBrush"          Color="{DynamicResource EmpresaPrimaryColor}"/>
     <SolidColorBrush x:Key="BrandDarkBrush"      Color="{StaticResource BrandDarkColor}"/>
     <SolidColorBrush x:Key="BrandLightBrush"     Color="{StaticResource BrandLightColor}"/>
     <SolidColorBrush x:Key="AccentBrush"         Color="{StaticResource AccentColor}"/>
