@@ -7,7 +7,7 @@ tags:
   - modelados
 date: 2026-08-09
 branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Codex
+autor_cambios: Codex (sesión gestionada por Emanuel)
 ---
 
 # Sesión 2026-08-09 — Alineación de modelados RBAC

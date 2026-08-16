@@ -3,7 +3,7 @@ title: "Sesión 2026-08-14 — Módulo de configuración de empresa y tema diná
 tags: [sesion, configuracion, empresa, tema, storage, rls]
 date: 2026-08-14
 branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Codex
+autor_cambios: Codex (sesión gestionada por Emanuel)
 ---
 
 # Sesión 2026-08-14 — Módulo de configuración de empresa y tema dinámico

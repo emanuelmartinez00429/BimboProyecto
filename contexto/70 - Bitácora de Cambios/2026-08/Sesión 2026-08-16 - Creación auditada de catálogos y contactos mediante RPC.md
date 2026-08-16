@@ -6,7 +6,7 @@ tags:
   - auditoria
 date: 2026-08-16
 branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Codex Fernando
+autor_cambios: Codex (sesión gestionada por Emanuel)
 ---
 
 # Sesión 2026-08-16 — Creación auditada de catálogos y contactos mediante RPC

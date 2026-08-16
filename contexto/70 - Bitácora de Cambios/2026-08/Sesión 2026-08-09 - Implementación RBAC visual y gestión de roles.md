@@ -7,7 +7,7 @@ tags:
   - seguridad
 date: 2026-08-09
 branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Codex
+autor_cambios: Codex (sesión gestionada por Emanuel)
 ---
 
 # Sesión 2026-08-09 — Implementación RBAC visual y gestión de roles

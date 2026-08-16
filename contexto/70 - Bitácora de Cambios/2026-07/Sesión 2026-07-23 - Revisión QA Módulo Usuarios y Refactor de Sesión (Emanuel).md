@@ -11,7 +11,7 @@ tags:
   - deuda-tecnica
 date: 2026-07-23
 branch: feat/fase7-GestióndeUsuarios
-autor_cambios: Emanuel (warthunderlover)
+autor_cambios: Codex (sesión gestionada por Emanuel)
 revisor: QA
 ---
 

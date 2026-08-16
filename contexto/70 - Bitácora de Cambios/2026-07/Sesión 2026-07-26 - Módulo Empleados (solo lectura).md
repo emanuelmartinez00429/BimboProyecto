@@ -3,7 +3,7 @@ title: "Sesión 2026-07-26 — Módulo Empleados (solo lectura)"
 tags: [sesion, empleados, wip, ui]
 date: 2026-07-26
 branch: feat/fase7-GestióndeUsuarios
-autor_cambios: Claude (Sonnet 5), dirigido por Fernando
+autor_cambios: Codex (sesión gestionada por Emanuel)
 ---
 
 # Sesión 2026-07-26 — Módulo Empleados (solo lectura)

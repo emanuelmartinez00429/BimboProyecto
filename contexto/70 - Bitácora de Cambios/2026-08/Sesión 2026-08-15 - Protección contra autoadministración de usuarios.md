@@ -3,7 +3,7 @@ title: "Sesión 2026-08-15 - Protección contra autoadministración de usuarios"
 tags: [sesion, usuarios, seguridad, rls]
 date: 2026-08-15
 branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Codex
+autor_cambios: Codex (sesión gestionada por Emanuel)
 ---
 
 # Sesión 2026-08-15 - Protección contra autoadministración de usuarios

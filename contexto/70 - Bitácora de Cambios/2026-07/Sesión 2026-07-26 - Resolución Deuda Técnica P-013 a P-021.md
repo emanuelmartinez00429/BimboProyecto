@@ -3,7 +3,7 @@ title: "Sesión 2026-07-26 — Resolución Deuda Técnica P-013 a P-021"
 tags: [sesion, deuda-tecnica, usuarios, pesaje, seguridad, supabase]
 date: 2026-07-26
 branch: claude/en-que-estaba-78b882
-autor_cambios: Claude (Fable 5), dirigido por Fernando
+autor_cambios: Codex (sesión gestionada por Emanuel)
 ---
 
 # Sesión 2026-07-26 — Resolución Deuda Técnica P-013 a P-021

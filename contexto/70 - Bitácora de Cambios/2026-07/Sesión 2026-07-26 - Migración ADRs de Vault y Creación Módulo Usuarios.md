@@ -3,7 +3,7 @@ title: "Sesión 2026-07-26 - Migración ADRs de Vault y Creación Módulo Usuari
 tags: [sesion, bimbo, gestion-usuarios, adr, migracion]
 date: 2026-07-26
 branch: main
-autor_cambios: "Emanuel (warthunderlover), dirigido por opencode"
+autor_cambios: Codex (sesión gestionada por Emanuel)
 ---
 
 # Sesión 2026-07-26 - Migración ADRs de Vault y Creación Módulo Usuarios

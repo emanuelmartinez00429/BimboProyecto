@@ -8,7 +8,7 @@ tags:
   - rendimiento
 date: 2026-08-11
 branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Claude
+autor_cambios: Codex (sesión gestionada por Emanuel)
 ---
 
 # Sesión 2026-08-11 — Rediseño de Gestión de Roles

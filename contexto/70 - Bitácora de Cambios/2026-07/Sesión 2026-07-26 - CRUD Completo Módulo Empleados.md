@@ -3,7 +3,7 @@ title: "Sesión 2026-07-26 - CRUD Completo Módulo Empleados"
 tags: [sesion, bimbo, empleados, crud, supabase]
 date: 2026-07-26
 branch: main
-autor_cambios: "Emanuel (warthunderlover), dirigido por opencode"
+autor_cambios: Codex (sesión gestionada por Emanuel)
 ---
 
 # Sesión 2026-07-26 - CRUD Completo Módulo Empleados

@@ -3,7 +3,7 @@ title: "Sesión 2026-07-26 - Refactor Flujo Creación de Usuario desde Empleados
 tags: [sesion, bimbo, gestion-usuarios, empleados, refactor, ux]
 date: 2026-07-26
 branch: main
-autor_cambios: "Emanuel (warthunderlover), dirigido por opencode"
+autor_cambios: Codex (sesión gestionada por Emanuel)
 ---
 
 # Sesión 2026-07-26 - Refactor Flujo Creación de Usuario desde Empleados

@@ -8,7 +8,7 @@ tags:
   - bitacora
 date: 2026-08-15
 branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Codex
+autor_cambios: Codex (sesión gestionada por Emanuel)
 ---
 
 # Sesión 2026-08-15 — Creación auditada de Productos mediante RPC

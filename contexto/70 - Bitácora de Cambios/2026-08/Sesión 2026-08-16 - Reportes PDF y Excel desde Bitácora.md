@@ -6,7 +6,7 @@ tags:
   - reportes
 date: 2026-08-16
 branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Codex (sesión gestionada por Fernando)
+autor_cambios: Codex (sesión gestionada por Emanuel)
 ---
 
 # Sesión 2026-08-16 — Reportes PDF y Excel desde Bitácora
