@@ -64,8 +64,24 @@ Empleados/EmpleadoModal.xaml(.cs)  — Crear + Editar + Cambiar estado
     → TxtNombre, TxtApellido, TxtIdentidad, TxtTelefono, TxtCorreo (editables)
     → RowEstado oculto
     → BtnGuardar → Validate → EmpleadoDto → _repo.CreateAsync(dto)
-    → Insert Supabase → Guardado event → View cierra + RefrescarDatos
+    → EmpleadoCrudRepository toma SesionActual.IdUsuario
+    → RPC ingresar_empleado_tabla_bitacora
+        ├── valida p_usuario_ingresando contra auth.uid()
+        ├── exige la acción Crear Empleado
+        ├── INSERT en empleados
+        ├── INSERT en bitacora
+        └── retorna id_empleado
+    → Guardado event → View cierra + RefrescarDatos
 ```
+
+Desde 2026-08-15 el alta ya no hace un `Insert` PostgREST directo. Empleado y
+bitácora se crean en la misma función PostgreSQL, por lo que ambos cambios son
+atómicos. El usuario de auditoría sale de `IUsuarioSesionService`, no del DTO ni
+del formulario; si no hay sesión activa, el repositorio rechaza la operación.
+
+Este cambio aplica únicamente al alta de empleados. `UpdateAsync` y
+`CambiarEstadoAsync` conservan sus `UPDATE`, y el flujo separado **Crear Usuario**
+continúa usando `crear_usuario_empleado_seguro` sin modificaciones.
 
 ### Editar empleado
 ```

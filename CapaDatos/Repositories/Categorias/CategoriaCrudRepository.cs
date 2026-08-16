@@ -4,7 +4,9 @@ using CapaAplicacion.Categorias.Queries;
 using CapaAplicacion.Common;
 using CapaAplicacion.Conexion;
 using CapaAplicacion.Productos.Queries;
+using CapaAplicacion.Usuarios.Interfaces;
 using CapaDatos.Modelados.Productos;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using ServicioConexión.Conexion;
 using Supabase.Postgrest;
@@ -17,7 +19,10 @@ namespace CapaDatos.Repositories.Categorias;
 
 public class CategoriaCrudRepository : RepositorioBase, ICategoriaRepository
 {
-    public CategoriaCrudRepository(IConexionMonitor conexion) : base(conexion) { }
+    private readonly IUsuarioSesionService _sesionService;
+
+    public CategoriaCrudRepository(IConexionMonitor conexion, IUsuarioSesionService sesionService)
+        : base(conexion) => _sesionService = sesionService;
 
     private static CategoriaDto Map(Categoria c) => new()
     {
@@ -46,16 +51,34 @@ public class CategoriaCrudRepository : RepositorioBase, ICategoriaRepository
     public Task<Result<int>> CreateAsync(CategoriaDto dto, CancellationToken ct = default) =>
         TryAsync(async () =>
         {
+            ct.ThrowIfCancellationRequested();
+            int idUsuario = _sesionService.SesionActual?.IdUsuario
+                ?? throw new InvalidOperationException("No hay una sesión activa; no se puede crear la categoría.");
+
             var client = await ConexionSupabase.GetClientAsync();
-            var nueva  = new Categoria
+            var parametros = new Dictionary<string, object?>
             {
-                nombreCategoria     = dto.Nombre,
-                descripcionCategoria = dto.Descripcion,
-                estadoCategoria     = dto.EstadoCategoria,
+                ["p_nombre_categoria"] = dto.Nombre,
+                ["p_estado_categoria"] = dto.EstadoCategoria,
+                ["p_descripcion_categoria"] = dto.Descripcion,
+                ["p_usuario_ingresando"] = idUsuario,
             };
-            var resultado = await client.From<Categoria>().Insert(nueva);
-            return resultado.Models.First().idCategoria;
+
+            var response = await client.Rpc("ingresar_categoria_tabla_bitacora", parametros);
+            ct.ThrowIfCancellationRequested();
+            return ObtenerIdCreado(response?.Content, "categoría");
         }, "Crear categoría");
+
+    private static int ObtenerIdCreado(string? json, string entidad)
+    {
+        if (string.IsNullOrWhiteSpace(json))
+            throw new InvalidOperationException($"La función de creación no devolvió el identificador de la {entidad}.");
+        int id;
+        try { id = JToken.Parse(json).ToObject<int>(); }
+        catch (Exception ex) when (ex is JsonException or FormatException)
+        { throw new InvalidOperationException("La función de creación devolvió un identificador inválido.", ex); }
+        return id > 0 ? id : throw new InvalidOperationException("La función de creación devolvió un identificador inválido.");
+    }
 
     public Task<Result> UpdateAsync(CategoriaDto dto, CancellationToken ct = default) =>
         TryAsync(async () =>

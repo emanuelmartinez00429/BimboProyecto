@@ -4,7 +4,9 @@ using CapaAplicacion.Presentaciones.Dtos;
 using CapaAplicacion.Presentaciones.Interfaces;
 using CapaAplicacion.Presentaciones.Queries;
 using CapaAplicacion.Productos.Queries;
+using CapaAplicacion.Usuarios.Interfaces;
 using CapaDatos.Modelados.Productos;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using ServicioConexión.Conexion;
 using Supabase.Postgrest;
@@ -17,7 +19,10 @@ namespace CapaDatos.Repositories.Presentaciones;
 
 public class PresentacionCrudRepository : RepositorioBase, IPresentacionRepository
 {
-    public PresentacionCrudRepository(IConexionMonitor conexion) : base(conexion) { }
+    private readonly IUsuarioSesionService _sesionService;
+
+    public PresentacionCrudRepository(IConexionMonitor conexion, IUsuarioSesionService sesionService)
+        : base(conexion) => _sesionService = sesionService;
 
     private static PresentacionDto Map(PresentacionCrud p) => new()
     {
@@ -60,16 +65,34 @@ public class PresentacionCrudRepository : RepositorioBase, IPresentacionReposito
     public Task<Result<int>> CreateAsync(PresentacionDto dto, CancellationToken ct = default) =>
         TryAsync(async () =>
         {
+            ct.ThrowIfCancellationRequested();
+            int idUsuario = _sesionService.SesionActual?.IdUsuario
+                ?? throw new InvalidOperationException("No hay una sesión activa; no se puede crear la presentación.");
+
             var client = await ConexionSupabase.GetClientAsync();
-            var nuevo  = new PresentacionCrud
+            var parametros = new Dictionary<string, object?>
             {
-                nombrePresentacion      = dto.Nombre,
-                descripcionPresentacion = dto.Descripcion,
-                idEstado                = dto.IdEstado,
+                ["p_nombre_presentacion"] = dto.Nombre,
+                ["p_descripcion_presentacion"] = dto.Descripcion,
+                ["p_id_estado"] = dto.IdEstado,
+                ["p_usuario_ingresando"] = idUsuario,
             };
-            var resultado = await client.From<PresentacionCrud>().Insert(nuevo);
-            return resultado.Models.First().idPresentacion;
+
+            var response = await client.Rpc("ingresar_presentacion_tabla_bitacora", parametros);
+            ct.ThrowIfCancellationRequested();
+            return ObtenerIdCreado(response?.Content, "presentación");
         }, "Crear presentación");
+
+    private static int ObtenerIdCreado(string? json, string entidad)
+    {
+        if (string.IsNullOrWhiteSpace(json))
+            throw new InvalidOperationException($"La función de creación no devolvió el identificador de la {entidad}.");
+        int id;
+        try { id = JToken.Parse(json).ToObject<int>(); }
+        catch (Exception ex) when (ex is JsonException or FormatException)
+        { throw new InvalidOperationException("La función de creación devolvió un identificador inválido.", ex); }
+        return id > 0 ? id : throw new InvalidOperationException("La función de creación devolvió un identificador inválido.");
+    }
 
     public Task<Result> UpdateAsync(PresentacionDto dto, CancellationToken ct = default) =>
         TryAsync(async () =>

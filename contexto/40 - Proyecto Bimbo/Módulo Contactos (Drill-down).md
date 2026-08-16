@@ -89,14 +89,16 @@ public Task<Result<IReadOnlyList<ContactoFabricanteDto>>> GetByFabricanteAsync(i
         return (IReadOnlyList<ContactoFabricanteDto>)result.Models.Select(Map).ToList();
     }, "Cargar contactos fabricante");
 
-// Creación: ORM Insert, devuelve la PK nueva
+// Creación auditada: RPC, devuelve la PK nueva
 public Task<Result<int>> CreateAsync(ContactoFabricanteDto dto, ...) =>
     TryAsync(async () =>
     {
-        var client  = await ConexionSupabase.GetClientAsync();
-        var nuevo   = new ContactoFabricanteModel { idFabricante = dto.IdFabricante, ... };
-        var result  = await client.From<ContactoFabricanteModel>().Insert(nuevo);
-        return result.Models.First().idContactoFabricante;   // PK del row insertado
+        int idUsuario = _sesionService.SesionActual?.IdUsuario
+            ?? throw new InvalidOperationException("No hay una sesión activa");
+        var response = await client.Rpc(
+            "ingresar_contacto_fabricante_tabla_bitacora",
+            new Dictionary<string, object?> { /* DTO + idUsuario */ });
+        return ObtenerIdCreado(response.Content);
     }, "Crear contacto fabricante");
 
 // Soft-delete
@@ -335,6 +337,13 @@ public class ContactosProveedoresVM : ViewModelBase { }
 
 ## Notas críticas
 
+> [!info] Creación auditada desde 2026-08-16
+> `CreateAsync` de contactos de fabricante y proveedor ya no ejecuta `Insert`
+> PostgREST. Cada repositorio exige una sesión activa y llama respectivamente
+> `ingresar_contacto_fabricante_tabla_bitacora` o
+> `ingresar_contacto_proveedor_tabla_bitacora`, enviando
+> `SesionActual.IdUsuario`. Edición y baja lógica conservan el flujo anterior.
+
 > [!bug] `FabricanteModel` no hereda `BaseModel`
 > Igual que en el módulo Productos: nunca usar `client.From<Fabricante>()`. Los fabricantes se cargan siempre vía `IFabricanteRepository`.
 
@@ -343,3 +352,11 @@ public class ContactosProveedoresVM : ViewModelBase { }
 
 > [!info] Buscador solo en la lista principal
 > El buscador (debounce 300ms + ILike) aplica a la lista de Fabricantes/Proveedores, no a los contactos dentro del detalle. En la vista de detalle se asume que la lista es corta y visible completa.
+
+## Relaciones
+
+- [[Arquitectura Actual]]
+- [[Módulos de Catálogos Administrativos]]
+- [[Módulo Productos]]
+- [[Módulo Bitácora]]
+- [[Sesión 2026-08-16 - Creación auditada de catálogos y contactos mediante RPC]]

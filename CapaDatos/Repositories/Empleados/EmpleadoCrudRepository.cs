@@ -4,7 +4,10 @@ using CapaAplicacion.Empleados.Dtos;
 using CapaAplicacion.Empleados.Interfaces;
 using CapaAplicacion.Empleados.Queries;
 using CapaAplicacion.Productos.Queries;
+using CapaAplicacion.Usuarios.Interfaces;
 using CapaDatos.Modelados.Usuarios;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using ServicioConexión.Conexion;
 using Op  = Supabase.Postgrest.Constants.Operator;
 using Ord = Supabase.Postgrest.Constants.Ordering;
@@ -18,7 +21,14 @@ namespace CapaDatos.Repositories.GestionEmpleados;
 
 public class EmpleadoCrudRepository : RepositorioBase, IEmpleadoRepository
 {
-    public EmpleadoCrudRepository(IConexionMonitor conexion) : base(conexion) { }
+    private readonly IUsuarioSesionService _sesionService;
+
+    public EmpleadoCrudRepository(
+        IConexionMonitor conexion,
+        IUsuarioSesionService sesionService) : base(conexion)
+    {
+        _sesionService = sesionService;
+    }
 
     private static EmpleadoDto Map(CapaDatos.Modelados.Usuarios.Empleados e) => new()
     {
@@ -50,18 +60,51 @@ public class EmpleadoCrudRepository : RepositorioBase, IEmpleadoRepository
     public Task<Result<int>> CreateAsync(EmpleadoDto dto, CancellationToken ct = default) =>
         TryAsync(async () =>
         {
+            ct.ThrowIfCancellationRequested();
+
+            int idUsuario = _sesionService.SesionActual?.IdUsuario
+                ?? throw new InvalidOperationException(
+                    "No hay una sesión activa; no se puede crear el empleado.");
+
             var client = await ConexionSupabase.GetClientAsync();
-            var nuevo = new CapaDatos.Modelados.Usuarios.Empleados
+            var parametros = new Dictionary<string, object?>
             {
-                nombreEmpleado   = dto.NombreEmpleado,
-                apellidoEmpleado = dto.ApellidoEmpleado,
-                numeroIdentidad  = dto.NumeroIdentidad,
-                telefonoEmpleado = dto.TelefonoEmpleado,
-                correoEmpleado   = dto.CorreoEmpleado,
-                idEstado         = dto.IdEstado,
+                ["p_dni"]                = dto.NumeroIdentidad,
+                ["p_nombre_empleado"]    = dto.NombreEmpleado,
+                ["p_apellido_empleado"]  = dto.ApellidoEmpleado,
+                ["p_numero_telefonico"]  = dto.TelefonoEmpleado,
+                ["p_correo_empleado"]    = dto.CorreoEmpleado,
+                ["p_estado_empleado"]    = dto.IdEstado,
+                ["p_usuario_ingresando"] = idUsuario,
             };
-            var resultado = await client.From<CapaDatos.Modelados.Usuarios.Empleados>().Insert(nuevo);
-            return resultado.Models.First().idEmpleado;
+
+            var response = await client.Rpc(
+                "ingresar_empleado_tabla_bitacora",
+                parametros);
+
+            ct.ThrowIfCancellationRequested();
+
+            string? json = response?.Content;
+            if (string.IsNullOrWhiteSpace(json))
+                throw new InvalidOperationException(
+                    "La función de creación no devolvió el identificador del empleado.");
+
+            int idEmpleado;
+            try
+            {
+                idEmpleado = JToken.Parse(json).ToObject<int>();
+            }
+            catch (Exception ex) when (ex is JsonException or FormatException)
+            {
+                throw new InvalidOperationException(
+                    "La función de creación devolvió un identificador inválido.", ex);
+            }
+
+            if (idEmpleado <= 0)
+                throw new InvalidOperationException(
+                    "La función de creación devolvió un identificador inválido.");
+
+            return idEmpleado;
         }, "Crear empleado");
 
     public Task<Result> UpdateAsync(EmpleadoDto dto, CancellationToken ct = default) =>

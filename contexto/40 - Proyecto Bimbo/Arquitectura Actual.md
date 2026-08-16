@@ -156,9 +156,10 @@ ProductosViewModel : RealtimeAwareViewModel
 | Módulo | Estado | Archivos clave |
 |---|---|---|
 | [[Módulo Productos]] | ✅ Completo | ProductosView, ProductosViewModel, ProductoCrudRepository |
-| Proveedores | ✅ Completo | ProveedoresView, ProveedoresViewModel, ProveedorCrudRepository |
-| Fabricantes | ✅ Completo | FabricantesView, FabricantesViewModel, FabricanteCrudRepository |
-| Categorías | ✅ Completo | CategoriasView, CategoriasViewModel, CategoriaCrudRepository |
+| [[Módulos de Catálogos Administrativos\|Proveedores]] | ✅ Completo | ProveedoresView, ProveedoresViewModel, ProveedorCrudRepository — creación auditada por RPC |
+| [[Módulos de Catálogos Administrativos\|Fabricantes]] | ✅ Completo | FabricantesView, FabricantesViewModel, FabricanteCrudRepository — creación auditada por RPC |
+| [[Módulos de Catálogos Administrativos\|Categorías]] | ✅ Completo | CategoriasView, CategoriasViewModel, CategoriaCrudRepository — creación auditada por RPC |
+| [[Módulos de Catálogos Administrativos\|Presentaciones]] | ✅ Completo | PresentacionesView, PresentacionesViewModel, PresentacionCrudRepository — creación auditada por RPC |
 | [[Módulo Contactos (Drill-down)\|Contactos Fabricantes]] | ✅ Completo | ContactosFabricantesView, ContactosFabricantesViewModel, ContactoFabricanteCrudRepository |
 | [[Módulo Contactos (Drill-down)\|Contactos Proveedores]] | ✅ Completo | ContactosProveedoresView, ContactosProveedoresViewModel, ContactoProveedorCrudRepository |
 | [[Buscador Universal Bimbo]] | ✅ Completo | Multi-entidad con Strategy + Mediator |

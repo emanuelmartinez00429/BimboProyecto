@@ -46,6 +46,36 @@ CapaUI/Formularios/Principal/Pantallas/Productos/
 
 ---
 
+## Flujo de datos — Creación auditada
+
+Desde 2026-08-15 la creación ya no ejecuta un `INSERT` PostgREST directo desde
+`ProductoCrudRepository`. El repositorio toma el usuario autenticado desde
+`IUsuarioSesionService` y llama la RPC `ingresar_producto_tabla_bitacora` con los
+campos del `ProductoDto` y `SesionActual.IdUsuario`.
+
+```
+ProductoModal.BtnGuardar_Click
+    ↓ IProductoRepository.CreateAsync(dto)
+    ↓ ProductoCrudRepository
+       ├── exige una sesión activa
+       └── client.Rpc("ingresar_producto_tabla_bitacora", parámetros)
+             ├── valida p_usuario_ingresando contra auth.uid()
+             ├── exige la acción Crear Producto
+             ├── INSERT en productos
+             ├── INSERT en bitacora
+             └── retorna id_producto
+    ↓ Result<int>
+    ↓ Guardado → refresco silencioso de la grilla
+```
+
+Producto y bitácora se escriben dentro de la misma función de PostgreSQL: si
+falla cualquiera de las dos operaciones, no queda un producto sin auditoría ni
+una entrada de bitácora huérfana. Los campos opcionales conservan `NULL`; el
+repositorio nunca inventa IDs `0`. `UpdateAsync` y `DeleteAsync` conservan sus
+actualizaciones actuales y no pasan por esta RPC.
+
+---
+
 ## Flujo de datos — Carga inicial
 
 ```

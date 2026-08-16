@@ -2,7 +2,10 @@ using CapaAplicacion.Common;
 using CapaAplicacion.Conexion;
 using CapaAplicacion.Contactos.Proveedores.Dtos;
 using CapaAplicacion.Contactos.Proveedores.Interfaces;
+using CapaAplicacion.Usuarios.Interfaces;
 using CapaDatos.Modelados.Contactos;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using ServicioConexión.Conexion;
 using Op  = Supabase.Postgrest.Constants.Operator;
 using Ord = Supabase.Postgrest.Constants.Ordering;
@@ -11,7 +14,10 @@ namespace CapaDatos.Repositories.Contactos;
 
 public class ContactoProveedorCrudRepository : RepositorioBase, IContactoProveedorRepository
 {
-    public ContactoProveedorCrudRepository(IConexionMonitor conexion) : base(conexion) { }
+    private readonly IUsuarioSesionService _sesionService;
+
+    public ContactoProveedorCrudRepository(IConexionMonitor conexion, IUsuarioSesionService sesionService)
+        : base(conexion) => _sesionService = sesionService;
 
     private static ContactoProveedorDto Map(ContactoProveedorModel c) => new()
     {
@@ -40,18 +46,36 @@ public class ContactoProveedorCrudRepository : RepositorioBase, IContactoProveed
     public Task<Result<int>> CreateAsync(ContactoProveedorDto dto, CancellationToken ct = default) =>
         TryAsync(async () =>
         {
+            ct.ThrowIfCancellationRequested();
+            int idUsuario = _sesionService.SesionActual?.IdUsuario
+                ?? throw new InvalidOperationException("No hay una sesión activa; no se puede crear el contacto de proveedor.");
+
             var client = await ConexionSupabase.GetClientAsync();
-            var nuevo  = new ContactoProveedorModel
+            var parametros = new Dictionary<string, object?>
             {
-                idProveedor      = dto.IdProveedor,
-                nombreContacto   = dto.Nombre,
-                telefonoContacto = string.IsNullOrWhiteSpace(dto.Telefono) ? null : dto.Telefono,
-                correoContacto   = string.IsNullOrWhiteSpace(dto.Correo)   ? null : dto.Correo,
-                idEstado         = EstadoRegistro.Activo,
+                ["p_id_proveedor"] = dto.IdProveedor,
+                ["p_nombre_contacto"] = dto.Nombre,
+                ["p_telefono_contacto"] = string.IsNullOrWhiteSpace(dto.Telefono) ? null : dto.Telefono,
+                ["p_correo_contacto"] = string.IsNullOrWhiteSpace(dto.Correo) ? null : dto.Correo,
+                ["p_id_estado"] = EstadoRegistro.Activo,
+                ["p_usuario_ingresando"] = idUsuario,
             };
-            var resultado = await client.From<ContactoProveedorModel>().Insert(nuevo);
-            return resultado.Models.First().idContactoProveedor;
+
+            var response = await client.Rpc("ingresar_contacto_proveedor_tabla_bitacora", parametros);
+            ct.ThrowIfCancellationRequested();
+            return ObtenerIdCreado(response?.Content);
         }, "Crear contacto proveedor");
+
+    private static int ObtenerIdCreado(string? json)
+    {
+        if (string.IsNullOrWhiteSpace(json))
+            throw new InvalidOperationException("La función de creación no devolvió el identificador del contacto de proveedor.");
+        int id;
+        try { id = JToken.Parse(json).ToObject<int>(); }
+        catch (Exception ex) when (ex is JsonException or FormatException)
+        { throw new InvalidOperationException("La función de creación devolvió un identificador inválido.", ex); }
+        return id > 0 ? id : throw new InvalidOperationException("La función de creación devolvió un identificador inválido.");
+    }
 
     public Task<Result> UpdateAsync(ContactoProveedorDto dto, CancellationToken ct = default) =>
         TryAsync(async () =>

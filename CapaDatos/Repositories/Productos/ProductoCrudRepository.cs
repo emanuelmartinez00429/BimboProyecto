@@ -3,6 +3,7 @@ using CapaAplicacion.Conexion;
 using CapaAplicacion.Productos.Dtos;
 using CapaAplicacion.Productos.Interfaces;
 using CapaAplicacion.Productos.Queries;
+using CapaAplicacion.Usuarios.Interfaces;
 using CapaDatos.Modelados.Productos;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -17,7 +18,14 @@ namespace CapaDatos.Repositories.Productos;
 
 public class ProductoCrudRepository : RepositorioBase, IProductoRepository
 {
-    public ProductoCrudRepository(IConexionMonitor conexion) : base(conexion) { }
+    private readonly IUsuarioSesionService _sesionService;
+
+    public ProductoCrudRepository(
+        IConexionMonitor conexion,
+        IUsuarioSesionService sesionService) : base(conexion)
+    {
+        _sesionService = sesionService;
+    }
 
     /// <summary>
     /// El embed de fabricante pasa a <c>!inner</c> SOLO cuando se filtra por
@@ -102,24 +110,57 @@ public class ProductoCrudRepository : RepositorioBase, IProductoRepository
     public Task<Result<int>> CreateAsync(ProductoDto dto, CancellationToken ct = default) =>
         TryAsync(async () =>
         {
+            ct.ThrowIfCancellationRequested();
+
+            int idUsuario = _sesionService.SesionActual?.IdUsuario
+                ?? throw new InvalidOperationException(
+                    "No hay una sesión activa; no se puede crear el producto.");
+
             var client = await ConexionSupabase.GetClientAsync();
-            var nuevo  = new Modelados.Productos.Productos
+            var parametros = new Dictionary<string, object?>
             {
-                codigoProducto    = dto.CodigoInterno,
-                nombreProducto    = dto.Nombre,
-                contenidoProducto = dto.Contenido,
-                idPresentacion    = dto.IdPresentacion,
-                idFabricante      = dto.IdFabricante,
-                idCategoria       = dto.IdCategoria,
-                idPais            = dto.IdPais,
-                idEstado          = dto.IdEstado,
-                pesoTeorico       = dto.PesoTeorico,
-                idTara            = dto.IdTara,
-                idUnidad          = dto.IdUnidad,
-                precioPorKg       = dto.PrecioPorKg,
+                ["p_codigo_producto"]    = dto.CodigoInterno,
+                ["p_nombre_producto"]    = dto.Nombre,
+                ["p_id_presentacion"]    = dto.IdPresentacion,
+                ["p_id_fabricante"]      = dto.IdFabricante,
+                ["p_id_unidad"]          = dto.IdUnidad,
+                ["p_id_estado"]          = dto.IdEstado,
+                ["p_peso_teorico"]       = dto.PesoTeorico,
+                ["p_id_tara"]            = dto.IdTara,
+                ["p_id_categoria"]       = dto.IdCategoria,
+                ["p_contenido"]          = dto.Contenido,
+                ["p_id_pais"]            = dto.IdPais,
+                ["p_precio_por_kg"]       = dto.PrecioPorKg,
+                ["p_usuario_ingresando"] = idUsuario,
             };
-            var resultado = await client.From<Modelados.Productos.Productos>().Insert(nuevo);
-            return resultado.Models.First().idProducto;
+
+            var response = await client.Rpc(
+                "ingresar_producto_tabla_bitacora",
+                parametros);
+
+            ct.ThrowIfCancellationRequested();
+
+            string? json = response?.Content;
+            if (string.IsNullOrWhiteSpace(json))
+                throw new InvalidOperationException(
+                    "La función de creación no devolvió el identificador del producto.");
+
+            int idProducto;
+            try
+            {
+                idProducto = JToken.Parse(json).ToObject<int>();
+            }
+            catch (Exception ex) when (ex is JsonException or FormatException)
+            {
+                throw new InvalidOperationException(
+                    "La función de creación devolvió un identificador inválido.", ex);
+            }
+
+            if (idProducto <= 0)
+                throw new InvalidOperationException(
+                    "La función de creación devolvió un identificador inválido.");
+
+            return idProducto;
         }, "Crear producto");
 
     public Task<Result> UpdateAsync(ProductoDto dto, CancellationToken ct = default) =>

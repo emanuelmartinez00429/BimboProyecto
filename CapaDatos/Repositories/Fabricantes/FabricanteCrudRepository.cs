@@ -5,9 +5,11 @@ using CapaAplicacion.Fabricantes.Interfaces;
 using CapaAplicacion.Fabricantes.Queries;
 using CapaAplicacion.Productos.Dtos;
 using CapaAplicacion.Productos.Queries;
+using CapaAplicacion.Usuarios.Interfaces;
 using CapaDatos.Modelados.Fabricantes;
 using CapaDatos.Modelados.Productos;
 using ProveedorEnt = CapaDatos.Modelados.Pesajes.Proveedores;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using ServicioConexión.Conexion;
 using Supabase.Postgrest;
@@ -20,7 +22,10 @@ namespace CapaDatos.Repositories.Fabricantes;
 
 public class FabricanteCrudRepository : RepositorioBase, IFabricanteRepository
 {
-    public FabricanteCrudRepository(IConexionMonitor conexion) : base(conexion) { }
+    private readonly IUsuarioSesionService _sesionService;
+
+    public FabricanteCrudRepository(IConexionMonitor conexion, IUsuarioSesionService sesionService)
+        : base(conexion) => _sesionService = sesionService;
 
     private static FabricanteDto Map(
         FabricanteCrud f,
@@ -62,18 +67,36 @@ public class FabricanteCrudRepository : RepositorioBase, IFabricanteRepository
     public Task<Result<int>> CreateAsync(FabricanteDto dto, CancellationToken ct = default) =>
         TryAsync(async () =>
         {
+            ct.ThrowIfCancellationRequested();
+            int idUsuario = _sesionService.SesionActual?.IdUsuario
+                ?? throw new InvalidOperationException("No hay una sesión activa; no se puede crear el fabricante.");
+
             var client = await ConexionSupabase.GetClientAsync();
-            var nuevo  = new FabricanteCrud
+            var parametros = new Dictionary<string, object?>
             {
-                nombreFabricante      = dto.Nombre,
-                descripcionFabricante = dto.Descripcion,
-                idProveedor           = dto.IdProveedor,
-                idPais                = dto.IdPais,
-                idEstado              = dto.IdEstado,
+                ["p_nombre_fabricante"] = dto.Nombre,
+                ["p_descripcion_fabricante"] = dto.Descripcion,
+                ["p_id_proveedor"] = dto.IdProveedor,
+                ["p_id_estado"] = dto.IdEstado,
+                ["p_id_pais"] = dto.IdPais,
+                ["p_usuario_ingresando"] = idUsuario,
             };
-            var resultado = await client.From<FabricanteCrud>().Insert(nuevo);
-            return resultado.Models.First().idFabricante;
+
+            var response = await client.Rpc("ingresar_fabricante_tabla_bitacora", parametros);
+            ct.ThrowIfCancellationRequested();
+            return ObtenerIdCreado(response?.Content, "fabricante");
         }, "Crear fabricante");
+
+    private static int ObtenerIdCreado(string? json, string entidad)
+    {
+        if (string.IsNullOrWhiteSpace(json))
+            throw new InvalidOperationException($"La función de creación no devolvió el identificador del {entidad}.");
+        int id;
+        try { id = JToken.Parse(json).ToObject<int>(); }
+        catch (Exception ex) when (ex is JsonException or FormatException)
+        { throw new InvalidOperationException("La función de creación devolvió un identificador inválido.", ex); }
+        return id > 0 ? id : throw new InvalidOperationException("La función de creación devolvió un identificador inválido.");
+    }
 
     public Task<Result> UpdateAsync(FabricanteDto dto, CancellationToken ct = default) =>
         TryAsync(async () =>

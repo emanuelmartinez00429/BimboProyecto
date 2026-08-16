@@ -4,6 +4,8 @@ using CapaAplicacion.Productos.Queries;
 using CapaAplicacion.Proveedores.Dtos;
 using CapaAplicacion.Proveedores.Interfaces;
 using CapaAplicacion.Proveedores.Queries;
+using CapaAplicacion.Usuarios.Interfaces;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using ServicioConexión.Conexion;
 using Supabase.Postgrest;
@@ -17,7 +19,10 @@ namespace CapaDatos.Repositories.Proveedores;
 
 public class ProveedorCrudRepository : RepositorioBase, IProveedorRepository
 {
-    public ProveedorCrudRepository(IConexionMonitor conexion) : base(conexion) { }
+    private readonly IUsuarioSesionService _sesionService;
+
+    public ProveedorCrudRepository(IConexionMonitor conexion, IUsuarioSesionService sesionService)
+        : base(conexion) => _sesionService = sesionService;
 
     private static ProveedorDto Map(Prov p) => new()
     {
@@ -49,19 +54,43 @@ public class ProveedorCrudRepository : RepositorioBase, IProveedorRepository
     public Task<Result<int>> CreateAsync(ProveedorDto dto, CancellationToken ct = default) =>
         TryAsync(async () =>
         {
+            ct.ThrowIfCancellationRequested();
+            int idUsuario = _sesionService.SesionActual?.IdUsuario
+                ?? throw new InvalidOperationException("No hay una sesión activa; no se puede crear el proveedor.");
+
             var client = await ConexionSupabase.GetClientAsync();
-            var nuevo  = new Prov
+            var parametros = new Dictionary<string, object?>
             {
-                nombreProveedor    = dto.Nombre,
-                rtnProveedor       = dto.Rtn,
-                telefonoProveedor  = dto.Telefono,
-                correoProveedor    = dto.Correo,
-                direccionProveedor = dto.Direccion,
-                idEstado           = dto.IdEstado,
+                ["p_nombre_proveedor"] = dto.Nombre,
+                ["p_rtn_proveedor"] = dto.Rtn,
+                ["p_telefono_proveedor"] = dto.Telefono,
+                ["p_correo_proveedor"] = dto.Correo,
+                ["p_direccion_proveedor"] = dto.Direccion,
+                ["p_id_estado"] = dto.IdEstado,
+                ["p_usuario_ingresando"] = idUsuario,
             };
-            var resultado = await client.From<Prov>().Insert(nuevo);
-            return resultado.Models.First().idProveedor;
+
+            var response = await client.Rpc("ingresar_proveedor_tabla_bitacora", parametros);
+            ct.ThrowIfCancellationRequested();
+            return ObtenerIdCreado(response?.Content, "proveedor");
         }, "Crear proveedor");
+
+    private static int ObtenerIdCreado(string? json, string entidad)
+    {
+        if (string.IsNullOrWhiteSpace(json))
+            throw new InvalidOperationException($"La función de creación no devolvió el identificador del {entidad}.");
+
+        int id;
+        try { id = JToken.Parse(json).ToObject<int>(); }
+        catch (Exception ex) when (ex is JsonException or FormatException)
+        {
+            throw new InvalidOperationException("La función de creación devolvió un identificador inválido.", ex);
+        }
+
+        return id > 0
+            ? id
+            : throw new InvalidOperationException("La función de creación devolvió un identificador inválido.");
+    }
 
     public Task<Result> UpdateAsync(ProveedorDto dto, CancellationToken ct = default) =>
         TryAsync(async () =>
