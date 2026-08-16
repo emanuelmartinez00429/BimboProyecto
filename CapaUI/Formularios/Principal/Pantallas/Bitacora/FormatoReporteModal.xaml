@@ -1,0 +1,44 @@
+<UserControl x:Class="CapaUI.Formularios.Principal.Pantallas.Bitacora.FormatoReporteModal"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Width="500" UseLayoutRounding="True">
+    <Border CornerRadius="12" Background="White" Padding="28">
+        <Border.Effect>
+            <DropShadowEffect Color="Black" BlurRadius="24" ShadowDepth="8" Opacity="0.4"/>
+        </Border.Effect>
+        <StackPanel>
+            <TextBlock Text="Crear reporte" FontFamily="Segoe UI" FontSize="24" FontWeight="Bold"
+                       Foreground="#1A1F2E"/>
+            <TextBlock Text="Elige el formato para los registros seleccionados."
+                       FontFamily="Segoe UI" FontSize="15" Foreground="#6B7280" Margin="0,6,0,22"/>
+
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="12"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Button Grid.Column="0" Height="92" Click="BtnPdf_Click" Cursor="Hand"
+                        Background="#EEF2FF" BorderBrush="#A5B4FC" BorderThickness="1" Padding="16">
+                    <StackPanel>
+                        <TextBlock Text="PDF" FontSize="21" FontWeight="Bold" Foreground="#1E40AF" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Documento listo para imprimir" FontSize="13" Foreground="#64748B"
+                                   HorizontalAlignment="Center" Margin="0,6,0,0"/>
+                    </StackPanel>
+                </Button>
+                <Button Grid.Column="2" Height="92" Click="BtnExcel_Click" Cursor="Hand"
+                        Background="#ECFDF5" BorderBrush="#6EE7B7" BorderThickness="1" Padding="16">
+                    <StackPanel>
+                        <TextBlock Text="Excel" FontSize="21" FontWeight="Bold" Foreground="#047857" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Libro .xlsx con filtros" FontSize="13" Foreground="#64748B"
+                                   HorizontalAlignment="Center" Margin="0,6,0,0"/>
+                    </StackPanel>
+                </Button>
+            </Grid>
+
+            <Button Content="Cancelar" HorizontalAlignment="Right" Margin="0,20,0,0"
+                    Padding="18,8" Background="#F1F5F9" Foreground="#334155"
+                    BorderBrush="#CBD5E1" Click="BtnCancelar_Click" Cursor="Hand"/>
+        </StackPanel>
+    </Border>
+</UserControl>

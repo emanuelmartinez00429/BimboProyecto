@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -8,7 +9,9 @@ using System.Windows.Media.Animation;
 using CapaAplicacion.Bitacora.Dtos;
 using CapaAplicacion.Productos.Dtos;
 using CapaUI.Core.Controls;
+using CapaDominio.Reportes;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Win32;
 
 namespace CapaUI.Formularios.Principal.Pantallas.Bitacora
 {
@@ -17,6 +20,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Bitacora
         private BitacoraViewModel _vm = null!;
         private Storyboard? _spinnerStory;
         private bool _suppressFilterChange;
+        private bool _suppressSelectionChange;
 
         public BitacoraView()
         {
@@ -30,6 +34,8 @@ namespace CapaUI.Formularios.Principal.Pantallas.Bitacora
             _vm = App.Services.GetRequiredService<BitacoraViewModel>();
             _vm.FiltrosLimpiados   += OnFiltrosLimpiados;
             _vm.AccionesRecargadas += PoblarAcciones;
+            _vm.SolicitarCrearReporte += AbrirModalFormatoReporte;
+            _vm.ReporteCreado      += OnReporteCreado;
             _vm.PropertyChanged    += OnVmPropertyChanged;
 
             DataContext = _vm;
@@ -51,6 +57,8 @@ namespace CapaUI.Formularios.Principal.Pantallas.Bitacora
             if (_vm == null) return;
             _vm.FiltrosLimpiados   -= OnFiltrosLimpiados;
             _vm.AccionesRecargadas -= PoblarAcciones;
+            _vm.SolicitarCrearReporte -= AbrirModalFormatoReporte;
+            _vm.ReporteCreado      -= OnReporteCreado;
             _vm.PropertyChanged    -= OnVmPropertyChanged;
             _vm.Dispose();
             DataContext = null;
@@ -229,11 +237,100 @@ namespace CapaUI.Formularios.Principal.Pantallas.Bitacora
             DgBitacora.ScrollIntoView(_vm.Seleccionado);
         }
 
+        // ── Selección y reportes ─────────────────────────────────────────
+
+        private void DgBitacora_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_vm == null || _suppressSelectionChange) return;
+
+            var seleccion = DgBitacora.SelectedItems.Cast<BitacoraDto>().ToList();
+            _vm.ActualizarSeleccionReporte(seleccion);
+
+            _suppressSelectionChange = true;
+            ChkSeleccionarPagina.IsChecked = seleccion.Count == 0
+                ? false
+                : seleccion.Count == DgBitacora.Items.Count
+                    ? true
+                    : null;
+            _suppressSelectionChange = false;
+        }
+
+        private void ChkSeleccionarPagina_Checked(object sender, RoutedEventArgs e)
+        {
+            if (_vm == null || _suppressSelectionChange) return;
+            DgBitacora.SelectAll();
+        }
+
+        private void ChkSeleccionarPagina_Unchecked(object sender, RoutedEventArgs e)
+        {
+            if (_vm == null || _suppressSelectionChange) return;
+            DgBitacora.UnselectAll();
+        }
+
+        private void AbrirModalFormatoReporte()
+        {
+            var modal = new FormatoReporteModal();
+            modal.Cerrado += CerrarModal;
+            modal.FormatoSeleccionado += async formato =>
+            {
+                CerrarModal();
+                await ElegirRutaYGenerarAsync(formato);
+            };
+            ModalContent.Content = modal;
+            ModalOverlay.Visibility = Visibility.Visible;
+        }
+
+        private void CerrarModal()
+        {
+            ModalOverlay.Visibility = Visibility.Collapsed;
+            ModalContent.Content = null;
+        }
+
+        private async Task ElegirRutaYGenerarAsync(ReportFormat formato)
+        {
+            string extension = formato == ReportFormat.Pdf ? ".pdf" : ".xlsx";
+            var dialog = new SaveFileDialog
+            {
+                Title = "Guardar reporte de bitácora",
+                FileName = $"Reporte_Bitacora_{DateTime.Now:yyyyMMdd_HHmmss}{extension}",
+                DefaultExt = extension,
+                AddExtension = true,
+                OverwritePrompt = true,
+                Filter = formato == ReportFormat.Pdf
+                    ? "Documento PDF (*.pdf)|*.pdf"
+                    : "Libro de Excel (*.xlsx)|*.xlsx",
+            };
+
+            if (dialog.ShowDialog() != true) return;
+            await _vm.GenerarReporteAsync(formato, dialog.FileName);
+        }
+
+        private static void OnReporteCreado(string ruta)
+        {
+            try
+            {
+                Process.Start(new ProcessStartInfo(ruta) { UseShellExecute = true });
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"El reporte se guardó correctamente, pero no pudo abrirse automáticamente.\n\n{ex.Message}",
+                    "Reporte creado",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+            }
+        }
+
         // ── Pagination ─────────────────────────────────────────────────
 
         private void RefrescarPaginacion()
         {
             if (_vm == null) return;
+            _suppressSelectionChange = true;
+            DgBitacora.UnselectAll();
+            ChkSeleccionarPagina.IsChecked = false;
+            _suppressSelectionChange = false;
+            _vm.ActualizarSeleccionReporte(Array.Empty<BitacoraDto>());
             DgBitacora.ItemsSource = _vm.PageRows;
 
             PaginacionPanel.Items.Clear();

@@ -1,11 +1,18 @@
 ﻿using System.Collections.ObjectModel;
+using System.IO;
+using System.Linq;
 using CapaAplicacion.Bitacora.Dtos;
 using CapaAplicacion.Bitacora.Interfaces;
 using CapaAplicacion.Bitacora.Queries;
 using CapaAplicacion.Productos.Dtos;
+using CapaAplicacion.Reportes.Dtos;
+using CapaAplicacion.Reportes.Interfaces;
+using CapaAplicacion.Usuarios.Interfaces;
 using CapaUI.Core.Controls;
+using CapaDominio.Reportes;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Newtonsoft.Json;
 
 namespace CapaUI.Formularios.Principal.Pantallas.Bitacora;
 
@@ -18,7 +25,11 @@ namespace CapaUI.Formularios.Principal.Pantallas.Bitacora;
 public partial class BitacoraViewModel : ObservableObject, IDisposable
 {
     private readonly IBitacoraRepository _repo;
+    private readonly IReportGeneratorService _reportGenerator;
+    private readonly IReporteRepository _reporteRepository;
+    private readonly IUsuarioSesionService _sesionService;
     private readonly SuggestionDebouncer    _buscador = new();
+    private IReadOnlyList<BitacoraDto> _seleccionReporte = Array.Empty<BitacoraDto>();
     private bool _disposed;
 
     private string    _query = "";
@@ -51,6 +62,14 @@ public partial class BitacoraViewModel : ObservableObject, IDisposable
     [ObservableProperty] private int    _highlightIndex = -1;
     [ObservableProperty] private int    _totalCount;
     [ObservableProperty] private string _errorCarga = "";
+
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(CrearReporteCommand))]
+    private int _cantidadSeleccionada;
+
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(CrearReporteCommand))]
+    private bool _isGeneratingReport;
 
     // Lookups de los dropdowns de filtro
     [ObservableProperty] private List<FiltroItem> _modulos  = new();
@@ -133,9 +152,21 @@ public partial class BitacoraViewModel : ObservableObject, IDisposable
 
     /// <summary>La View repuebla el ComboBox de Acción cuando cambia el Módulo.</summary>
     public event Action? AccionesRecargadas;
+    public event Action? SolicitarCrearReporte;
+    public event Action<string>? ReporteCreado;
 
     // ── Constructor ────────────────────────────────────────────────────
-    public BitacoraViewModel(IBitacoraRepository repo) => _repo = repo;
+    public BitacoraViewModel(
+        IBitacoraRepository repo,
+        IReportGeneratorService reportGenerator,
+        IReporteRepository reporteRepository,
+        IUsuarioSesionService sesionService)
+    {
+        _repo = repo;
+        _reportGenerator = reportGenerator;
+        _reporteRepository = reporteRepository;
+        _sesionService = sesionService;
+    }
 
     // ── Carga ──────────────────────────────────────────────────────────
     public async Task CargarDatosAsync()
@@ -213,6 +244,7 @@ public partial class BitacoraViewModel : ObservableObject, IDisposable
         TotalCount     = pagina.Total;
         _filteredCount = pagina.Total;
 
+        LimpiarSeleccionReporte();
         PageRows = new ObservableCollection<BitacoraDto>(pagina.Items);
 
         OnPropertyChanged(nameof(TotalPages));
@@ -281,6 +313,7 @@ public partial class BitacoraViewModel : ObservableObject, IDisposable
     [RelayCommand]
     private void LimpiarFiltros()
     {
+        LimpiarSeleccionReporte();
         _usuarioFiltro = null;
         _moduloFiltro  = null;
         _accionFiltro  = null;
@@ -290,6 +323,164 @@ public partial class BitacoraViewModel : ObservableObject, IDisposable
         FiltrosLimpiados?.Invoke();
         _ = RecargarAccionesAsync();
         _ = CargarPaginaAsync();
+    }
+
+    // ── Reportes ─────────────────────────────────────────────────────────
+
+    public void ActualizarSeleccionReporte(IEnumerable<BitacoraDto> seleccion)
+    {
+        _seleccionReporte = seleccion
+            .DistinctBy(x => x.IdBitacora)
+            .ToList();
+        CantidadSeleccionada = _seleccionReporte.Count;
+    }
+
+    private void LimpiarSeleccionReporte()
+    {
+        _seleccionReporte = Array.Empty<BitacoraDto>();
+        CantidadSeleccionada = 0;
+    }
+
+    private bool PuedeCrearReporte() => CantidadSeleccionada > 0 && !IsGeneratingReport;
+
+    [RelayCommand(CanExecute = nameof(PuedeCrearReporte))]
+    private void CrearReporte() => SolicitarCrearReporte?.Invoke();
+
+    public async Task GenerarReporteAsync(
+        ReportFormat format,
+        string rutaFinal,
+        CancellationToken ct = default)
+    {
+        if (!PuedeCrearReporte()) return;
+
+        var sesion = _sesionService.SesionActual;
+        if (sesion is null)
+        {
+            ErrorCarga = "No hay una sesión activa; no se puede generar el reporte.";
+            return;
+        }
+
+        string? directorio = Path.GetDirectoryName(rutaFinal);
+        if (string.IsNullOrWhiteSpace(directorio) || !Directory.Exists(directorio))
+        {
+            ErrorCarga = "La ubicación elegida para el reporte no es válida.";
+            return;
+        }
+
+        IsGeneratingReport = true;
+        ErrorCarga = string.Empty;
+        string rutaTemporal = Path.Combine(
+            directorio,
+            $".{Path.GetFileName(rutaFinal)}.{Guid.NewGuid():N}.tmp");
+        bool reporteRegistrado = false;
+
+        try
+        {
+            var seleccion = _seleccionReporte.ToList();
+            DateTime generado = DateTime.Now;
+            string tipo = format == ReportFormat.Pdf ? "PDF" : "Excel";
+            string nombre = $"Reporte de Bitácora - {generado:yyyyMMdd-HHmmss}";
+
+            var documento = new TabularReportDto
+            {
+                Title = "Reporte de Bitácora",
+                GeneratedAt = generado,
+                Author = new ReportAuthorDto
+                {
+                    Email = sesion.Email,
+                    NombreEmpleado = sesion.NombreEmpleado,
+                    ApellidoEmpleado = sesion.ApellidoEmpleado,
+                    Rol = sesion.NombreRol,
+                },
+                Columns = ["FECHA / HORA", "USUARIO", "MÓDULO", "ACCIÓN", "CAMPO AFECTADO", "DETALLE"],
+                Rows = seleccion.Select(b => (IReadOnlyList<string>)new[]
+                    {
+                        b.FechaHora?.ToString("dd/MM/yyyy HH:mm") ?? string.Empty,
+                        b.AliasUsuario,
+                        b.NombreModulo,
+                        b.NombreAccion,
+                        b.CampoAfectado,
+                        b.EstadoActual,
+                    }).ToList(),
+            };
+
+            var generadoResult = await _reportGenerator.GenerateAsync(documento, format, ct);
+            if (!generadoResult.Success)
+            {
+                ErrorCarga = generadoResult.Error;
+                return;
+            }
+
+            await File.WriteAllBytesAsync(rutaTemporal, generadoResult.Value!, ct);
+
+            var fechas = seleccion
+                .Where(x => x.FechaHora.HasValue)
+                .Select(x => x.FechaHora!.Value.Date)
+                .ToList();
+
+            string parametrosJson = JsonConvert.SerializeObject(new
+            {
+                origen = "bitacora",
+                ids_bitacora = seleccion.Select(x => x.IdBitacora).ToArray(),
+                cantidad_registros = seleccion.Count,
+                filtros = new
+                {
+                    id_usuario = _usuarioFiltro,
+                    id_modulo = _moduloFiltro,
+                    id_accion = _accionFiltro,
+                    fecha_desde = _fechaDesde?.ToString("yyyy-MM-dd"),
+                    fecha_hasta = _fechaHasta?.ToString("yyyy-MM-dd"),
+                },
+                columnas = new[] { "fecha_hora", "usuario", "modulo", "accion", "campo_afectado", "detalle" },
+            });
+
+            var registro = await _reporteRepository.RegistrarAsync(new ReporteRegistroDto
+            {
+                NombreReporte = nombre,
+                TipoReporte = tipo,
+                Descripcion = $"Reporte de bitácora con {seleccion.Count} registro(s) seleccionado(s).",
+                FechaDesde = fechas.Count > 0 ? fechas.Min() : null,
+                FechaHasta = fechas.Count > 0 ? fechas.Max() : null,
+                ParametrosJson = parametrosJson,
+                UsuarioIngresando = sesion.IdUsuario,
+            }, ct);
+
+            if (!registro.Success)
+            {
+                EliminarTemporal(rutaTemporal);
+                ErrorCarga = registro.Error;
+                return;
+            }
+
+            reporteRegistrado = true;
+            File.Move(rutaTemporal, rutaFinal, true);
+            ReporteCreado?.Invoke(rutaFinal);
+        }
+        catch (OperationCanceledException)
+        {
+            EliminarTemporal(rutaTemporal);
+            throw;
+        }
+        catch (Exception ex)
+        {
+            EliminarTemporal(rutaTemporal);
+            ErrorCarga = reporteRegistrado
+                ? $"El reporte fue registrado, pero no pudo guardarse en la ubicación elegida: {ex.Message}"
+                : $"No se pudo finalizar el reporte: {ex.Message}";
+        }
+        finally
+        {
+            IsGeneratingReport = false;
+        }
+    }
+
+    private static void EliminarTemporal(string ruta)
+    {
+        try
+        {
+            if (File.Exists(ruta)) File.Delete(ruta);
+        }
+        catch { /* best-effort: nunca ocultar el error original */ }
     }
 
     // ── Paginación ─────────────────────────────────────────────────────

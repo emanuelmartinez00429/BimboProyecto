@@ -11,6 +11,7 @@ using CapaAplicacion.Presentaciones.Interfaces;
 using CapaAplicacion.Productos.Interfaces;
 using CapaAplicacion.Proveedores.Interfaces;
 using CapaAplicacion.Realtime;
+using CapaAplicacion.Reportes.Interfaces;
 using CapaAplicacion.Usuarios.Interfaces;
 using CapaDatos.Auth;
 using CapaDatos.Conexion;
@@ -28,7 +29,9 @@ using CapaDatos.Repositories.Presentaciones;
 using CapaDatos.Repositories.Productos;
 using CapaDatos.Repositories.Proveedores;
 using CapaDatos.Repositories.Search;
+using CapaDatos.Repositories.Reportes;
 using CapaDatos.Repositories.Usuarios;
+using CapaDatos.Reportes;
 using CapaDominio.Entities;
 using CapaDominio.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
@@ -94,6 +97,11 @@ public static class DependencyInjection
 
         // Bitácora — solo lectura por diseño (la escribe el sistema, no la UI)
         services.AddTransient<IBitacoraRepository, Repositories.Bitacora.BitacoraCrudRepository>();
+
+        // Reportes PDF/Excel y registro auditado mediante RPC
+        services.AddTransient<IReportStrategy, PdfReportStrategy>();
+        services.AddTransient<IReportStrategy, ExcelReportStrategy>();
+        services.AddTransient<IReporteRepository, ReporteRepository>();
 
         return services;
     }

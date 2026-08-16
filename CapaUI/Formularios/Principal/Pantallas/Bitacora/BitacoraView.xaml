@@ -276,6 +276,7 @@
         </Style>
     </UserControl.Resources>
 
+    <Grid>
     <Grid Margin="22,18,22,0">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -321,6 +322,13 @@
 
             <!-- Stats chip — solo TOTAL (la bitácora no tiene concepto de estado) -->
             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Right">
+                <Button Command="{Binding CrearReporteCommand}"
+                        Background="{DynamicResource EmpresaPrimaryBrush}" Style="{StaticResource ActionBtn}"
+                        Padding="16,0" Height="38" MinWidth="150" Margin="0,0,10,0">
+                    <TextBlock FontFamily="Segoe UI" FontSize="15" FontWeight="SemiBold" Foreground="White">
+                        <Run Text="Crear reporte"/><Run Text=" ("/><Run Text="{Binding CantidadSeleccionada}"/><Run Text=")"/>
+                    </TextBlock>
+                </Button>
                 <Border Background="#EEF2F8" CornerRadius="999" BorderBrush="#D8E1EC" BorderThickness="1"
                         Padding="12,6">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
@@ -466,7 +474,8 @@
                 <DataGrid Grid.Row="0" x:Name="DgBitacora"
                           AutoGenerateColumns="False" CanUserAddRows="False" CanUserSortColumns="False"
                           HeadersVisibility="Column" GridLinesVisibility="None"
-                          SelectionMode="Single" SelectionUnit="FullRow" IsReadOnly="True"
+                           SelectionMode="Extended" SelectionUnit="FullRow" IsReadOnly="True"
+                           SelectionChanged="DgBitacora_SelectionChanged"
                           Background="White" BorderThickness="0" AlternationCount="2"
                           RowStyle="{StaticResource BitacoraRowStyle}" CellStyle="{StaticResource BitacoraCellStyle}"
                           ScrollViewer.VerticalScrollBarVisibility="Auto"
@@ -478,6 +487,21 @@
                         <Style TargetType="ScrollBar" BasedOn="{StaticResource ModernScrollBar}"/>
                     </DataGrid.Resources>
                     <DataGrid.Columns>
+                        <DataGridTemplateColumn Width="46" CellStyle="{StaticResource BitacoraCellStyle}">
+                            <DataGridTemplateColumn.Header>
+                                <CheckBox x:Name="ChkSeleccionarPagina"
+                                          IsThreeState="True"
+                                          HorizontalAlignment="Center" VerticalAlignment="Center"
+                                          Checked="ChkSeleccionarPagina_Checked"
+                                          Unchecked="ChkSeleccionarPagina_Unchecked"/>
+                            </DataGridTemplateColumn.Header>
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <CheckBox HorizontalAlignment="Center" VerticalAlignment="Center"
+                                              IsChecked="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=DataGridRow}, Mode=TwoWay}"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
                         <DataGridTemplateColumn Header="FECHA / HORA" Width="150" CellStyle="{StaticResource BitacoraCellStyle}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
@@ -575,6 +599,11 @@
             <TextBlock x:Name="ErrorText"
                        FontFamily="Segoe UI" FontSize="15" FontWeight="Medium"
                        Foreground="#B91C1C" TextWrapping="Wrap"/>
+        </Border>
+    </Grid>
+
+        <Border x:Name="ModalOverlay" Background="#990F172A" Visibility="Collapsed" Panel.ZIndex="100">
+            <ContentControl x:Name="ModalContent" HorizontalAlignment="Center" VerticalAlignment="Center"/>
         </Border>
     </Grid>
 </UserControl>

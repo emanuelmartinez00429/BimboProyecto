@@ -13,6 +13,8 @@ namespace CapaDominio.Entities
         public string Email           { get; init; } = string.Empty;
         public int    IdRol           { get; init; }
         public string NombreRol       { get; init; } = string.Empty;
+        public string NombreEmpleado  { get; init; } = string.Empty;
+        public string ApellidoEmpleado { get; init; } = string.Empty;
         public string NombreCompleto  { get; init; } = string.Empty;
         public string Iniciales       { get; init; } = string.Empty;
         public IReadOnlyList<ModuloPermisos> PermisosPorModulo { get; init; } = Array.Empty<ModuloPermisos>();

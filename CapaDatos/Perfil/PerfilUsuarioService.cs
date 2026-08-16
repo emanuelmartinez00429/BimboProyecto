@@ -25,6 +25,8 @@ public class PerfilUsuarioService : IPerfilUsuarioService
 
             PerfilActual = new PerfilUsuario
             {
+                NombreEmpleado = nombre,
+                ApellidoEmpleado = apellido,
                 NombreCompleto = nombreCompleto.Length > 0 ? nombreCompleto : usuario.aliasUsuario,
                 Iniciales      = iniciales.Length > 0 ? iniciales : "??",
                 NombreUsuario  = usuario.aliasUsuario,

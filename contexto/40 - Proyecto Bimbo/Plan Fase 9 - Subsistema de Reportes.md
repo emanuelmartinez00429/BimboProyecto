@@ -2,13 +2,13 @@
 title: "Plan Fase 9 — Subsistema de Reportes"
 tags: [plan, reportes, fase9, arquitectura]
 date: 2026-07-26
-estado: planificado
+estado: en_curso_parcial
 ---
 
 # Plan Fase 9 — Subsistema de Reportes
 
-> [!info] Esta fase NO está en curso
-> La **Fase 8 va primero**: Pesajes, que sigue incompleto y con errores pendientes. Este documento existe para que la Fase 9 arranque sin re-investigar. Decisión de herramientas ya tomada en [[ADR-006 - Motor de Reportes y Exportación]].
+> [!success] Primer flujo vertical implementado el 2026-08-16
+> Bitácora ya genera PDF y Excel desde filas seleccionadas, registra la operación mediante `ingresar_reporte_tabla_bitacora` y entrega el archivo solo después del éxito de la RPC. El resto del subsistema general continúa pendiente.
 
 Rama prevista: `feat/fase9-reportes` (convención existente `feat/faseN-nombre`).
 
@@ -111,11 +111,11 @@ Vista WPF → comando en ReportViewerViewModel
 
 ## Sub-fases
 
-**9.1 — Abstracciones y orquestador.** `CapaDominio/Reportes/` + `CapaAplicacion4/Reportes/` (contratos, DTOs, `ReportGeneratorService`). Sin NuGet nuevos todavía. Build verde.
+**9.1 — Abstracciones y orquestador. ✅ Base implementada.** `CapaDominio/Reportes/` + `CapaAplicacion4/Reportes/` contienen formato, DTO tabular, contratos y `ReportGeneratorService` con resolución Strategy.
 
-**9.2 — Motor PDF (MigraDoc).** Paquete + `MigraDocReportStrategy` + componentes reutilizables: encabezado corporativo, pie "Página X de Y", tabla con `HeadingFormat`. Primer reporte real de punta a punta — sugerido **Bitácora o Productos**, que ya tienen repositorio paginado funcionando.
+**9.2 — Motor PDF (MigraDoc). ✅ Primer caso implementado.** `PdfReportStrategy` genera el reporte tabular de Bitácora con autor, encabezado repetible y pie "Página X de Y". PDFsharp Core usa explícitamente el resolvedor de fuentes de Windows.
 
-**9.3 — Excel y CSV.** Las tres estrategias restantes. El umbral de conmutación (50.000 filas) va como **constante documentada**, no como número mágico.
+**9.3 — Excel y CSV. 🟡 Parcial.** `ExcelReportStrategy` con ClosedXML ya cubre Bitácora. CSV, OpenXML SAX y el umbral de 50.000 filas siguen pendientes.
 
 **9.4 — Streaming desde Supabase.** Extender repositorios con `IAsyncEnumerable<T>` + keyset pagination para que la exportación masiva no materialice `List<T>`.
 > [!warning] Esto es trabajo nuevo, no una adaptación
@@ -124,8 +124,8 @@ Vista WPF → comando en ReportViewerViewModel
 **9.5 — UI, vista previa e impresión.** `ReportViewerViewModel` + vista; `PrintDialog` nativo de Windows; `SaveFileDialog` para guardar.
 
 **9.6 — Códigos de barras/QR + pruebas + benchmarks.** ZXing.Net generando `byte[]` hacia los DTOs.
-> [!important] Crear el proyecto de pruebas — no existe
-> La solución tiene 5 proyectos y **ninguno de tests**. Crear `BimboProyecto.Tests` (xUnit) cubriendo: resolución de estrategias en `ReportGeneratorService`, y generación de bytes válidos ante DTOs correctos/incompletos. Es la primera vez que el proyecto tendrá pruebas automatizadas.
+> [!success] Proyecto de pruebas creado
+> `BimboProyecto.Tests` (xUnit) cubre la resolución de estrategias y la generación básica de PDF y Excel. Pruebas de carga, documentos incompletos y benchmarks continúan pendientes.
 
 ## Verificación
 
@@ -144,3 +144,5 @@ Vista WPF → comando en ReportViewerViewModel
 - [[Licencias de Librerías .NET - Auditoría 2026-07]] — gobernanza de dependencias
 - [[ADR-002 - CQRS y Strategy para Buscador Universal]] — patrón a replicar
 - [[Arquitectura Actual]]
+- [[Módulo Bitácora]]
+- [[Sesión 2026-08-16 - Reportes PDF y Excel desde Bitácora]]

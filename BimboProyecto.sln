@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CapaUI", "CapaUI\CapaUI.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CapaAplicacion", "CapaAplicacion4\CapaAplicacion.csproj", "{C81D7194-0F23-4283-AB05-AB641FD1D316}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BimboProyecto.Tests", "BimboProyecto.Tests\BimboProyecto.Tests.csproj", "{B2D9A9A6-8C64-4B2E-9D53-5AA4B69B7C12}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{D1C2B3A4-E5F6-7890-ABCD-001122334455}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D1C2B3A4-E5F6-7890-ABCD-001122334455}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D1C2B3A4-E5F6-7890-ABCD-001122334455}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B2D9A9A6-8C64-4B2E-9D53-5AA4B69B7C12}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B2D9A9A6-8C64-4B2E-9D53-5AA4B69B7C12}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B2D9A9A6-8C64-4B2E-9D53-5AA4B69B7C12}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B2D9A9A6-8C64-4B2E-9D53-5AA4B69B7C12}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

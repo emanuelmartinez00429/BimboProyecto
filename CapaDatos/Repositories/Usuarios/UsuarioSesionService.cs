@@ -71,6 +71,8 @@ public class UsuarioSesionService : IUsuarioSesionService
                 Email          = usuario.aliasUsuario ?? string.Empty,
                 IdRol          = usuario.idRol,
                 NombreRol      = perfil?.NombreRol ?? usuario.roles?.nombreRol ?? string.Empty,
+                NombreEmpleado = perfil?.NombreEmpleado ?? string.Empty,
+                ApellidoEmpleado = perfil?.ApellidoEmpleado ?? string.Empty,
                 NombreCompleto = perfil?.NombreCompleto ?? string.Empty,
                 Iniciales      = perfil?.Iniciales ?? string.Empty,
             };

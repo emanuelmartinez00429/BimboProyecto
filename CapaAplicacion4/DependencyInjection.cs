@@ -1,4 +1,6 @@
 using CapaAplicacion.Search.Handlers;
+using CapaAplicacion.Reportes;
+using CapaAplicacion.Reportes.Interfaces;
 using CapaAplicacion.Search.Registry;
 using CapaAplicacion.Search.Strategies;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,6 +18,7 @@ public static class DependencyInjection
         services.AddScoped<ISearchStrategy, EmpleadoSearchStrategy>();
         services.AddScoped<ISearchStrategy, ClienteSearchStrategy>();
         services.AddScoped<SearchStrategyRegistry>();
+        services.AddTransient<IReportGeneratorService, ReportGeneratorService>();
 
         return services;
     }

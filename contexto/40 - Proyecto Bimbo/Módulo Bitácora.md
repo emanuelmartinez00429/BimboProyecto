@@ -55,6 +55,32 @@ CapaUI/.../Pantallas/Bitacora/BitacoraViewModel.cs
 CapaUI/.../Pantallas/Bitacora/BitacoraView.xaml(.cs)
 ```
 
+## Reportes de filas seleccionadas
+
+Desde 2026-08-16 la grilla permite seleccionar una o varias filas de la página visible mediante casillas individuales o la casilla del encabezado. La selección habilita **Crear reporte**, que ofrece PDF o Excel y exporta únicamente las seis columnas visibles.
+
+El archivo incorpora, fuera de la tabla, la identidad de quien lo genera: correo de la sesión, nombre y apellido del empleado y rol. Los nombres del empleado se cargan en `UsuarioSesion` desde `PerfilUsuarioService`; no se reconstruyen a partir del correo ni del alias.
+
+El flujo es transaccional desde la perspectiva de entrega del archivo:
+
+1. `IReportGeneratorService` resuelve `PdfReportStrategy` o `ExcelReportStrategy` y genera el documento en memoria.
+2. La UI escribe un archivo temporal junto al destino elegido.
+3. `ReporteRepository` ejecuta `ingresar_reporte_tabla_bitacora`, enviando nombre, tipo, descripción, rango de las filas y un JSON con IDs seleccionados, filtros activos y columnas.
+4. Solo si la RPC devuelve un entero positivo se mueve el temporal al nombre definitivo. Si falla, se elimina el temporal y se muestra el error.
+
+La generación del reporte **no crea una entrada nueva en `bitacora` desde la UI**; registra el reporte exclusivamente mediante la RPC indicada. La selección se limita a la página actual y se limpia al cambiar de página o recargar filtros.
+
+Archivos adicionales:
+
+```text
+CapaDominio/Reportes/ReportFormat.cs
+CapaAplicacion4/Reportes/                 — DTOs, contratos y orquestador Strategy
+CapaDatos/Reportes/                       — estrategias PDFsharp/MigraDoc y ClosedXML
+CapaDatos/Repositories/Reportes/ReporteRepository.cs
+CapaUI/.../Bitacora/FormatoReporteModal.xaml(.cs)
+BimboProyecto.Tests/Reportes/ReportStrategyTests.cs
+```
+
 > [!bug] Aliases obligatorios en el repositorio
 > `BitacoraCrudRepository.cs` **debe** usar `using BitacoraModel = CapaDatos.Modelados.Usuarios.Bitacora;` y `using UsuariosModel = ...Usuarios.Usuarios;`. Los namespaces hermanos `CapaDatos.Repositories.Bitacora` y `CapaDatos.Repositories.Usuarios` ganan la resolución de nombres de C# sobre el `using CapaDatos.Modelados.Usuarios;` → `CS0118: es espacio de nombres pero se usa como tipo`. Es el mismo tropiezo que hubo con el [[Módulo Empleados]] (ahí se resolvió renombrando el namespace a `GestionEmpleados`); acá se resolvió con aliases, que es lo que ya hacía `UsuarioRepository.cs`.
 
@@ -64,7 +90,7 @@ CapaUI/.../Pantallas/Bitacora/BitacoraView.xaml(.cs)
 |---|---|---|
 | Orden | `id_xxx` ASC | `fecha_hora` **DESC** |
 | Comandos CRUD | Nuevo / Editar / Cambiar Estado | **ninguno** |
-| Modal | Sí | **no** (no aplica) |
+| Modal | Sí | solo selector de formato para reportes; no existe modal CRUD |
 | Filtro de estado | Segmentado Activos/Inactivos/Todos | no existe (sin columna de estado) |
 | Stats | TOTAL / ACTIVOS / INACTIVOS | solo TOTAL |
 | `Seleccionado` | dispara Editar | solo resalta la fila al elegir sugerencia |
@@ -80,4 +106,7 @@ Los registros ya cargados en producción vienen con formato dispar: `tabla_afect
 - [[Módulo Empleados]] — mismo tropiezo de namespace, resuelto distinto
 - [[Módulo Productos]] — patrón de referencia general
 - [[Paginación y Búsqueda - Arquitectura Detallada]]
+- [[Plan Fase 9 - Subsistema de Reportes]]
+- [[ADR-006 - Motor de Reportes y Exportación]]
+- [[Sesión 2026-08-16 - Reportes PDF y Excel desde Bitácora]]
 - [[Sesión 2026-07-26 - Módulo Bitácora (auditoría, solo lectura)]]
