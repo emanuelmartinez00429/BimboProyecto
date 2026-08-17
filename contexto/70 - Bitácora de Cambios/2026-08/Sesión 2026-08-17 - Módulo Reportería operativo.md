@@ -42,6 +42,14 @@ Implementar la especificación nueva de reportes y agregar un cuarto reporte de 
 - Prueba visual manual autenticada de los cuatro flujos, incluyendo lupas, paginación, PDF y Excel abiertos en aplicaciones reales.
 - Confirmar el registro remoto generado por cada exportación con un usuario que tenga `Consultar Reporte` y `Generar Reporte`.
 
+## Cierre — apertura automática y orden de ejecución
+
+- Se agregó la apertura automática del PDF o Excel mediante la aplicación predeterminada de Windows, únicamente después de que el archivo definitivo quedó guardado.
+- Si Windows no puede abrirlo, el archivo se conserva y la interfaz muestra una advertencia; el fallo de apertura no invalida el reporte ya registrado.
+- Se confirmó el orden del flujo de exportación: RPC de auditoría `ingresar_reporte_tabla_bitacora` → validación de ID positivo → generación del documento → escritura temporal → movimiento al destino definitivo → apertura automática.
+- Se confirmó que entrada de materia prima, proveedor y merma dependen de `movimientos`, `movimiento_productos` y `entradas_producto`; el reporte de primeros 10 productos consulta `productos` sin depender de pesajes.
+- Validación posterior al ajuste: compilación con 0 errores, 55 advertencias preexistentes, 3/3 pruebas correctas y `git diff --check` sin errores.
+
 ## Relaciones
 
 - [[Módulo Reportería]]
