@@ -64,7 +64,11 @@ public static class Catalogos
     public static CatalogoConfig Proveedores(ICatalogoRepository r) => new(
         "proveedores", "Seleccionar proveedor", "Buscar proveedor...",
         (t, p, s, ct) => r.GetProveedoresAsync(t, p, s, ct),
-        MostrarDescripcion: false);   // proveedores no tiene columna de descripción
+        MostrarDescripcion: true);
+
+    public static CatalogoConfig Productos(ICatalogoRepository r) => new(
+        "productos", "Seleccionar producto", "Buscar por ID, código o nombre...",
+        (t, p, s, ct) => r.GetProductosAsync(t, p, s, ct));
 
     /// <summary>
     /// Fabricantes, opcionalmente acotados a un proveedor. Único lugar donde vive

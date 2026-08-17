@@ -42,7 +42,7 @@ public class CatalogoRepository : RepositorioBase, ICatalogoRepository
                 Descripcion = p.descripcionPresentacion ?? string.Empty,
                 Activo      = p.idEstado == EstadoRegistro.Activo,
             },
-            ct), "Cargar presentaciones");
+            ct, "id_presentacion"), "Cargar presentaciones");
 
     /// <summary>
     /// tara no tiene columna de estado; su etiqueta es la descripción. La unidad
@@ -61,7 +61,7 @@ public class CatalogoRepository : RepositorioBase, ICatalogoRepository
                 Nombre      = string.IsNullOrWhiteSpace(t.descripcionTara) ? $"Tara {t.idTara}" : t.descripcionTara.Trim(),
                 Descripcion = $"{t.pesoTaraEnvalaje:N2} {t.abreviatura_Unidad}",
             },
-            ct), "Cargar taras");
+            ct, "id_tara"), "Cargar taras");
 
     /// <summary>categoria usa estado_categoria (bool), no id_estado.</summary>
     public Task<Result<PagedResult<FiltroItem>>> GetCategoriasAsync(
@@ -78,7 +78,7 @@ public class CatalogoRepository : RepositorioBase, ICatalogoRepository
                 Descripcion = c.descripcionCategoria ?? string.Empty,
                 Activo      = c.estadoCategoria,
             },
-            ct), "Cargar categorías");
+            ct, "id_categoria"), "Cargar categorías");
 
     /// <summary>
     /// Sin <paramref name="idTipoUnidad"/> trae todas las unidades activas
@@ -106,7 +106,7 @@ public class CatalogoRepository : RepositorioBase, ICatalogoRepository
                 Descripcion = u.abreviatura ?? string.Empty,
                 Activo      = u.idEstado == EstadoRegistro.Activo,
             },
-            ct), "Cargar unidades");
+            ct, "id_unidad"), "Cargar unidades");
 
     public Task<Result<PagedResult<FiltroItem>>> GetPaisesAsync(
         string termino, int page, int size, CancellationToken ct = default) =>
@@ -121,22 +121,31 @@ public class CatalogoRepository : RepositorioBase, ICatalogoRepository
                 Nombre      = p.nombrePais,
                 Descripcion = p.region ?? string.Empty,
             },
-            ct), "Cargar países");
+            ct, "id_pais"), "Cargar países");
 
     public Task<Result<PagedResult<FiltroItem>>> GetProveedoresAsync(
         string termino, int page, int size, CancellationToken ct = default) =>
         TryAsync(() => PagedInternalAsync<ProveedorModel>(
             q => q.Filter("id_estado", Op.Equals, EstadoRegistro.Activo.ToString()),
-            ["nombre_proveedor"],
+            ["nombre_proveedor", "rtn_proveedor"],
             "nombre_proveedor",
             termino, page, size,
             p => new FiltroItem
             {
                 Id     = p.idProveedor,
                 Nombre = p.nombreProveedor,
+                Descripcion = p.rtnProveedor ?? string.Empty,
                 Activo = p.idEstado == EstadoRegistro.Activo,
             },
-            ct), "Cargar proveedores");
+            ct, "id_proveedor"), "Cargar proveedores");
+
+    public Task<Result<PagedResult<FiltroItem>>> GetProductosAsync(
+        string termino, int page, int size, CancellationToken ct = default) =>
+        TryAsync(() => PagedInternalAsync<Modelados.Productos.Productos>(
+            q => q.Filter("id_estado", Op.Equals, EstadoRegistro.Activo.ToString()),
+            ["codigo_producto", "nombre_producto"], "id_producto", termino, page, size,
+            p => new FiltroItem { Id = p.idProducto, Nombre = p.nombreProducto, Descripcion = p.codigoProducto, Activo = true },
+            ct, "id_producto"), "Cargar productos");
 
     public Task<Result<PagedResult<FiltroItem>>> GetFabricantesAsync(
         string termino, int page, int size, int? idProveedor = null, CancellationToken ct = default) =>
@@ -159,7 +168,7 @@ public class CatalogoRepository : RepositorioBase, ICatalogoRepository
                 Activo      = f.idEstado == EstadoRegistro.Activo,
                 IdPadre     = f.idProveedor,
             },
-            ct), "Cargar fabricantes");
+            ct, "id_fabricante"), "Cargar fabricantes");
 
     // ── Motor común ───────────────────────────────────────────────────────────
 
@@ -180,7 +189,8 @@ public class CatalogoRepository : RepositorioBase, ICatalogoRepository
         int page,
         int size,
         Func<T, FiltroItem> map,
-        CancellationToken ct) where T : BaseModel, new()
+        CancellationToken ct,
+        string? columnaId = null) where T : BaseModel, new()
     {
         var client = await ConexionSupabase.GetClientAsync();
 
@@ -192,9 +202,10 @@ public class CatalogoRepository : RepositorioBase, ICatalogoRepository
             if (!string.IsNullOrWhiteSpace(termino))
             {
                 var patron = $"%{termino.Trim()}%";
-                q = q.Or(columnasBusqueda
-                    .Select(c => (IPostgrestQueryFilter)new QueryFilter(c, Op.ILike, patron))
-                    .ToList());
+                var filtros = columnasBusqueda.Select(c => (IPostgrestQueryFilter)new QueryFilter(c, Op.ILike, patron)).ToList();
+                if (columnaId is not null && int.TryParse(termino.Trim(), out int id))
+                    filtros.Add(new QueryFilter(columnaId, Op.Equals, id.ToString()));
+                q = q.Or(filtros);
             }
             return q;
         }

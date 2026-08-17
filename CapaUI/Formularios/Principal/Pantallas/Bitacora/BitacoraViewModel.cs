@@ -392,10 +392,11 @@ public partial class BitacoraViewModel : ObservableObject, IDisposable
                     ApellidoEmpleado = sesion.ApellidoEmpleado,
                     Rol = sesion.NombreRol,
                 },
-                Columns = ["FECHA / HORA", "USUARIO", "MÓDULO", "ACCIÓN", "CAMPO AFECTADO", "DETALLE"],
-                Rows = seleccion.Select(b => (IReadOnlyList<string>)new[]
+                SheetName = "Bitácora",
+                Columns = [new("FECHA / HORA", "dd/MM/yyyy HH:mm"), new("USUARIO"), new("MÓDULO"), new("ACCIÓN"), new("CAMPO AFECTADO"), new("DETALLE")],
+                Rows = seleccion.Select(b => (IReadOnlyList<object?>)new object?[]
                     {
-                        b.FechaHora?.ToString("dd/MM/yyyy HH:mm") ?? string.Empty,
+                        b.FechaHora,
                         b.AliasUsuario,
                         b.NombreModulo,
                         b.NombreAccion,

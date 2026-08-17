@@ -102,6 +102,7 @@ public static class DependencyInjection
         services.AddTransient<IReportStrategy, PdfReportStrategy>();
         services.AddTransient<IReportStrategy, ExcelReportStrategy>();
         services.AddTransient<IReporteRepository, ReporteRepository>();
+        services.AddTransient<IReporteConsultaRepository, ReporteConsultaRepository>();
 
         return services;
     }

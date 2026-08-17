@@ -33,11 +33,25 @@ public sealed class PdfReportStrategy : IReportStrategy
 
             var section = document.AddSection();
             section.PageSetup.PageFormat = PageFormat.A4;
-            section.PageSetup.Orientation = Orientation.Landscape;
+            section.PageSetup.Orientation = report.Landscape ? Orientation.Landscape : Orientation.Portrait;
             section.PageSetup.TopMargin = Unit.FromCentimeter(1.2);
             section.PageSetup.BottomMargin = Unit.FromCentimeter(1.2);
             section.PageSetup.LeftMargin = Unit.FromCentimeter(1.2);
             section.PageSetup.RightMargin = Unit.FromCentimeter(1.2);
+
+            if (report.Branding.LogoBytes is { Length: > 0 })
+            {
+                var logo = section.AddImage("base64:" + Convert.ToBase64String(report.Branding.LogoBytes));
+                logo.LockAspectRatio = true;
+                logo.Height = Unit.FromCentimeter(1.2);
+                logo.Left = MigraDoc.DocumentObjectModel.Shapes.ShapePosition.Center;
+            }
+
+            var company = section.AddParagraph(report.Branding.CompanyName);
+            company.Format.Font.Name = "Arial";
+            company.Format.Font.Size = 10;
+            company.Format.Font.Bold = true;
+            company.Format.Alignment = ParagraphAlignment.Center;
 
             var title = section.AddParagraph(report.Title);
             title.Format.Font.Name = "Arial";
@@ -45,6 +59,7 @@ public sealed class PdfReportStrategy : IReportStrategy
             title.Format.Font.Bold = true;
             title.Format.Font.Color = Color.FromRgb(30, 64, 175);
             title.Format.SpaceAfter = Unit.FromPoint(5);
+            title.Format.Alignment = ParagraphAlignment.Center;
 
             var generated = section.AddParagraph($"Generado: {report.GeneratedAt:dd/MM/yyyy HH:mm:ss}   |   Registros: {report.Rows.Count}");
             generated.Format.Font.Size = 9;
@@ -54,6 +69,7 @@ public sealed class PdfReportStrategy : IReportStrategy
             AddAuthorLine(section, "Nombre empleado", report.Author.NombreEmpleado);
             AddAuthorLine(section, "Apellido empleado", report.Author.ApellidoEmpleado);
             AddAuthorLine(section, "Rol", report.Author.Rol);
+            foreach (var filter in report.Filters) AddAuthorLine(section, filter.Label, filter.Value);
             section.AddParagraph().Format.SpaceAfter = Unit.FromPoint(3);
 
             var table = section.AddTable();
@@ -61,9 +77,10 @@ public sealed class PdfReportStrategy : IReportStrategy
             table.Borders.Width = 0.5;
             table.Rows.LeftIndent = 0;
 
-            double[] widths = report.Columns.Count == 6
-                ? [3.2, 4.0, 3.2, 3.5, 3.5, 8.3]
-                : Enumerable.Repeat(25.7 / Math.Max(1, report.Columns.Count), report.Columns.Count).ToArray();
+            double available = report.Landscape ? 25.7 : 18.6;
+            double[] widths = report.Columns.Any(c => c.WidthCm.HasValue)
+                ? report.Columns.Select(c => c.WidthCm ?? available / Math.Max(1, report.Columns.Count)).ToArray()
+                : Enumerable.Repeat(available / Math.Max(1, report.Columns.Count), report.Columns.Count).ToArray();
             foreach (double width in widths)
                 table.AddColumn(Unit.FromCentimeter(width));
 
@@ -75,7 +92,7 @@ public sealed class PdfReportStrategy : IReportStrategy
             header.VerticalAlignment = VerticalAlignment.Center;
             for (int i = 0; i < report.Columns.Count; i++)
             {
-                header.Cells[i].AddParagraph(report.Columns[i]);
+                header.Cells[i].AddParagraph(report.Columns[i].Header);
                 header.Cells[i].Format.Alignment = ParagraphAlignment.Center;
             }
 
@@ -86,12 +103,20 @@ public sealed class PdfReportStrategy : IReportStrategy
                 row.VerticalAlignment = VerticalAlignment.Center;
                 for (int i = 0; i < report.Columns.Count; i++)
                 {
-                    string value = i < values.Count ? values[i] : string.Empty;
+                    string value = i < values.Count ? FormatValue(values[i], report.Columns[i].NumberFormat) : string.Empty;
                     row.Cells[i].AddParagraph(value);
                     row.Cells[i].Format.Alignment = i is 0 or 2
                         ? ParagraphAlignment.Center
                         : ParagraphAlignment.Left;
                 }
+            }
+
+            foreach (var total in report.Totals)
+            {
+                var paragraph = section.AddParagraph();
+                paragraph.Format.Alignment = ParagraphAlignment.Right;
+                paragraph.AddFormattedText($"{total.Label}: ", TextFormat.Bold);
+                paragraph.AddText(FormatValue(total.Value, total.NumberFormat));
             }
 
             var footer = section.Footers.Primary.AddParagraph();
@@ -114,6 +139,15 @@ public sealed class PdfReportStrategy : IReportStrategy
             return Task.FromResult(Result<byte[]>.Fail($"Generar PDF: {ex.Message}"));
         }
     }
+
+    private static string FormatValue(object? value, string? format) => value switch
+    {
+        null => "—",
+        DateTime date => date.ToString(string.IsNullOrWhiteSpace(format) ? "dd/MM/yyyy HH:mm" : format),
+        decimal number when format == "P2" => $"{number * 100:N2}%",
+        IFormattable item => item.ToString(format, System.Globalization.CultureInfo.GetCultureInfo("es-HN")),
+        _ => value.ToString() ?? string.Empty,
+    };
 
     private static void AddAuthorLine(Section section, string label, string value)
     {

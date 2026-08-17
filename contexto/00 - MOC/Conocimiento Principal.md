@@ -87,6 +87,7 @@ Las rosas son rojas.
 - [[Módulo Usuarios]] — CRUD + autenticación + permisos desde BD
 - [[Módulo Empleados]] — CRUD completo, crea usuario desde empleado
 - [[Módulo Configuración de Empresa]] — singleton de empresa, logo en Storage y tema dinámico
+- [[Módulo Reportería]] — cuatro consultas operativas con vista previa y exportación PDF/Excel auditada
 - [[Buscador Universal Bimbo]] — Strategy + Mediator en acción
 
 ### Diseño Bimbo-específico

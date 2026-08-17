@@ -14,6 +14,7 @@
         xmlns:usrs="clr-namespace:CapaUI.Formularios.Principal.Pantallas.Usuarios"
         xmlns:emps="clr-namespace:CapaUI.Formularios.Principal.Pantallas.Empleados"
         xmlns:bita="clr-namespace:CapaUI.Formularios.Principal.Pantallas.Bitacora"
+        xmlns:reportes="clr-namespace:CapaUI.Formularios.Principal.Pantallas.Reporteria"
         xmlns:roles="clr-namespace:CapaUI.Formularios.Principal.Pantallas.Roles"
         xmlns:permisos="clr-namespace:CapaUI.Core.Permisos"
         xmlns:dash="clr-namespace:CapaUI.Formularios.Dashboard"
@@ -81,6 +82,9 @@
             </DataTemplate>
             <DataTemplate DataType="{x:Type local:RolesVM}">
                 <roles:RolesView/>
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type local:ReporteriaVM}">
+                <reportes:ReporteriaView/>
             </DataTemplate>
             <DataTemplate DataType="{x:Type local:PlaceholderVM}">
                 <Grid Background="#F4F5F7">
@@ -944,7 +948,7 @@
                                 <!-- ══ REPORTERÍA ══ -->
                                 <StackPanel>
                                     <Button Tag="reportes" Style="{StaticResource SidebarModuleButton}"
-                                            permisos:PermisoBehavior.Requiere="Consultar Reporte,Generar Reporte,Exportar Reporte"
+                                            permisos:PermisoBehavior.Requiere="Consultar Reporte"
                                             Click="BtnModulo_Click" ToolTip="Reportería">
                                         <Grid>
                                             <Border x:Name="IndReportes" Width="3"
@@ -980,7 +984,7 @@
                                             Background="#2E000000">
                                         <StackPanel Margin="0,4">
                                             <Button Style="{StaticResource SidebarSubButton}" Tag="dashboard"
-                                                    permisos:PermisoBehavior.Requiere="Generar Reporte,Exportar Reporte"
+                                                    permisos:PermisoBehavior.Requiere="Consultar Reporte"
                                                     Padding="48,10,16,10" Click="BtnSub_Click">
                                                 <Grid>
                                                     <Border x:Name="DotDashboard" Width="4" Height="4" CornerRadius="2"

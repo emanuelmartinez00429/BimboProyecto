@@ -10,6 +10,9 @@ aliases:
 
 # Arquitectura Actual — Bimbo
 
+> [!success] Actualizado 2026-08-17 — Módulo Reportería operativo
+> Reportería ofrece cuatro consultas: entrada de materia prima, resumen por proveedor, productos con merma y primeros 10 productos activos. Las consultas pasan por RPC protegidas con `Consultar Reporte`; la exportación PDF/Excel registra primero la operación auditada y solo después escribe el archivo. Ver [[Módulo Reportería]].
+
 > [!info] MOC del proyecto
 > Este nodo describe el estado actual de la arquitectura. Para el contexto completo de Claude Code, ver [[CLAUDE]].
 
@@ -166,6 +169,7 @@ ProductosViewModel : RealtimeAwareViewModel
 | [[Módulo Usuarios]] | ✅ Completo (RBAC visual y roles 2026-08-09) | UsuariosView, RolesView, UsuarioRepository, RolPermisoRepository, UsuarioSesionService — CRUD + auth + permisos desde BD |
 | [[Módulo Empleados]] | ✅ Completo (2026-07-26) | EmpleadosView, EmpleadosViewModel, EmpleadoCrudRepository — CRUD completo, crea usuario desde empleado |
 | [[Módulo Bitácora]] | ✅ Completo + reportes PDF/Excel (2026-08-16) | BitacoraView, BitacoraViewModel, BitacoraCrudRepository — consulta de auditoría, selección múltiple y reporte registrado por RPC antes de entregar archivo |
+| [[Módulo Reportería]] | ✅ Cuatro reportes operativos PDF/Excel (2026-08-17) | ReporteriaView, ReporteriaViewModel, ReporteConsultaRepository, cuatro RPC de consulta — vista previa paginada y exportación auditada |
 | [[Módulo Pesaje]] | ✅ Flujo rediseñado (2026-07-26) | PesajeView, PesajeViewModel, PesajeRepository, ProcesoDescargaModal (wizard + megamodal), SelectorProductosModal — ⚠️ datos de tara de prueba (P-023) |
 | [[Módulo Configuración de Empresa]] | ✅ Implementado; validación visual manual pendiente (2026-08-15) | ConfiguracionEmpresaModal, ConfiguracionEmpresaViewModel, EmpresaRepository, EmpresaThemeService, LogoEmpresaCache, IconoSidebarCache |
 

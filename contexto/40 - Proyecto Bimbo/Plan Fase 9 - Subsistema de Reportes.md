@@ -10,6 +10,9 @@ estado: en_curso_parcial
 > [!success] Primer flujo vertical implementado el 2026-08-16
 > Bitácora ya genera PDF y Excel desde filas seleccionadas, registra la operación mediante `ingresar_reporte_tabla_bitacora` y entrega el archivo solo después del éxito de la RPC. El resto del subsistema general continúa pendiente.
 
+> [!success] Reportería operativa implementada el 2026-08-17
+> Cuatro consultas tipadas reutilizan el motor PDF/Excel: entrada de materia prima, proveedor, merma y primeros 10 productos. Incluyen vista previa, filtros por selectores de catálogo, branding de empresa y registro auditado previo a escribir el archivo. Ver [[Módulo Reportería]].
+
 Rama prevista: `feat/fase9-reportes` (convención existente `feat/faseN-nombre`).
 
 ## Objetivo
@@ -115,13 +118,13 @@ Vista WPF → comando en ReportViewerViewModel
 
 **9.2 — Motor PDF (MigraDoc). ✅ Primer caso implementado.** `PdfReportStrategy` genera el reporte tabular de Bitácora con autor, encabezado repetible y pie "Página X de Y". PDFsharp Core usa explícitamente el resolvedor de fuentes de Windows.
 
-**9.3 — Excel y CSV. 🟡 Parcial.** `ExcelReportStrategy` con ClosedXML ya cubre Bitácora. CSV, OpenXML SAX y el umbral de 50.000 filas siguen pendientes.
+**9.3 — Excel y CSV. 🟡 Parcial.** `ExcelReportStrategy` con ClosedXML cubre Bitácora y los cuatro reportes operativos con columnas tipadas, filtros, totales y branding. CSV, OpenXML SAX y el umbral de 50.000 filas siguen pendientes.
 
 **9.4 — Streaming desde Supabase.** Extender repositorios con `IAsyncEnumerable<T>` + keyset pagination para que la exportación masiva no materialice `List<T>`.
 > [!warning] Esto es trabajo nuevo, no una adaptación
 > Los repositorios actuales devuelven `PagedResult<T>` completo. El streaming real requiere diseñar el recorrido por páginas encadenadas. No subestimar esta sub-fase.
 
-**9.5 — UI, vista previa e impresión.** `ReportViewerViewModel` + vista; `PrintDialog` nativo de Windows; `SaveFileDialog` para guardar.
+**9.5 — UI, vista previa e impresión. 🟡 Parcial.** `ReporteriaViewModel` y `ReporteriaView` incorporan selector 2×2, subformulario, vista previa paginada y `SaveFileDialog`. Visor PDF interno e impresión siguen pendientes.
 
 **9.6 — Códigos de barras/QR + pruebas + benchmarks.** ZXing.Net generando `byte[]` hacia los DTOs.
 > [!success] Proyecto de pruebas creado
@@ -146,3 +149,5 @@ Vista WPF → comando en ReportViewerViewModel
 - [[Arquitectura Actual]]
 - [[Módulo Bitácora]]
 - [[Sesión 2026-08-16 - Reportes PDF y Excel desde Bitácora]]
+- [[Módulo Reportería]]
+- [[Sesión 2026-08-17 - Módulo Reportería operativo]]

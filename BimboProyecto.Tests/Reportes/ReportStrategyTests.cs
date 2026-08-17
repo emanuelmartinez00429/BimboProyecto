@@ -31,12 +31,12 @@ public sealed class ReportStrategyTests
         using var workbook = new XLWorkbook(stream);
         var sheet = workbook.Worksheet("Bitácora");
 
-        Assert.Equal("Reporte de Bitácora", sheet.Cell(1, 1).GetString());
-        Assert.Equal("Correo usuario", sheet.Cell(5, 1).GetString());
-        Assert.Equal("usuario@bimbo.test", sheet.Cell(5, 2).GetString());
-        Assert.Equal("FECHA / HORA", sheet.Cell(10, 1).GetString());
-        Assert.Equal("usuario.registrado", sheet.Cell(11, 2).GetString());
-        Assert.Equal("Detalle de prueba", sheet.Cell(11, 6).GetString());
+        Assert.Equal("Bimbo Honduras", sheet.Cell(1, 1).GetString());
+        Assert.Equal("Reporte de Bitácora", sheet.Cell(2, 1).GetString());
+        var header = sheet.CellsUsed().Single(c => c.GetString() == "FECHA / HORA");
+        Assert.Equal("usuario.registrado", sheet.Cell(header.Address.RowNumber + 1, 2).GetString());
+        Assert.Equal("Detalle de prueba", sheet.Cell(header.Address.RowNumber + 1, 6).GetString());
+        Assert.Equal(XLDataType.DateTime, sheet.Cell(header.Address.RowNumber + 1, 1).DataType);
     }
 
     [Fact]
@@ -54,6 +54,8 @@ public sealed class ReportStrategyTests
     private static TabularReportDto CrearReporte() => new()
     {
         Title = "Reporte de Bitácora",
+        SheetName = "Bitácora",
+        Branding = new ReportBrandingDto { CompanyName = "Bimbo Honduras" },
         GeneratedAt = new DateTime(2026, 8, 16, 10, 30, 0),
         Author = new ReportAuthorDto
         {
@@ -62,10 +64,10 @@ public sealed class ReportStrategyTests
             ApellidoEmpleado = "Martínez",
             Rol = "Administrador",
         },
-        Columns = ["FECHA / HORA", "USUARIO", "MÓDULO", "ACCIÓN", "CAMPO AFECTADO", "DETALLE"],
+        Columns = [new("FECHA / HORA", "dd/MM/yyyy HH:mm"), "USUARIO", "MÓDULO", "ACCIÓN", "CAMPO AFECTADO", "DETALLE"],
         Rows =
         [
-            new[] { "16/08/2026 10:00", "usuario.registrado", "Productos", "Crear Producto", "Nombre", "Detalle de prueba" },
+            new object?[] { new DateTime(2026,8,16,10,0,0), "usuario.registrado", "Productos", "Crear Producto", "Nombre", "Detalle de prueba" },
         ],
     };
 }

@@ -40,6 +40,9 @@ public interface ICatalogoRepository
     Task<Result<PagedResult<FiltroItem>>> GetProveedoresAsync(
         string termino, int page, int size, CancellationToken ct = default);
 
+    Task<Result<PagedResult<FiltroItem>>> GetProductosAsync(
+        string termino, int page, int size, CancellationToken ct = default);
+
     /// <summary>
     /// Fabricantes, opcionalmente acotados a un proveedor (catálogo encadenado).
     /// El parámetro extra queda fuera de la firma uniforme capturándolo en el

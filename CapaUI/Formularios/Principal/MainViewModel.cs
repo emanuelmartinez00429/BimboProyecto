@@ -73,7 +73,7 @@ namespace CapaUI.Formularios.Principal
         public bool VerUsuarios    => SesionPermisos.TieneAlguno(Permiso.ConsultarUsuario, Permiso.CrearUsuario, Permiso.ModificarUsuario, Permiso.EliminarUsuario);
         public bool VerProductos   => SesionPermisos.TieneAlguno(Permiso.ConsultarProducto, Permiso.CrearProducto, Permiso.ModificarProducto, Permiso.EliminarProducto);
         public bool VerProveedores => SesionPermisos.TieneAlguno(Permiso.ConsultarProveedor, Permiso.CrearProveedor, Permiso.ModificarProveedor, Permiso.EliminarProveedor);
-        public bool VerReportes    => SesionPermisos.TieneAlguno(Permiso.ConsultarReporte, Permiso.GenerarReporte, Permiso.ExportarReporte);
+        public bool VerReportes    => SesionPermisos.Tiene(Permiso.ConsultarReporte);
 
         // ── Eventos ──────────────────────────────────────────────────────
         public event EventHandler? CierreRequerido;
@@ -109,7 +109,7 @@ namespace CapaUI.Formularios.Principal
                 [Routes.Pesajes]       = () => new PesajesVM(),
                 // Reportería
                 [Routes.Dashboard]     = () => new Dashboard.DashboardVM(),
-                [Routes.CrearReportes] = () => new ConstructionVM("Crear Reportes", "Reportería"),
+                [Routes.CrearReportes] = () => new ReporteriaVM(),
                 // Especiales
                 [Routes.Bienvenida] = () => new WelcomeVM(),
                 [Routes.MiUsuario]  = () => new ConstructionVM("Mi Usuario", ""),
@@ -130,7 +130,7 @@ namespace CapaUI.Formularios.Principal
                 [Routes.ContactosFabricantes] = [Permiso.ConsultarFabricante, Permiso.CrearFabricante, Permiso.ModificarFabricante],
                 [Routes.Pesajes] = [Permiso.ConsultarPesaje, Permiso.RegistrarEntrada, Permiso.ModificarPesaje, Permiso.CompletarPesaje, Permiso.CancelarPesaje],
                 [Routes.Dashboard] = [Permiso.ConsultarReporte],
-                [Routes.CrearReportes] = [Permiso.GenerarReporte, Permiso.ExportarReporte],
+                [Routes.CrearReportes] = [Permiso.ConsultarReporte],
             };
 
             VistaActual = new WelcomeVM();
@@ -239,6 +239,7 @@ namespace CapaUI.Formularios.Principal
     public class EmpleadosVM               : ViewModelBase { }
     public class BitacoraVM                : ViewModelBase { }
     public class RolesVM                   : ViewModelBase { }
+    public class ReporteriaVM              : ViewModelBase { }
 
     public class ConstructionVM : ViewModelBase
     {
