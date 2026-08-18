@@ -1,8 +1,10 @@
 using CapaUI.Core.Controls;
+using CapaUI.Core.Validacion;
 using System;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using CapaAplicacion.Common;
 using CapaAplicacion.Usuarios.Dtos;
 using CapaAplicacion.Usuarios.Interfaces;
 
@@ -15,6 +17,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Usuarios
         private readonly UsuarioVistaDto?      _usuario;
         private readonly bool                  _esNuevo;
         private readonly bool                  _esCreacionConEmpleado;
+        private ValidadorFormulario            _validador = null!;
         private readonly int                   _preselectedIdEmpleado;
         private readonly string?               _preselectedNombre;
         private readonly string?               _preselectedCorreo;
@@ -56,6 +59,18 @@ namespace CapaUI.Formularios.Principal.Pantallas.Usuarios
 
         private async void OnLoaded(object sender, RoutedEventArgs e)
         {
+            // Empleado y contraseña solo valen al crear, y el empleado ni siquiera
+            // eso cuando el modal se abrió desde una ficha de empleado (ahí viene
+            // preseleccionado y el combo está oculto). SoloSi expresa esa condición
+            // sin sacar la regla de la declaración.
+            _validador = ValidadorFormulario.Nuevo()
+                .Combo(CmbEmpleado, "El empleado").Obligatorio()
+                    .SoloSi(() => _esNuevo && !_esCreacionConEmpleado)
+                .Clave(TxtPassword, "La contraseña").LargoMinimo(6)
+                    .SoloSi(() => _esNuevo)
+                .Combo(CmbRolModal, "El rol").Obligatorio()
+                .ValidarAlSalirDelCampo();
+
             TxtModalContext.Text = _esNuevo ? "NUEVO REGISTRO" : "EDICIÓN";
             TxtModalTitle.Text   = _esNuevo ? "Crear usuario"  : "Editar usuario";
 
@@ -153,34 +168,27 @@ namespace CapaUI.Formularios.Principal.Pantallas.Usuarios
             }
         }
 
+        /// <summary>
+        /// Arma el correo institucional a partir del nombre del empleado
+        /// ("José Muñoz" → "jose.munoz@empresa.com").
+        /// </summary>
+        /// <remarks>
+        /// Usa <see cref="TextoBusqueda.Normalizar"/> (quita tildes y pasa a
+        /// minúsculas). Antes había acá una copia privada de esa misma lógica;
+        /// se borró para no tener dos normalizaciones que puedan divergir — esa
+        /// función además está espejada a <c>public.sin_tildes()</c> de Postgres.
+        /// El <c>.Trim()</c> que la copia local agregaba se hace acá, porque
+        /// <c>Normalizar</c> no recorta por su cuenta.
+        /// </remarks>
         private static string GenerarEmail(string nombreCompleto)
         {
             var partes = nombreCompleto.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
             if (partes.Length < 2)
-                return Normalizar(nombreCompleto) + "@empresa.com";
+                return TextoBusqueda.Normalizar(nombreCompleto).Trim() + "@empresa.com";
 
-            var nombre  = Normalizar(partes[0]);
-            var apellido = Normalizar(partes[^1]);
+            var nombre   = TextoBusqueda.Normalizar(partes[0]).Trim();
+            var apellido = TextoBusqueda.Normalizar(partes[^1]).Trim();
             return $"{nombre}.{apellido}@empresa.com";
-        }
-
-        /// <summary>
-        /// Quita acentos/diacríticos ("Muñoz" → "munoz") para emails auto-generados.
-        /// FormD descompone cada letra acentuada en letra base + marca combinante;
-        /// se filtran las marcas iterando sobre char (nunca bytes UTF-8) y se
-        /// recompone con FormC. Ver nota de referencia en la bóveda:
-        /// ".NET - Normalización Unicode (FormD-FormC) para quitar acentos".
-        /// </summary>
-        private static string Normalizar(string s)
-        {
-            var formD = s.Normalize(System.Text.NormalizationForm.FormD);
-            var sb = new System.Text.StringBuilder(formD.Length);
-            foreach (var c in formD)
-                if (System.Globalization.CharUnicodeInfo.GetUnicodeCategory(c)
-                    != System.Globalization.UnicodeCategory.NonSpacingMark)
-                    sb.Append(c);
-            return sb.ToString().Normalize(System.Text.NormalizationForm.FormC)
-                     .ToLowerInvariant().Trim();
         }
 
         // ── Acciones ─────────────────────────────────────────────────────
@@ -191,39 +199,18 @@ namespace CapaUI.Formularios.Principal.Pantallas.Usuarios
         {
             HideError();
 
-            ComboBoxItem? empItem = null;
-            if (_esNuevo)
-            {
-                if (!_esCreacionConEmpleado)
-                {
-                    if (CmbEmpleado.SelectedItem is not ComboBoxItem item)
-                    {
-                        MostrarError("Seleccione un empleado.");
-                        return;
-                    }
-                    empItem = item;
-                }
+            if (!_validador.Validar()) return;
 
-                if (TxtPassword.Password.Length < 6)
-                {
-                    MostrarError("La contraseña debe tener al menos 6 caracteres.");
-                    return;
-                }
-            }
+            // Ya validados arriba; acá solo se leen.
+            var empItem = CmbEmpleado.SelectedItem as ComboBoxItem;
+            int idRol   = (int)((ComboBoxItem)CmbRolModal.SelectedItem).Tag;
 
-            if (CmbRolModal.SelectedItem is not ComboBoxItem rolItem)
-            {
-                MostrarError("Seleccione un rol.");
-                return;
-            }
-
-            int idRol = (int)rolItem.Tag;
-
-            // Ver CategoriaModal: se avisa solo al pasar a inactivo algo que ya
-            // existía y estaba activo.
-            bool estabaActivo = !_esNuevo && _usuario!.IdEstado == 1;
-            if (estabaActivo && RbInactivo.IsChecked == true &&
-                !DialogoConfirmacion.ConfirmarInactivacion("usuario", TxtEmail.Text.Trim()))
+            if (!ConfirmacionEstado.Confirmar(
+                    esNuevo:        _esNuevo,
+                    estabaActivo:   !_esNuevo && _usuario!.IdEstado == 1,
+                    quedaActivo:    RbActivo.IsChecked == true,
+                    entidad:        "usuario",
+                    nombreRegistro: TxtEmail.Text.Trim()))
                 return;
 
             // Guardar es un viaje de red: sin este aviso la espera se lee como

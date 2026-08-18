@@ -1,4 +1,5 @@
 using CapaUI.Core.Controls;
+using CapaUI.Core.Validacion;
 using CapaAplicacion.Common;
 using CapaAplicacion.Fabricantes.Dtos;
 using CapaAplicacion.Fabricantes.Interfaces;
@@ -14,6 +15,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Fabricantes
         private readonly IFabricanteRepository _repo;
         private readonly FabricanteDto?        _fabricante;
         private readonly bool                  _esNuevo;
+        private ValidadorFormulario            _validador = null!;
 
         public event Action? Cerrado;
         public event Action? Guardado;
@@ -29,6 +31,13 @@ namespace CapaUI.Formularios.Principal.Pantallas.Fabricantes
 
         private async void OnLoaded(object sender, RoutedEventArgs e)
         {
+            // Proveedor y País no se validan: son opcionales por diseño y el combo
+            // ofrece "(Ninguno)" como primera opción.
+            _validador = ValidadorFormulario.Nuevo()
+                .Campo(TxtNombre, "El nombre").Obligatorio().LargoMaximo(100)
+                .Campo(TxtDescripcion, "La descripción").LargoMaximo(255)
+                .ValidarAlSalirDelCampo();
+
             TxtModalContext.Text = _esNuevo ? "NUEVO REGISTRO" : "EDICIÓN";
             TxtModalTitle.Text   = _esNuevo ? "Crear fabricante"  : "Editar fabricante";
 
@@ -90,18 +99,14 @@ namespace CapaUI.Formularios.Principal.Pantallas.Fabricantes
 
         private async void BtnGuardar_Click(object sender, RoutedEventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(TxtNombre.Text))
-            {
-                MessageBox.Show("El nombre es obligatorio.", "Validación",
-                    MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
+            if (!_validador.Validar()) return;
 
-            // Ver CategoriaModal: se avisa solo al pasar a inactivo algo que ya
-            // existía y estaba activo.
-            bool estabaActivo = !_esNuevo && _fabricante!.IdEstado == EstadoRegistro.Activo;
-            if (estabaActivo && RbInactivo.IsChecked == true &&
-                !DialogoConfirmacion.ConfirmarInactivacion("fabricante", TxtNombre.Text.Trim()))
+            if (!ConfirmacionEstado.Confirmar(
+                    esNuevo:        _esNuevo,
+                    estabaActivo:   !_esNuevo && _fabricante!.IdEstado == EstadoRegistro.Activo,
+                    quedaActivo:    RbActivo.IsChecked == true,
+                    entidad:        "fabricante",
+                    nombreRegistro: TxtNombre.Text.Trim()))
                 return;
 
             // Guardar es un viaje de red: sin este aviso la espera se lee como
@@ -124,22 +129,32 @@ namespace CapaUI.Formularios.Principal.Pantallas.Fabricantes
                     IdEstado    = RbActivo.IsChecked == true ? EstadoRegistro.Activo : EstadoRegistro.Inactivo,
                 };
 
+                bool exito;
+                string error;
+
                 if (_esNuevo)
                 {
                     var r = await _repo.CreateAsync(dto);
-                    if (!r.Success) { MessageBox.Show(r.Error, "Error", MessageBoxButton.OK, MessageBoxImage.Error); return; }
+                    (exito, error) = (r.Success, r.Error);
                 }
                 else
                 {
                     var r = await _repo.UpdateAsync(dto);
-                    if (!r.Success) { MessageBox.Show(r.Error, "Error", MessageBoxButton.OK, MessageBoxImage.Error); return; }
+                    (exito, error) = (r.Success, r.Error);
+                }
+
+                if (!exito)
+                {
+                    ErroresRepositorio.Mostrar(error,
+                        "Ya existe un fabricante con ese nombre.", TxtNombre);
+                    return;
                 }
 
                 Guardado?.Invoke();
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error inesperado: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                ErroresRepositorio.MostrarInesperado(ex);
             }
             finally
             {

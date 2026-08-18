@@ -4,6 +4,7 @@ using CapaAplicacion.Productos.Dtos;
 using CapaAplicacion.Productos.Interfaces;
 using CapaUI.Core.Catalogos;
 using CapaUI.Core.Controls;
+using CapaUI.Core.Validacion;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Globalization;
@@ -22,6 +23,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
         private readonly ICatalogoRepository _catalogos;
         private readonly ProductoDto?        _producto;
         private readonly bool                _esNuevo;
+        private ValidadorFormulario          _validador = null!;
 
         // IDs de respaldo de los campos de catálogo. Los textos son solo la
         // etiqueta visible; lo que se persiste es esto.
@@ -78,6 +80,15 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
 
         private async void OnLoaded(object sender, RoutedEventArgs e)
         {
+            // Los campos de catálogo (Presentación, Fabricante…) no se validan:
+            // son opcionales en la base a propósito.
+            _validador = ValidadorFormulario.Nuevo()
+                .Campo(TxtCodigo, "El código").Obligatorio().LargoMaximo(50)
+                .Campo(TxtNombre, "El nombre").Obligatorio().LargoMaximo(150)
+                .Campo(TxtPesoTeorico, "El peso teórico").Decimal()
+                .Campo(TxtPrecioPorKg, "El precio por kg").Decimal()
+                .ValidarAlSalirDelCampo();
+
             TxtModalContext.Text = _esNuevo ? "NUEVO REGISTRO" : "EDICIÓN";
             TxtModalTitle.Text   = _esNuevo ? "Crear producto"  : "Editar producto";
 
@@ -210,12 +221,29 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
             });
 
         /// <summary>
-        /// El campo de catálogo (TextBox de solo lectura) funciona como botón:
-        /// un clic sobre el texto dispara el mismo <see cref="Button.Click"/> de
-        /// la lupa emparejada (referencia en <c>Tag</c>), así el combobox completo
-        /// abre la tabla de selección sin duplicar la lógica de cada catálogo.
+        /// El campo de catálogo (TextBox de solo lectura) funciona como botón: un
+        /// <b>doble</b> clic sobre el texto dispara el mismo
+        /// <see cref="Button.Click"/> de la lupa emparejada (referencia en
+        /// <c>Tag</c>), así el campo entero abre la tabla de selección sin duplicar
+        /// la lógica de cada catálogo.
         /// </summary>
-        private void TxtCatalogo_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        /// <remarks>
+        /// <para>
+        /// Antes alcanzaba con un clic simple y era molesto: no se podía ni poner
+        /// el cursor en el campo sin que se abriera el selector. El doble clic es
+        /// además el mismo gesto que ya usa la grilla del propio selector para
+        /// elegir una fila.
+        /// </para>
+        /// <para>
+        /// Tiene que ser <c>PreviewMouseDoubleClick</c> y no
+        /// <c>MouseDoubleClick</c>: un <see cref="TextBox"/> dispara los dos, pero
+        /// la selección de palabra la hace su editor interno durante el burbujeo
+        /// de <c>MouseLeftButtonDown</c>. El túnel corre antes y alcanza a
+        /// cancelarla con <c>Handled</c>; el burbujeo corre después y dejaría la
+        /// palabra resaltada un instante antes de abrir el selector.
+        /// </para>
+        /// </remarks>
+        private void TxtCatalogo_PreviewMouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             if (sender is FrameworkElement campo && campo.Tag is Button lupa)
             {
@@ -225,11 +253,15 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
         }
 
         /// <summary>
-        /// Lo mismo que <see cref="TxtCatalogo_PreviewMouseLeftButtonUp"/> pero por
+        /// Lo mismo que <see cref="TxtCatalogo_PreviewMouseDoubleClick"/> pero por
         /// teclado: al llegar al campo con Tab, Enter o Espacio abren el selector.
         /// Sin esto el campo era alcanzable por Tab pero no se podía abrir sin
         /// mouse — había que tabular una vez más hasta la lupa, que sí responde a
         /// Espacio/Enter por ser un Button.
+        ///
+        /// Acá alcanza con una sola pulsación: el doble clic es para el mouse, que
+        /// necesita distinguirse de "poner el cursor en el campo"; con el teclado
+        /// esa ambigüedad no existe.
         ///
         /// Enter simple está libre: <see cref="Core.Controls.AtajoGuardar"/> solo
         /// intercepta Ctrl+Enter.
@@ -321,19 +353,21 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
 
         private async void BtnGuardar_Click(object sender, RoutedEventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(TxtCodigo.Text) || string.IsNullOrWhiteSpace(TxtNombre.Text))
-            {
-                MessageBox.Show("Código y nombre son obligatorios.", "Validación",
-                    MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
+            if (!_validador.Validar()) return;
 
-            // Ver CategoriaModal: se avisa solo al pasar a inactivo algo que ya
-            // existía y estaba activo.
-            bool estabaActivo = !_esNuevo && _producto!.IdEstado == 1;
-            if (estabaActivo && RbInactivo.IsChecked == true &&
-                !DialogoConfirmacion.ConfirmarInactivacion("producto", TxtNombre.Text.Trim()))
+            if (!ConfirmacionEstado.Confirmar(
+                    esNuevo:        _esNuevo,
+                    estabaActivo:   !_esNuevo && _producto!.IdEstado == 1,
+                    quedaActivo:    RbActivo.IsChecked == true,
+                    entidad:        "producto",
+                    nombreRegistro: TxtNombre.Text.Trim()))
                 return;
+
+            // Los números ya los validó el validador; acá solo se convierten. Antes
+            // el parseo ocurría DENTRO del try, después de poner "Guardando…": el
+            // usuario veía el spinner y recién entonces le rechazaban el número.
+            ReglasCampo.EsDecimalOpcional(TxtPesoTeorico.Text, out var pesoTeorico);
+            ReglasCampo.EsDecimalOpcional(TxtPrecioPorKg.Text, out var precioPorKg);
 
             // Guardar es un viaje de red: sin este aviso el segundo de espera se
             // lee como que la aplicacion se colgo.
@@ -341,10 +375,6 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
             BtnGuardar.Content   = "Guardando...";
             try
             {
-                if (!TryParseDecimal(TxtPesoTeorico.Text, "El peso teórico", out var pesoTeorico) ||
-                    !TryParseDecimal(TxtPrecioPorKg.Text, "El precio por kg", out var precioPorKg))
-                    return;
-
                 var dto = new ProductoDto
                 {
                     Id             = _esNuevo ? 0 : _producto!.Id,
@@ -363,31 +393,32 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
                     PrecioPorKg    = precioPorKg,
                 };
 
+                bool exito;
+                string error;
+
                 if (_esNuevo)
                 {
                     var r = await _repo.CreateAsync(dto);
-                    if (!r.Success)
-                    {
-                        MessageBox.Show(r.Error, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                        return;
-                    }
+                    (exito, error) = (r.Success, r.Error);
                 }
                 else
                 {
                     var r = await _repo.UpdateAsync(dto);
-                    if (!r.Success)
-                    {
-                        MessageBox.Show(r.Error, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                        return;
-                    }
+                    (exito, error) = (r.Success, r.Error);
+                }
+
+                if (!exito)
+                {
+                    ErroresRepositorio.Mostrar(error,
+                        "Ya existe un producto con ese código interno.", TxtCodigo);
+                    return;
                 }
 
                 Guardado?.Invoke();
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error inesperado: " + ex.Message, "Error",
-                    MessageBoxButton.OK, MessageBoxImage.Error);
+                ErroresRepositorio.MostrarInesperado(ex);
             }
             finally
             {

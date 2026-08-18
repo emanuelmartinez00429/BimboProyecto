@@ -1,6 +1,6 @@
 using CapaAplicacion.Categorias.Dtos;
 using CapaAplicacion.Categorias.Interfaces;
-using CapaUI.Core.Controls;
+using CapaUI.Core.Validacion;
 using System;
 using System.Windows;
 using System.Windows.Media.Imaging;
@@ -12,6 +12,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Categorias
         private readonly ICategoriaRepository _repo;
         private readonly CategoriaDto?        _categoria;
         private readonly bool                 _esNuevo;
+        private ValidadorFormulario           _validador = null!;
 
         public event Action? Cerrado;
         public event Action? Guardado;
@@ -27,6 +28,13 @@ namespace CapaUI.Formularios.Principal.Pantallas.Categorias
 
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
+            // Las reglas se declaran una sola vez acá y sirven para los dos
+            // momentos: al salir de cada campo y al guardar.
+            _validador = ValidadorFormulario.Nuevo()
+                .Campo(TxtNombre, "El nombre").Obligatorio().LargoMaximo(100)
+                .Campo(TxtDescripcion, "La descripción").LargoMaximo(255)
+                .ValidarAlSalirDelCampo();
+
             TxtModalContext.Text = _esNuevo ? "NUEVO REGISTRO" : "EDICIÓN";
             TxtModalTitle.Text   = _esNuevo ? "Crear categoría"  : "Editar categoría";
 
@@ -48,20 +56,14 @@ namespace CapaUI.Formularios.Principal.Pantallas.Categorias
 
         private async void BtnGuardar_Click(object sender, RoutedEventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(TxtNombre.Text))
-            {
-                MessageBox.Show("El nombre es obligatorio.", "Validación",
-                    MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
+            if (!_validador.Validar()) return;
 
-            // Inactivar esconde el registro de los listados que filtran por
-            // activos, así que se avisa antes — pero solo cuando es un cambio
-            // real sobre algo que ya existía y estaba activo. Crear algo
-            // directamente inactivo es una decisión explícita, no una sorpresa.
-            bool estabaActivo = !_esNuevo && _categoria!.EstadoCategoria;
-            if (estabaActivo && RbInactivo.IsChecked == true &&
-                !DialogoConfirmacion.ConfirmarInactivacion("categoría", TxtNombre.Text.Trim()))
+            if (!ConfirmacionEstado.Confirmar(
+                    esNuevo:        _esNuevo,
+                    estabaActivo:   !_esNuevo && _categoria!.EstadoCategoria,
+                    quedaActivo:    RbActivo.IsChecked == true,
+                    entidad:        "categoría",
+                    nombreRegistro: TxtNombre.Text.Trim()))
                 return;
 
             // Guardar es un viaje de red: sin este aviso la espera se lee como
@@ -79,23 +81,34 @@ namespace CapaUI.Formularios.Principal.Pantallas.Categorias
                     EstadoCategoria = RbActivo.IsChecked == true,
                 };
 
+                // CreateAsync devuelve Result<int> y UpdateAsync Result: son tipos
+                // distintos, así que no se pueden unificar en un ternario.
+                bool exito;
+                string error;
+
                 if (_esNuevo)
                 {
                     var r = await _repo.CreateAsync(dto);
-                    if (!r.Success) { MessageBox.Show(r.Error, "Error", MessageBoxButton.OK, MessageBoxImage.Error); return; }
+                    (exito, error) = (r.Success, r.Error);
                 }
                 else
                 {
                     var r = await _repo.UpdateAsync(dto);
-                    if (!r.Success) { MessageBox.Show(r.Error, "Error", MessageBoxButton.OK, MessageBoxImage.Error); return; }
+                    (exito, error) = (r.Success, r.Error);
+                }
+
+                if (!exito)
+                {
+                    ErroresRepositorio.Mostrar(error,
+                        "Ya existe una categoría con ese nombre.", TxtNombre);
+                    return;
                 }
 
                 Guardado?.Invoke();
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error inesperado: " + ex.Message, "Error",
-                    MessageBoxButton.OK, MessageBoxImage.Error);
+                ErroresRepositorio.MostrarInesperado(ex);
             }
             finally
             {

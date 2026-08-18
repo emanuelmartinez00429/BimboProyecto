@@ -81,6 +81,7 @@ Las rosas son rojas.
 - [[ADR-018 - Busqueda insensible a mayusculas y tildes con columna generada]]
 - [[ADR-019 - Configuración de empresa y tema dinámico global]]
 - [[ADR-020 - Defensa en profundidad contra autoadministracion de usuarios]]
+- [[ADR-021 - Validacion en dos capas reglas puras y validador fluido]]
 
 ### Módulos documentados
 - [[Módulo Productos]] — patrón de referencia para todos los demás
@@ -129,6 +130,7 @@ Regla: `CapaAplicacion` **nunca** referencia `CapaDatos`.
 
 Las sesiones están en `70 - Bitácora de Cambios/`.  
 Sesiones más recientes (2026-08-15):
+- [[Sesión 2026-08-15 - Validacion centralizada y doble clic en catalogos]]
 - [[Sesión 2026-08-15 - Normalizacion de modales y advertencia al inactivar]]
 - [[Sesión 2026-08-15 - UNIQUE en presentaciones y limpieza de MaxLineas]]
 - [[Sesión 2026-08-15 - Modulo CRUD de Presentaciones]]

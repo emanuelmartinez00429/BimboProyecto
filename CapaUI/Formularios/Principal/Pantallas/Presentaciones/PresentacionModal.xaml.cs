@@ -1,4 +1,5 @@
 using CapaUI.Core.Controls;
+using CapaUI.Core.Validacion;
 using CapaAplicacion.Common;
 using CapaAplicacion.Presentaciones.Dtos;
 using CapaAplicacion.Presentaciones.Interfaces;
@@ -12,6 +13,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Presentaciones
         private readonly IPresentacionRepository _repo;
         private readonly PresentacionDto?        _presentacion;
         private readonly bool                    _esNuevo;
+        private ValidadorFormulario              _validador = null!;
 
         public event Action? Cerrado;
         public event Action? Guardado;
@@ -27,6 +29,11 @@ namespace CapaUI.Formularios.Principal.Pantallas.Presentaciones
 
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
+            _validador = ValidadorFormulario.Nuevo()
+                .Campo(TxtNombre, "El nombre").Obligatorio().LargoMaximo(100)
+                .Campo(TxtDescripcion, "La descripción").LargoMaximo(255)
+                .ValidarAlSalirDelCampo();
+
             TxtModalContext.Text = _esNuevo ? "NUEVO REGISTRO"     : "EDICIÓN";
             TxtModalTitle.Text   = _esNuevo ? "Crear presentación" : "Editar presentación";
 
@@ -57,19 +64,14 @@ namespace CapaUI.Formularios.Principal.Pantallas.Presentaciones
 
         private async void BtnGuardar_Click(object sender, RoutedEventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(TxtNombre.Text))
-            {
-                MessageBox.Show("El nombre es obligatorio.", "Validación",
-                    MessageBoxButton.OK, MessageBoxImage.Warning);
-                TxtNombre.Focus();
-                return;
-            }
+            if (!_validador.Validar()) return;
 
-            // Ver CategoriaModal: se avisa solo al pasar a inactivo algo que ya
-            // existía y estaba activo.
-            bool estabaActivo = !_esNuevo && _presentacion!.IdEstado == EstadoRegistro.Activo;
-            if (estabaActivo && RbInactivo.IsChecked == true &&
-                !DialogoConfirmacion.ConfirmarInactivacion("presentación", TxtNombre.Text.Trim()))
+            if (!ConfirmacionEstado.Confirmar(
+                    esNuevo:        _esNuevo,
+                    estabaActivo:   !_esNuevo && _presentacion!.IdEstado == EstadoRegistro.Activo,
+                    quedaActivo:    RbActivo.IsChecked == true,
+                    entidad:        "presentación",
+                    nombreRegistro: TxtNombre.Text.Trim()))
                 return;
 
             // Guardar es un viaje de red: sin este aviso la espera se lee como
@@ -89,23 +91,32 @@ namespace CapaUI.Formularios.Principal.Pantallas.Presentaciones
                         : EstadoRegistro.Inactivo,
                 };
 
+                bool exito;
+                string error;
+
                 if (_esNuevo)
                 {
                     var r = await _repo.CreateAsync(dto);
-                    if (!r.Success) { MostrarError(r.Error); return; }
+                    (exito, error) = (r.Success, r.Error);
                 }
                 else
                 {
                     var r = await _repo.UpdateAsync(dto);
-                    if (!r.Success) { MostrarError(r.Error); return; }
+                    (exito, error) = (r.Success, r.Error);
+                }
+
+                if (!exito)
+                {
+                    ErroresRepositorio.Mostrar(error,
+                        "Ya existe una presentación con ese nombre.", TxtNombre);
+                    return;
                 }
 
                 Guardado?.Invoke();
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error inesperado: " + ex.Message, "Error",
-                    MessageBoxButton.OK, MessageBoxImage.Error);
+                ErroresRepositorio.MostrarInesperado(ex);
             }
             finally
             {
@@ -114,29 +125,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Presentaciones
             }
         }
 
-        /// <summary>
-        /// nombre_presentacion tiene UNIQUE en la base, así que repetir un nombre
-        /// vuelve como un 23505 de Postgres envuelto en texto de PostgREST —
-        /// ilegible para el usuario. Se traduce al único mensaje que le sirve y
-        /// se le devuelve el foco al campo que tiene que corregir.
-        /// </summary>
-        private void MostrarError(string error)
-        {
-            if (EsNombreDuplicado(error))
-            {
-                MessageBox.Show("Ya existe una presentación con ese nombre.", "Validación",
-                    MessageBoxButton.OK, MessageBoxImage.Warning);
-                TxtNombre.Focus();
-                TxtNombre.SelectAll();
-                return;
-            }
-
-            MessageBox.Show(error, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-        }
-
-        private static bool EsNombreDuplicado(string error) =>
-            error.Contains("23505", StringComparison.OrdinalIgnoreCase)
-            || error.Contains("presentacion_producto_nombre_presentacion_key", StringComparison.OrdinalIgnoreCase)
-            || error.Contains("duplicate key", StringComparison.OrdinalIgnoreCase);
+        // El manejo del duplicado 23505 que vivía acá se generalizó a
+        // ErroresRepositorio y ahora lo usan los nueve modales, no solo este.
     }
 }

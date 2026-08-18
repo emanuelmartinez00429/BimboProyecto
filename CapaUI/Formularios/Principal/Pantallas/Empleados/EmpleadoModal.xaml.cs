@@ -1,4 +1,5 @@
 using CapaUI.Core.Controls;
+using CapaUI.Core.Validacion;
 using CapaAplicacion.Common;
 using CapaAplicacion.Empleados.Dtos;
 using CapaAplicacion.Empleados.Interfaces;
@@ -16,6 +17,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Empleados
         private readonly IEmpleadoRepository _repo;
         private readonly EmpleadoDto?        _empleado;
         private readonly bool                _esNuevo;
+        private ValidadorFormulario          _validador = null!;
 
         public event Action? Cerrado;
         public event Action? Guardado;
@@ -31,6 +33,13 @@ namespace CapaUI.Formularios.Principal.Pantallas.Empleados
 
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
+            _validador = ValidadorFormulario.Nuevo()
+                .Campo(TxtNombre, "El nombre").Obligatorio().LargoMaximo(100)
+                .Campo(TxtApellido, "El apellido").Obligatorio().LargoMaximo(100)
+                .Campo(TxtTelefono, "El teléfono").Telefono()
+                .Campo(TxtCorreo, "El correo").Correo()
+                .ValidarAlSalirDelCampo();
+
             TxtModalContext.Text = _esNuevo ? "NUEVO REGISTRO" : "EDICIÓN";
             TxtModalTitle.Text   = _esNuevo ? "Crear empleado"  : "Editar empleado";
 
@@ -61,18 +70,14 @@ namespace CapaUI.Formularios.Principal.Pantallas.Empleados
 
         private async void BtnGuardar_Click(object sender, RoutedEventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(TxtNombre.Text) || string.IsNullOrWhiteSpace(TxtApellido.Text))
-            {
-                MessageBox.Show("Nombre y apellido son obligatorios.", "Validacion",
-                    MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
+            if (!_validador.Validar()) return;
 
-            // Ver CategoriaModal: se avisa solo al pasar a inactivo algo que ya
-            // existía y estaba activo.
-            bool estabaActivo = !_esNuevo && _empleado!.IdEstado == 1;
-            if (estabaActivo && RbInactivo.IsChecked == true &&
-                !DialogoConfirmacion.ConfirmarInactivacion("empleado", TxtNombre.Text.Trim()))
+            if (!ConfirmacionEstado.Confirmar(
+                    esNuevo:        _esNuevo,
+                    estabaActivo:   !_esNuevo && _empleado!.IdEstado == 1,
+                    quedaActivo:    RbActivo.IsChecked == true,
+                    entidad:        "empleado",
+                    nombreRegistro: $"{TxtNombre.Text.Trim()} {TxtApellido.Text.Trim()}".Trim()))
                 return;
 
             // Guardar es un viaje de red: sin este aviso la espera se lee como
@@ -93,31 +98,32 @@ namespace CapaUI.Formularios.Principal.Pantallas.Empleados
                     IdEstado         = RbActivo.IsChecked == true ? 1 : 2,
                 };
 
+                bool exito;
+                string error;
+
                 if (_esNuevo)
                 {
                     var r = await _repo.CreateAsync(dto);
-                    if (!r.Success)
-                    {
-                        MessageBox.Show(r.Error, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                        return;
-                    }
+                    (exito, error) = (r.Success, r.Error);
                 }
                 else
                 {
                     var r = await _repo.UpdateAsync(dto);
-                    if (!r.Success)
-                    {
-                        MessageBox.Show(r.Error, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                        return;
-                    }
+                    (exito, error) = (r.Success, r.Error);
+                }
+
+                if (!exito)
+                {
+                    ErroresRepositorio.Mostrar(error,
+                        "Ya existe un empleado con ese número de identidad.", TxtIdentidad);
+                    return;
                 }
 
                 Guardado?.Invoke();
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error inesperado: " + ex.Message, "Error",
-                    MessageBoxButton.OK, MessageBoxImage.Error);
+                ErroresRepositorio.MostrarInesperado(ex);
             }
             finally
             {

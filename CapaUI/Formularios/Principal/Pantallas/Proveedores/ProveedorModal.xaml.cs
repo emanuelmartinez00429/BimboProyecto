@@ -1,4 +1,5 @@
 using CapaUI.Core.Controls;
+using CapaUI.Core.Validacion;
 using CapaAplicacion.Common;
 using CapaAplicacion.Proveedores.Dtos;
 using CapaAplicacion.Proveedores.Interfaces;
@@ -13,6 +14,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Proveedores
         private readonly IProveedorRepository _repo;
         private readonly ProveedorDto?        _proveedor;
         private readonly bool                 _esNuevo;
+        private ValidadorFormulario           _validador = null!;
 
         public event Action? Cerrado;
         public event Action? Guardado;
@@ -28,6 +30,16 @@ namespace CapaUI.Formularios.Principal.Pantallas.Proveedores
 
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
+            // RTN, teléfono y correo son opcionales, pero si se llenan tienen que
+            // tener forma válida. Hasta ahora iban crudos a la base sin mirarlos.
+            _validador = ValidadorFormulario.Nuevo()
+                .Campo(TxtNombre, "El nombre").Obligatorio().LargoMaximo(100)
+                .Campo(TxtRtn, "El RTN").Rtn()
+                .Campo(TxtTelefono, "El teléfono").Telefono()
+                .Campo(TxtCorreo, "El correo").Correo()
+                .Campo(TxtDireccion, "La dirección").LargoMaximo(255)
+                .ValidarAlSalirDelCampo();
+
             TxtModalContext.Text = _esNuevo ? "NUEVO REGISTRO" : "EDICIÓN";
             TxtModalTitle.Text   = _esNuevo ? "Crear proveedor"  : "Editar proveedor";
 
@@ -52,22 +64,18 @@ namespace CapaUI.Formularios.Principal.Pantallas.Proveedores
 
         private async void BtnGuardar_Click(object sender, RoutedEventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(TxtNombre.Text))
-            {
-                MessageBox.Show("El nombre es obligatorio.", "Validación",
-                    MessageBoxButton.OK, MessageBoxImage.Warning);
+            if (!_validador.Validar()) return;
+
+            if (!ConfirmacionEstado.Confirmar(
+                    esNuevo:        _esNuevo,
+                    estabaActivo:   !_esNuevo && _proveedor!.IdEstado == EstadoRegistro.Activo,
+                    quedaActivo:    RbActivo.IsChecked == true,
+                    entidad:        "proveedor",
+                    nombreRegistro: TxtNombre.Text.Trim()))
                 return;
-            }
 
             // Guardar es un viaje de red: sin este aviso la espera se lee como
             // que la aplicacion se colgo.
-            // Ver CategoriaModal: se avisa solo al pasar a inactivo algo que ya
-            // existía y estaba activo.
-            bool estabaActivo = !_esNuevo && _proveedor!.IdEstado == EstadoRegistro.Activo;
-            if (estabaActivo && RbInactivo.IsChecked == true &&
-                !DialogoConfirmacion.ConfirmarInactivacion("proveedor", TxtNombre.Text.Trim()))
-                return;
-
             var etiquetaGuardar  = BtnGuardar.Content;
             BtnGuardar.IsEnabled = false;
             BtnGuardar.Content   = "Guardando...";
@@ -84,23 +92,32 @@ namespace CapaUI.Formularios.Principal.Pantallas.Proveedores
                     IdEstado  = RbActivo.IsChecked == true ? EstadoRegistro.Activo : EstadoRegistro.Inactivo,
                 };
 
+                bool exito;
+                string error;
+
                 if (_esNuevo)
                 {
                     var r = await _repo.CreateAsync(dto);
-                    if (!r.Success) { MessageBox.Show(r.Error, "Error", MessageBoxButton.OK, MessageBoxImage.Error); return; }
+                    (exito, error) = (r.Success, r.Error);
                 }
                 else
                 {
                     var r = await _repo.UpdateAsync(dto);
-                    if (!r.Success) { MessageBox.Show(r.Error, "Error", MessageBoxButton.OK, MessageBoxImage.Error); return; }
+                    (exito, error) = (r.Success, r.Error);
+                }
+
+                if (!exito)
+                {
+                    ErroresRepositorio.Mostrar(error,
+                        "Ya existe un proveedor con ese nombre o RTN.", TxtNombre);
+                    return;
                 }
 
                 Guardado?.Invoke();
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error inesperado: " + ex.Message, "Error",
-                    MessageBoxButton.OK, MessageBoxImage.Error);
+                ErroresRepositorio.MostrarInesperado(ex);
             }
             finally
             {

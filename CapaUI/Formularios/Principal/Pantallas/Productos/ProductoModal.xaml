@@ -187,7 +187,7 @@
                                 <ColumnDefinition Width="44"/>
                             </Grid.ColumnDefinitions>
                             <TextBox Grid.Column="0" x:Name="TxtPresentacion" Style="{StaticResource ModalInput}" IsReadOnly="True" TabIndex="30"
-                                     Cursor="Hand" PreviewMouseLeftButtonUp="TxtCatalogo_PreviewMouseLeftButtonUp"
+                                     Cursor="Hand" PreviewMouseDoubleClick="TxtCatalogo_PreviewMouseDoubleClick"
                              KeyDown="TxtCatalogo_KeyDown"
                                      Tag="{Binding ElementName=BtnBuscarPresentacion}"/>
                             <Button Grid.Column="1" x:Name="BtnBuscarPresentacion" TabIndex="31"
@@ -206,7 +206,7 @@
                                 <ColumnDefinition Width="44"/>
                             </Grid.ColumnDefinitions>
                             <TextBox Grid.Column="0" x:Name="TxtCategoria" Style="{StaticResource ModalInput}" IsReadOnly="True" TabIndex="40"
-                                     Cursor="Hand" PreviewMouseLeftButtonUp="TxtCatalogo_PreviewMouseLeftButtonUp"
+                                     Cursor="Hand" PreviewMouseDoubleClick="TxtCatalogo_PreviewMouseDoubleClick"
                              KeyDown="TxtCatalogo_KeyDown"
                                      Tag="{Binding ElementName=BtnBuscarCategoria}"/>
                             <Button Grid.Column="1" x:Name="BtnBuscarCategoria" TabIndex="41"
@@ -223,7 +223,7 @@
                                 <ColumnDefinition Width="44"/>
                             </Grid.ColumnDefinitions>
                             <TextBox Grid.Column="0" x:Name="TxtProveedor" Style="{StaticResource ModalInput}" IsReadOnly="True" TabIndex="50"
-                                     Cursor="Hand" PreviewMouseLeftButtonUp="TxtCatalogo_PreviewMouseLeftButtonUp"
+                                     Cursor="Hand" PreviewMouseDoubleClick="TxtCatalogo_PreviewMouseDoubleClick"
                              KeyDown="TxtCatalogo_KeyDown"
                                      Tag="{Binding ElementName=BtnBuscarProveedor}"/>
                             <Button Grid.Column="1" x:Name="BtnBuscarProveedor" TabIndex="51"
@@ -240,7 +240,7 @@
                                 <ColumnDefinition Width="44"/>
                             </Grid.ColumnDefinitions>
                             <TextBox Grid.Column="0" x:Name="TxtFabricante" Style="{StaticResource ModalInput}" IsReadOnly="True" TabIndex="60"
-                                     Cursor="Hand" PreviewMouseLeftButtonUp="TxtCatalogo_PreviewMouseLeftButtonUp"
+                                     Cursor="Hand" PreviewMouseDoubleClick="TxtCatalogo_PreviewMouseDoubleClick"
                              KeyDown="TxtCatalogo_KeyDown"
                                      Tag="{Binding ElementName=BtnBuscarFabricante}"/>
                             <Button Grid.Column="1" x:Name="BtnBuscarFabricante" TabIndex="61"
@@ -274,7 +274,7 @@
                                 <ColumnDefinition Width="44"/>
                             </Grid.ColumnDefinitions>
                             <TextBox Grid.Column="0" x:Name="TxtTara" Style="{StaticResource ModalInput}" IsReadOnly="True" TabIndex="100"
-                                     Cursor="Hand" PreviewMouseLeftButtonUp="TxtCatalogo_PreviewMouseLeftButtonUp"
+                                     Cursor="Hand" PreviewMouseDoubleClick="TxtCatalogo_PreviewMouseDoubleClick"
                              KeyDown="TxtCatalogo_KeyDown"
                                      Tag="{Binding ElementName=BtnBuscarTara}"/>
                             <Button Grid.Column="1" x:Name="BtnBuscarTara" TabIndex="101"
@@ -295,7 +295,7 @@
                                 <ColumnDefinition Width="44"/>
                             </Grid.ColumnDefinitions>
                             <TextBox Grid.Column="0" x:Name="TxtPais" Style="{StaticResource ModalInput}" IsReadOnly="True" TabIndex="120"
-                                     Cursor="Hand" PreviewMouseLeftButtonUp="TxtCatalogo_PreviewMouseLeftButtonUp"
+                                     Cursor="Hand" PreviewMouseDoubleClick="TxtCatalogo_PreviewMouseDoubleClick"
                              KeyDown="TxtCatalogo_KeyDown"
                                      Tag="{Binding ElementName=BtnBuscarPais}"/>
                             <Button Grid.Column="1" x:Name="BtnBuscarPais" TabIndex="121"
