@@ -63,6 +63,21 @@ Existía [[Pendiente - Servicio Genérico de Validaciones y Pruebas Caja Negra]]
 
 Ese pendiente quedó marcado como **parcialmente resuelto**: la validación de formulario está, pero siguen abiertas las reglas de negocio que listaba ("no operar sobre registros inactivos", "FK válida antes de guardar") y las pruebas de caja negra en sí — `ReglasCampo` quedó testeable sin WPF, que era la precondición, pero no hay proyecto de tests.
 
+## Huecos encontrados al reverificar
+
+Después del primer commit se barrió el árbol por grep en vez de confiar en lo hecho. Aparecieron tres cosas:
+
+**`UsuarioModal` solo había migrado la validación, no los errores del repositorio.** Seguía con `MostrarError(r.Error)` crudo, así que un correo repetido mostraba el texto de PostgREST sin traducir. Se agregaron `ErroresRepositorio.Traducir` y `TextoInesperado`, que **devuelven** el texto en vez de mostrarlo: este modal presenta el error en línea (`TxtError`) y no por `MessageBox`, y no tenía por qué elegir entre conservar su presentación o recibir la traducción.
+
+**`ProductoModal.TryParseDecimal` quedó como código muerto** al mover el parseo al validador — nadie lo llamaba y arrastraba su propio `MessageBox` de validación, justo lo que la centralización venía a eliminar.
+
+**`FabricanteModal` tenía una asimetría con pérdida de dato.** Si fallaba la carga de **países** deshabilitaba Guardar, pero si fallaba la de **proveedores** no. No es cosmético: con el combo vacío `SelectedItem` queda `null`, y al guardar un fabricante existente el DTO viaja con `IdProveedor = null`, **borrándole el proveedor sin avisar** — justo el catálogo que se usa para encadenar fabricantes. Ahora las dos ramas bloquean igual.
+
+> [!note] Sobre el método
+> Los tres aparecieron por `grep` sobre el árbol, no por releer lo que se había hecho. Vale como recordatorio: "lo implementé" y "está en el código" no son la misma afirmación, y la segunda es la única verificable.
+
+---
+
 ## Deuda que NO se tocó
 
 - **Pesaje** mantiene su modelo propio (validación por pasos, botón deshabilitado) y su `InvariantCulture`, contra el `CurrentCulture` de los modales CRUD. Cambiarlo de refilón podría alterar su cálculo de pesos.

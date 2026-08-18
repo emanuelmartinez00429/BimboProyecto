@@ -53,6 +53,13 @@ namespace CapaUI.Formularios.Principal.Pantallas.Fabricantes
             {
                 MessageBox.Show($"No se pudieron cargar los proveedores.\n{rProv.Error}",
                     "Aviso", MessageBoxButton.OK, MessageBoxImage.Warning);
+                // Guardar queda bloqueado igual que si fallaran los paises: con
+                // el combo vacio SelectedItem es null, y al guardar el DTO viaja
+                // con IdProveedor = null, o sea que editar un fabricante existente
+                // le BORRARIA el proveedor sin avisar. Esta rama no lo bloqueaba y
+                // la de paises si — la asimetria dejaba abierta la perdida de dato
+                // justo del catalogo que se usa para encadenar fabricantes.
+                BtnGuardar.IsEnabled = false;
             }
 
             var rPaises = await _repo.GetPaisesAsync();
