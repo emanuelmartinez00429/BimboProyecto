@@ -50,12 +50,29 @@ public static class ErroresRepositorio
     }
 
     /// <summary>
+    /// La misma traducción que <see cref="Mostrar"/> pero devolviendo el texto en
+    /// vez de mostrarlo.
+    /// </summary>
+    /// <remarks>
+    /// Para los modales que muestran el error <b>en línea</b> y no en un
+    /// <c>MessageBox</c> — hoy <c>UsuarioModal</c>, que tiene su propio
+    /// <c>TxtError</c> en el formulario. Sin esto tendrían que elegir entre
+    /// conservar su presentación o recibir la traducción del duplicado; así se
+    /// quedan con las dos.
+    /// </remarks>
+    public static string Traducir(string error, string? mensajeDuplicado = null) =>
+        mensajeDuplicado is not null && EsDuplicado(error) ? mensajeDuplicado : error;
+
+    /// <summary>
     /// Mensaje único para las excepciones no previstas. Estaba repetido palabra
     /// por palabra en nueve modales.
     /// </summary>
     public static void MostrarInesperado(Exception ex) =>
-        MessageBox.Show("Error inesperado: " + ex.Message, "Error",
+        MessageBox.Show(TextoInesperado(ex), "Error",
             MessageBoxButton.OK, MessageBoxImage.Error);
+
+    /// <summary>Igual que <see cref="MostrarInesperado"/>, para mostrar en línea.</summary>
+    public static string TextoInesperado(Exception ex) => "Error inesperado: " + ex.Message;
 
     /// <summary>
     /// ¿Es un choque de constraint única? Se miran las tres formas en que puede

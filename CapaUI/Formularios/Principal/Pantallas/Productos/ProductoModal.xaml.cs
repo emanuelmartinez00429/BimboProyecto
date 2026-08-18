@@ -531,20 +531,5 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
         private static string FormatearFecha(DateTime? valor) =>
             valor?.ToString("yyyy-MM-dd HH:mm", CultureInfo.CurrentCulture) ?? string.Empty;
 
-        private static bool TryParseDecimal(string texto, string etiqueta, out decimal? valor)
-        {
-            valor = null;
-            if (string.IsNullOrWhiteSpace(texto)) return true;
-
-            if (decimal.TryParse(texto, NumberStyles.Number, CultureInfo.CurrentCulture, out var resultado))
-            {
-                valor = resultado;
-                return true;
-            }
-
-            MessageBox.Show($"{etiqueta} debe ser un número válido.", "Validación",
-                MessageBoxButton.OK, MessageBoxImage.Warning);
-            return false;
-        }
     }
 }

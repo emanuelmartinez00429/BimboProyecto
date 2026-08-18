@@ -239,7 +239,11 @@ namespace CapaUI.Formularios.Principal.Pantallas.Usuarios
                     var r = await _usuarioRepo.CrearAsync(dto);
                     if (!r.Success)
                     {
-                        MostrarError(r.Error);
+                        // Se traduce antes de mostrarlo: este modal presenta el
+                        // error en linea (TxtError) y no por MessageBox, asi que
+                        // usa Traducir en vez de Mostrar.
+                        MostrarError(ErroresRepositorio.Traducir(
+                            r.Error, "Ya existe un usuario con ese correo."));
                         return;
                     }
                 }
@@ -255,7 +259,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Usuarios
                     var r = await _usuarioRepo.ActualizarAsync(dto);
                     if (!r.Success)
                     {
-                        MostrarError(r.Error);
+                        MostrarError(ErroresRepositorio.Traducir(r.Error));
                         return;
                     }
                 }
@@ -264,7 +268,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Usuarios
             }
             catch (Exception ex)
             {
-                MostrarError("Error inesperado: " + ex.Message);
+                MostrarError(ErroresRepositorio.TextoInesperado(ex));
             }
             finally
             {
