@@ -129,6 +129,8 @@ Regla: `CapaAplicacion` **nunca** referencia `CapaDatos`.
 
 Las sesiones están en `70 - Bitácora de Cambios/`.  
 Sesiones más recientes (2026-08-15):
+- [[Sesión 2026-08-15 - Normalizacion de modales y advertencia al inactivar]]
+- [[Sesión 2026-08-15 - UNIQUE en presentaciones y limpieza de MaxLineas]]
 - [[Sesión 2026-08-15 - Modulo CRUD de Presentaciones]]
 - [[Sesión 2026-08-15 - Icono dinámico del sidebar]]
 - [[Sesión 2026-08-15 - Protección contra autoadministración de usuarios]]

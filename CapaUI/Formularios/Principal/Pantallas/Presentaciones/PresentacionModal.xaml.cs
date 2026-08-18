@@ -1,3 +1,4 @@
+using CapaUI.Core.Controls;
 using CapaAplicacion.Common;
 using CapaAplicacion.Presentaciones.Dtos;
 using CapaAplicacion.Presentaciones.Interfaces;
@@ -63,6 +64,13 @@ namespace CapaUI.Formularios.Principal.Pantallas.Presentaciones
                 TxtNombre.Focus();
                 return;
             }
+
+            // Ver CategoriaModal: se avisa solo al pasar a inactivo algo que ya
+            // existía y estaba activo.
+            bool estabaActivo = !_esNuevo && _presentacion!.IdEstado == EstadoRegistro.Activo;
+            if (estabaActivo && RbInactivo.IsChecked == true &&
+                !DialogoConfirmacion.ConfirmarInactivacion("presentación", TxtNombre.Text.Trim()))
+                return;
 
             // Guardar es un viaje de red: sin este aviso la espera se lee como
             // que la aplicacion se colgo.

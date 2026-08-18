@@ -1,3 +1,4 @@
+using CapaUI.Core.Controls;
 using System;
 using System.Linq;
 using System.Windows;
@@ -217,6 +218,14 @@ namespace CapaUI.Formularios.Principal.Pantallas.Usuarios
             }
 
             int idRol = (int)rolItem.Tag;
+
+            // Ver CategoriaModal: se avisa solo al pasar a inactivo algo que ya
+            // existía y estaba activo.
+            bool estabaActivo = !_esNuevo && _usuario!.IdEstado == 1;
+            if (estabaActivo && RbInactivo.IsChecked == true &&
+                !DialogoConfirmacion.ConfirmarInactivacion("usuario", TxtEmail.Text.Trim()))
+                return;
+
             // Guardar es un viaje de red: sin este aviso la espera se lee como
             // que la aplicacion se colgo.
             var etiquetaGuardar  = BtnGuardar.Content;

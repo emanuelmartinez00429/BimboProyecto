@@ -118,6 +118,9 @@
             <Setter Property="VerticalAlignment" Value="Center"/>
             <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
             <Setter Property="Padding" Value="12,0"/>
+            <!-- El "…" ya lo pone TextTrimming, pero sin ToolTip un nombre largo
+                 del catálogo quedaba cortado sin forma de leerlo completo. -->
+            <Setter Property="controls:TextoResponsivo.ToolTipSiRecorta" Value="True"/>
         </Style>
 
         <Style x:Key="CatCellMuted" TargetType="TextBlock" BasedOn="{StaticResource CatCellText}">

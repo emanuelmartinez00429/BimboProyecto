@@ -33,14 +33,16 @@ Ninguno alcanza solo. `PanelFiltrosFluido` combina ambos comportamientos con una
 2. **Arma líneas** metiendo grupos mientras entren a ese ancho natural (empaquetado codicioso) — da la cantidad **mínima** de líneas posible respetando el orden.
 3. **Equilibra** dentro de esa cantidad mínima de líneas: en vez de llenar la primera línea y dejar el resto amontonado en la última (lo que deja un único control gigante y desproporcionado en la última línea), prueba todos los cortes posibles que producen la misma cantidad de líneas y elige el que **minimiza el ancho del hijo flexible más ancho**. Con pocos hijos (el caso normal de una barra de filtros) es barato — hay un tope (`MaxCombinaciones`) que cae al reparto codicioso si algún día hay demasiados hijos para explorar todas las combinaciones.
 4. **Reparte el sobrante de cada línea** por una propiedad adjunta `Peso` (al estilo de las columnas `*` de un `Grid`): un hijo con `Peso="0"` (por defecto) conserva su ancho natural — no se estira; los de `Peso > 0` se reparten el sobrante en proporción.
-5. **`MaxLineas`** (opcional): si envolver indefinidamente le termina robando alto a lo que sí importa (la tabla, debajo de la barra), fija un tope. Al alcanzarlo, el acomodo se **congela** en el ancho límite (calculado por bisección) — deja de reacomodar y lo que ya no entra se recorta contra el borde, en vez de seguir agregando líneas.
+
+> [!info] `MaxLineas` existió y se eliminó (2026-08-15)
+> El panel tuvo una propiedad `MaxLineas` con un "régimen congelado": al superar el tope, el acomodo se congelaba en el ancho límite (calculado por bisección) y lo que no entraba se recortaba contra el borde, en vez de abrir otra línea. Se escribió cuando la ventana principal tenía `MinWidth="590"`. Al subir el mínimo a **960**, ese régimen quedó **inalcanzable**: Presentaciones tiene 2 hijos con tope 2 (imposible superarlo por construcción) y Productos necesitaría 5+ líneas — o sea menos de ~200 px disponibles — cuando el ancho real mínimo de la tarjeta ronda los 840 px. Se eliminó junto con `AnchoQueLograMaxLineas` y el `anchoReparto` congelado; el comportamiento visible no cambió en ningún ancho alcanzable. **Si algún día baja el `MinWidth` de la ventana, revisar esto:** sin el tope, la barra vuelve a envolver indefinidamente y le come alto a la tabla.
 
 ---
 
 ## Uso
 
 ```xml
-<controls:PanelFiltrosFluido EspacioHorizontal="16" EspacioVertical="12" MaxLineas="4">
+<controls:PanelFiltrosFluido EspacioHorizontal="16" EspacioVertical="12">
     <!-- Peso="0" (default): pastillas, no se estiran -->
     <StackPanel Orientation="Horizontal">...</StackPanel>
 
@@ -69,8 +71,7 @@ Ninguno alcanza solo. `PanelFiltrosFluido` combina ambos comportamientos con una
 
 Cualquier barra con controles de ancho natural distinto que deba:
 - mantenerse en una sola línea cuando hay espacio,
-- envolver a varias líneas sin dejar huecos cuando no,
-- y (opcional) frenar el envolvido después de cierta cantidad de líneas para no robarle alto al contenido de abajo.
+- envolver a varias líneas sin dejar huecos cuando no.
 
 No aplica si todos los hijos deben tener el mismo ancho siempre (ahí `UniformGrid` alcanza) ni si nunca hace falta repartir el sobrante (ahí `WrapPanel` alcanza).
 

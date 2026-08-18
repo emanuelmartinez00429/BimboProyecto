@@ -314,18 +314,18 @@
                                Foreground="#6B7280" VerticalAlignment="Center" Margin="0,0,10,0"/>
                     <Border Grid.Column="1" Background="#F3F4F6" CornerRadius="8" BorderBrush="#E5E7EB" BorderThickness="1" Padding="3" VerticalAlignment="Center">
                         <StackPanel Orientation="Horizontal">
-                            <RadioButton x:Name="RbHabilitados" GroupName="EstadoFiltro" IsChecked="True"
+                            <RadioButton x:Name="RbActivos" GroupName="EstadoFiltro" IsChecked="True"
                                          Style="{StaticResource SegmentBtn}" Checked="EstadoFiltro_Changed">
                                 <StackPanel Orientation="Horizontal">
                                     <Border Width="6" Height="6" CornerRadius="3" Background="#10B981" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                                    <TextBlock Text="Habilitados" FontFamily="Segoe UI" FontSize="15"/>
+                                    <TextBlock Text="Activos" FontFamily="Segoe UI" FontSize="15"/>
                                 </StackPanel>
                             </RadioButton>
-                            <RadioButton x:Name="RbDeshabilitados" GroupName="EstadoFiltro"
+                            <RadioButton x:Name="RbInactivos" GroupName="EstadoFiltro"
                                          Style="{StaticResource SegmentBtn}" Checked="EstadoFiltro_Changed">
                                 <StackPanel Orientation="Horizontal">
                                     <Border Width="6" Height="6" CornerRadius="3" Background="#94A3B8" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                                    <TextBlock Text="Deshabilitados" FontFamily="Segoe UI" FontSize="15"/>
+                                    <TextBlock Text="Inactivos" FontFamily="Segoe UI" FontSize="15"/>
                                 </StackPanel>
                             </RadioButton>
                             <RadioButton x:Name="RbTodos" GroupName="EstadoFiltro"

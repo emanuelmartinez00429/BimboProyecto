@@ -37,7 +37,7 @@
             </Border>
             <ControlTemplate.Triggers>
                 <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Bd" Property="Background" Value="#EFF6FF"/></Trigger>
-                <Trigger Property="IsFocused" Value="True"><Setter TargetName="Bd" Property="Background" Value="#C2F2E0"/><Setter TargetName="Bd" Property="BorderBrush" Value="#34D399"/><Setter TargetName="Bd" Property="BorderThickness" Value="3"/></Trigger>
+                <Trigger Property="IsFocused" Value="True"><Setter TargetName="Bd" Property="BorderBrush" Value="#34D399"/><Setter TargetName="Bd" Property="BorderThickness" Value="3"/></Trigger>
                 <Trigger Property="IsEnabled" Value="False"><Setter TargetName="Bd" Property="Opacity" Value="0.5"/></Trigger>
             </ControlTemplate.Triggers>
         </ControlTemplate></Setter.Value></Setter>
@@ -157,7 +157,6 @@
              control (el ToggleButton/editor), no en el ComboBox en sí. -->
         <Style.Triggers>
             <Trigger Property="IsKeyboardFocusWithin" Value="True">
-                <Setter Property="Background" Value="#C2F2E0"/>
                 <Setter Property="BorderBrush" Value="#34D399"/>
                 <Setter Property="BorderThickness" Value="3"/>
             </Trigger>
@@ -233,12 +232,15 @@
                         </Grid>
                     </Border>
                     <ControlTemplate.Triggers>
-                        <!-- Borde grueso (3px) + relleno verde claro + resplandor: el mismo
-                             lenguaje que "fila seleccionada" en las tablas (borde #34D399,
-                             relleno #C2F2E0), perceptible tanto sobre el blanco del campo
-                             como sobre el azul del modal. -->
+                        <!-- Borde grueso (3px) en el verde #34D399 de "fila seleccionada"
+                             de las tablas: mismo lenguaje visual, perceptible tanto sobre
+                             el blanco del campo como sobre el azul del modal.
+                             Solo el BORDE, sin relleno: el #C2F2E0 que se pintaba adentro
+                             tenia dos problemas — tapaba el contraste del texto que se esta
+                             escribiendo, y hacia que el campo enfocado se leyera como un
+                             estado del dato (verde = valido/activo) y no como "aca esta el
+                             cursor". El aro alcanza para ubicar el foco. -->
                         <Trigger Property="IsFocused" Value="True">
-                            <Setter TargetName="Bd" Property="Background" Value="#C2F2E0"/>
                             <Setter TargetName="Bd" Property="BorderBrush" Value="#34D399"/>
                             <Setter TargetName="Bd" Property="BorderThickness" Value="3"/>
                         </Trigger>
@@ -249,6 +251,143 @@
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
+    </Style>
+
+    <!-- ══ Anatomía compartida de los modales ════════════════════════════════
+         Estos cinco estilos estaban duplicados archivo por archivo (EtiquetaCampo
+         y CampoModal en PresentacionModal y ProductoModal con Margin distinto;
+         ModalSegBtn en SEIS modales, y solo la copia de Presentación tenía el
+         trigger de foco). Centralizarlos es lo que permite que un cambio de
+         tipografía, de espaciado o de foco se aplique a todos los modales de una
+         vez, en vez de tener que repetirlo siete veces y que se desincronicen.
+         Todo modal nuevo debe usarlos en vez de redefinirlos localmente. -->
+
+    <!-- Etiqueta ARRIBA del campo (no a la par): deja al input usar todo el ancho
+         de la tarjeta en vez de perder 120-150px en una columna de rótulos. -->
+    <Style x:Key="EtiquetaCampo" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontSize" Value="16"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Foreground" Value="#E0FFFFFF"/>
+        <Setter Property="Margin" Value="2,0,0,6"/>
+    </Style>
+
+    <!-- Contenedor etiqueta+input. La variante ...EnGrid agrega la separación
+         lateral que necesitan los modales de varias columnas (ProductoModal);
+         es un BasedOn y no una segunda copia, así el resto de las propiedades
+         sigue saliendo de un solo lugar. -->
+    <Style x:Key="CampoModal" TargetType="StackPanel">
+        <Setter Property="Margin" Value="0,0,0,16"/>
+    </Style>
+
+    <Style x:Key="CampoModalEnGrid" TargetType="StackPanel" BasedOn="{StaticResource CampoModal}">
+        <Setter Property="Margin" Value="0,0,20,16"/>
+    </Style>
+
+    <!-- Campo de auditoría (Creado / Actualizado): solo lectura, apagado. -->
+    <Style x:Key="ModalInputAuditoria" TargetType="TextBox" BasedOn="{StaticResource ModalInput}">
+        <Setter Property="Background" Value="#C7D2E3"/>
+        <Setter Property="Foreground" Value="#5B6B85"/>
+        <Setter Property="BorderBrush" Value="#3FFFFFFF"/>
+    </Style>
+
+    <!-- Toggle segmentado (Activo / Inactivo). -->
+    <Style x:Key="ModalSegBtn" TargetType="RadioButton">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Foreground" Value="#CCFFFFFF"/>
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontSize" Value="15"/>
+        <Setter Property="Padding" Value="12,5"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="BorderBrush" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="2"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="RadioButton">
+                    <Border x:Name="Bd" Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="6" Padding="{TemplateBinding Padding}">
+                        <ContentPresenter/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="#3CFFFFFF"/>
+                            <Setter Property="Foreground" Value="White"/>
+                        </Trigger>
+                        <!-- Foco por borde, igual que ModalInput. Antes esto pintaba el
+                             relleno #C2F2E0, que acá era el ÚNICO indicador de foco: al
+                             sacar el relleno del resto de los campos había que reemplazarlo
+                             por el aro, no simplemente quitarlo, o el toggle quedaba sin
+                             ninguna señal al navegar con Tab. El BorderThickness ya viene
+                             en 2 con BorderBrush transparente, así que encender el color
+                             no mueve el layout. -->
+                        <Trigger Property="IsFocused" Value="True">
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="#34D399"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- PasswordBox de modal. No puede heredar de ModalInput: WPF no comparte
+         ControlTemplate entre TextBox y PasswordBox (PART_ContentHost espera tipos
+         distintos), así que la apariencia se replica a mano. Sin PART_Recorte ni
+         TextoResponsivo — el contenido va enmascarado, no hay nada que recortar
+         ni que mostrar en un ToolTip. -->
+    <Style x:Key="ModalPassword" TargetType="PasswordBox">
+        <Setter Property="Height" Value="38"/>
+        <Setter Property="Padding" Value="12,0"/>
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontSize" Value="16.5"/>
+        <Setter Property="Foreground" Value="#1A1F2E"/>
+        <Setter Property="Background" Value="White"/>
+        <Setter Property="BorderBrush" Value="#7FFFFFFF"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="PasswordBox">
+                    <Border x:Name="Bd"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="6">
+                        <ScrollViewer x:Name="PART_ContentHost"
+                                      Margin="{TemplateBinding Padding}"
+                                      VerticalAlignment="Center"
+                                      VerticalScrollBarVisibility="Disabled"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsFocused" Value="True">
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="#34D399"/>
+                            <Setter TargetName="Bd" Property="BorderThickness" Value="3"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Título del modal ("Editar categoría"). Antes iba inline en cada archivo,
+         con seis valores distintos de FontSize entre modales. -->
+    <Style x:Key="ModalTitulo" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontSize" Value="24"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="Margin" Value="0,2,0,0"/>
+    </Style>
+
+    <!-- Cinta de contexto sobre el título ("EDICIÓN" / "NUEVO"). -->
+    <Style x:Key="ModalContexto" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Foreground" Value="#A6FFFFFF"/>
     </Style>
 
     <!-- ── PasswordBox ──────────────────────────────────────────────────── -->

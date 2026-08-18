@@ -296,13 +296,34 @@ public partial class SelectorCatalogoModal : UserControl, IDisposable
                 e.Handled = true;
                 break;
 
-            case Key.Enter:
-                if (Dg.SelectedItem is FilaCatalogo) Confirmar();
-                else if (SearchBox.IsKeyboardFocusWithin) BajarALaTabla();
-                e.Handled = true;
+            // Ojo con el alcance: esto es PreviewKeyDown en el UserControl, así que
+            // ve el Enter de CUALQUIER hijo, botones incluidos. Antes marcaba
+            // Handled siempre, y eso se tragaba el Enter cuando el foco estaba
+            // sobre "Elegir" o "Cerrar" — el botón nunca recibía su Click y solo
+            // respondía a Espacio. Ahora solo se marca Handled cuando el selector
+            // realmente hizo algo; si el foco está en un botón, Enter sigue de
+            // largo y lo activa por el camino normal de WPF.
+            case Key.Enter when !EsBotonDelPie(Keyboard.FocusedElement):
+                if (Dg.SelectedItem is FilaCatalogo)
+                {
+                    Confirmar();
+                    e.Handled = true;
+                }
+                else if (SearchBox.IsKeyboardFocusWithin)
+                {
+                    BajarALaTabla();
+                    e.Handled = true;
+                }
                 break;
         }
     }
+
+    /// <summary>
+    /// ¿El foco está sobre un botón del pie del selector? Si lo está, Enter le
+    /// pertenece al botón y el manejo global de Enter no debe interceptarlo.
+    /// </summary>
+    private bool EsBotonDelPie(IInputElement? foco) =>
+        foco is Button b && (b == BtnElegir || b == BtnCerrar);
 
     /// <summary>Marca la primera fila (o la ya marcada) y le pasa el foco a la celda.</summary>
     private void BajarALaTabla()

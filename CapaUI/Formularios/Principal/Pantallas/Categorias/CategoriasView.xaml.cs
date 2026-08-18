@@ -56,7 +56,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Categorias
         private void OnFiltrosLimpiados()
         {
             _suppressFilterChange = true;
-            RbHabilitados.IsChecked = true;
+            RbActivos.IsChecked = true;
             _suppressFilterChange = false;
         }
 
@@ -125,10 +125,10 @@ namespace CapaUI.Formularios.Principal.Pantallas.Categorias
         private void EstadoFiltro_Changed(object sender, RoutedEventArgs e)
         {
             if (_vm == null || _suppressFilterChange) return;
-            if (RbHabilitados.IsChecked == true)
-                _vm.EstadoFiltro = EstadoFilter.Habilitados;
-            else if (RbDeshabilitados.IsChecked == true)
-                _vm.EstadoFiltro = EstadoFilter.Deshabilitados;
+            if (RbActivos.IsChecked == true)
+                _vm.EstadoFiltro = EstadoFilter.Activos;
+            else if (RbInactivos.IsChecked == true)
+                _vm.EstadoFiltro = EstadoFilter.Inactivos;
             else
                 _vm.EstadoFiltro = EstadoFilter.Todos;
         }

@@ -11,6 +11,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Threading;
 
 namespace CapaUI.Formularios.Principal.Pantallas.Productos
@@ -47,6 +48,14 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
         /// </summary>
         private IInputElement? _focoPrevio;
 
+        /// <summary>
+        /// El Border del overlay (ModalOverlay en la vista que lo hospeda) — el
+        /// mismo que ya usan los bindings de MaxWidth/MaxHeight del XAML. Se
+        /// engancha su SizeChanged para volver a medir el modal cuando la
+        /// ventana cambia de tamaño de verdad; ver <see cref="FijarAlturaOriginal"/>.
+        /// </summary>
+        private Border? _overlayAncestor;
+
         public event Action? Cerrado;
         public event Action? Guardado;
 
@@ -57,7 +66,14 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
             _producto  = producto;
             _esNuevo   = producto == null;
             InitializeComponent();
-            Loaded += OnLoaded;
+            Loaded   += OnLoaded;
+            Unloaded += OnUnloaded;
+        }
+
+        private void OnUnloaded(object sender, RoutedEventArgs e)
+        {
+            if (_overlayAncestor != null)
+                _overlayAncestor.SizeChanged -= OverlayAncestor_SizeChanged;
         }
 
         private async void OnLoaded(object sender, RoutedEventArgs e)
@@ -103,23 +119,56 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
             }
 
             FijarAlturaOriginal();
+
+            // Reenganchar contra el resize real de la ventana: sin esto, el
+            // alto quedaba fijo para siempre al valor del primer Loaded (ver
+            // FijarAlturaOriginal) y el modal no volvía a crecer si se abría
+            // con la ventana chica y esta se agrandaba después — ni mostraba
+            // scrollbar si se abría grande y la ventana se achicaba (el marco
+            // quedaba más alto que el hueco disponible y el ClipToBounds del
+            // Border raíz lo cortaba en silencio). Es el mismo Border que ya
+            // usan MaxWidth/MaxHeight arriba en el XAML (RelativeSource
+            // AncestorType=Border) — un solo contenedor, una sola fuente de
+            // verdad del tamaño disponible.
+            _overlayAncestor = FindAncestor<Border>(this);
+            if (_overlayAncestor != null)
+                _overlayAncestor.SizeChanged += OverlayAncestor_SizeChanged;
+
             // Foco en el primer campo al abrir: el usuario no tiene que
             // clickear nada para empezar a escribir.
             TxtCodigo.Focus();
         }
 
+        private void OverlayAncestor_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            // Soltar el alto congelado y volver a fijarlo contra el nuevo
+            // tamaño disponible — mismo mecanismo que el Loaded inicial, solo
+            // que disparado por un resize real en vez de la primera carga.
+            RootGrid.Height = double.NaN;
+            FijarAlturaOriginal();
+        }
+
+        private static T? FindAncestor<T>(DependencyObject start) where T : DependencyObject
+        {
+            var parent = VisualTreeHelper.GetParent(start);
+            while (parent != null && parent is not T)
+                parent = VisualTreeHelper.GetParent(parent);
+            return parent as T;
+        }
+
         /// <summary>
-        /// Congela el marco al alto que ocupa el formulario recién cargado.
+        /// Congela el marco al alto que ocupa el formulario recién cargado (o
+        /// recién recalculado tras un resize, ver <see cref="OverlayAncestor_SizeChanged"/>).
         /// Sin esto, el modal se auto-dimensiona a su contenido: cambiar a modo
         /// tabla (<see cref="AbrirSelector"/>) y volver a filtrar dentro de ella
         /// hacía que el marco creciera o encogiera con la cantidad de filas
         /// visibles (el Border de la tabla solo tenía un rango Min/Max, no un
-        /// alto fijo). Al fijar RootGrid.Height una sola vez, el renglón "*" de
-        /// la tabla queda con una altura de verdad —ya no depende de su
-        /// contenido— y el marco se mantiene del tamaño del modal original en
-        /// ambos modos.
+        /// alto fijo). Al fijar RootGrid.Height, el renglón "*" de la tabla
+        /// queda con una altura de verdad —ya no depende de su contenido— y el
+        /// marco se mantiene del tamaño del modal en ambos modos, hasta el
+        /// próximo resize real de la ventana.
         /// Se difiere un tick (DispatcherPriority.Loaded) para leer el alto ya
-        /// asentado tras el primer layout completo, no uno a medio popular.
+        /// asentado tras el layout completo, no uno a medio popular.
         /// </summary>
         private void FijarAlturaOriginal() =>
             Dispatcher.BeginInvoke(new Action(() =>
@@ -168,6 +217,28 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
         /// </summary>
         private void TxtCatalogo_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
+            if (sender is FrameworkElement campo && campo.Tag is Button lupa)
+            {
+                e.Handled = true;
+                lupa.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            }
+        }
+
+        /// <summary>
+        /// Lo mismo que <see cref="TxtCatalogo_PreviewMouseLeftButtonUp"/> pero por
+        /// teclado: al llegar al campo con Tab, Enter o Espacio abren el selector.
+        /// Sin esto el campo era alcanzable por Tab pero no se podía abrir sin
+        /// mouse — había que tabular una vez más hasta la lupa, que sí responde a
+        /// Espacio/Enter por ser un Button.
+        ///
+        /// Enter simple está libre: <see cref="Core.Controls.AtajoGuardar"/> solo
+        /// intercepta Ctrl+Enter.
+        /// </summary>
+        private void TxtCatalogo_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key is not (Key.Enter or Key.Space)) return;
+            if (Keyboard.Modifiers != ModifierKeys.None) return;
+
             if (sender is FrameworkElement campo && campo.Tag is Button lupa)
             {
                 e.Handled = true;
@@ -256,6 +327,13 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
                     MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
+
+            // Ver CategoriaModal: se avisa solo al pasar a inactivo algo que ya
+            // existía y estaba activo.
+            bool estabaActivo = !_esNuevo && _producto!.IdEstado == 1;
+            if (estabaActivo && RbInactivo.IsChecked == true &&
+                !DialogoConfirmacion.ConfirmarInactivacion("producto", TxtNombre.Text.Trim()))
+                return;
 
             // Guardar es un viaje de red: sin este aviso el segundo de espera se
             // lee como que la aplicacion se colgo.

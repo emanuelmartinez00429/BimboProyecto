@@ -87,29 +87,6 @@ public class PanelFiltrosFluido : Panel
         set => SetValue(EspacioVerticalProperty, value);
     }
 
-    // ── Tope de líneas ────────────────────────────────────────────────
-
-    public static readonly DependencyProperty MaxLineasProperty =
-        DependencyProperty.Register(
-            nameof(MaxLineas), typeof(int), typeof(PanelFiltrosFluido),
-            new FrameworkPropertyMetadata(int.MaxValue,
-                FrameworkPropertyMetadataOptions.AffectsMeasure |
-                FrameworkPropertyMetadataOptions.AffectsArrange));
-
-    /// <summary>
-    /// Cuántas líneas puede llegar a ocupar la barra como máximo. Seguir
-    /// envolviendo indefinidamente le termina robando alto a la tabla, que es el
-    /// contenido que importa. Alcanzado el tope el acomodo se congela: el panel
-    /// mantiene el agrupamiento que tenía en el ancho límite y, si la ventana se
-    /// achica todavía más, deja que lo que sobra se recorte contra el borde de
-    /// la tarjeta en vez de abrir una línea nueva.
-    /// </summary>
-    public int MaxLineas
-    {
-        get => (int)GetValue(MaxLineasProperty);
-        set => SetValue(MaxLineasProperty, value);
-    }
-
     // ── Estado de layout ──────────────────────────────────────────────
 
     private sealed class Linea
@@ -151,7 +128,7 @@ public class PanelFiltrosFluido : Panel
             _naturales[hijo] = hijo.DesiredSize;
         }
 
-        var (lineas, _) = RepartirEnLineas(disponible.Width);
+        var lineas = RepartirEnLineas(disponible.Width);
 
         double alto  = 0;
         double ancho = 0;
@@ -170,17 +147,12 @@ public class PanelFiltrosFluido : Panel
 
     protected override Size ArrangeOverride(Size final)
     {
-        // anchoReparto es el ancho contra el que se reparte el sobrante. Coincide
-        // con el disponible salvo en el régimen congelado (ver MaxLineas), donde
-        // se queda en el ancho límite: si acá se usara el ancho real, las líneas
-        // más cortas seguirían teniendo sobrante que repartir y sus combos
-        // seguirían achicándose mientras las líneas largas ya están recortadas.
-        var (lineas, anchoReparto) = RepartirEnLineas(final.Width);
+        var lineas = RepartirEnLineas(final.Width);
 
         double y = 0;
         foreach (var linea in lineas)
         {
-            double sobrante  = Math.Max(0, anchoReparto - linea.AnchoNatural);
+            double sobrante  = Math.Max(0, final.Width - linea.AnchoNatural);
             double pesoTotal = 0;
             foreach (var hijo in linea.Hijos)
                 pesoTotal += GetPeso(hijo);
@@ -210,61 +182,25 @@ public class PanelFiltrosFluido : Panel
     // ── Reparto en líneas ─────────────────────────────────────────────
 
     /// <summary>
-    /// Arma las líneas y devuelve, junto con ellas, el ancho contra el cual hay
-    /// que repartir el sobrante — que no siempre es el disponible: al llegar al
-    /// tope de líneas queda congelado en el ancho límite.
+    /// Arma las líneas: primero el corte codicioso (que da la cantidad mínima
+    /// posible) y después el equilibrado dentro de esa misma cantidad.
     /// </summary>
-    private (List<Linea> Lineas, double AnchoReparto) RepartirEnLineas(double anchoDisponible)
+    private List<Linea> RepartirEnLineas(double anchoDisponible)
     {
         var visibles = new List<UIElement>();
         foreach (UIElement hijo in InternalChildren)
             if (hijo.Visibility != Visibility.Collapsed)
                 visibles.Add(hijo);
 
-        double anchoCorte = anchoDisponible;
-        var codicioso = EmpaquetarCodicioso(visibles, anchoCorte);
-
-        if (codicioso.Count > MaxLineas)
-        {
-            anchoCorte = AnchoQueLograMaxLineas(visibles, MaxLineas);
-            codicioso  = EmpaquetarCodicioso(visibles, anchoCorte);
-        }
+        var codicioso = EmpaquetarCodicioso(visibles, anchoDisponible);
 
         // Una sola línea ya es óptima: no hay nada que equilibrar.
-        if (codicioso.Count <= 1) return (codicioso, anchoCorte);
+        if (codicioso.Count <= 1) return codicioso;
 
         // El reparto codicioso da la cantidad MÍNIMA de líneas posible
         // respetando el orden; equilibrar dentro de esa cantidad reacomoda los
         // grupos sin agregar líneas de más.
-        var lineas = Equilibrar(visibles, anchoCorte, codicioso.Count) ?? codicioso;
-        return (lineas, anchoCorte);
-    }
-
-    /// <summary>
-    /// El ancho más chico con el que los grupos todavía entran en
-    /// <paramref name="maxLineas"/> líneas. Es monótono (a más ancho, nunca más
-    /// líneas), así que se resuelve por bisección.
-    /// </summary>
-    private double AnchoQueLograMaxLineas(List<UIElement> visibles, int maxLineas)
-    {
-        double bajo = 0, alto = 0;
-        foreach (var hijo in visibles)
-        {
-            double w = Natural(hijo).Width;
-            bajo  = Math.Max(bajo, w);          // una línea nunca baja del grupo más ancho
-            alto += w + EspacioHorizontal;      // todo en una sola línea
-        }
-
-        if (EmpaquetarCodicioso(visibles, bajo).Count <= maxLineas) return bajo;
-
-        for (int i = 0; i < 24 && alto - bajo > 0.5; i++)
-        {
-            double medio = (bajo + alto) / 2;
-            if (EmpaquetarCodicioso(visibles, medio).Count <= maxLineas) alto = medio;
-            else                                                          bajo = medio;
-        }
-
-        return alto;
+        return Equilibrar(visibles, anchoDisponible, codicioso.Count) ?? codicioso;
     }
 
     /// <summary>

@@ -1,3 +1,4 @@
+using CapaUI.Core.Controls;
 using CapaAplicacion.Common;
 using CapaAplicacion.Proveedores.Dtos;
 using CapaAplicacion.Proveedores.Interfaces;
@@ -60,6 +61,13 @@ namespace CapaUI.Formularios.Principal.Pantallas.Proveedores
 
             // Guardar es un viaje de red: sin este aviso la espera se lee como
             // que la aplicacion se colgo.
+            // Ver CategoriaModal: se avisa solo al pasar a inactivo algo que ya
+            // existía y estaba activo.
+            bool estabaActivo = !_esNuevo && _proveedor!.IdEstado == EstadoRegistro.Activo;
+            if (estabaActivo && RbInactivo.IsChecked == true &&
+                !DialogoConfirmacion.ConfirmarInactivacion("proveedor", TxtNombre.Text.Trim()))
+                return;
+
             var etiquetaGuardar  = BtnGuardar.Content;
             BtnGuardar.IsEnabled = false;
             BtnGuardar.Content   = "Guardando...";

@@ -13,33 +13,7 @@
         <Geometry x:Key="IconUserM">M20,21 v-2 a4,4 0 0 0,-4,-4 H8 a4,4 0 0 0,-4,4 v2 M12,3 a4,4 0 1 1 0,8 a4,4 0 0 1 0,-8 z</Geometry>
         <Geometry x:Key="IconCloseM">M6,6 l12,12 M18,6 l-12,12</Geometry>
 
-        <Style x:Key="ModalSegBtn" TargetType="RadioButton">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="#CCFFFFFF"/>
-            <Setter Property="FontFamily" Value="Segoe UI"/>
-            <Setter Property="FontSize" Value="15"/>
-            <Setter Property="Padding" Value="12,5"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="RadioButton">
-                        <Border x:Name="Bd"
-                                Background="{TemplateBinding Background}"
-                                CornerRadius="6"
-                                Padding="{TemplateBinding Padding}">
-                            <ContentPresenter/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsChecked" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="#3CFFFFFF"/>
-                                <Setter Property="Foreground" Value="White"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
+        <!-- ModalSegBtn, EtiquetaCampo, CampoModal y ModalPassword vienen de Styles.xaml. -->
     </UserControl.Resources>
 
     <Border CornerRadius="10" ClipToBounds="True">
@@ -88,12 +62,8 @@
                                   Width="22" Height="22" Stretch="Uniform"/>
                         </Border>
                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                            <TextBlock x:Name="TxtModalContext"
-                                       FontFamily="Segoe UI" FontSize="14" FontWeight="SemiBold"
-                                       Foreground="#A6FFFFFF"/>
-                            <TextBlock x:Name="TxtModalTitle"
-                                       FontFamily="Segoe UI" FontSize="24" FontWeight="Bold"
-                                       Foreground="White" Margin="0,2,0,0"/>
+                            <TextBlock x:Name="TxtModalContext" Style="{StaticResource ModalContexto}"/>
+                            <TextBlock x:Name="TxtModalTitle" Style="{StaticResource ModalTitulo}"/>
                         </StackPanel>
                         <Button Grid.Column="2"
                                 Width="32" Height="32"
@@ -122,92 +92,53 @@
 
                 <!-- Form -->
                 <StackPanel Margin="40,20,40,18">
-                    <!-- Empleado (solo al crear) -->
-                    <Grid x:Name="RowEmpleado" Margin="0,0,0,12">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="120"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="Empleado"
-                                   FontFamily="Segoe UI" FontSize="16.5" FontWeight="Medium"
-                                   Foreground="#F2FFFFFF" VerticalAlignment="Center"
-                                   HorizontalAlignment="Right" Margin="0,0,12,0"/>
-                        <ComboBox Grid.Column="1" x:Name="CmbEmpleado" Style="{StaticResource ModalCombo}"/>
-                        <TextBlock Grid.Column="1" x:Name="TxtEmpleadoNombre"
-                                   FontFamily="Segoe UI" FontSize="16.5"
-                                   Foreground="#F2FFFFFF" VerticalAlignment="Center"
-                                   Padding="10,6" Visibility="Collapsed"/>
-                    </Grid>
+                    <!-- Empleado (solo al crear). El combo y el nombre plano van
+                         SUPERPUESTOS en un Grid, no apilados: al editar se oculta el
+                         combo y se muestra el texto, ocupando el mismo lugar. -->
+                    <StackPanel x:Name="RowEmpleado" Style="{StaticResource CampoModal}">
+                        <TextBlock Text="Empleado" Style="{StaticResource EtiquetaCampo}"/>
+                        <Grid>
+                            <ComboBox x:Name="CmbEmpleado" Style="{StaticResource ModalCombo}" TabIndex="10"/>
+                            <TextBlock x:Name="TxtEmpleadoNombre"
+                                       FontFamily="Segoe UI" FontSize="16.5"
+                                       Foreground="#F2FFFFFF" VerticalAlignment="Center"
+                                       Padding="10,6" Visibility="Collapsed"/>
+                        </Grid>
+                    </StackPanel>
 
-                    <!-- Email -->
-                    <Grid Margin="0,0,0,12">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="120"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="Email"
-                                   FontFamily="Segoe UI" FontSize="16.5" FontWeight="Medium"
-                                   Foreground="#F2FFFFFF" VerticalAlignment="Center"
-                                   HorizontalAlignment="Right" Margin="0,0,12,0"/>
-                        <TextBox Grid.Column="1" x:Name="TxtEmail" Style="{StaticResource ModalInput}"
-                                 IsReadOnly="True"/>
-                    </Grid>
+                    <StackPanel Style="{StaticResource CampoModal}">
+                        <TextBlock Text="Email" Style="{StaticResource EtiquetaCampo}"/>
+                        <TextBox x:Name="TxtEmail" Style="{StaticResource ModalInput}"
+                                 IsReadOnly="True" TabIndex="20"/>
+                    </StackPanel>
 
-                    <!-- Password (solo al crear) -->
-                    <Grid x:Name="RowPassword" Margin="0,0,0,12" Visibility="Collapsed">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="120"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="Contraseña"
-                                   FontFamily="Segoe UI" FontSize="16.5" FontWeight="Medium"
-                                   Foreground="#F2FFFFFF" VerticalAlignment="Center"
-                                   HorizontalAlignment="Right" Margin="0,0,12,0"/>
-                        <PasswordBox Grid.Column="1" x:Name="TxtPassword" Height="34"
-                                     Padding="10,0" FontFamily="Segoe UI" FontSize="15.5"
-                                     Foreground="#1A1F2E" Background="White"
-                                     BorderBrush="#7FFFFFFF" BorderThickness="1"
-                                     VerticalContentAlignment="Center"
-                                     FocusVisualStyle="{x:Null}"/>
-                    </Grid>
+                    <!-- Contraseña: solo al crear. -->
+                    <StackPanel x:Name="RowPassword" Style="{StaticResource CampoModal}" Visibility="Collapsed">
+                        <TextBlock Text="Contrase&#241;a" Style="{StaticResource EtiquetaCampo}"/>
+                        <PasswordBox x:Name="TxtPassword" Style="{StaticResource ModalPassword}" TabIndex="30"/>
+                    </StackPanel>
 
-                    <!-- Rol -->
-                    <Grid Margin="0,0,0,12">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="120"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="Rol"
-                                   FontFamily="Segoe UI" FontSize="16.5" FontWeight="Medium"
-                                   Foreground="#F2FFFFFF" VerticalAlignment="Center"
-                                   HorizontalAlignment="Right" Margin="0,0,12,0"/>
-                        <ComboBox Grid.Column="1" x:Name="CmbRolModal" Style="{StaticResource ModalCombo}"/>
-                    </Grid>
+                    <StackPanel Style="{StaticResource CampoModal}">
+                        <TextBlock Text="Rol" Style="{StaticResource EtiquetaCampo}"/>
+                        <ComboBox x:Name="CmbRolModal" Style="{StaticResource ModalCombo}" TabIndex="40"/>
+                    </StackPanel>
 
-                    <!-- Estado (solo al editar) -->
-                    <Grid x:Name="RowEstado" Margin="0,0,0,0" Visibility="Collapsed">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="120"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="Estado"
-                                   FontFamily="Segoe UI" FontSize="16.5" FontWeight="Medium"
-                                   Foreground="#F2FFFFFF" VerticalAlignment="Center"
-                                   HorizontalAlignment="Right" Margin="0,0,12,0"/>
-                        <Border Grid.Column="1"
-                                Background="#1AFFFFFF" CornerRadius="8"
+                    <!-- Estado: solo al editar. -->
+                    <StackPanel x:Name="RowEstado" Style="{StaticResource CampoModal}" Visibility="Collapsed">
+                        <TextBlock Text="Estado" Style="{StaticResource EtiquetaCampo}"/>
+                        <Border Background="#1AFFFFFF" CornerRadius="8"
                                 BorderBrush="#26FFFFFF" BorderThickness="1"
                                 Padding="3" HorizontalAlignment="Left">
                             <StackPanel Orientation="Horizontal">
                                 <RadioButton x:Name="RbActivo" GroupName="EstadoModal" IsChecked="True"
-                                             Style="{StaticResource ModalSegBtn}">
+                                             Style="{StaticResource ModalSegBtn}" TabIndex="50">
                                     <StackPanel Orientation="Horizontal">
                                         <Border Width="6" Height="6" CornerRadius="3" Background="#10B981" Margin="0,0,5,0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Activo" FontFamily="Segoe UI" FontSize="16.5"/>
                                     </StackPanel>
                                 </RadioButton>
                                 <RadioButton x:Name="RbInactivo" GroupName="EstadoModal"
-                                             Style="{StaticResource ModalSegBtn}">
+                                             Style="{StaticResource ModalSegBtn}" TabIndex="51">
                                     <StackPanel Orientation="Horizontal">
                                         <Border Width="6" Height="6" CornerRadius="3" Background="#94A3B8" Margin="0,0,5,0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Inactivo" FontFamily="Segoe UI" FontSize="16.5"/>
@@ -215,7 +146,7 @@
                                 </RadioButton>
                             </StackPanel>
                         </Border>
-                    </Grid>
+                    </StackPanel>
                 </StackPanel>
 
                 <!-- Error message -->
@@ -228,6 +159,8 @@
                         BorderBrush="#1FFFFFFF" BorderThickness="0,1,0,0"
                         Padding="28,14">
                     <DockPanel LastChildFill="False">
+                        <TextBlock DockPanel.Dock="Left" Text="Ctrl+Enter para guardar" VerticalAlignment="Center"
+                                   FontFamily="Segoe UI" FontSize="13" Foreground="#8CFFFFFF"/>
                         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
                             <Button Content="Cancelar"
                                     Click="BtnCerrar_Click"
@@ -235,7 +168,7 @@
                                     FontFamily="Segoe UI" FontSize="17" FontWeight="SemiBold"
                                     BorderBrush="#4CFFFFFF" BorderThickness="1"
                                     Padding="22,9" Cursor="Hand"
-                                    FocusVisualStyle="{x:Null}" Margin="0,0,10,0">
+                                    FocusVisualStyle="{x:Null}" Margin="0,0,10,0" TabIndex="60">
                                 <Button.Template>
                                     <ControlTemplate TargetType="Button">
                                         <Border x:Name="Bd"
@@ -259,7 +192,7 @@
                                     Foreground="White" FontFamily="Segoe UI" FontSize="17" FontWeight="Bold"
                                     BorderBrush="#15803D" BorderThickness="1"
                                     Padding="22,9" Cursor="Hand"
-                                    FocusVisualStyle="{x:Null}">
+                                    FocusVisualStyle="{x:Null}" TabIndex="61">
                                 <Button.Background>
                                     <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
                                         <GradientStop Color="#22C55E" Offset="0"/>

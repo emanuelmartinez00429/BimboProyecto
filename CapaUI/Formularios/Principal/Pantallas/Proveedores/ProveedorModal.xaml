@@ -13,30 +13,7 @@
         <Geometry x:Key="IconTruckM">M1,3 h15 v13 H1 z M16,8 h4 l3,3 v5 h-7 z M5.5,19 a1.5,1.5 0 1 0,3,0 a1.5,1.5 0 0 0,-3,0 z M17,19 a1.5,1.5 0 1 0,3,0 a1.5,1.5 0 0 0,-3,0 z</Geometry>
         <Geometry x:Key="IconCloseM">M6,6 l12,12 M18,6 l-12,12</Geometry>
 
-        <Style x:Key="ModalSegBtn" TargetType="RadioButton">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="#CCFFFFFF"/>
-            <Setter Property="FontFamily" Value="Segoe UI"/>
-            <Setter Property="FontSize" Value="15"/>
-            <Setter Property="Padding" Value="12,5"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="RadioButton">
-                        <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
-                            <ContentPresenter/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsChecked" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="#3CFFFFFF"/>
-                                <Setter Property="Foreground" Value="White"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
+        <!-- ModalSegBtn, EtiquetaCampo y CampoModal vienen de Styles.xaml. -->
     </UserControl.Resources>
 
     <Border CornerRadius="10" ClipToBounds="True"
@@ -76,8 +53,8 @@
                                   Width="22" Height="22" Stretch="Uniform"/>
                         </Border>
                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                            <TextBlock x:Name="TxtModalContext" FontFamily="Segoe UI" FontSize="14" FontWeight="SemiBold" Foreground="#A6FFFFFF"/>
-                            <TextBlock x:Name="TxtModalTitle" FontFamily="Segoe UI" FontSize="24" FontWeight="Bold" Foreground="White" Margin="0,2,0,0"/>
+                            <TextBlock x:Name="TxtModalContext" Style="{StaticResource ModalContexto}"/>
+                            <TextBlock x:Name="TxtModalTitle" Style="{StaticResource ModalTitulo}"/>
                         </StackPanel>
                         <Button Grid.Column="2" Width="32" Height="32" Background="#14FFFFFF" BorderThickness="0"
                                 VerticalAlignment="Top" Cursor="Hand" FocusVisualStyle="{x:Null}" Click="BtnCerrar_Click">
@@ -100,74 +77,43 @@
                 </Border>
 
                 <StackPanel Margin="40,20,40,18">
-                    <!-- Nombre -->
-                    <Grid Margin="0,0,0,12">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="130"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="Nombre" FontFamily="Segoe UI" FontSize="16.5" FontWeight="Medium"
-                                   Foreground="#F2FFFFFF" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,12,0"/>
-                        <TextBox Grid.Column="1" x:Name="TxtNombre" Style="{StaticResource ModalInput}"/>
-                    </Grid>
-                    <!-- RTN -->
-                    <Grid Margin="0,0,0,12">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="130"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="RTN" FontFamily="Segoe UI" FontSize="16.5" FontWeight="Medium"
-                                   Foreground="#F2FFFFFF" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,12,0"/>
-                        <TextBox Grid.Column="1" x:Name="TxtRtn" Style="{StaticResource ModalInput}"/>
-                    </Grid>
-                    <!-- Teléfono -->
-                    <Grid Margin="0,0,0,12">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="130"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="Tel&#233;fono" FontFamily="Segoe UI" FontSize="16.5" FontWeight="Medium"
-                                   Foreground="#F2FFFFFF" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,12,0"/>
-                        <TextBox Grid.Column="1" x:Name="TxtTelefono" Style="{StaticResource ModalInput}"/>
-                    </Grid>
-                    <!-- Correo -->
-                    <Grid Margin="0,0,0,12">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="130"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="Correo" FontFamily="Segoe UI" FontSize="16.5" FontWeight="Medium"
-                                   Foreground="#F2FFFFFF" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,12,0"/>
-                        <TextBox Grid.Column="1" x:Name="TxtCorreo" Style="{StaticResource ModalInput}"/>
-                    </Grid>
-                    <!-- Dirección -->
-                    <Grid Margin="0,0,0,12">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="130"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="Direcci&#243;n" FontFamily="Segoe UI" FontSize="16.5" FontWeight="Medium"
-                                   Foreground="#F2FFFFFF" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,12,0"/>
-                        <TextBox Grid.Column="1" x:Name="TxtDireccion" Style="{StaticResource ModalInput}"/>
-                    </Grid>
-                    <!-- Estado -->
-                    <Grid Margin="0,0,0,0">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="130"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="Estado" FontFamily="Segoe UI" FontSize="16.5" FontWeight="Medium"
-                                   Foreground="#F2FFFFFF" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,12,0"/>
-                        <Border Grid.Column="1" Background="#1AFFFFFF" CornerRadius="8" BorderBrush="#26FFFFFF" BorderThickness="1"
+                    <StackPanel Style="{StaticResource CampoModal}">
+                        <TextBlock Text="Nombre" Style="{StaticResource EtiquetaCampo}"/>
+                        <TextBox x:Name="TxtNombre" Style="{StaticResource ModalInput}" TabIndex="10" MaxLength="100"/>
+                    </StackPanel>
+
+                    <StackPanel Style="{StaticResource CampoModal}">
+                        <TextBlock Text="RTN" Style="{StaticResource EtiquetaCampo}"/>
+                        <TextBox x:Name="TxtRtn" Style="{StaticResource ModalInput}" TabIndex="20"/>
+                    </StackPanel>
+
+                    <StackPanel Style="{StaticResource CampoModal}">
+                        <TextBlock Text="Tel&#233;fono" Style="{StaticResource EtiquetaCampo}"/>
+                        <TextBox x:Name="TxtTelefono" Style="{StaticResource ModalInput}" TabIndex="30"/>
+                    </StackPanel>
+
+                    <StackPanel Style="{StaticResource CampoModal}">
+                        <TextBlock Text="Correo" Style="{StaticResource EtiquetaCampo}"/>
+                        <TextBox x:Name="TxtCorreo" Style="{StaticResource ModalInput}" TabIndex="40"/>
+                    </StackPanel>
+
+                    <StackPanel Style="{StaticResource CampoModal}">
+                        <TextBlock Text="Direcci&#243;n" Style="{StaticResource EtiquetaCampo}"/>
+                        <TextBox x:Name="TxtDireccion" Style="{StaticResource ModalInput}" TabIndex="50"/>
+                    </StackPanel>
+
+                    <StackPanel Style="{StaticResource CampoModal}">
+                        <TextBlock Text="Estado" Style="{StaticResource EtiquetaCampo}"/>
+                        <Border Background="#1AFFFFFF" CornerRadius="8" BorderBrush="#26FFFFFF" BorderThickness="1"
                                 Padding="3" HorizontalAlignment="Left">
                             <StackPanel Orientation="Horizontal">
-                                <RadioButton x:Name="RbActivo" GroupName="EstadoModal" IsChecked="True" Style="{StaticResource ModalSegBtn}">
+                                <RadioButton x:Name="RbActivo" GroupName="EstadoModal" IsChecked="True" Style="{StaticResource ModalSegBtn}" TabIndex="60">
                                     <StackPanel Orientation="Horizontal">
                                         <Border Width="6" Height="6" CornerRadius="3" Background="#10B981" Margin="0,0,5,0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Activo" FontFamily="Segoe UI" FontSize="16.5"/>
                                     </StackPanel>
                                 </RadioButton>
-                                <RadioButton x:Name="RbInactivo" GroupName="EstadoModal" Style="{StaticResource ModalSegBtn}">
+                                <RadioButton x:Name="RbInactivo" GroupName="EstadoModal" Style="{StaticResource ModalSegBtn}" TabIndex="61">
                                     <StackPanel Orientation="Horizontal">
                                         <Border Width="6" Height="6" CornerRadius="3" Background="#94A3B8" Margin="0,0,5,0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Inactivo" FontFamily="Segoe UI" FontSize="16.5"/>
@@ -175,15 +121,17 @@
                                 </RadioButton>
                             </StackPanel>
                         </Border>
-                    </Grid>
+                    </StackPanel>
                 </StackPanel>
 
                 <Border Background="#2E000000" BorderBrush="#1FFFFFFF" BorderThickness="0,1,0,0" Padding="28,14">
                     <DockPanel LastChildFill="False">
+                        <TextBlock DockPanel.Dock="Left" Text="Ctrl+Enter para guardar" VerticalAlignment="Center"
+                                   FontFamily="Segoe UI" FontSize="13" Foreground="#8CFFFFFF"/>
                         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
                             <Button Content="Volver" Click="BtnCerrar_Click" Background="#1AFFFFFF" Foreground="White"
                                     FontFamily="Segoe UI" FontSize="17" FontWeight="SemiBold"
-                                    BorderBrush="#4CFFFFFF" BorderThickness="1" Padding="22,9" Cursor="Hand" FocusVisualStyle="{x:Null}" Margin="0,0,10,0">
+                                    BorderBrush="#4CFFFFFF" BorderThickness="1" Padding="22,9" Cursor="Hand" FocusVisualStyle="{x:Null}" Margin="0,0,10,0" TabIndex="70">
                                 <Button.Template>
                                     <ControlTemplate TargetType="Button">
                                         <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
@@ -200,7 +148,7 @@
                             </Button>
                             <Button x:Name="BtnGuardar" Content="Guardar" Click="BtnGuardar_Click" Foreground="White"
                                     FontFamily="Segoe UI" FontSize="17" FontWeight="Bold"
-                                    BorderBrush="#15803D" BorderThickness="1" Padding="22,9" Cursor="Hand" FocusVisualStyle="{x:Null}">
+                                    BorderBrush="#15803D" BorderThickness="1" Padding="22,9" Cursor="Hand" FocusVisualStyle="{x:Null}" TabIndex="71">
                                 <Button.Background>
                                     <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
                                         <GradientStop Color="#22C55E" Offset="0"/>

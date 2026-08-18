@@ -1,5 +1,6 @@
 using CapaAplicacion.Categorias.Dtos;
 using CapaAplicacion.Categorias.Interfaces;
+using CapaUI.Core.Controls;
 using System;
 using System.Windows;
 using System.Windows.Media.Imaging;
@@ -53,6 +54,15 @@ namespace CapaUI.Formularios.Principal.Pantallas.Categorias
                     MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
+
+            // Inactivar esconde el registro de los listados que filtran por
+            // activos, así que se avisa antes — pero solo cuando es un cambio
+            // real sobre algo que ya existía y estaba activo. Crear algo
+            // directamente inactivo es una decisión explícita, no una sorpresa.
+            bool estabaActivo = !_esNuevo && _categoria!.EstadoCategoria;
+            if (estabaActivo && RbInactivo.IsChecked == true &&
+                !DialogoConfirmacion.ConfirmarInactivacion("categoría", TxtNombre.Text.Trim()))
+                return;
 
             // Guardar es un viaje de red: sin este aviso la espera se lee como
             // que la aplicacion se colgo.

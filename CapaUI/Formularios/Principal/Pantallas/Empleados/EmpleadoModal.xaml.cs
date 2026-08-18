@@ -1,3 +1,4 @@
+using CapaUI.Core.Controls;
 using CapaAplicacion.Common;
 using CapaAplicacion.Empleados.Dtos;
 using CapaAplicacion.Empleados.Interfaces;
@@ -66,6 +67,13 @@ namespace CapaUI.Formularios.Principal.Pantallas.Empleados
                     MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
+
+            // Ver CategoriaModal: se avisa solo al pasar a inactivo algo que ya
+            // existía y estaba activo.
+            bool estabaActivo = !_esNuevo && _empleado!.IdEstado == 1;
+            if (estabaActivo && RbInactivo.IsChecked == true &&
+                !DialogoConfirmacion.ConfirmarInactivacion("empleado", TxtNombre.Text.Trim()))
+                return;
 
             // Guardar es un viaje de red: sin este aviso la espera se lee como
             // que la aplicacion se colgo.

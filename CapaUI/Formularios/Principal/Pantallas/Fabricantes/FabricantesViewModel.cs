@@ -16,7 +16,7 @@ using CommunityToolkit.Mvvm.Input;
 
 namespace CapaUI.Formularios.Principal.Pantallas.Fabricantes;
 
-public enum EstadoFilter { Habilitados, Deshabilitados, Todos }
+public enum EstadoFilter { Activos, Inactivos, Todos }
 
 public partial class FabricantesViewModel : RealtimeAwareViewModel
 {
@@ -24,7 +24,7 @@ public partial class FabricantesViewModel : RealtimeAwareViewModel
     private readonly SuggestionDebouncer _buscador = new();
 
     private string       _query        = "";
-    private EstadoFilter _estadoFiltro = EstadoFilter.Habilitados;
+    private EstadoFilter _estadoFiltro = EstadoFilter.Activos;
     private int?         _paisIdFiltro;
     private int          _page         = 1;
     private int          _filteredCount;
@@ -268,8 +268,8 @@ public partial class FabricantesViewModel : RealtimeAwareViewModel
     {
         IdEstado = _estadoFiltro switch
         {
-            EstadoFilter.Habilitados    => Activo,
-            EstadoFilter.Deshabilitados => Inactivo,
+            EstadoFilter.Activos    => Activo,
+            EstadoFilter.Inactivos => Inactivo,
             _                           => null
         },
         IdPais = _paisIdFiltro,
@@ -290,7 +290,7 @@ public partial class FabricantesViewModel : RealtimeAwareViewModel
     [RelayCommand]
     private void LimpiarFiltros()
     {
-        _estadoFiltro = EstadoFilter.Habilitados;
+        _estadoFiltro = EstadoFilter.Activos;
         _paisIdFiltro = null;
         _page = 1;
         FiltrosLimpiados?.Invoke();

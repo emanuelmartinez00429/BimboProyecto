@@ -620,13 +620,8 @@
                      combo por un hueco que no se explicaba solo. Los combos
                      igual terminan todos del mismo ancho, porque cada celda
                      recibe la misma porción del sobrante y su parte fija
-                     (etiqueta + margen) se descuenta antes.
-
-                     MaxLineas frena el envolvido: seguir apilando le come alto
-                     a la tabla, así que al llegar al tope el acomodo se congela
-                     y lo que no entra se recorta contra el borde de la tarjeta. -->
-                <controls:PanelFiltrosFluido EspacioHorizontal="16" EspacioVertical="12"
-                                             MaxLineas="4">
+                     (etiqueta + margen) se descuenta antes. -->
+                <controls:PanelFiltrosFluido EspacioHorizontal="16" EspacioVertical="12">
 
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                         <TextBlock Text="ESTADO"
@@ -641,7 +636,7 @@
                                 Padding="3"
                                 VerticalAlignment="Center">
                             <StackPanel Orientation="Horizontal">
-                                <RadioButton x:Name="RbHabilitados"
+                                <RadioButton x:Name="RbActivos"
                                              GroupName="EstadoFiltro"
                                              IsChecked="True"
                                              Style="{StaticResource SegmentBtn}"
@@ -651,7 +646,7 @@
                                         <TextBlock Text="Activos" FontFamily="Segoe UI" FontSize="15"/>
                                     </StackPanel>
                                 </RadioButton>
-                                <RadioButton x:Name="RbDeshabilitados"
+                                <RadioButton x:Name="RbInactivos"
                                              GroupName="EstadoFiltro"
                                              Style="{StaticResource SegmentBtn}"
                                              Checked="EstadoFiltro_Changed">

@@ -15,7 +15,7 @@ using CommunityToolkit.Mvvm.Input;
 
 namespace CapaUI.Formularios.Principal.Pantallas.Proveedores;
 
-public enum EstadoFilter { Habilitados, Deshabilitados, Todos }
+public enum EstadoFilter { Activos, Inactivos, Todos }
 
 /// <summary>
 /// ViewModel del formulario de Proveedores.
@@ -28,7 +28,7 @@ public partial class ProveedoresViewModel : RealtimeAwareViewModel
     private readonly SuggestionDebouncer _buscador = new();
 
     private string       _query        = "";
-    private EstadoFilter _estadoFiltro = EstadoFilter.Habilitados;
+    private EstadoFilter _estadoFiltro = EstadoFilter.Activos;
     private int          _page         = 1;
     private int          _filteredCount;
     private int?         _pendingSelectionId;
@@ -252,8 +252,8 @@ public partial class ProveedoresViewModel : RealtimeAwareViewModel
     {
         IdEstado = _estadoFiltro switch
         {
-            EstadoFilter.Habilitados    => Activo,
-            EstadoFilter.Deshabilitados => Inactivo,
+            EstadoFilter.Activos    => Activo,
+            EstadoFilter.Inactivos => Inactivo,
             _                           => null
         },
     };
@@ -273,7 +273,7 @@ public partial class ProveedoresViewModel : RealtimeAwareViewModel
     [RelayCommand]
     private void LimpiarFiltros()
     {
-        _estadoFiltro = EstadoFilter.Habilitados;
+        _estadoFiltro = EstadoFilter.Activos;
         _page = 1;
         FiltrosLimpiados?.Invoke();
         _ = CargarPaginaAsync();

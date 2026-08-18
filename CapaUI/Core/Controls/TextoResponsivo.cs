@@ -14,10 +14,17 @@ namespace CapaUI.Core.Controls;
 /// </summary>
 /// <remarks>
 /// <para>
-/// Se activa vía <see cref="ActivoProperty"/> en el <c>Style</c> compartido
-/// de los campos de modal (<c>ModalInput</c> en <c>Styles.xaml</c>), disparado
-/// por un <c>Trigger</c> sobre <c>IsReadOnly</c> — así cubre automáticamente
-/// cualquier modal que use ese estilo, sin tocar cada campo uno por uno.
+/// Se activa vía <see cref="ActivoProperty"/> con un <c>Setter</c> en el
+/// <c>Style</c> compartido de los campos de modal (<c>ModalInput</c> en
+/// <c>Styles.xaml</c>) — así cubre automáticamente cualquier modal que use ese
+/// estilo, sin tocar cada campo uno por uno. La distinción entre editable y
+/// solo-lectura no se hace con un <c>Trigger</c> en XAML sino en runtime, al
+/// recalcular (ver <see cref="Recalcular"/>).
+/// </para>
+/// <para>
+/// Para <see cref="TextBlock"/> existe la variante
+/// <see cref="ToolTipSiRecortaProperty"/>: ahí no hace falta recortar a mano
+/// (<c>TextTrimming</c> ya lo hace nativo), solo falta el ToolTip.
 /// </para>
 /// <para><b>Por qué el tratamiento es distinto según editable/solo-lectura:</b></para>
 /// <list type="bullet">
@@ -121,6 +128,85 @@ public static class TextoResponsivo
         caja.SetValue(AutoAjustandoProperty, true);
         try   { caja.Text = textoFinal; caja.CaretIndex = 0; }
         finally { caja.SetValue(AutoAjustandoProperty, false); }
+    }
+
+    // ── Variante para TextBlock ───────────────────────────────────────────
+    //
+    // Un TextBlock ya recorta solo con TextTrimming="CharacterEllipsis", así que
+    // acá no hay nada que truncar: lo único que falta es que, cuando el texto
+    // efectivamente no entra, se pueda leer completo por ToolTip. Sin esto un
+    // nombre largo del catálogo queda cortado y sin forma de recuperarlo.
+    //
+    // El ToolTip se pone y se quita según el caso — dejarlo fijo mostraría un
+    // globo redundante en cada celda que sí entra.
+
+    public static readonly DependencyProperty ToolTipSiRecortaProperty =
+        DependencyProperty.RegisterAttached(
+            "ToolTipSiRecorta", typeof(bool), typeof(TextoResponsivo),
+            new PropertyMetadata(false, OnToolTipSiRecortaChanged));
+
+    public static void SetToolTipSiRecorta(TextBlock elemento, bool valor) =>
+        elemento.SetValue(ToolTipSiRecortaProperty, valor);
+
+    public static bool GetToolTipSiRecorta(TextBlock elemento) =>
+        (bool)elemento.GetValue(ToolTipSiRecortaProperty);
+
+    private static void OnToolTipSiRecortaChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is not TextBlock texto) return;
+
+        // El descriptor de TextProperty hace falta porque TextBlock no expone un
+        // evento TextChanged: en un DataGrid virtualizado el contenedor se recicla
+        // y el texto cambia sin que dispare Loaded ni SizeChanged, así que sin
+        // esto la celda reusada se quedaría con el ToolTip de la fila anterior.
+        var descriptor = System.ComponentModel.DependencyPropertyDescriptor
+            .FromProperty(TextBlock.TextProperty, typeof(TextBlock));
+
+        if ((bool)e.NewValue)
+        {
+            texto.SizeChanged += AlCambiarTamañoTexto;
+            texto.Loaded      += AlCargarTexto;
+            descriptor.AddValueChanged(texto, AlCambiarContenido);
+        }
+        else
+        {
+            texto.SizeChanged -= AlCambiarTamañoTexto;
+            texto.Loaded      -= AlCargarTexto;
+            descriptor.RemoveValueChanged(texto, AlCambiarContenido);
+        }
+    }
+
+    private static void AlCargarTexto(object sender, RoutedEventArgs e) => RecalcularTexto((TextBlock)sender);
+
+    private static void AlCambiarTamañoTexto(object sender, SizeChangedEventArgs e) => RecalcularTexto((TextBlock)sender);
+
+    private static void AlCambiarContenido(object? sender, EventArgs e)
+    {
+        if (sender is TextBlock texto) RecalcularTexto(texto);
+    }
+
+    private static void RecalcularTexto(TextBlock texto)
+    {
+        if (!texto.IsLoaded || texto.ActualWidth <= 0) return;
+
+        if (string.IsNullOrEmpty(texto.Text)) { texto.ToolTip = null; return; }
+
+        double anchoDisponible = texto.ActualWidth - texto.Padding.Left - texto.Padding.Right;
+        texto.ToolTip = MedirAncho(texto, texto.Text) > anchoDisponible ? texto.Text : null;
+    }
+
+    /// <summary>Ancho real que ocupa <paramref name="texto"/> con la tipografía del elemento.</summary>
+    private static double MedirAncho(TextBlock elemento, string texto)
+    {
+        var formateado = new FormattedText(
+            texto,
+            System.Globalization.CultureInfo.CurrentCulture,
+            FlowDirection.LeftToRight,
+            new Typeface(elemento.FontFamily, elemento.FontStyle, elemento.FontWeight, elemento.FontStretch),
+            elemento.FontSize,
+            Brushes.Black,
+            VisualTreeHelper.GetDpi(elemento).PixelsPerDip);
+        return formateado.WidthIncludingTrailingWhitespace;
     }
 
     /// <summary>Ancho real que ocupa <paramref name="texto"/> con la tipografía de la caja.</summary>
