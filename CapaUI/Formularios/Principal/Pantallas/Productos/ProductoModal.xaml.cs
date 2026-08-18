@@ -4,6 +4,7 @@ using CapaAplicacion.Productos.Dtos;
 using CapaAplicacion.Productos.Interfaces;
 using CapaUI.Core.Catalogos;
 using CapaUI.Core.Controls;
+using CapaDominio.Reglas;
 using CapaUI.Core.Validacion;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -83,10 +84,10 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
             // Los campos de catálogo (Presentación, Fabricante…) no se validan:
             // son opcionales en la base a propósito.
             _validador = ValidadorFormulario.Nuevo()
-                .Campo(TxtCodigo, "El código").Obligatorio().LargoMaximo(50)
-                .Campo(TxtNombre, "El nombre").Obligatorio().LargoMaximo(150)
-                .Campo(TxtPesoTeorico, "El peso teórico").Decimal()
-                .Campo(TxtPrecioPorKg, "El precio por kg").Decimal()
+                .Campo(TxtCodigo, "El código").Segun(ReglasProducto.Codigo)
+                .Campo(TxtNombre, "El nombre").Segun(ReglasProducto.Nombre)
+                .Campo(TxtPesoTeorico, "El peso teórico").Segun(ReglasProducto.PesoTeorico)
+                .Campo(TxtPrecioPorKg, "El precio por kg").Segun(ReglasProducto.PrecioPorKg)
                 .ValidarAlSalirDelCampo();
 
             TxtModalContext.Text = _esNuevo ? "NUEVO REGISTRO" : "EDICIÓN";
@@ -366,8 +367,8 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
             // Los números ya los validó el validador; acá solo se convierten. Antes
             // el parseo ocurría DENTRO del try, después de poner "Guardando…": el
             // usuario veía el spinner y recién entonces le rechazaban el número.
-            ReglasCampo.EsDecimalOpcional(TxtPesoTeorico.Text, out var pesoTeorico);
-            ReglasCampo.EsDecimalOpcional(TxtPrecioPorKg.Text, out var precioPorKg);
+            ParseoNumerico.EsDecimalOpcional(TxtPesoTeorico.Text, out var pesoTeorico);
+            ParseoNumerico.EsDecimalOpcional(TxtPrecioPorKg.Text, out var precioPorKg);
 
             // Guardar es un viaje de red: sin este aviso el segundo de espera se
             // lee como que la aplicacion se colgo.

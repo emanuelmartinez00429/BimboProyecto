@@ -81,7 +81,7 @@ Las rosas son rojas.
 - [[ADR-018 - Busqueda insensible a mayusculas y tildes con columna generada]]
 - [[ADR-019 - Configuración de empresa y tema dinámico global]]
 - [[ADR-020 - Defensa en profundidad contra autoadministracion de usuarios]]
-- [[ADR-021 - Validacion en dos capas reglas puras y validador fluido]]
+- [[ADR-021 - Validacion en tres capas reglas de negocio en Dominio]]
 
 ### Módulos documentados
 - [[Módulo Productos]] — patrón de referencia para todos los demás

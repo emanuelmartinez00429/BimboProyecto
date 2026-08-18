@@ -12,7 +12,7 @@ lifecycle: verified
 # Validación de formularios
 
 > [!abstract]
-> Toda la validación de modales vive en `CapaUI/Core/Validacion/`. **Un modal no escribe sus propios `if` de validación ni sus propios `MessageBox`.** El porqué del diseño está en [[ADR-021 - Validacion en dos capas reglas puras y validador fluido]]; acá va cómo se usa.
+> Las reglas de negocio viven en **`CapaDominio/Reglas/`**; la presentación del error, en **`CapaUI/Core/Validacion/`**. **Un modal no escribe sus propios `if` de validación, ni sus propios `MessageBox`, ni decide qué campo es obligatorio.** El porqué del diseño está en [[ADR-021 - Validacion en tres capas reglas de negocio en Dominio]]; acá va cómo se usa.
 
 ---
 
@@ -20,8 +20,11 @@ lifecycle: verified
 
 | Archivo | Qué hace |
 |---|---|
-| `ReglasCampo` | Predicados puros: `EsCorreo`, `EsRtn`, `EsTelefono`, `NoExcedeLargo`, `EsDecimalOpcional`. **Sin nada de WPF.** |
-| `ValidadorFormulario` | API fluida: declara las reglas del formulario y las evalúa. Se ocupa del borde rojo, el foco y el mensaje. |
+| `ReglasFormato` *(Dominio)* | Predicados: `EsCorreo`, `EsRtn`, `EsTelefono`, largos. **Sin nada de WPF.** |
+| `ReglaCampo`, `FormatoCampo` *(Dominio)* | Descriptor: qué exige el negocio de un campo, como dato. |
+| `ReglasProducto`, `ReglasProveedor`… *(Dominio)* | **Qué campos son obligatorios y con qué largo, por entidad.** |
+| `ParseoNumerico` *(UI)* | Convierte el texto a número según el `CultureInfo` del usuario. No es regla de negocio. |
+| `ValidadorFormulario` *(UI)* | API fluida: aplica las reglas y se ocupa del borde rojo, el foco y el mensaje. |
 | `Validacion` | Propiedad adjunta `Error` / `TieneError` que disparan los estilos. |
 | `ConfirmacionEstado` | El aviso al pasar un registro de activo a inactivo o viceversa. |
 | `ErroresRepositorio` | Traduce el `23505` de Postgres y unifica el mensaje de excepción inesperada. |
@@ -38,10 +41,10 @@ private ValidadorFormulario _validador = null!;
 private void OnLoaded(object sender, RoutedEventArgs e)
 {
     _validador = ValidadorFormulario.Nuevo()
-        .Campo(TxtNombre, "El nombre").Obligatorio().LargoMaximo(100)
-        .Campo(TxtCorreo, "El correo").Correo()
-        .Campo(TxtTelefono, "El teléfono").Telefono()
-        .Combo(CmbRol, "El rol").Obligatorio()
+        .Campo(TxtNombre, "El nombre").Segun(ReglasProveedor.Nombre)
+        .Campo(TxtCorreo, "El correo").Segun(ReglasProveedor.Correo)
+        .Campo(TxtTelefono, "El teléfono").Segun(ReglasProveedor.Telefono)
+        .Combo(CmbRol, "El rol").Segun(ReglasUsuario.Rol)
         .ValidarAlSalirDelCampo();
     ...
 }
@@ -73,6 +76,8 @@ private async void BtnGuardar_Click(object sender, RoutedEventArgs e)
 
 ## Reglas disponibles
 
+**Lo normal es `Segun(ReglasXxx.Campo)`** — el qué sale del dominio. Los métodos sueltos siguen ahí para lo que no tiene una regla de negocio detrás:
+
 `Obligatorio()` · `Correo()` · `Rtn()` · `Telefono()` · `LargoMaximo(n)` · `LargoMinimo(n)` · `Decimal()` · `Entero()`
 
 Dos escapes para lo que no entra:
@@ -93,8 +98,10 @@ Dos escapes para lo que no entra:
 
 ## Cómo agregar una regla nueva
 
-1. El predicado puro va en `ReglasCampo` — sin WPF, para que lo pueda usar también un ViewModel.
-2. El método fluido va en `ValidadorFormulario.ConstructorCampo`, con el mensaje por defecto parametrizado con la etiqueta del campo.
+1. El predicado va en `CapaDominio/Reglas/ReglasFormato` — sin WPF, para que lo pueda usar también un ViewModel o un repositorio.
+2. Si es un formato nuevo, sumalo a `FormatoCampo` y al `switch` de `Segun(...)`.
+3. El método fluido va en `ValidadorFormulario.ConstructorCampo`, con el mensaje por defecto parametrizado con la etiqueta del campo.
+4. **Si cambia una exigencia de una entidad** (un largo máximo, un campo que pasa a obligatorio) se toca solo `ReglasEntidades.cs`, no los modales.
 
 Si la regla es de un solo modal, no hace falta nada de esto: `Regla(...)` alcanza.
 
@@ -102,10 +109,10 @@ Si la regla es de un solo modal, no hace falta nada de esto: `Regla(...)` alcanz
 
 ## Desde un ViewModel (sin controles)
 
-`ConfiguracionEmpresaViewModel` es MVVM y no tiene TextBoxes que pasarle al validador, así que usa la capa pura y reporta por su propia propiedad `Error`:
+`ConfiguracionEmpresaViewModel` es MVVM y no tiene TextBoxes que pasarle al validador, así que usa las reglas del dominio directamente y reporta por su propia propiedad `Error`:
 
 ```csharp
-if (!ReglasCampo.EsRtn(RtnEmpresa))
+if (!ReglasFormato.EsRtn(RtnEmpresa))
 {
     Error = "El RTN debe tener 14 dígitos.";
     return false;
@@ -126,6 +133,6 @@ Un campo vacío que nunca se tocó **no se marca** hasta que se lo visita o se i
 
 ## Relaciones
 
-- [[ADR-021 - Validacion en dos capas reglas puras y validador fluido]] — el porqué, con las alternativas descartadas
+- [[ADR-021 - Validacion en tres capas reglas de negocio en Dominio]] — el porqué, con las alternativas descartadas
 - [[Anatomia compartida de los modales]] — la estructura `CampoModal` de la que depende el renglón de error
 - [[ADR-001 - Result Pattern en Repositorios]] — el `Result` que traduce `ErroresRepositorio`

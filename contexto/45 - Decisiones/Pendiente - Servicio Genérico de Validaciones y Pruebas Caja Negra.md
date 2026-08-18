@@ -12,11 +12,11 @@ estado: parcialmente-resuelto
 # Pendiente — Servicio Genérico de Validaciones y Pruebas de Caja Negra
 
 > [!success] Resuelto parcialmente el 2026-08-15
-> La parte de **validación de formularios** está implementada, con un diseño distinto al que se sugiere más abajo. Ver [[ADR-021 - Validacion en dos capas reglas puras y validador fluido]], que explica por qué se descartó el boceto de acá (una clase por regla, y un `ValidacionResult` con lista de strings que pierde el vínculo con el control y no permite pintar el campo ni moverle el foco).
+> La parte de **validación de formularios** está implementada, con un diseño distinto al que se sugiere más abajo. Ver [[ADR-021 - Validacion en tres capas reglas de negocio en Dominio]], que explica por qué se descartó el boceto de acá (una clase por regla, y un `ValidacionResult` con lista de strings que pierde el vínculo con el control y no permite pintar el campo ni moverle el foco).
 >
 > **Sigue pendiente:**
 > - Las reglas de **negocio** que se listan abajo y que no son de formulario: "no operar sobre registros inactivos" y "FK válida antes de guardar". Son invariantes de dominio y les corresponde otra capa.
-> - Las **pruebas de caja negra** en sí: `ReglasCampo` quedó pura y testeable sin WPF —que era la precondición— pero no existe todavía proyecto de tests.
+> - Las **pruebas de caja negra** en sí: las reglas quedaron en `CapaDominio/Reglas/`, testeables sin WPF y sin referenciar nada —que era la precondición— pero no existe todavía proyecto de tests.
 
 ---
 

@@ -1,5 +1,6 @@
 using CapaAplicacion.Categorias.Dtos;
 using CapaAplicacion.Categorias.Interfaces;
+using CapaDominio.Reglas;
 using CapaUI.Core.Validacion;
 using System;
 using System.Windows;
@@ -31,8 +32,8 @@ namespace CapaUI.Formularios.Principal.Pantallas.Categorias
             // Las reglas se declaran una sola vez acá y sirven para los dos
             // momentos: al salir de cada campo y al guardar.
             _validador = ValidadorFormulario.Nuevo()
-                .Campo(TxtNombre, "El nombre").Obligatorio().LargoMaximo(100)
-                .Campo(TxtDescripcion, "La descripción").LargoMaximo(255)
+                .Campo(TxtNombre, "El nombre").Segun(ReglasCategoria.Nombre)
+                .Campo(TxtDescripcion, "La descripción").Segun(ReglasCategoria.Descripcion)
                 .ValidarAlSalirDelCampo();
 
             TxtModalContext.Text = _esNuevo ? "NUEVO REGISTRO" : "EDICIÓN";

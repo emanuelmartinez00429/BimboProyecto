@@ -148,9 +148,6 @@ namespace CapaUI.Formularios.Principal
                 NavLabel, HomeButtonContainer, UserCardButton, LogoContainer,
             };
 
-            MinWidth  = 600;
-            MinHeight = 400;
-
             Vm.CierreRequerido += OnCierreRequerido;
 
             Loaded            += OnLoaded;
@@ -197,8 +194,14 @@ namespace CapaUI.Formularios.Principal
                 mmi.ptMaxPosition.Y  = Math.Abs(work.Top  - full.Top);
                 mmi.ptMaxSize.X      = Math.Abs(work.Right  - work.Left);
                 mmi.ptMaxSize.Y      = Math.Abs(work.Bottom - work.Top);
-                mmi.ptMinTrackSize.X = 600;
-                mmi.ptMinTrackSize.Y = 400;
+
+                // ptMinTrackSize es en píxeles físicos; MinWidth/MinHeight de WPF son
+                // DIPs (1/96"). Hay que escalar por el DPI real del monitor actual —
+                // sin esto, en pantallas >100% el mínimo nativo quedaría más chico
+                // que el que pide el XAML, y se podría volver a achicar de más.
+                var dpi = VisualTreeHelper.GetDpi(this);
+                mmi.ptMinTrackSize.X = (int)(MinWidth  * dpi.DpiScaleX);
+                mmi.ptMinTrackSize.Y = (int)(MinHeight * dpi.DpiScaleY);
 
                 Marshal.StructureToPtr(mmi, lParam, true);
                 handled = true;

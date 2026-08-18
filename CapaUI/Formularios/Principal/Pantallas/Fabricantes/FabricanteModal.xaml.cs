@@ -1,4 +1,5 @@
 using CapaUI.Core.Controls;
+using CapaDominio.Reglas;
 using CapaUI.Core.Validacion;
 using CapaAplicacion.Common;
 using CapaAplicacion.Fabricantes.Dtos;
@@ -34,8 +35,8 @@ namespace CapaUI.Formularios.Principal.Pantallas.Fabricantes
             // Proveedor y País no se validan: son opcionales por diseño y el combo
             // ofrece "(Ninguno)" como primera opción.
             _validador = ValidadorFormulario.Nuevo()
-                .Campo(TxtNombre, "El nombre").Obligatorio().LargoMaximo(100)
-                .Campo(TxtDescripcion, "La descripción").LargoMaximo(255)
+                .Campo(TxtNombre, "El nombre").Segun(ReglasFabricante.Nombre)
+                .Campo(TxtDescripcion, "La descripción").Segun(ReglasFabricante.Descripcion)
                 .ValidarAlSalirDelCampo();
 
             TxtModalContext.Text = _esNuevo ? "NUEVO REGISTRO" : "EDICIÓN";

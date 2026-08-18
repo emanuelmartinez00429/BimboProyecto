@@ -6,7 +6,7 @@ using CommunityToolkit.Mvvm.Input;
 using CapaAplicacion.Empresa.Dtos;
 using CapaAplicacion.Empresa.Interfaces;
 using CapaUI.Core.Empresa;
-using CapaUI.Core.Validacion;
+using CapaDominio.Reglas;
 using CapaUI.Services.Empresa;
 
 namespace CapaUI.Formularios.Principal.Pantallas.Configuracion;
@@ -189,32 +189,32 @@ public partial class ConfiguracionEmpresaViewModel : ObservableObject
     /// </summary>
     /// <remarks>
     /// Este ViewModel no tiene controles que pasarle al validador de formularios
-    /// —es MVVM, los datos llegan por binding— así que consume directamente
-    /// <see cref="ReglasCampo"/>, la capa de reglas puras. Ese es justamente el
-    /// motivo por el que las reglas están separadas de la UI: acá sirven igual.
-    /// El error se reporta por la propiedad <c>Error</c> que la vista ya muestra.
+    /// —es MVVM, los datos llegan por binding— así que consume directamente las
+    /// reglas del dominio. Ese es justamente el
+    /// motivo por el que viven en CapaDominio y no en la UI: acá sirven igual, sin
+    /// arrastrar WPF. El error se reporta por la propiedad <c>Error</c> que ya muestra la vista.
     /// </remarks>
     private bool DatosValidos()
     {
-        if (!ReglasCampo.TieneContenido(NombreEmpresa))
+        if (!ReglasFormato.TieneContenido(NombreEmpresa))
         {
             Error = "El nombre de la empresa es obligatorio.";
             return false;
         }
 
-        if (!ReglasCampo.EsRtn(RtnEmpresa))
+        if (!ReglasFormato.EsRtn(RtnEmpresa))
         {
             Error = "El RTN debe tener 14 dígitos.";
             return false;
         }
 
-        if (!ReglasCampo.EsTelefono(TelefonoEmpresa))
+        if (!ReglasFormato.EsTelefono(TelefonoEmpresa))
         {
             Error = "El teléfono debe tener entre 8 y 15 dígitos.";
             return false;
         }
 
-        if (!ReglasCampo.EsCorreo(CorreoEmpresa))
+        if (!ReglasFormato.EsCorreo(CorreoEmpresa))
         {
             Error = "El correo no tiene un formato válido.";
             return false;

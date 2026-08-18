@@ -1,3 +1,4 @@
+using CapaDominio.Reglas;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -19,15 +20,17 @@ namespace CapaUI.Core.Validacion;
 /// </para>
 /// <para>
 /// Solo se ocupa de la UI: leer el control, marcarlo, poner el foco, mostrar el
-/// mensaje. El "¿este valor es válido?" vive en <see cref="ReglasCampo"/>, que no
-/// sabe nada de WPF y por eso también la puede usar un ViewModel.
+/// mensaje. El "qué exige el negocio" vive en <c>CapaDominio.Reglas</c>
+/// (<see cref="ReglaCampo"/> y <see cref="ReglasFormato"/>), que no sabe nada de
+/// WPF; lo único que queda de este lado es el parseo dependiente de cultura, en
+/// <see cref="ParseoNumerico"/>.
 /// </para>
 /// <example>
 /// <code>
 /// _validador = ValidadorFormulario.Nuevo()
-///     .Campo(TxtNombre, "Nombre").Obligatorio().LargoMaximo(100)
-///     .Campo(TxtCorreo, "Correo").Correo()
-///     .Combo(CmbRol,    "Rol").Obligatorio()
+///     .Campo(TxtNombre, "El nombre").Segun(ReglasProveedor.Nombre)
+///     .Campo(TxtCorreo, "El correo").Segun(ReglasProveedor.Correo)
+///     .Combo(CmbRol,    "El rol").Segun(ReglasUsuario.Rol)
 ///     .ValidarAlSalirDelCampo();
 ///
 /// // al guardar
@@ -256,50 +259,77 @@ public sealed class ValidadorFormulario
 
         public ConstructorCampo Correo(string? mensaje = null)
         {
-            _campo.Reglas.Add((c => ReglasCampo.EsCorreo(c.LeerTexto()),
+            _campo.Reglas.Add((c => ReglasFormato.EsCorreo(c.LeerTexto()),
                 mensaje ?? $"{_campo.Etiqueta} no tiene un formato válido."));
             return this;
         }
 
         public ConstructorCampo Rtn(string? mensaje = null)
         {
-            _campo.Reglas.Add((c => ReglasCampo.EsRtn(c.LeerTexto()),
+            _campo.Reglas.Add((c => ReglasFormato.EsRtn(c.LeerTexto()),
                 mensaje ?? $"{_campo.Etiqueta} debe tener 14 dígitos."));
             return this;
         }
 
         public ConstructorCampo Telefono(string? mensaje = null)
         {
-            _campo.Reglas.Add((c => ReglasCampo.EsTelefono(c.LeerTexto()),
+            _campo.Reglas.Add((c => ReglasFormato.EsTelefono(c.LeerTexto()),
                 mensaje ?? $"{_campo.Etiqueta} debe tener entre 8 y 15 dígitos."));
             return this;
         }
 
         public ConstructorCampo LargoMaximo(int largo, string? mensaje = null)
         {
-            _campo.Reglas.Add((c => ReglasCampo.NoExcedeLargo(c.LeerTexto(), largo),
+            _campo.Reglas.Add((c => ReglasFormato.NoExcedeLargo(c.LeerTexto(), largo),
                 mensaje ?? $"{_campo.Etiqueta} no puede superar los {largo} caracteres."));
             return this;
         }
 
         public ConstructorCampo LargoMinimo(int largo, string? mensaje = null)
         {
-            _campo.Reglas.Add((c => ReglasCampo.TieneLargoMinimo(c.LeerTexto(), largo),
+            _campo.Reglas.Add((c => ReglasFormato.TieneLargoMinimo(c.LeerTexto(), largo),
                 mensaje ?? $"{_campo.Etiqueta} debe tener al menos {largo} caracteres."));
             return this;
         }
 
         public ConstructorCampo Decimal(string? mensaje = null)
         {
-            _campo.Reglas.Add((c => ReglasCampo.EsDecimalOpcional(c.LeerTexto(), out _),
+            _campo.Reglas.Add((c => ParseoNumerico.EsDecimalOpcional(c.LeerTexto(), out _),
                 mensaje ?? $"{_campo.Etiqueta} debe ser un número válido."));
             return this;
         }
 
         public ConstructorCampo Entero(string? mensaje = null)
         {
-            _campo.Reglas.Add((c => ReglasCampo.EsEnteroOpcional(c.LeerTexto(), out _),
+            _campo.Reglas.Add((c => ParseoNumerico.EsEnteroOpcional(c.LeerTexto(), out _),
                 mensaje ?? $"{_campo.Etiqueta} debe ser un número entero."));
+            return this;
+        }
+
+        /// <summary>
+        /// Aplica una regla declarada por el dominio.
+        /// </summary>
+        /// <remarks>
+        /// Es la forma preferida: el "qué" (obligatorio, largo, formato) sale de
+        /// <c>CapaDominio.Reglas</c> y acá solo se traduce a las comprobaciones y
+        /// los mensajes. Los métodos sueltos de abajo siguen existiendo para lo
+        /// que no tiene una regla de negocio detrás.
+        /// </remarks>
+        public ConstructorCampo Segun(ReglaCampo regla)
+        {
+            if (regla.Obligatorio)          Obligatorio();
+            if (regla.LargoMaximo is int m) LargoMaximo(m);
+            if (regla.LargoMinimo is int n) LargoMinimo(n);
+
+            switch (regla.Formato)
+            {
+                case FormatoCampo.Correo:   Correo();   break;
+                case FormatoCampo.Rtn:      Rtn();      break;
+                case FormatoCampo.Telefono: Telefono(); break;
+                case FormatoCampo.Decimal:  Decimal();  break;
+                case FormatoCampo.Entero:   Entero();   break;
+            }
+
             return this;
         }
 

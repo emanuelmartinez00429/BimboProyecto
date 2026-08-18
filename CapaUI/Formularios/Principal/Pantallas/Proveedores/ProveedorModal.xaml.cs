@@ -1,4 +1,5 @@
 using CapaUI.Core.Controls;
+using CapaDominio.Reglas;
 using CapaUI.Core.Validacion;
 using CapaAplicacion.Common;
 using CapaAplicacion.Proveedores.Dtos;
@@ -33,11 +34,11 @@ namespace CapaUI.Formularios.Principal.Pantallas.Proveedores
             // RTN, teléfono y correo son opcionales, pero si se llenan tienen que
             // tener forma válida. Hasta ahora iban crudos a la base sin mirarlos.
             _validador = ValidadorFormulario.Nuevo()
-                .Campo(TxtNombre, "El nombre").Obligatorio().LargoMaximo(100)
-                .Campo(TxtRtn, "El RTN").Rtn()
-                .Campo(TxtTelefono, "El teléfono").Telefono()
-                .Campo(TxtCorreo, "El correo").Correo()
-                .Campo(TxtDireccion, "La dirección").LargoMaximo(255)
+                .Campo(TxtNombre, "El nombre").Segun(ReglasProveedor.Nombre)
+                .Campo(TxtRtn, "El RTN").Segun(ReglasProveedor.Rtn)
+                .Campo(TxtTelefono, "El teléfono").Segun(ReglasProveedor.Telefono)
+                .Campo(TxtCorreo, "El correo").Segun(ReglasProveedor.Correo)
+                .Campo(TxtDireccion, "La dirección").Segun(ReglasProveedor.Direccion)
                 .ValidarAlSalirDelCampo();
 
             TxtModalContext.Text = _esNuevo ? "NUEVO REGISTRO" : "EDICIÓN";

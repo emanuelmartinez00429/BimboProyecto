@@ -1,6 +1,7 @@
 using System;
 using System.Windows;
 using System.Windows.Controls;
+using CapaDominio.Reglas;
 using CapaUI.Core.Validacion;
 using CapaAplicacion.Common;
 using CapaAplicacion.Contactos.Fabricantes.Dtos;
@@ -38,9 +39,9 @@ public partial class ContactoFabricanteModal : UserControl
         // Telefono y correo son opcionales, pero si se llenan tienen que tener
         // forma valida. Hasta ahora iban crudos a la base sin mirarlos.
         _validador = ValidadorFormulario.Nuevo()
-            .Campo(TxtNombre, "El nombre").Obligatorio().LargoMaximo(100)
-            .Campo(TxtTelefono, "El telefono").Telefono()
-            .Campo(TxtCorreo, "El correo").Correo()
+            .Campo(TxtNombre, "El nombre").Segun(ReglasContacto.Nombre)
+            .Campo(TxtTelefono, "El telefono").Segun(ReglasContacto.Telefono)
+            .Campo(TxtCorreo, "El correo").Segun(ReglasContacto.Correo)
             .ValidarAlSalirDelCampo();
 
         TxtModalContext.Text     = _esNuevo ? "NUEVO · CONTACTO" : "EDICIÓN · CONTACTO";

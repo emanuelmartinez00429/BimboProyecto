@@ -9,10 +9,13 @@ tags:
 date: 2026-08-15
 branch: feat/fase8-MaquetadodeRoles
 autor_cambios: Fernando
-estado: en-ejecucion
+estado: ejecutado-con-desvios
 ---
 
 # Plan de Implementación — Validación Centralizada
+
+> [!info] Ejecutado, con un desvío
+> El plan ubicaba las reglas en `CapaUI/Core/Validacion/ReglasCampo`. Al revisarlo, Fernando señaló que **las validaciones son reglas de negocio y les corresponde el dominio** — y tenía razón. Terminaron en `CapaDominio/Reglas/`, con las especificaciones por entidad incluidas. Lo que efectivamente se hizo está en [[Sesión 2026-08-15 - Validacion centralizada y doble clic en catalogos]] y [[ADR-021 - Validacion en tres capas reglas de negocio en Dominio]]; este documento queda como registro de lo que se planeó.
 
 > [!abstract]
 > Plan de la tanda que sigue a [[Sesión 2026-08-15 - Normalizacion de modales y advertencia al inactivar]]. Tres frentes: reemplazar el `DialogoConfirmacion` por `MessageBox`, centralizar TODA la validación de formularios, y cambiar los campos de catálogo a doble clic.

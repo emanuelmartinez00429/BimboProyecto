@@ -3,7 +3,7 @@ using System.Windows.Controls;
 using WpfColor  = System.Windows.Media.Color;
 using WpfBrush  = System.Windows.Media.SolidColorBrush;
 using WpfEffect = System.Windows.Media.Effects.DropShadowEffect;
-using CapaUI.Core.Validacion;
+using CapaDominio.Reglas;
 using CapaUI.Services.Empresa;
 
 namespace CapaUI.Formularios.InicioSesion
@@ -25,11 +25,11 @@ namespace CapaUI.Formularios.InicioSesion
 
         private void TxtEmail_Changed(object sender, TextChangedEventArgs e)
         {
-            // ReglasCampo.EsCorreo trata el vacío como válido (es la convención de
+            // ReglasFormato.EsCorreo trata el vacío como válido (es la convención de
             // los campos opcionales), así que acá hace falta exigir contenido
             // aparte: con la caja vacía el botón tiene que quedar deshabilitado.
-            BtnSend.IsEnabled = ReglasCampo.TieneContenido(TxtEmail.Text)
-                             && ReglasCampo.EsCorreo(TxtEmail.Text);
+            BtnSend.IsEnabled = ReglasFormato.TieneContenido(TxtEmail.Text)
+                             && ReglasFormato.EsCorreo(TxtEmail.Text);
             ErrorContainer.Visibility = Visibility.Collapsed;
         }
 

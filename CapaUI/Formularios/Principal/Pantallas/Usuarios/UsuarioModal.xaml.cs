@@ -1,4 +1,5 @@
 using CapaUI.Core.Controls;
+using CapaDominio.Reglas;
 using CapaUI.Core.Validacion;
 using System;
 using System.Linq;
@@ -64,11 +65,11 @@ namespace CapaUI.Formularios.Principal.Pantallas.Usuarios
             // preseleccionado y el combo está oculto). SoloSi expresa esa condición
             // sin sacar la regla de la declaración.
             _validador = ValidadorFormulario.Nuevo()
-                .Combo(CmbEmpleado, "El empleado").Obligatorio()
+                .Combo(CmbEmpleado, "El empleado").Segun(ReglasUsuario.Empleado)
                     .SoloSi(() => _esNuevo && !_esCreacionConEmpleado)
-                .Clave(TxtPassword, "La contraseña").LargoMinimo(6)
+                .Clave(TxtPassword, "La contraseña").Segun(ReglasUsuario.Password)
                     .SoloSi(() => _esNuevo)
-                .Combo(CmbRolModal, "El rol").Obligatorio()
+                .Combo(CmbRolModal, "El rol").Segun(ReglasUsuario.Rol)
                 .ValidarAlSalirDelCampo();
 
             TxtModalContext.Text = _esNuevo ? "NUEVO REGISTRO" : "EDICIÓN";

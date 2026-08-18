@@ -23,9 +23,9 @@ Aprovechando eso, se atacó lo que había debajo: **no existía ninguna clase de
 
 ## Qué se hizo
 
-1. **`ReglasCampo`** — predicados puros sin WPF. La única regex de correo del proyecto estaba privada en `ForgotEmailPanel`; se movió acá y el panel ahora la consume. `UsuarioModal.Normalizar` era un duplicado de `TextoBusqueda.Normalizar` (que además está espejada a `public.sin_tildes()` de Postgres) y se borró.
+1. **Reglas puras sin WPF** — nacieron como `ReglasCampo` en `CapaUI` y terminaron el mismo día en `CapaDominio/Reglas/ReglasFormato` (ver "Corrección de capas" más abajo). La única regex de correo del proyecto estaba privada en `ForgotEmailPanel`; se movió ahí y el panel ahora la consume. `UsuarioModal.Normalizar` era un duplicado de `TextoBusqueda.Normalizar` (que además está espejada a `public.sin_tildes()` de Postgres) y se borró.
 
-2. **`ValidadorFormulario`** — API fluida declarada una vez en `OnLoaded` y evaluada en dos momentos: `LostFocus` y Guardar. Detalle de uso en [[Validacion de formularios]]; el porqué del diseño en [[ADR-021 - Validacion en dos capas reglas puras y validador fluido]].
+2. **`ValidadorFormulario`** — API fluida declarada una vez en `OnLoaded` y evaluada en dos momentos: `LostFocus` y Guardar. Detalle de uso en [[Validacion de formularios]]; el porqué del diseño en [[ADR-021 - Validacion en tres capas reglas de negocio en Dominio]].
 
 3. **Error en línea** — borde rojo (trigger `Validacion.TieneError`) + renglón debajo del campo, insertado por código en el `StackPanel` `CampoModal`. No hubo que tocar el XAML de ~50 campos porque esa estructura quedó uniforme en la sesión anterior.
 
@@ -61,7 +61,7 @@ Aprovechando eso, se atacó lo que había debajo: **no existía ninguna clase de
 
 Existía [[Pendiente - Servicio Genérico de Validaciones y Pruebas Caja Negra]], que proponía un diseño concreto (`IValidacionService`, una clase por regla, `ValidacionResult` con lista de strings). **No se siguió**, y el ADR explica por qué: una lista de strings pierde el vínculo con el control, y sin saber *qué campo* falló no se puede pintar el borde ni mover el foco.
 
-Ese pendiente quedó marcado como **parcialmente resuelto**: la validación de formulario está, pero siguen abiertas las reglas de negocio que listaba ("no operar sobre registros inactivos", "FK válida antes de guardar") y las pruebas de caja negra en sí — `ReglasCampo` quedó testeable sin WPF, que era la precondición, pero no hay proyecto de tests.
+Ese pendiente quedó marcado como **parcialmente resuelto**: la validación de formulario está, pero siguen abiertas las reglas de negocio que listaba ("no operar sobre registros inactivos", "FK válida antes de guardar") y las pruebas de caja negra en sí — las reglas quedaron testeables sin WPF y sin referenciar nada, que era la precondición, pero no hay proyecto de tests.
 
 ## Huecos encontrados al reverificar
 
@@ -78,11 +78,35 @@ Después del primer commit se barrió el árbol por grep en vez de confiar en lo
 
 ---
 
+## Corrección de capas (mismo día, tras revisión)
+
+Fernando observó que **las validaciones son reglas de negocio y les corresponde el dominio**, y que la presentación es otra cosa y va en otra capa. Tenía razón: la primera versión metió todo en `CapaUI/Core/Validacion/`, aplanando tres responsabilidades distintas.
+
+Al revisarlo en detalle apareció que ni siquiera todo lo que estaba en `ReglasCampo` era regla de negocio. Quedó repartido así:
+
+| Qué | Dónde | Por qué |
+|---|---|---|
+| `ReglasFormato` (RTN, correo, teléfono, largos) | **`CapaDominio/Reglas/`** | Que un RTN hondureño tenga 14 dígitos es ley tributaria, no una decisión de pantalla. Mismo criterio que `PesoCalculator`, que ya vivía ahí |
+| `ReglaCampo` + `FormatoCampo` | **`CapaDominio/Reglas/`** | Descriptor: dice qué se exige, sin ejecutarlo |
+| `ReglasProducto`, `ReglasProveedor`… | **`CapaDominio/Reglas/`** | Qué campos son obligatorios y con qué largo, **por entidad** |
+| `ParseoNumerico` | `CapaUI/Core/Validacion/` | Depende del `CultureInfo` del usuario. El dominio no tiene por qué saber si alguien escribe "1,5" o "1.5" |
+| `ValidadorFormulario`, `Validacion`, `ErroresRepositorio` | `CapaUI/Core/Validacion/` | `TextBox`, `Focus()`, `MessageBox` |
+
+Lo de fondo era el tercer punto: **"el nombre de un producto es obligatorio y tope 150" estaba escrito dentro de cada modal**. Eso no lo decide la pantalla, sale del negocio y del esquema. Ahora el modal solo lo aplica:
+
+```csharp
+.Campo(TxtNombre, "El nombre").Segun(ReglasProducto.Nombre)
+```
+
+Si mañana cambia un largo máximo o un campo pasa a obligatorio, se toca `ReglasEntidades.cs` y nada más. Y como `CapaDominio` no referencia a nadie, `CapaDatos` también podría usar las mismas reglas antes de viajar a la red.
+
+---
+
 ## Deuda que NO se tocó
 
 - **Pesaje** mantiene su modelo propio (validación por pasos, botón deshabilitado) y su `InvariantCulture`, contra el `CurrentCulture` de los modales CRUD. Cambiarlo de refilón podría alterar su cálculo de pesos.
 - **Reportería** tiene campos con lupa sin ningún handler de mouse ni teclado: darles paridad sería agregar interacción nueva, no cambiar la existente.
-- `ReglasCampo` vive en `CapaUI` aunque no dependa de WPF. Si se quiere validar del lado servidor, el paso natural es moverla a `CapaAplicacion` — está escrita para que ese movimiento no requiera tocar nada más.
+- Las reglas de negocio ya viven en `CapaDominio`, así que `CapaDatos` podría usarlas para rechazar antes de viajar a la red. Hoy no lo hace.
 
 ## Verificación
 
@@ -94,7 +118,7 @@ Después del primer commit se barrió el árbol por grep en vez de confiar en lo
 ## Relaciones
 
 - [[Plan de Implementación - Validación Centralizada]] — el plan que ejecuta esta sesión
-- [[ADR-021 - Validacion en dos capas reglas puras y validador fluido]]
+- [[ADR-021 - Validacion en tres capas reglas de negocio en Dominio]]
 - [[Validacion de formularios]] — cómo usar el validador
 - [[Sesión 2026-08-15 - Normalizacion de modales y advertencia al inactivar]] — la tanda anterior
 - [[Anatomia compartida de los modales]]

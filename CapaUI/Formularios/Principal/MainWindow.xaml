@@ -27,7 +27,7 @@
         WindowState="Maximized"
         WindowStartupLocation="CenterScreen"
         Width="1200" Height="800"
-        MinWidth="960" MinHeight="600" av:DesignWidth="590"
+        MinWidth="960" MinHeight="520" av:DesignWidth="590"
         UseLayoutRounding="True"
         TextOptions.TextRenderingMode="Grayscale"
         TextOptions.TextFormattingMode="Display">
@@ -684,7 +684,43 @@
                         <!-- Módulos con scroll -->
                         <ScrollViewer Grid.Row="1"
                                       VerticalScrollBarVisibility="Auto"
-                                      HorizontalScrollBarVisibility="Hidden">
+                                      HorizontalScrollBarVisibility="Disabled">
+                            <ScrollViewer.Resources>
+                                <!-- Scrollbar discreta para el fondo oscuro del sidebar: mismo
+                                     lenguaje visual que ya usan los overlays sutiles de esta
+                                     pantalla (#1FFFFFFF, #15FFFFFF, etc.), no el gris de
+                                     "ModernScrollBar" de ProductosView (pensado para fondo claro).
+                                     Sin flechas (Opacity=0 + Height=0, mismo truco que ya usa
+                                     ModernScrollBarTemplateVertical en ProductosView.xaml) y más
+                                     angosta que el default de Windows (4px vs ~17px). -->
+                                <Style TargetType="ScrollBar">
+                                    <Setter Property="Width" Value="4"/>
+                                    <Setter Property="Background" Value="Transparent"/>
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="ScrollBar">
+                                                <Track Name="PART_Track" IsDirectionReversed="True">
+                                                    <Track.DecreaseRepeatButton>
+                                                        <RepeatButton Command="ScrollBar.LineUpCommand" Opacity="0" Height="0"/>
+                                                    </Track.DecreaseRepeatButton>
+                                                    <Track.Thumb>
+                                                        <Thumb>
+                                                            <Thumb.Template>
+                                                                <ControlTemplate TargetType="Thumb">
+                                                                    <Border Background="#26FFFFFF" CornerRadius="2"/>
+                                                                </ControlTemplate>
+                                                            </Thumb.Template>
+                                                        </Thumb>
+                                                    </Track.Thumb>
+                                                    <Track.IncreaseRepeatButton>
+                                                        <RepeatButton Command="ScrollBar.LineDownCommand" Opacity="0" Height="0"/>
+                                                    </Track.IncreaseRepeatButton>
+                                                </Track>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </ScrollViewer.Resources>
                             <StackPanel>
 
                                 <!-- ══ USUARIOS ══ -->
@@ -732,8 +768,9 @@
                                                     <Border x:Name="DotUsuariosSub" Width="4" Height="4" CornerRadius="2"
                                                             Background="{StaticResource AccentGreen}"
                                                             HorizontalAlignment="Left" Margin="-16,0,0,0" Visibility="Collapsed"/>
-                                                    <TextBlock x:Name="LblUsuariosSub" Text="Gestión de Usuarios"
-                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="15"/>
+                                                    <TextBlock x:Name="LblUsuariosSub" Text="Usuarios"
+                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="15"
+                                                               TextTrimming="CharacterEllipsis"/>
                                                 </Grid>
                                             </Button>
                                             <Button Style="{StaticResource SidebarSubButton}" Tag="empleados"
@@ -743,8 +780,9 @@
                                                     <Border x:Name="DotEmpleados" Width="4" Height="4" CornerRadius="2"
                                                             Background="{StaticResource AccentGreen}"
                                                             HorizontalAlignment="Left" Margin="-16,0,0,0" Visibility="Collapsed"/>
-                                                    <TextBlock x:Name="LblEmpleados" Text="Gestión de Empleados"
-                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="15"/>
+                                                    <TextBlock x:Name="LblEmpleados" Text="Empleados"
+                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="15"
+                                                               TextTrimming="CharacterEllipsis"/>
                                                 </Grid>
                                             </Button>
                                             <Button Style="{StaticResource SidebarSubButton}" Tag="roles"
@@ -754,8 +792,9 @@
                                                     <Border x:Name="DotRoles" Width="4" Height="4" CornerRadius="2"
                                                             Background="{StaticResource AccentGreen}"
                                                             HorizontalAlignment="Left" Margin="-16,0,0,0" Visibility="Collapsed"/>
-                                                    <TextBlock x:Name="LblRoles" Text="Gestión de Roles"
-                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="15"/>
+                                                    <TextBlock x:Name="LblRoles" Text="Roles"
+                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="15"
+                                                               TextTrimming="CharacterEllipsis"/>
                                                 </Grid>
                                             </Button>
                                             <Button Style="{StaticResource SidebarSubButton}" Tag="bitacora"
@@ -766,7 +805,8 @@
                                                             Background="{StaticResource AccentGreen}"
                                                             HorizontalAlignment="Left" Margin="-16,0,0,0" Visibility="Collapsed"/>
                                                     <TextBlock x:Name="LblBitacora" Text="Bitácora"
-                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="15"/>
+                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="15"
+                                                               TextTrimming="CharacterEllipsis"/>
                                                 </Grid>
                                             </Button>
                                         </StackPanel>
@@ -818,8 +858,9 @@
                                                     <Border x:Name="DotProductosSub" Width="4" Height="4" CornerRadius="2"
                                                             Background="{StaticResource AccentGreen}"
                                                             HorizontalAlignment="Left" Margin="-16,0,0,0" Visibility="Collapsed"/>
-                                                    <TextBlock x:Name="LblProductosSub" Text="Gestión de Productos"
-                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="15"/>
+                                                    <TextBlock x:Name="LblProductosSub" Text="Productos"
+                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="15"
+                                                               TextTrimming="CharacterEllipsis"/>
                                                 </Grid>
                                             </Button>
                                             <Button Style="{StaticResource SidebarSubButton}" Tag="proveedores"
@@ -829,8 +870,9 @@
                                                     <Border x:Name="DotProveedores" Width="4" Height="4" CornerRadius="2"
                                                             Background="{StaticResource AccentGreen}"
                                                             HorizontalAlignment="Left" Margin="-16,0,0,0" Visibility="Collapsed"/>
-                                                    <TextBlock x:Name="LblProveedores" Text="Gestión de Proveedores"
-                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="15"/>
+                                                    <TextBlock x:Name="LblProveedores" Text="Proveedores"
+                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="15"
+                                                               TextTrimming="CharacterEllipsis"/>
                                                 </Grid>
                                             </Button>
                                             <Button Style="{StaticResource SidebarSubButton}" Tag="fabricantes"
@@ -840,8 +882,9 @@
                                                     <Border x:Name="DotFabricantes" Width="4" Height="4" CornerRadius="2"
                                                             Background="{StaticResource AccentGreen}"
                                                             HorizontalAlignment="Left" Margin="-16,0,0,0" Visibility="Collapsed"/>
-                                                    <TextBlock x:Name="LblFabricantes" Text="Gestión de Fabricantes"
-                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="15"/>
+                                                    <TextBlock x:Name="LblFabricantes" Text="Fabricantes"
+                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="15"
+                                                               TextTrimming="CharacterEllipsis"/>
                                                 </Grid>
                                             </Button>
                                             <Button Style="{StaticResource SidebarSubButton}" Tag="categorias"
@@ -851,8 +894,9 @@
                                                     <Border x:Name="DotCategorias" Width="4" Height="4" CornerRadius="2"
                                                             Background="{StaticResource AccentGreen}"
                                                             HorizontalAlignment="Left" Margin="-16,0,0,0" Visibility="Collapsed"/>
-                                                    <TextBlock x:Name="LblCategorias" Text="Gestión de Categorías"
-                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="15"/>
+                                                    <TextBlock x:Name="LblCategorias" Text="Categorías"
+                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="15"
+                                                               TextTrimming="CharacterEllipsis"/>
                                                 </Grid>
                                             </Button>
                                             <Button Style="{StaticResource SidebarSubButton}" Tag="presentaciones"
@@ -862,8 +906,9 @@
                                                     <Border x:Name="DotPresentaciones" Width="4" Height="4" CornerRadius="2"
                                                             Background="{StaticResource AccentGreen}"
                                                             HorizontalAlignment="Left" Margin="-16,0,0,0" Visibility="Collapsed"/>
-                                                    <TextBlock x:Name="LblPresentaciones" Text="Gestión de Presentaciones"
-                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="15"/>
+                                                    <TextBlock x:Name="LblPresentaciones" Text="Presentaciones"
+                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="15"
+                                                               TextTrimming="CharacterEllipsis"/>
                                                 </Grid>
                                             </Button>
                                             <Button Style="{StaticResource SidebarSubButton}" Tag="contactos-proveedores"
@@ -873,8 +918,9 @@
                                                     <Border x:Name="DotContactosProveedores" Width="4" Height="4" CornerRadius="2"
                                                             Background="{StaticResource AccentGreen}"
                                                             HorizontalAlignment="Left" Margin="-16,0,0,0" Visibility="Collapsed"/>
-                                                    <TextBlock x:Name="LblContactosProveedores" Text="Contactos Proveedores"
-                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="15"/>
+                                                    <TextBlock x:Name="LblContactosProveedores" Text="Contacto Proveedor"
+                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="15"
+                                                               TextTrimming="CharacterEllipsis"/>
                                                 </Grid>
                                             </Button>
                                             <Button Style="{StaticResource SidebarSubButton}" Tag="contactos-fabricantes"
@@ -884,8 +930,9 @@
                                                     <Border x:Name="DotContactosFabricantes" Width="4" Height="4" CornerRadius="2"
                                                             Background="{StaticResource AccentGreen}"
                                                             HorizontalAlignment="Left" Margin="-16,0,0,0" Visibility="Collapsed"/>
-                                                    <TextBlock x:Name="LblContactosFabricantes" Text="Contactos Fabricantes"
-                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="15"/>
+                                                    <TextBlock x:Name="LblContactosFabricantes" Text="Contacto Fabricante"
+                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="15"
+                                                               TextTrimming="CharacterEllipsis"/>
                                                 </Grid>
                                             </Button>
                                         </StackPanel>
@@ -938,7 +985,8 @@
                                                             Background="{StaticResource AccentGreen}"
                                                             HorizontalAlignment="Left" Margin="-16,0,0,0" Visibility="Collapsed"/>
                                                     <TextBlock x:Name="LblPesajes" Text="Movimientos y Entradas"
-                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="15"/>
+                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="15"
+                                                               TextTrimming="CharacterEllipsis"/>
                                                 </Grid>
                                             </Button>
                                         </StackPanel>
@@ -991,7 +1039,8 @@
                                                             Background="{StaticResource AccentGreen}"
                                                             HorizontalAlignment="Left" Margin="-16,0,0,0" Visibility="Collapsed"/>
                                                     <TextBlock x:Name="LblDashboard" Text="Dashboard"
-                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="15"/>
+                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="15"
+                                                               TextTrimming="CharacterEllipsis"/>
                                                 </Grid>
                                             </Button>
                                             <Button Style="{StaticResource SidebarSubButton}" Tag="crear-reportes"
@@ -1002,7 +1051,8 @@
                                                             Background="{StaticResource AccentGreen}"
                                                             HorizontalAlignment="Left" Margin="-16,0,0,0" Visibility="Collapsed"/>
                                                     <TextBlock x:Name="LblCrearReportes" Text="Crear Reportes"
-                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="15"/>
+                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="15"
+                                                               TextTrimming="CharacterEllipsis"/>
                                                 </Grid>
                                             </Button>
                                         </StackPanel>

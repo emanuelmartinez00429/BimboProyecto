@@ -1,4 +1,5 @@
 using CapaUI.Core.Controls;
+using CapaDominio.Reglas;
 using CapaUI.Core.Validacion;
 using CapaAplicacion.Common;
 using CapaAplicacion.Empleados.Dtos;
@@ -34,10 +35,10 @@ namespace CapaUI.Formularios.Principal.Pantallas.Empleados
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
             _validador = ValidadorFormulario.Nuevo()
-                .Campo(TxtNombre, "El nombre").Obligatorio().LargoMaximo(100)
-                .Campo(TxtApellido, "El apellido").Obligatorio().LargoMaximo(100)
-                .Campo(TxtTelefono, "El teléfono").Telefono()
-                .Campo(TxtCorreo, "El correo").Correo()
+                .Campo(TxtNombre, "El nombre").Segun(ReglasEmpleado.Nombre)
+                .Campo(TxtApellido, "El apellido").Segun(ReglasEmpleado.Apellido)
+                .Campo(TxtTelefono, "El teléfono").Segun(ReglasEmpleado.Telefono)
+                .Campo(TxtCorreo, "El correo").Segun(ReglasEmpleado.Correo)
                 .ValidarAlSalirDelCampo();
 
             TxtModalContext.Text = _esNuevo ? "NUEVO REGISTRO" : "EDICIÓN";
