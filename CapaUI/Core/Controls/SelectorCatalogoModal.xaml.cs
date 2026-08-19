@@ -70,8 +70,22 @@ public partial class SelectorCatalogoModal : UserControl, IDisposable
 
         TxtTitulo.Text          = cfg.Titulo;
         SearchBox.Placeholder   = cfg.Placeholder;
+        // Mismo campo genérico (FiltroItem.Descripcion), significado distinto
+        // por catálogo (RTN en Proveedores, código en Productos...) — el
+        // encabezado tiene que decir qué es de verdad, no quedar en
+        // "Descripción" fijo. Mayúsculas para seguir la misma convención que
+        // el resto de los headers de esta tabla (NOMBRE, ESTADO).
+        ColDescripcion.Header    = cfg.TituloDescripcion.ToUpperInvariant();
         ColDescripcion.Visibility = cfg.MostrarDescripcion ? Visibility.Visible : Visibility.Collapsed;
         ColEstado.Visibility      = cfg.MostrarEstado      ? Visibility.Visible : Visibility.Collapsed;
+
+        // Productos: el código es lo que se escanea/reconoce primero. El
+        // resto de los catálogos deja Nombre adelante (orden declarado en el XAML).
+        if (cfg.DescripcionPrimero)
+            Dg.Columns.Move(Dg.Columns.IndexOf(ColDescripcion), Dg.Columns.IndexOf(ColNombre));
+
+        if (cfg.PermiteMultiple)
+            TxtPie.Text = "Marcá varios y tocá Seleccionar, o doble clic para agregar uno solo.";
 
         Loaded += OnLoaded;
     }
@@ -138,7 +152,7 @@ public partial class SelectorCatalogoModal : UserControl, IDisposable
             ? (Dg.SelectedItem as FilaCatalogo)?.Item.Id
             : null;
 
-        _todas = items.Select(i => new FilaCatalogo(i)).ToList();
+        _todas = items.Select(CrearFila).ToList();
         _vista = CollectionViewSource.GetDefaultView(_todas);
         _vista.Filter = FiltroEnMemoria;
 
@@ -180,7 +194,7 @@ public partial class SelectorCatalogoModal : UserControl, IDisposable
         var pagina = r.Value!;
         _total = pagina.Total;
 
-        Dg.ItemsSource = pagina.Items.Select(i => new FilaCatalogo(i)).ToList();
+        Dg.ItemsSource = pagina.Items.Select(CrearFila).ToList();
         ActualizarVacio(pagina.Items.Count > 0);
         ActualizarContador(pagina.Items.Count, _total);
         RefrescarPaginacion();
@@ -354,16 +368,52 @@ public partial class SelectorCatalogoModal : UserControl, IDisposable
         }
     }
 
-    private void Dg_SelectionChanged(object sender, SelectionChangedEventArgs e) =>
-        BtnElegir.IsEnabled = Dg.SelectedItem is FilaCatalogo;
+    private FilaCatalogo CrearFila(FiltroItem item) =>
+        new(item, _cfg.PermiteMultiple, _cfg.EstaYaElegido?.Invoke(item.Id) ?? false);
 
-    private void Dg_DoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e) => Confirmar();
+    /// <summary>Filas realmente cargadas ahora mismo (memoria filtrada o la página actual).</summary>
+    private IEnumerable<FilaCatalogo> FilasCargadas() =>
+        Dg.ItemsSource?.Cast<object>().OfType<FilaCatalogo>() ?? Enumerable.Empty<FilaCatalogo>();
+
+    private void Dg_SelectionChanged(object sender, SelectionChangedEventArgs e) => ActualizarBotonElegir();
+
+    /// <summary>El checkbox de una fila cambió — puede habilitar/deshabilitar "Seleccionar".</summary>
+    private void Marcado_Changed(object sender, RoutedEventArgs e) => ActualizarBotonElegir();
+
+    private void ActualizarBotonElegir()
+    {
+        bool hayMarcados = _cfg.PermiteMultiple && FilasCargadas().Any(f => f.Marcado);
+        bool haySeleccionSimple = Dg.SelectedItem is FilaCatalogo f2 && !f2.YaElegido;
+        BtnElegir.IsEnabled = hayMarcados || haySeleccionSimple;
+    }
+
+    private void Dg_DoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        // Doble clic siempre trae solo esa fila, aunque haya otras tildadas —
+        // es el atajo rápido para "quiero esta y listo", no se mete con lo
+        // que el usuario ya venía marcando.
+        if (Dg.SelectedItem is FilaCatalogo fila && !fila.YaElegido)
+            Seleccionado?.Invoke(fila.Item);
+    }
 
     private void Elegir_Click(object sender, RoutedEventArgs e) => Confirmar();
 
     private void Confirmar()
     {
-        if (Dg.SelectedItem is FilaCatalogo fila)
+        if (_cfg.PermiteMultiple)
+        {
+            var marcados = FilasCargadas().Where(f => f.Marcado && !f.YaElegido).ToList();
+            if (marcados.Count > 0)
+            {
+                // Uno por uno con el mismo evento de siempre — el que hospeda
+                // el selector ya sabe agregar un ítem por vez, no hace falta
+                // que la interfaz pública cambie a "lista" por esto.
+                foreach (var f in marcados) Seleccionado?.Invoke(f.Item);
+                return;
+            }
+        }
+
+        if (Dg.SelectedItem is FilaCatalogo fila && !fila.YaElegido)
             Seleccionado?.Invoke(fila.Item);
     }
 
@@ -437,9 +487,26 @@ public partial class SelectorCatalogoModal : UserControl, IDisposable
     /// </summary>
     private sealed class FilaCatalogo
     {
-        public FilaCatalogo(FiltroItem item) => Item = item;
+        public FilaCatalogo(FiltroItem item, bool permiteMultiple, bool yaElegido)
+        {
+            Item            = item;
+            PermiteMultiple = permiteMultiple;
+            YaElegido       = yaElegido;
+        }
 
         public FiltroItem Item { get; }
+
+        /// <summary>Copia por fila de <see cref="CatalogoConfig.PermiteMultiple"/> — la
+        /// plantilla de la celda indicadora la usa para decidir círculo vs. checkbox.</summary>
+        public bool PermiteMultiple { get; }
+
+        /// <summary>Ya elegido en otro lado (p. ej. ya está en la carga): fila bloqueada.</summary>
+        public bool YaElegido { get; }
+
+        /// <summary>Tildado en esta apertura del selector (modo múltiple). No necesita
+        /// INotifyPropertyChanged: solo lo escribe el checkbox atado con TwoWay, nada
+        /// más lo cambia por afuera.</summary>
+        public bool Marcado { get; set; }
 
         public string Nombre      => Item.Nombre;
         public string Descripcion => Item.Descripcion;

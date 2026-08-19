@@ -13,55 +13,10 @@
         <Geometry x:Key="IconBoxM">M21,16 V8 a2,2 0 0 0,-1,-1.73 l-7,-4 a2,2 0 0 0,-2,0 l-7,4 A2,2 0 0 0,3,8 v8 a2,2 0 0 0,1,1.73 l7,4 a2,2 0 0 0,2,0 l7,-4 A2,2 0 0 0,21,16 z</Geometry>
         <Geometry x:Key="IconCloseM">M6,6 l12,12 M18,6 l-12,12</Geometry>
         <Geometry x:Key="IconCheckM">M20,6 L9,17 l-5,-5</Geometry>
-        <Geometry x:Key="IconSearchM">M11,4 a7,7 0 1 1 0,14 a7,7 0 0 1 0,-14 z M20,20 l-4.3,-4.3</Geometry>
 
-        <!-- Botón de lupa de los campos de catálogo. Antes el template estaba
-             copiado inline en cada campo; vive una sola vez acá. -->
-        <Style x:Key="LupaBtn" TargetType="Button">
-            <Setter Property="Width" Value="38"/>
-            <Setter Property="Height" Value="38"/>
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="BorderBrush" Value="#7FFFFFFF"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Margin" Value="6,0,0,0"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
-            <Setter Property="HorizontalAlignment" Value="Right"/>
-            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border x:Name="Bd"
-                                Background="{TemplateBinding Background}"
-                                BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="6">
-                            <Path Data="{StaticResource IconSearchM}"
-                                  Stroke="{DynamicResource EmpresaPrimaryBrush}" StrokeThickness="2.2"
-                                  StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                                  Width="17" Height="17" Stretch="Uniform"
-                                  HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="#EFF6FF"/>
-                            </Trigger>
-                            <!-- Mismo lenguaje de foco que ModalInput/ModalCombo (Styles.xaml,
-                                 mergeado a nivel App): sin esto, FocusVisualStyle="{x:Null}"
-                                 de arriba dejaba la lupa sin ningún indicio visual al llegar
-                                 por Tab. -->
-                            <Trigger Property="IsFocused" Value="True">
-                                <Setter TargetName="Bd" Property="BorderBrush" Value="#34D399"/>
-                                <Setter TargetName="Bd" Property="BorderThickness" Value="3"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <!-- EtiquetaCampo, CampoModalEnGrid, ModalInputAuditoria y ModalSegBtn viven
-             en CapaUI/Resources/Styles.xaml — estaban duplicados acá y en
+        <!-- EtiquetaCampo, CampoModalEnGrid, ModalInputAuditoria, ModalSegBtn y
+             LupaBtnOscuro (la lupa de los campos de catálogo) viven en
+             CapaUI/Resources/Styles.xaml — estaban duplicados acá y en
              PresentacionModal. Este modal usa CampoModalEnGrid (la variante con
              separación lateral) por su layout de 3 columnas. -->
     </UserControl.Resources>
@@ -191,7 +146,7 @@
                              KeyDown="TxtCatalogo_KeyDown"
                                      Tag="{Binding ElementName=BtnBuscarPresentacion}"/>
                             <Button Grid.Column="1" x:Name="BtnBuscarPresentacion" TabIndex="31"
-                                    Style="{StaticResource LupaBtn}"
+                                    Style="{StaticResource LupaBtnOscuro}"
                                     Click="BuscarPresentacion_Click"
                                     ToolTip="Seleccionar presentación"/>
                         </Grid>
@@ -210,7 +165,7 @@
                              KeyDown="TxtCatalogo_KeyDown"
                                      Tag="{Binding ElementName=BtnBuscarCategoria}"/>
                             <Button Grid.Column="1" x:Name="BtnBuscarCategoria" TabIndex="41"
-                                    Style="{StaticResource LupaBtn}"
+                                    Style="{StaticResource LupaBtnOscuro}"
                                     Click="BuscarCategoria_Click"
                                     ToolTip="Seleccionar categoría"/>
                         </Grid>
@@ -227,7 +182,7 @@
                              KeyDown="TxtCatalogo_KeyDown"
                                      Tag="{Binding ElementName=BtnBuscarProveedor}"/>
                             <Button Grid.Column="1" x:Name="BtnBuscarProveedor" TabIndex="51"
-                                    Style="{StaticResource LupaBtn}"
+                                    Style="{StaticResource LupaBtnOscuro}"
                                     Click="BuscarProveedor_Click"
                                     ToolTip="Seleccionar proveedor (acota los fabricantes)"/>
                         </Grid>
@@ -244,7 +199,7 @@
                              KeyDown="TxtCatalogo_KeyDown"
                                      Tag="{Binding ElementName=BtnBuscarFabricante}"/>
                             <Button Grid.Column="1" x:Name="BtnBuscarFabricante" TabIndex="61"
-                                    Style="{StaticResource LupaBtn}"
+                                    Style="{StaticResource LupaBtnOscuro}"
                                     Click="BuscarFabricante_Click"
                                     ToolTip="Seleccionar fabricante"/>
                         </Grid>
@@ -278,7 +233,7 @@
                              KeyDown="TxtCatalogo_KeyDown"
                                      Tag="{Binding ElementName=BtnBuscarTara}"/>
                             <Button Grid.Column="1" x:Name="BtnBuscarTara" TabIndex="101"
-                                    Style="{StaticResource LupaBtn}"
+                                    Style="{StaticResource LupaBtnOscuro}"
                                     Click="BuscarTara_Click"
                                     ToolTip="Seleccionar tara"/>
                         </Grid>
@@ -299,7 +254,7 @@
                              KeyDown="TxtCatalogo_KeyDown"
                                      Tag="{Binding ElementName=BtnBuscarPais}"/>
                             <Button Grid.Column="1" x:Name="BtnBuscarPais" TabIndex="121"
-                                    Style="{StaticResource LupaBtn}"
+                                    Style="{StaticResource LupaBtnOscuro}"
                                     Click="BuscarPais_Click"
                                     ToolTip="Seleccionar país"/>
                         </Grid>

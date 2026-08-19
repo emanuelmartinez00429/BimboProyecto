@@ -139,13 +139,59 @@ public class CatalogoRepository : RepositorioBase, ICatalogoRepository
             },
             ct, "id_proveedor"), "Cargar proveedores");
 
+    /// <summary>
+    /// Producto no tiene columna <c>id_proveedor</c> propia — el vínculo es
+    /// producto→fabricante→proveedor. Puente en 2 pasos (fabricante es una
+    /// tabla diminuta): primero los ids de fabricante del proveedor, después
+    /// <c>id_fabricante IN (...)</c>. Evita filtrar sobre un recurso embebido
+    /// de PostgREST (ver nota "Bug - Filter OR con Op.Equals en postgrest-csharp").
+    /// Mismo patrón que el puente <c>FabricantesDeProveedor</c> de
+    /// <c>PickerProductoRepository</c> (Pesaje) — copiado a propósito acá para
+    /// no acoplar los dos repositorios.
+    /// </summary>
     public Task<Result<PagedResult<FiltroItem>>> GetProductosAsync(
-        string termino, int page, int size, CancellationToken ct = default) =>
-        TryAsync(() => PagedInternalAsync<Modelados.Productos.Productos>(
-            q => q.Filter("id_estado", Op.Equals, EstadoRegistro.Activo.ToString()),
+        string termino, int page, int size, int? idProveedor = null, CancellationToken ct = default) =>
+        TryAsync(() => GetProductosInternal(termino, page, size, idProveedor, ct), "Cargar productos");
+
+    private async Task<PagedResult<FiltroItem>> GetProductosInternal(
+        string termino, int page, int size, int? idProveedor, CancellationToken ct)
+    {
+        List<object>? idsFabricante = null;
+        if (idProveedor.HasValue)
+        {
+            idsFabricante = await FabricantesDeProveedor(idProveedor.Value, ct);
+            // Proveedor sin fabricantes → no puede tener productos. Cortar acá
+            // en vez de dejar pasar un Filter("id_fabricante", Op.In, []) —
+            // un IN vacío no es "sin filtro", así que hay que resolverlo antes.
+            if (idsFabricante.Count == 0)
+                return new PagedResult<FiltroItem> { Items = [], Total = 0 };
+        }
+
+        return await PagedInternalAsync<Modelados.Productos.Productos>(
+            q =>
+            {
+                q = q.Filter("id_estado", Op.Equals, EstadoRegistro.Activo.ToString());
+                if (idsFabricante is not null)
+                    q = q.Filter("id_fabricante", Op.In, idsFabricante);
+                return q;
+            },
             ["codigo_producto", "nombre_producto"], "id_producto", termino, page, size,
             p => new FiltroItem { Id = p.idProducto, Nombre = p.nombreProducto, Descripcion = p.codigoProducto, Activo = true },
-            ct, "id_producto"), "Cargar productos");
+            ct, "id_producto");
+    }
+
+    private async Task<List<object>> FabricantesDeProveedor(int idProveedor, CancellationToken ct)
+    {
+        var client = await ConexionSupabase.GetClientAsync();
+        var fabricantes = await client.From<FabricanteConsulta>()
+            .Select("id_fabricante")
+            .Filter("id_proveedor", Op.Equals, idProveedor.ToString())
+            .Get(ct);
+
+        return (fabricantes?.Models ?? [])
+            .Select(f => (object)f.idFabricante)
+            .ToList();
+    }
 
     public Task<Result<PagedResult<FiltroItem>>> GetFabricantesAsync(
         string termino, int page, int size, int? idProveedor = null, CancellationToken ct = default) =>

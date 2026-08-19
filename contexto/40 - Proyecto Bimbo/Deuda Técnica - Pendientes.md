@@ -784,6 +784,26 @@ O sea: apenas se toca el filtro de estado, el indicador deja de indicar. Con "To
 
 ---
 
+### P-042 · `PesajeModalStyles.xaml` duplica parcialmente `Styles.xaml` global, con drift real (no solo nombres distintos)
+
+**Archivo:** `CapaUI/Formularios/Principal/Pantallas/Pesaje/Modales/PesajeModalStyles.xaml`
+**Detectado en:** [[Sesión 2026-08-19 - Selector de proveedor por tabla y consolidacion de estilos]]
+
+Auditoría pedida tras notar que `ProcesoDescargaModal` (y el resto de los modales de Pesaje) importan `PesajeModalStyles.xaml` en vez de usar los estilos centralizados de `CapaUI/Resources/Styles.xaml` documentados en [[Anatomía compartida de los modales]]. `MIcoSearch` y `MCombo` ya se sacaron por estar duplicados y sin uso (limpieza sin riesgo, misma sesión). Quedan dos con **divergencia real de comportamiento**, no solo de nombre:
+
+- **`MInput`/`MCombo`** (Pesaje) vs **`ModalInput`/`ModalCombo`** (global): fuente 13.5px vs 16.5px, alto 36 vs 38, y los de Pesaje **no tienen** el aro verde de foco ni el borde rojo de `validacion:Validacion.TieneError` — un campo inválido en un modal de Pesaje no se distingue visualmente por campo, a diferencia del resto de la app.
+- **`MSegBtn`** vs **`ModalSegBtn`**: mismo problema (sin aro de foco). El comentario que justificaba la copia local decía que `ModalSegBtn` "no es visible desde acá" — premisa falsa, está centralizado en `Styles.xaml` desde antes de esta sesión.
+
+**Riesgo:** bajo en datos, medio en consistencia de UX — un usuario que corrige un campo inválido en Pesaje no recibe la misma señal visual que en Productos/Fabricantes/Usuarios. La fuente más chica de `MInput` podría ser deliberada (el wizard de `ProcesoDescargaModal` tiene tarjetas de producto densas, con varios campos chicos por fila) — fusionar a ciegas con `ModalInput` (16.5px) podría romper ese layout.
+
+**Solución:** decisión explícita, no ejecutar sin confirmarla:
+1. Si el tamaño compacto es deliberado → nombrar y documentar la variante (ej. `ModalInputCompacto`) en `Styles.xaml`, agregándole el aro de foco y `Validacion.TieneError` que le faltan, y que `PesajeModalStyles.xaml` deje de tener su propia copia.
+2. Si no lo es → migrar directo a `ModalInput`/`ModalCombo`/`ModalSegBtn` y ajustar el layout de Pesaje donde haga falta.
+
+**Estado:** `[ ] Pendiente`
+
+---
+
 ## Historial de resolución
 
 | ID | Descripción | Estado | Sesión |
@@ -828,6 +848,7 @@ O sea: apenas se toca el filtro de estado, el indicador deja de indicar. Con "To
 | P-039 | Búsqueda sin tildes solo en Productos — faltan 7 tablas | `[ ]` Pendiente | [[ADR-018 - Busqueda insensible a mayusculas y tildes con columna generada]] |
 | P-040 | Carga inicial de `icono_sidebar` pendiente en Storage | `[ ]` Pendiente | [[Sesión 2026-08-15 - Icono dinámico del sidebar]] |
 | P-041 | Conteos de Fabricantes/Categorías filtrados por estado — las 3 pastillas dejan de informar | `[ ]` Pendiente | [[Sesión 2026-08-15 - Modulo CRUD de Presentaciones]] |
+| P-042 | `PesajeModalStyles.xaml` duplica `ModalInput`/`ModalCombo`/`ModalSegBtn` sin foco ni validación por campo | `[ ]` Pendiente | [[Sesión 2026-08-19 - Selector de proveedor por tabla y consolidacion de estilos]] |
 
 ---
 
@@ -850,3 +871,5 @@ O sea: apenas se toca el filtro de estado, el indicador deja de indicar. Con "To
 - [[Sesión 2026-08-14 - Modelo desalineado del esquema tumbaba paginas enteras]] — origen de P-038
 - [[ADR-018 - Busqueda insensible a mayusculas y tildes con columna generada]] — origen de P-039
 - [[Sesión 2026-08-15 - Icono dinámico del sidebar]] — origen de P-040
+- [[Sesión 2026-08-19 - Selector de proveedor por tabla y consolidacion de estilos]] — origen de P-042
+- [[Anatomía compartida de los modales]] — tabla de estilos globales contra la que se auditó P-042

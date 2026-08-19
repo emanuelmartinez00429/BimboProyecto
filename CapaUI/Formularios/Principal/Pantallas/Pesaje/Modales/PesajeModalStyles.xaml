@@ -5,7 +5,11 @@
     <!-- Iconos compartidos -->
     <Geometry x:Key="MIcoClose">M6,6 l12,12 M18,6 l-12,12</Geometry>
     <Geometry x:Key="MIcoCheck">M20,6 L9,17 l-5,-5</Geometry>
-    <Geometry x:Key="MIcoSearch">M11,4 a7,7 0 1 1 0,14 a7,7 0 0 1 0,-14 z M20,20 l-4.3,-4.3</Geometry>
+    <!-- MIcoSearch se sacó (2026-08-19): era idéntico a IconSearchShared de
+         Styles.xaml (global) y quedó sin ningún uso al migrar el Proveedor de
+         ProcesoDescargaModal de ComboBox a SelectorCatalogoModal (que usa
+         LupaBtnOscuro, ya con su propio icono). Ver [[Anatomía compartida de
+         los modales]]. -->
     <Geometry x:Key="MIcoTruck">M1,7 h15 v10 h-15 z M16,10 h3.5 l3,3.5 V17 h-6.5 z</Geometry>
     <Geometry x:Key="MIcoPack">M21,8 l-9,-5 -9,5 9,5 9,-5 z M3,8 v8 l9,5 9,-5 V8 M12,13 v8</Geometry>
     <Geometry x:Key="MIcoScale">M12,3 v18 M5,7 h14 M5,7 L3,12 a3,3 0 0 0 6,0 L7,7 M19,7 l-2,5 a3,3 0 0 0 6,0 l-2,-5 M8,21 h8</Geometry>
@@ -13,7 +17,7 @@
     <!-- Etiqueta de campo -->
     <Style x:Key="MLabel" TargetType="TextBlock">
         <Setter Property="FontFamily" Value="Segoe UI"/>
-        <Setter Property="FontSize" Value="12.5"/>
+        <Setter Property="FontSize" Value="16"/>
         <Setter Property="FontWeight" Value="SemiBold"/>
         <Setter Property="Foreground" Value="#D9FFFFFF"/>
         <Setter Property="Margin" Value="0,0,0,5"/>
@@ -41,7 +45,14 @@
                     <Border x:Name="Bd" Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="5">
-                        <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}" VerticalAlignment="Center"/>
+                        <!-- Atado a VerticalContentAlignment (antes "Center" fijo): un
+                             campo multilínea como Observaciones necesita el cursor
+                             arriba, no centrado en medio de la caja; el Setter de más
+                             arriba lo sigue dejando en Center para el resto de los
+                             campos de una sola línea, así que no cambia nada para
+                             ellos. -->
+                        <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}"
+                                      VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsFocused" Value="True">
@@ -57,17 +68,11 @@
         </Setter>
     </Style>
 
-    <!-- ComboBox de modal -->
-    <Style x:Key="MCombo" TargetType="ComboBox">
-        <Setter Property="Height" Value="36"/>
-        <Setter Property="FontFamily" Value="Segoe UI"/>
-        <Setter Property="FontSize" Value="13.5"/>
-        <Setter Property="Foreground" Value="#1A1F2E"/>
-        <Setter Property="Background" Value="White"/>
-        <Setter Property="BorderBrush" Value="#80FFFFFF"/>
-        <Setter Property="Cursor" Value="Hand"/>
-        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
-    </Style>
+    <!-- MCombo (ComboBox de modal) se sacó (2026-08-19): quedó sin ningún uso
+         al migrar el Proveedor de ProcesoDescargaModal de ComboBox a
+         SelectorCatalogoModal. Si algún modal de Pesaje vuelve a necesitar un
+         ComboBox, usar el global ModalCombo de Styles.xaml en vez de
+         resucitar esta copia — ver [[Anatomía compartida de los modales]]. -->
 
     <!-- RadioButton segmentado sobre fondo oscuro (toggles dentro de los modales).
          Vive acá y no local en cada modal: los modales de Pesaje ya importan este

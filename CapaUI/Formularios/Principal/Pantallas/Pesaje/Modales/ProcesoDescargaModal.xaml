@@ -2,6 +2,7 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              Width="720"
+             Height="720"
              MaxWidth="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Border}, Converter={StaticResource RestarMargen}, ConverterParameter=48}"
              MaxHeight="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=Border}, Converter={StaticResource RestarMargen}, ConverterParameter=48}"
              UseLayoutRounding="True"
@@ -41,29 +42,71 @@
                 <Setter Property="Margin" Value="0,0,8,0"/>
             </Style>
 
-            <Style x:Key="BotonQuitarProd" TargetType="Button">
-                <Setter Property="Background" Value="#33DC2626"/>
-                <Setter Property="Foreground" Value="#FECACA"/>
+            <!-- Botón cuadrado de ícono (antes una pastilla con texto "Quitar";
+                 dentro de la fila de la tabla compacta no entra el texto). -->
+            <Geometry x:Key="IcoTrash">M4,7 h16 M9,7 V4 h6 v3 M6,7 l1,13 h10 l1,-13 M10,11 v6 M14,11 v6</Geometry>
+
+            <!-- Campo editable DENTRO de la tabla blanca (Peso/Bultos). MInput
+                 tiene el borde blanco translúcido pensado para el fondo azul del
+                 modal — acá, sobre fila blanca/celeste, ese borde queda casi
+                 invisible. Fondo transparente (no blanco) para que se sea la
+                 franja alterna de la fila por debajo; borde gris sólido para
+                 que el campo se note como campo aunque esté vacío. -->
+            <Style x:Key="CeldaInputTabla" TargetType="TextBox">
+                <Setter Property="Height" Value="30"/>
+                <Setter Property="Margin" Value="4"/>
+                <Setter Property="Padding" Value="8,0"/>
                 <Setter Property="FontFamily" Value="Segoe UI"/>
-                <Setter Property="FontSize" Value="12"/>
-                <Setter Property="FontWeight" Value="SemiBold"/>
-                <Setter Property="Padding" Value="10,4"/>
+                <Setter Property="FontSize" Value="13"/>
+                <Setter Property="Foreground" Value="#1A1F2E"/>
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="BorderBrush" Value="#94A3B8"/>
+                <Setter Property="BorderThickness" Value="1"/>
+                <Setter Property="VerticalContentAlignment" Value="Center"/>
+                <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="TextBox">
+                            <Border x:Name="Bd" Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="5">
+                                <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}"
+                                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsFocused" Value="True">
+                                    <Setter TargetName="Bd" Property="BorderBrush" Value="#34D399"/>
+                                    <Setter TargetName="Bd" Property="BorderThickness" Value="2"/>
+                                    <Setter TargetName="Bd" Property="Background" Value="White"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+            <Style x:Key="BotonQuitarProd" TargetType="Button">
+                <Setter Property="Width" Value="32"/>
+                <Setter Property="Height" Value="32"/>
+                <Setter Property="Margin" Value="4"/>
+                <Setter Property="Background" Value="#FEF2F2"/>
+                <Setter Property="Foreground" Value="#DC2626"/>
                 <Setter Property="Cursor" Value="Hand"/>
                 <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="Button">
                             <Border x:Name="Bd" Background="{TemplateBinding Background}"
-                                    CornerRadius="5" Padding="{TemplateBinding Padding}">
+                                    BorderBrush="#FECACA" BorderThickness="1" CornerRadius="6">
                                 <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter TargetName="Bd" Property="Background" Value="#4DDC2626"/>
+                                    <Setter TargetName="Bd" Property="Background" Value="#FEE2E2"/>
                                 </Trigger>
                                 <Trigger Property="IsEnabled" Value="False">
-                                    <Setter TargetName="Bd" Property="Background" Value="#14FFFFFF"/>
-                                    <Setter Property="Foreground" Value="#66FFFFFF"/>
+                                    <Setter TargetName="Bd" Property="Background" Value="#F3F4F6"/>
+                                    <Setter TargetName="Bd" Property="BorderBrush" Value="#E5E7EB"/>
+                                    <Setter Property="Foreground" Value="#9CA3AF"/>
                                     <Setter Property="Cursor" Value="Arrow"/>
                                 </Trigger>
                             </ControlTemplate.Triggers>
@@ -76,7 +119,13 @@
 
     <Border CornerRadius="10" ClipToBounds="True">
         <Border.Effect><DropShadowEffect Color="Black" BlurRadius="24" ShadowDepth="8" Opacity="0.55"/></Border.Effect>
-        <Grid>
+        <!-- Alto congelado en código (ver BuscarProveedor_Click) mientras el
+             selector de proveedor está abierto: SelectorCatalogoModal es
+             "chromeless" (hereda este marco, no tiene fondo propio) y sin un
+             alto fijo el marco se encoge o crece con la cantidad de filas que
+             deje el filtro. Se libera al cerrar para no interferir con el
+             resize normal entre pasos del wizard. -->
+        <Grid x:Name="RootGrid">
             <Border CornerRadius="10">
                 <Border.Background>
                     <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
@@ -87,7 +136,7 @@
                 </Border.Background>
             </Border>
 
-            <DockPanel>
+            <DockPanel x:Name="ContenidoPrincipal">
                 <!-- Franja superior -->
                 <Border DockPanel.Dock="Top" Height="4">
                     <Border.Background>
@@ -153,149 +202,227 @@
                                Foreground="#FECACA" TextWrapping="Wrap"/>
                 </Border>
 
-                <!-- Contenido con scroll -->
-                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                    <StackPanel Margin="28,18,28,10">
+                <!-- Contenido: llena el espacio que sobra del DockPanel (alto
+                     acotado, no infinito como daría un ScrollViewer). Cada
+                     sección resuelve su propio scroll donde corresponde en vez
+                     de compartir un ScrollViewer único para todo el modal —
+                     ver ConfigurarFilas() en el code-behind, que alterna cuál
+                     fila es "*" según el paso/modo. -->
+                <Grid Margin="28,18,28,10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition x:Name="RowSecCamion" Height="Auto"/>
+                        <RowDefinition x:Name="RowSepCamion" Height="Auto"/>
+                        <RowDefinition x:Name="RowSecProductos" Height="*"/>
+                    </Grid.RowDefinitions>
 
-                        <!-- ══ SECCIÓN 1 · CAMIÓN ══ -->
-                        <StackPanel x:Name="SecCamion">
-                            <StackPanel Orientation="Horizontal">
-                                <Border Style="{StaticResource PasoChip}">
-                                    <TextBlock Text="1" FontFamily="Segoe UI" FontSize="13" FontWeight="Bold"
-                                               Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                </Border>
-                                <TextBlock Text="Datos del camión" Style="{StaticResource SeccionTitulo}"
-                                           VerticalAlignment="Center"/>
-                            </StackPanel>
-                            <TextBlock Style="{StaticResource SeccionAyuda}" Margin="34,4,0,12"
-                                       Text="Registrá la placa del vehículo y el proveedor que envía la carga."/>
+                    <!-- ══ SECCIÓN 1 · CAMIÓN ══ -->
+                    <Grid x:Name="SecCamion" Grid.Row="0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <!-- Observaciones: estira para llenar lo que sobre del
+                                 marco cuadrado cuando este es el único paso visible
+                                 (wizard paso 1). MinHeight conserva el alto original
+                                 cuando la fila padre es Auto (modo edición, con
+                                 Productos abajo pidiendo el "*") — ver Anatomía
+                                 compartida de los modales. -->
+                            <RowDefinition Height="*" MinHeight="56"/>
+                        </Grid.RowDefinitions>
 
-                            <StackPanel Margin="34,0,0,0">
-                                <TextBlock Text="Proveedor" Style="{StaticResource MLabel}"/>
-                                <ComboBox x:Name="CmbProveedor" Style="{StaticResource MCombo}"
-                                          DisplayMemberPath="Nombre" Margin="0,0,0,14"
-                                          SelectionChanged="Campo_Changed"/>
+                        <StackPanel Grid.Row="0" Orientation="Horizontal">
+                            <Border Style="{StaticResource PasoChip}">
+                                <TextBlock Text="1" FontFamily="Segoe UI" FontSize="13" FontWeight="Bold"
+                                           Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <TextBlock Text="Datos del camión" Style="{StaticResource SeccionTitulo}"
+                                       VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <TextBlock Grid.Row="1" Style="{StaticResource SeccionAyuda}" Margin="34,4,0,12"
+                                   Text="Registrá la placa del vehículo y el proveedor que envía la carga."/>
 
-                                <TextBlock Text="Placa del vehículo" Style="{StaticResource MLabel}"/>
-                                <TextBox x:Name="TxtPlaca" Style="{StaticResource MInput}"
-                                         Margin="0,0,0,14" TextChanged="Placa_Changed"/>
-
-                                <TextBlock Text="Observaciones (opcional)" Style="{StaticResource MLabel}"/>
-                                <TextBox x:Name="TxtObs" Style="{StaticResource MInput}" Height="56"
-                                         Margin="0,0,0,4" AcceptsReturn="True" TextWrapping="Wrap"
-                                         VerticalContentAlignment="Top"/>
-                            </StackPanel>
+                        <StackPanel Grid.Row="2" Margin="34,0,0,0">
+                            <TextBlock Text="Proveedor" Style="{StaticResource MLabel}"/>
+                            <Grid Margin="0,0,0,14">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox Grid.Column="0" x:Name="TxtProveedor" Style="{StaticResource MInput}" IsReadOnly="True"
+                                         Cursor="Hand" PreviewMouseDoubleClick="TxtCatalogo_PreviewMouseDoubleClick"
+                                         KeyDown="TxtCatalogo_KeyDown" Tag="{Binding ElementName=BtnBuscarProveedor}"/>
+                                <Button Grid.Column="1" x:Name="BtnBuscarProveedor" Style="{StaticResource LupaBtnOscuro}"
+                                        Click="BuscarProveedor_Click" ToolTip="Seleccionar proveedor"/>
+                            </Grid>
                         </StackPanel>
 
-                        <Border x:Name="SepCamion" Height="1" Background="#1AFFFFFF" Margin="0,20,0,20"/>
+                        <StackPanel Grid.Row="3" Margin="34,0,0,0">
+                            <TextBlock Text="Placa del vehículo" Style="{StaticResource MLabel}"/>
+                            <TextBox x:Name="TxtPlaca" Style="{StaticResource MInput}"
+                                     Margin="0,0,0,14" TextChanged="Placa_Changed"/>
+                        </StackPanel>
 
-                        <!-- ══ SECCIÓN 2 · PRODUCTOS ══ -->
-                        <StackPanel x:Name="SecProductos">
-                            <StackPanel Orientation="Horizontal">
-                                <Border Style="{StaticResource PasoChip}">
-                                    <TextBlock Text="2" FontFamily="Segoe UI" FontSize="13" FontWeight="Bold"
-                                               Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                </Border>
-                                <TextBlock Text="Productos de la carga" Style="{StaticResource SeccionTitulo}"
-                                           VerticalAlignment="Center"/>
-                            </StackPanel>
-                            <TextBlock Style="{StaticResource SeccionAyuda}" Margin="34,4,0,12"
-                                       Text="Agregá los productos que declara el manifiesto, con su peso y su cantidad de bultos. Un producto que ya tenga pesajes registrados no se puede quitar."/>
+                        <TextBlock Grid.Row="4" Margin="34,0,0,0" Text="Observaciones (opcional)" Style="{StaticResource MLabel}"/>
+                        <!-- Height="NaN" pisa el Height="36" fijo que trae el Setter de
+                             MInput — sin esto la fila "*" del Grid no tiene efecto: un
+                             valor local de Height siempre le gana al Setter del estilo,
+                             así que "NaN" (auto) es la única forma de dejarlo estirar. -->
+                        <TextBox Grid.Row="5" x:Name="TxtObs" Style="{StaticResource MInput}" Height="NaN"
+                                 Margin="34,0,0,4" AcceptsReturn="True" TextWrapping="Wrap"
+                                 VerticalContentAlignment="Top" VerticalScrollBarVisibility="Auto"/>
+                    </Grid>
 
-                            <StackPanel Margin="34,0,0,0">
-                                <!-- Lista de productos agregados -->
-                                <ItemsControl x:Name="LstProductos">
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate>
-                                            <Border Background="#14FFFFFF" CornerRadius="8" Padding="14,12"
-                                                    Margin="0,0,0,10" BorderBrush="#26FFFFFF" BorderThickness="1">
-                                                <StackPanel>
-                                                    <!-- Identificación -->
-                                                    <Grid Margin="0,0,0,10">
-                                                        <Grid.ColumnDefinitions>
-                                                            <ColumnDefinition Width="Auto"/>
-                                                            <ColumnDefinition Width="*"/>
-                                                            <ColumnDefinition Width="Auto"/>
-                                                        </Grid.ColumnDefinitions>
-                                                        <Border Grid.Column="0" Background="#26FFFFFF" CornerRadius="4"
-                                                                Padding="6,2" VerticalAlignment="Center" Margin="0,0,10,0">
-                                                            <TextBlock Text="{Binding Codigo}" FontFamily="Consolas"
-                                                                       FontSize="11.5" FontWeight="Bold" Foreground="White"/>
-                                                        </Border>
-                                                        <TextBlock Grid.Column="1" Text="{Binding Nombre}"
-                                                                   FontFamily="Segoe UI" FontSize="13.5" FontWeight="Medium"
-                                                                   Foreground="White" VerticalAlignment="Center"
-                                                                   TextTrimming="CharacterEllipsis"/>
-                                                        <Button Grid.Column="2" Style="{StaticResource BotonQuitarProd}"
-                                                                Content="Quitar" Tag="{Binding}"
-                                                                IsEnabled="{Binding PuedeQuitar}"
-                                                                ToolTip="{Binding MotivoNoQuitar}"
-                                                                Click="QuitarProducto_Click"/>
-                                                    </Grid>
-                                                    <!-- Peso y bultos -->
+                    <Border x:Name="SepCamion" Grid.Row="1" Height="1" Background="#1AFFFFFF" Margin="0,20,0,20"/>
+
+                    <!-- ══ SECCIÓN 2 · PRODUCTOS ══ -->
+                    <Grid x:Name="SecProductos" Grid.Row="2">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <!-- Únicos que scrollean: el resto de la sección (título,
+                                 ayuda, botón agregar) queda fijo. -->
+                            <RowDefinition Height="*" MinHeight="140"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Grid.Row="0" Orientation="Horizontal">
+                            <Border Style="{StaticResource PasoChip}">
+                                <TextBlock Text="2" FontFamily="Segoe UI" FontSize="13" FontWeight="Bold"
+                                           Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <TextBlock Text="Productos de la carga" Style="{StaticResource SeccionTitulo}"
+                                       VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <TextBlock Grid.Row="1" Style="{StaticResource SeccionAyuda}" Margin="34,4,0,12"
+                                   Text="Agregá los productos que declara el manifiesto, con su peso y su cantidad de bultos. Un producto que ya tenga pesajes registrados no se puede quitar."/>
+
+                        <!-- Misma tabla que SelectorCatalogoModal (TablaCatalogoFila/Celda/Header,
+                             globales en Styles.xaml) en vez de una tarjeta por producto — el
+                             DataGrid trae su propio scroll (ScrollViewer.VerticalScrollBarVisibility),
+                             no hace falta envolverlo en uno aparte. -->
+                        <Border Grid.Row="2" Margin="34,0,0,0" CornerRadius="8" Background="White" ClipToBounds="True">
+                            <Grid>
+                                <DataGrid x:Name="LstProductos"
+                                          AutoGenerateColumns="False"
+                                          CanUserAddRows="False"
+                                          CanUserSortColumns="False"
+                                          HeadersVisibility="Column"
+                                          GridLinesVisibility="None"
+                                          SelectionUnit="Cell"
+                                          Background="White"
+                                          BorderThickness="0"
+                                          AlternationCount="2"
+                                          RowStyle="{StaticResource TablaCatalogoFila}"
+                                          CellStyle="{StaticResource TablaCatalogoCelda}"
+                                          ColumnHeaderStyle="{StaticResource TablaCatalogoHeader}"
+                                          ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                          ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                    <DataGrid.Columns>
+                                        <DataGridTemplateColumn Header="CÓDIGO" Width="100" IsReadOnly="True">
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <Border Background="#EFF6FF" BorderBrush="#BFDBFE" BorderThickness="1"
+                                                            CornerRadius="4" Padding="6,2" HorizontalAlignment="Left">
+                                                        <TextBlock Text="{Binding Codigo}" FontFamily="Consolas"
+                                                                   FontSize="11.5" FontWeight="Bold"
+                                                                   Foreground="{DynamicResource EmpresaPrimaryBrush}"/>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+                                        </DataGridTemplateColumn>
+                                        <DataGridTextColumn Header="PRODUCTO" Width="*" IsReadOnly="True"
+                                                             Binding="{Binding Nombre}">
+                                            <DataGridTextColumn.ElementStyle>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="FontFamily" Value="Segoe UI"/>
+                                                    <Setter Property="FontSize" Value="13.5"/>
+                                                    <Setter Property="FontWeight" Value="SemiBold"/>
+                                                    <Setter Property="Foreground" Value="#1A1F2E"/>
+                                                    <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+                                                </Style>
+                                            </DataGridTextColumn.ElementStyle>
+                                        </DataGridTextColumn>
+                                        <DataGridTemplateColumn Header="PESO MAN. (KG)" Width="130">
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
                                                     <Grid>
-                                                        <Grid.ColumnDefinitions>
-                                                            <ColumnDefinition Width="*"/>
-                                                            <ColumnDefinition Width="14"/>
-                                                            <ColumnDefinition Width="*"/>
-                                                        </Grid.ColumnDefinitions>
-                                                        <StackPanel Grid.Column="0">
-                                                            <TextBlock Text="Peso manifestado (kg)" Style="{StaticResource MLabel}"/>
-                                                            <TextBox Style="{StaticResource MInput}" Tag="{Binding}"
-                                                                     Text="{Binding PesoManifestadoTexto, UpdateSourceTrigger=PropertyChanged}"
-                                                                     TextChanged="CampoProducto_Changed"/>
-                                                        </StackPanel>
-                                                        <StackPanel Grid.Column="2">
-                                                            <TextBlock Text="Bultos declarados" Style="{StaticResource MLabel}"/>
-                                                            <TextBox Style="{StaticResource MInput}" Tag="{Binding}"
-                                                                     Text="{Binding BultosDeclaradosTexto, UpdateSourceTrigger=PropertyChanged}"
-                                                                     TextChanged="CampoProducto_Changed"/>
-                                                        </StackPanel>
+                                                        <TextBox Style="{StaticResource CeldaInputTabla}" Tag="{Binding}"
+                                                                 Text="{Binding PesoManifestadoTexto, UpdateSourceTrigger=PropertyChanged}"
+                                                                 TextChanged="CampoProducto_Changed"/>
+                                                        <TextBlock Text="0.00" FontFamily="Segoe UI" FontSize="13" Foreground="#9CA3AF"
+                                                                   Margin="12,0,0,0" VerticalAlignment="Center" IsHitTestVisible="False"
+                                                                   Visibility="{Binding PesoManifestadoTexto, Converter={StaticResource VacioAVisibilidad}}"/>
                                                     </Grid>
-                                                </StackPanel>
-                                            </Border>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+                                        </DataGridTemplateColumn>
+                                        <DataGridTemplateColumn Header="BULTOS" Width="100">
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <Grid>
+                                                        <TextBox Style="{StaticResource CeldaInputTabla}" Tag="{Binding}"
+                                                                 Text="{Binding BultosDeclaradosTexto, UpdateSourceTrigger=PropertyChanged}"
+                                                                 TextChanged="CampoProducto_Changed"/>
+                                                        <TextBlock Text="0" FontFamily="Segoe UI" FontSize="13" Foreground="#9CA3AF"
+                                                                   Margin="12,0,0,0" VerticalAlignment="Center" IsHitTestVisible="False"
+                                                                   Visibility="{Binding BultosDeclaradosTexto, Converter={StaticResource VacioAVisibilidad}}"/>
+                                                    </Grid>
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+                                        </DataGridTemplateColumn>
+                                        <DataGridTemplateColumn Header="" Width="52" IsReadOnly="True">
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <Button Style="{StaticResource BotonQuitarProd}" Tag="{Binding}"
+                                                            IsEnabled="{Binding PuedeQuitar}"
+                                                            ToolTip="{Binding MotivoNoQuitar}"
+                                                            Click="QuitarProducto_Click">
+                                                        <Path Data="{StaticResource IcoTrash}" Stroke="{Binding RelativeSource={RelativeSource AncestorType=Button}, Path=Foreground}"
+                                                              StrokeThickness="1.6" Width="14" Height="14" Stretch="Uniform"
+                                                              StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                                                    </Button>
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+                                        </DataGridTemplateColumn>
+                                    </DataGrid.Columns>
+                                </DataGrid>
 
                                 <!-- Vacío -->
-                                <Border x:Name="PanelSinProductos" Background="#14FFFFFF" CornerRadius="8"
-                                        Padding="20" Margin="0,0,0,10" BorderBrush="#26FFFFFF"
-                                        BorderThickness="1" Visibility="Collapsed">
-                                    <TextBlock Text="Todavía no agregaste ningún producto a esta carga."
-                                               FontFamily="Segoe UI" FontSize="13" Foreground="#A6FFFFFF"
-                                               HorizontalAlignment="Center"/>
-                                </Border>
+                                <TextBlock x:Name="PanelSinProductos" Visibility="Collapsed"
+                                           Text="Todavía no agregaste ningún producto a esta carga."
+                                           FontFamily="Segoe UI" FontSize="13.5" Foreground="#6B7280"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Grid>
+                        </Border>
 
-                                <Button x:Name="BtnAgregarProducto" Style="{StaticResource GhostBtn}"
-                                        Padding="18,10" HorizontalAlignment="Left" Click="AgregarProducto_Click">
-                                    <StackPanel Orientation="Horizontal">
-                                        <Path Data="M12,5 v14 M5,12 h14" Stroke="White" StrokeThickness="2.2"
-                                              Width="14" Height="14" Stretch="Uniform" Margin="0,0,8,0"
-                                              VerticalAlignment="Center"
-                                              StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
-                                        <TextBlock Text="Agregar producto" FontFamily="Segoe UI" FontSize="13.5"
-                                                   FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"/>
-                                    </StackPanel>
-                                </Button>
+                        <!-- Fijo, fuera del scroll: siempre alcanzable sin importar
+                             cuántos productos haya en la lista. -->
+                        <Button Grid.Row="3" x:Name="BtnAgregarProducto" Style="{StaticResource GhostBtn}"
+                                Margin="34,10,0,0" Padding="18,10" HorizontalAlignment="Left" Click="AgregarProducto_Click">
+                            <StackPanel Orientation="Horizontal">
+                                <Path Data="M12,5 v14 M5,12 h14" Stroke="White" StrokeThickness="2.2"
+                                      Width="14" Height="14" Stretch="Uniform" Margin="0,0,8,0"
+                                      VerticalAlignment="Center"
+                                      StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                                <TextBlock Text="Agregar producto" FontFamily="Segoe UI" FontSize="13.5"
+                                           FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"/>
                             </StackPanel>
-                        </StackPanel>
+                        </Button>
+                    </Grid>
 
-                        <!-- La tara extra ya no se pide acá: no se puede estimar por
-                             adelantado, se pesa. Se carga desde la pantalla de pesaje con
-                             el botón «Tara extra», en cualquier momento del proceso. -->
-
-                    </StackPanel>
-                </ScrollViewer>
+                    <!-- La tara extra ya no se pide acá: no se puede estimar por
+                         adelantado, se pesa. Se carga desde la pantalla de pesaje con
+                         el botón «Tara extra», en cualquier momento del proceso. -->
+                </Grid>
             </DockPanel>
 
-            <!-- Sub-overlay: selector de productos -->
-            <Border x:Name="SelectorOverlay" Background="#B30F172A"
-                    Visibility="Collapsed" Panel.ZIndex="20"
-                    CornerRadius="10">
-                <ContentControl x:Name="SelectorHost"
-                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
-            </Border>
+            <!-- Selector de catálogo: Proveedor (paso 1) y Producto (paso 2)
+                 abren acá — reemplaza todo el contenido dentro del mismo marco
+                 degradado, no se superpone. Mismo patrón que FormHost/SelectorHost
+                 en ProductoModal. Ver AbrirSelectorCatalogo en el code-behind. -->
+            <ContentControl x:Name="CatalogoSelectorHost" Visibility="Collapsed"/>
         </Grid>
     </Border>
 </UserControl>

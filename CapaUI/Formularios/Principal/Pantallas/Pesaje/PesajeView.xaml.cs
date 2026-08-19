@@ -8,8 +8,6 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
-using CapaAplicacion.Proveedores.Interfaces;
-using CapaAplicacion.Proveedores.Queries;
 using CapaUI.Core.Permisos;
 using CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales;
 using CapaUI.Formularios.Principal.Pantallas.Pesaje.Modelos;
@@ -310,10 +308,9 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
         /// nueva, o en modo Edición (megamodal) para corregir la del camión elegido.
         /// Unifica lo que antes eran CamionModal + ProductoCamionModal + el picker.
         /// </summary>
-        private async void AbrirProcesoModal(ModoProceso modo, CamionPesaje? camion)
+        private void AbrirProcesoModal(ModoProceso modo, CamionPesaje? camion)
         {
-            var proveedores = await CargarProveedoresAsync();
-            var modal = new ProcesoDescargaModal(modo, camion, proveedores);
+            var modal = new ProcesoDescargaModal(modo, camion);
 
             modal.Cerrado += CerrarModal;
             modal.Confirmado += async r =>
@@ -387,19 +384,6 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             var modal = new ReporteModal(camiones);
             modal.Cerrado += CerrarModal;
             MostrarModal(modal);
-        }
-
-        private async Task<List<ProveedorItem>> CargarProveedoresAsync()
-        {
-            try
-            {
-                var repo = App.Services.GetRequiredService<IProveedorRepository>();
-                var r = await repo.GetPagedAsync(1, 200, new ProveedorFiltros { IdEstado = 1 });
-                if (r.Success && r.Value != null)
-                    return r.Value.Items.Select(p => new ProveedorItem(p.Id, p.Nombre)).ToList();
-            }
-            catch { /* combo vacío si falla */ }
-            return new List<ProveedorItem>();
         }
 
         private void SincronizarSeleccion()

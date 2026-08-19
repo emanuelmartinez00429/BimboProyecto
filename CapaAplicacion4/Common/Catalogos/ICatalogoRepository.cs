@@ -40,8 +40,14 @@ public interface ICatalogoRepository
     Task<Result<PagedResult<FiltroItem>>> GetProveedoresAsync(
         string termino, int page, int size, CancellationToken ct = default);
 
+    /// <summary>
+    /// Productos, opcionalmente acotados a un proveedor (paso 2 del wizard de
+    /// descarga: solo lo que ese proveedor puede traer). Mismo patrón de
+    /// acotamiento que <see cref="GetFabricantesAsync"/>, aunque acá el vínculo
+    /// no es una columna directa — ver la implementación.
+    /// </summary>
     Task<Result<PagedResult<FiltroItem>>> GetProductosAsync(
-        string termino, int page, int size, CancellationToken ct = default);
+        string termino, int page, int size, int? idProveedor = null, CancellationToken ct = default);
 
     /// <summary>
     /// Fabricantes, opcionalmente acotados a un proveedor (catálogo encadenado).

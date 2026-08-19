@@ -29,6 +29,8 @@ lifecycle: verified
 | `ModalInputAuditoria` | Campos Creado/Actualizado | Solo lectura, apagado |
 | `ModalSegBtn` | Toggle segmentado Activo/Inactivo | — |
 | `ModalTitulo` / `ModalContexto` | Título y cinta del encabezado | — |
+| `LupaBtnCompartido` | Botón lupa de campo de catálogo, **fondo claro** | Usado en `ReporteriaView` |
+| `LupaBtnOscuro` | Igual, **fondo oscuro** (modales con marco degradado) | `ProductoModal`, `ProcesoDescargaModal` |
 
 ---
 
@@ -85,9 +87,31 @@ El pie lleva `Ctrl+Enter para guardar`. El atajo ya funcionaba en casi todos los
 
 ---
 
+## ⚠️ Regla: antes de agregar un estilo local, buscá acá primero
+
+**Antes de escribir un `<Style>` o `<Geometry>` nuevo en el `UserControl.Resources` de un modal — o en un diccionario de estilos propio de un módulo —, buscá si ya existe algo equivalente en `CapaUI/Resources/Styles.xaml` (la tabla de arriba) o en este documento.** Un nombre distinto para lo mismo (`MInput` vs `ModalInput`, `LupaBtn` vs `LupaBtnCompartido`) es indistinguible de una duplicación real hasta que alguien lo audita.
+
+Dos casos reales, sesión 2026-08-19:
+
+1. **`LupaBtn` duplicado dos veces.** `ProductoModal` ya tenía su propia copia local de la lupa de campo de catálogo (variante oscura, para su marco degradado). Al agregarle el mismo patrón a `ProcesoDescargaModal`, se copió esa copia local en vez de darse cuenta de que ya existía `LupaBtnCompartido` (variante clara, usada en `ReporteriaView`) en el diccionario global — solo faltaba la variante oscura. Se resolvió centralizando ambas: `LupaBtnCompartido` + `LupaBtnOscuro`, las dos en `Styles.xaml`. Ver [[Sesión 2026-08-19 - Selector de proveedor por tabla y consolidacion de estilos]].
+
+2. **`PesajeModalStyles.xaml` es una familia paralela completa**, no solo un estilo suelto. Los modales de Pesaje (`PesajeModal`, `ProcesoDescargaModal`, `TaraExtraTotalModal`, `SelectorProductosModal`) importan `PesajeModalStyles.xaml` en vez de usar los estilos de esta tabla, con sus propios `MLabel`/`MInput`/`MCombo`/`MSegBtn` — casi-duplicados de `EtiquetaCampo`/`ModalInput`/`ModalCombo`/`ModalSegBtn`, pero **no idénticos**:
+   - `MInput`/`MCombo` tienen fuente más chica (13.5 vs 16.5) y **no tienen** el aro verde de foco ni el borde rojo de `validacion:Validacion.TieneError` — los modales de Pesaje no muestran el mismo feedback de validación por campo que el resto de la app.
+   - `MSegBtn` tiene el mismo problema (sin aro de foco), y encima el comentario que lo justificaba estaba **basado en una premisa falsa**: decía que `ModalSegBtn` "no es visible desde acá" porque se define local en cada modal CRUD — falso, `ModalSegBtn` está centralizado en `Styles.xaml` desde antes y sí es visible.
+   - `MIcoSearch` y `MCombo` eran duplicados sin ningún uso real (`MIcoSearch` idéntico a `IconSearchShared`) y se eliminaron directamente (2026-08-19) — sin efecto visual, estaban muertos.
+   - `MLabel` vs `EtiquetaCampo` difieren apenas en color (`#D9FFFFFF` vs `#E0FFFFFF`) y margen — probablemente deriva accidental, no una decisión.
+   
+   La fuente más chica de `MInput`/`MCombo` **sí puede ser intencional** (el wizard de `ProcesoDescargaModal` es más denso: tarjetas de producto con varios campos chicos por fila) — fusionarlo a ciegas con `ModalInput` podría romper ese layout. Por eso no se fusionó todavía: queda como [[Deuda Técnica - Pendientes|P-042]], pendiente de una decisión explícita (¿son 16.5px y sin validación por campo un gap real a corregir, o una variante "compacta" deliberada que hay que nombrar y documentar como tal, igual que `LupaBtnOscuro`?).
+
+**Antes de crear un diccionario de estilos nuevo para un módulo nuevo:** primero preguntate si lo que necesitás ya está en `Styles.xaml`, y si hace falta una variante (como `LupaBtnOscuro`), agregala ahí con un nombre que distinga la variante — no dupliques el archivo entero "por las dudas".
+
+---
+
 ## Relaciones
 
 - [[TextoResponsivo]] — el helper de recorte y ToolTip
 - [[Dialogo de confirmacion reusable]] — la advertencia al inactivar, que usa estos mismos estilos
 - [[Módulo Productos]] — `ProductoModal` es la referencia de layout multi-columna
 - [[WPF - StackPanel y columnas Auto no ceden espacio, no se achican de verdad]]
+- [[Deuda Técnica - Pendientes]] — P-042, familia paralela de estilos en Pesaje
+- [[Sesión 2026-08-19 - Selector de proveedor por tabla y consolidacion de estilos]] — origen de `LupaBtnOscuro` y de esta auditoría

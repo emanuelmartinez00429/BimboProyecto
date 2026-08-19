@@ -12,103 +12,25 @@
         <Geometry x:Key="IcoBox">M21,16 V8 a2,2 0 0 0,-1,-1.73 l-7,-4 a2,2 0 0 0,-2,0 l-7,4 A2,2 0 0 0,3,8 v8 a2,2 0 0 0,1,1.73 l7,4 a2,2 0 0 0,2,0 l7,-4 A2,2 0 0 0,21,16 z</Geometry>
         <Geometry x:Key="IcoCheck">M20,6 L9,17 l-5,-5</Geometry>
 
-        <!-- Mismos colores que la grilla de Productos: alternas #E8F0FA,
-             hover #C8D8F0 y selección verde #C2F2E0 con barra #34D399. -->
-        <Style x:Key="CatRow" TargetType="DataGridRow">
-            <Setter Property="Height" Value="40"/>
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="BorderBrush" Value="#EEF2F8"/>
-            <Setter Property="BorderThickness" Value="0,0,0,1"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="DataGridRow">
-                        <Border x:Name="Bd"
-                                Background="{TemplateBinding Background}"
-                                BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="{TemplateBinding BorderThickness}"
-                                SnapsToDevicePixels="True">
-                            <Grid>
-                                <Border x:Name="SelIndicator"
-                                        Width="3"
-                                        HorizontalAlignment="Left"
-                                        VerticalAlignment="Stretch"
-                                        Background="#34D399"
-                                        Visibility="Collapsed"
-                                        Panel.ZIndex="1"/>
-                                <DataGridCellsPresenter/>
-                            </Grid>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="#C8D8F0"/>
-                            </Trigger>
-                            <!-- La fila alterna necesita su propio hover: si no,
-                                 el #E8F0FA del Style.Trigger le gana al del template. -->
-                            <MultiTrigger>
-                                <MultiTrigger.Conditions>
-                                    <Condition Property="IsMouseOver" Value="True"/>
-                                    <Condition Property="ItemsControl.AlternationIndex" Value="1"/>
-                                </MultiTrigger.Conditions>
-                                <Setter TargetName="Bd" Property="Background" Value="#C8D8F0"/>
-                            </MultiTrigger>
-                            <Trigger Property="IsSelected" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="#C2F2E0"/>
-                                <Setter TargetName="SelIndicator" Property="Visibility" Value="Visible"/>
-                            </Trigger>
-                            <MultiTrigger>
-                                <MultiTrigger.Conditions>
-                                    <Condition Property="IsSelected" Value="True"/>
-                                    <Condition Property="ItemsControl.AlternationIndex" Value="1"/>
-                                </MultiTrigger.Conditions>
-                                <Setter TargetName="Bd" Property="Background" Value="#C2F2E0"/>
-                            </MultiTrigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
+        <!-- CatRow/CatCell/CatHeader se promovieron a Styles.xaml (global) como
+             TablaCatalogoFila/TablaCatalogoCelda/TablaCatalogoHeader — cualquier
+             modal con una tabla blanca sobre fondo oscuro los usa, no solo este
+             selector. Mismos colores que la grilla de Productos: alternas
+             #E8F0FA, hover #C8D8F0 y selección verde #C2F2E0 con barra #34D399. -->
+
+        <!-- Extiende la fila global con el atenuado de "ya elegido en otro
+             lado" (p. ej. un producto que ya está en la carga) — es un
+             concepto propio de este selector, no de la tabla en general, así
+             que no se mete en el estilo compartido. IsHitTestVisible=False
+             bloquea la fila del todo: ni checkbox ni doble clic la traen. -->
+        <Style x:Key="FilaSelector" TargetType="DataGridRow" BasedOn="{StaticResource TablaCatalogoFila}">
             <Style.Triggers>
-                <Trigger Property="ItemsControl.AlternationIndex" Value="1">
-                    <Setter Property="Background" Value="#E8F0FA"/>
-                </Trigger>
+                <DataTrigger Binding="{Binding YaElegido}" Value="True">
+                    <Setter Property="Opacity" Value="0.45"/>
+                    <Setter Property="Cursor" Value="Arrow"/>
+                    <Setter Property="IsHitTestVisible" Value="False"/>
+                </DataTrigger>
             </Style.Triggers>
-        </Style>
-
-        <Style x:Key="CatCell" TargetType="DataGridCell">
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="0"/>
-            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="DataGridCell">
-                        <Border Background="{TemplateBinding Background}" BorderThickness="0" Padding="0">
-                            <!-- Stretch, no Left: asi la celda ocupa toda la columna y manda
-                                 la alineacion de cada plantilla (el circulo se centra, el
-                                 texto arranca a la izquierda). -->
-                            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Stretch"/>
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <Style x:Key="CatHeader" TargetType="DataGridColumnHeader">
-            <Setter Property="Height" Value="38"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="DataGridColumnHeader">
-                        <Border Background="#22449B" BorderBrush="#33FFFFFF" BorderThickness="0,0,1,0">
-                            <TextBlock Text="{TemplateBinding Content}"
-                                       Foreground="#E8EEFB"
-                                       FontFamily="Segoe UI" FontSize="13" FontWeight="Bold"
-                                       HorizontalAlignment="Left" VerticalAlignment="Center"
-                                       Padding="12,0"/>
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
         </Style>
 
         <Style x:Key="CatCellText" TargetType="TextBlock">
@@ -252,14 +174,23 @@
                 </Button>
             </Grid>
 
-            <!-- Pie de acciones -->
+            <!-- Pie de acciones. Grid, no DockPanel: con DockPanel el texto del
+                 hint (variable, más largo en modo múltiple) no se envolvía ni
+                 cedía espacio y empujaba los botones fuera del marco visible
+                 — acá la columna "*" lo achica/envuelve y "Auto" les garantiza
+                 su ancho natural a los botones siempre. -->
             <Border DockPanel.Dock="Bottom" Background="#1F000000" Padding="22,13">
-                <DockPanel LastChildFill="False">
-                    <TextBlock DockPanel.Dock="Left"
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" x:Name="TxtPie"
                                Text="Doble clic en una fila para elegirla directamente"
-                               FontFamily="Segoe UI" FontSize="14.5"
+                               FontFamily="Segoe UI" FontSize="14.5" TextWrapping="Wrap"
+                               Margin="0,0,14,0"
                                Foreground="#9FB4E2" VerticalAlignment="Center"/>
-                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                    <StackPanel Grid.Column="1" Orientation="Horizontal">
                         <Button Content="Cancelar" Click="Cerrar_Click"
                                 Style="{StaticResource CatGhostBtn}" Margin="0,0,10,0"/>
                         <Button x:Name="BtnElegir" Click="Elegir_Click" IsEnabled="False"
@@ -293,7 +224,7 @@
                             </Button.Template>
                         </Button>
                     </StackPanel>
-                </DockPanel>
+                </Grid>
             </Border>
 
             <!-- Paginación (solo en modo servidor) -->
@@ -352,9 +283,9 @@
                                   Background="White"
                                   BorderThickness="0"
                                   AlternationCount="2"
-                                  RowStyle="{StaticResource CatRow}"
-                                  CellStyle="{StaticResource CatCell}"
-                                  ColumnHeaderStyle="{StaticResource CatHeader}"
+                                  RowStyle="{StaticResource FilaSelector}"
+                                  CellStyle="{StaticResource TablaCatalogoCelda}"
+                                  ColumnHeaderStyle="{StaticResource TablaCatalogoHeader}"
                                   SelectionChanged="Dg_SelectionChanged"
                                   MouseDoubleClick="Dg_DoubleClick"
                                   ScrollViewer.VerticalScrollBarVisibility="Auto"
@@ -362,21 +293,44 @@
                                   VirtualizingPanel.IsVirtualizing="True"
                                   VirtualizingPanel.VirtualizationMode="Recycling">
                             <DataGrid.Columns>
-                                <!-- Indicador de fila elegida -->
+                                <!-- Indicador: círculo (selección única), checkbox (multi) o
+                                     "✓ ya" (fila bloqueada) — las tres comparten la columna,
+                                     una tapa a las otras según el estado de la fila. -->
                                 <DataGridTemplateColumn Width="42">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
-                                            <Border Width="16" Height="16" CornerRadius="8"
-                                                    Background="White"
-                                                    BorderBrush="#CBD5E1" BorderThickness="2"
-                                                    HorizontalAlignment="Center">
-                                                <Ellipse x:Name="Punto" Width="7" Height="7" Fill="#16A34A"
-                                                         Visibility="Collapsed"/>
-                                            </Border>
+                                            <Grid>
+                                                <TextBlock x:Name="TxtYa" Text="Ya" FontFamily="Segoe UI" FontSize="10"
+                                                           FontWeight="Bold" Foreground="#9CA3AF"
+                                                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                           Visibility="Collapsed"
+                                                           ToolTip="Ya está agregado"/>
+                                                <CheckBox x:Name="ChkMulti" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                          Visibility="Collapsed"
+                                                          IsChecked="{Binding Marcado, Mode=TwoWay}"
+                                                          Checked="Marcado_Changed" Unchecked="Marcado_Changed"/>
+                                                <Border x:Name="Circulo" Width="16" Height="16" CornerRadius="8"
+                                                        Background="White"
+                                                        BorderBrush="#CBD5E1" BorderThickness="2"
+                                                        HorizontalAlignment="Center">
+                                                    <Ellipse x:Name="Punto" Width="7" Height="7" Fill="#16A34A"
+                                                             Visibility="Collapsed"/>
+                                                </Border>
+                                            </Grid>
                                             <DataTemplate.Triggers>
                                                 <DataTrigger Value="True"
                                                              Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=DataGridRow}}">
                                                     <Setter TargetName="Punto" Property="Visibility" Value="Visible"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding PermiteMultiple}" Value="True">
+                                                    <Setter TargetName="ChkMulti" Property="Visibility" Value="Visible"/>
+                                                    <Setter TargetName="Circulo" Property="Visibility" Value="Collapsed"/>
+                                                </DataTrigger>
+                                                <!-- Ya elegido gana: tapa tanto el círculo como el checkbox. -->
+                                                <DataTrigger Binding="{Binding YaElegido}" Value="True">
+                                                    <Setter TargetName="TxtYa" Property="Visibility" Value="Visible"/>
+                                                    <Setter TargetName="ChkMulti" Property="Visibility" Value="Collapsed"/>
+                                                    <Setter TargetName="Circulo" Property="Visibility" Value="Collapsed"/>
                                                 </DataTrigger>
                                             </DataTemplate.Triggers>
                                         </DataTemplate>

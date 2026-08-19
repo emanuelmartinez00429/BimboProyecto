@@ -44,6 +44,32 @@
         </ControlTemplate></Setter.Value></Setter>
     </Style>
 
+    <!-- Misma lupa que LupaBtnCompartido, variante para fondos oscuros
+         (modales con marco degradado: ProductoModal, ProcesoDescargaModal):
+         borde translúcido blanco en vez de gris sólido, si no queda invisible
+         contra el degradado. Antes estaba copiada localmente en cada modal
+         que la necesitaba. -->
+    <Style x:Key="LupaBtnOscuro" TargetType="Button">
+        <Setter Property="Width" Value="38"/><Setter Property="Height" Value="38"/>
+        <Setter Property="Background" Value="White"/><Setter Property="BorderBrush" Value="#7FFFFFFF"/>
+        <Setter Property="BorderThickness" Value="1"/><Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Margin" Value="6,0,0,0"/>
+        <Setter Property="VerticalAlignment" Value="Center"/><Setter Property="HorizontalAlignment" Value="Right"/>
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button">
+            <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6">
+                <Path Data="{StaticResource IconSearchShared}" Stroke="{DynamicResource EmpresaPrimaryBrush}" StrokeThickness="2.2"
+                      StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                      Width="17" Height="17" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+            <ControlTemplate.Triggers>
+                <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Bd" Property="Background" Value="#EFF6FF"/></Trigger>
+                <Trigger Property="IsFocused" Value="True"><Setter TargetName="Bd" Property="BorderBrush" Value="#34D399"/><Setter TargetName="Bd" Property="BorderThickness" Value="3"/></Trigger>
+                <Trigger Property="IsEnabled" Value="False"><Setter TargetName="Bd" Property="Opacity" Value="0.5"/></Trigger>
+            </ControlTemplate.Triggers>
+        </ControlTemplate></Setter.Value></Setter>
+    </Style>
+
     <!-- ── Botón primario ───────────────────────────────────────────────── -->
     <Style x:Key="BtnPrimary" TargetType="Button">
         <Setter Property="Background"      Value="{StaticResource BrandBrush}"/>
@@ -435,6 +461,104 @@
                             <Setter TargetName="Borde" Property="BorderBrush" Value="{StaticResource BrandBrush}"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ══ Tabla blanca sobre modal oscuro ═════════════════════════════════
+         Antes vivían solo dentro de SelectorCatalogoModal.xaml. Cualquier
+         modal que necesite una tabla (no solo un selector de catálogo) usa
+         estos tres en vez de copiarlos — mismo criterio que LupaBtnOscuro. -->
+    <Style x:Key="TablaCatalogoFila" TargetType="DataGridRow">
+        <Setter Property="Height" Value="40"/>
+        <Setter Property="Background" Value="White"/>
+        <Setter Property="BorderBrush" Value="#EEF2F8"/>
+        <Setter Property="BorderThickness" Value="0,0,0,1"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="DataGridRow">
+                    <Border x:Name="Bd"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            SnapsToDevicePixels="True">
+                        <Grid>
+                            <Border x:Name="SelIndicator"
+                                    Width="3"
+                                    HorizontalAlignment="Left"
+                                    VerticalAlignment="Stretch"
+                                    Background="#34D399"
+                                    Visibility="Collapsed"
+                                    Panel.ZIndex="1"/>
+                            <DataGridCellsPresenter/>
+                        </Grid>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="#C8D8F0"/>
+                        </Trigger>
+                        <!-- La fila alterna necesita su propio hover: si no, el
+                             #E8F0FA del Style.Trigger le gana al del template. -->
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsMouseOver" Value="True"/>
+                                <Condition Property="ItemsControl.AlternationIndex" Value="1"/>
+                            </MultiTrigger.Conditions>
+                            <Setter TargetName="Bd" Property="Background" Value="#C8D8F0"/>
+                        </MultiTrigger>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="#C2F2E0"/>
+                            <Setter TargetName="SelIndicator" Property="Visibility" Value="Visible"/>
+                        </Trigger>
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsSelected" Value="True"/>
+                                <Condition Property="ItemsControl.AlternationIndex" Value="1"/>
+                            </MultiTrigger.Conditions>
+                            <Setter TargetName="Bd" Property="Background" Value="#C2F2E0"/>
+                        </MultiTrigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style.Triggers>
+            <Trigger Property="ItemsControl.AlternationIndex" Value="1">
+                <Setter Property="Background" Value="#E8F0FA"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style x:Key="TablaCatalogoCelda" TargetType="DataGridCell">
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Padding" Value="0"/>
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="DataGridCell">
+                    <Border Background="{TemplateBinding Background}" BorderThickness="0" Padding="0">
+                        <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Stretch"/>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="TablaCatalogoHeader" TargetType="DataGridColumnHeader">
+        <Setter Property="Height" Value="38"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="DataGridColumnHeader">
+                    <Border Background="#22449B" BorderBrush="#33FFFFFF" BorderThickness="0,0,1,0">
+                        <TextBlock Text="{TemplateBinding Content}"
+                                   Foreground="#E8EEFB"
+                                   FontFamily="Segoe UI" FontSize="13" FontWeight="Bold"
+                                   HorizontalAlignment="Left" VerticalAlignment="Center"
+                                   Padding="12,0"/>
+                    </Border>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>

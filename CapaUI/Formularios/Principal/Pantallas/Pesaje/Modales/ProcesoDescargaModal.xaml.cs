@@ -5,9 +5,14 @@ using System.Globalization;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
+using CapaAplicacion.Common.Catalogos;
 using CapaAplicacion.Productos.Dtos;
+using CapaUI.Core.Catalogos;
+using CapaUI.Core.Controls;
 using CapaUI.Formularios.Principal.Pantallas.Pesaje.Modelos;
 using CommunityToolkit.Mvvm.ComponentModel;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
 {
@@ -80,10 +85,11 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
 
         private readonly ModoProceso _modo;
         private readonly CamionPesaje? _camion;   // solo en modo Edición
-        private readonly List<ProveedorItem> _proveedores;
+        private readonly ICatalogoRepository _catalogos;
 
         private readonly ObservableCollection<ProductoEnProceso> _productos = new();
-        private SelectorProductosModal? _selectorAbierto;
+        private SelectorCatalogoModal? _selectorCatalogo;   // Proveedor y Producto comparten el mismo host
+        private ProveedorItem? _proveedorSeleccionado;
         private int  _paso = 1;
         private bool _cargando = true;
 
@@ -93,15 +99,14 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
         /// <summary>Productos que el usuario quitó y ya existían en la BD (hay que anularlos).</summary>
         public List<int> IdsProductosQuitados { get; } = new();
 
-        public ProcesoDescargaModal(ModoProceso modo, CamionPesaje? camion, List<ProveedorItem> proveedores)
+        public ProcesoDescargaModal(ModoProceso modo, CamionPesaje? camion)
         {
             InitializeComponent();
 
-            _modo        = modo;
-            _camion      = camion;
-            _proveedores = proveedores;
+            _modo      = modo;
+            _camion    = camion;
+            _catalogos = App.Services.GetRequiredService<ICatalogoRepository>();
 
-            CmbProveedor.ItemsSource = proveedores;
             LstProductos.ItemsSource = _productos;
 
             if (modo == ModoProceso.Edicion && camion is not null)
@@ -119,8 +124,10 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
             TxtPlaca.Text     = c.Placa;
             TxtObs.Text       = c.Observaciones;
 
-            CmbProveedor.SelectedItem = _proveedores.FirstOrDefault(p => p.Id == c.IdProveedor)
-                                     ?? _proveedores.FirstOrDefault(p => p.Nombre == c.Proveedor);
+            TxtProveedor.Text = c.Proveedor;
+            _proveedorSeleccionado = c.IdProveedor.HasValue
+                ? new ProveedorItem(c.IdProveedor.Value, c.Proveedor)
+                : null;
 
             foreach (var p in c.Productos)
                 _productos.Add(new ProductoEnProceso
@@ -159,6 +166,31 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
             SecCamion.Visibility     = Visibility.Visible;
             SecProductos.Visibility  = Visibility.Visible;
             SepCamion.Visibility     = Visibility.Visible;
+
+            // Edición: las dos secciones van apiladas. Camión a su alto natural
+            // (Observaciones se queda en su MinHeight, no hace falta que estire
+            // acá) y Productos se lleva todo lo que sobra del marco cuadrado —
+            // su propio ScrollViewer interno resuelve una lista larga sin que
+            // el modal entero tenga que crecer.
+            ConfigurarFilas(camionEstrella: false, productosEstrella: true);
+        }
+
+        /// <summary>
+        /// Alterna cuál de las dos secciones recibe la fila "*" del Grid
+        /// contenedor (ver XAML: RowSecCamion / RowSecProductos). Solo una a
+        /// la vez puede ser "*" — si las dos lo fueran, el marco cuadrado
+        /// repartiría el alto sobrante 50/50 entre una sección visible y una
+        /// colapsada, y la que sí se ve (p. ej. Observaciones en el paso 1)
+        /// solo llegaría a la mitad del espacio real disponible.
+        /// </summary>
+        private void ConfigurarFilas(bool camionEstrella, bool productosEstrella)
+        {
+            RowSecCamion.Height    = camionEstrella
+                ? new GridLength(1, GridUnitType.Star)
+                : GridLength.Auto;
+            RowSecProductos.Height = productosEstrella
+                ? new GridLength(1, GridUnitType.Star)
+                : GridLength.Auto;
         }
 
         // ── Navegación del wizard ───────────────────────────────────────────
@@ -172,6 +204,11 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
 
             // En wizard cada paso va solo: el separador sobra.
             SepCamion.Visibility    = Visibility.Collapsed;
+
+            // Solo la sección visible recibe la fila "*" — así llena todo el
+            // marco cuadrado ella sola (Observaciones en el paso 1, la lista
+            // de productos en el paso 2).
+            ConfigurarFilas(camionEstrella: _paso == 1, productosEstrella: _paso == 2);
 
             TxtEyebrow.Text      = $"PASO {_paso} DE {TotalPasos}";
             BtnAtras.Visibility  = _paso > 1 ? Visibility.Visible : Visibility.Collapsed;
@@ -208,7 +245,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
 
         private void Confirmar()
         {
-            var prov = CmbProveedor.SelectedItem as ProveedorItem;
+            var prov = _proveedorSeleccionado;
             Confirmado?.Invoke(new ResultadoProceso(
                 TxtPlaca.Text.Trim(),
                 prov?.Nombre ?? "",
@@ -225,7 +262,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
             switch (paso)
             {
                 case 1:
-                    if (CmbProveedor.SelectedItem is null)
+                    if (_proveedorSeleccionado is null)
                     { error = "Seleccioná el proveedor que envía la carga."; return false; }
                     if (string.IsNullOrWhiteSpace(TxtPlaca.Text))
                     { error = "Ingresá la placa del vehículo."; return false; }
@@ -255,50 +292,124 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
             return true;
         }
 
-        // ── Productos ───────────────────────────────────────────────────────
+        // ── Selector de catálogo (Proveedor y Producto) ─────────────────────
 
-        private void AgregarProducto_Click(object sender, RoutedEventArgs e)
+        /// <summary>
+        /// Único punto donde se abre un <see cref="SelectorCatalogoModal"/>
+        /// dentro de este modal — Proveedor (paso 1) y Producto (paso 2) son
+        /// la misma mecánica, solo cambia el <see cref="CatalogoConfig"/> y
+        /// qué se hace con el ítem elegido.
+        /// </summary>
+        private void AbrirSelectorCatalogo(CatalogoConfig cfg, Action<FiltroItem> alSeleccionar)
         {
-            var prov = CmbProveedor.SelectedItem as ProveedorItem;
-            var yaAgregados = _productos.Select(p => p.Codigo);
+            // Congela el marco al alto que tiene ahora mismo (paso 1 o 2 del
+            // wizard, o el megamodal completo en edición): SelectorCatalogoModal
+            // no tiene fondo ni alto propio (ver su XAML), así que sin esto el
+            // marco se movía con la cantidad de filas que dejaba el filtro.
+            if (double.IsNaN(RootGrid.Height))
+                RootGrid.Height = RootGrid.ActualHeight;
 
-            var selector = new SelectorProductosModal(prov?.Id, prov?.Nombre ?? "", yaAgregados);
-            selector.Cerrado     += CerrarSelector;
-            selector.Seleccionado += dto =>
+            var selector = new SelectorCatalogoModal(cfg);
+            selector.Cerrado += CerrarSelectorCatalogo;
+            selector.Seleccionado += item =>
             {
-                AgregarDto(dto);
-                CerrarSelector();
+                alSeleccionar(item);
+                CerrarSelectorCatalogo();
             };
 
-            _selectorAbierto        = selector;
-            SelectorHost.Content    = selector;
-            SelectorOverlay.Visibility = Visibility.Visible;
+            _selectorCatalogo               = selector;
+            CatalogoSelectorHost.Content     = selector;
+            CatalogoSelectorHost.Visibility  = Visibility.Visible;
+            ContenidoPrincipal.Visibility    = Visibility.Collapsed;
         }
 
-        private void AgregarDto(ProductoDto dto)
+        private void CerrarSelectorCatalogo()
         {
-            _productos.Add(new ProductoEnProceso
+            _selectorCatalogo?.Dispose();
+            _selectorCatalogo               = null;
+            CatalogoSelectorHost.Content     = null;
+            CatalogoSelectorHost.Visibility  = Visibility.Collapsed;
+            ContenidoPrincipal.Visibility    = Visibility.Visible;
+
+            // Libera el alto congelado: el wizard sigue auto-dimensionándose
+            // por paso como antes, esto solo lo frenaba mientras el selector
+            // reemplazaba el contenido.
+            RootGrid.Height = double.NaN;
+        }
+
+        private void BuscarProveedor_Click(object sender, RoutedEventArgs e) =>
+            AbrirSelectorCatalogo(Catalogos.Proveedores(_catalogos), item =>
             {
-                IdMovProducto         = 0,           // todavía no persistido
-                IdProducto            = dto.Id,
-                Codigo                = dto.CodigoInterno,
-                Nombre                = dto.Nombre,
-                TaraUnitaria          = 0,           // la tara efectiva la resuelve la BD al pesar
-                PesoTeorico           = 0,
-                TienePesajes          = false,
-                PesoManifestadoTexto  = "",
-                BultosDeclaradosTexto = "",
+                _proveedorSeleccionado = new ProveedorItem(item.Id ?? 0, item.Nombre);
+                TxtProveedor.Text      = item.Nombre;
+                ActualizarUI();
             });
-            ActualizarUI();
+
+        /// <summary>
+        /// Doble clic en el campo de solo lectura abre el selector, igual que en
+        /// ProductoModal. Ver el remarks de ese modal para el porqué de
+        /// PreviewMouseDoubleClick en vez de MouseDoubleClick.
+        /// </summary>
+        private void TxtCatalogo_PreviewMouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is FrameworkElement campo && campo.Tag is Button lupa)
+            {
+                e.Handled = true;
+                lupa.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            }
         }
 
-        private void CerrarSelector()
+        /// <summary>Lo mismo que <see cref="TxtCatalogo_PreviewMouseDoubleClick"/> pero por teclado.</summary>
+        private void TxtCatalogo_KeyDown(object sender, KeyEventArgs e)
         {
-            // Dispose libera el debounce del VM del selector.
-            _selectorAbierto?.Dispose();
-            _selectorAbierto = null;
-            SelectorHost.Content = null;
-            SelectorOverlay.Visibility = Visibility.Collapsed;
+            if (e.Key is not (Key.Enter or Key.Space)) return;
+            if (Keyboard.Modifiers != ModifierKeys.None) return;
+
+            if (sender is FrameworkElement campo && campo.Tag is Button lupa)
+            {
+                e.Handled = true;
+                lupa.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            }
+        }
+
+        // ── Productos ───────────────────────────────────────────────────────
+
+        /// <summary>
+        /// Acotado al proveedor elegido en el paso 1 (mismo puente
+        /// producto→fabricante→proveedor que usa <c>PickerProductoRepository</c>,
+        /// ver <c>CatalogoRepository.GetProductosAsync</c>). Sin proveedor
+        /// (no debería pasar en el flujo normal, pero por las dudas) muestra
+        /// el catálogo completo.
+        /// </summary>
+        private void AgregarProducto_Click(object sender, RoutedEventArgs e)
+        {
+            var prov = _proveedorSeleccionado;
+            var cfg = Catalogos.Productos(_catalogos, prov?.Id,
+                permiteMultiple: true,
+                estaYaElegido: id => _productos.Any(p => p.IdProducto == id));
+
+            AbrirSelectorCatalogo(cfg, item =>
+            {
+                if (_productos.Any(p => p.IdProducto == item.Id))
+                {
+                    MostrarError($"«{item.Nombre}» ya está en la carga.");
+                    return;
+                }
+
+                _productos.Add(new ProductoEnProceso
+                {
+                    IdMovProducto         = 0,              // todavía no persistido
+                    IdProducto            = item.Id ?? 0,
+                    Codigo                = item.Descripcion, // este catálogo usa Descripcion para el código
+                    Nombre                = item.Nombre,
+                    TaraUnitaria          = 0,              // la tara efectiva la resuelve la BD al pesar
+                    PesoTeorico           = 0,
+                    TienePesajes          = false,
+                    PesoManifestadoTexto  = "",
+                    BultosDeclaradosTexto = "",
+                });
+                ActualizarUI();
+            });
         }
 
         private void QuitarProducto_Click(object sender, RoutedEventArgs e)
@@ -331,12 +442,6 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
             ActualizarUI();
         }
 
-        private void Campo_Changed(object sender, RoutedEventArgs e)
-        {
-            if (_cargando) return;
-            ActualizarUI();
-        }
-
         private void CampoProducto_Changed(object sender, TextChangedEventArgs e)
         {
             if (_cargando) return;
@@ -365,7 +470,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
         private void Cerrar_Click(object sender, RoutedEventArgs e)
         {
             // Si el selector está abierto, el X cierra solo el selector.
-            if (_selectorAbierto is not null) { CerrarSelector(); return; }
+            if (_selectorCatalogo is not null) { CerrarSelectorCatalogo(); return; }
             Cerrado?.Invoke();
         }
     }

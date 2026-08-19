@@ -769,7 +769,7 @@
                                                             Background="{StaticResource AccentGreen}"
                                                             HorizontalAlignment="Left" Margin="-16,0,0,0" Visibility="Collapsed"/>
                                                     <TextBlock x:Name="LblUsuariosSub" Text="Usuarios"
-                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="15"
+                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="16"
                                                                TextTrimming="CharacterEllipsis"/>
                                                 </Grid>
                                             </Button>
@@ -781,7 +781,7 @@
                                                             Background="{StaticResource AccentGreen}"
                                                             HorizontalAlignment="Left" Margin="-16,0,0,0" Visibility="Collapsed"/>
                                                     <TextBlock x:Name="LblEmpleados" Text="Empleados"
-                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="15"
+                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="16"
                                                                TextTrimming="CharacterEllipsis"/>
                                                 </Grid>
                                             </Button>
@@ -793,7 +793,7 @@
                                                             Background="{StaticResource AccentGreen}"
                                                             HorizontalAlignment="Left" Margin="-16,0,0,0" Visibility="Collapsed"/>
                                                     <TextBlock x:Name="LblRoles" Text="Roles"
-                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="15"
+                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="16"
                                                                TextTrimming="CharacterEllipsis"/>
                                                 </Grid>
                                             </Button>
@@ -805,7 +805,7 @@
                                                             Background="{StaticResource AccentGreen}"
                                                             HorizontalAlignment="Left" Margin="-16,0,0,0" Visibility="Collapsed"/>
                                                     <TextBlock x:Name="LblBitacora" Text="Bitácora"
-                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="15"
+                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="16"
                                                                TextTrimming="CharacterEllipsis"/>
                                                 </Grid>
                                             </Button>
@@ -859,7 +859,7 @@
                                                             Background="{StaticResource AccentGreen}"
                                                             HorizontalAlignment="Left" Margin="-16,0,0,0" Visibility="Collapsed"/>
                                                     <TextBlock x:Name="LblProductosSub" Text="Productos"
-                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="15"
+                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="16"
                                                                TextTrimming="CharacterEllipsis"/>
                                                 </Grid>
                                             </Button>
@@ -871,7 +871,7 @@
                                                             Background="{StaticResource AccentGreen}"
                                                             HorizontalAlignment="Left" Margin="-16,0,0,0" Visibility="Collapsed"/>
                                                     <TextBlock x:Name="LblProveedores" Text="Proveedores"
-                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="15"
+                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="16"
                                                                TextTrimming="CharacterEllipsis"/>
                                                 </Grid>
                                             </Button>
@@ -883,7 +883,7 @@
                                                             Background="{StaticResource AccentGreen}"
                                                             HorizontalAlignment="Left" Margin="-16,0,0,0" Visibility="Collapsed"/>
                                                     <TextBlock x:Name="LblFabricantes" Text="Fabricantes"
-                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="15"
+                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="16"
                                                                TextTrimming="CharacterEllipsis"/>
                                                 </Grid>
                                             </Button>
@@ -895,7 +895,7 @@
                                                             Background="{StaticResource AccentGreen}"
                                                             HorizontalAlignment="Left" Margin="-16,0,0,0" Visibility="Collapsed"/>
                                                     <TextBlock x:Name="LblCategorias" Text="Categorías"
-                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="15"
+                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="16"
                                                                TextTrimming="CharacterEllipsis"/>
                                                 </Grid>
                                             </Button>
@@ -907,7 +907,7 @@
                                                             Background="{StaticResource AccentGreen}"
                                                             HorizontalAlignment="Left" Margin="-16,0,0,0" Visibility="Collapsed"/>
                                                     <TextBlock x:Name="LblPresentaciones" Text="Presentaciones"
-                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="15"
+                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="16"
                                                                TextTrimming="CharacterEllipsis"/>
                                                 </Grid>
                                             </Button>
@@ -919,7 +919,7 @@
                                                             Background="{StaticResource AccentGreen}"
                                                             HorizontalAlignment="Left" Margin="-16,0,0,0" Visibility="Collapsed"/>
                                                     <TextBlock x:Name="LblContactosProveedores" Text="Contacto Proveedor"
-                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="15"
+                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="16"
                                                                TextTrimming="CharacterEllipsis"/>
                                                 </Grid>
                                             </Button>
@@ -931,7 +931,7 @@
                                                             Background="{StaticResource AccentGreen}"
                                                             HorizontalAlignment="Left" Margin="-16,0,0,0" Visibility="Collapsed"/>
                                                     <TextBlock x:Name="LblContactosFabricantes" Text="Contacto Fabricante"
-                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="15"
+                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="16"
                                                                TextTrimming="CharacterEllipsis"/>
                                                 </Grid>
                                             </Button>
@@ -1039,7 +1039,7 @@
                                                             Background="{StaticResource AccentGreen}"
                                                             HorizontalAlignment="Left" Margin="-16,0,0,0" Visibility="Collapsed"/>
                                                     <TextBlock x:Name="LblDashboard" Text="Dashboard"
-                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="15"
+                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="16"
                                                                TextTrimming="CharacterEllipsis"/>
                                                 </Grid>
                                             </Button>
@@ -1051,7 +1051,7 @@
                                                             Background="{StaticResource AccentGreen}"
                                                             HorizontalAlignment="Left" Margin="-16,0,0,0" Visibility="Collapsed"/>
                                                     <TextBlock x:Name="LblCrearReportes" Text="Crear Reportes"
-                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="15"
+                                                               Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="16"
                                                                TextTrimming="CharacterEllipsis"/>
                                                 </Grid>
                                             </Button>

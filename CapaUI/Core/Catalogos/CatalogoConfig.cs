@@ -18,13 +18,39 @@ namespace CapaUI.Core.Catalogos;
 /// <c>page 1</c> y un tamaño igual al umbral de memoria, y decide su estrategia
 /// según el <see cref="PagedResult{T}.Total"/> que vuelva.
 /// </param>
+/// <param name="TituloDescripcion">
+/// Encabezado de la columna que muestra <c>FiltroItem.Descripcion</c> — ese
+/// campo es genérico y cada catálogo lo usa para algo distinto (RTN en
+/// Proveedores, código en Productos, abreviatura en Unidades…), así que el
+/// título de la columna tiene que decir qué es realmente, no un "Descripción"
+/// fijo que queda mal para la mitad de los catálogos.
+/// </param>
+/// <param name="DescripcionPrimero">
+/// Muestra la columna Descripción antes que Nombre (p. ej. Productos: el
+/// código es lo que la gente escanea/reconoce primero, el nombre confirma).
+/// </param>
+/// <param name="PermiteMultiple">
+/// Habilita checkboxes independientes por fila en vez del círculo de
+/// selección única — clickear varias filas las va sumando todas, y "Elegir"
+/// las trae de una sola vez (mismo <see cref="Action{T}"/> Seleccionado,
+/// invocado una vez por fila marcada).
+/// </param>
+/// <param name="EstaYaElegido">
+/// Marca (atenuada, no seleccionable) las filas cuyo Id ya está elegido en
+/// otro lado — p. ej. productos que ya están en la carga del proceso de
+/// descarga. <c>null</c> ⇒ ninguna fila se atenúa.
+/// </param>
 public sealed record CatalogoConfig(
     string Clave,
     string Titulo,
     string Placeholder,
     Func<string, int, int, CancellationToken, Task<Result<PagedResult<FiltroItem>>>> Cargar,
-    bool MostrarDescripcion = true,
-    bool MostrarEstado      = true);
+    bool MostrarDescripcion  = true,
+    string TituloDescripcion = "Descripción",
+    bool MostrarEstado       = true,
+    bool DescripcionPrimero  = false,
+    bool PermiteMultiple     = false,
+    Func<int?, bool>? EstaYaElegido = null);
 
 /// <summary>
 /// Factories de configuración — un miembro por catálogo. Dar de alta un campo
@@ -64,11 +90,23 @@ public static class Catalogos
     public static CatalogoConfig Proveedores(ICatalogoRepository r) => new(
         "proveedores", "Seleccionar proveedor", "Buscar proveedor...",
         (t, p, s, ct) => r.GetProveedoresAsync(t, p, s, ct),
-        MostrarDescripcion: true);
+        MostrarDescripcion: true, TituloDescripcion: "RTN");
 
-    public static CatalogoConfig Productos(ICatalogoRepository r) => new(
-        "productos", "Seleccionar producto", "Buscar por ID, código o nombre...",
-        (t, p, s, ct) => r.GetProductosAsync(t, p, s, ct));
+    /// <summary>
+    /// Productos, opcionalmente acotados a un proveedor — mismo patrón de
+    /// encadenamiento que <see cref="Fabricantes"/>. El alcance viaja en el
+    /// closure, no en la firma uniforme de <c>Cargar</c>.
+    /// </summary>
+    public static CatalogoConfig Productos(
+        ICatalogoRepository r, int? idProveedor = null,
+        bool permiteMultiple = false, Func<int?, bool>? estaYaElegido = null) => new(
+        idProveedor is null ? "productos" : $"productos:{idProveedor}",
+        "Seleccionar producto", "Buscar por ID, código o nombre...",
+        (t, p, s, ct) => r.GetProductosAsync(t, p, s, idProveedor, ct),
+        TituloDescripcion: "Código",
+        DescripcionPrimero: true,
+        PermiteMultiple: permiteMultiple,
+        EstaYaElegido: estaYaElegido);
 
     /// <summary>
     /// Fabricantes, opcionalmente acotados a un proveedor. Único lugar donde vive
