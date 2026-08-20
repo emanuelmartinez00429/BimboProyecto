@@ -254,7 +254,7 @@
                                          Cursor="Hand" PreviewMouseDoubleClick="TxtCatalogo_PreviewMouseDoubleClick"
                                          KeyDown="TxtCatalogo_KeyDown" Tag="{Binding ElementName=BtnBuscarProveedor}"/>
                                 <TextBlock Grid.Column="0" Text="Seleccioná un proveedor…" FontFamily="Segoe UI"
-                                           FontSize="13.5" Foreground="#9CA3AF" Margin="13,0,0,0"
+                                           FontSize="13.5" Foreground="#9CA3AF" Margin="24,0,0,0"
                                            VerticalAlignment="Center" IsHitTestVisible="False"
                                            Visibility="{Binding Text, ElementName=TxtProveedor, Converter={StaticResource VacioAVisibilidad}}"/>
                                 <Button Grid.Column="1" x:Name="BtnBuscarProveedor" Style="{StaticResource LupaBtnOscuro}"
@@ -268,7 +268,7 @@
                                 <TextBox x:Name="TxtPlaca" Style="{StaticResource MInput}"
                                          TextChanged="Placa_Changed"/>
                                 <TextBlock Text="Ingresá la placa del vehículo…" FontFamily="Segoe UI"
-                                           FontSize="13.5" Foreground="#9CA3AF" Margin="13,0,0,0"
+                                           FontSize="13.5" Foreground="#9CA3AF" Margin="24,0,0,0"
                                            VerticalAlignment="Center" IsHitTestVisible="False"
                                            Visibility="{Binding Text, ElementName=TxtPlaca, Converter={StaticResource VacioAVisibilidad}}"/>
                             </Grid>
@@ -283,7 +283,7 @@
                                  Margin="34,0,0,4" AcceptsReturn="True" TextWrapping="Wrap"
                                  VerticalContentAlignment="Top" VerticalScrollBarVisibility="Auto"/>
                         <TextBlock Grid.Row="5" Text="Sin observaciones adicionales" FontFamily="Segoe UI"
-                                   FontSize="13.5" Foreground="#9CA3AF" Margin="45,6,0,0"
+                                   FontSize="13.5" Foreground="#9CA3AF" Margin="58,2,0,0"
                                    VerticalAlignment="Top" IsHitTestVisible="False"
                                    Visibility="{Binding Text, ElementName=TxtObs, Converter={StaticResource VacioAVisibilidad}}"/>
                     </Grid>
