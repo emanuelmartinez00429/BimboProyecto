@@ -34,7 +34,8 @@
         <Setter Property="BorderBrush" Value="#80FFFFFF"/>
         <Setter Property="BorderThickness" Value="1"/>
         <Setter Property="VerticalContentAlignment" Value="Center"/>
-        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"
+         />
         <!-- Ver el mismo Setter en ModalInput de Styles.xaml — tooltip con el
              texto completo cuando no entra por la responsividad; en campos de
              solo lectura, además recorta con "…". -->
@@ -52,7 +53,7 @@
                              campos de una sola línea, así que no cambia nada para
                              ellos. -->
                         <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}"
-                                      VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                                      VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsFocused" Value="True">

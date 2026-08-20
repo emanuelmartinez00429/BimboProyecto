@@ -350,10 +350,14 @@
                                 <DataGridTextColumn x:Name="ColNombre" Header="NOMBRE" Width="*"
                                                     Binding="{Binding Nombre}"
                                                     ElementStyle="{StaticResource CatCellText}"/>
-                                <DataGridTextColumn x:Name="ColDescripcion" Header="DESCRIPCI&#211;N" Width="*"
+                                <!-- Auto (no "*"): este campo es corto (código, RTN...), no tiene
+                                     por qué competir por el mismo ancho que NOMBRE — se ajusta
+                                     solo a su contenido/encabezado y le deja el resto a NOMBRE,
+                                     que es el que necesita el espacio para no truncar con "...". -->
+                                <DataGridTextColumn x:Name="ColDescripcion" Header="DESCRIPCI&#211;N" Width="Auto"
                                                     Binding="{Binding Descripcion}"
                                                     ElementStyle="{StaticResource CatCellMuted}"/>
-                                <DataGridTextColumn x:Name="ColEstado" Header="ESTADO" Width="86"
+                                <DataGridTextColumn x:Name="ColEstado" Header="ESTADO" Width="Auto"
                                                     Binding="{Binding EstadoTexto}"
                                                     ElementStyle="{StaticResource CatCellMuted}"/>
                             </DataGrid.Columns>
