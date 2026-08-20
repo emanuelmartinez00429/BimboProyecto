@@ -446,13 +446,19 @@ public partial class SelectorCatalogoModal : UserControl, IDisposable
 
     private void Dg_DoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
     {
-        // En modo múltiple el doble clic no hace nada: la única forma de
-        // confirmar es el botón, para que un doble clic accidental no descarte
-        // en silencio lo que el usuario venía marcando.
-        if (_cfg.PermiteMultiple) return;
+        if (Dg.SelectedItem is not FilaCatalogo fila || fila.YaElegido) return;
 
-        if (Dg.SelectedItem is FilaCatalogo fila && !fila.YaElegido)
-            Emitir(new[] { fila.Item });
+        if (_cfg.PermiteMultiple)
+        {
+            // En modo múltiple el doble clic no confirma nada — solo tilda o
+            // destilda el checkbox de esa fila, como si el usuario le hubiera
+            // clickeado directo. El binding TwoWay dispara Checked/Unchecked
+            // (Marcado_Changed), que mantiene _marcados sincronizado.
+            fila.Marcado = !fila.Marcado;
+            return;
+        }
+
+        Emitir(new[] { fila.Item });
     }
 
     private void Elegir_Click(object sender, RoutedEventArgs e) => Confirmar();

@@ -303,7 +303,7 @@
                         <!-- Título + ayuda en una sola columna para que el botón (columna 2)
                              quede centrado contra TODO el bloque, no solo la línea del
                              título — así no queda flotando arriba suelto. -->
-                        <Grid Grid.Row="0" Margin="0,0,34,0">
+                        <Grid Grid.Row="0">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
@@ -337,7 +337,11 @@
                              globales en Styles.xaml) en vez de una tarjeta por producto — el
                              DataGrid trae su propio scroll (ScrollViewer.VerticalScrollBarVisibility),
                              no hace falta envolverlo en uno aparte. -->
-                        <Border Grid.Row="1" Margin="34,0,34,0" CornerRadius="8" Background="White" ClipToBounds="True">
+                        <!-- Sin el indent de 34 que usan el título/ayuda para alinearse bajo
+                             el chip: la tabla es una tarjeta propia, no texto corrido, así que
+                             aprovecha el ancho completo (solo el margen base del modal) en vez
+                             de dejar el mismo aire de los costados que en SelectorCatalogoModal. -->
+                        <Border Grid.Row="1" CornerRadius="8" Background="White" ClipToBounds="True">
                             <Grid>
                                 <DataGrid x:Name="LstProductos"
                                           AutoGenerateColumns="False"
@@ -355,7 +359,11 @@
                                           ScrollViewer.VerticalScrollBarVisibility="Auto"
                                           ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                                     <DataGrid.Columns>
-                                        <DataGridTemplateColumn Header="CÓDIGO" Width="100" IsReadOnly="True">
+                                        <!-- Auto (no un ancho fijo): el código es corto, no tiene por qué
+                                             competir por espacio con PRODUCTO (Width="*"), que es el que
+                                             necesita el lugar para no truncar nombres largos — mismo ajuste
+                                             que ColDescripcion en SelectorCatalogoModal. -->
+                                        <DataGridTemplateColumn Header="CÓDIGO" Width="Auto" IsReadOnly="True">
                                             <DataGridTemplateColumn.CellTemplate>
                                                 <DataTemplate>
                                                     <Border Background="#EFF6FF" BorderBrush="#BFDBFE" BorderThickness="1"

@@ -130,7 +130,7 @@
         <DockPanel LastChildFill="True">
 
             <!-- Header: badge + antetítulo + título + cerrar -->
-            <Grid DockPanel.Dock="Top" Margin="22,18,18,14">
+            <Grid DockPanel.Dock="Top" Margin="28,18,28,14">
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                     <Border Width="38" Height="38" CornerRadius="9"
                             Background="#26FFFFFF"
@@ -179,7 +179,7 @@
                  cedía espacio y empujaba los botones fuera del marco visible
                  — acá la columna "*" lo achica/envuelve y "Auto" les garantiza
                  su ancho natural a los botones siempre. -->
-            <Border DockPanel.Dock="Bottom" Background="#1F000000" Padding="22,13">
+            <Border DockPanel.Dock="Bottom" Background="#1F000000" Padding="28,13">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
@@ -239,7 +239,7 @@
 
             <!-- Paginación (solo en modo servidor) -->
             <Border x:Name="FooterPaginacion" DockPanel.Dock="Bottom"
-                    Padding="22,0,22,12" Visibility="Collapsed">
+                    Padding="28,0,28,12" Visibility="Collapsed">
                 <DockPanel>
                     <TextBlock x:Name="TxtPageInfo" DockPanel.Dock="Left"
                                FontFamily="Segoe UI" FontSize="14.5" Foreground="#9FB4E2"
@@ -259,7 +259,11 @@
             </Border>
 
             <!-- Buscador + contador + tabla -->
-            <Grid Margin="22,0,22,14">
+            <!-- 28px a los costados, no 22: mismo margen estándar que usa
+                 ProcesoDescargaModal (header/footer/contenido) — así la tabla acá
+                 y la de "Productos de la carga" quedan del mismo tamaño y a la
+                 misma distancia del borde, en vez de un valor propio de este modal. -->
+            <Grid Margin="28,0,28,14">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
