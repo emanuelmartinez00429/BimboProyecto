@@ -265,9 +265,24 @@ RepositorioBase
 
 ---
 
+## Cronometraje incorporado (2026-08-20)
+
+`TryAsync` es el único punto por el que pasa **toda** llamada de **todo** repositorio — eso lo hace también el lugar correcto para medir cuánto tarda cada round trip real a Supabase, sin instrumentar cada repo por separado.
+
+Ambas sobrecargas envuelven `await operacion()` con un `Stopwatch` y loguean a nivel `Debug` vía Serilog: `"[Repo] {Contexto} — {Ms} ms ({Resultado})"`. El camino de fail-fast (`SinConexion`) también loguea, con 0 ms, para poder distinguir "no había red" de "la red tardó".
+
+> [!important] Por qué a nivel Debug y no Information
+> El log de producción corre en `Warning` (`CapaUI/App.config` → `LOG_LEVEL`, default `Warning`). El cronometraje solo se ve si alguien sube el nivel a `Debug` a propósito — así el archivo de log de un usuario normal no se llena con una línea por cada llamada al backend, pero medir la latencia real ante una queja de lentitud es cambiar un valor en `App.config`, no recompilar.
+
+Nació al diagnosticar que ["Seguir pesando" se sentía colgado](../70%20-%20Bitácora%20de%20Cambios/2026-08/Sesión%202026-08-20%20-%20Guardado%20de%20pesajes%20sin%20refetch.md) — el número real de ms por llamada confirmó que el costo era de red (varios round trips secuenciales), no de la BD.
+
+---
+
 ## Relaciones
 
 - [[Result Pattern]] — el tipo de retorno que hace posible este patrón
 - [[Repository Pattern]] — el patrón que TryAsync protege
 - [[Clean Architecture]] — CapaDatos absorbe errores, CapaAplicacion define contratos limpios
 - [[Módulo Productos]] — primera implementación real
+- [[Guardado sin Refetch - Aplicar en memoria la respuesta del servidor]] — el patrón que usó el cronometraje de acá para confirmar el diagnóstico
+- [[Sesión 2026-08-20 - Guardado de pesajes sin refetch]]

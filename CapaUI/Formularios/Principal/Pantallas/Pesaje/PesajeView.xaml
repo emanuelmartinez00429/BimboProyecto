@@ -210,8 +210,6 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="14"/>
-                <RowDefinition Height="262"/>
-                <RowDefinition Height="14"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
@@ -240,14 +238,14 @@
                 </StackPanel>
 
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Border Background="#EEF2F8" CornerRadius="999" Padding="12,6" Margin="0,0,8,0">
+                    <Border Background="#EEF2F8" CornerRadius="20" Padding="12,6" Margin="0,0,8,0">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <Border Width="6" Height="6" CornerRadius="3" Background="{DynamicResource EmpresaPrimaryBrush}" Margin="0,0,8,0" VerticalAlignment="Center"/>
                             <TextBlock Text="CAMIONES" FontFamily="Segoe UI" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource EmpresaPrimaryBrush}" Margin="0,0,8,0" VerticalAlignment="Center"/>
                             <TextBlock Text="{Binding CamionesTexto}" FontFamily="Segoe UI" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource EmpresaPrimaryBrush}" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Border>
-                    <Border Background="#ECFDF5" CornerRadius="999" Padding="12,6" Margin="0,0,8,0">
+                    <Border Background="#ECFDF5" CornerRadius="20" Padding="12,6" Margin="0,0,8,0">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <Border Width="6" Height="6" CornerRadius="3" Background="#10B981" Margin="0,0,8,0" VerticalAlignment="Center"/>
                             <TextBlock Text="ACTIVOS" FontFamily="Segoe UI" FontSize="13" FontWeight="SemiBold" Foreground="#047857" Margin="0,0,8,0" VerticalAlignment="Center"/>
@@ -265,16 +263,29 @@
                 </StackPanel>
             </Grid>
 
-            <!-- ══ FILA 1: Camiones + Movimiento ══ -->
+            <!-- ══ CUERPO: dos columnas ══
+                 Izquierda (Camiones sobre Movimiento) y derecha (Entradas a
+                 altura completa). Antes eran tres paneles apilados en filas, con
+                 Entradas a todo el ancho abajo: el pesaje se lee mejor con la
+                 grilla de entradas alta y a la vista todo el tiempo, al lado del
+                 producto que se está pesando, en vez de relegada al pie. -->
             <Grid Grid.Row="2">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="340"/>
+                    <ColumnDefinition Width="0.85*"/>
                     <ColumnDefinition Width="14"/>
-                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="1*"/>
                 </Grid.ColumnDefinitions>
 
+                <!-- ── Columna izquierda: Camiones + Movimiento ── -->
+                <Grid Grid.Column="0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="262"/>
+                        <RowDefinition Height="14"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
                 <!-- Panel Camiones -->
-                <Border Grid.Column="0" Background="White" CornerRadius="10" BorderBrush="#D8E1EC" BorderThickness="1" ClipToBounds="True">
+                <Border Grid.Row="0" Background="White" CornerRadius="10" BorderBrush="#D8E1EC" BorderThickness="1" ClipToBounds="True">
                     <Border.Effect><DropShadowEffect Color="#0F172A" BlurRadius="12" ShadowDepth="3" Opacity="0.07"/></Border.Effect>
                     <Grid>
                         <Grid.RowDefinitions>
@@ -333,7 +344,11 @@
                             </ListBox.ItemContainerStyle>
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
-                                    <Grid Height="46">
+                                    <!-- Margin="14,0,14,0": mismo inset horizontal que el header
+                                         del panel (Padding="14,11"). Sin esto el chip de estado
+                                         quedaba pegado al borde derecho de la lista — la fila no
+                                         tenía ningún aire propio, solo el borde del ListBox. -->
+                                    <Grid Height="46" Margin="14,0,14,0">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="44"/>
                                             <ColumnDefinition Width="*"/>
@@ -393,31 +408,31 @@
                         <!-- Toolbar camiones — un solo botón de edición: abre el megamodal
                              con todo el proceso (camión + productos).
 
-                             Grilla 2×2 uniforme, no WrapPanel: en el WrapPanel cada botón
-                             medía lo que medía su texto ("Nueva descarga" vs "Quitar"), así
-                             que la segunda fila no alineaba con la primera y el corte de
-                             línea dependía del ancho disponible. UniformGrid da cuatro
-                             celdas iguales, con el mismo ancho y siempre 2×2. -->
-                        <UniformGrid Grid.Row="2" Rows="2" Columns="2" Margin="12,9">
-                            <Button x:Name="BtnCamionAgregar" Style="{StaticResource ToolBtn}" Margin="0,0,4,4" Click="BtnNuevoProceso_Click" permisos:PermisoBehavior.Requiere="Registrar Entrada">
+                             Una sola fila de cuatro celdas iguales (antes 2×2): con los
+                             textos cortos entran holgados en el ancho de la columna, y
+                             las cuatro acciones quedan a la vista sin segunda fila.
+                             UniformGrid y no WrapPanel para que midan todos igual, sin
+                             depender del largo de cada texto. -->
+                        <UniformGrid Grid.Row="2" Rows="1" Columns="4" Margin="12,9">
+                            <Button x:Name="BtnCamionAgregar" Style="{StaticResource ToolBtn}" Margin="0,0,4,0" Click="BtnNuevoProceso_Click" permisos:PermisoBehavior.Requiere="Registrar Entrada" ToolTip="Iniciar un nuevo proceso de descarga">
                                 <StackPanel Orientation="Horizontal">
                                     <Path Data="{StaticResource IcoPlus}" Stroke="{DynamicResource EmpresaPrimaryBrush}" StrokeThickness="2.2" Width="13" Height="13" Stretch="Uniform" Margin="0,0,7,0" VerticalAlignment="Center" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
-                                    <TextBlock Text="Nueva descarga" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Agregar" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>
-                            <Button x:Name="BtnCamionEditar" Style="{StaticResource ToolBtn}" Margin="4,0,0,4" Click="BtnEditarProceso_Click" permisos:PermisoBehavior.Requiere="Modificar Pesaje">
+                            <Button x:Name="BtnCamionEditar" Style="{StaticResource ToolBtn}" Margin="4,0,4,0" Click="BtnEditarProceso_Click" permisos:PermisoBehavior.Requiere="Modificar Pesaje" ToolTip="Editar el proceso: camión y productos">
                                 <StackPanel Orientation="Horizontal">
                                     <Path Data="{StaticResource IcoPencil}" Stroke="{DynamicResource EmpresaPrimaryBrush}" StrokeThickness="2" Width="13" Height="13" Stretch="Uniform" Margin="0,0,7,0" VerticalAlignment="Center" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
-                                    <TextBlock Text="Editar proceso" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Editar" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>
-                            <Button x:Name="BtnCamionQuitar" Style="{StaticResource ToolDanger}" Margin="0,4,4,0" Click="BtnCamionQuitar_Click" permisos:PermisoBehavior.Requiere="Cancelar Pesaje">
+                            <Button x:Name="BtnCamionQuitar" Style="{StaticResource ToolDanger}" Margin="4,0,4,0" Click="BtnCamionQuitar_Click" permisos:PermisoBehavior.Requiere="Cancelar Pesaje">
                                 <StackPanel Orientation="Horizontal">
                                     <Path Data="{StaticResource IcoTrash}" Stroke="#DC2626" StrokeThickness="2" Width="13" Height="13" Stretch="Uniform" Margin="0,0,7,0" VerticalAlignment="Center" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
                                     <TextBlock Text="Quitar" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>
-                            <Button x:Name="BtnCamionDescargar" Style="{StaticResource ToolSuccess}" Margin="4,4,0,0" Click="BtnCamionDescargar_Click">
+                            <Button x:Name="BtnCamionDescargar" Style="{StaticResource ToolSuccess}" Margin="4,0,0,0" Click="BtnCamionDescargar_Click">
                                 <StackPanel Orientation="Horizontal">
                                     <Path Data="{StaticResource IcoDownload}" Stroke="White" StrokeThickness="2.2" Width="13" Height="13" Stretch="Uniform" Margin="0,0,7,0" VerticalAlignment="Center" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
                                     <TextBlock Text="Descargar" VerticalAlignment="Center"/>
@@ -428,7 +443,7 @@
                 </Border>
 
                 <!-- Panel Movimiento -->
-                <Border Grid.Column="2" Background="White" CornerRadius="10" BorderBrush="#D8E1EC" BorderThickness="1" ClipToBounds="True">
+                <Border Grid.Row="2" Background="White" CornerRadius="10" BorderBrush="#D8E1EC" BorderThickness="1" ClipToBounds="True">
                     <Border.Effect><DropShadowEffect Color="#0F172A" BlurRadius="12" ShadowDepth="3" Opacity="0.07"/></Border.Effect>
                     <Grid>
                         <Grid.RowDefinitions>
@@ -438,12 +453,23 @@
                         </Grid.RowDefinitions>
                         <Border Grid.Row="0" Padding="14,11" BorderBrush="#EEF2F8" BorderThickness="0,0,0,1">
                             <Grid>
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="Tabla de Movimiento de Materia Prima" Style="{StaticResource PanelTitle}"/>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" Orientation="Horizontal">
+                                    <TextBlock Text="Movimiento de Materia Prima" Style="{StaticResource PanelTitle}"/>
+                                    <Border Background="#EFF6FF" CornerRadius="999" Padding="7,1" Margin="8,0,0,0" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding SelectedCamion.Productos.Count}" FontFamily="Segoe UI" FontSize="12.5" FontWeight="Bold" Foreground="{DynamicResource EmpresaPrimaryBrush}"/>
+                                    </Border>
                                 </StackPanel>
-                                <TextBlock HorizontalAlignment="Right" VerticalAlignment="Center" FontFamily="Segoe UI" FontSize="13" Foreground="#6B7280">
-                                    <Run Text="Camión "/><Run Text="{Binding SelectedCamion.Placa}" FontWeight="Bold" Foreground="#1A1F2E"/>
-                                </TextBlock>
+                                <!-- El proveedor y no la placa: la placa ya se lee en la fila
+                                     seleccionada de Camiones, justo arriba; el proveedor es el
+                                     dato que la tabla de productos no repite en ninguna columna. -->
+                                <TextBlock Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center"
+                                           Text="{Binding SelectedCamion.Proveedor}"
+                                           FontFamily="Segoe UI" FontSize="13" Foreground="#6B7280"
+                                           TextTrimming="CharacterEllipsis" Margin="10,0,0,0"/>
                             </Grid>
                         </Border>
 
@@ -461,6 +487,9 @@
                                       SelectionChanged="DgProductos_SelectionChanged" MouseDoubleClick="DgProductos_DoubleClick"
                                       ScrollViewer.VerticalScrollBarVisibility="Auto"
                                       VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling">
+                                <DataGrid.Resources>
+                                    <Style TargetType="ScrollBar" BasedOn="{StaticResource ModernScrollBarAny}"/>
+                                </DataGrid.Resources>
                                 <DataGrid.Columns>
                                     <DataGridTemplateColumn Header="CÓDIGO" Width="68">
                                         <DataGridTemplateColumn.CellTemplate>
@@ -478,17 +507,42 @@
                                             </DataTemplate>
                                         </DataGridTemplateColumn.CellTemplate>
                                     </DataGridTemplateColumn>
-                                    <DataGridTemplateColumn Header="PROVEEDOR" Width="1*">
+                                    <!-- PROVEEDOR se sacó: es el mismo para todo el camión y ya
+                                         se muestra una vez en el encabezado del panel, no hacía
+                                         falta repetirlo en cada fila. El ancho que ocupaba pasa
+                                         a PRODUCTO, que es el que trunca. -->
+                                    <DataGridTemplateColumn Header="REST." Width="72">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
-                                                <TextBlock Text="{Binding ProveedorNombre}" FontFamily="Segoe UI" FontSize="13.5" Foreground="#6B7280" TextTrimming="CharacterEllipsis" Margin="10,0"/>
+                                                <TextBlock Text="{Binding BultosRestantes, StringFormat=N1}" FontFamily="Segoe UI" FontSize="14" FontWeight="Bold" Foreground="#1A1F2E" HorizontalAlignment="Center"/>
                                             </DataTemplate>
                                         </DataGridTemplateColumn.CellTemplate>
                                     </DataGridTemplateColumn>
+                                    <DataGridTemplateColumn Header="% RESTANTE" Width="96">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Margin="10,4" VerticalAlignment="Center">
+                                                    <Border Height="5" Background="#E7EDF5" CornerRadius="999" ClipToBounds="True">
+                                                        <Border CornerRadius="2" HorizontalAlignment="Stretch"
+                                                                Background="{Binding ProgresoColor}"
+                                                                RenderTransformOrigin="0,0">
+                                                            <Border.RenderTransform>
+                                                                <ScaleTransform ScaleX="{Binding EscalaRecibido}"/>
+                                                            </Border.RenderTransform>
+                                                        </Border>
+                                                    </Border>
+                                                    <TextBlock Text="{Binding ProgresoTexto}" FontFamily="Segoe UI" FontSize="13" FontWeight="Bold" Foreground="#6B7280" HorizontalAlignment="Center" Margin="0,3,0,0"/>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+                                    <!-- Estado al final de la fila: es el chip accionable (clic para
+                                         abrir/cerrar el producto), y en el borde derecho no queda
+                                         entre datos numéricos que sí se leen en conjunto. -->
                                     <DataGridTemplateColumn Header="ESTADO" Width="80">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
-                                                <Border CornerRadius="999" Padding="8,3" HorizontalAlignment="Center" Cursor="Hand"
+                                                <Border CornerRadius="4" Padding="8,3" HorizontalAlignment="Center" Cursor="Hand"
                                                         MouseLeftButtonUp="EstadoProducto_Click" ToolTip="Clic para cambiar estado">
                                                     <Border.Style>
                                                         <Style TargetType="Border">
@@ -530,79 +584,44 @@
                                             </DataTemplate>
                                         </DataGridTemplateColumn.CellTemplate>
                                     </DataGridTemplateColumn>
-                                    <DataGridTemplateColumn Header="BULTOS REST." Width="84">
-                                        <DataGridTemplateColumn.CellTemplate>
-                                            <DataTemplate>
-                                                <TextBlock Text="{Binding BultosRestantes, StringFormat=N1}" FontFamily="Segoe UI" FontSize="14" FontWeight="Bold" Foreground="#1A1F2E" HorizontalAlignment="Center"/>
-                                            </DataTemplate>
-                                        </DataGridTemplateColumn.CellTemplate>
-                                    </DataGridTemplateColumn>
-                                    <DataGridTemplateColumn Header="% RESTANTE" Width="96">
-                                        <DataGridTemplateColumn.CellTemplate>
-                                            <DataTemplate>
-                                                <StackPanel Margin="10,4" VerticalAlignment="Center">
-                                                    <Border Height="5" Background="#E7EDF5" CornerRadius="999" ClipToBounds="True">
-                                                        <Border CornerRadius="999" HorizontalAlignment="Stretch"
-                                                                Background="{Binding ProgresoColor}"
-                                                                RenderTransformOrigin="0,0">
-                                                            <Border.RenderTransform>
-                                                                <ScaleTransform ScaleX="{Binding EscalaRecibido}"/>
-                                                            </Border.RenderTransform>
-                                                        </Border>
-                                                    </Border>
-                                                    <TextBlock Text="{Binding ProgresoTexto}" FontFamily="Segoe UI" FontSize="13" FontWeight="Bold" Foreground="#6B7280" HorizontalAlignment="Center" Margin="0,3,0,0"/>
-                                                </StackPanel>
-                                            </DataTemplate>
-                                        </DataGridTemplateColumn.CellTemplate>
-                                    </DataGridTemplateColumn>
                                 </DataGrid.Columns>
                             </DataGrid>
                         </Grid>
 
                         <!-- Agregar/Editar/Quitar producto viven ahora en el megamodal
-                             ("Editar proceso"); acá solo queda la acción de pesar. -->
+                             ("Editar proceso"); acá solo queda la acción de pesar.
+                             «Tara extra» se mudó al panel de Entradas: opera sobre las
+                             pesadas ya registradas, que son las que se ven ahí. -->
                         <WrapPanel Grid.Row="2" Margin="12,9">
-                            <Button x:Name="BtnProdPesar" Style="{StaticResource ToolPrimary}" Margin="0,0,8,0" Click="BtnProdPesar_Click">
+                            <Button x:Name="BtnProdPesar" Style="{StaticResource ToolPrimary}" Margin="0,0,10,0" Click="BtnProdPesar_Click">
                                 <StackPanel Orientation="Horizontal">
                                     <Path Data="{StaticResource IcoScale}" Stroke="White" StrokeThickness="2" Width="13" Height="13" Stretch="Uniform" Margin="0,0,7,0" VerticalAlignment="Center" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
                                     <TextBlock Text="Pesar" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>
-                            <!-- La tara extra (tarimas) se pesa aparte y se reparte entre las
-                                 pesadas ya registradas del producto o de todo el camión. -->
-                            <Button x:Name="BtnProdTaraExtra" Style="{StaticResource ToolBtn}" Margin="0,0,8,0"
-                                    Click="BtnProdTaraExtra_Click"
-                                    permisos:PermisoBehavior.Requiere="Modificar Pesaje"
-                                    ToolTip="Cargar el peso de las tarimas y repartirlo entre las pesadas">
-                                <StackPanel Orientation="Horizontal">
-                                    <Path Data="{StaticResource IcoPack}" Stroke="{DynamicResource EmpresaPrimaryBrush}" StrokeThickness="2" Width="13" Height="13" Stretch="Uniform" Margin="0,0,7,0" VerticalAlignment="Center" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
-                                    <TextBlock Text="Tara extra" VerticalAlignment="Center"/>
-                                </StackPanel>
-                            </Button>
-                            <TextBlock x:Name="TxtAvisoTaraProducto" FontFamily="Segoe UI" FontSize="13.5"
-                                       Foreground="#B45309" FontWeight="SemiBold" VerticalAlignment="Center"
-                                       Margin="0,0,10,0" Visibility="Collapsed"/>
-                            <TextBlock Text="Productos: usá «Editar proceso»"
+                            <TextBlock Text="Productos: usá «Editar»"
                                        FontFamily="Segoe UI" FontSize="13.5" Foreground="#9CA3AF"
                                        VerticalAlignment="Center"/>
                         </WrapPanel>
                     </Grid>
                 </Border>
-            </Grid>
+                </Grid>
 
-            <!-- ══ FILA 2: Entradas ══ -->
-            <Border Grid.Row="4" Background="White" CornerRadius="10" BorderBrush="#D8E1EC" BorderThickness="1" ClipToBounds="True">
+                <!-- ── Columna derecha: Entradas, a altura completa ── -->
+                <Border Grid.Column="2" Background="White" CornerRadius="10" BorderBrush="#D8E1EC" BorderThickness="1" ClipToBounds="True">
                 <Border.Effect><DropShadowEffect Color="#0F172A" BlurRadius="12" ShadowDepth="3" Opacity="0.07"/></Border.Effect>
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                         <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
                     <Border Grid.Row="0" Padding="14,11" BorderBrush="#EEF2F8" BorderThickness="0,0,0,1">
                         <Grid>
                             <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="Entradas de Materia Prima" Style="{StaticResource PanelTitle}"/>
+                                <TextBlock Text="Entradas de M. Prima" Style="{StaticResource PanelTitle}"/>
                                 <Border Background="#EFF6FF" CornerRadius="999" Padding="7,1" Margin="8,0,0,0" VerticalAlignment="Center">
                                     <TextBlock Text="{Binding FilasEntradas.Count}" FontFamily="Segoe UI" FontSize="12.5" FontWeight="Bold" Foreground="{DynamicResource EmpresaPrimaryBrush}"/>
                                 </Border>
@@ -628,8 +647,17 @@
                                   ColumnHeaderStyle="{StaticResource PgHeader}" RowHeight="40"
                                   ItemsSource="{Binding FilasEntradas}"
                                   SelectionChanged="DgEntradas_SelectionChanged"
+                                  ScrollViewer.CanContentScroll="True"
                                   ScrollViewer.VerticalScrollBarVisibility="Auto"
-                                  VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling">
+                                  ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                                  ScrollViewer.ScrollChanged="DgEntradas_ScrollChanged"
+                                  PreviewMouseWheel="DgEntradas_PreviewMouseWheel"
+                                  VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling"
+                                  VirtualizingPanel.ScrollUnit="Pixel">
+                            <!-- Misma barra fina de ProductosView (ahora en Styles.xaml global). -->
+                            <DataGrid.Resources>
+                                <Style TargetType="ScrollBar" BasedOn="{StaticResource ModernScrollBarAny}"/>
+                            </DataGrid.Resources>
                             <DataGrid.Columns>
                                 <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="60">
                                     <DataGridTextColumn.ElementStyle>
@@ -657,6 +685,35 @@
                                 </DataGridTextColumn>
                                 <DataGridTextColumn Header="BRUTO (KG)" Binding="{Binding Bruto, StringFormat=N2}" Width="96" ElementStyle="{StaticResource EntText}"/>
                                 <DataGridTextColumn Header="TARA (KG)" Binding="{Binding TaraTotal, StringFormat=N2}" Width="96" ElementStyle="{StaticResource EntText}"/>
+                                <!-- Tara extra por pesada. En chip ámbar cuando está en cero:
+                                     esa pesada todavía no tiene las tarimas pesadas, que es
+                                     justo lo que vuelve aproximados sus bultos. Mismo criterio
+                                     que la columna BULTOS, atado a la misma propiedad. -->
+                                <DataGridTemplateColumn Header="TARA EXTRA" Width="102">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Border x:Name="ChipTara" CornerRadius="999" Padding="8,2" HorizontalAlignment="Center"
+                                                    Background="Transparent">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Border x:Name="PuntoTara" Width="5" Height="5" CornerRadius="3" Background="#D97706"
+                                                            Margin="0,0,5,0" VerticalAlignment="Center" Visibility="Collapsed"/>
+                                                    <TextBlock x:Name="TxtTara" Text="{Binding TaraExtra, StringFormat=N2}"
+                                                               FontFamily="Segoe UI" FontSize="14" Foreground="#1A1F2E"
+                                                               VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </Border>
+                                            <DataTemplate.Triggers>
+                                                <DataTrigger Binding="{Binding BultosAproximados}" Value="True">
+                                                    <Setter TargetName="ChipTara"  Property="Background" Value="#FEF3C7"/>
+                                                    <Setter TargetName="ChipTara"  Property="ToolTip" Value="Esta pesada no tiene tara extra registrada"/>
+                                                    <Setter TargetName="PuntoTara" Property="Visibility" Value="Visible"/>
+                                                    <Setter TargetName="TxtTara"   Property="Foreground" Value="#B45309"/>
+                                                    <Setter TargetName="TxtTara"   Property="FontWeight" Value="Bold"/>
+                                                </DataTrigger>
+                                            </DataTemplate.Triggers>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
                                 <DataGridTextColumn Header="NETO (KG)" Binding="{Binding Neto, StringFormat=N2}" Width="96">
                                     <DataGridTextColumn.ElementStyle>
                                         <Style TargetType="TextBlock">
@@ -671,7 +728,7 @@
                                 </DataGridTextColumn>
                                 <!-- Los bultos ya no se capturan: se estiman desde el peso. En ámbar
                                      cuando la pesada no tiene tara extra y la estimación es alta. -->
-                                <DataGridTextColumn Header="BULTOS (EST.)" Binding="{Binding BultosTexto}" Width="96">
+                                <DataGridTextColumn Header="BULTOS" Binding="{Binding BultosTexto}" Width="86">
                                     <DataGridTextColumn.ElementStyle>
                                         <Style TargetType="TextBlock" BasedOn="{StaticResource EntText}">
                                             <Style.Triggers>
@@ -683,13 +740,109 @@
                                         </Style>
                                     </DataGridTextColumn.ElementStyle>
                                 </DataGridTextColumn>
-                                <DataGridTextColumn Header="FECHA" Binding="{Binding Fecha}" Width="92" ElementStyle="{StaticResource EntText}"/>
-                                <DataGridTextColumn Header="HORA" Binding="{Binding Hora}" Width="70" ElementStyle="{StaticResource EntText}"/>
+                                <!-- Fecha y hora en una sola celda a dos líneas: se leen siempre
+                                     juntas y así el ancho que ocupaban dos columnas queda libre
+                                     para los pesos, que son el dato que importa. -->
+                                <!-- "*" con MinWidth: absorbe el sobrante cuando el panel es
+                                     ancho (sin hueco a la derecha) y deja de encogerse en
+                                     MinWidth cuando no cabe, que es lo que hace aparecer el
+                                     scroll horizontal en vez de comprimir la columna hasta
+                                     volverla ilegible. El Grid de la fila TOTAL repite este
+                                     mismo MinWidth para seguir alineado en los dos casos. -->
+                                <DataGridTemplateColumn Header="FECHA / HORA" Width="*" MinWidth="118">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <StackPanel VerticalAlignment="Center" Margin="10,0">
+                                                <TextBlock Text="{Binding Fecha}" FontFamily="Segoe UI" FontSize="13.5" Foreground="#1A1F2E"/>
+                                                <TextBlock Text="{Binding Hora}" FontFamily="Segoe UI" FontSize="12.5" Foreground="#9CA3AF"/>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
                             </DataGrid.Columns>
                         </DataGrid>
                     </Grid>
 
-                    <WrapPanel Grid.Row="2" Margin="12,9">
+                    <!-- ── Fila TOTAL ──
+                         Los anchos de columna replican EXACTAMENTE los del DataGrid de
+                         arriba (60 / 1.1* / 96 / 96 / 102 / 96 / 86 / *) para que cada
+                         total caiga bajo su columna. Si se toca un ancho allá, hay que
+                         tocarlo acá. La celda de PRODUCTO se muestra y oculta junto con
+                         ColEntProducto — lo hace RbVista_Changed en el code-behind. -->
+                    <Border Grid.Row="2" Background="#F7F9FC" BorderBrush="#E2E8F0" BorderThickness="0,1,0,0" Padding="0,9"
+                            ClipToBounds="True">
+                        <!-- El desplazamiento lo escribe DgEntradas_ScrollChanged: la fila
+                             vive fuera del ScrollViewer de la grilla, así que sin esto se
+                             quedaría quieta al scrollear en horizontal y los totales
+                             dejarían de caer bajo su columna. -->
+                        <Grid x:Name="TotalGrid">
+                            <Grid.RenderTransform>
+                                <TranslateTransform x:Name="TotalScrollTransform"/>
+                            </Grid.RenderTransform>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="60"/>
+                                <ColumnDefinition x:Name="TotalColProducto" Width="0"/>
+                                <ColumnDefinition Width="96"/>
+                                <ColumnDefinition Width="96"/>
+                                <ColumnDefinition Width="102"/>
+                                <ColumnDefinition Width="96"/>
+                                <ColumnDefinition Width="86"/>
+                                <ColumnDefinition Width="*" MinWidth="118"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="TOTAL" FontFamily="Segoe UI" FontSize="12.5" FontWeight="Bold"
+                                       Foreground="#6B7280" VerticalAlignment="Center" Margin="10,0"/>
+                            <TextBlock Grid.Column="2" Text="{Binding TotalBruto, StringFormat=N2}" FontFamily="Segoe UI" FontSize="14"
+                                       FontWeight="Bold" Foreground="#1A1F2E" VerticalAlignment="Center" Margin="10,0"/>
+                            <TextBlock Grid.Column="3" Text="{Binding TotalTara, StringFormat=N2}" FontFamily="Segoe UI" FontSize="14"
+                                       Foreground="#6B7280" VerticalAlignment="Center" Margin="10,0"/>
+                            <TextBlock Grid.Column="4" Text="{Binding TotalTaraExtra, StringFormat=N2}" FontFamily="Segoe UI" FontSize="14"
+                                       Foreground="#6B7280" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                            <TextBlock Grid.Column="5" Text="{Binding TotalNeto, StringFormat=N2}" FontFamily="Segoe UI" FontSize="14"
+                                       FontWeight="Bold" Foreground="{DynamicResource EmpresaPrimaryBrush}" VerticalAlignment="Center" Margin="10,0"/>
+                            <TextBlock Grid.Column="6" Text="{Binding TotalBultos, StringFormat=N1}" FontFamily="Segoe UI" FontSize="14"
+                                       FontWeight="Bold" Foreground="#1A1F2E" VerticalAlignment="Center" Margin="10,0"/>
+                            <TextBlock Grid.Column="7" Text="{Binding TotalPesajesTexto}" FontFamily="Segoe UI" FontSize="13"
+                                       Foreground="#9CA3AF" VerticalAlignment="Center" Margin="10,0"/>
+                        </Grid>
+                    </Border>
+
+                    <!-- ── Aviso de pesadas sin tara extra ──
+                         El TextBlock conserva su x:Name original: ActualizarUI() le sigue
+                         escribiendo texto y Visibility igual que antes. El banner cuelga
+                         de esa misma Visibility para aparecer y desaparecer con él. -->
+                    <Border Grid.Row="3" Background="#FEF9E7" BorderBrush="#FDE68A" BorderThickness="0,1,0,0" Padding="14,9"
+                            Visibility="{Binding Visibility, ElementName=TxtAvisoTaraProducto}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                                <Border Width="6" Height="6" CornerRadius="3" Background="#D97706" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="TxtAvisoTaraProducto" FontFamily="Segoe UI" FontSize="13.5"
+                                           Foreground="#B45309" FontWeight="SemiBold" VerticalAlignment="Center"
+                                           TextWrapping="Wrap" Visibility="Collapsed"/>
+                            </StackPanel>
+                            <TextBlock Grid.Column="1" Text="{Binding SelectedProducto.ProductoNombre}"
+                                       FontFamily="Segoe UI" FontSize="13" Foreground="#B45309"
+                                       VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                                       MaxWidth="180" Margin="12,0,0,0"/>
+                        </Grid>
+                    </Border>
+
+                    <WrapPanel Grid.Row="4" Margin="12,9">
+                        <!-- La tara extra (tarimas) se pesa aparte y se reparte entre las
+                             pesadas ya registradas del producto o de todo el camión: vive
+                             acá, junto a la grilla de esas pesadas. -->
+                        <Button x:Name="BtnProdTaraExtra" Style="{StaticResource ToolBtn}" Margin="0,0,8,0"
+                                Click="BtnProdTaraExtra_Click"
+                                permisos:PermisoBehavior.Requiere="Modificar Pesaje"
+                                ToolTip="Cargar el peso de las tarimas y repartirlo entre las pesadas">
+                            <StackPanel Orientation="Horizontal">
+                                <Path Data="{StaticResource IcoPack}" Stroke="{DynamicResource EmpresaPrimaryBrush}" StrokeThickness="2" Width="13" Height="13" Stretch="Uniform" Margin="0,0,7,0" VerticalAlignment="Center" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                                <TextBlock Text="Tara extra" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
                         <Button x:Name="BtnEntEditar" Style="{StaticResource ToolBtn}" Margin="0,0,8,0" Click="BtnEntEditar_Click">
                             <StackPanel Orientation="Horizontal">
                                 <Path Data="{StaticResource IcoPencil}" Stroke="{DynamicResource EmpresaPrimaryBrush}" StrokeThickness="2" Width="13" Height="13" Stretch="Uniform" Margin="0,0,7,0" VerticalAlignment="Center" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
@@ -704,7 +857,8 @@
                         </Button>
                     </WrapPanel>
                 </Grid>
-            </Border>
+                </Border>
+            </Grid>
         </Grid>
 
         <!-- ══ CARGA INICIAL ══

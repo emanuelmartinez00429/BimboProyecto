@@ -25,6 +25,13 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
         /// <summary>Animación del spinner de la carga inicial.</summary>
         private Storyboard? _spinnerCarga;
 
+        /// <summary>
+        /// ScrollViewer interno de DgEntradas. No se busca en el árbol visual: lo
+        /// entrega el propio ScrollChanged como OriginalSource, que es la forma
+        /// barata y estable de tenerlo (el DataGrid lo crea en su plantilla).
+        /// </summary>
+        private ScrollViewer? _svEntradas;
+
         public PesajeView() => InitializeComponent();
 
         // ── Lifecycle ─────────────────────────────────────────────────────────
@@ -33,7 +40,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             if (_vm != null) return;
             _vm = App.Services.GetRequiredService<PesajeViewModel>();
             _vm.Toast           += MostrarToast;
-            _vm.PropertyChanged += (_, __) => ActualizarUI();
+            _vm.PropertyChanged += (_, __) => PedirActualizarUI();
             DataContext = _vm;
 
             await _vm.CargarAsync();
@@ -54,6 +61,29 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
         }
 
         // ── Sincronización de estados/empty-states ─────────────────────────────
+
+        /// <summary>
+        /// Agenda UN barrido de <see cref="ActualizarUI"/> por frame.
+        /// <para/>
+        /// El VM notifica de a ráfagas: NotificarStats y NotificarTotales levantan una docena
+        /// de propiedades cada uno, y cada notificación disparaba el barrido completo de ~20
+        /// controles — varios tocando Visibility de los DataGrid, que invalida layout. Con la
+        /// bandera, la ráfaga entera se colapsa en una sola pasada.
+        /// </summary>
+        private bool _refrescoPendiente;
+
+        private void PedirActualizarUI()
+        {
+            if (_refrescoPendiente) return;
+            _refrescoPendiente = true;
+
+            Dispatcher.BeginInvoke(DispatcherPriority.Background, new Action(() =>
+            {
+                _refrescoPendiente = false;
+                ActualizarUI();
+            }));
+        }
+
         private void ActualizarUI()
         {
             if (_vm == null) return;
@@ -193,11 +223,57 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             }
         }
 
+        // ── Entradas: scroll horizontal ───────────────────────────────────────
+
+        /// <summary>
+        /// Mantiene la fila TOTAL pegada a las columnas: vive fuera del ScrollViewer
+        /// de la grilla, así que hay que desplazarla a mano y darle el ancho del
+        /// contenido (no el del viewport) para que no quede corta al scrollear.
+        /// </summary>
+        private void DgEntradas_ScrollChanged(object sender, ScrollChangedEventArgs e)
+        {
+            _svEntradas ??= e.OriginalSource as ScrollViewer;
+
+            // Los cambios verticales son los más frecuentes y no mueven nada acá.
+            if (e.HorizontalChange == 0 && e.ExtentWidthChange == 0 && e.ViewportWidthChange == 0)
+                return;
+
+            TotalScrollTransform.X = -e.HorizontalOffset;
+
+            // NaN = "medí solo": cuando no hay scroll horizontal la fila se estira
+            // con el panel, igual que la grilla.
+            TotalGrid.Width = e.ExtentWidth > e.ViewportWidth ? e.ExtentWidth : double.NaN;
+        }
+
+        /// <summary>
+        /// Shift + rueda desplaza en horizontal. WPF no lo trae de fábrica: sin esto
+        /// la única forma de llegar a las columnas de la derecha es arrastrar la barra.
+        /// </summary>
+        private void DgEntradas_PreviewMouseWheel(object sender, System.Windows.Input.MouseWheelEventArgs e)
+        {
+            if (System.Windows.Input.Keyboard.Modifiers != System.Windows.Input.ModifierKeys.Shift) return;
+            if (_svEntradas is null || _svEntradas.ScrollableWidth <= 0) return;
+
+            _svEntradas.ScrollToHorizontalOffset(_svEntradas.HorizontalOffset - e.Delta);
+            e.Handled = true;   // que no se lo lleve el scroll vertical
+        }
+
         private void RbVista_Changed(object sender, RoutedEventArgs e)
         {
             if (_vm == null) return;
             string modo = RbVistaCamion.IsChecked == true ? "camion" : "producto";
-            ColEntProducto.Visibility = modo == "camion" ? Visibility.Visible : Visibility.Collapsed;
+            bool verProducto = modo == "camion";
+
+            ColEntProducto.Visibility = verProducto ? Visibility.Visible : Visibility.Collapsed;
+
+            // La fila TOTAL replica los anchos de la grilla a mano: su celda de
+            // PRODUCTO tiene que abrirse y cerrarse con la columna, o los totales
+            // dejan de caer bajo su encabezado. Una ColumnDefinition no tiene
+            // Visibility, así que se colapsa poniéndole ancho 0.
+            TotalColProducto.Width = verProducto
+                ? new GridLength(1.1, GridUnitType.Star)
+                : new GridLength(0);
+
             _vm.CambiarVista(modo);
             ActualizarUI();
         }
@@ -360,16 +436,23 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             if (_vm.SelectedCamion == null) return;
             var modal = new PesajeModal(_vm.SelectedCamion, producto, editInitial);
             modal.Cerrado += CerrarModal;
+
+            // El modal NO se cierra al guardar: eso es lo que significa "Seguir pesando".
+            // Queda abierto y limpio para la tarima siguiente, y se cierra con "Volver".
+            // Se lee modal.EntradaEnEdicion en vez de la variable capturada porque el modal
+            // deja de estar editando en cuanto guarda la corrección.
             modal.GuardarYSeguir += async snap =>
             {
-                await _vm.GuardarEntradaAsync(producto, snap, editInitial);
-                CerrarModal();
+                bool ok = await _vm.GuardarEntradaAsync(producto, snap, modal.EntradaEnEdicion);
                 SincronizarSeleccion();
                 ActualizarUI();
+                return ok;
             };
             modal.CerrarCamion += async snap =>
             {
-                if (snap != null) await _vm.GuardarEntradaAsync(producto, snap, editInitial);
+                if (snap != null && !await _vm.GuardarEntradaAsync(producto, snap, modal.EntradaEnEdicion))
+                    return;   // el VM ya avisó por Toast; no se cierra un camión con la pesada perdida
+
                 var camion = _vm.SelectedCamion;
                 bool ok = await _vm.DescargarCamionAsync();
                 ActualizarUI();

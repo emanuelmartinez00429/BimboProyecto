@@ -2,7 +2,7 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              Width="720"
-             Height="720"
+             Height="820"
              MaxWidth="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Border}, Converter={StaticResource RestarMargen}, ConverterParameter=48}"
              MaxHeight="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=Border}, Converter={StaticResource RestarMargen}, ConverterParameter=48}"
              UseLayoutRounding="True"
@@ -278,8 +278,16 @@
                         <!-- Height="NaN" pisa el Height="36" fijo que trae el Setter de
                              MInput — sin esto la fila "*" del Grid no tiene efecto: un
                              valor local de Height siempre le gana al Setter del estilo,
-                             así que "NaN" (auto) es la única forma de dejarlo estirar. -->
+                             así que "NaN" (auto) es la única forma de dejarlo estirar.
+
+                             MaxHeight le pone techo a ese estiramiento: con AcceptsReturn
+                             el campo crecía una línea por cada Enter y, en modo edición
+                             (donde la sección del camión mide su alto natural), terminaba
+                             empujando la tabla de productos fuera de la vista. Pasado el
+                             techo scrollea — para eso ya estaba el VerticalScrollBarVisibility,
+                             que sin límite de alto no llegaba a activarse nunca. -->
                         <TextBox Grid.Row="5" x:Name="TxtObs" Style="{StaticResource MInput}" Height="NaN"
+                                 MaxHeight="110"
                                  Margin="34,0,0,4" AcceptsReturn="True" TextWrapping="Wrap"
                                  VerticalContentAlignment="Top" VerticalScrollBarVisibility="Auto"/>
                         <TextBlock Grid.Row="5" Text="Sin observaciones adicionales" FontFamily="Segoe UI"
@@ -288,7 +296,9 @@
                                    Visibility="{Binding Text, ElementName=TxtObs, Converter={StaticResource VacioAVisibilidad}}"/>
                     </Grid>
 
-                    <Border x:Name="SepCamion" Grid.Row="1" Height="1" Background="#1AFFFFFF" Margin="0,20,0,20"/>
+                    <!-- Margen recortado de 20 a 13: en modo edición esos 40px de aire
+                         salían del alto de la tabla de productos, que es lo escaso acá. -->
+                    <Border x:Name="SepCamion" Grid.Row="1" Height="1" Background="#1AFFFFFF" Margin="0,13,0,13"/>
 
                     <!-- ══ SECCIÓN 2 · PRODUCTOS ══ -->
                     <Grid x:Name="SecProductos" Grid.Row="2">
@@ -296,8 +306,10 @@
                             <RowDefinition Height="Auto"/>
                             <!-- Única que scrollea: título, ayuda y el botón agregar
                                  (ahora en el propio header, no al fondo) quedan fijos
-                                 arriba, donde el ojo aterriza primero. -->
-                            <RowDefinition Height="*" MinHeight="140"/>
+                                 arriba, donde el ojo aterriza primero.
+                                 MinHeight 200: piso de ~4 filas visibles antes de que
+                                 la lista empiece a depender del scroll. -->
+                            <RowDefinition Height="*" MinHeight="200"/>
                         </Grid.RowDefinitions>
 
                         <!-- Título + ayuda en una sola columna para que el botón (columna 2)

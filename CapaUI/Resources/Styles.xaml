@@ -564,4 +564,70 @@
         </Setter>
     </Style>
 
+    <!-- ══ Barras de scroll discretas ══
+         Barra fina sin flechas ni fondo de riel: solo el thumb gris. Estaban
+         definidas localmente en ProductosView; se promovieron acá al necesitarlas
+         también en Pesaje, para no mantener una tercera copia. Las vistas que
+         todavía las declaran en sus propios Resources siguen usando las suyas
+         (el recurso local gana), así que promoverlas no cambia nada de lo que ya
+         estaba funcionando. -->
+    <ControlTemplate x:Key="ModernScrollBarTemplateVertical" TargetType="ScrollBar">
+        <Grid x:Name="GridRoot" Width="8">
+            <Track x:Name="PART_Track" IsDirectionReversed="True">
+                <Track.DecreaseRepeatButton>
+                    <RepeatButton Command="ScrollBar.LineUpCommand" Opacity="0" Height="0"/>
+                </Track.DecreaseRepeatButton>
+                <Track.Thumb>
+                    <Thumb x:Name="Thumb">
+                        <Thumb.Template>
+                            <ControlTemplate TargetType="Thumb">
+                                <Border Background="#94A3B8" CornerRadius="4" Margin="2,0"/>
+                            </ControlTemplate>
+                        </Thumb.Template>
+                    </Thumb>
+                </Track.Thumb>
+                <Track.IncreaseRepeatButton>
+                    <RepeatButton Command="ScrollBar.LineDownCommand" Opacity="0" Height="0"/>
+                </Track.IncreaseRepeatButton>
+            </Track>
+        </Grid>
+    </ControlTemplate>
+
+    <ControlTemplate x:Key="ModernScrollBarTemplateHorizontal" TargetType="ScrollBar">
+        <Grid x:Name="GridRoot" Height="10">
+            <Track x:Name="PART_Track" IsDirectionReversed="False">
+                <Track.DecreaseRepeatButton>
+                    <RepeatButton Command="ScrollBar.LineLeftCommand" Opacity="0" Width="0"/>
+                </Track.DecreaseRepeatButton>
+                <Track.Thumb>
+                    <Thumb x:Name="Thumb">
+                        <Thumb.Template>
+                            <ControlTemplate TargetType="Thumb">
+                                <Border Background="#94A3B8" CornerRadius="4" Margin="0,2"/>
+                            </ControlTemplate>
+                        </Thumb.Template>
+                    </Thumb>
+                </Track.Thumb>
+                <Track.IncreaseRepeatButton>
+                    <RepeatButton Command="ScrollBar.LineRightCommand" Opacity="0" Width="0"/>
+                </Track.IncreaseRepeatButton>
+            </Track>
+        </Grid>
+    </ControlTemplate>
+
+    <!-- Elige plantilla según la orientación: sirve para el vertical y el
+         horizontal del mismo DataGrid con un solo Style. -->
+    <Style x:Key="ModernScrollBarAny" TargetType="ScrollBar">
+        <Setter Property="Width" Value="8"/>
+        <Setter Property="Background" Value="#F3F4F6"/>
+        <Setter Property="Template" Value="{StaticResource ModernScrollBarTemplateVertical}"/>
+        <Style.Triggers>
+            <Trigger Property="Orientation" Value="Horizontal">
+                <Setter Property="Height" Value="10"/>
+                <Setter Property="Width" Value="Auto"/>
+                <Setter Property="Template" Value="{StaticResource ModernScrollBarTemplateHorizontal}"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
 </ResourceDictionary>

@@ -215,7 +215,7 @@ public class PesajeRepository : RepositorioBase, IPesajeRepository
     // ══════════════════════════════════════════════════════════════════════
     //  Pesajes (entradas)
     // ══════════════════════════════════════════════════════════════════════
-    public Task<Result<int>> CrearEntradaAsync(int idMovProducto, int idProducto, double bruto, double taraExtra, string observaciones, int idUsuario, CancellationToken ct = default) =>
+    public Task<Result<EntradaDto>> CrearEntradaAsync(int idMovProducto, int idProducto, double bruto, double taraExtra, string observaciones, int idUsuario, CancellationToken ct = default) =>
         TryAsync(async () =>
         {
             var client = await ConexionSupabase.GetClientAsync();
@@ -236,7 +236,12 @@ public class PesajeRepository : RepositorioBase, IPesajeRepository
                 observaciones        = string.IsNullOrWhiteSpace(observaciones) ? null : observaciones,
             };
             var r = await client.From<EntradaProducto>().Insert(nueva);
-            return r.Models.First().idPesaje;
+
+            // trg_calcular_pesos_entrada es BEFORE INSERT, así que la fila que PostgREST
+            // devuelve ya trae tara individual, tara total y neto calculados por la BD.
+            // Mapearla acá evita que quien llama tenga que recalcularlos a mano (adivinando)
+            // o recargar el camión entero (tres round trips) para leer lo que ya tenemos.
+            return MapEntrada(r.Models.First());
         }, "Registrar pesaje");
 
     /// <summary>

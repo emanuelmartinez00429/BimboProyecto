@@ -168,9 +168,14 @@
                     <Grid>
                         <TextBlock x:Name="TxtHint" VerticalAlignment="Center" FontFamily="Segoe UI" FontSize="11.5" Foreground="#99FFFFFF"/>
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                            <Button Content="Volver" Style="{StaticResource GhostBtn}" Margin="0,0,10,0" Click="Cerrar_Click"/>
+                            <!-- Señal de que el pesaje se está guardando. Sin esto la pantalla
+                                 quedaba idéntica durante el viaje al servidor y el operador
+                                 volvía a clickear, creyendo que no había pasado nada. -->
+                            <TextBlock x:Name="TxtGuardando" Text="Guardando…" Visibility="Collapsed" VerticalAlignment="Center"
+                                       FontFamily="Segoe UI" FontSize="11.5" Foreground="#99FFFFFF" Margin="0,0,12,0"/>
+                            <Button x:Name="BtnVolver" Content="Volver" Style="{StaticResource GhostBtn}" Margin="0,0,10,0" Click="Cerrar_Click"/>
                             <Button x:Name="BtnSeguir" Content="Seguir pesando" Style="{StaticResource GhostBtn}" Margin="0,0,10,0" Click="Seguir_Click"/>
-                            <Button Style="{StaticResource SolidBtn}" Click="CerrarCamion_Click">
+                            <Button x:Name="BtnCerrarCamion" Style="{StaticResource SolidBtn}" Click="CerrarCamion_Click">
                                 <StackPanel Orientation="Horizontal">
                                     <Path Data="{StaticResource MIcoCheck}" Stroke="White" StrokeThickness="2.6" Width="14" Height="14" Stretch="Uniform"
                                           Margin="0,0,6,0" VerticalAlignment="Center" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>

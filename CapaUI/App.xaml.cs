@@ -40,6 +40,24 @@ namespace CapaUI
         private static LoginWindow? _loginActual;
         private static MainWindow?  _mainActual;
 
+        /// <summary>
+        /// Nivel mínimo del log, desde <c>LOG_LEVEL</c> (variable de entorno o App.config).
+        /// Default <c>Warning</c>: en producción el archivo solo guarda lo que importa.
+        /// <para/>
+        /// Ponerlo en <c>Debug</c> habilita el cronometraje por llamada de
+        /// <c>RepositorioBase</c> — es la forma de medir cuánto tarda realmente cada round
+        /// trip a Supabase desde una red concreta, sin recompilar.
+        /// </summary>
+        private static Serilog.Events.LogEventLevel NivelDeLogConfigurado()
+        {
+            string? valor = Environment.GetEnvironmentVariable("LOG_LEVEL")
+                ?? System.Configuration.ConfigurationManager.AppSettings["LOG_LEVEL"];
+
+            return Enum.TryParse<Serilog.Events.LogEventLevel>(valor, ignoreCase: true, out var nivel)
+                ? nivel
+                : Serilog.Events.LogEventLevel.Warning;
+        }
+
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
@@ -49,7 +67,7 @@ namespace CapaUI
                 "BimboPesaje", "Logs");
             Directory.CreateDirectory(logFolder);
             Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Warning()
+                .MinimumLevel.Is(NivelDeLogConfigurado())
                 .WriteTo.File(
                     Path.Combine(logFolder, "app-.log"),
                     rollingInterval: RollingInterval.Day,

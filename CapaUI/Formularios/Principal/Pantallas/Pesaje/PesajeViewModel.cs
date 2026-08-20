@@ -50,6 +50,20 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
         public string CamionesTexto      => $"{Camiones.Count}/{MaxCamiones}";
         public bool   PuedeAgregarCamion => Camiones.Count(c => c.Estado == "Abierto") < MaxCamiones;
 
+        // ── Totales de la fila al pie de Entradas ─────────────────────────────
+        // Suman lo que ya está en memoria (FilasEntradas), que es exactamente lo
+        // que la grilla tiene a la vista: cambian solos al alternar entre
+        // "Producto actual" y "Todo el camión". No consultan al repositorio.
+        public double TotalBruto        => FilasEntradas.Sum(e => e.Bruto);
+        public double TotalTara         => FilasEntradas.Sum(e => e.TaraTotal);
+        public double TotalTaraExtra    => FilasEntradas.Sum(e => e.TaraExtra);
+        public double TotalNeto         => FilasEntradas.Sum(e => e.Neto);
+
+        /// <summary>El dato real cuando existe, si no la estimación — igual que <see cref="EntradaPesaje.BultosTexto"/>.</summary>
+        public double TotalBultos       => FilasEntradas.Sum(e => e.BultosCapturados ?? e.BultosTeoricos ?? 0);
+
+        public string TotalPesajesTexto => $"{FilasEntradas.Count} pesaje(s)";
+
         /// <summary>
         /// No hay ninguna descarga en curso: la pantalla muestra el estado vacío con el
         /// botón para iniciar el proceso, en vez de tres paneles vacíos sin contexto.
@@ -298,15 +312,29 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
         // ══════════════════════════════════════════════════════════════════════
         //  Pesajes
         // ══════════════════════════════════════════════════════════════════════
-        public async Task GuardarEntradaAsync(ProductoCamion producto, EntradaPesaje snapshot, EntradaPesaje? editando)
+        /// <summary>
+        /// Registra un pesaje y refleja el resultado SIN recargar el camión.
+        /// <para/>
+        /// El INSERT ya devuelve la fila con los derivados que calculó el trigger de BD, así
+        /// que aplicar ese DTO a la colección en memoria deja la pantalla exactamente igual
+        /// que un refetch — pero con un solo round trip en vez de cuatro. Con la latencia de
+        /// la red de planta esa diferencia es la que hacía que "Seguir pesando" se sintiera
+        /// colgado.
+        /// <para/>
+        /// No es un guardado optimista: nada se muestra hasta que la BD confirmó, y los
+        /// números que se muestran son los que la BD devolvió, no los que calculó el modal.
+        /// </summary>
+        /// <returns><c>true</c> si el pesaje quedó guardado.</returns>
+        public async Task<bool> GuardarEntradaAsync(ProductoCamion producto, EntradaPesaje snapshot, EntradaPesaje? editando)
         {
-            if (SelectedCamion is null) return;
-            if (!HaySesionActiva("guardar pesaje")) return;
+            if (SelectedCamion is null) return false;
+            if (!HaySesionActiva("guardar pesaje")) return false;
 
             if (editando is not null)
             {
                 var ra = await _repo.AnularEntradaAsync(editando.Id);
-                if (!ra.Success) { Toast?.Invoke(ra.Error ?? "No se pudo editar"); return; }
+                if (!ra.Success) { Toast?.Invoke(ra.Error ?? "No se pudo editar"); return false; }
+                producto.Entradas.Remove(editando);
             }
 
             // La tara extra es un peso real que se captura en el modal (las tarimas que
@@ -315,25 +343,75 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             var r = await _repo.CrearEntradaAsync(
                 producto.Id, producto.IdProducto, snapshot.Bruto, snapshot.TaraExtra,
                 snapshot.Observaciones, UsuarioActual);
-            if (!r.Success) { Toast?.Invoke(r.Error ?? "No se pudo guardar el pesaje"); return; }
 
-            int id = producto.Id;
-            await CargarProductosAsync(SelectedCamion);
-            SelectedProducto = SelectedCamion.Productos.FirstOrDefault(x => x.Id == id);
+            if (!r.Success)
+            {
+                Toast?.Invoke(r.Error ?? "No se pudo guardar el pesaje");
+
+                // Si veníamos de una edición, la entrada vieja ya se anuló en la BD y se quitó
+                // de la colección: sin el INSERT que la reemplace, la memoria y la BD podrían
+                // no coincidir. Acá sí vale el refetch completo — es el camino de error.
+                if (editando is not null) await CargarProductosAsync(SelectedCamion);
+                RecalcularFilas();
+                return false;
+            }
+
+            AgregarEntradaEnMemoria(producto, r.Value!);
             RecalcularFilas();
             Toast?.Invoke("Pesaje guardado");
+            return true;
         }
 
+        /// <summary>
+        /// Inserta la pesada recién confirmada por la BD en la colección del producto y
+        /// refresca los agregados derivados (recibido, tara extra, bultos estimados).
+        /// <para/>
+        /// Replica el mapeo de <see cref="MapProducto"/> para una sola entrada: los bultos
+        /// teóricos son lo único que no viaja en el DTO porque no se persiste, se estima
+        /// desde el peso del producto.
+        /// </summary>
+        private void AgregarEntradaEnMemoria(ProductoCamion producto, EntradaDto e)
+        {
+            producto.Entradas.Add(new EntradaPesaje
+            {
+                Id = e.Id, Bruto = e.Bruto, TaraInd = e.TaraInd, TaraExtra = e.TaraExtra,
+                TaraTotal = e.TaraTotal, Neto = e.Neto, Fecha = e.Fecha, Hora = e.Hora,
+                BultosCapturados = e.BultosCapturados,
+                BultosTeoricos = PesajeCalc.BultosTeoricos(
+                    e.Bruto, e.TaraExtra, producto.PesoTeorico, producto.TaraUnitaria),
+                Observaciones = e.Observaciones,
+                ProdId = producto.Id, ProdNombre = producto.ProductoNombre,
+            });
+
+            producto.NotificarAgregados();
+            SelectedCamion?.NotificarTotales();
+        }
+
+        /// <summary>
+        /// Anula una pesada y la quita de la colección en memoria.
+        /// <para/>
+        /// Mismo criterio que <see cref="GuardarEntradaAsync"/>: anular es un solo round trip
+        /// y ya sabemos exactamente qué fila desapareció, así que recargar el camión entero
+        /// solo agregaría tres viajes para llegar al mismo estado.
+        /// </summary>
         public async Task QuitarEntradaAsync(EntradaPesaje entrada)
         {
             if (SelectedCamion is null) return;
             var r = await _repo.AnularEntradaAsync(entrada.Id);
             if (!r.Success) { Toast?.Invoke(r.Error ?? "No se pudo quitar"); return; }
 
-            int? id = SelectedProducto?.Id;
-            await CargarProductosAsync(SelectedCamion);
-            SelectedProducto = id.HasValue ? SelectedCamion.Productos.FirstOrDefault(x => x.Id == id.Value) : null;
-            SelectedEntrada  = null;
+            // La entrada sabe a qué producto pertenece (RecalcularFilas le setea ProdId), así
+            // que se ubica sin depender de cuál esté seleccionado: en vista "Todo el camión"
+            // se puede borrar una pesada de un producto distinto al seleccionado.
+            var producto = SelectedCamion.Productos.FirstOrDefault(p => p.Id == entrada.ProdId);
+            if (producto is not null)
+            {
+                producto.Entradas.Remove(entrada);
+                producto.NotificarAgregados();
+                SelectedCamion.NotificarTotales();
+            }
+
+            SelectedEntrada = null;
             RecalcularFilas();
             Toast?.Invoke("Entrada eliminada");
         }
@@ -417,7 +495,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
         public void RecalcularFilas()
         {
             FilasEntradas.Clear();
-            if (SelectedCamion is null) { OnPropertyChanged(nameof(ModoEfectivo)); return; }
+            if (SelectedCamion is null) { OnPropertyChanged(nameof(ModoEfectivo)); NotificarTotales(); return; }
 
             if (ModoEfectivo == "producto" && SelectedProducto is not null)
             {
@@ -437,6 +515,22 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
                     }
             }
             OnPropertyChanged(nameof(ModoEfectivo));
+            NotificarTotales();
+        }
+
+        /// <summary>
+        /// Los totales derivan de FilasEntradas, que se reconstruye entera en cada
+        /// RecalcularFilas: no hay forma de notificarlos por cambio de item, así que
+        /// se avisan acá, en el único punto que la rearma.
+        /// </summary>
+        private void NotificarTotales()
+        {
+            OnPropertyChanged(nameof(TotalBruto));
+            OnPropertyChanged(nameof(TotalTara));
+            OnPropertyChanged(nameof(TotalTaraExtra));
+            OnPropertyChanged(nameof(TotalNeto));
+            OnPropertyChanged(nameof(TotalBultos));
+            OnPropertyChanged(nameof(TotalPesajesTexto));
         }
 
         public void CambiarVista(string modo) { VistaEntradas = modo; RecalcularFilas(); }

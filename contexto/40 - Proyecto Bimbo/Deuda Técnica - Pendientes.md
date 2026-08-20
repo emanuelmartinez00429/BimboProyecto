@@ -840,6 +840,38 @@ Con `CatalogoConfig.PermiteMultiple` (hoy solo el selector de Productos de `Proc
 
 ---
 
+### P-045 · Pesaje quedó fuera de la validación centralizada: sus campos de texto no tienen tope en ninguna capa
+
+**Archivos:** `CapaDominio/Reglas/ReglasEntidades.cs`, `CapaUI/Formularios/Principal/Pantallas/Pesaje/Modales/ProcesoDescargaModal.xaml`, `CapaUI/Formularios/Principal/Pantallas/Pesaje/Modales/PesajeModal.xaml`
+**Detectado en:** security review del rediseño visual de Pesaje (2026-08-20)
+
+> [!warning] Esto **no** es una vulnerabilidad — no escalarlo
+> El security review que lo destapó dio cero hallazgos, y ese resultado es correcto. Para tocar estos campos hace falta sesión válida **más** el permiso `Registrar Entrada`; RLS está habilitado en `movimientos`, `movimiento_productos` y `entradas_producto`, y PostgREST parametriza (no hay superficie de inyección). Es deuda de **calidad de datos**, no de seguridad.
+
+El módulo Pesaje nunca se sumó al esquema de [[ADR-021 - Validacion en tres capas reglas de negocio en Dominio]], que el resto del proyecto ya adoptó. Ninguna de las tres capas pone un límite de longitud:
+
+| Capa | Pesaje | Resto del proyecto |
+|---|---|---|
+| UI | Cero `MaxLength` en sus XAML | Categorías, Empleados, Fabricantes, Presentaciones y Proveedores sí lo tienen |
+| Dominio | No existe `ReglasPesaje` | 9 entidades declaradas en `ReglasEntidades.cs` |
+| BD | Sin tope en las 4 columnas de texto | — |
+
+Lo de la BD está verificado contra `information_schema`, no supuesto: `movimientos.observaciones`, `movimiento_productos.observaciones` y `entradas_producto.observaciones` son `text`; `movimientos.placa_vehiculo` es `character varying` **sin longitud declarada**, que en Postgres equivale a `text`. Las cuatro con `character_maximum_length = null`. La validación que sí existe en `ProcesoDescargaModal.ValidarPaso` es solo de obligatoriedad (`IsNullOrWhiteSpace` sobre la placa), nunca de largo.
+
+**Riesgo:** bajo. El vector realista no es un atacante sino un pegado accidental de un operario autenticado: el texto entra completo, se replica por Realtime a todos los clientes conectados y viaja a los PDF/Excel de [[Módulo Reportería]], donde sí puede romper el layout de un reporte.
+
+**Solución (diseñada, reusando el patrón ya probado — no inventar uno nuevo):**
+
+1. Declarar `ReglasPesaje` en `ReglasEntidades.cs` con `Placa` y `Observaciones`, mismo estilo que `ReglasCategoria`.
+2. `MaxLength` en los TextBox de los modales y `ValidadorFormulario` encadenado como en `CategoriaModal.xaml.cs:34-37` — `.Campo(TxtPlaca, "La placa").Segun(ReglasPesaje.Placa).ValidarAlSalirDelCampo()`.
+3. Migración que fije el tope también en la BD (`varchar(N)` o `CHECK`), para que valga aunque se escriba por fuera de la app. Verificar antes que ningún registro actual la viole.
+
+Los tres pasos, no solo el primero: con el límite únicamente en la UI, cualquier otro camino de escritura lo saltea.
+
+**Estado:** `[ ] Pendiente` — se evalúa al cerrar el módulo Pesaje (ver [[Módulo Pesaje]]).
+
+---
+
 ## Historial de resolución
 
 | ID | Descripción | Estado | Sesión |

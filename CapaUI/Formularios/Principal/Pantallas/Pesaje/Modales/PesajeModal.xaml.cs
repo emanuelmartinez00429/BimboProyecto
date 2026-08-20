@@ -11,15 +11,40 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
     public partial class PesajeModal : UserControl
     {
         public event Action? Cerrado;
-        public event Action<EntradaPesaje>? GuardarYSeguir;
-        public event Action<EntradaPesaje?>? CerrarCamion;
+
+        /// <summary>
+        /// Guarda la pesada. Devuelve <c>Task&lt;bool&gt;</c> y no <c>Action</c> a propósito:
+        /// el modal necesita ESPERAR el guardado para bloquearse mientras corre y saber si
+        /// salió bien antes de limpiarse para la siguiente pesada. Con <c>Action</c> el
+        /// handler quedaba como <c>async void</c> y una excepción ahí tumbaba la aplicación.
+        /// </summary>
+        public event Func<EntradaPesaje, Task<bool>>? GuardarYSeguir;
+
+        public event Func<EntradaPesaje?, Task>? CerrarCamion;
 
         private readonly ProductoCamion _producto;
-        private readonly EntradaPesaje? _editInitial;
         private readonly double _taraInd;
-        private readonly double _pesoRecibidoPrevio;
-        private readonly string _fecha;
-        private readonly string _hora;
+
+        // Mutables: tras guardar, el modal se prepara para la pesada siguiente en vez de
+        // cerrarse, así que la entrada en edición, el acumulado previo y la marca de tiempo
+        // dejan de ser los del constructor.
+        private EntradaPesaje? _editInitial;
+        private double _pesoRecibidoPrevio;
+        private string _fecha;
+        private string _hora;
+
+        /// <summary>Guarda de reentrada: sin esto, dos clics seguidos insertaban dos pesajes.</summary>
+        private bool _guardando;
+
+        /// <summary>
+        /// Entrada que se está corrigiendo, o <c>null</c> si lo próximo es una pesada nueva.
+        /// <para/>
+        /// La expone el modal y no la captura quien lo abre porque cambia durante su vida: al
+        /// guardar una corrección, el modal queda listo para una pesada nueva. Leer el valor
+        /// capturado al abrirlo haría que el segundo guardado intentara anular una entrada
+        /// que ya fue anulada.
+        /// </summary>
+        public EntradaPesaje? EntradaEnEdicion => _editInitial;
 
         private static readonly Brush _blanco = Brushes.White;
         private static readonly Brush _rojo   = (Brush)new BrushConverter().ConvertFromString("#FCA5A5")!;
@@ -71,7 +96,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
         /// Además del bruto, exige que el neto sea positivo: la BD tiene un CHECK sobre
         /// <c>peso_neto</c> y el rechazo llegaría como excepción cruda de Postgrest.
         /// </summary>
-        private bool Valido => Bruto > 0 && TaraExtraEntrada >= 0 && NetoCalculado > 0;
+        private bool Valido => !_guardando && Bruto > 0 && TaraExtraEntrada >= 0 && NetoCalculado > 0;
 
         private void Recalcular(object sender, RoutedEventArgs e)
         {
@@ -129,13 +154,101 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
             };
         }
 
-        private void Seguir_Click(object sender, RoutedEventArgs e)
+        /// <summary>
+        /// Bloquea el modal mientras el pesaje viaja al servidor: da la señal visual que
+        /// faltaba y, sobre todo, impide que un segundo clic registre la pesada dos veces.
+        /// </summary>
+        private void AplicarEstadoGuardando(bool guardando)
         {
-            if (Valido) GuardarYSeguir?.Invoke(Snapshot());
+            _guardando = guardando;
+
+            TxtGuardando.Visibility  = guardando ? Visibility.Visible : Visibility.Collapsed;
+            BtnVolver.IsEnabled      = !guardando;
+            BtnCerrarCamion.IsEnabled = !guardando;
+            TxtBruto.IsEnabled       = !guardando;
+            TxtTaraExtraEntrada.IsEnabled = !guardando;
+            TxtObs.IsEnabled         = !guardando;
+
+            // BtnSeguir.IsEnabled sale siempre de Valido (que ya contempla _guardando), para
+            // que no haya dos fuentes de verdad sobre si el botón se puede tocar.
+            Recalcular(this, null!);
         }
 
-        private void CerrarCamion_Click(object sender, RoutedEventArgs e)
-            => CerrarCamion?.Invoke(Valido ? Snapshot() : null);
+        /// <summary>
+        /// Deja el modal listo para la pesada siguiente en vez de cerrarlo: eso es lo que
+        /// "Seguir pesando" promete, y antes cerraba el modal obligando a reabrirlo desde
+        /// "Pesar" para cada tarima.
+        /// </summary>
+        private void PrepararSiguientePesada()
+        {
+            // Se relee de la colección del producto en vez de sumar el neto que calculó este
+            // modal: para cuando llegamos acá el ViewModel ya insertó la pesada con los pesos
+            // que devolvió la BD, y esos son los que mandan.
+            _pesoRecibidoPrevio = _producto.Entradas.Sum(e => e.Neto);
+
+            // Una edición ya guardada deja de serlo: lo próximo que se registre es una pesada
+            // nueva, no otra corrección de la misma entrada.
+            _editInitial = null;
+
+            // Fecha y hora se vuelven a tomar: si no, la segunda pesada se guardaría con la
+            // marca de tiempo de la primera.
+            _fecha = PesajeCalc.FechaHoy();
+            _hora  = PesajeCalc.HoraAhora();
+            TxtFechaHora.Text = $"{_fecha} {_hora}";
+            TxtEyebrow.Text   = "REGISTRAR PESAJE";
+
+            TxtBruto.Clear();
+            TxtTaraExtraEntrada.Clear();
+            TxtObs.Clear();
+
+            Recalcular(this, null!);
+            TxtBruto.Focus();
+        }
+
+        private async void Seguir_Click(object sender, RoutedEventArgs e)
+        {
+            if (_guardando || !Valido || GuardarYSeguir is null) return;
+
+            var snapshot = Snapshot();
+            AplicarEstadoGuardando(true);
+            try
+            {
+                if (await GuardarYSeguir(snapshot))
+                    PrepararSiguientePesada();
+                // Si falló, el VM ya avisó por Toast y los datos siguen escritos: el operador
+                // corrige y reintenta sin volver a teclear todo.
+            }
+            catch (Exception ex)
+            {
+                // Este método es async void porque WPF lo exige: una excepción que se escape
+                // acá no la puede atrapar nadie y tumba la aplicación con la pesada a medias.
+                Serilog.Log.Error(ex, "PesajeModal: falló el guardado del pesaje");
+            }
+            finally
+            {
+                AplicarEstadoGuardando(false);
+            }
+        }
+
+        private async void CerrarCamion_Click(object sender, RoutedEventArgs e)
+        {
+            if (_guardando || CerrarCamion is null) return;
+
+            var snapshot = Valido ? Snapshot() : null;
+            AplicarEstadoGuardando(true);
+            try
+            {
+                await CerrarCamion(snapshot);
+            }
+            catch (Exception ex)
+            {
+                Serilog.Log.Error(ex, "PesajeModal: falló el cierre del camión");
+            }
+            finally
+            {
+                AplicarEstadoGuardando(false);
+            }
+        }
 
         private void Cerrar_Click(object sender, RoutedEventArgs e) => Cerrado?.Invoke();
     }

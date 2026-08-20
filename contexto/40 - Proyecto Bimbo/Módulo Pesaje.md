@@ -148,6 +148,9 @@ Se perdió el toggle "Todo el catálogo" que tenía el picker viejo (el acotamie
 ### Modal de pesaje
 Captura el **peso bruto** y, opcionalmente, la **tara extra de esa pesada**. Todo lo demás es contexto de solo lectura: placa, proveedor, producto, bultos declarados y los cálculos. Muestra los **bultos estimados** en vivo, avisa en ámbar si la estimación es aproximada (sin tara extra) y en rojo si el neto quedaría en cero o negativo — el CHECK de la BD lo rechazaría con una excepción cruda de Postgrest.
 
+> [!important] "Seguir pesando" se queda abierto (2026-08-20)
+> Hasta esta fecha, guardar una pesada disparaba 4–5 round trips (INSERT + recargar el camión entero) y cerraba el modal — "Seguir pesando" no seguía pesando. Se redujo a 1–2 round trips aplicando en memoria el `EntradaDto` que ya devuelve el propio INSERT (el trigger es `BEFORE INSERT`), y el modal ahora se limpia y queda abierto para la siguiente tarima, con guarda de reentrada y estado "Guardando…" visible. Patrón completo en [[Guardado sin Refetch - Aplicar en memoria la respuesta del servidor]]; detalle de la sesión en [[Sesión 2026-08-20 - Guardado de pesajes sin refetch]].
+
 ### Camiones cerrados
 Desde 2026-08-13 **no se listan en la pantalla**: `GetCamionesActivosAsync` filtra solo `Abierto`. Al cerrar un camión se sigue abriendo el `ReporteModal` (usa el objeto ya en memoria, así que funciona aunque el camión desaparezca de la lista). Van a volver cuando exista la sección de históricos.
 
@@ -198,6 +201,8 @@ Los modales de Pesaje comparten `Modales/PesajeModalStyles.xaml` (prefijo `M`): 
 
 - [[Sesión 2026-07-26 - Rediseño del flujo de Pesajes]]
 - [[Sesión 2026-08-19 - Selector de proveedor por tabla y consolidacion de estilos]] — retiro de `SelectorProductosModal`, marco cuadrado, multiselección de productos
+- [[Sesión 2026-08-20 - Guardado de pesajes sin refetch]] — "Seguir pesando" pasó de 4-5 round trips a 1-2, modal ya no se cierra al guardar
+- [[Guardado sin Refetch - Aplicar en memoria la respuesta del servidor]] — el patrón que resolvió la lentitud del guardado
 - [[Selector de Catálogo - Selector genérico y multiselección]] — el selector que ahora resuelve Proveedor y Producto acá
 - [[Sesión 2026-07-01 - Pantalla Pesaje WPF y Buscador por Proveedor (Fase 1)]]
 - [[Sesión 2026-07-01 - Pesaje Fase 2 - Persistencia Real]]

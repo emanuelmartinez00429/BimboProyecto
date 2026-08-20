@@ -25,7 +25,17 @@ public interface IPesajeRepository
     Task<Result>      SetEstadoProductoAsync(int idMovProducto, bool cerrado, CancellationToken ct = default);
 
     // ── Pesajes (entradas_producto) ─────────────────────────────────────────
-    Task<Result<int>> CrearEntradaAsync(int idMovProducto, int idProducto, double bruto, double taraExtra, string observaciones, int idUsuario, CancellationToken ct = default);
+
+    /// <summary>
+    /// Registra un pesaje y devuelve la fila YA CALCULADA por el trigger de BD
+    /// (tara individual, tara total y neto).
+    /// <para/>
+    /// Devuelve el <see cref="EntradaDto"/> completo y no solo el id a propósito: la respuesta
+    /// del INSERT ya trae esos derivados, así que quien llama puede reflejar la pesada nueva
+    /// sin volver a consultar el camión entero. Ese refetch costaba tres round trips extra por
+    /// cada pesada — a la latencia de la red de planta, segundos de pantalla congelada.
+    /// </summary>
+    Task<Result<EntradaDto>> CrearEntradaAsync(int idMovProducto, int idProducto, double bruto, double taraExtra, string observaciones, int idUsuario, CancellationToken ct = default);
 
     /// <summary>
     /// Escribe la tara extra de una pesada ya registrada (UPDATE en el lugar, NO anular+insertar:
