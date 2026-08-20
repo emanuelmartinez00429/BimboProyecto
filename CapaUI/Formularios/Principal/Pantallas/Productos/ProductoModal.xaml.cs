@@ -323,12 +323,10 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
             CerrarSelector();
 
             var selector = new SelectorCatalogoModal(cfg);
+            // El cierre lo dispara el selector (evento Cerrado), no este
+            // handler — ver el mismo comentario en ProcesoDescargaModal.
             selector.Cerrado += CerrarSelector;
-            selector.Seleccionado += item =>
-            {
-                alSeleccionar(item);
-                CerrarSelector();
-            };
+            selector.Seleccionado += item => alSeleccionar(item);
 
             _focoPrevio             = Keyboard.FocusedElement;
             _selectorAbierto        = selector;

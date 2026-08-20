@@ -689,7 +689,9 @@ Hallazgos de la investigación de esa regresión. Ninguno causó el bug reportad
 
 2. **El resaltado del botón activo es un snapshot de `Style`, no un binding.** Se decide una sola vez al construir el botón (`p == current ? ActivePageBtn : PageBtn`). No hay `case nameof(Page)` en el switch de `OnVmPropertyChanged`, así que el resaltado depende enteramente de que se dispare `PageRows` o `TotalPages` para corregirse.
 
-3. **Está copiado literal en 9 archivos.** `CalcularPaginas` y `RefrescarPaginacion` viven duplicados en Productos, Categorías, Fabricantes, Proveedores, ContactosFabricantes, ContactosProveedores, Usuarios, Empleados y Bitácora (más `SelectorCatalogoModal` y `SelectorProductosModal`). Se verificó que `CalcularPaginas` es **aritméticamente correcta** para todo `1 <= current <= total` (simulados 9 casos, sin repetidos ni fuera de rango ni elipsis dobles) y que las 9 copias son idénticas — pero cualquier corrección futura hay que aplicarla 9 veces. Es la misma queja de fondo que P-004 sobre este mismo code-behind.
+3. **Está copiado literal en 9 archivos** (10 al momento de escribir esto, ver nota). `CalcularPaginas` y `RefrescarPaginacion` viven duplicados en Productos, Categorías, Fabricantes, Proveedores, ContactosFabricantes, ContactosProveedores, Usuarios, Empleados y Bitácora (más `SelectorCatalogoModal`). Se verificó que `CalcularPaginas` es **aritméticamente correcta** para todo `1 <= current <= total` (simulados 9 casos, sin repetidos ni fuera de rango ni elipsis dobles) y que las 9 copias son idénticas — pero cualquier corrección futura hay que aplicarla en todas. Es la misma queja de fondo que P-004 sobre este mismo code-behind.
+
+   *Nota 2026-08-19:* esta lista originalmente sumaba también `SelectorProductosModal` (11 copias) — se retiró entero esa sesión (ver [[Sesión 2026-08-19 - Selector de proveedor por tabla y consolidacion de estilos]]), así que el conteo real bajó a 10. No se corrigió el número en el cuerpo del punto para no reescribir la investigación original de la sesión que lo detectó.
 
 Además, `Usuarios`, `Empleados` y `Bitacora` todavía tienen `DgX.ItemsSource = _vm.PageRows` **dentro** de su `RefrescarPaginacion()` (la forma que causó la regresión de esta sesión). Hoy no exhiben el bug porque no tienen Realtime y por lo tanto no recibieron el `case TotalPages` — pero si algún día se les agrega Realtime siguiendo el checklist, hay que separar las responsabilidades primero.
 
@@ -804,6 +806,40 @@ Auditoría pedida tras notar que `ProcesoDescargaModal` (y el resto de los modal
 
 ---
 
+### P-043 · `ModalInput`/`InputBox` (global) tienen el mismo bug de `VerticalAlignment` fijo que ya se corrigió en `MInput`
+
+**Archivo:** `CapaUI/Resources/Styles.xaml` — estilos `ModalInput` (líneas ~208-296) e `InputBox` (líneas ~141-167)
+**Detectado en:** [[Sesión 2026-08-19 - Selector de proveedor por tabla y consolidacion de estilos]]
+
+El `ControlTemplate` de `MInput` (Pesaje) tenía `VerticalAlignment="Center"` **fijo** en el `PART_ContentHost`, ignorando la propiedad `VerticalContentAlignment` del `TextBox` sin importar qué se le pusiera local o por Setter — se descubrió porque el campo Observaciones de `ProcesoDescargaModal`, ya multilínea, mostraba el cursor centrado en vez de arriba pese a `VerticalContentAlignment="Top"`. Se corrigió atando `VerticalAlignment="{TemplateBinding VerticalContentAlignment}"`.
+
+`ModalInput` e `InputBox`, los estilos **globales** que usan todos los modales CRUD, tienen el mismo `VerticalAlignment="Center"` hardcodeado en su propio `PART_ContentHost` — no se tocaron porque quedaban fuera del alcance de esa sesión (era sobre Pesaje).
+
+**Ya hay un campo real afectado hoy:** `CapaUI/Formularios/Principal/Pantallas/Configuracion/ConfiguracionEmpresaModal.xaml:81`, el campo "Dirección" (`AcceptsReturn="True"`, `TextWrapping="Wrap"`, `MinHeight="72"`, `VerticalContentAlignment="Top"` puesto local) — el cursor arranca centrado en la caja, no arriba, exactamente el mismo síntoma que tenía Observaciones antes del fix.
+
+**Riesgo:** bajo (cosmético), pero engañoso — un campo multilínea que centra el cursor en vez de arrancar arriba se ve raro apenas tiene más de una línea de texto.
+
+**Solución:** mismo fix de una línea, dos veces — en cada `ControlTemplate`, cambiar `VerticalAlignment="Center"` del `PART_ContentHost` por `VerticalAlignment="{TemplateBinding VerticalContentAlignment}"`. Sin riesgo para los campos de una sola línea: siguen viniendo con `VerticalContentAlignment="Center"` por el `Setter` del propio estilo, así que no cambia nada para ellos — solo lo hereda quien lo pise local, como ya hace `ConfiguracionEmpresaModal`.
+
+**Estado:** `[ ] Pendiente`
+
+---
+
+### P-044 · Multiselección de `SelectorCatalogoModal` no responde a teclado
+
+**Archivo:** `CapaUI/Core/Controls/SelectorCatalogoModal.xaml`
+**Detectado en:** [[Sesión 2026-08-19 - Selector de proveedor por tabla y consolidacion de estilos]]
+
+Con `CatalogoConfig.PermiteMultiple` (hoy solo el selector de Productos de `ProcesoDescargaModal`), cada fila tiene un `CheckBox` independiente. Marcar varias funciona con mouse; por teclado no — llegar a una fila con `↓`/`Tab` y apretar `Space` no tilda el checkbox, porque el foco de teclado que ya maneja `OnPreviewKeyDown` (navegación `↓`/`↑`/`Enter` entre buscador y tabla, ver [[Selector de Catálogo - Selector genérico y multiselección]]) no llega hasta el `CheckBox` de la celda.
+
+**Riesgo:** bajo — accesibilidad/comodidad, no bloquea el flujo (con mouse funciona completo).
+
+**Solución:** no diseñada todavía. Probablemente un `PreviewKeyDown` adicional que, con foco en una fila y `PermiteMultiple` activo, `Space` togglee el `Marcado` de la fila resaltada (mismo patrón que ya usa `Enter` para confirmar selección simple).
+
+**Estado:** `[ ] Pendiente`
+
+---
+
 ## Historial de resolución
 
 | ID | Descripción | Estado | Sesión |
@@ -849,6 +885,8 @@ Auditoría pedida tras notar que `ProcesoDescargaModal` (y el resto de los modal
 | P-040 | Carga inicial de `icono_sidebar` pendiente en Storage | `[ ]` Pendiente | [[Sesión 2026-08-15 - Icono dinámico del sidebar]] |
 | P-041 | Conteos de Fabricantes/Categorías filtrados por estado — las 3 pastillas dejan de informar | `[ ]` Pendiente | [[Sesión 2026-08-15 - Modulo CRUD de Presentaciones]] |
 | P-042 | `PesajeModalStyles.xaml` duplica `ModalInput`/`ModalCombo`/`ModalSegBtn` sin foco ni validación por campo | `[ ]` Pendiente | [[Sesión 2026-08-19 - Selector de proveedor por tabla y consolidacion de estilos]] |
+| P-043 | `ModalInput`/`InputBox` globales: mismo bug de `VerticalAlignment` fijo que ya se corrigió en `MInput` | `[ ]` Pendiente | [[Sesión 2026-08-19 - Selector de proveedor por tabla y consolidacion de estilos]] |
+| P-044 | Multiselección de `SelectorCatalogoModal` no responde a teclado (Space no tilda el checkbox) | `[ ]` Pendiente | [[Sesión 2026-08-19 - Selector de proveedor por tabla y consolidacion de estilos]] |
 
 ---
 
@@ -871,5 +909,5 @@ Auditoría pedida tras notar que `ProcesoDescargaModal` (y el resto de los modal
 - [[Sesión 2026-08-14 - Modelo desalineado del esquema tumbaba paginas enteras]] — origen de P-038
 - [[ADR-018 - Busqueda insensible a mayusculas y tildes con columna generada]] — origen de P-039
 - [[Sesión 2026-08-15 - Icono dinámico del sidebar]] — origen de P-040
-- [[Sesión 2026-08-19 - Selector de proveedor por tabla y consolidacion de estilos]] — origen de P-042
+- [[Sesión 2026-08-19 - Selector de proveedor por tabla y consolidacion de estilos]] — origen de P-042, P-043 y P-044
 - [[Anatomía compartida de los modales]] — tabla de estilos globales contra la que se auditó P-042

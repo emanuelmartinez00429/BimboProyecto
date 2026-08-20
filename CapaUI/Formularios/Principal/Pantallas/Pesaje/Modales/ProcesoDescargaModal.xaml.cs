@@ -310,12 +310,12 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
                 RootGrid.Height = RootGrid.ActualHeight;
 
             var selector = new SelectorCatalogoModal(cfg);
+            // El cierre lo dispara el selector (evento Cerrado) y no este
+            // handler: con seleccion multiple, Seleccionado llega N veces y
+            // cerrar en la primera dejaba el resto del bucle corriendo sobre
+            // un control ya dispuesto.
             selector.Cerrado += CerrarSelectorCatalogo;
-            selector.Seleccionado += item =>
-            {
-                alSeleccionar(item);
-                CerrarSelectorCatalogo();
-            };
+            selector.Seleccionado += item => alSeleccionar(item);
 
             _selectorCatalogo               = selector;
             CatalogoSelectorHost.Content     = selector;
@@ -390,11 +390,12 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
 
             AbrirSelectorCatalogo(cfg, item =>
             {
-                if (_productos.Any(p => p.IdProducto == item.Id))
-                {
-                    MostrarError($"«{item.Nombre}» ya está en la carga.");
-                    return;
-                }
+                // Red de seguridad: en la tabla del selector los ya agregados
+                // salen bloqueados y el acumulador esta indexado por id, asi
+                // que por UI no hay forma de llegar duplicado. Se descarta en
+                // silencio — un MostrarError aca se pisaria a si mismo en cada
+                // vuelta del bucle de seleccion multiple.
+                if (_productos.Any(p => p.IdProducto == item.Id)) return;
 
                 _productos.Add(new ProductoEnProceso
                 {

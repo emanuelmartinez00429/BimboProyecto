@@ -131,16 +131,19 @@ Durante la primera carga se muestra un indicador "Cargando camiones en proceso d
 
 Secciones: **1)** Datos del camión · **2)** Productos de la carga. Cada una con su instrucción escrita. *(La tercera sección, «Tara extra», se eliminó en el rediseño 2026-08-13: no se puede pedir por adelantado algo que hay que pesar.)*
 
+Marco fijo de **720×720** (2026-08-19): antes se autoajustaba al contenido. Un `Grid` con tres filas nombradas alterna cuál sección recibe el alto sobrante (`*`) según el paso — Observaciones se estira en el paso 1, la lista de productos en el paso 2 — nunca las dos a la vez, o el sobrante se repartiría 50/50 entre una sección visible y una colapsada. Ver [[Anatomía compartida de los modales]].
+
 > [!important] Regla de borrado de productos
 > Un producto **con pesajes registrados no se puede quitar** (botón deshabilitado + tooltip). Uno agregado por error y sin pesar, sí. Doble guarda: binding + chequeo en el handler.
 
 La sección de Productos **no carga la tabla al abrir** — solo al tocar "Agregar producto" se abre el selector.
 
 ### Selector de productos
-`Modales/SelectorProductosModal` + `SelectorProductosViewModel`. Tabla con código, paginación server-side, buscador con debounce, y toggle "Solo proveedor / Todo el catálogo".
+No es un modal propio de Pesaje: usa `CapaUI/Core/Controls/SelectorCatalogoModal`, el mismo selector genérico que Proveedor (paso 1) y que `ProductoModal`. Hasta el 2026-08-19 existía `Modales/SelectorProductosModal` + `SelectorProductosViewModel`, un picker autocontenido a medida — se **retiró entero** (código y ViewModel) porque duplicaba lo que el genérico ya resuelve, y su `MaxWidth`/`MaxHeight` atados a un `Border` ancestro se rompían al quedar anidado dentro de un modal de 720px. Ver [[Selector de Catálogo - Selector genérico y multiselección]] para el contrato completo.
 
-> [!tip] Por qué no se reutiliza ProductosViewModel
-> Hereda de `RealtimeAwareViewModel`, cuyo **constructor** ya se engancha a `IConexionMonitor`, y en la carga se suscribe a Realtime. Abrir el modal dejaría suscripciones vivas cada vez. El VM del selector es un `ObservableObject` plano, con `PageSize=15` y `Dispose()` que cancela el debounce.
+Config del catálogo: `Catalogos.Productos(_catalogos, prov?.Id, permiteMultiple: true, estaYaElegido: ...)` — acotado al proveedor del paso 1 (puente en 2 pasos producto→fabricante→proveedor, mismo patrón que usaba `PickerProductoRepository`), con checkboxes para agregar varios de una sola apertura, y los productos ya agregados a la carga salen atenuados/bloqueados en la tabla.
+
+Se perdió el toggle "Todo el catálogo" que tenía el picker viejo (el acotamiento por proveedor ahora es fijo) y el `SelectorProductosViewModel` a medida — ya no hace falta, el genérico no depende de `RealtimeAwareViewModel` ni de nada que suscriba a Realtime.
 
 ### Modal de pesaje
 Captura el **peso bruto** y, opcionalmente, la **tara extra de esa pesada**. Todo lo demás es contexto de solo lectura: placa, proveedor, producto, bultos declarados y los cálculos. Muestra los **bultos estimados** en vivo, avisa en ámbar si la estimación es aproximada (sin tara extra) y en rojo si el neto quedaría en cero o negativo — el CHECK de la BD lo rechazaría con una excepción cruda de Postgrest.
@@ -166,8 +169,7 @@ CapaUI/.../Pantallas/Pesaje/
   PesajeView.xaml(.cs)                  — 3 paneles + estado vacío
   PesajeViewModel.cs                    — estado, GuardarProcesoAsync
   Modelos/PesajeModels.cs               — PesajeCalc + modelos de UI
-  Modales/ProcesoDescargaModal          — wizard + megamodal
-  Modales/SelectorProductosModal        — tabla de productos
+  Modales/ProcesoDescargaModal          — wizard + megamodal (720x720, incluye Proveedor y Producto vía SelectorCatalogoModal)
   Modales/PesajeModal                   — la pesada (bruto + tara extra opcional)
   Modales/TaraExtraTotalModal           — tara extra total, repartida entre pesadas
   Modales/ReporteModal                  — cierre de camión
@@ -178,9 +180,11 @@ CapaUI/.../Pantallas/Pesaje/
 Los modales de Pesaje comparten `Modales/PesajeModalStyles.xaml` (prefijo `M`): `MLabel`, `MInput`, `MCombo`, `MSegBtn`, `GhostBtn`, `SolidBtn`, `CloseBtn` y los iconos `MIcoX`.
 
 > [!bug] `ModalSegBtn` NO existe acá — es `MSegBtn`
-> Los modales CRUD (Categoría, Empleado, Producto…) definen `ModalSegBtn` **localmente** en sus propias `UserControl.Resources`. Ese estilo **no es visible** desde los modales de Pesaje: los recursos locales de un UserControl no se comparten con otros. Usar `{StaticResource ModalSegBtn}` acá compila sin error y **revienta en runtime** con `XamlParseException: No se puede encontrar el recurso con el nombre 'ModalSegBtn'`.
+> Los modales de Pesaje usan `MSegBtn` (definido en `PesajeModalStyles.xaml`), no `ModalSegBtn`. Usar `{StaticResource ModalSegBtn}` acá compila sin error y **revienta en runtime** con `XamlParseException: No se puede encontrar el recurso con el nombre 'ModalSegBtn'`, porque un `UserControl` no ve automáticamente los recursos de otro sin merge explícito.
 >
-> Pasó al crear `SelectorProductosModal` (2026-07-26). La solución fue agregar `MSegBtn` al diccionario compartido de Pesaje.
+> Pasó al crear el viejo `SelectorProductosModal` (2026-07-26) — la solución fue agregar `MSegBtn` al diccionario compartido de Pesaje.
+>
+> **Corrección 2026-08-19:** la explicación original decía que `ModalSegBtn` "no es visible desde los modales de Pesaje" porque los CRUD lo definen localmente — **falso**, comprobado auditando el código: `ModalSegBtn` está centralizado en `CapaUI/Resources/Styles.xaml` (global, mergeado en `App.xaml`) desde antes de esa sesión, y **sí** es visible desde cualquier lado, Pesaje incluido. El error real de `XamlParseException` sigue siendo cierto si se escribe `ModalSegBtn` en vez de `MSegBtn` en un modal de Pesaje — pero no por la razón que decía esta nota. `MSegBtn` (Pesaje) y `ModalSegBtn` (global) además divergen en estilo — sin aro de foco `MSegBtn` — ver [[Deuda Técnica - Pendientes|P-042]].
 
 > [!warning] El build verde NO garantiza que los StaticResource resuelvan
 > WPF resuelve `StaticResource` y `FindResource(...)` **en tiempo de ejecución**. Un `dotnet build` con 0 errores puede esconder recursos inexistentes que revientan al abrir el modal. Al crear un XAML nuevo, cruzar sus `StaticResource` contra: sus propias `Resources`, el diccionario que importe, y `CapaUI/Resources/Styles.xaml` (global vía `App.xaml`).
@@ -193,6 +197,8 @@ Los modales de Pesaje comparten `Modales/PesajeModalStyles.xaml` (prefijo `M`): 
 ## Relaciones
 
 - [[Sesión 2026-07-26 - Rediseño del flujo de Pesajes]]
+- [[Sesión 2026-08-19 - Selector de proveedor por tabla y consolidacion de estilos]] — retiro de `SelectorProductosModal`, marco cuadrado, multiselección de productos
+- [[Selector de Catálogo - Selector genérico y multiselección]] — el selector que ahora resuelve Proveedor y Producto acá
 - [[Sesión 2026-07-01 - Pantalla Pesaje WPF y Buscador por Proveedor (Fase 1)]]
 - [[Sesión 2026-07-01 - Pesaje Fase 2 - Persistencia Real]]
 - [[Deuda Técnica - Pendientes]]

@@ -185,12 +185,22 @@
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" x:Name="TxtPie"
-                               Text="Doble clic en una fila para elegirla directamente"
-                               FontFamily="Segoe UI" FontSize="14.5" TextWrapping="Wrap"
-                               Margin="0,0,14,0"
-                               Foreground="#9FB4E2" VerticalAlignment="Center"/>
+                    <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,14,0">
+                        <TextBlock x:Name="TxtPie"
+                                   Text="Doble clic en una fila para elegirla directamente"
+                                   FontFamily="Segoe UI" FontSize="14.5" TextWrapping="Wrap"
+                                   Foreground="#9FB4E2"/>
+                        <!-- Las marcas sobreviven al filtro y a la paginacion, asi que
+                             puede haber N marcados y 0 visibles: sin este conteo el
+                             usuario no tiene forma de saber cuantos va a agregar. -->
+                        <TextBlock x:Name="TxtMarcados" Visibility="Collapsed"
+                                   FontFamily="Segoe UI" FontSize="14.5" FontWeight="Bold"
+                                   Foreground="#34D399" Margin="0,3,0,0"/>
+                    </StackPanel>
                     <StackPanel Grid.Column="1" Orientation="Horizontal">
+                        <Button x:Name="BtnLimpiar" Content="Limpiar marcas" Click="Limpiar_Click"
+                                Visibility="Collapsed"
+                                Style="{StaticResource CatGhostBtn}" Margin="0,0,10,0"/>
                         <Button Content="Cancelar" Click="Cerrar_Click"
                                 Style="{StaticResource CatGhostBtn}" Margin="0,0,10,0"/>
                         <Button x:Name="BtnElegir" Click="Elegir_Click" IsEnabled="False"

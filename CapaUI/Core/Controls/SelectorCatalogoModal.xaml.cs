@@ -57,6 +57,19 @@ public partial class SelectorCatalogoModal : UserControl, IDisposable
     private bool   _dispuesto;
 
     /// <summary>
+    /// Lo tildado en esta apertura, indexado por Id. Es el dueño de la verdad:
+    /// las filas (<see cref="FilaCatalogo"/>) se destruyen y se recrean en cada
+    /// refiltrado, cambio de página y repintado por revalidación, así que la
+    /// selección del usuario no puede vivir en ellas.
+    ///
+    /// Diccionario y no HashSet: al confirmar hace falta el FiltroItem, y en
+    /// modo servidor la fila de otra página ya no existe para darlo. Clave int
+    /// y no la referencia: cada página construye FiltroItem nuevos, así que la
+    /// identidad por referencia se rompe justo donde más falta hace.
+    /// </summary>
+    private readonly Dictionary<int, FiltroItem> _marcados = new();
+
+    /// <summary>
     /// Vive lo que vive el modal. Aparte de <c>_cts</c>, que se recrea en cada
     /// tecla del buscador: acá cuelga la revalidación de fondo, que tiene que
     /// abortarse al cerrar la lupa y no cuando el usuario sigue escribiendo.
@@ -85,8 +98,9 @@ public partial class SelectorCatalogoModal : UserControl, IDisposable
             Dg.Columns.Move(Dg.Columns.IndexOf(ColDescripcion), Dg.Columns.IndexOf(ColNombre));
 
         if (cfg.PermiteMultiple)
-            TxtPie.Text = "Marcá varios y tocá Seleccionar, o doble clic para agregar uno solo.";
+            TxtPie.Text = "Marcá los que necesites y tocá Seleccionar.";
 
+        RefrescarEstadoMarcas();
         Loaded += OnLoaded;
     }
 
@@ -368,32 +382,77 @@ public partial class SelectorCatalogoModal : UserControl, IDisposable
         }
     }
 
+    /// <summary>
+    /// Siembra el tilde desde <see cref="_marcados"/>: una fila recreada (otra
+    /// página, refiltrado, repintado por revalidación) vuelve marcada como estaba.
+    /// </summary>
     private FilaCatalogo CrearFila(FiltroItem item) =>
-        new(item, _cfg.PermiteMultiple, _cfg.EstaYaElegido?.Invoke(item.Id) ?? false);
+        new(item,
+            _cfg.PermiteMultiple,
+            _cfg.EstaYaElegido?.Invoke(item.Id) ?? false,
+            marcado: item.Id is int id && _marcados.ContainsKey(id));
 
-    /// <summary>Filas realmente cargadas ahora mismo (memoria filtrada o la página actual).</summary>
-    private IEnumerable<FilaCatalogo> FilasCargadas() =>
+    /// <summary>Filas materializadas ahora mismo (memoria filtrada o página actual).</summary>
+    private IEnumerable<FilaCatalogo> FilasEnPantalla() =>
         Dg.ItemsSource?.Cast<object>().OfType<FilaCatalogo>() ?? Enumerable.Empty<FilaCatalogo>();
 
-    private void Dg_SelectionChanged(object sender, SelectionChangedEventArgs e) => ActualizarBotonElegir();
+    private void Dg_SelectionChanged(object sender, SelectionChangedEventArgs e) => RefrescarEstadoMarcas();
 
-    /// <summary>El checkbox de una fila cambió — puede habilitar/deshabilitar "Seleccionar".</summary>
-    private void Marcado_Changed(object sender, RoutedEventArgs e) => ActualizarBotonElegir();
-
-    private void ActualizarBotonElegir()
+    /// <summary>
+    /// El checkbox de una fila cambió. Lee el estado del propio CheckBox y no el
+    /// de la fila: así el acumulador queda correcto sin depender de que el
+    /// write-back del binding haya corrido antes que el evento.
+    /// </summary>
+    private void Marcado_Changed(object sender, RoutedEventArgs e)
     {
-        bool hayMarcados = _cfg.PermiteMultiple && FilasCargadas().Any(f => f.Marcado);
-        bool haySeleccionSimple = Dg.SelectedItem is FilaCatalogo f2 && !f2.YaElegido;
-        BtnElegir.IsEnabled = hayMarcados || haySeleccionSimple;
+        // Id nulo entonces fila no marcable. Hoy solo Productos usa PermiteMultiple
+        // y siempre trae id, pero el tipo lo permite y el acumulador necesita clave.
+        if (sender is CheckBox cb && cb.DataContext is FilaCatalogo f && f.Item.Id is int id)
+        {
+            f.Marcado = cb.IsChecked == true;
+            if (f.Marcado) _marcados[id] = f.Item;
+            else           _marcados.Remove(id);
+        }
+
+        RefrescarEstadoMarcas();
+    }
+
+    /// <summary>Botón Elegir, contador y "Limpiar marcas", en un solo lugar.</summary>
+    private void RefrescarEstadoMarcas()
+    {
+        int marcados = _marcados.Count;
+
+        bool haySeleccionSimple = Dg.SelectedItem is FilaCatalogo f && !f.YaElegido;
+        BtnElegir.IsEnabled = marcados > 0 || (!_cfg.PermiteMultiple && haySeleccionSimple);
+
+        // Las marcas sobreviven al filtro y a la paginación, así que puede haber
+        // N marcados y 0 visibles: sin el conteo el usuario no sabe qué va a agregar.
+        var visible = _cfg.PermiteMultiple && marcados > 0 ? Visibility.Visible : Visibility.Collapsed;
+        TxtMarcados.Visibility = visible;
+        BtnLimpiar.Visibility  = visible;
+        TxtMarcados.Text = $"{marcados} marcado{(marcados == 1 ? "" : "s")}";
+    }
+
+    private void Limpiar_Click(object sender, RoutedEventArgs e)
+    {
+        _marcados.Clear();
+
+        // Destildar lo que está en pantalla: FilaCatalogo notifica Marcado, así
+        // que los CheckBox visibles se apagan solos.
+        foreach (var f in FilasEnPantalla()) f.Marcado = false;
+
+        RefrescarEstadoMarcas();
     }
 
     private void Dg_DoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
     {
-        // Doble clic siempre trae solo esa fila, aunque haya otras tildadas —
-        // es el atajo rápido para "quiero esta y listo", no se mete con lo
-        // que el usuario ya venía marcando.
+        // En modo múltiple el doble clic no hace nada: la única forma de
+        // confirmar es el botón, para que un doble clic accidental no descarte
+        // en silencio lo que el usuario venía marcando.
+        if (_cfg.PermiteMultiple) return;
+
         if (Dg.SelectedItem is FilaCatalogo fila && !fila.YaElegido)
-            Seleccionado?.Invoke(fila.Item);
+            Emitir(new[] { fila.Item });
     }
 
     private void Elegir_Click(object sender, RoutedEventArgs e) => Confirmar();
@@ -402,19 +461,35 @@ public partial class SelectorCatalogoModal : UserControl, IDisposable
     {
         if (_cfg.PermiteMultiple)
         {
-            var marcados = FilasCargadas().Where(f => f.Marcado && !f.YaElegido).ToList();
-            if (marcados.Count > 0)
-            {
-                // Uno por uno con el mismo evento de siempre — el que hospeda
-                // el selector ya sabe agregar un ítem por vez, no hace falta
-                // que la interfaz pública cambie a "lista" por esto.
-                foreach (var f in marcados) Seleccionado?.Invoke(f.Item);
-                return;
-            }
+            // EstaYaElegido se re-evalúa acá: el YaElegido de la fila es un
+            // snapshot de cuando se creó y puede haber quedado viejo.
+            var elegidos = _marcados.Values
+                .Where(i => !(_cfg.EstaYaElegido?.Invoke(i.Id) ?? false))
+                .ToList();
+
+            if (elegidos.Count > 0) Emitir(elegidos);
+
+            // Sin marcas no se emite nada: en modo multiple la fila resaltada
+            // NO cuenta como elegida (clickear un checkbox tambien selecciona
+            // su fila, asi que caer al camino simple agregaria justo la ultima
+            // que se toco). Mismo criterio que el doble clic.
+            return;
         }
 
         if (Dg.SelectedItem is FilaCatalogo fila && !fila.YaElegido)
-            Seleccionado?.Invoke(fila.Item);
+            Emitir(new[] { fila.Item });
+    }
+
+    /// <summary>
+    /// Emite lo elegido y recién ahí cierra. El cierre lo dispara el selector y
+    /// no el host: con selección múltiple hay N invocaciones de Seleccionado y el
+    /// host no tiene forma de saber cuál es la última — si cierra en la primera,
+    /// el resto del bucle corre sobre un control ya dispuesto.
+    /// </summary>
+    private void Emitir(IEnumerable<FiltroItem> items)
+    {
+        foreach (var item in items) Seleccionado?.Invoke(item);
+        Cerrado?.Invoke();
     }
 
     private void Cerrar_Click(object sender, RoutedEventArgs e) => Cerrado?.Invoke();
@@ -483,15 +558,16 @@ public partial class SelectorCatalogoModal : UserControl, IDisposable
 
     /// <summary>
     /// Proyección de fila. Envuelve al DTO para no meterle texto de presentación
-    /// (mismo criterio que <c>ProductoSeleccionable</c> en el selector de pesaje).
+    /// (mismo criterio que tenía <c>ProductoSeleccionable</c> en el viejo selector de pesaje, ya retirado).
     /// </summary>
-    private sealed class FilaCatalogo
+    private sealed class FilaCatalogo : INotifyPropertyChanged
     {
-        public FilaCatalogo(FiltroItem item, bool permiteMultiple, bool yaElegido)
+        public FilaCatalogo(FiltroItem item, bool permiteMultiple, bool yaElegido, bool marcado)
         {
             Item            = item;
             PermiteMultiple = permiteMultiple;
             YaElegido       = yaElegido;
+            _marcado        = marcado;
         }
 
         public FiltroItem Item { get; }
@@ -503,10 +579,25 @@ public partial class SelectorCatalogoModal : UserControl, IDisposable
         /// <summary>Ya elegido en otro lado (p. ej. ya está en la carga): fila bloqueada.</summary>
         public bool YaElegido { get; }
 
-        /// <summary>Tildado en esta apertura del selector (modo múltiple). No necesita
-        /// INotifyPropertyChanged: solo lo escribe el checkbox atado con TwoWay, nada
-        /// más lo cambia por afuera.</summary>
-        public bool Marcado { get; set; }
+        private bool _marcado;
+
+        /// <summary>
+        /// Tildado en esta apertura del selector (modo múltiple). Notifica porque
+        /// "Limpiar marcas" lo apaga desde afuera y los CheckBox visibles tienen
+        /// que reflejarlo; el resto de las propiedades son de solo lectura.
+        /// </summary>
+        public bool Marcado
+        {
+            get => _marcado;
+            set
+            {
+                if (_marcado == value) return;
+                _marcado = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Marcado)));
+            }
+        }
+
+        public event PropertyChangedEventHandler? PropertyChanged;
 
         public string Nombre      => Item.Nombre;
         public string Descripcion => Item.Descripcion;

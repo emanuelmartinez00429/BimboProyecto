@@ -34,7 +34,7 @@ public partial class ReporteriaView : UserControl
     {
         if (_vm is null) return; var repo=App.Services.GetRequiredService<ICatalogoRepository>();
         var cfg=tipo switch{"producto"=>Catalogos.Productos(repo),"proveedor"=>Catalogos.Proveedores(repo),_=>Catalogos.Categorias(repo)};
-        _selector=new SelectorCatalogoModal(cfg);_selector.Cerrado+=CerrarModal;_selector.Seleccionado+=item=>{if(tipo=="producto")_vm.ProductoSeleccionado=item;else if(tipo=="proveedor")_vm.ProveedorSeleccionado=item;else _vm.CategoriaSeleccionada=item;CerrarModal();};
+        _selector=new SelectorCatalogoModal(cfg);_selector.Cerrado+=CerrarModal;_selector.Seleccionado+=item=>{if(tipo=="producto")_vm.ProductoSeleccionado=item;else if(tipo=="proveedor")_vm.ProveedorSeleccionado=item;else _vm.CategoriaSeleccionada=item;}; // cierra por el evento Cerrado del selector
         MostrarModal(_selector);
     }
 

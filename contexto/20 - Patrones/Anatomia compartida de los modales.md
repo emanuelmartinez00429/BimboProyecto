@@ -31,6 +31,7 @@ lifecycle: verified
 | `ModalTitulo` / `ModalContexto` | Título y cinta del encabezado | — |
 | `LupaBtnCompartido` | Botón lupa de campo de catálogo, **fondo claro** | Usado en `ReporteriaView` |
 | `LupaBtnOscuro` | Igual, **fondo oscuro** (modales con marco degradado) | `ProductoModal`, `ProcesoDescargaModal` |
+| `TablaCatalogoFila` / `Celda` / `Header` | Tabla blanca (fila/celda/header) sobre modal oscuro — alternas, hover, selección | `SelectorCatalogoModal`, tabla de productos de `ProcesoDescargaModal` |
 
 ---
 
@@ -93,9 +94,9 @@ El pie lleva `Ctrl+Enter para guardar`. El atajo ya funcionaba en casi todos los
 
 Dos casos reales, sesión 2026-08-19:
 
-1. **`LupaBtn` duplicado dos veces.** `ProductoModal` ya tenía su propia copia local de la lupa de campo de catálogo (variante oscura, para su marco degradado). Al agregarle el mismo patrón a `ProcesoDescargaModal`, se copió esa copia local en vez de darse cuenta de que ya existía `LupaBtnCompartido` (variante clara, usada en `ReporteriaView`) en el diccionario global — solo faltaba la variante oscura. Se resolvió centralizando ambas: `LupaBtnCompartido` + `LupaBtnOscuro`, las dos en `Styles.xaml`. Ver [[Sesión 2026-08-19 - Selector de proveedor por tabla y consolidacion de estilos]].
+1. **`LupaBtn` duplicado dos veces.** `ProductoModal` ya tenía su propia copia local de la lupa de campo de catálogo (variante oscura, para su marco degradado). Al agregarle el mismo patrón a `ProcesoDescargaModal`, se copió esa copia local en vez de darse cuenta de que ya existía `LupaBtnCompartido` (variante clara, usada en `ReporteriaView`) en el diccionario global — solo faltaba la variante oscura. Se resolvió centralizando ambas: `LupaBtnCompartido` + `LupaBtnOscuro`, las dos en `Styles.xaml`. Ver [[Sesión 2026-08-19 - Selector de proveedor por tabla y consolidacion de estilos]] y [[Selector de Catálogo - Selector genérico y multiselección]] (el selector que terminó necesitando la variante oscura).
 
-2. **`PesajeModalStyles.xaml` es una familia paralela completa**, no solo un estilo suelto. Los modales de Pesaje (`PesajeModal`, `ProcesoDescargaModal`, `TaraExtraTotalModal`, `SelectorProductosModal`) importan `PesajeModalStyles.xaml` en vez de usar los estilos de esta tabla, con sus propios `MLabel`/`MInput`/`MCombo`/`MSegBtn` — casi-duplicados de `EtiquetaCampo`/`ModalInput`/`ModalCombo`/`ModalSegBtn`, pero **no idénticos**:
+2. **`PesajeModalStyles.xaml` es una familia paralela completa**, no solo un estilo suelto. Los modales de Pesaje (`PesajeModal`, `ProcesoDescargaModal`, `TaraExtraTotalModal`) importan `PesajeModalStyles.xaml` en vez de usar los estilos de esta tabla, con sus propios `MLabel`/`MInput`/`MCombo`/`MSegBtn` — casi-duplicados de `EtiquetaCampo`/`ModalInput`/`ModalCombo`/`ModalSegBtn`, pero **no idénticos**:
    - `MInput`/`MCombo` tienen fuente más chica (13.5 vs 16.5) y **no tienen** el aro verde de foco ni el borde rojo de `validacion:Validacion.TieneError` — los modales de Pesaje no muestran el mismo feedback de validación por campo que el resto de la app.
    - `MSegBtn` tiene el mismo problema (sin aro de foco), y encima el comentario que lo justificaba estaba **basado en una premisa falsa**: decía que `ModalSegBtn` "no es visible desde acá" porque se define local en cada modal CRUD — falso, `ModalSegBtn` está centralizado en `Styles.xaml` desde antes y sí es visible.
    - `MIcoSearch` y `MCombo` eran duplicados sin ningún uso real (`MIcoSearch` idéntico a `IconSearchShared`) y se eliminaron directamente (2026-08-19) — sin efecto visual, estaban muertos.

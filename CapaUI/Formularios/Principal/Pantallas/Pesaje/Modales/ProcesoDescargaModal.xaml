@@ -352,7 +352,7 @@
                                                                  Text="{Binding PesoManifestadoTexto, UpdateSourceTrigger=PropertyChanged}"
                                                                  TextChanged="CampoProducto_Changed"/>
                                                         <TextBlock Text="0.00" FontFamily="Segoe UI" FontSize="13" Foreground="#9CA3AF"
-                                                                   Margin="12,0,0,0" VerticalAlignment="Center" IsHitTestVisible="False"
+                                                                   Margin="13,0,0,0" VerticalAlignment="Center" IsHitTestVisible="False"
                                                                    Visibility="{Binding PesoManifestadoTexto, Converter={StaticResource VacioAVisibilidad}}"/>
                                                     </Grid>
                                                 </DataTemplate>
@@ -366,7 +366,7 @@
                                                                  Text="{Binding BultosDeclaradosTexto, UpdateSourceTrigger=PropertyChanged}"
                                                                  TextChanged="CampoProducto_Changed"/>
                                                         <TextBlock Text="0" FontFamily="Segoe UI" FontSize="13" Foreground="#9CA3AF"
-                                                                   Margin="12,0,0,0" VerticalAlignment="Center" IsHitTestVisible="False"
+                                                                   Margin="13,0,0,0" VerticalAlignment="Center" IsHitTestVisible="False"
                                                                    Visibility="{Binding BultosDeclaradosTexto, Converter={StaticResource VacioAVisibilidad}}"/>
                                                     </Grid>
                                                 </DataTemplate>
