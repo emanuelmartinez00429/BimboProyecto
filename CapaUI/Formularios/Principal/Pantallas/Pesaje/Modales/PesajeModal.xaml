@@ -56,22 +56,22 @@
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="14"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                             <StackPanel Grid.Column="0">
                                 <TextBlock Text="Placa del vehículo" Style="{StaticResource MLabel}"/>
-                                <TextBox x:Name="TxtPlaca" Style="{StaticResource MInput}" IsEnabled="False"/>
+                                <TextBox x:Name="TxtPlaca" Style="{StaticResource MInputDisplay}" IsEnabled="False"/>
                             </StackPanel>
                             <StackPanel Grid.Column="2">
                                 <TextBlock Text="Proveedor" Style="{StaticResource MLabel}"/>
-                                <TextBox x:Name="TxtProveedor" Style="{StaticResource MInput}" IsEnabled="False"/>
+                                <TextBox x:Name="TxtProveedor" Style="{StaticResource MInputDisplay}" IsEnabled="False"/>
                             </StackPanel>
                         </Grid>
                         <Grid Margin="0,0,0,12">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="14"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                             <StackPanel Grid.Column="0">
                                 <TextBlock Text="Fecha / hora de entrada" Style="{StaticResource MLabel}"/>
-                                <TextBox x:Name="TxtFechaHora" Style="{StaticResource MInput}" IsEnabled="False"/>
+                                <TextBox x:Name="TxtFechaHora" Style="{StaticResource MInputDisplay}" IsEnabled="False"/>
                             </StackPanel>
                             <StackPanel Grid.Column="2">
                                 <TextBlock Text="Código de producto" Style="{StaticResource MLabel}"/>
-                                <TextBox x:Name="TxtCodigo" Style="{StaticResource MInput}" IsEnabled="False"/>
+                                <TextBox x:Name="TxtCodigo" Style="{StaticResource MInputDisplay}" IsEnabled="False"/>
                             </StackPanel>
                         </Grid>
 
@@ -96,11 +96,11 @@
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="14"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                             <StackPanel Grid.Column="0">
                                 <TextBlock Text="Peso tara individual (kg)" Style="{StaticResource MLabel}"/>
-                                <TextBox x:Name="TxtTaraInd" Style="{StaticResource MInput}" IsEnabled="False"/>
+                                <TextBox x:Name="TxtTaraInd" Style="{StaticResource MInputDisplay}" IsEnabled="False"/>
                             </StackPanel>
                             <StackPanel Grid.Column="2">
                                 <TextBlock Text="Peso tara total (kg)" Style="{StaticResource MLabel}"/>
-                                <TextBox x:Name="TxtTaraTotal" Style="{StaticResource MInput}" IsEnabled="False"/>
+                                <TextBox x:Name="TxtTaraTotal" Style="{StaticResource MInputDisplay}" IsEnabled="False"/>
                             </StackPanel>
                         </Grid>
 
@@ -109,22 +109,22 @@
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="14"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                             <StackPanel Grid.Column="0">
                                 <TextBlock Text="Bultos declarados" Style="{StaticResource MLabel}"/>
-                                <TextBox x:Name="TxtBultosDeclarados" Style="{StaticResource MInput}" IsEnabled="False"/>
+                                <TextBox x:Name="TxtBultosDeclarados" Style="{StaticResource MInputDisplay}" IsEnabled="False"/>
                             </StackPanel>
                             <StackPanel Grid.Column="2">
                                 <TextBlock Text="Bultos estimados (calculado)" Style="{StaticResource MLabel}"/>
-                                <TextBox x:Name="TxtBultosEstimados" Style="{StaticResource MInput}" IsEnabled="False"/>
+                                <TextBox x:Name="TxtBultosEstimados" Style="{StaticResource MInputDisplay}" IsEnabled="False"/>
                             </StackPanel>
                         </Grid>
                         <Grid Margin="0,0,0,12">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="14"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                             <StackPanel Grid.Column="0">
                                 <TextBlock Text="Peso neto — este pesaje (kg)" Style="{StaticResource MLabel}"/>
-                                <TextBox x:Name="TxtNeto" Style="{StaticResource MInput}" IsEnabled="False" FontWeight="Bold"/>
+                                <TextBox x:Name="TxtNeto" Style="{StaticResource MInputDisplay}" IsEnabled="False" FontWeight="Bold"/>
                             </StackPanel>
                             <StackPanel Grid.Column="2">
                                 <TextBlock Text="Peso neto total acumulado (kg)" Style="{StaticResource MLabel}"/>
-                                <TextBox x:Name="TxtNetoTotal" Style="{StaticResource MInput}" IsEnabled="False" FontWeight="Bold"/>
+                                <TextBox x:Name="TxtNetoTotal" Style="{StaticResource MInputDisplay}" IsEnabled="False" FontWeight="Bold"/>
                             </StackPanel>
                         </Grid>
                         <TextBlock Text="Observaciones" Style="{StaticResource MLabel}"/>
@@ -174,14 +174,24 @@
                             <TextBlock x:Name="TxtGuardando" Text="Guardando…" Visibility="Collapsed" VerticalAlignment="Center"
                                        FontFamily="Segoe UI" FontSize="11.5" Foreground="#99FFFFFF" Margin="0,0,12,0"/>
                             <Button x:Name="BtnVolver" Content="Volver" Style="{StaticResource GhostBtn}" Margin="0,0,10,0" Click="Cerrar_Click"/>
-                            <Button x:Name="BtnSeguir" Content="Seguir pesando" Style="{StaticResource GhostBtn}" Margin="0,0,10,0" Click="Seguir_Click"/>
-                            <Button x:Name="BtnCerrarCamion" Style="{StaticResource SolidBtn}" Click="CerrarCamion_Click">
+                            <!-- Cierra el PRODUCTO que se está pesando (no el camión entero —
+                                 eso se hace desde la pantalla principal). Rojo pálido y no
+                                 verde: termina algo (no se puede seguir pesando este producto
+                                 después) pero no borra nada, así que tampoco es el mismo tono
+                                 que "Quitar". Pide confirmación en el code-behind por si se
+                                 toca sin querer al lado de "Seguir pesando". -->
+                            <Button x:Name="BtnTerminarProducto" Style="{StaticResource WarnBtn}" Margin="0,0,10,0" Click="TerminarProducto_Click">
                                 <StackPanel Orientation="Horizontal">
                                     <Path Data="{StaticResource MIcoCheck}" Stroke="White" StrokeThickness="2.6" Width="14" Height="14" Stretch="Uniform"
                                           Margin="0,0,6,0" VerticalAlignment="Center" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
-                                    <TextBlock Text="Cerrar camión" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Terminar de pesar" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>
+                            <!-- Acción principal (seguir agregando pesadas): verde, sólida y a
+                                 la orilla derecha — la posición y el color que antes tenía
+                                 "Cerrar camión", que es el gesto que termina/consecuencia
+                                 mayor, no el que se repite más seguido. -->
+                            <Button x:Name="BtnSeguir" Content="Seguir pesando" Style="{StaticResource SolidBtn}" Click="Seguir_Click"/>
                         </StackPanel>
                     </Grid>
                 </Border>

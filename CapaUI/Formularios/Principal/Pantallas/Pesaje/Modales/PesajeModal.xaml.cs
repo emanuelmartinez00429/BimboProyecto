@@ -20,7 +20,13 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
         /// </summary>
         public event Func<EntradaPesaje, Task<bool>>? GuardarYSeguir;
 
-        public event Func<EntradaPesaje?, Task>? CerrarCamion;
+        /// <summary>
+        /// "Terminar de pesar" — cierra el PRODUCTO que se está pesando en este
+        /// modal (equivalente a tildar su chip de estado en la tabla de
+        /// Movimiento), no el camión entero. Cerrar el camión completo es una
+        /// acción aparte, disponible desde la pantalla principal.
+        /// </summary>
+        public event Func<EntradaPesaje?, Task>? TerminarProducto;
 
         private readonly ProductoCamion _producto;
         private readonly double _taraInd;
@@ -164,7 +170,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
 
             TxtGuardando.Visibility  = guardando ? Visibility.Visible : Visibility.Collapsed;
             BtnVolver.IsEnabled      = !guardando;
-            BtnCerrarCamion.IsEnabled = !guardando;
+            BtnTerminarProducto.IsEnabled = !guardando;
             TxtBruto.IsEnabled       = !guardando;
             TxtTaraExtraEntrada.IsEnabled = !guardando;
             TxtObs.IsEnabled         = !guardando;
@@ -230,19 +236,31 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
             }
         }
 
-        private async void CerrarCamion_Click(object sender, RoutedEventArgs e)
+        private async void TerminarProducto_Click(object sender, RoutedEventArgs e)
         {
-            if (_guardando || CerrarCamion is null) return;
+            if (_guardando || TerminarProducto is null) return;
+
+            // Confirma antes de terminar: es el botón que queda al lado de "Seguir
+            // pesando" (el que se clickea seguido), así que un toque accidentalmente
+            // trae aparejado cerrar el producto — más caro de deshacer que perder un
+            // clic. Mismo patrón que ConfirmacionEstado (MessageBox nativo,
+            // YesNo/Warning, default en No).
+            var confirmar = MessageBox.Show(
+                "Este producto va a quedar cerrado y no se van a poder registrar más " +
+                "pesadas para él.\n\n¿Confirmás que terminaste de pesarlo?",
+                "Terminar de pesar",
+                MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No);
+            if (confirmar != MessageBoxResult.Yes) return;
 
             var snapshot = Valido ? Snapshot() : null;
             AplicarEstadoGuardando(true);
             try
             {
-                await CerrarCamion(snapshot);
+                await TerminarProducto(snapshot);
             }
             catch (Exception ex)
             {
-                Serilog.Log.Error(ex, "PesajeModal: falló el cierre del camión");
+                Serilog.Log.Error(ex, "PesajeModal: falló el cierre del producto");
             }
             finally
             {

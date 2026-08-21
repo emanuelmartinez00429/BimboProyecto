@@ -111,7 +111,10 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             BtnCamionAgregar.IsEnabled   = _vm.PuedeAgregarCamion;
             BtnCamionEditar.IsEnabled    = hayCamion && !cerrado;
             BtnCamionQuitar.IsEnabled    = hayCamion;
-            BtnCamionDescargar.IsEnabled = hayCamion && !cerrado;
+            BtnCamionCerrar.IsEnabled     = hayCamion && !cerrado;
+            // El reporte se puede reimprimir aunque el camión ya esté cerrado — ya
+            // no depende de cerrarlo, así que su único requisito es tener uno seleccionado.
+            BtnImprimirReporte.IsEnabled = hayCamion;
             BtnCerrarTodos.IsEnabled     = _vm.CamionesActivos > 0;
 
             // Agregar/editar/quitar productos vive en el megamodal; acá solo se pesa.
@@ -326,13 +329,24 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             ActualizarUI();
         }
 
-        private async void BtnCamionDescargar_Click(object sender, RoutedEventArgs e)
+        /// <summary>
+        /// Cierra el camión seleccionado. Ya no abre el reporte — eso es
+        /// "Imprimir reporte" (<see cref="BtnImprimirReporte_Click"/>), independiente.
+        /// </summary>
+        private async void BtnCamionCerrar_Click(object sender, RoutedEventArgs e)
         {
-            var camion = _vm.SelectedCamion;
-            if (camion == null || _vm.CamionCerrado) return;
-            bool ok = await _vm.DescargarCamionAsync();
+            if (_vm.SelectedCamion == null || _vm.CamionCerrado) return;
+            await _vm.DescargarCamionAsync();
             ActualizarUI();
-            if (ok) AbrirReporte(new List<CamionPesaje> { camion });
+        }
+
+        /// <summary>
+        /// Abre el reporte del camión seleccionado, esté abierto o cerrado — antes
+        /// esto solo pasaba como efecto secundario de cerrarlo con "Descargar".
+        /// </summary>
+        private void BtnImprimirReporte_Click(object sender, RoutedEventArgs e)
+        {
+            if (_vm.SelectedCamion is { } camion) AbrirReporte(new List<CamionPesaje> { camion });
         }
 
         // ── Productos ────────────────────────────────────────────────────────
@@ -448,16 +462,21 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
                 ActualizarUI();
                 return ok;
             };
-            modal.CerrarCamion += async snap =>
+            // "Terminar de pesar" cierra el PRODUCTO, no el camión — mismo cambio de
+            // estado que el chip de la tabla de Movimiento (EstadoProducto_Click),
+            // solo que desde acá con la última pesada guardada primero si quedó algo
+            // sin guardar. Cerrar el camión entero vive aparte, en el footer principal.
+            modal.TerminarProducto += async snap =>
             {
                 if (snap != null && !await _vm.GuardarEntradaAsync(producto, snap, modal.EntradaEnEdicion))
-                    return;   // el VM ya avisó por Toast; no se cierra un camión con la pesada perdida
+                    return;   // el VM ya avisó por Toast; no se cierra el producto con la pesada perdida
 
-                var camion = _vm.SelectedCamion;
-                bool ok = await _vm.DescargarCamionAsync();
+                if (producto.Estado == "Abierto")
+                    await _vm.ToggleEstadoProductoAsync(producto);
+
+                SincronizarSeleccion();
                 ActualizarUI();
-                if (ok && camion != null) AbrirReporte(new List<CamionPesaje> { camion });
-                else CerrarModal();
+                CerrarModal();
             };
             MostrarModal(modal);
         }

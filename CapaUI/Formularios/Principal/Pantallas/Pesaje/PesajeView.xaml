@@ -211,6 +211,8 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="14"/>
                 <RowDefinition Height="*"/>
+                <RowDefinition Height="14"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
             <!-- ══ HEADER ══ -->
@@ -252,14 +254,6 @@
                             <TextBlock Text="{Binding CamionesActivos}" FontFamily="Segoe UI" FontSize="15" FontWeight="Bold" Foreground="#047857" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Border>
-                    <Button x:Name="BtnCerrarTodos" Style="{StaticResource ToolBtn}" Height="36" Click="BtnCerrarTodos_Click">
-                        <StackPanel Orientation="Horizontal">
-                            <Path Data="{StaticResource IcoCheckDbl}" Stroke="{DynamicResource EmpresaPrimaryBrush}" StrokeThickness="2"
-                                  StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                                  Width="14" Height="14" Stretch="Uniform" Margin="0,0,7,0" VerticalAlignment="Center"/>
-                            <TextBlock Text="Cerrar todos los camiones" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </Button>
                 </StackPanel>
             </Grid>
 
@@ -432,10 +426,14 @@
                                     <TextBlock Text="Quitar" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>
-                            <Button x:Name="BtnCamionDescargar" Style="{StaticResource ToolSuccess}" Margin="4,0,0,0" Click="BtnCamionDescargar_Click">
+                            <!-- Cierra el camión seleccionado. Separado de "Imprimir reporte"
+                                 (que se movió abajo, junto a "Cerrar todos los camiones"):
+                                 antes era un solo botón que hacía las dos cosas juntas; ahora
+                                 son dos decisiones independientes. -->
+                            <Button x:Name="BtnCamionCerrar" Style="{StaticResource ToolSuccess}" Margin="4,0,0,0" Click="BtnCamionCerrar_Click">
                                 <StackPanel Orientation="Horizontal">
-                                    <Path Data="{StaticResource IcoDownload}" Stroke="White" StrokeThickness="2.2" Width="13" Height="13" Stretch="Uniform" Margin="0,0,7,0" VerticalAlignment="Center" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
-                                    <TextBlock Text="Descargar" VerticalAlignment="Center"/>
+                                    <Path Data="{StaticResource IcoCheck}" Stroke="White" StrokeThickness="2.4" Width="13" Height="13" Stretch="Uniform" Margin="0,0,7,0" VerticalAlignment="Center" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                                    <TextBlock Text="Cerrar camión" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>
                         </UniformGrid>
@@ -522,7 +520,7 @@
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
                                                 <StackPanel Margin="10,4" VerticalAlignment="Center">
-                                                    <Border Height="5" Background="#E7EDF5" CornerRadius="999" ClipToBounds="True">
+                                                    <Border Height="5" Background="#E7EDF5" CornerRadius="2" ClipToBounds="True">
                                                         <Border CornerRadius="2" HorizontalAlignment="Stretch"
                                                                 Background="{Binding ProgresoColor}"
                                                                 RenderTransformOrigin="0,0">
@@ -859,6 +857,41 @@
                 </Grid>
                 </Border>
             </Grid>
+
+            <!-- ══ FOOTER: reporte + cierre masivo ══
+                 "Cerrar todos los camiones" se movió acá desde el header: es una
+                 acción masiva y poco frecuente (cierra TODOS los camiones abiertos
+                 a la vez), no algo que necesite competir por espacio junto al
+                 título en cada pantallazo. La fila "*" del cuerpo se acomoda sola
+                 al alto que deja este Auto — no hace falta tocar los paneles.
+
+                 "Imprimir reporte" (antes "Descargar", que además cerraba el
+                 camión) vive acá, a la izquierda: ahora es independiente de
+                 cerrarlo — se puede reimprimir en cualquier momento, esté el
+                 camión abierto o cerrado. Cerrar un camión puntual sigue en su
+                 propio panel de Camiones ("Cerrar camión"). -->
+            <Border Grid.Row="4" BorderBrush="#D8E1EC" BorderThickness="0,1,0,0" Padding="0,14,0,0">
+                <Grid>
+                    <Button x:Name="BtnImprimirReporte" Style="{StaticResource ToolBtn}" Height="36"
+                            HorizontalAlignment="Left" Click="BtnImprimirReporte_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="{StaticResource IcoDownload}" Stroke="{DynamicResource EmpresaPrimaryBrush}" StrokeThickness="2.2"
+                                  StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                  Width="14" Height="14" Stretch="Uniform" Margin="0,0,7,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Imprimir reporte" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                    <Button x:Name="BtnCerrarTodos" Style="{StaticResource ToolBtn}" Height="36"
+                            HorizontalAlignment="Right" Click="BtnCerrarTodos_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="{StaticResource IcoCheckDbl}" Stroke="{DynamicResource EmpresaPrimaryBrush}" StrokeThickness="2"
+                                  StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                  Width="14" Height="14" Stretch="Uniform" Margin="0,0,7,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Cerrar todos los camiones" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                </Grid>
+            </Border>
         </Grid>
 
         <!-- ══ CARGA INICIAL ══

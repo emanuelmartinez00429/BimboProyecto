@@ -69,6 +69,48 @@
         </Setter>
     </Style>
 
+    <!-- Campo de SOLO CONTEXTO (dato que el modal ya trae, nunca se escribe acá:
+         placa, proveedor, fecha/hora, código de producto). No es el mismo caso
+         que un campo editable temporalmente deshabilitado mientras guarda — por
+         eso no reusa el trigger IsEnabled de MInput, que lo dejaría gris apenas
+         un instante: este siempre se ve así, deshabilitado o no. Caja traslúcida
+         sobre el azul del modal (mismo tono que PasoChip/CodeChip, #1AFFFFFF) y
+         texto verde menta en vez del texto oscuro sobre fondo blanco de MInput —
+         se lee como dato ya confirmado, no como algo pendiente de llenar. -->
+    <Style x:Key="MInputDisplay" TargetType="TextBox">
+        <Setter Property="Height" Value="36"/>
+        <!-- Más margen a la izquierda que MInput (10): acá deja lugar a la
+             barrita verde de acento sin que el texto le quede pegado. -->
+        <Setter Property="Padding" Value="17,0,10,0"/>
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontSize" Value="13.5"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Foreground" Value="#6EE7B7"/>
+        <Setter Property="Background" Value="#1AFFFFFF"/>
+        <Setter Property="BorderBrush" Value="#26FFFFFF"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="controls:TextoResponsivo.Activo" Value="True"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TextBox">
+                    <Grid>
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6"/>
+                        <!-- La barrita verde de acento, no un ícono — el elemento del
+                             mockup de referencia que sí se pidió conservar. -->
+                        <Border Width="3" Margin="2" HorizontalAlignment="Left"
+                                Background="#34D399" CornerRadius="2"/>
+                        <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}"
+                                      VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <!-- MCombo (ComboBox de modal) se sacó (2026-08-19): quedó sin ningún uso
          al migrar el Proveedor de ProcesoDescargaModal de ComboBox a
          SelectorCatalogoModal. Si algún modal de Pesaje vuelve a necesitar un
@@ -171,6 +213,60 @@
                             CornerRadius="6" Padding="{TemplateBinding Padding}">
                         <Border.Effect>
                             <DropShadowEffect Color="#16A34A" BlurRadius="8" ShadowDepth="2" Opacity="0.4"/>
+                        </Border.Effect>
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Bd" Property="RenderTransform">
+                                <Setter.Value><TranslateTransform Y="1"/></Setter.Value>
+                            </Setter>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="Bd" Property="Background" Value="#94A3B8"/>
+                            <Setter TargetName="Bd" Property="Effect" Value="{x:Null}"/>
+                            <Setter Property="Cursor" Value="Arrow"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Botón sólido de advertencia (rojo pálido/rosáceo) — para acciones con
+         consecuencias que no son destructivas (no borran nada) pero sí
+         cierran/terminan algo y conviene que no se confundan con la acción
+         principal en verde. Más suave que el #DC2626 que el proyecto reserva
+         para "Quitar"/eliminar (ese es plano, sin degradé; este es un tono
+         apagado, no un rojo de alarma) — el ámbar de la primera versión
+         chillaba demasiado contra el fondo azul del modal. -->
+    <Style x:Key="WarnBtn" TargetType="Button">
+        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="BorderBrush" Value="#DC7A7A"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontSize" Value="13.5"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="Padding" Value="22,9"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="Background">
+            <Setter.Value>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                    <GradientStop Color="#E38A8A" Offset="0"/>
+                    <GradientStop Color="#D66E6E" Offset="1"/>
+                </LinearGradientBrush>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Bd" Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="6" Padding="{TemplateBinding Padding}">
+                        <Border.Effect>
+                            <DropShadowEffect Color="#D66E6E" BlurRadius="8" ShadowDepth="2" Opacity="0.35"/>
                         </Border.Effect>
                         <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Border>

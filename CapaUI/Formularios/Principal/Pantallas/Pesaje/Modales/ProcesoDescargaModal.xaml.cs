@@ -205,10 +205,14 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
             // En wizard cada paso va solo: el separador sobra.
             SepCamion.Visibility    = Visibility.Collapsed;
 
-            // Solo la sección visible recibe la fila "*" — así llena todo el
-            // marco cuadrado ella sola (Observaciones en el paso 1, la lista
-            // de productos en el paso 2).
-            ConfigurarFilas(camionEstrella: _paso == 1, productosEstrella: _paso == 2);
+            // Solo Productos recibe la fila "*" — la lista se beneficia de llenar
+            // el marco cuadrado. Camión NUNCA la recibe (ni acá ni en el megamodal,
+            // ver MostrarTodasLasSecciones): si la tuviera, Observaciones (la única
+            // fila "*" dentro de SecCamion) se estira para llenar todo el paso 1 y
+            // queda como una caja vacía enorme. Se deja en su MinHeight de siempre,
+            // igual que en modo edición — el paso 1 del wizard queda con aire abajo,
+            // que es preferible a un TextBox gigante sin contenido.
+            ConfigurarFilas(camionEstrella: false, productosEstrella: _paso == 2);
 
             TxtEyebrow.Text      = $"PASO {_paso} DE {TotalPasos}";
             BtnAtras.Visibility  = _paso > 1 ? Visibility.Visible : Visibility.Collapsed;

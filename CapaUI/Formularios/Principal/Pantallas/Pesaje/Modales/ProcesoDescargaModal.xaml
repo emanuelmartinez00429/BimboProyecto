@@ -223,12 +223,14 @@
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
-                            <!-- Observaciones: estira para llenar lo que sobre del
-                                 marco cuadrado cuando este es el único paso visible
-                                 (wizard paso 1). MinHeight conserva el alto original
-                                 cuando la fila padre es Auto (modo edición, con
-                                 Productos abajo pidiendo el "*") — ver Anatomía
-                                 compartida de los modales. -->
+                            <!-- Observaciones: la fila "*" existe para permitirle crecer
+                                 SI su fila padre (RowSecCamion) llegara a ser "*" — pero
+                                 eso ya no pasa en ningún modo (ver ConfigurarFilas en el
+                                 code-behind: Camión nunca recibe la fila "*", ni en wizard
+                                 ni en megamodal). En la práctica RowSecCamion siempre es
+                                 Auto, así que esta fila se queda en su MinHeight — igual
+                                 en wizard paso 1 y en modo edición. Ver Anatomía compartida
+                                 de los modales. -->
                             <RowDefinition Height="*" MinHeight="56"/>
                         </Grid.RowDefinitions>
 
