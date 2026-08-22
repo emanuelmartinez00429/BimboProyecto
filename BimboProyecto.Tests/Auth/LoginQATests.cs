@@ -1,4 +1,4 @@
-﻿using CapaDominio.Reglas;
+using CapaDominio.Reglas;
 using Xunit;
 
 namespace BimboProyecto.Tests.Auth;
@@ -276,7 +276,9 @@ public sealed class P2_FortalezaContrasenna
 
     [Fact]
     public void ConMayuscula_NumeroYEspecial_Score4()
-        => Assert.Equal(4, Score("Bimbo1!"));
+        // "Bimbo12!" tiene 8 chars: longitud>=8 + mayus + numero + especial = 4 puntos.
+        // No llega a 12 chars, por lo que NO suma el quinto punto.
+        => Assert.Equal(4, Score("Bimbo12!"));
 
     [Fact]
     public void MasDe12_MayusNum_Especial_Score5()
