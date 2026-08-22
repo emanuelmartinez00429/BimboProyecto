@@ -1,12 +1,21 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using CapaAplicacion.Pesaje.Dtos;
 using CapaAplicacion.Pesaje.Interfaces;
+using CapaAplicacion.Reportes.Dtos;
+using CapaAplicacion.Reportes.Interfaces;
 using CapaAplicacion.Usuarios.Interfaces;
+using CapaDominio.Reportes;
+using CapaUI.Core.Empresa;
+using CapaUI.Core.MVVM;
 using CapaUI.Formularios.Principal.Pantallas.Pesaje.Modelos;
 using CommunityToolkit.Mvvm.ComponentModel;
+using Newtonsoft.Json;
 
 namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
 {
@@ -25,9 +34,19 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
 
         private readonly IPesajeRepository _repo;
         private readonly IUsuarioSesionService _sesionService;
+        private readonly IReportGeneratorService _reportGenerator;
+        private readonly IReporteRepository _reporteRepository;
+        private readonly LogoEmpresaCache _logoCache;
 
-        public ObservableCollection<CamionPesaje>  Camiones      { get; } = new();
-        public ObservableCollection<EntradaPesaje> FilasEntradas { get; } = new();
+        public ObservableCollection<CamionPesaje> Camiones { get; } = new();
+
+        /// <summary>
+        /// RangeObservableCollection y no ObservableCollection: se reconstruye entera en
+        /// cada cambio de producto/camión (ver <see cref="RecalcularFilas"/>), y con
+        /// Clear()+Add() por fila cada reconstrucción disparaba un CollectionChanged por
+        /// fila — visible como demora al cambiar de producto con varias filas.
+        /// </summary>
+        public RangeObservableCollection<EntradaPesaje> FilasEntradas { get; } = new();
 
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(CamionCerrado))]
@@ -45,6 +64,8 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
         [NotifyPropertyChangedFor(nameof(MostrarEstadoVacio))]
         private bool _isLoading;
 
+        [ObservableProperty] private bool _isGeneratingReport;
+
         /// <summary>
         /// Hay al menos un camión (placa) con 2+ recepciones abiertas en la lista. Controla
         /// que TODOS los encabezados de placa se muestren en <see cref="Camiones"/> —
@@ -52,6 +73,14 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
         /// vez de decidirlo grupo por grupo.
         /// </summary>
         [ObservableProperty] private bool _hayPlacaCompartida;
+
+        /// <summary>
+        /// Cambiar de camión sí pega a la base (<see cref="CargarProductosAsync"/>) — a
+        /// diferencia de cambiar de producto, que es en memoria. Sin este flag la tabla de
+        /// productos/entradas se quedaba mostrando el camión anterior hasta que respondía
+        /// la consulta, sin ningún indicio de que algo estaba pasando.
+        /// </summary>
+        [ObservableProperty] private bool _cargandoProductos;
 
         public bool HayCamion     => SelectedCamion is not null;
         public bool HayProducto   => SelectedProducto is not null;
@@ -103,10 +132,267 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
 
         public event Action<string>? Toast;
 
-        public PesajeViewModel(IPesajeRepository repo, IUsuarioSesionService sesionService)
+        public PesajeViewModel(
+            IPesajeRepository repo, 
+            IUsuarioSesionService sesionService,
+            IReportGeneratorService reportGenerator,
+            IReporteRepository reporteRepository,
+            LogoEmpresaCache logoCache)
         {
             _repo = repo;
             _sesionService = sesionService;
+            _reportGenerator = reportGenerator;
+            _reporteRepository = reporteRepository;
+            _logoCache = logoCache;
+        }
+
+        public async Task<bool> GenerarReportePesajesAsync(
+            ReportFormat formato,
+            string rutaFinal,
+            IReadOnlyList<CamionPesaje> camionesAExportar,
+            CancellationToken ct = default)
+        {
+            if (camionesAExportar == null || camionesAExportar.Count == 0)
+            {
+                Toast?.Invoke("No hay camiones seleccionados para generar el reporte.");
+                return false;
+            }
+
+            var sesion = _sesionService.SesionActual;
+            if (sesion is null)
+            {
+                Toast?.Invoke("No hay una sesión activa; no se puede generar el reporte.");
+                return false;
+            }
+
+            string? directorio = Path.GetDirectoryName(rutaFinal);
+            if (string.IsNullOrWhiteSpace(directorio) || !Directory.Exists(directorio))
+            {
+                Toast?.Invoke("La ubicación elegida para el reporte no es válida.");
+                return false;
+            }
+
+            IsGeneratingReport = true;
+            string rutaTemporal = Path.Combine(
+                directorio,
+                $".{Path.GetFileName(rutaFinal)}.{Guid.NewGuid():N}.tmp");
+
+            try
+            {
+                DateTime generado = DateTime.Now;
+                string tipo = formato == ReportFormat.Pdf ? "PDF" : "Excel";
+                string nombre = $"Pesado de Insumos BES - {generado:yyyyMMdd-HHmmss}";
+
+                byte[]? logoBytes = null;
+                var rutaLogo = _logoCache.ObtenerRutaCacheadaSinRed();
+                if (rutaLogo != null && File.Exists(rutaLogo))
+                {
+                    try { logoBytes = await File.ReadAllBytesAsync(rutaLogo, ct); } catch { }
+                }
+
+                // Construcción de filas consolidadas (un producto = una fila consolidada)
+                var rows = new List<IReadOnlyList<object?>>();
+                double totalManifestado = 0;
+                double totalBruto = 0;
+                double totalTara = 0;
+                double totalNeto = 0;
+                double totalBultos = 0;
+
+                var metadataFiltros = new List<ReportMetadataDto>();
+                if (camionesAExportar.Count == 1)
+                {
+                    var c = camionesAExportar[0];
+                    metadataFiltros.Add(new("Placa del camión", c.Placa));
+                    metadataFiltros.Add(new("Proveedor", c.Proveedor));
+                    metadataFiltros.Add(new("Estado del camión", c.Estado));
+                    if (!string.IsNullOrWhiteSpace(c.FechaAsignacion))
+                        metadataFiltros.Add(new("Fecha de asignación", c.FechaAsignacion));
+                }
+                else
+                {
+                    metadataFiltros.Add(new("Alcance", $"{camionesAExportar.Count} camiones seleccionados"));
+                    metadataFiltros.Add(new("Placas", string.Join(", ", camionesAExportar.Select(c => c.Placa).Distinct())));
+                }
+
+                var idsMovimientos = new List<int>();
+
+                foreach (var camion in camionesAExportar)
+                {
+                    idsMovimientos.Add(camion.Id);
+
+                    // Si el camión no tiene productos cargados en memoria, los cargamos del repo
+                    var productos = camion.Productos;
+                    if (productos == null || productos.Count == 0)
+                    {
+                        var prodRes = await _repo.GetProductosAsync(camion.Id, ct);
+                        if (prodRes.Success && prodRes.Value != null)
+                        {
+                            foreach (var pDto in prodRes.Value)
+                            {
+                                var pModel = MapProducto(pDto, camion.Proveedor);
+                                camion.Productos.Add(pModel);
+                            }
+                        }
+                    }
+
+                    foreach (var prod in camion.Productos)
+                    {
+                        // Totales del producto consolidado
+                        double pesoBrutoProd = prod.Entradas.Sum(e => e.Bruto);
+                        double pesoTaraProd  = prod.Entradas.Sum(e => e.TaraTotal);
+                        double pesoNetoProd  = prod.Entradas.Sum(e => e.Neto); // o prod.PesoRecibido
+                        double pesoManifestadoProd = prod.PesoManifestado;
+                        double bultosProd = prod.Entradas.Sum(e => e.BultosCapturados ?? e.BultosTeoricos ?? 0);
+                        if (bultosProd <= 0 && prod.BultosRecibidos > 0)
+                            bultosProd = prod.BultosRecibidos;
+
+                        double difKg = pesoNetoProd - pesoManifestadoProd;
+                        double difPct = pesoManifestadoProd > 0 
+                            ? (difKg / pesoManifestadoProd) 
+                            : 0;
+
+                        totalManifestado += pesoManifestadoProd;
+                        totalBruto       += pesoBrutoProd;
+                        totalTara        += pesoTaraProd;
+                        totalNeto        += pesoNetoProd;
+                        totalBultos      += bultosProd;
+
+                        // Columnas según Figura 28 ("Pesado de Insumos BES"):
+                        // 1. Fecha Asignación
+                        // 2. Placa (si son varios camiones) o Producto
+                        // 3. Producto
+                        // 4. Proveedor
+                        // 5. Bultos Recibidos (Aprox.)
+                        // 6. Peso Teórico / Manifestado
+                        // 7. Peso Bruto
+                        // 8. Peso Tara
+                        // 9. Peso Recibido / Neto
+                        // 10. Diferencia (KG)
+                        // 11. Diferencia (%)
+                        rows.Add(new object?[]
+                        {
+                            camion.FechaAsignacion,
+                            camion.Placa,
+                            $"{prod.ProductoCodigo} - {prod.ProductoNombre}".Trim(' ', '-'),
+                            string.IsNullOrWhiteSpace(prod.ProveedorNombre) ? camion.Proveedor : prod.ProveedorNombre,
+                            bultosProd,
+                            pesoManifestadoProd,
+                            pesoBrutoProd,
+                            pesoTaraProd,
+                            pesoNetoProd,
+                            difKg,
+                            difPct
+                        });
+                    }
+                }
+
+                double difTotalKg = totalNeto - totalManifestado;
+                double difTotalPct = totalManifestado > 0 ? (difTotalKg / totalManifestado) : 0;
+
+                var documento = new TabularReportDto
+                {
+                    Title = "Pesado de Insumos BES",
+                    GeneratedAt = generado,
+                    Author = new ReportAuthorDto
+                    {
+                        Email = sesion.Email,
+                        NombreEmpleado = sesion.NombreEmpleado,
+                        ApellidoEmpleado = sesion.ApellidoEmpleado,
+                        Rol = sesion.NombreRol,
+                    },
+                    Branding = new ReportBrandingDto
+                    {
+                        CompanyName = "Bimbo Honduras",
+                        LogoBytes = logoBytes,
+                    },
+                    SheetName = "Pesaje de Insumos",
+                    Landscape = true,
+                    Filters = metadataFiltros,
+                    Columns = new List<ReportColumnDto>
+                    {
+                        new("FECHA ASIG.", "dd/MM/yyyy", 2.2),
+                        new("PLACA", null, 1.8),
+                        new("PRODUCTO", null, 4.2),
+                        new("PROVEEDOR", null, 3.2),
+                        new("BULTOS (APROX)", "N2", 2.2),
+                        new("PESO MANIFESTADO", "N2", 2.5),
+                        new("PESO BRUTO", "N2", 2.2),
+                        new("PESO TARA", "N2", 2.0),
+                        new("PESO RECIBIDO", "N2", 2.4),
+                        new("DIF. (KG)", "N2", 2.0),
+                        new("DIF. (%)", "P2", 1.8),
+                    },
+                    Rows = rows,
+                    Totals = new List<ReportTotalDto>
+                    {
+                        new("Total Bultos Recibidos", totalBultos, "N2"),
+                        new("Total Peso Manifestado", totalManifestado, "N2"),
+                        new("Total Peso Bruto", totalBruto, "N2"),
+                        new("Total Peso Tara", totalTara, "N2"),
+                        new("Total Peso Recibido (Neto)", totalNeto, "N2"),
+                        new("Diferencia Total (KG)", difTotalKg, "N2"),
+                        new("Diferencia Total (%)", difTotalPct, "P2"),
+                    }
+                };
+
+                var generadoResult = await _reportGenerator.GenerateAsync(documento, formato, ct);
+                if (!generadoResult.Success)
+                {
+                    Toast?.Invoke($"Error al generar reporte: {generadoResult.Error}");
+                    return false;
+                }
+
+                await File.WriteAllBytesAsync(rutaTemporal, generadoResult.Value!, ct);
+
+                // Auditoría en base de datos vía RPC
+                string parametrosJson = JsonConvert.SerializeObject(new
+                {
+                    origen = "pesaje_materia_prima",
+                    ids_movimientos = idsMovimientos.ToArray(),
+                    cantidad_camiones = camionesAExportar.Count,
+                    cantidad_productos = rows.Count,
+                    total_neto = totalNeto,
+                    total_manifestado = totalManifestado,
+                    diferencia_kg = difTotalKg
+                });
+
+                var registro = await _reporteRepository.RegistrarAsync(new ReporteRegistroDto
+                {
+                    NombreReporte = nombre,
+                    TipoReporte = tipo,
+                    Descripcion = $"Reporte Pesado de Insumos BES ({camionesAExportar.Count} camión/camiones, {rows.Count} producto(s)).",
+                    FechaDesde = generado.Date,
+                    FechaHasta = generado.Date,
+                    ParametrosJson = parametrosJson,
+                    UsuarioIngresando = sesion.IdUsuario,
+                }, ct);
+
+                if (!registro.Success)
+                {
+                    if (File.Exists(rutaTemporal)) File.Delete(rutaTemporal);
+                    Toast?.Invoke($"No se pudo registrar la auditoría del reporte: {registro.Error}");
+                    return false;
+                }
+
+                // Mover archivo temporal a ruta definitiva
+                if (File.Exists(rutaFinal)) File.Delete(rutaFinal);
+                File.Move(rutaTemporal, rutaFinal);
+                Toast?.Invoke("Reporte de pesajes generado correctamente.");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                if (File.Exists(rutaTemporal))
+                {
+                    try { File.Delete(rutaTemporal); } catch { }
+                }
+                Toast?.Invoke($"Error inesperado al generar reporte: {ex.Message}");
+                return false;
+            }
+            finally
+            {
+                IsGeneratingReport = false;
+            }
         }
 
         /// <summary>
@@ -152,14 +438,21 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
 
         private async Task CargarProductosAsync(CamionPesaje camion)
         {
+            CargandoProductos = true;
             var r = await _repo.GetProductosAsync(camion.Id);
             camion.Productos.Clear();
-            if (!r.Success) { Toast?.Invoke(r.Error ?? "Error al cargar productos"); return; }
+            if (!r.Success)
+            {
+                CargandoProductos = false;
+                Toast?.Invoke(r.Error ?? "Error al cargar productos");
+                return;
+            }
             foreach (var p in r.Value!) camion.Productos.Add(MapProducto(p, camion.Proveedor));
 
             // Los totales de tara extra del camión son la suma de la de sus productos,
             // que recién se conoce con los productos ya cargados.
             camion.NotificarTotales();
+            CargandoProductos = false;
         }
 
         // ══════════════════════════════════════════════════════════════════════
@@ -574,15 +867,24 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
         // ══════════════════════════════════════════════════════════════════════
         public void RecalcularFilas()
         {
-            FilasEntradas.Clear();
-            if (SelectedCamion is null) { OnPropertyChanged(nameof(ModoEfectivo)); NotificarTotales(); return; }
+            if (SelectedCamion is null)
+            {
+                FilasEntradas.ReplaceAll(Enumerable.Empty<EntradaPesaje>());
+                OnPropertyChanged(nameof(ModoEfectivo));
+                NotificarTotales();
+                return;
+            }
 
+            // Se arma aparte y se vuelca con ReplaceAll (un solo Reset) en vez de
+            // Clear()+Add() por fila (un CollectionChanged por fila) — con varias
+            // decenas de filas eso se sentía como demora al cambiar de producto.
+            var filas = new List<EntradaPesaje>();
             if (ModoEfectivo == "producto" && SelectedProducto is not null)
             {
                 foreach (var e in SelectedProducto.Entradas)
                 {
                     e.ProdId = SelectedProducto.Id; e.ProdNombre = SelectedProducto.ProductoNombre;
-                    FilasEntradas.Add(e);
+                    filas.Add(e);
                 }
             }
             else
@@ -591,9 +893,10 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
                     foreach (var e in p.Entradas)
                     {
                         e.ProdId = p.Id; e.ProdNombre = p.ProductoNombre;
-                        FilasEntradas.Add(e);
+                        filas.Add(e);
                     }
             }
+            FilasEntradas.ReplaceAll(filas);
             OnPropertyChanged(nameof(ModoEfectivo));
             NotificarTotales();
         }

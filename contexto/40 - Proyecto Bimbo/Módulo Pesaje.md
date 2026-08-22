@@ -151,8 +151,13 @@ Captura el **peso bruto** y, opcionalmente, la **tara extra de esa pesada**. Tod
 > [!important] "Seguir pesando" se queda abierto (2026-08-20)
 > Hasta esta fecha, guardar una pesada disparaba 4–5 round trips (INSERT + recargar el camión entero) y cerraba el modal — "Seguir pesando" no seguía pesando. Se redujo a 1–2 round trips aplicando en memoria el `EntradaDto` que ya devuelve el propio INSERT (el trigger es `BEFORE INSERT`), y el modal ahora se limpia y queda abierto para la siguiente tarima, con guarda de reentrada y estado "Guardando…" visible. Patrón completo en [[Guardado sin Refetch - Aplicar en memoria la respuesta del servidor]]; detalle de la sesión en [[Sesión 2026-08-20 - Guardado de pesajes sin refetch]].
 
-### Camiones cerrados
-Desde 2026-08-13 **no se listan en la pantalla**: `GetCamionesActivosAsync` filtra solo `Abierto`. Al cerrar un camión se sigue abriendo el `ReporteModal` (usa el objeto ya en memoria, así que funciona aunque el camión desaparezca de la lista). Van a volver cuando exista la sección de históricos.
+### Reportes de Pesaje — "Pesado de Insumos BES" (Fase 9 / 2026-08-21)
+El botón **«Imprimir reporte»** (y el cierre de camión) abre `ReporteModal` permitiendo generar el reporte institucional en **PDF** y **Excel** (.xlsx):
+- **Consolidación por producto:** Las distintas pesadas de un mismo producto en el camión se consolidan en una sola fila.
+- **Cálculo de diferencias:** `Diferencia (KG) = Peso Recibido (Neto) - Peso Manifestado` y `Diferencia (%) = ((Peso Recibido - Peso Manifestado) / Peso Manifestado) * 100`.
+- **Columnas estándar (Figura 28):** `FECHA ASIG.`, `PLACA`, `PRODUCTO`, `PROVEEDOR`, `BULTOS (APROX)`, `PESO MANIFESTADO`, `PESO BRUTO`, `PESO TARA`, `PESO RECIBIDO`, `DIF. (KG)`, `DIF. (%)`.
+- **Alcance flexible:** Permite exportar únicamente el camión seleccionado o consolidar todos los camiones activos.
+- **Auditoría e Integración:** Registra la emisión vía RPC `ingresar_reporte_tabla_bitacora` antes de escribir el archivo y abrirlo automáticamente en Windows.
 
 ---
 
@@ -169,13 +174,13 @@ CapaDatos/Repositories/Pesaje/
   PickerProductoRepository.cs           — puente producto→fabricante→proveedor
 
 CapaUI/.../Pantallas/Pesaje/
-  PesajeView.xaml(.cs)                  — 3 paneles + estado vacío
-  PesajeViewModel.cs                    — estado, GuardarProcesoAsync
+  PesajeView.xaml(.cs)                  — 3 paneles + estado vacío + impresión de reporte
+  PesajeViewModel.cs                    — estado, GuardarProcesoAsync, GenerarReportePesajesAsync
   Modelos/PesajeModels.cs               — PesajeCalc + modelos de UI
   Modales/ProcesoDescargaModal          — wizard + megamodal (720x720, incluye Proveedor y Producto vía SelectorCatalogoModal)
   Modales/PesajeModal                   — la pesada (bruto + tara extra opcional)
   Modales/TaraExtraTotalModal           — tara extra total, repartida entre pesadas
-  Modales/ReporteModal                  — cierre de camión
+  Modales/ReporteModal                  — selección de formato (PDF/Excel) y alcance para exportar pesajes
 ```
 
 ## Estilos de los modales

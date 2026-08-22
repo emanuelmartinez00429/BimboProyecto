@@ -9,6 +9,7 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
+using CapaDominio.Reportes;
 using CapaUI.Core.Permisos;
 using CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales;
 using CapaUI.Formularios.Principal.Pantallas.Pesaje.Modelos;
@@ -25,6 +26,13 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
 
         /// <summary>Animación del spinner de la carga inicial.</summary>
         private Storyboard? _spinnerCarga;
+
+        /// <summary>
+        /// Animación de los spinners de "cambiando de camión" (CargandoMovimiento +
+        /// CargandoEntradas) — un solo Storyboard con una rotación por cada Path, así se
+        /// prenden/apagan juntos con un solo Begin/Stop.
+        /// </summary>
+        private Storyboard? _spinnerProductos;
 
         /// <summary>
         /// ScrollViewer interno de DgEntradas. No se busca en el árbol visual: lo
@@ -65,6 +73,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
         private void UserControl_Unloaded(object sender, RoutedEventArgs e)
         {
             DetenerSpinnerCarga();   // si se sale mientras cargaba, no dejar la animación viva
+            DetenerSpinnerProductos();
             if (_vm == null) return;
             _vm.Toast -= MostrarToast;
             DataContext = null;
@@ -161,7 +170,53 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             BtnEntEditar.IsEnabled = hayEntrada && !cerrado;
             BtnEntQuitar.IsEnabled = hayEntrada && !cerrado;
 
+            AjustarLayoutEntradas();
+            AjustarLayoutProductos();
+
             ActualizarEstadoVacio();
+            ActualizarCargaProductos();
+        }
+
+        /// <summary>
+        /// Muestra/oculta los overlays "Actualizando productos…"/"Actualizando pesajes…"
+        /// mientras <see cref="PesajeViewModel.CargarProductosAsync"/> resuelve un cambio de
+        /// camión. A diferencia de <see cref="ActualizarEstadoVacio"/> esto SÍ se repite en
+        /// cada cambio (no solo en la primera carga): acá no hay contenido previo del MISMO
+        /// camión que tapar de golpe, es contenido de OTRO camión que hay que dejar de ver.
+        /// </summary>
+        private void ActualizarCargaProductos()
+        {
+            if (_vm == null) return;
+
+            bool cargando = _vm.CargandoProductos;
+            CargandoMovimiento.Visibility = cargando ? Visibility.Visible : Visibility.Collapsed;
+            CargandoEntradas.Visibility   = cargando ? Visibility.Visible : Visibility.Collapsed;
+            if (cargando) IniciarSpinnerProductos(); else DetenerSpinnerProductos();
+        }
+
+        private void IniciarSpinnerProductos()
+        {
+            if (_spinnerProductos != null) return;
+            _spinnerProductos = new Storyboard();
+            foreach (var target in new[] { SpinnerMovimiento, SpinnerEntradas })
+            {
+                var anim = new DoubleAnimation(0, 360, TimeSpan.FromSeconds(0.8))
+                { RepeatBehavior = RepeatBehavior.Forever };
+                Storyboard.SetTarget(anim, target);
+                Storyboard.SetTargetProperty(anim,
+                    new PropertyPath("(UIElement.RenderTransform).(RotateTransform.Angle)"));
+                _spinnerProductos.Children.Add(anim);
+            }
+            _spinnerProductos.Begin();
+        }
+
+        private void DetenerSpinnerProductos()
+        {
+            if (_spinnerProductos is null) return;
+            _spinnerProductos.Stop();
+            _spinnerProductos.Remove();
+            _spinnerProductos.Children.Clear();
+            _spinnerProductos = null;
         }
 
         /// <summary>
@@ -210,11 +265,15 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
         }
 
         // ── Selección ──────────────────────────────────────────────────────────
+        // Sin el ActualizarUI() de acá: SeleccionarCamionAsync ya deja el VM en un
+        // estado que dispara PropertyChanged (RecalcularFilas/NotificarStats lo hacen
+        // siempre, tengan o no cambios reales), y eso ya agenda un ActualizarUI() vía
+        // PedirActualizarUI(). Llamarlo también acá lo corría dos veces por click —
+        // uno síncrono y el mismo de nuevo un instante después.
         private async void LstCamiones_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (_sync || _vm == null) return;
             await _vm.SeleccionarCamionAsync(LstCamiones.SelectedItem as CamionPesaje);
-            ActualizarUI();
         }
 
         private void LstCamiones_DoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
@@ -223,11 +282,12 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
                 AbrirCamionModal(_vm.SelectedCamion);
         }
 
+        // Mismo criterio que LstCamiones_SelectionChanged: sin el ActualizarUI() extra
+        // acá, que ya lo agenda el propio SeleccionarProducto vía PropertyChanged.
         private void DgProductos_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (_sync || _vm == null) return;
             _vm.SeleccionarProducto(DgProductos.SelectedItem as ProductoCamion);
-            ActualizarUI();
         }
 
         private void DgProductos_DoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
@@ -302,24 +362,79 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             e.Handled = true;
         }
 
+        private void DgEntradas_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            AjustarLayoutEntradas();
+        }
+
+        private void DgProductos_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            AjustarLayoutProductos();
+        }
+
+        /// <summary>
+        /// Ajusta dinámicamente el scroll horizontal y el dimensionamiento de columnas de DgEntradas.
+        /// Cuando el ancho del DataGrid es suficiente para albergar las columnas cómodamente,
+        /// desactiva el scroll horizontal (Disabled) para que las columnas Star (*) absorban el 100%
+        /// del ancho disponible sin dejar huecos vacíos a la derecha ni truncar texto innecesariamente.
+        /// Cuando el formulario se reduce por debajo del mínimo legible, activa el scroll horizontal (Auto)
+        /// para que aparezca la barra de desplazamiento y no se aplasten las columnas.
+        /// </summary>
+        private void AjustarLayoutEntradas()
+        {
+            if (DgEntradas == null) return;
+
+            // Suma de anchos mínimos de las columnas (PRODUCTO ya es fija, no condicional):
+            // ID(65) + PRODUCTO(180) + BRUTO(96) + TARA(90) + TARA_EXTRA(100) + NETO(96) + BULTOS(85) + FECHA/HORA(135) + margen scrollbar(~16)
+            double minAncho = 65 + 180 + 96 + 90 + 100 + 96 + 85 + 135 + 16;
+
+            double anchoActual = DgEntradas.ActualWidth;
+            if (anchoActual <= 0) return;
+
+            if (anchoActual < minAncho)
+            {
+                ScrollViewer.SetHorizontalScrollBarVisibility(DgEntradas, ScrollBarVisibility.Auto);
+            }
+            else
+            {
+                ScrollViewer.SetHorizontalScrollBarVisibility(DgEntradas, ScrollBarVisibility.Disabled);
+            }
+        }
+
+        /// <summary>
+        /// Mismo ajuste adaptativo para la grilla de productos de camión en el panel izquierdo.
+        /// </summary>
+        private void AjustarLayoutProductos()
+        {
+            if (DgProductos == null) return;
+
+            // CÓDIGO(85) + PRODUCTO(180) + REST(72) + %REST(120) + ESTADO(104) + margen(~16) = ~577 px
+            double minAncho = 85 + 180 + 72 + 120 + 104 + 16;
+            double anchoActual = DgProductos.ActualWidth;
+            if (anchoActual <= 0) return;
+
+            if (anchoActual < minAncho)
+            {
+                ScrollViewer.SetHorizontalScrollBarVisibility(DgProductos, ScrollBarVisibility.Auto);
+            }
+            else
+            {
+                ScrollViewer.SetHorizontalScrollBarVisibility(DgProductos, ScrollBarVisibility.Disabled);
+            }
+        }
+
         private void RbVista_Changed(object sender, RoutedEventArgs e)
         {
             if (_vm == null) return;
             string modo = RbVistaCamion.IsChecked == true ? "camion" : "producto";
-            bool verProducto = modo == "camion";
 
-            ColEntProducto.Visibility = verProducto ? Visibility.Visible : Visibility.Collapsed;
-
-            // La fila TOTAL replica los anchos de la grilla a mano: su celda de
-            // PRODUCTO tiene que abrirse y cerrarse con la columna, o los totales
-            // dejan de caer bajo su encabezado. Una ColumnDefinition no tiene
-            // Visibility, así que se colapsa poniéndole ancho 0.
-            TotalColProducto.Width = verProducto
-                ? new GridLength(1.1, GridUnitType.Star)
-                : new GridLength(0);
-            TotalColProducto.MinWidth = verProducto ? 160 : 0;
-
+            // La columna PRODUCTO (y su celda espejo en la fila TOTAL, TotalColProducto)
+            // ya no se prende/apaga con el modo: queda visible siempre, incluso en
+            // "Producto actual" con una sola fila repitiendo el mismo nombre — es más
+            // fácil detectar de qué producto es cada entrada que confiar en recordar
+            // cuál está seleccionado arriba.
             _vm.CambiarVista(modo);
+            AjustarLayoutEntradas();
             ActualizarUI();
         }
 
@@ -617,9 +732,59 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
 
         private void AbrirReporte(List<CamionPesaje> camiones)
         {
-            var modal = new ReporteModal(camiones);
+            var todos = _vm.Camiones.ToList();
+            var modal = new ReporteModal(camiones, todos);
             modal.Cerrado += CerrarModal;
+            modal.FormatoSeleccionado += async (formato, listaCamiones) =>
+            {
+                CerrarModal();
+                await ElegirRutaYGenerarReporteAsync(formato, listaCamiones);
+            };
             MostrarModal(modal);
+        }
+
+        private async Task ElegirRutaYGenerarReporteAsync(ReportFormat formato, List<CamionPesaje> camiones)
+        {
+            string extension = formato == ReportFormat.Pdf ? ".pdf" : ".xlsx";
+            string nombreSugerido = camiones.Count == 1
+                ? $"Pesaje_Camion_{camiones[0].Placa}_{DateTime.Now:yyyyMMdd_HHmmss}{extension}"
+                : $"Pesaje_Insumos_BES_{DateTime.Now:yyyyMMdd_HHmmss}{extension}";
+
+            var dialog = new Microsoft.Win32.SaveFileDialog
+            {
+                Title = "Guardar reporte de pesajes (Pesado de Insumos BES)",
+                FileName = nombreSugerido,
+                DefaultExt = extension,
+                AddExtension = true,
+                OverwritePrompt = true,
+                Filter = formato == ReportFormat.Pdf
+                    ? "Documento PDF (*.pdf)|*.pdf"
+                    : "Libro de Excel (*.xlsx)|*.xlsx",
+            };
+
+            if (dialog.ShowDialog() != true) return;
+
+            bool ok = await _vm.GenerarReportePesajesAsync(formato, dialog.FileName, camiones);
+            if (ok)
+            {
+                OnReporteCreado(dialog.FileName);
+            }
+        }
+
+        private static void OnReporteCreado(string ruta)
+        {
+            try
+            {
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(ruta) { UseShellExecute = true });
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"El reporte se guardó correctamente en:\n{ruta}\n\nNo pudo abrirse automáticamente: {ex.Message}",
+                    "Reporte creado",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+            }
         }
 
         private void SincronizarSeleccion()

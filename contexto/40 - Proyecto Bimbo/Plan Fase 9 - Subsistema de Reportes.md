@@ -13,6 +13,9 @@ estado: en_curso_parcial
 > [!success] Reportería operativa implementada el 2026-08-17
 > Cuatro consultas tipadas reutilizan el motor PDF/Excel: entrada de materia prima, proveedor, merma y primeros 10 productos. Incluyen vista previa, filtros por selectores de catálogo, branding de empresa y registro auditado previo a escribir el archivo. Ver [[Módulo Reportería]].
 
+> [!success] Reporte de Pesaje de Insumos BES implementado el 2026-08-21
+> La pantalla de Pesajes cuenta con generación directa en PDF y Excel desde el botón "Imprimir reporte", consolidando pesajes por producto frente a lo manifestado y calculando diferencias (kg y %), con soporte individual y multigestión de camiones. Ver [[Sesión 2026-08-21 - Reporte de Pesaje de Insumos BES (PDF y Excel)]].
+
 Rama prevista: `feat/fase9-reportes` (convención existente `feat/faseN-nombre`).
 
 ## Objetivo

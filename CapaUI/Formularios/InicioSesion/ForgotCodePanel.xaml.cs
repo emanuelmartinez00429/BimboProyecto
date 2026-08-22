@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Threading;
+using CapaDominio.Reglas;
 using TextBox        = System.Windows.Controls.TextBox;
 using KeyEventArgs   = System.Windows.Input.KeyEventArgs;
 using WpfDataFormats = System.Windows.DataFormats;
@@ -65,13 +66,13 @@ namespace CapaUI.Formularios.InicioSesion
         private void CheckComplete()
         {
             if (_digits == null) return;
-            BtnVerify.IsEnabled = _digits.All(d => d.Text.Length == 1);
+            BtnVerify.IsEnabled = ReglasLogin.OtpCompleto(_digits.Select(d => d.Text));
             ErrorContainer.Visibility = Visibility.Collapsed;
         }
 
         private void Digit_PreviewTextInput(object sender, TextCompositionEventArgs e)
         {
-            e.Handled = !char.IsDigit(e.Text, 0);
+            e.Handled = !ReglasLogin.EsDigitoOtp(e.Text[0]);
         }
 
         private void Digit_TextChanged(object sender, TextChangedEventArgs e)
@@ -117,11 +118,11 @@ namespace CapaUI.Formularios.InicioSesion
             if (e.DataObject.GetDataPresent(typeof(string)))
             {
                 string text = ((string)e.DataObject.GetData(typeof(string))).Trim();
-                if (text.Length == 8 && text.All(char.IsDigit))
+                if (ReglasLogin.OtpValido(text))
                 {
-                    for (int i = 0; i < 8; i++)
+                    for (int i = 0; i < ReglasLogin.LongitudOtp; i++)
                         _digits[i].Text = text[i].ToString();
-                    _digits[7].Focus();
+                    _digits[ReglasLogin.LongitudOtp - 1].Focus();
                     CheckComplete();
                     e.CancelCommand();
                     return;

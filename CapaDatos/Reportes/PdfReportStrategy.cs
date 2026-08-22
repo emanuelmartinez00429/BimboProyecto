@@ -90,10 +90,12 @@ public sealed class PdfReportStrategy : IReportStrategy
             header.Format.Font.Color = Colors.White;
             header.Shading.Color = Color.FromRgb(30, 64, 175);
             header.VerticalAlignment = VerticalAlignment.Center;
+            header.TopPadding = Unit.FromPoint(5);
+            header.BottomPadding = Unit.FromPoint(5);
             for (int i = 0; i < report.Columns.Count; i++)
             {
-                header.Cells[i].AddParagraph(report.Columns[i].Header);
-                header.Cells[i].Format.Alignment = ParagraphAlignment.Center;
+                var p = header.Cells[i].AddParagraph(report.Columns[i].Header);
+                p.Format.Alignment = ParagraphAlignment.Center;
             }
 
             foreach (var values in report.Rows)
@@ -101,20 +103,29 @@ public sealed class PdfReportStrategy : IReportStrategy
                 ct.ThrowIfCancellationRequested();
                 var row = table.AddRow();
                 row.VerticalAlignment = VerticalAlignment.Center;
+                row.TopPadding = Unit.FromPoint(4);
+                row.BottomPadding = Unit.FromPoint(4);
                 for (int i = 0; i < report.Columns.Count; i++)
                 {
                     string value = i < values.Count ? FormatValue(values[i], report.Columns[i].NumberFormat) : string.Empty;
-                    row.Cells[i].AddParagraph(value);
-                    row.Cells[i].Format.Alignment = i is 0 or 2
-                        ? ParagraphAlignment.Center
-                        : ParagraphAlignment.Left;
+                    var p = row.Cells[i].AddParagraph(value);
+
+                    bool isDate = report.Columns[i].NumberFormat?.Contains("dd") == true;
+                    bool isNumber = !string.IsNullOrWhiteSpace(report.Columns[i].NumberFormat) && !isDate;
+
+                    p.Format.Alignment = isNumber
+                        ? ParagraphAlignment.Right
+                        : (isDate || i == 1 ? ParagraphAlignment.Center : ParagraphAlignment.Left);
                 }
             }
+
+            section.AddParagraph().Format.SpaceAfter = Unit.FromPoint(4);
 
             foreach (var total in report.Totals)
             {
                 var paragraph = section.AddParagraph();
                 paragraph.Format.Alignment = ParagraphAlignment.Right;
+                paragraph.Format.SpaceAfter = Unit.FromPoint(2);
                 paragraph.AddFormattedText($"{total.Label}: ", TextFormat.Bold);
                 paragraph.AddText(FormatValue(total.Value, total.NumberFormat));
             }
@@ -153,6 +164,7 @@ public sealed class PdfReportStrategy : IReportStrategy
     {
         var paragraph = section.AddParagraph();
         paragraph.Format.Font.Size = 9;
+        paragraph.Format.SpaceAfter = Unit.FromPoint(2);
         paragraph.AddFormattedText($"{label}: ", TextFormat.Bold);
         paragraph.AddText(value);
     }

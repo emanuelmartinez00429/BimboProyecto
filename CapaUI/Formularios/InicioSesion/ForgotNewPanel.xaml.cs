@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
+using CapaDominio.Reglas;
 using WpfColor     = System.Windows.Media.Color;
 using WpfBrush     = System.Windows.Media.SolidColorBrush;
 using WpfEffect    = System.Windows.Media.Effects.DropShadowEffect;
@@ -96,16 +97,11 @@ namespace CapaUI.Formularios.InicioSesion
             if (string.IsNullOrEmpty(pwd)) { StrengthPanel.Visibility = Visibility.Collapsed; return; }
             StrengthPanel.Visibility = Visibility.Visible;
 
-            int score = 0;
-            if (pwd.Length >= 8)                        score++;
-            if (pwd.Any(char.IsUpper))                  score++;
-            if (pwd.Any(char.IsDigit))                  score++;
-            if (pwd.Any(c => !char.IsLetterOrDigit(c))) score++;
-            if (pwd.Length >= 12)                       score++;
+            int score = ReglasContrasena.CalcularScore(pwd);
             score = Math.Clamp(score, 0, 5);
 
             var bars  = new[] { Bar1, Bar2, Bar3, Bar4, Bar5 };
-            var hex   = _strengthColors[Math.Max(score, 1)];
+            var hex   = _strengthColors[score];
             var fill  = new WpfBrush((WpfColor)WpfColorConv.ConvertFromString(hex)!);
             var empty = new WpfBrush(WpfColor.FromRgb(0xE5, 0xE7, 0xEB));
 
@@ -119,10 +115,10 @@ namespace CapaUI.Formularios.InicioSesion
         // ── Rule indicators ──
         private void UpdateRules(string pwd)
         {
-            SetRule(R1Icon, R1Text, pwd.Length >= 8);
-            SetRule(R2Icon, R2Text, pwd.Any(char.IsUpper));
-            SetRule(R3Icon, R3Text, pwd.Any(char.IsDigit));
-            SetRule(R4Icon, R4Text, pwd.Any(c => !char.IsLetterOrDigit(c)));
+            SetRule(R1Icon, R1Text, ReglasContrasena.TieneLargoMinimo(pwd));
+            SetRule(R2Icon, R2Text, ReglasContrasena.TieneMayuscula(pwd));
+            SetRule(R3Icon, R3Text, ReglasContrasena.TieneNumero(pwd));
+            SetRule(R4Icon, R4Text, ReglasContrasena.TieneSimbolo(pwd));
         }
 
         private void SetRule(System.Windows.Shapes.Ellipse icon, TextBlock label, bool pass)
@@ -140,10 +136,7 @@ namespace CapaUI.Formularios.InicioSesion
 
             UpdateRules(pwd);
 
-            bool allRules = pwd.Length >= 8
-                         && pwd.Any(char.IsUpper)
-                         && pwd.Any(char.IsDigit)
-                         && pwd.Any(c => !char.IsLetterOrDigit(c));
+            bool allRules = ReglasContrasena.CumpleTodasLasReglas(pwd);
 
             bool match = pwd == confirm;
             LblMismatch.Visibility = (!match && confirm.Length > 0)

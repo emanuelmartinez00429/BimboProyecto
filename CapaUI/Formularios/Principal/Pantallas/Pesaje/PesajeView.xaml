@@ -499,7 +499,7 @@
                                  BorderThickness="0" Background="Transparent"
                                  HorizontalContentAlignment="Stretch"
                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                                 ScrollViewer.VerticalScrollBarVisibility="Visible"
+                                 ScrollViewer.VerticalScrollBarVisibility="Auto"
                                  SelectionChanged="LstCamiones_SelectionChanged"
                                  MouseDoubleClick="LstCamiones_DoubleClick">
                             <ListBox.Resources>
@@ -528,7 +528,10 @@
                                                                     <RowDefinition Height="Auto"/>
                                                                     <RowDefinition Height="Auto"/>
                                                                 </Grid.RowDefinitions>
-                                                                <!-- Encabezado de la placa compartida -->
+                                                                <!-- Encabezado de la placa compartida: fondo claro (un bloque
+                                                                     sólido de azul repetido por cada camión pesaba demasiado
+                                                                     en una lista larga). Lo que se destaca es SOLO la placa,
+                                                                     con su propio chip sólido — no toda la franja. -->
                                                                 <Border x:Name="Cab" Grid.Row="0" Background="#EFF6FF"
                                                                         BorderBrush="#DBE7F5" BorderThickness="0,0,0,1"
                                                                         Padding="14,8">
@@ -538,16 +541,15 @@
                                                                                   StrokeThickness="1.6" Width="15" Height="15" Stretch="Uniform"
                                                                                   Margin="0,0,8,0" VerticalAlignment="Center"
                                                                                   StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
-                                                                            <TextBlock Text="{Binding Name}" FontFamily="Segoe UI" FontSize="14.5"
-                                                                                       FontWeight="Bold" Foreground="{DynamicResource EmpresaPrimaryBrush}"
-                                                                                       VerticalAlignment="Center"/>
+                                                                            <Border Background="{DynamicResource EmpresaPrimaryBrush}" CornerRadius="6" Padding="8,3">
+                                                                                <TextBlock Text="{Binding Name}" FontFamily="Segoe UI" FontSize="14"
+                                                                                           FontWeight="Bold" Foreground="White"/>
+                                                                            </Border>
                                                                         </StackPanel>
-                                                                        <!-- Badge sólido (antes era un tono pastel) — la placa
-                                                                             tiene que "pesar" más que cualquier fila de abajo. -->
-                                                                        <Border Background="{DynamicResource EmpresaPrimaryBrush}" CornerRadius="999" Padding="8,2"
+                                                                        <Border Background="#DBE7F5" CornerRadius="999" Padding="8,2"
                                                                                 HorizontalAlignment="Right" VerticalAlignment="Center">
                                                                             <TextBlock FontFamily="Segoe UI" FontSize="12" FontWeight="SemiBold"
-                                                                                       Foreground="White"
+                                                                                       Foreground="{DynamicResource EmpresaPrimaryBrush}"
                                                                                        Text="{Binding ItemCount, StringFormat='{}{0} recepciones'}">
                                                                                 <TextBlock.Style>
                                                                                     <Style TargetType="TextBlock">
@@ -637,10 +639,11 @@
                             </ListBox.ItemContainerStyle>
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
-                                    <!-- Margin="14,0,14,0": mismo inset horizontal que el header
-                                         del panel (Padding="14,11"). Sin esto el chip de estado
-                                         quedaba pegado al borde derecho de la lista — la fila no
-                                         tenía ningún aire propio, solo el borde del ListBox. -->
+                                    <!-- Margin="14,0,14,0": mismo inset horizontal a los dos lados.
+                                         La scrollbar de la lista es Auto (arriba, LstCamiones) — solo
+                                         reserva su ancho cuando hace falta scrollear, así que en el
+                                         caso normal (todo entra sin scroll) los dos lados quedan
+                                         simétricos de verdad, sin compensar un ancho de scrollbar a mano. -->
                                     <Grid Height="46" Margin="14,0,14,0">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="44"/>
@@ -824,6 +827,7 @@
                                       ScrollViewer.HorizontalScrollBarVisibility="Auto"
                                       ScrollViewer.ScrollChanged="DgProductos_ScrollChanged"
                                       PreviewMouseWheel="DgProductos_PreviewMouseWheel"
+                                      SizeChanged="DgProductos_SizeChanged"
                                       VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling"
                                       VirtualizingPanel.ScrollUnit="Pixel">
                                 <DataGrid.Resources>
@@ -918,6 +922,27 @@
                                     </DataGridTemplateColumn>
                                 </DataGrid.Columns>
                             </DataGrid>
+
+                            <!-- Cambiar de camión sí pega a la base (CargarProductosAsync):
+                                 sin esto, la tabla se quedaba mostrando el camión anterior
+                                 hasta que respondía la consulta, sin ningún indicio de que
+                                 algo estaba pasando. Mismo patrón code-behind que el resto
+                                 de la app (nunca Visibility bindeada en XAML). -->
+                            <Border x:Name="CargandoMovimiento" Background="White" Visibility="Collapsed" Panel.ZIndex="50">
+                                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Horizontal">
+                                    <Path x:Name="SpinnerMovimiento"
+                                          Data="M 12 2 A 10 10 0 1 1 2 12"
+                                          Stroke="{DynamicResource EmpresaPrimaryBrush}" StrokeThickness="2.5"
+                                          StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                          Width="18" Height="18" Stretch="Uniform"
+                                          RenderTransformOrigin="0.5,0.5" Margin="0,0,9,0">
+                                        <Path.RenderTransform><RotateTransform/></Path.RenderTransform>
+                                    </Path>
+                                    <TextBlock Text="Actualizando productos..."
+                                               FontFamily="Segoe UI" FontSize="14" Foreground="#6B7280"
+                                               VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Border>
                         </Grid>
 
                         <WrapPanel Grid.Row="2" Margin="12,8">
@@ -992,9 +1017,10 @@
                                   SelectionChanged="DgEntradas_SelectionChanged"
                                   ScrollViewer.CanContentScroll="True"
                                   ScrollViewer.VerticalScrollBarVisibility="Auto"
-                                  ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                                   ScrollViewer.ScrollChanged="DgEntradas_ScrollChanged"
                                   PreviewMouseWheel="DgEntradas_PreviewMouseWheel"
+                                  SizeChanged="DgEntradas_SizeChanged"
                                   VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling"
                                   VirtualizingPanel.ScrollUnit="Pixel">
                             <!-- Misma barra fina de ProductosView (ahora en Styles.xaml global). -->
@@ -1002,7 +1028,7 @@
                                 <Style TargetType="ScrollBar" BasedOn="{StaticResource ModernScrollBarAny}"/>
                             </DataGrid.Resources>
                             <DataGrid.Columns>
-                                <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="60" MinWidth="60">
+                                <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="65" MinWidth="60">
                                     <DataGridTextColumn.ElementStyle>
                                         <Style TargetType="TextBlock">
                                             <Setter Property="FontFamily" Value="Consolas"/>
@@ -1013,7 +1039,10 @@
                                         </Style>
                                     </DataGridTextColumn.ElementStyle>
                                 </DataGridTextColumn>
-                                <DataGridTextColumn x:Name="ColEntProducto" Header="PRODUCTO" Binding="{Binding ProdNombre}" Width="1.1*" MinWidth="160" Visibility="Collapsed">
+                                <!-- Siempre visible, aunque se repita fila tras fila en "Producto
+                                     actual" — es más fácil detectar de qué producto es cada entrada
+                                     que confiar en recordar cuál está seleccionado arriba. -->
+                                <DataGridTextColumn x:Name="ColEntProducto" Header="PRODUCTO" Binding="{Binding ProdNombre}" Width="2.8*" MinWidth="180">
                                     <DataGridTextColumn.ElementStyle>
                                         <Style TargetType="TextBlock">
                                             <Setter Property="FontFamily" Value="Segoe UI"/>
@@ -1026,13 +1055,13 @@
                                         </Style>
                                     </DataGridTextColumn.ElementStyle>
                                 </DataGridTextColumn>
-                                <DataGridTextColumn Header="BRUTO (KG)" Binding="{Binding Bruto, StringFormat=N2}" Width="96" MinWidth="96" ElementStyle="{StaticResource EntText}"/>
-                                <DataGridTextColumn Header="TARA (KG)" Binding="{Binding TaraTotal, StringFormat=N2}" Width="96" MinWidth="96" ElementStyle="{StaticResource EntText}"/>
+                                <DataGridTextColumn Header="BRUTO (KG)" Binding="{Binding Bruto, StringFormat=N2}" Width="1.1*" MinWidth="96" ElementStyle="{StaticResource EntText}"/>
+                                <DataGridTextColumn Header="TARA (KG)" Binding="{Binding TaraTotal, StringFormat=N2}" Width="1*" MinWidth="90" ElementStyle="{StaticResource EntText}"/>
                                 <!-- Tara extra por pesada. En chip ámbar cuando está en cero:
                                      esa pesada todavía no tiene las tarimas pesadas, que es
                                      justo lo que vuelve aproximados sus bultos. Mismo criterio
                                      que la columna BULTOS, atado a la misma propiedad. -->
-                                <DataGridTemplateColumn Header="TARA EXTRA" Width="102" MinWidth="102">
+                                <DataGridTemplateColumn Header="TARA EXTRA" Width="1.1*" MinWidth="100">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
                                             <Border x:Name="ChipTara" CornerRadius="999" Padding="8,2" HorizontalAlignment="Center"
@@ -1057,7 +1086,7 @@
                                         </DataTemplate>
                                     </DataGridTemplateColumn.CellTemplate>
                                 </DataGridTemplateColumn>
-                                <DataGridTextColumn Header="NETO (KG)" Binding="{Binding Neto, StringFormat=N2}" Width="96" MinWidth="96">
+                                <DataGridTextColumn Header="NETO (KG)" Binding="{Binding Neto, StringFormat=N2}" Width="1.1*" MinWidth="96">
                                     <DataGridTextColumn.ElementStyle>
                                         <Style TargetType="TextBlock">
                                             <Setter Property="FontFamily" Value="Segoe UI"/>
@@ -1071,7 +1100,7 @@
                                 </DataGridTextColumn>
                                 <!-- Los bultos ya no se capturan: se estiman desde el peso. En ámbar
                                      cuando la pesada no tiene tara extra y la estimación es alta. -->
-                                <DataGridTextColumn Header="BULTOS" Binding="{Binding BultosTexto}" Width="86" MinWidth="86">
+                                <DataGridTextColumn Header="BULTOS" Binding="{Binding BultosTexto}" Width="0.9*" MinWidth="85">
                                     <DataGridTextColumn.ElementStyle>
                                         <Style TargetType="TextBlock" BasedOn="{StaticResource EntText}">
                                             <Style.Triggers>
@@ -1086,13 +1115,7 @@
                                 <!-- Fecha y hora en una sola celda a dos líneas: se leen siempre
                                      juntas y así el ancho que ocupaban dos columnas queda libre
                                      para los pesos, que son el dato que importa. -->
-                                <!-- "*" con MinWidth: absorbe el sobrante cuando el panel es
-                                     ancho (sin hueco a la derecha) y deja de encogerse en
-                                     MinWidth cuando no cabe, que es lo que hace aparecer el
-                                     scroll horizontal en vez de comprimir la columna hasta
-                                     volverla ilegible. El Grid de la fila TOTAL repite este
-                                     mismo MinWidth para seguir alineado en los dos casos. -->
-                                <DataGridTemplateColumn Header="FECHA / HORA" Width="*" MinWidth="125">
+                                <DataGridTemplateColumn Header="FECHA / HORA" Width="1.4*" MinWidth="135">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
                                             <StackPanel VerticalAlignment="Center" Margin="10,0">
@@ -1104,14 +1127,30 @@
                                 </DataGridTemplateColumn>
                             </DataGrid.Columns>
                         </DataGrid>
+
+                        <!-- Mismo overlay que CargandoMovimiento, scoped a este panel: cambiar
+                             de camión también deja obsoleta la tabla de entradas hasta que
+                             responde CargarProductosAsync. -->
+                        <Border x:Name="CargandoEntradas" Background="White" Visibility="Collapsed" Panel.ZIndex="50">
+                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Horizontal">
+                                <Path x:Name="SpinnerEntradas"
+                                      Data="M 12 2 A 10 10 0 1 1 2 12"
+                                      Stroke="{DynamicResource EmpresaPrimaryBrush}" StrokeThickness="2.5"
+                                      StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                      Width="18" Height="18" Stretch="Uniform"
+                                      RenderTransformOrigin="0.5,0.5" Margin="0,0,9,0">
+                                    <Path.RenderTransform><RotateTransform/></Path.RenderTransform>
+                                </Path>
+                                <TextBlock Text="Actualizando pesajes..."
+                                           FontFamily="Segoe UI" FontSize="14" Foreground="#6B7280"
+                                           VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
                     </Grid>
 
                     <!-- ── Fila TOTAL ──
                          Los anchos de columna replican EXACTAMENTE los del DataGrid de
-                         arriba (60 / 1.1* / 96 / 96 / 102 / 96 / 86 / *) para que cada
-                         total caiga bajo su columna. Si se toca un ancho allá, hay que
-                         tocarlo acá. La celda de PRODUCTO se muestra y oculta junto con
-                         ColEntProducto — lo hace RbVista_Changed en el code-behind. -->
+                         arriba para que cada total caiga bajo su columna. -->
                     <Border Grid.Row="2" Background="#F7F9FC" BorderBrush="#E2E8F0" BorderThickness="0,1,0,0" Padding="0,9"
                             ClipToBounds="True">
                         <!-- El desplazamiento lo escribe DgEntradas_ScrollChanged: la fila
@@ -1123,29 +1162,29 @@
                                 <TranslateTransform x:Name="TotalScrollTransform"/>
                             </Grid.RenderTransform>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="60" MinWidth="60"/>
-                                <ColumnDefinition x:Name="TotalColProducto" Width="0" MinWidth="0"/>
-                                <ColumnDefinition Width="96" MinWidth="96"/>
-                                <ColumnDefinition Width="96" MinWidth="96"/>
-                                <ColumnDefinition Width="102" MinWidth="102"/>
-                                <ColumnDefinition Width="96" MinWidth="96"/>
-                                <ColumnDefinition Width="86" MinWidth="86"/>
-                                <ColumnDefinition Width="*" MinWidth="125"/>
+                                <ColumnDefinition Width="65" MinWidth="60"/>
+                                <ColumnDefinition x:Name="TotalColProducto" Width="2.8*" MinWidth="180"/>
+                                <ColumnDefinition Width="1.1*" MinWidth="96"/>
+                                <ColumnDefinition Width="1*" MinWidth="90"/>
+                                <ColumnDefinition Width="1.1*" MinWidth="100"/>
+                                <ColumnDefinition Width="1.1*" MinWidth="96"/>
+                                <ColumnDefinition Width="0.9*" MinWidth="85"/>
+                                <ColumnDefinition Width="1.4*" MinWidth="135"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="TOTAL" FontFamily="Segoe UI" FontSize="12.5" FontWeight="Bold"
-                                       Foreground="#6B7280" VerticalAlignment="Center" Margin="10,0"/>
+                                        Foreground="#6B7280" VerticalAlignment="Center" Margin="10,0"/>
                             <TextBlock Grid.Column="2" Text="{Binding TotalBruto, StringFormat=N2}" FontFamily="Segoe UI" FontSize="14"
-                                       FontWeight="Bold" Foreground="#1A1F2E" VerticalAlignment="Center" Margin="10,0"/>
+                                        FontWeight="Bold" Foreground="#1A1F2E" VerticalAlignment="Center" Margin="10,0"/>
                             <TextBlock Grid.Column="3" Text="{Binding TotalTara, StringFormat=N2}" FontFamily="Segoe UI" FontSize="14"
-                                       Foreground="#6B7280" VerticalAlignment="Center" Margin="10,0"/>
+                                        Foreground="#6B7280" VerticalAlignment="Center" Margin="10,0"/>
                             <TextBlock Grid.Column="4" Text="{Binding TotalTaraExtra, StringFormat=N2}" FontFamily="Segoe UI" FontSize="14"
-                                       Foreground="#6B7280" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                        Foreground="#6B7280" VerticalAlignment="Center" HorizontalAlignment="Center"/>
                             <TextBlock Grid.Column="5" Text="{Binding TotalNeto, StringFormat=N2}" FontFamily="Segoe UI" FontSize="14"
-                                       FontWeight="Bold" Foreground="{DynamicResource EmpresaPrimaryBrush}" VerticalAlignment="Center" Margin="10,0"/>
+                                        FontWeight="Bold" Foreground="{DynamicResource EmpresaPrimaryBrush}" VerticalAlignment="Center" Margin="10,0"/>
                             <TextBlock Grid.Column="6" Text="{Binding TotalBultos, StringFormat=N1}" FontFamily="Segoe UI" FontSize="14"
-                                       FontWeight="Bold" Foreground="#1A1F2E" VerticalAlignment="Center" Margin="10,0"/>
+                                        FontWeight="Bold" Foreground="#1A1F2E" VerticalAlignment="Center" Margin="10,0"/>
                             <TextBlock Grid.Column="7" Text="{Binding TotalPesajesTexto}" FontFamily="Segoe UI" FontSize="13"
-                                       Foreground="#9CA3AF" VerticalAlignment="Center" Margin="10,0"/>
+                                        Foreground="#9CA3AF" VerticalAlignment="Center" Margin="10,0"/>
                         </Grid>
                     </Border>
 

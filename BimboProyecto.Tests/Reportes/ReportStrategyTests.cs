@@ -70,4 +70,69 @@ public sealed class ReportStrategyTests
             new object?[] { new DateTime(2026,8,16,10,0,0), "usuario.registrado", "Productos", "Crear Producto", "Nombre", "Detalle de prueba" },
         ],
     };
+
+    [Fact]
+    public async Task Pesaje_GeneraReportePesadoInsumosBes_EnPdfYExcel()
+    {
+        var doc = new TabularReportDto
+        {
+            Title = "Pesado de Insumos BES",
+            SheetName = "Pesaje de Insumos",
+            Branding = new ReportBrandingDto { CompanyName = "Bimbo Honduras" },
+            GeneratedAt = new DateTime(2026, 8, 21, 14, 0, 0),
+            Author = new ReportAuthorDto
+            {
+                Email = "operario@bimbo.test",
+                NombreEmpleado = "Fernando",
+                ApellidoEmpleado = "Barahona",
+                Rol = "Pesaje",
+            },
+            Filters = [new("Placa del camión", "HAD-1234"), new("Proveedor", "HARINERA S.A.")],
+            Columns =
+            [
+                new("FECHA ASIG.", "dd/MM/yyyy", 2.2),
+                new("PLACA", null, 1.8),
+                new("PRODUCTO", null, 4.2),
+                new("PROVEEDOR", null, 3.2),
+                new("BULTOS (APROX)", "N2", 2.2),
+                new("PESO MANIFESTADO", "N2", 2.5),
+                new("PESO BRUTO", "N2", 2.2),
+                new("PESO TARA", "N2", 2.0),
+                new("PESO RECIBIDO", "N2", 2.4),
+                new("DIF. (KG)", "N2", 2.0),
+                new("DIF. (%)", "P2", 1.8),
+            ],
+            Rows =
+            [
+                new object?[]
+                {
+                    "21/08/2026", "HAD-1234", "HAR-001 - HARINA DE TRIGO ESPECIAL", "HARINERA S.A.",
+                    50.0, 2500.0, 2620.0, 110.0, 2510.0, 10.0, 0.004
+                }
+            ],
+            Totals =
+            [
+                new("Total Bultos Recibidos", 50.0, "N2"),
+                new("Total Peso Manifestado", 2500.0, "N2"),
+                new("Total Peso Bruto", 2620.0, "N2"),
+                new("Total Peso Tara", 110.0, "N2"),
+                new("Total Peso Recibido (Neto)", 2510.0, "N2"),
+                new("Diferencia Total (KG)", 10.0, "N2"),
+                new("Diferencia Total (%)", 0.004, "P2"),
+            ]
+        };
+
+        var service = new ReportGeneratorService([new PdfReportStrategy(), new ExcelReportStrategy()]);
+
+        var resPdf = await service.GenerateAsync(doc, ReportFormat.Pdf);
+        Assert.True(resPdf.Success, resPdf.Error);
+        Assert.NotNull(resPdf.Value);
+        Assert.Equal("%PDF", Encoding.ASCII.GetString(resPdf.Value, 0, 4));
+
+        var resXls = await service.GenerateAsync(doc, ReportFormat.Excel);
+        Assert.True(resXls.Success, resXls.Error);
+        Assert.NotNull(resXls.Value);
+        Assert.NotEmpty(resXls.Value);
+    }
 }
+

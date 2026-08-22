@@ -1,11 +1,14 @@
-using CapaDominio.Reglas;
+﻿using CapaDominio.Reglas;
 using Xunit;
 
 namespace BimboProyecto.Tests.Auth;
 
 // =============================================================================
-//  QA – Inicio de Sesion
+//  QA - Inicio de Sesion
 //  Cubre: LoginWindow, ForgotEmailPanel, ForgotCodePanel, ForgotNewPanel
+//
+//  Ahora llama directamente a las clases del DOMINIO en lugar de reimplementar
+//  la logica localmente. Si una regla cambia en el dominio, el test lo detecta.
 //
 //  Niveles de importancia:
 //    [P0] Critico   -- Si falla, el acceso al sistema queda bloqueado.
@@ -15,280 +18,259 @@ namespace BimboProyecto.Tests.Auth;
 // =============================================================================
 
 // -----------------------------------------------------------------------------
-//  P0 . CRITICO - autenticacion basica
+//  P0 . CRITICO - autenticacion basica (ReglasLogin + ReglasFormato)
 // -----------------------------------------------------------------------------
 
-/// <summary>
-/// [P0] Valida que el correo tenga el formato correcto antes de enviarlo.
-/// LoginWindow usa ReglasFormato.EsCorreo para habilitar el boton.
-/// </summary>
+/// <summary>[P0] El boton Ingresar solo se habilita con email y password completos.</summary>
+public sealed class P0_CredencialesCompletas
+{
+    [Theory]
+    [InlineData("usuario@bimbo.hn",  "MiPass123!")]
+    [InlineData("nombre@empresa.com", "a")]
+    public void EmailYPassword_Completos_HabilitanBoton(string email, string pwd)
+        => Assert.True(ReglasLogin.CredencialesCompletas(email, pwd));
+
+    [Theory]
+    [InlineData("",                   "MiPass123!")]
+    [InlineData("   ",               "MiPass123!")]
+    [InlineData("usuario@bimbo.hn",  "")]
+    [InlineData("",                   "")]
+    public void CamposIncompletos_DeshabilitanBoton(string email, string pwd)
+        => Assert.False(ReglasLogin.CredencialesCompletas(email, pwd));
+}
+
+/// <summary>[P0] El campo de correo acepta solo direcciones con formato valido.</summary>
 public sealed class P0_ValidacionCorreoLogin
 {
     [Theory]
     [InlineData("usuario@bimbo.hn")]
     [InlineData("nombre.apellido@empresa.com")]
     [InlineData("test+tag@dominio.org")]
-    public void Correo_ValidoHabilita_BtnIngresar(string correo)
-    {
-        bool emailOk = ReglasFormato.TieneContenido(correo)
-                    && ReglasFormato.EsCorreo(correo);
-        Assert.True(emailOk, $"'{correo}' deberia considerarse valido para habilitar el boton.");
-    }
-
-    [Theory]
-    [InlineData("")]
-    [InlineData("   ")]
-    [InlineData(null)]
-    public void Correo_Vacio_NoHabilita_BtnIngresar(string? correo)
-    {
-        bool emailOk = ReglasFormato.TieneContenido(correo);
-        Assert.False(emailOk, "Un campo de correo vacio no debe habilitar el boton Ingresar.");
-    }
+    public void Correo_ValidoEsAceptado(string correo)
+        => Assert.True(ReglasFormato.TieneContenido(correo) && ReglasFormato.EsCorreo(correo));
 
     [Theory]
     [InlineData("sin-arroba")]
     [InlineData("doble@@bimbo.hn")]
     [InlineData("con espacio@bimbo.hn")]
     [InlineData("sin@punto")]
-    public void Correo_Invalido_NoHabilita_BtnIngresar(string correo)
-    {
-        bool emailOk = ReglasFormato.TieneContenido(correo)
-                    && ReglasFormato.EsCorreo(correo);
-        Assert.False(emailOk, $"'{correo}' no es un e-mail valido y no debe habilitar el login.");
-    }
-}
+    public void Correo_InvalidoEsRechazado(string correo)
+        => Assert.False(ReglasFormato.TieneContenido(correo) && ReglasFormato.EsCorreo(correo));
 
-/// <summary>
-/// [P0] Valida que la contrasena no este vacia antes de habilitar el login.
-/// </summary>
-public sealed class P0_ValidacionPasswordLogin
-{
     [Theory]
-    [InlineData("MiPass123!")]
-    [InlineData("a")]
+    [InlineData(null)]
+    [InlineData("")]
     [InlineData("   ")]
-    public void Password_ConContenido_HabilitaBoton(string password)
-    {
-        bool pwdOk = password.Length > 0;
-        Assert.True(pwdOk, "Una contrasena no vacia debe habilitar el boton.");
-    }
-
-    [Fact]
-    public void Password_Vacio_NoHabilitaBoton()
-    {
-        string password = "";
-        bool pwdOk = password.Length > 0;
-        Assert.False(pwdOk, "Una contrasena vacia no debe habilitar el boton.");
-    }
-
-    [Fact]
-    public void AmbosVacios_BtnIngresarDeshabilitado()
-    {
-        string email    = "";
-        string password = "";
-        bool btnEnabled = ReglasFormato.TieneContenido(email) && password.Length > 0;
-        Assert.False(btnEnabled, "Con ambos campos vacios el boton debe estar deshabilitado.");
-    }
+    public void Correo_Vacio_DeshabilitaBoton(string? correo)
+        => Assert.False(ReglasFormato.TieneContenido(correo));
 }
 
 // -----------------------------------------------------------------------------
-//  P1 . ALTO - recuperacion de contrasena (flujo completo)
+//  P1 . ALTO - recuperacion de contrasena: email y OTP (ReglasLogin)
 // -----------------------------------------------------------------------------
 
-/// <summary>
-/// [P1] ForgotEmailPanel: solo acepta e-mail con contenido Y formato correcto.
-/// </summary>
-public sealed class P1_RecuperacionContrasennaEmail
+/// <summary>[P1] ForgotEmailPanel: boton Enviar solo se habilita con email valido.</summary>
+public sealed class P1_RecuperacionEmail
 {
     [Theory]
     [InlineData("recuperar@bimbo.hn")]
     [InlineData("usuario@gmail.com")]
-    public void EmailValido_HabilBtnSend(string email)
-    {
-        bool habilitado = ReglasFormato.TieneContenido(email)
-                       && ReglasFormato.EsCorreo(email);
-        Assert.True(habilitado, $"'{email}' deberia habilitar el boton Enviar codigo.");
-    }
+    public void EmailValido_HabilitaBtnSend(string email)
+        => Assert.True(ReglasFormato.TieneContenido(email) && ReglasFormato.EsCorreo(email));
 
     [Theory]
     [InlineData("")]
     [InlineData("sin-arroba")]
     [InlineData("doble@@bimbo.hn")]
     public void EmailInvalido_DeshabilitaBtnSend(string email)
-    {
-        bool habilitado = ReglasFormato.TieneContenido(email)
-                       && ReglasFormato.EsCorreo(email);
-        Assert.False(habilitado, $"'{email}' no debe habilitar el boton Enviar codigo.");
-    }
+        => Assert.False(ReglasFormato.TieneContenido(email) && ReglasFormato.EsCorreo(email));
 }
 
-/// <summary>
-/// [P1] ForgotCodePanel: el codigo OTP es exactamente 8 digitos numericos.
-/// </summary>
-public sealed class P1_ValidacionCodigoOTP
+/// <summary>[P1] ForgotCodePanel: el OTP es exactamente 8 digitos numericos.</summary>
+public sealed class P1_ValidacionOTP
 {
-    private static bool CodigoCompleto(string[] digitos) =>
-        digitos.All(d => d.Length == 1);
+    [Fact]
+    public void LongitudOtp_Es8()
+        => Assert.Equal(8, ReglasLogin.LongitudOtp);
 
     [Fact]
     public void OchoCasillas_Llenas_HabilitaVerificar()
     {
-        var digitos = new[] { "1", "2", "3", "4", "5", "6", "7", "8" };
-        Assert.True(CodigoCompleto(digitos), "Con 8 digitos el boton Verificar debe habilitarse.");
+        var casillas = new[] { "1", "2", "3", "4", "5", "6", "7", "8" };
+        Assert.True(ReglasLogin.OtpCompleto(casillas));
     }
 
     [Fact]
     public void CasillaVacia_DeshabilitaVerificar()
     {
-        var digitos = new[] { "1", "2", "3", "", "5", "6", "7", "8" };
-        Assert.False(CodigoCompleto(digitos), "Con una casilla vacia el boton Verificar debe deshabilitarse.");
+        var casillas = new[] { "1", "2", "3", "", "5", "6", "7", "8" };
+        Assert.False(ReglasLogin.OtpCompleto(casillas));
     }
 
-    [Fact]
-    public void OTP_SoloAceptaDigitos()
-    {
-        string[] entradas = ["a", "!", " ", "A", "n"];
-        foreach (var e in entradas)
-            Assert.False(char.IsDigit(e[0]), $"El caracter '{e}' no deberia poder ingresarse en el codigo OTP.");
-    }
+    [Theory]
+    [InlineData('a')]
+    [InlineData('!')]
+    [InlineData(' ')]
+    [InlineData('A')]
+    public void CaracterNoNumerico_EsBloqueado(char c)
+        => Assert.False(ReglasLogin.EsDigitoOtp(c));
+
+    [Theory]
+    [InlineData('0')]
+    [InlineData('5')]
+    [InlineData('9')]
+    public void Digito_EsPermitido(char c)
+        => Assert.True(ReglasLogin.EsDigitoOtp(c));
 
     [Theory]
     [InlineData("12345678")]
     [InlineData("00000000")]
-    public void Pegado_8DigitosNumericos_LlenaTodasLasCasillas(string otp)
-    {
-        bool esValido = otp.Length == 8 && otp.All(char.IsDigit);
-        Assert.True(esValido, $"'{otp}' debe distribuirse en las 8 casillas.");
-    }
+    public void Pegar_8DigitosNumericos_EsValido(string otp)
+        => Assert.True(ReglasLogin.OtpValido(otp));
 
     [Theory]
     [InlineData("1234567")]
     [InlineData("123456789")]
     [InlineData("ABCDEFGH")]
-    public void Pegado_OTPInvalido_SeRechaza(string otp)
-    {
-        bool esValido = otp.Length == 8 && otp.All(char.IsDigit);
-        Assert.False(esValido, $"'{otp}' no debe pegarse automaticamente.");
-    }
+    [InlineData("1234 567")]
+    public void Pegar_OTPInvalido_EsRechazado(string otp)
+        => Assert.False(ReglasLogin.OtpValido(otp));
 }
 
 // -----------------------------------------------------------------------------
-//  P2 . MEDIO - nueva contrasena (ForgotNewPanel)
+//  P2 . MEDIO - reglas de nueva contrasena (ReglasContrasena)
 // -----------------------------------------------------------------------------
 
-/// <summary>
-/// [P2] ForgotNewPanel: la contrasena nueva debe cumplir las 4 reglas de seguridad.
-/// </summary>
-public sealed class P2_ReglasNuevaContrasenna
+/// <summary>[P2] Criterios individuales: cada regla se evalua por separado.</summary>
+public sealed class P2_CriteriosIndividuales
 {
-    private static bool CumpleTodasLasReglas(string pwd) =>
-        pwd.Length >= 8
-        && pwd.Any(char.IsUpper)
-        && pwd.Any(char.IsDigit)
-        && pwd.Any(c => !char.IsLetterOrDigit(c));
+    [Theory]
+    [InlineData("12345678")]   // 8 chars
+    [InlineData("abcdefgh")]
+    public void TieneLargoMinimo_CumpleDesde8(string pwd)
+        => Assert.True(ReglasContrasena.TieneLargoMinimo(pwd));
 
+    [Theory]
+    [InlineData("1234567")]    // 7 chars
+    [InlineData("abc")]
+    public void TieneLargoMinimo_FallaAntesDe8(string pwd)
+        => Assert.False(ReglasContrasena.TieneLargoMinimo(pwd));
+
+    [Fact]
+    public void TieneMayuscula_DetectaMayuscula()
+        => Assert.True(ReglasContrasena.TieneMayuscula("aBcDe"));
+
+    [Fact]
+    public void TieneMayuscula_FallaSinMayuscula()
+        => Assert.False(ReglasContrasena.TieneMayuscula("abcde"));
+
+    [Fact]
+    public void TieneNumero_DetectaDigito()
+        => Assert.True(ReglasContrasena.TieneNumero("abc1def"));
+
+    [Fact]
+    public void TieneNumero_FallaSinDigito()
+        => Assert.False(ReglasContrasena.TieneNumero("abcdef"));
+
+    [Fact]
+    public void TieneSimbolo_DetectaSimbolo()
+        => Assert.True(ReglasContrasena.TieneSimbolo("abc!def"));
+
+    [Fact]
+    public void TieneSimbolo_FallaSinSimbolo()
+        => Assert.False(ReglasContrasena.TieneSimbolo("abcdef1A"));
+}
+
+/// <summary>[P2] CumpleTodasLasReglas habilita el boton Actualizar.</summary>
+public sealed class P2_ValidacionCompleta
+{
     [Theory]
     [InlineData("Bimbo123!")]
     [InlineData("Passw0rd$")]
     [InlineData("MiContrasenna9#")]
     public void ContrasenaFuerte_CumpleTodasLasReglas(string pwd)
-    {
-        Assert.True(CumpleTodasLasReglas(pwd), $"'{pwd}' deberia superar todas las reglas de seguridad.");
-    }
+        => Assert.True(ReglasContrasena.CumpleTodasLasReglas(pwd));
 
     [Theory]
-    [InlineData("bimbo123!")]
-    [InlineData("BIMBO123")]
-    [InlineData("Bimbo!!!")]
-    [InlineData("Bi1!")]
+    [InlineData("bimbo123!")]   // sin mayuscula
+    [InlineData("BIMBO123")]    // sin simbolo
+    [InlineData("Bimbo!!!")]    // sin numero
+    [InlineData("Bi1!")]        // longitud < 8
+    [InlineData("")]
     public void ContrasenaDebil_FallaAlgunaRegla(string pwd)
-    {
-        Assert.False(CumpleTodasLasReglas(pwd), $"'{pwd}' no cumple todas las reglas y no debe habilitarse el boton.");
-    }
-
-    [Fact]
-    public void Contrasena_Vacia_NoHabilitaBoton()
-    {
-        Assert.False(CumpleTodasLasReglas(""), "La contrasena vacia no debe habilitar el boton Actualizar.");
-    }
+        => Assert.False(ReglasContrasena.CumpleTodasLasReglas(pwd));
 }
 
-/// <summary>
-/// [P2] ForgotNewPanel: ambas contrasenas deben coincidir.
-/// </summary>
+/// <summary>[P2] Confirmacion: ambas contrasenas deben coincidir para habilitar el boton.</summary>
 public sealed class P2_ConfirmacionContrasenna
 {
-    private static bool SubmitHabilitado(string pwd, string confirm) =>
-        pwd.Length >= 8
-        && pwd.Any(char.IsUpper)
-        && pwd.Any(char.IsDigit)
-        && pwd.Any(c => !char.IsLetterOrDigit(c))
-        && pwd == confirm
-        && pwd.Length > 0;
+    private static bool SubmitHabilitado(string pwd, string confirm)
+        => ReglasContrasena.CumpleTodasLasReglas(pwd) && pwd == confirm && pwd.Length > 0;
 
     [Fact]
-    public void ContrasennasIguales_Habilita_BtnSubmit()
-    {
-        const string pwd = "Bimbo123!";
-        Assert.True(SubmitHabilitado(pwd, pwd), "Cuando las contrasenas coinciden y cumplen reglas, el boton debe habilitarse.");
-    }
+    public void ContrasennasIguales_HabilitaBtnSubmit()
+        => Assert.True(SubmitHabilitado("Bimbo123!", "Bimbo123!"));
 
     [Fact]
-    public void ContrasennasDiferentes_Deshabilita_BtnSubmit()
-    {
-        Assert.False(SubmitHabilitado("Bimbo123!", "Bimbo456!"), "Cuando las contrasenas no coinciden el boton debe deshabilitarse.");
-    }
+    public void ContrasennasDiferentes_DeshabilitaBtnSubmit()
+        => Assert.False(SubmitHabilitado("Bimbo123!", "Bimbo456!"));
 
     [Fact]
-    public void ConfirmVacia_Deshabilita_BtnSubmit()
-    {
-        Assert.False(SubmitHabilitado("Bimbo123!", ""), "Con el campo de confirmacion vacio el boton debe deshabilitarse.");
-    }
+    public void ConfirmVacia_DeshabilitaBtnSubmit()
+        => Assert.False(SubmitHabilitado("Bimbo123!", ""));
 }
 
 // -----------------------------------------------------------------------------
-//  P2 . MEDIO - medidor de fortaleza de contrasena
+//  P2 . MEDIO - medidor de fortaleza (ReglasContrasena.CalcularScore)
 // -----------------------------------------------------------------------------
 
-/// <summary>
-/// [P2] Verifica el score calculado por el medidor de fortaleza de ForgotNewPanel.
-/// </summary>
-public sealed class P2_FortalezaContrasenna
+/// <summary>[P2] El score reflejado en el medidor es consistente con las reglas reales.</summary>
+public sealed class P2_ScoreFortaleza
 {
-    private static int Score(string pwd)
-    {
-        int score = 0;
-        if (pwd.Length >= 8)                         score++;
-        if (pwd.Any(char.IsUpper))                   score++;
-        if (pwd.Any(char.IsDigit))                   score++;
-        if (pwd.Any(c => !char.IsLetterOrDigit(c)))  score++;
-        if (pwd.Length >= 12)                        score++;
-        return Math.Clamp(score, 0, 5);
-    }
-
     [Fact]
     public void Vacia_Score0()
-        => Assert.Equal(0, Score(""));
+        => Assert.Equal(0, ReglasContrasena.CalcularScore(""));
 
     [Fact]
-    public void SoloLetrasCortas_Score1()
-        => Assert.Equal(1, Score("abcdefgh"));
+    public void ContenidoPeroMenorDe8_Score0()
+        // "Bi1!" cumple mayus + numero + simbolo pero NO longitud → score debe ser 0,
+        // no 3, para no mostrar "Aceptable" cuando el boton sigue deshabilitado.
+        => Assert.Equal(0, ReglasContrasena.CalcularScore("Bi1!"));
 
     [Fact]
-    public void ConMayuscula_NumeroYEspecial_Score4()
-        // "Bimbo12!" tiene 8 chars: longitud>=8 + mayus + numero + especial = 4 puntos.
-        // No llega a 12 chars, por lo que NO suma el quinto punto.
-        => Assert.Equal(4, Score("Bimbo12!"));
+    public void SoloLongitud_Score1()
+        => Assert.Equal(1, ReglasContrasena.CalcularScore("abcdefgh"));
 
     [Fact]
-    public void MasDe12_MayusNum_Especial_Score5()
-        => Assert.Equal(5, Score("MiBimbo1234!"));
+    public void LongitudYMayus_Score2()
+        => Assert.Equal(2, ReglasContrasena.CalcularScore("Abcdefgh"));
+
+    [Fact]
+    public void LongitudMayusNumero_Score3()
+        => Assert.Equal(3, ReglasContrasena.CalcularScore("Abcdefg1"));
+
+    [Fact]
+    public void Todos4Criterios_Score4()
+        // "Bimbo12!" tiene 8 chars: longitud + mayus + numero + simbolo = 4.
+        // NO llega a 12 chars, por lo que no sube al 5.
+        => Assert.Equal(4, ReglasContrasena.CalcularScore("Bimbo12!"));
+
+    [Fact]
+    public void Mas12ConTodo_Score5()
+        => Assert.Equal(5, ReglasContrasena.CalcularScore("MiBimbo1234!"));
 
     [Fact]
     public void ScoreMaximoEs5()
+        => Assert.InRange(ReglasContrasena.CalcularScore("Aa1!Aa1!Aa1!Aa1!"), 0, 5);
+
+    [Fact]
+    public void ScoreCuandoCumpleTodasLasReglas_Es4oMas()
     {
-        int score = Score("Aa1!Aa1!Aa1!Aa1!");
-        Assert.InRange(score, 0, 5);
+        // Si CumpleTodasLasReglas == true, el score debe ser al menos 4.
+        // Esto verifica que medidor y boton son consistentes.
+        const string pwd = "Bimbo12!";
+        Assert.True(ReglasContrasena.CumpleTodasLasReglas(pwd));
+        Assert.True(ReglasContrasena.CalcularScore(pwd) >= 4);
     }
 }
 
@@ -296,111 +278,62 @@ public sealed class P2_FortalezaContrasenna
 //  P3 . BAJO - casos limite y polish
 // -----------------------------------------------------------------------------
 
-/// <summary>
-/// [P3] El correo se trimea antes de enviarse (ForgotEmailPanel usa .Trim()).
-/// </summary>
-public sealed class P3_TrimCorreoRecuperacion
+/// <summary>[P3] El correo se trimea antes de enviarse (ForgotEmailPanel usa .Trim()).</summary>
+public sealed class P3_TrimCorreo
 {
     [Theory]
     [InlineData("  usuario@bimbo.hn  ")]
     [InlineData("usuario@bimbo.hn")]
     public void CorreoConEspacios_EsValidoTrasTrimar(string correo)
-    {
-        string limpio = correo.Trim();
-        Assert.True(ReglasFormato.EsCorreo(limpio), "El correo con espacios debe ser valido despues del trim.");
-    }
+        => Assert.True(ReglasFormato.EsCorreo(correo.Trim()));
 }
 
-/// <summary>
-/// [P3] El reenvio de codigo reinicia el temporizador (45 s).
-/// </summary>
+/// <summary>[P3] Temporizador de reenvio de OTP inicia en 45 s.</summary>
 public sealed class P3_TemporizadorReenvio
 {
     [Fact]
-    public void Temporizador_Inicia_En45Segundos()
+    public void Temporizador_IniciaEn45Segundos()
     {
-        const int esperado = 45;
         int secondsLeft = 45;
-        Assert.Equal(esperado, secondsLeft);
+        Assert.Equal(45, secondsLeft);
     }
 
     [Fact]
-    public void Temporizador_Oculta_BtnResendHastaLlegar0()
+    public void BtnResend_ApareceAlLlegar0()
     {
         int secondsLeft = 1;
         secondsLeft--;
-        bool mostrarBotonReenvio = secondsLeft <= 0;
-        Assert.True(mostrarBotonReenvio, "El boton Reenviar debe aparecer cuando el contador llega a 0.");
+        Assert.True(secondsLeft <= 0);
     }
 
     [Fact]
-    public void Temporizador_NoMuestra_BtnResend_Mientras_Cuenta()
+    public void BtnResend_OcultaMientrasContando()
     {
         int secondsLeft = 20;
-        bool mostrarBotonReenvio = secondsLeft <= 0;
-        Assert.False(mostrarBotonReenvio, "El boton Reenviar no debe verse mientras el temporizador sigue contando.");
+        Assert.False(secondsLeft <= 0);
     }
 }
 
-/// <summary>
-/// [P3] Indicadores de reglas en ForgotNewPanel reflejan el estado correcto.
-/// </summary>
-public sealed class P3_IndicadoresReglaContrasenna
+/// <summary>[P3] Los indicadores de regla usan las mismas funciones del dominio que la validacion.</summary>
+public sealed class P3_IndicadoresCoherentes
 {
-    private static bool ReglaLongitud(string pwd)  => pwd.Length >= 8;
-    private static bool ReglaMayuscula(string pwd) => pwd.Any(char.IsUpper);
-    private static bool ReglaNumero(string pwd)    => pwd.Any(char.IsDigit);
-    private static bool ReglaEspecial(string pwd)  => pwd.Any(c => !char.IsLetterOrDigit(c));
-
     [Fact]
     public void ContrasenaVacia_TodosIndicadoresRojos()
     {
         string pwd = "";
-        Assert.False(ReglaLongitud(pwd));
-        Assert.False(ReglaMayuscula(pwd));
-        Assert.False(ReglaNumero(pwd));
-        Assert.False(ReglaEspecial(pwd));
+        Assert.False(ReglasContrasena.TieneLargoMinimo(pwd));
+        Assert.False(ReglasContrasena.TieneMayuscula(pwd));
+        Assert.False(ReglasContrasena.TieneNumero(pwd));
+        Assert.False(ReglasContrasena.TieneSimbolo(pwd));
     }
 
     [Fact]
-    public void ContrasenaBuena_TodosIndicadoresVerdes()
+    public void ContrasenaCompleta_TodosIndicadoresVerdes()
     {
         string pwd = "Bimbo123!";
-        Assert.True(ReglaLongitud(pwd));
-        Assert.True(ReglaMayuscula(pwd));
-        Assert.True(ReglaNumero(pwd));
-        Assert.True(ReglaEspecial(pwd));
-    }
-
-    [Fact]
-    public void SoloLongitud_UnIndicadorVerde()
-    {
-        string pwd = "abcdefgh";
-        Assert.True(ReglaLongitud(pwd));
-        Assert.False(ReglaMayuscula(pwd));
-        Assert.False(ReglaNumero(pwd));
-        Assert.False(ReglaEspecial(pwd));
-    }
-}
-
-/// <summary>
-/// [P3] Navegacion entre paneles: titulos correctos en cada paso del flujo Forgot.
-/// </summary>
-public sealed class P3_NavegacionForgot
-{
-    [Fact]
-    public void DesdeCodigoVolver_Va_A_EmailPanel_NoAlLogin()
-    {
-        const string tituloEsperado = "Recuperar contrasena";
-        const string tituloReal     = "Recuperar contrasena";
-        Assert.Equal(tituloEsperado, tituloReal);
-    }
-
-    [Fact]
-    public void DesdeForgotEmailVolver_Va_AlLoginDirecto()
-    {
-        const string tituloEsperado = "Iniciar sesion";
-        const string tituloReal     = "Iniciar sesion";
-        Assert.Equal(tituloEsperado, tituloReal);
+        Assert.True(ReglasContrasena.TieneLargoMinimo(pwd));
+        Assert.True(ReglasContrasena.TieneMayuscula(pwd));
+        Assert.True(ReglasContrasena.TieneNumero(pwd));
+        Assert.True(ReglasContrasena.TieneSimbolo(pwd));
     }
 }

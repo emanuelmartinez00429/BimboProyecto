@@ -11,6 +11,7 @@ using CapaAplicacion.Auth.Interfaces;
 using CapaAplicacion.Empresa.Dtos;
 using CapaAplicacion.Empresa.Interfaces;
 using CapaAplicacion.Usuarios.Interfaces;
+using CapaDominio.Reglas;
 using CapaUI.Core.Empresa;
 using CapaUI.Services.Empresa;
 
@@ -188,11 +189,9 @@ namespace CapaUI.Formularios.InicioSesion
         // ── Campos ───────────────────────────────────────────────────────────
         private void Fields_Changed(object sender, RoutedEventArgs e)
         {
-            var emailOk = !string.IsNullOrWhiteSpace(TxtEmail.Text);
-            var pwdOk = _pwdVisible
-                ? !string.IsNullOrWhiteSpace(TxtPasswordVisible.Text)
-                : TxtPassword.Password.Length > 0;
-            BtnIngresar.IsEnabled = emailOk && pwdOk;
+            BtnIngresar.IsEnabled = ReglasLogin.CredencialesCompletas(
+                TxtEmail.Text,
+                _pwdVisible ? TxtPasswordVisible.Text : TxtPassword.Password);
         }
 
         private void Field_KeyDown(object sender, KeyEventArgs e)
@@ -255,9 +254,13 @@ namespace CapaUI.Formularios.InicioSesion
 
             try
             {
-                // Step 1: Verificar credenciales
-                await AnimarStep(S1Dot, S1Text, 0, 25);
-                var result = await _authService.LoginAsync(email, password);
+                // Step 1: Verificar credenciales.
+                // La animación corre en paralelo con la llamada real (no en serie),
+                // así el tiempo del paso es max(animación, red), no la suma de ambos.
+                var animStep1 = AnimarStep(S1Dot, S1Text, 0, 25);
+                var loginTask = _authService.LoginAsync(email, password);
+                await System.Threading.Tasks.Task.WhenAll(animStep1, loginTask);
+                var result = loginTask.Result;
                 if (!result.Success)
                 {
                     VolverAlLogin(result.Error);
@@ -266,8 +269,10 @@ namespace CapaUI.Formularios.InicioSesion
                 CompletarStep(S1Dot, S1Text);
 
                 // Step 2: Establecer sesión + permisos + perfil (una sola llamada)
-                await AnimarStep(S2Dot, S2Text, 25, 70);
-                var sesion = await _sesionService.IniciarSesionAsync(result.Value!.IdUsuario);
+                var animStep2  = AnimarStep(S2Dot, S2Text, 25, 70);
+                var sesionTask = _sesionService.IniciarSesionAsync(result.Value!.IdUsuario);
+                await System.Threading.Tasks.Task.WhenAll(animStep2, sesionTask);
+                var sesion = sesionTask.Result;
                 if (!sesion.Success)
                 {
                     VolverAlLogin(sesion.Error);
@@ -278,11 +283,16 @@ namespace CapaUI.Formularios.InicioSesion
                 // Diagnóstico del contrato Permiso(enum) ↔ acciones.nombre_accion (P-018)
                 CapaUI.Core.Permisos.SesionPermisos.ValidarContraBD();
 
-                // Step 3: Preparar espacio de trabajo
+                // Step 3: Sincronizar módulos (sin llamada de red detrás, solo cosmético)
                 await AnimarStep(S3Dot, S3Text, 70, 100);
                 CompletarStep(S3Dot, S3Text);
 
-                await System.Threading.Tasks.Task.Delay(300);
+                // Step 4: Preparar espacio de trabajo — se completa de verdad antes de navegar,
+                // en vez del Task.Delay(300) plano que dejaba el check sin marcar.
+                await System.Threading.Tasks.Task.Delay(120);
+                CompletarStep(S4Dot, S4Text);
+                await System.Threading.Tasks.Task.Delay(120);
+
                 SpinnerRotate.BeginAnimation(System.Windows.Media.RotateTransform.AngleProperty, null);
                 LoginExitoso?.Invoke(this, EventArgs.Empty);
             }
@@ -302,9 +312,9 @@ namespace CapaUI.Formularios.InicioSesion
             {
                 int pct = i;
                 Dispatcher.Invoke(() => SetProgress(pct));
-                await System.Threading.Tasks.Task.Delay(18);
+                await System.Threading.Tasks.Task.Delay(6);
             }
-            await System.Threading.Tasks.Task.Delay(180);
+            await System.Threading.Tasks.Task.Delay(50);
         }
 
         private void CompletarStep(Border dot, TextBlock label)
