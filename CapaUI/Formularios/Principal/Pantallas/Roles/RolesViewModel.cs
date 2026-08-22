@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using CapaAplicacion.Usuarios.Dtos;
 using CapaAplicacion.Usuarios.Interfaces;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -282,9 +282,9 @@ public sealed partial class RolesViewModel : ObservableObject, IDisposable
         RolSeleccionado = Roles.FirstOrDefault();
     }
 
-    partial void OnRolSeleccionadoChanged(RolItemVm? anterior, RolItemVm? value)
+    partial void OnRolSeleccionadoChanged(RolItemVm? oldValue, RolItemVm? newValue)
     {
-        if (value is null) return;
+        if (newValue is null) return;
 
         Mensaje = string.Empty;
         Query = string.Empty;

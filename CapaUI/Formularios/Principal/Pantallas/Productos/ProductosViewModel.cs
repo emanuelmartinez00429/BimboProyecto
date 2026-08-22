@@ -44,6 +44,13 @@ public partial class ProductosViewModel : RealtimeAwareViewModel
     private int?         _pendingSelectionId;
     private int          _loadGeneration;
 
+    /// <summary>
+    /// Cancela la carga de página en vuelo. <see cref="_loadGeneration"/> descarta la
+    /// respuesta vieja cuando llega, pero no evita que llegue: sin esto la petición
+    /// seguía viaje al servidor aunque nadie fuera a usarla.
+    /// </summary>
+    private CancellationTokenSource? _ctsPagina;
+
     public const int PageSize = 50;
 
     [ObservableProperty] private ObservableCollection<ProductoDto> _pageRows = new();
@@ -359,24 +366,49 @@ public partial class ProductosViewModel : RealtimeAwareViewModel
 
     private const int TimeoutMs = 10_000;
 
+    /// <summary>
+    /// El timeout cancela la petición de verdad en vez de solo dejar de esperarla.
+    /// <para/>
+    /// Antes era <c>Task.WhenAny(task, Task.Delay(TimeoutMs))</c>: la UI se rendía a
+    /// los 10s pero el pedido seguía vivo hasta terminar, y cada carga dejaba además
+    /// un <c>Task.Delay</c> huérfano corriendo. Pasar páginas rápido acumulaba
+    /// peticiones y timers que ya no le importaban a nadie.
+    /// <para/>
+    /// <see cref="_loadGeneration"/> se mantiene: una respuesta puede llegar en el
+    /// hueco entre que se pide la cancelación y que efectivamente corta, y esa hay
+    /// que descartarla igual.
+    /// </summary>
     private async Task CargarPaginaAsync()
     {
         int myGen  = ++_loadGeneration;
         IsLoading  = true;
         ErrorCarga = string.Empty;
 
+        // La generación nueva mata a la anterior de verdad, no solo la ignora.
+        var ctsAnterior = _ctsPagina;
+        var cts = new CancellationTokenSource(TimeoutMs);
+        _ctsPagina = cts;
+        ctsAnterior?.Cancel();
+        ctsAnterior?.Dispose();
+
         var filtros = BuildFiltros();
 
-        var task = _repo.GetPagedAsync(_page, PageSize, filtros);
-        if (await Task.WhenAny(task, Task.Delay(TimeoutMs)) != task)
+        Result<PagedResult<ProductoDto>> r;
+        try
         {
+            r = await _repo.GetPagedAsync(_page, PageSize, filtros, cts.Token);
+        }
+        catch (OperationCanceledException)
+        {
+            // Dos motivos posibles, y se tratan distinto: si la canceló una carga
+            // más nueva, esa se encarga de la UI y acá no hay nada que decir; si
+            // venció el timeout, hay que avisar.
             if (myGen != _loadGeneration) return;
             ErrorCarga = "La carga tardó demasiado. Intente de nuevo.";
             IsLoading  = false;
             return;
         }
 
-        var r = await task;
         if (myGen != _loadGeneration) return;
 
         if (!r.Success)
@@ -657,10 +689,16 @@ public partial class ProductosViewModel : RealtimeAwareViewModel
     }
 
     // ── IDisposable — implementado en RealtimeAwareViewModel ────────
-    // OnDispose() libera el debounce de búsqueda
+    // OnDispose() libera el debounce de búsqueda y corta la carga en vuelo
 
     protected override void OnDispose()
     {
         _buscador.Dispose();
+
+        // Si se sale de la pantalla con una página cargando, se cancela: la
+        // respuesta ya no tiene a dónde llegar.
+        _ctsPagina?.Cancel();
+        _ctsPagina?.Dispose();
+        _ctsPagina = null;
     }
 }

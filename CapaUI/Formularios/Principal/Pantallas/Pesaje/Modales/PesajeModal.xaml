@@ -174,19 +174,10 @@
                             <TextBlock x:Name="TxtGuardando" Text="Guardando…" Visibility="Collapsed" VerticalAlignment="Center"
                                        FontFamily="Segoe UI" FontSize="11.5" Foreground="#99FFFFFF" Margin="0,0,12,0"/>
                             <Button x:Name="BtnVolver" Content="Volver" Style="{StaticResource GhostBtn}" Margin="0,0,10,0" Click="Cerrar_Click"/>
-                            <!-- Cierra el PRODUCTO que se está pesando (no el camión entero —
-                                 eso se hace desde la pantalla principal). Rojo pálido y no
-                                 verde: termina algo (no se puede seguir pesando este producto
-                                 después) pero no borra nada, así que tampoco es el mismo tono
-                                 que "Quitar". Pide confirmación en el code-behind por si se
-                                 toca sin querer al lado de "Seguir pesando". -->
-                            <Button x:Name="BtnTerminarProducto" Style="{StaticResource WarnBtn}" Margin="0,0,10,0" Click="TerminarProducto_Click">
-                                <StackPanel Orientation="Horizontal">
-                                    <Path Data="{StaticResource MIcoCheck}" Stroke="White" StrokeThickness="2.6" Width="14" Height="14" Stretch="Uniform"
-                                          Margin="0,0,6,0" VerticalAlignment="Center" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
-                                    <TextBlock Text="Terminar de pesar" VerticalAlignment="Center"/>
-                                </StackPanel>
-                            </Button>
+                            <!-- "Terminar de pesar" se mudó afuera del modal: ahora es
+                                 "Cerrar producto"/"Reabrir producto" en la pantalla principal,
+                                 al lado de "Pesar" — se activa con solo seleccionar el
+                                 producto, sin necesidad de abrir este modal. -->
                             <!-- Acción principal (seguir agregando pesadas): verde, sólida y a
                                  la orilla derecha — la posición y el color que antes tenía
                                  "Cerrar camión", que es el gesto que termina/consecuencia

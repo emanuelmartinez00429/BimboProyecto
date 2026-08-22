@@ -76,38 +76,6 @@
             </Style.Triggers>
         </Style>
 
-        <Style x:Key="ProductCellStyle" TargetType="DataGridCell">
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="0"/>
-            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="DataGridCell">
-                        <Border Background="{TemplateBinding Background}" BorderThickness="0" Padding="0">
-                            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <Style x:Key="ProductCellStyle1" TargetType="DataGridCell">
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="0"/>
-            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="DataGridCell">
-                        <Border Background="{TemplateBinding Background}" BorderThickness="0" Padding="0">
-                            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Left"/>
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
         <Style TargetType="DataGridColumnHeader">
             <Setter Property="Background" Value="{DynamicResource EmpresaPrimaryBrush}"/>
             <Setter Property="Foreground" Value="White"/>
@@ -451,7 +419,7 @@
                               GridLinesVisibility="None" SelectionMode="Single" SelectionUnit="FullRow"
                               Background="White" BorderThickness="0" AlternationCount="2"
                               RowStyle="{StaticResource ProductRowStyle}"
-                              CellStyle="{StaticResource ProductCellStyle}"
+                              CellStyle="{StaticResource CeldaCentrada}"
                               SelectionChanged="DgFabricantes_SelectionChanged"
                               MouseDoubleClick="DgFabricantes_MouseDoubleClick"
                               ScrollViewer.VerticalScrollBarVisibility="Auto"
@@ -459,7 +427,7 @@
                               VirtualizingPanel.VirtualizationMode="Recycling"
                               VirtualizingPanel.ScrollUnit="Pixel">
                         <DataGrid.Columns>
-                            <DataGridTemplateColumn Header="NOMBRE" Width="*" CellStyle="{StaticResource ProductCellStyle1}">
+                            <DataGridTemplateColumn Header="NOMBRE" Width="*" CellStyle="{StaticResource CeldaIzquierda}">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <TextBlock Text="{Binding Nombre}" FontFamily="Segoe UI"
@@ -468,7 +436,7 @@
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
-                            <DataGridTemplateColumn Header="DESCRIPCIÓN" Width="*" CellStyle="{StaticResource ProductCellStyle1}">
+                            <DataGridTemplateColumn Header="DESCRIPCIÓN" Width="*" CellStyle="{StaticResource CeldaIzquierda}">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <TextBlock Text="{Binding Descripcion}" FontFamily="Segoe UI"
@@ -477,7 +445,7 @@
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
-                            <DataGridTemplateColumn Header="PROVEEDOR" Width="180" CellStyle="{StaticResource ProductCellStyle}">
+                            <DataGridTemplateColumn Header="PROVEEDOR" Width="180" CellStyle="{StaticResource CeldaCentrada}">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <TextBlock Text="{Binding NombreProveedor}" FontFamily="Segoe UI"
@@ -486,7 +454,7 @@
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
-                            <DataGridTemplateColumn Header="ESTADO" Width="70" CellStyle="{StaticResource ProductCellStyle}">
+                            <DataGridTemplateColumn Header="ESTADO" Width="70" CellStyle="{StaticResource CeldaCentrada}">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <Grid HorizontalAlignment="Center">
@@ -525,7 +493,7 @@
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
-                            <DataGridTemplateColumn Header="" Width="160" CellStyle="{StaticResource ProductCellStyle}">
+                            <DataGridTemplateColumn Header="" Width="160" CellStyle="{StaticResource CeldaCentrada}">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <TextBlock Text="Ver contactos ›" FontFamily="Segoe UI" FontSize="14"
@@ -588,7 +556,7 @@
                               GridLinesVisibility="None" SelectionMode="Single" SelectionUnit="FullRow"
                               Background="White" BorderThickness="0" AlternationCount="2"
                               RowStyle="{StaticResource ProductRowStyle}"
-                              CellStyle="{StaticResource ProductCellStyle}"
+                              CellStyle="{StaticResource CeldaCentrada}"
                               SelectionChanged="DgContactos_SelectionChanged"
                               MouseDoubleClick="DgContactos_MouseDoubleClick"
                               ScrollViewer.VerticalScrollBarVisibility="Auto"
@@ -596,7 +564,7 @@
                               VirtualizingPanel.VirtualizationMode="Recycling"
                               VirtualizingPanel.ScrollUnit="Pixel">
                         <DataGrid.Columns>
-                            <DataGridTemplateColumn Header="NOMBRE" Width="*" CellStyle="{StaticResource ProductCellStyle1}">
+                            <DataGridTemplateColumn Header="NOMBRE" Width="*" CellStyle="{StaticResource CeldaIzquierda}">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <TextBlock Text="{Binding Nombre}" FontFamily="Segoe UI"
@@ -605,7 +573,7 @@
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
-                            <DataGridTemplateColumn Header="TELÉFONO" Width="180" CellStyle="{StaticResource ProductCellStyle}">
+                            <DataGridTemplateColumn Header="TELÉFONO" Width="180" CellStyle="{StaticResource CeldaCentrada}">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <TextBlock Text="{Binding Telefono}" FontFamily="Segoe UI"
@@ -613,7 +581,7 @@
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
-                            <DataGridTemplateColumn Header="CORREO" Width="240" CellStyle="{StaticResource ProductCellStyle}">
+                            <DataGridTemplateColumn Header="CORREO" Width="240" CellStyle="{StaticResource CeldaCentrada}">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <TextBlock Text="{Binding Correo}" FontFamily="Segoe UI"
@@ -621,7 +589,7 @@
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
-                            <DataGridTemplateColumn Header="ACCIONES" Width="100" CellStyle="{StaticResource ProductCellStyle}">
+                            <DataGridTemplateColumn Header="ACCIONES" Width="100" CellStyle="{StaticResource CeldaCentrada}">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">

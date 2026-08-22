@@ -1,9 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Shapes;
@@ -31,6 +32,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
         /// barata y estable de tenerlo (el DataGrid lo crea en su plantilla).
         /// </summary>
         private ScrollViewer? _svEntradas;
+        private ScrollViewer? _svProductos;
 
         public PesajeView() => InitializeComponent();
 
@@ -42,6 +44,15 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             _vm.Toast           += MostrarToast;
             _vm.PropertyChanged += (_, __) => PedirActualizarUI();
             DataContext = _vm;
+
+            // Agrupar por placa acá y no con un CollectionViewSource en los Resources del
+            // XAML: los recursos no heredan DataContext, así que el Source="{Binding
+            // Camiones}" de allá no resuelve nunca y la lista queda vacía sin avisar.
+            // Sobre la vista por defecto de la colección alcanza — el ListBox está atado a
+            // Camiones, así que la usa.
+            var vista = CollectionViewSource.GetDefaultView(_vm.Camiones);
+            if (vista.GroupDescriptions.Count == 0)
+                vista.GroupDescriptions.Add(new PropertyGroupDescription(nameof(CamionPesaje.Placa)));
 
             await _vm.CargarAsync();
 
@@ -110,15 +121,31 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
 
             BtnCamionAgregar.IsEnabled   = _vm.PuedeAgregarCamion;
             BtnCamionEditar.IsEnabled    = hayCamion && !cerrado;
-            BtnCamionQuitar.IsEnabled    = hayCamion;
             BtnCamionCerrar.IsEnabled     = hayCamion && !cerrado;
+            // Con la placa compartida el botón cierra UNA recepción, no el camión: el
+            // camión sigue en el andén hasta que se cierre la del otro proveedor. Cada
+            // recepción se recibe y se firma por separado, así que cerrar de a una es
+            // lo correcto — solo hay que decirlo bien.
+            TxtBtnCamionCerrar.Text = _vm.SelectedCamion?.PlacaCompartida == true
+                ? "Cerrar recepción"
+                : "Cerrar camión";
             // El reporte se puede reimprimir aunque el camión ya esté cerrado — ya
             // no depende de cerrarlo, así que su único requisito es tener uno seleccionado.
             BtnImprimirReporte.IsEnabled = hayCamion;
             BtnCerrarTodos.IsEnabled     = _vm.CamionesActivos > 0;
 
-            // Agregar/editar/quitar productos vive en el megamodal; acá solo se pesa.
             BtnProdPesar.IsEnabled = hayProducto && prodAbierto && !cerrado;
+
+            // Agregar/editar (y, adentro del modal de editar, quitar) un producto del
+            // camión seleccionado — cada uno abre ProductoCamionModal.
+            BtnProdAgregar.IsEnabled = hayCamion && !cerrado;
+            BtnProdEditar.IsEnabled  = hayProducto && !cerrado;
+
+            // Cerrar/reabrir el producto seleccionado: se activa con solo seleccionarlo
+            // (no depende de si está abierto o cerrado, porque sirve para las dos
+            // direcciones), pero no si el camión entero ya está cerrado.
+            BtnProdCerrar.IsEnabled = hayProducto && !cerrado;
+            TxtBtnProdCerrar.Text = prodAbierto ? "Cerrar producto" : "Reabrir producto";
 
             // La tara extra se reparte entre pesadas ya registradas: sin pesadas no hay nada
             // que repartir.
@@ -193,7 +220,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
         private void LstCamiones_DoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             if (_vm?.SelectedCamion != null && !_vm.CamionCerrado)
-                AbrirProcesoModal(ModoProceso.Edicion, _vm.SelectedCamion);
+                AbrirCamionModal(_vm.SelectedCamion);
         }
 
         private void DgProductos_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -261,6 +288,20 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             e.Handled = true;   // que no se lo lleve el scroll vertical
         }
 
+        private void DgProductos_ScrollChanged(object sender, ScrollChangedEventArgs e)
+        {
+            _svProductos ??= e.OriginalSource as ScrollViewer;
+        }
+
+        private void DgProductos_PreviewMouseWheel(object sender, System.Windows.Input.MouseWheelEventArgs e)
+        {
+            if (System.Windows.Input.Keyboard.Modifiers != System.Windows.Input.ModifierKeys.Shift) return;
+            if (_svProductos is null || _svProductos.ScrollableWidth <= 0) return;
+
+            _svProductos.ScrollToHorizontalOffset(_svProductos.HorizontalOffset - e.Delta);
+            e.Handled = true;
+        }
+
         private void RbVista_Changed(object sender, RoutedEventArgs e)
         {
             if (_vm == null) return;
@@ -276,6 +317,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             TotalColProducto.Width = verProducto
                 ? new GridLength(1.1, GridUnitType.Star)
                 : new GridLength(0);
+            TotalColProducto.MinWidth = verProducto ? 160 : 0;
 
             _vm.CambiarVista(modo);
             ActualizarUI();
@@ -296,35 +338,48 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             if (cerradas.Count > 0) AbrirReporte(cerradas);
         }
 
-        /// <summary>Alta guiada: abre el proceso en modo wizard.</summary>
+        /// <summary>Alta de camión: solo sus datos — los productos se agregan después,
+        /// uno a la vez, desde el panel de Movimiento.</summary>
         private void BtnNuevoProceso_Click(object sender, RoutedEventArgs e)
         {
             if (SesionPermisos.Tiene(Permiso.RegistrarEntrada))
-                AbrirProcesoModal(ModoProceso.Wizard, null);
+                AbrirCamionModal(null);
         }
 
-        /// <summary>
-        /// Único botón de edición de la pantalla: abre el megamodal con TODO el
-        /// proceso del camión seleccionado (datos, productos y tara extra).
-        /// </summary>
+        /// <summary>Edita los datos del camión seleccionado (placa/proveedor/observaciones).
+        /// Los productos se editan aparte, desde el panel de Movimiento.</summary>
         private void BtnEditarProceso_Click(object sender, RoutedEventArgs e)
         {
             if (SesionPermisos.Tiene(Permiso.ModificarPesaje) && _vm.SelectedCamion != null && !_vm.CamionCerrado)
-                AbrirProcesoModal(ModoProceso.Edicion, _vm.SelectedCamion);
+                AbrirCamionModal(_vm.SelectedCamion);
         }
 
-        private void BtnCamionQuitar_Click(object sender, RoutedEventArgs e)
+        /// <summary>
+        /// Basurero de la propia fila en la lista de camiones (antes era un botón aparte
+        /// en la toolbar). <c>Tag="{Binding}"</c> en el XAML lleva el <see cref="CamionPesaje"/>
+        /// de esa fila directo al handler, así que borra el que se tocó sin depender de
+        /// la selección — mismo patrón que "Quitar" en el megamodal de productos.
+        /// MessageBox nativo (no el popup propio de la pantalla) y no PedirConfirmacion:
+        /// mismo criterio que "Cerrar/Reabrir producto" (BtnProdCerrar_Click) para
+        /// confirmar acciones que se disparan desde un ícono suelto en una fila.
+        /// </summary>
+        private void QuitarCamion_Click(object sender, RoutedEventArgs e)
         {
             if (!SesionPermisos.Tiene(Permiso.CancelarPesaje)) return;
-            if (_vm.SelectedCamion == null) return;
-            PedirConfirmacion(BtnCamionQuitar,
-                $"¿Quitar el camión {_vm.SelectedCamion.Placa}? Se perderán sus productos y pesajes.",
-                () => _ = QuitarCamionFlujo());
+            if (sender is not Button b || b.Tag is not CamionPesaje camion) return;
+
+            var confirmar = MessageBox.Show(
+                $"¿Quitar el camión {camion.Placa}? Se perderán sus productos y pesajes.",
+                "Quitar camión",
+                MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No);
+            if (confirmar != MessageBoxResult.Yes) return;
+
+            _ = QuitarCamionFlujo(camion);
         }
 
-        private async Task QuitarCamionFlujo()
+        private async Task QuitarCamionFlujo(CamionPesaje camion)
         {
-            await _vm.QuitarCamionAsync();
+            await _vm.QuitarCamionAsync(camion);
             SincronizarSeleccion();
             ActualizarUI();
         }
@@ -350,13 +405,55 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
         }
 
         // ── Productos ────────────────────────────────────────────────────────
-        // Agregar/editar/quitar productos se hace desde el megamodal ("Editar proceso"),
-        // donde además se respeta la regla de no quitar un producto ya pesado.
+        // Agregar/editar (y, adentro del modal de editar, quitar) un producto se hace
+        // con ProductoCamionModal, uno a la vez — ahí se respeta la regla de no quitar
+        // un producto ya pesado.
 
         private void BtnProdPesar_Click(object sender, RoutedEventArgs e)
         {
             if (_vm.SelectedProducto is { } p && p.Estado == "Abierto" && !_vm.CamionCerrado)
                 AbrirPesajeModal(p, null);
+        }
+
+        private void BtnProdAgregar_Click(object sender, RoutedEventArgs e)
+        {
+            if (SesionPermisos.Tiene(Permiso.ModificarPesaje) && _vm.SelectedCamion != null && !_vm.CamionCerrado)
+                AbrirProductoModal(null);
+        }
+
+        private void BtnProdEditar_Click(object sender, RoutedEventArgs e)
+        {
+            if (SesionPermisos.Tiene(Permiso.ModificarPesaje) && _vm.SelectedProducto != null && !_vm.CamionCerrado)
+                AbrirProductoModal(_vm.SelectedProducto);
+        }
+
+        /// <summary>
+        /// "Cerrar producto" / "Reabrir producto" — antes vivía adentro del modal de
+        /// pesaje como "Terminar de pesar"; ahora está acá, al lado de "Pesar", así se
+        /// activa con solo seleccionar el producto en la tabla, sin tener que abrir el
+        /// modal. Mismo cambio de estado que el chip de la tabla de Movimiento
+        /// (<see cref="EstadoProducto_Click"/>), pero con confirmación: es un botón fijo
+        /// en el footer, al lado de "Pesar" (el que se clickea seguido), así que un toque
+        /// accidentalmente trae aparejado cerrar o reabrir el producto — más caro de
+        /// deshacer que perder un clic.
+        /// </summary>
+        private async void BtnProdCerrar_Click(object sender, RoutedEventArgs e)
+        {
+            if (_vm.SelectedProducto is not { } p || _vm.CamionCerrado) return;
+
+            bool abierto = p.Estado == "Abierto";
+            var confirmar = MessageBox.Show(
+                abierto
+                    ? "Este producto va a quedar cerrado y no se van a poder registrar más " +
+                      "pesadas para él.\n\n¿Confirmás que terminaste de pesarlo?"
+                    : "El producto va a quedar abierto de nuevo y vas a poder seguir " +
+                      "registrando pesadas para él.\n\n¿Desea reabrir producto?",
+                abierto ? "Cerrar producto" : "Reabrir producto",
+                MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No);
+            if (confirmar != MessageBoxResult.Yes) return;
+
+            await _vm.ToggleEstadoProductoAsync(p);
+            ActualizarUI();
         }
 
         private void BtnProdTaraExtra_Click(object sender, RoutedEventArgs e)
@@ -394,25 +491,22 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
         //  Modales
         // ══════════════════════════════════════════════════════════════════════
         /// <summary>
-        /// Abre el proceso de descarga: en modo Wizard para dar de alta una descarga
-        /// nueva, o en modo Edición (megamodal) para corregir la del camión elegido.
-        /// Unifica lo que antes eran CamionModal + ProductoCamionModal + el picker.
+        /// Alta o edición de UN camión (<paramref name="camion"/> null = alta) — solo
+        /// sus datos. Reemplaza al viejo "proceso de descarga" (wizard + megamodal);
+        /// los productos ya no viajan acá, ver <see cref="AbrirProductoModal"/>.
         /// </summary>
-        private void AbrirProcesoModal(ModoProceso modo, CamionPesaje? camion)
+        private void AbrirCamionModal(CamionPesaje? camion)
         {
-            var modal = new ProcesoDescargaModal(modo, camion);
+            // Las recepciones abiertas viajan al modal solo para avisar que la placa que
+            // se escribe ya está abierta con otro proveedor (no bloquea: es el caso
+            // legítimo del camión con carga de dos proveedores).
+            var abiertos = _vm.Camiones.Where(c => c.Estado == "Abierto").ToList();
+            var modal = new CamionModal(camion, abiertos);
 
             modal.Cerrado += CerrarModal;
             modal.Confirmado += async r =>
             {
-                var productos = r.Productos
-                    .Select(p => (p.IdMovProducto, p.IdProducto, p.PesoManifestado, p.BultosDeclarados))
-                    .ToList();
-
-                bool ok = await _vm.GuardarProcesoAsync(
-                    camion, r.Placa, r.Proveedor, r.IdProveedor, r.Observaciones,
-                    productos, modal.IdsProductosQuitados);
-
+                bool ok = await _vm.GuardarCamionAsync(camion, r.Placa, r.Proveedor, r.IdProveedor, r.Observaciones);
                 if (!ok) return;   // el VM ya avisó por Toast; el modal queda abierto
 
                 CerrarModal();
@@ -421,6 +515,62 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             };
 
             MostrarModal(modal);
+        }
+
+        /// <summary>
+        /// Agrega o edita UN producto del camión seleccionado
+        /// (<paramref name="producto"/> null = agregar). "Quitar producto" vive dentro
+        /// del propio modal (evento <c>QuitarSolicitado</c>) — se confirma acá con el
+        /// mismo <see cref="MessageBox"/> nativo que usa <see cref="QuitarCamion_Click"/>.
+        /// </summary>
+        private void AbrirProductoModal(ProductoCamion? producto)
+        {
+            if (_vm.SelectedCamion is not { } camion) return;
+            string placa = camion.Placa;
+
+            var modal = new ProductoCamionModal(camion, _vm.RecepcionesDePlaca(placa), producto);
+
+            modal.Cerrado += CerrarModal;
+            // El modal NO se cierra al guardar: eso es lo que significa "Guardar y agregar
+            // otro". Cerrarlo lo decide el propio modal según qué botón se tocó.
+            modal.Guardar += async r =>
+            {
+                bool ok = producto is null
+                    ? await _vm.AgregarProductoAsync(
+                        placa, r.IdProveedor, r.Proveedor,
+                        r.IdProducto, r.PesoManifestado, r.BultosDeclarados, r.Observaciones)
+                    : await _vm.ActualizarProductoAsync(
+                        producto, r.PesoManifestado, r.BultosDeclarados, r.Observaciones);
+
+                if (!ok) return false;   // el VM ya avisó por Toast; el modal queda abierto
+
+                // Recepciones frescas: el guardado pudo haber creado la del otro proveedor,
+                // y el producto recién agregado no debe volver a ofrecerse en el catálogo.
+                modal.ActualizarRecepciones(_vm.RecepcionesDePlaca(placa));
+                SincronizarSeleccion();
+                ActualizarUI();
+                return true;
+            };
+            modal.QuitarSolicitado += p =>
+            {
+                var confirmar = MessageBox.Show(
+                    $"¿Quitar «{p.ProductoNombre}» de la carga? Esta acción no se puede deshacer.",
+                    "Quitar producto",
+                    MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No);
+                if (confirmar != MessageBoxResult.Yes) return;
+
+                _ = QuitarProductoFlujo(p);
+            };
+
+            MostrarModal(modal);
+        }
+
+        private async Task QuitarProductoFlujo(ProductoCamion producto)
+        {
+            await _vm.QuitarProductoAsync(producto);
+            CerrarModal();
+            SincronizarSeleccion();
+            ActualizarUI();
         }
 
         /// <summary>
@@ -461,22 +611,6 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
                 SincronizarSeleccion();
                 ActualizarUI();
                 return ok;
-            };
-            // "Terminar de pesar" cierra el PRODUCTO, no el camión — mismo cambio de
-            // estado que el chip de la tabla de Movimiento (EstadoProducto_Click),
-            // solo que desde acá con la última pesada guardada primero si quedó algo
-            // sin guardar. Cerrar el camión entero vive aparte, en el footer principal.
-            modal.TerminarProducto += async snap =>
-            {
-                if (snap != null && !await _vm.GuardarEntradaAsync(producto, snap, modal.EntradaEnEdicion))
-                    return;   // el VM ya avisó por Toast; no se cierra el producto con la pesada perdida
-
-                if (producto.Estado == "Abierto")
-                    await _vm.ToggleEstadoProductoAsync(producto);
-
-                SincronizarSeleccion();
-                ActualizarUI();
-                CerrarModal();
             };
             MostrarModal(modal);
         }

@@ -65,34 +65,6 @@
             </Style.Triggers>
         </Style>
 
-        <Style x:Key="ProductCellStyle" TargetType="DataGridCell">
-            <Setter Property="BorderThickness" Value="0"/><Setter Property="Padding" Value="0"/>
-            <Setter Property="FocusVisualStyle" Value="{x:Null}"/><Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="DataGridCell">
-                        <Border Background="{TemplateBinding Background}" BorderThickness="0" Padding="0">
-                            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <Style x:Key="ProductCellStyle1" TargetType="DataGridCell">
-            <Setter Property="BorderThickness" Value="0"/><Setter Property="Padding" Value="0"/>
-            <Setter Property="FocusVisualStyle" Value="{x:Null}"/><Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="DataGridCell">
-                        <Border Background="{TemplateBinding Background}" BorderThickness="0" Padding="0">
-                            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Left"/>
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
         <Style TargetType="DataGridColumnHeader">
             <Setter Property="Background" Value="{DynamicResource EmpresaPrimaryBrush}"/><Setter Property="Foreground" Value="White"/>
             <Setter Property="FontFamily" Value="Segoe UI"/><Setter Property="FontSize" Value="13"/>
@@ -371,7 +343,7 @@
                           IsReadOnly="True"
                           CanUserSortColumns="False" HeadersVisibility="Column" GridLinesVisibility="None"
                           SelectionMode="Single" SelectionUnit="FullRow" Background="White" BorderThickness="0"
-                          AlternationCount="2" RowStyle="{StaticResource ProductRowStyle}" CellStyle="{StaticResource ProductCellStyle}"
+                          AlternationCount="2" RowStyle="{StaticResource ProductRowStyle}" CellStyle="{StaticResource CeldaCentrada}"
                           SelectionChanged="DgFabricantes_SelectionChanged" MouseDoubleClick="DgFabricantes_MouseDoubleClick"
                           ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                           VirtualizingPanel.IsVirtualizing="True"
@@ -381,7 +353,7 @@
                         <Style TargetType="ScrollBar" BasedOn="{StaticResource ModernScrollBar}"/>
                     </DataGrid.Resources>
                     <DataGrid.Columns>
-                        <DataGridTemplateColumn Header="NOMBRE" Width="*" CellStyle="{StaticResource ProductCellStyle1}">
+                        <DataGridTemplateColumn Header="NOMBRE" Width="*" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding Nombre}" FontFamily="Segoe UI" FontSize="15.5"
@@ -389,7 +361,7 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="DESCRIPCIÓN" Width="*" CellStyle="{StaticResource ProductCellStyle1}">
+                        <DataGridTemplateColumn Header="DESCRIPCIÓN" Width="*" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding Descripcion}" FontFamily="Segoe UI" FontSize="15.5"
@@ -397,7 +369,7 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="PROVEEDOR" Width="150" CellStyle="{StaticResource ProductCellStyle}">
+                        <DataGridTemplateColumn Header="PROVEEDOR" Width="150" CellStyle="{StaticResource CeldaCentrada}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding NombreProveedor}" FontFamily="Segoe UI" FontSize="15.5"
@@ -405,7 +377,7 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="PA&#205;S" Width="110" CellStyle="{StaticResource ProductCellStyle}">
+                        <DataGridTemplateColumn Header="PA&#205;S" Width="110" CellStyle="{StaticResource CeldaCentrada}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding NombrePais}" FontFamily="Segoe UI" FontSize="15.5"
@@ -413,7 +385,7 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="ESTADO" Width="70" CellStyle="{StaticResource ProductCellStyle}">
+                        <DataGridTemplateColumn Header="ESTADO" Width="70" CellStyle="{StaticResource CeldaCentrada}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <Grid HorizontalAlignment="Center">

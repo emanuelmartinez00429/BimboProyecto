@@ -1,0 +1,214 @@
+<UserControl x:Class="CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales.ProductoCamionModal"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Width="520"
+             Height="520"
+             MaxWidth="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Border}, Converter={StaticResource RestarMargen}, ConverterParameter=48}"
+             MaxHeight="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=Border}, Converter={StaticResource RestarMargen}, ConverterParameter=48}"
+             UseLayoutRounding="True"
+             TextOptions.TextRenderingMode="Grayscale"
+             TextOptions.TextFormattingMode="Display">
+
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/CapaUI;component/Formularios/Principal/Pantallas/Pesaje/Modales/PesajeModalStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+
+            <!-- Botón "Seleccionar producto…" (modo agregar) — mismo look que
+                 un MInput pero clickeable, con la lupa integrada en vez de un
+                 botón aparte: acá no hay campo de texto real, es un picker. -->
+            <Style x:Key="BotonSeleccionarProducto" TargetType="Button">
+                <Setter Property="Height" Value="36"/>
+                <Setter Property="Background" Value="#10FFFFFF"/>
+                <Setter Property="BorderBrush" Value="#80FFFFFF"/>
+                <Setter Property="BorderThickness" Value="1"/>
+                <Setter Property="Foreground" Value="White"/>
+                <Setter Property="FontFamily" Value="Segoe UI"/>
+                <Setter Property="FontSize" Value="13.5"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border x:Name="Bd" Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                    CornerRadius="5" Padding="10,0">
+                                <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Left"/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="Bd" Property="BorderBrush" Value="White"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Border CornerRadius="10" ClipToBounds="True">
+        <Border.Effect><DropShadowEffect Color="Black" BlurRadius="24" ShadowDepth="8" Opacity="0.55"/></Border.Effect>
+        <!-- Mismo mecanismo de alto congelado que CamionModal/ProcesoDescargaModal
+             mientras el selector de producto está abierto. -->
+        <Grid x:Name="RootGrid">
+            <Border CornerRadius="10">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="{DynamicResource EmpresaPrimaryDarkColor}" Offset="0"/>
+                        <GradientStop Color="{DynamicResource EmpresaPrimaryColor}" Offset="0.55"/>
+                        <GradientStop Color="{DynamicResource EmpresaPrimaryDarkColor}" Offset="1"/>
+                    </LinearGradientBrush>
+                </Border.Background>
+            </Border>
+
+            <DockPanel x:Name="ContenidoPrincipal">
+                <!-- Franja superior -->
+                <Border DockPanel.Dock="Top" Height="4">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                            <GradientStop Color="#34D399" Offset="0"/>
+                            <GradientStop Color="{DynamicResource EmpresaPrimaryLighterColor}" Offset="0.5"/>
+                            <GradientStop Color="{DynamicResource EmpresaPrimaryLightColor}" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Border.Background>
+                </Border>
+
+                <!-- Header -->
+                <Border DockPanel.Dock="Top" Padding="28,18,28,14"
+                        BorderBrush="#26FFFFFF" BorderThickness="0,0,0,1">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Grid.Column="0" Width="40" Height="40" CornerRadius="10"
+                                Background="#24FFFFFF" Margin="0,0,14,0" VerticalAlignment="Center">
+                            <Path Data="{StaticResource MIcoPack}" Stroke="White" StrokeThickness="1.6"
+                                  Width="22" Height="22" Stretch="Uniform"
+                                  StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                        </Border>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock x:Name="TxtEyebrow" FontFamily="Segoe UI" FontSize="11.5"
+                                       FontWeight="SemiBold" Foreground="#A6FFFFFF"/>
+                            <TextBlock x:Name="TxtTitulo" FontFamily="Segoe UI" FontSize="21"
+                                       FontWeight="Bold" Foreground="White" Margin="0,2,0,0"/>
+                        </StackPanel>
+                        <Button Grid.Column="2" Style="{StaticResource CloseBtn}"
+                                VerticalAlignment="Top" Click="Cerrar_Click"/>
+                    </Grid>
+                </Border>
+
+                <!-- Footer (fijo abajo) -->
+                <Border DockPanel.Dock="Bottom" Background="#2E000000"
+                        BorderBrush="#1FFFFFFF" BorderThickness="0,1,0,0" Padding="28,14"
+                        CornerRadius="10">
+                    <Grid>
+                        <TextBlock x:Name="TxtPie" VerticalAlignment="Center" FontFamily="Segoe UI"
+                                   FontSize="12.5" Foreground="#A6FFFFFF"/>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                            <Button x:Name="BtnCancelar" Content="Cancelar" Style="{StaticResource GhostBtn}"
+                                    Padding="22,9" Margin="0,0,10,0" Click="Cerrar_Click"/>
+                            <!-- Solo en modo editar: mismo rojo pálido que el basurero que
+                                 esta acción tenía dentro de la tabla del megamodal — ahora
+                                 quita el producto que se está editando, no una fila de una
+                                 lista. Deshabilitado + tooltip cuando ya tiene pesajes,
+                                 misma regla que antes (PuedeQuitar/MotivoNoQuitar). -->
+                            <Button x:Name="BtnQuitar" Content="Quitar producto" Style="{StaticResource WarnBtn}"
+                                    Padding="22,9" Margin="0,0,10,0" Visibility="Collapsed" Click="Quitar_Click"/>
+                            <!-- Solo en modo agregar: guarda y deja el modal limpio para el
+                                 siguiente producto del mismo camión, manteniendo el proveedor.
+                                 Mismo patrón que "Seguir pesando" en PesajeModal. -->
+                            <Button x:Name="BtnGuardarYOtro" Content="Guardar y agregar otro"
+                                    Style="{StaticResource GhostBtn}" Padding="18,9" Margin="0,0,10,0"
+                                    IsEnabled="False" Click="GuardarYOtro_Click"/>
+                            <Button x:Name="BtnGuardar" Style="{StaticResource SolidBtn}"
+                                    Padding="24,9" IsEnabled="False" Click="Guardar_Click">
+                                <TextBlock x:Name="TxtBtnGuardar" Text="Agregar" FontFamily="Segoe UI"
+                                           FontSize="14.5" FontWeight="Bold" Foreground="White"/>
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- Error -->
+                <Border DockPanel.Dock="Bottom" x:Name="PanelError" Background="#33DC2626"
+                        CornerRadius="6" Margin="28,0,28,10" Padding="12,8" Visibility="Collapsed">
+                    <TextBlock x:Name="TxtError" FontFamily="Segoe UI" FontSize="12.5"
+                               Foreground="#FECACA" TextWrapping="Wrap"/>
+                </Border>
+
+                <!-- Contenido -->
+                <StackPanel Margin="28,20,28,10">
+                    <!-- Proveedor ARRIBA de Producto y no al revés: define de qué
+                         catálogo sale el producto, así que se elige primero. Arranca
+                         con el del camión; si se cambia, el producto se archiva bajo
+                         la recepción de ESE proveedor para la misma placa (la crea el
+                         ViewModel si no existe). -->
+                    <TextBlock Text="Proveedor" Style="{StaticResource MLabel}"/>
+                    <Button x:Name="BtnSeleccionarProveedor" Style="{StaticResource BotonSeleccionarProducto}"
+                            Margin="0,0,0,16" Click="SeleccionarProveedor_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="{StaticResource IconSearchShared}" Stroke="White" StrokeThickness="2"
+                                  Width="14" Height="14" Stretch="Uniform" Margin="0,0,9,0" VerticalAlignment="Center"/>
+                            <TextBlock x:Name="TxtProveedorSel" Text="Seleccionar proveedor…" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                    <!-- Locked (modo editar): el producto ya vive en la recepción de
+                         ese proveedor; moverlo de recepción no es "editar". -->
+                    <TextBox x:Name="TxtProveedorLocked" Style="{StaticResource MInputDisplay}"
+                             IsEnabled="False" Margin="0,0,0,16" Visibility="Collapsed"/>
+
+                    <TextBlock Text="Producto" Style="{StaticResource MLabel}"/>
+                    <!-- Selector (modo agregar) -->
+                    <Button x:Name="BtnSeleccionarProducto" Style="{StaticResource BotonSeleccionarProducto}"
+                            Margin="0,0,0,16" Click="SeleccionarProducto_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="{StaticResource IconSearchShared}" Stroke="White" StrokeThickness="2"
+                                  Width="14" Height="14" Stretch="Uniform" Margin="0,0,9,0" VerticalAlignment="Center"/>
+                            <TextBlock x:Name="TxtSeleccion" Text="Seleccionar producto…" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                    <!-- Locked (modo editar): el producto en sí no se cambia, solo su
+                         peso/bultos/observaciones — mismo estilo MInputDisplay que ya
+                         usan Placa/Proveedor en el megamodal para "dato ya confirmado". -->
+                    <TextBox x:Name="TxtProductoLocked" Style="{StaticResource MInputDisplay}"
+                             IsEnabled="False" Margin="0,0,0,16" Visibility="Collapsed"/>
+
+                    <Grid Margin="0,0,0,16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="14"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="Peso manifestado (kg)" Style="{StaticResource MLabel}"/>
+                            <TextBox x:Name="TxtPeso" Style="{StaticResource MInput}" TextChanged="Campo_Changed"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="Bultos declarados" Style="{StaticResource MLabel}"/>
+                            <TextBox x:Name="TxtBultos" Style="{StaticResource MInput}" TextChanged="Campo_Changed"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <TextBlock Text="Observaciones (opcional)" Style="{StaticResource MLabel}"/>
+                    <Grid>
+                        <TextBox x:Name="TxtObs" Style="{StaticResource MInput}" Height="76"
+                                 AcceptsReturn="True" TextWrapping="Wrap"
+                                 VerticalContentAlignment="Top" VerticalScrollBarVisibility="Auto"/>
+                        <TextBlock Text="Sin observaciones adicionales" FontFamily="Segoe UI"
+                                   FontSize="13.5" Foreground="#9CA3AF" Margin="24,8,0,0"
+                                   VerticalAlignment="Top" IsHitTestVisible="False"
+                                   Visibility="{Binding Text, ElementName=TxtObs, Converter={StaticResource VacioAVisibilidad}}"/>
+                    </Grid>
+                </StackPanel>
+            </DockPanel>
+
+            <!-- Host del selector de catálogo (Producto) -->
+            <ContentControl x:Name="CatalogoSelectorHost" Visibility="Collapsed"/>
+        </Grid>
+    </Border>
+</UserControl>

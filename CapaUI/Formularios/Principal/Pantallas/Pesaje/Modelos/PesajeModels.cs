@@ -234,6 +234,18 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modelos
         [ObservableProperty] private string _estado = "Abierto";
 
         /// <summary>
+        /// Cuántas recepciones abiertas comparten esta placa. Un camión que trae carga de
+        /// dos proveedores son dos <c>movimientos</c> con la misma placa — uno por
+        /// proveedor, cada uno con su manifiesto. Lo calcula el ViewModel al recargar.
+        /// </summary>
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(PlacaCompartida))]
+        private int _recepcionesEnPlaca = 1;
+
+        /// <summary>La placa la comparten dos o más recepciones: es un solo camión físico.</summary>
+        public bool PlacaCompartida => RecepcionesEnPlaca > 1;
+
+        /// <summary>
         /// LEGADO — <c>movimientos.peso_tara_extra</c> del flujo anterior, donde la tara extra
         /// se pesaba una vez por camión y se prorrateaba por bultos declarados. Solo lectura:
         /// nunca se vuelve a escribir. Sirve para reconocer camiones cargados con el flujo viejo.

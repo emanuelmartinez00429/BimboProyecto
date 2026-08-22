@@ -95,6 +95,9 @@ Las rosas son rojas.
 - [[Gestor Realtime - Diseño Arquitectónico]]
 - [[Paginación y Búsqueda - Arquitectura Detallada]]
 
+### Revisiones y Planes QA
+- [[Plan de Mejora - Módulo Productos (Revisión QA)]] — diagnóstico completo, matriz de criticidad y 4 fases con entregables
+
 ---
 
 ## Arquitectura en una línea
@@ -129,10 +132,10 @@ Regla: `CapaAplicacion` **nunca** referencia `CapaDatos`.
 ## Bitácora
 
 Las sesiones están en `70 - Bitácora de Cambios/`.  
-Sesiones más recientes (2026-08-15):
+Sesiones más recientes (2026-08-21):
+- [[Sesión 2026-08-21 - Ajustes de layout y scroll lateral en Pesajes y consolidación global de estilos]]
+- [[Sesión 2026-08-20 - Guardado de pesajes sin refetch]]
+- [[Sesión 2026-08-19 - Selector de proveedor por tabla y consolidacion de estilos]]
+- [[Sesión 2026-08-17 - Módulo Reportería operativo]]
 - [[Sesión 2026-08-15 - Validacion centralizada y doble clic en catalogos]]
 - [[Sesión 2026-08-15 - Normalizacion de modales y advertencia al inactivar]]
-- [[Sesión 2026-08-15 - UNIQUE en presentaciones y limpieza de MaxLineas]]
-- [[Sesión 2026-08-15 - Modulo CRUD de Presentaciones]]
-- [[Sesión 2026-08-15 - Icono dinámico del sidebar]]
-- [[Sesión 2026-08-15 - Protección contra autoadministración de usuarios]]

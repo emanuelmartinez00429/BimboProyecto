@@ -81,40 +81,6 @@
             </Style.Triggers>
         </Style>
 
-        <!-- DataGrid Cell Style — center -->
-        <Style x:Key="EmpleadoCellStyle" TargetType="DataGridCell">
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="0"/>
-            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="DataGridCell">
-                        <Border Background="{TemplateBinding Background}" BorderThickness="0" Padding="0">
-                            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <!-- DataGrid Cell Style — left -->
-        <Style x:Key="EmpleadoCellStyleLeft" TargetType="DataGridCell">
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="0"/>
-            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="DataGridCell">
-                        <Border Background="{TemplateBinding Background}" BorderThickness="0" Padding="0">
-                            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Left"/>
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
         <!-- DataGrid Column Header Style -->
         <Style TargetType="DataGridColumnHeader">
             <Setter Property="Background" Value="{DynamicResource EmpresaPrimaryBrush}"/>
@@ -516,7 +482,7 @@
                           HeadersVisibility="Column" GridLinesVisibility="None"
                           SelectionMode="Single" SelectionUnit="FullRow"
                           Background="White" BorderThickness="0" AlternationCount="2"
-                          RowStyle="{StaticResource EmpleadoRowStyle}" CellStyle="{StaticResource EmpleadoCellStyle}"
+                          RowStyle="{StaticResource EmpleadoRowStyle}" CellStyle="{StaticResource CeldaCentrada}"
                           SelectionChanged="DgEmpleados_SelectionChanged"
                           MouseDoubleClick="DgEmpleados_MouseDoubleClick"
                           ScrollViewer.VerticalScrollBarVisibility="Auto"
@@ -528,7 +494,7 @@
                         <Style TargetType="ScrollBar" BasedOn="{StaticResource ModernScrollBar}"/>
                     </DataGrid.Resources>
                     <DataGrid.Columns>
-                        <DataGridTemplateColumn Header="EMPLEADO" Width="220" CellStyle="{StaticResource EmpleadoCellStyleLeft}">
+                        <DataGridTemplateColumn Header="EMPLEADO" Width="220" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock FontFamily="Segoe UI" FontSize="15.5" FontWeight="SemiBold"
@@ -543,7 +509,7 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="IDENTIDAD" Width="150" CellStyle="{StaticResource EmpleadoCellStyleLeft}">
+                        <DataGridTemplateColumn Header="IDENTIDAD" Width="150" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding NumeroIdentidad}"
@@ -552,7 +518,7 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="TELÉFONO" Width="140" CellStyle="{StaticResource EmpleadoCellStyle}">
+                        <DataGridTemplateColumn Header="TELÉFONO" Width="140" CellStyle="{StaticResource CeldaCentrada}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding TelefonoEmpleado}"
@@ -560,7 +526,7 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="CORREO" Width="220" CellStyle="{StaticResource EmpleadoCellStyleLeft}">
+                        <DataGridTemplateColumn Header="CORREO" Width="220" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding CorreoEmpleado}"
@@ -569,7 +535,7 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="ESTADO" Width="70" CellStyle="{StaticResource EmpleadoCellStyle}">
+                        <DataGridTemplateColumn Header="ESTADO" Width="70" CellStyle="{StaticResource CeldaCentrada}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <Grid HorizontalAlignment="Center">

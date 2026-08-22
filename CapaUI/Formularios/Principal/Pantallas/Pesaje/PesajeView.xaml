@@ -69,18 +69,206 @@
                 </Setter.Value>
             </Setter>
         </Style>
-        <Style x:Key="ToolPrimary" TargetType="Button" BasedOn="{StaticResource ToolBtn}">
+        <Style x:Key="ToolPrimary" TargetType="Button">
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="Padding" Value="12,0"/>
+            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="White"/>
             <Setter Property="Background" Value="{DynamicResource EmpresaPrimaryBrush}"/>
-            <Setter Property="Foreground" Value="White"/>
             <Setter Property="BorderBrush" Value="{DynamicResource EmpresaPrimaryBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="7" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource EmpresaPrimaryDarkBrush}"/>
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource EmpresaPrimaryDarkBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="Bd" Property="Background" Value="#F1F5F9"/>
+                                <Setter Property="Foreground" Value="#9CA3AF"/>
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="#EEF2F8"/>
+                                <Setter Property="Cursor" Value="Arrow"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
-        <Style x:Key="ToolSuccess" TargetType="Button" BasedOn="{StaticResource ToolBtn}">
-            <Setter Property="Background" Value="#16A34A"/>
+        <Style x:Key="ToolSuccess" TargetType="Button">
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="Padding" Value="12,0"/>
+            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Background" Value="#16A34A"/>
             <Setter Property="BorderBrush" Value="#16A34A"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="7" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#15803D"/>
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="#15803D"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="Bd" Property="Background" Value="#F1F5F9"/>
+                                <Setter Property="Foreground" Value="#9CA3AF"/>
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="#EEF2F8"/>
+                                <Setter Property="Cursor" Value="Arrow"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
-        <Style x:Key="ToolDanger" TargetType="Button" BasedOn="{StaticResource ToolBtn}">
+        <Style x:Key="ToolDanger" TargetType="Button">
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="Padding" Value="12,0"/>
+            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Background" Value="#DC2626"/>
+            <Setter Property="BorderBrush" Value="#DC2626"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="7" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#B91C1C"/>
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="#B91C1C"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="Bd" Property="Background" Value="#F1F5F9"/>
+                                <Setter Property="Foreground" Value="#9CA3AF"/>
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="#EEF2F8"/>
+                                <Setter Property="Cursor" Value="Arrow"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Basurero de fila (lista de Camiones de Entrega): mismo cuadradito rojo
+             pálido que "Quitar producto" en ProductoCamionModal — mismo patrón en
+             toda la pantalla para "eliminar una fila de una lista". -->
+        <Style x:Key="BotonQuitarFila" TargetType="Button">
+            <Setter Property="Width" Value="30"/>
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="Background" Value="#FEF2F2"/>
             <Setter Property="Foreground" Value="#DC2626"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}"
+                                BorderBrush="#FECACA" BorderThickness="1" CornerRadius="6">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#FEE2E2"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="Bd" Property="Background" Value="#F3F4F6"/>
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="#E5E7EB"/>
+                                <Setter Property="Foreground" Value="#9CA3AF"/>
+                                <Setter Property="Cursor" Value="Arrow"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <!-- Ámbar, no rojo: "cerrar/terminar" (BtnCamionCerrar y
+             BtnCerrarTodos) es una acción de riesgo (no se deshace con un
+             clic), pero semánticamente distinta de "eliminar" (ToolDanger,
+             rojo #DC2626 — borra un registro). Comparten la misma familia
+             tonal pastel para que ninguna de las dos grite más que la otra,
+             pero en hues distintos así no se confunden como "dos rojos": rojo
+             = quitar, ámbar = finalizar. Lo que agrega o genera se queda en
+             verde (ToolSuccess/ToolPrimary).
+
+             NO usa BasedOn="{StaticResource ToolBtn}": el ControlTemplate
+             compartido de ToolBtn tiene un trigger de hover pensado para el
+             botón outline (fondo blanco → celeste pálido #EFF6FF), y ese
+             mismo trigger se hereda tal cual en cualquier estilo basado en
+             él — en un botón SÓLIDO como este, el hover le pisaba el fondo
+             ámbar por ese celeste sin tocar el texto (que sigue blanco), y
+             quedaba casi invisible. Acá el hover oscurece el propio ámbar en
+             vez de cambiar de paleta, así el texto blanco nunca deja de
+             leerse. Copia el resto de ToolBtn (radio, padding, tipografía)
+             a mano para no modificar ese estilo compartido — lo usan otros
+             botones que no tienen este problema. -->
+        <Style x:Key="ToolWarn" TargetType="Button">
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="Padding" Value="12,0"/>
+            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Background" Value="#D9924A"/>
+            <Setter Property="BorderBrush" Value="#DFA060"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="7" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#C17F3A"/>
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="#C17F3A"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="Bd" Property="Background" Value="#F1F5F9"/>
+                                <Setter Property="Foreground" Value="#9CA3AF"/>
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="#EEF2F8"/>
+                                <Setter Property="Cursor" Value="Arrow"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
 
         <!-- ── Segmented toggle (RadioButton) ── -->
@@ -150,8 +338,12 @@
                                 BorderThickness="{TemplateBinding BorderThickness}"
                                 SnapsToDevicePixels="True">
                             <Grid>
+                                <!-- Verde y no el azul de marca (EmpresaPrimaryBrush): la selección
+                                     de fila es un estado propio, distinto de "Abierto" (que también
+                                     usa verde) pero pedido explícitamente en verde para diferenciarse
+                                     del hover (#EAF1FB, celeste) que queda como estaba. -->
                                 <Border x:Name="Sel" Width="3" HorizontalAlignment="Left"
-                                        Background="{DynamicResource EmpresaPrimaryBrush}" Visibility="Collapsed" Panel.ZIndex="1"/>
+                                        Background="#16A34A" Visibility="Collapsed" Panel.ZIndex="1"/>
                                 <DataGridCellsPresenter/>
                             </Grid>
                         </Border>
@@ -163,7 +355,7 @@
                                 <Setter TargetName="B" Property="Background" Value="#EAF1FB"/>
                             </Trigger>
                             <Trigger Property="IsSelected" Value="True">
-                                <Setter TargetName="B" Property="Background" Value="#DBE7F5"/>
+                                <Setter TargetName="B" Property="Background" Value="#DCFCE7"/>
                                 <Setter TargetName="Sel" Property="Visibility" Value="Visible"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
@@ -265,7 +457,7 @@
                  producto que se está pesando, en vez de relegada al pie. -->
             <Grid Grid.Row="2">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="0.85*"/>
+                    <ColumnDefinition Width="0.765*"/>
                     <ColumnDefinition Width="14"/>
                     <ColumnDefinition Width="1*"/>
                 </Grid.ColumnDefinitions>
@@ -273,7 +465,7 @@
                 <!-- ── Columna izquierda: Camiones + Movimiento ── -->
                 <Grid Grid.Column="0">
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="262"/>
+                        <RowDefinition Height="*"/>
                         <RowDefinition Height="14"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
@@ -296,14 +488,83 @@
                             </StackPanel>
                         </Border>
 
+                        <!-- Agrupada por placa: un camión que trae carga de dos proveedores
+                             son dos recepciones en la base (una por proveedor, cada una con
+                             su manifiesto), pero UN camión en el andén. El encabezado de
+                             grupo muestra la placa una sola vez y se colapsa cuando la placa
+                             tiene una sola recepción — el caso normal no paga ruido visual. -->
                         <ListBox x:Name="LstCamiones" Grid.Row="1"
                                  ItemsSource="{Binding Camiones}"
                                  AlternationCount="2"
                                  BorderThickness="0" Background="Transparent"
                                  HorizontalContentAlignment="Stretch"
                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                 ScrollViewer.VerticalScrollBarVisibility="Visible"
                                  SelectionChanged="LstCamiones_SelectionChanged"
                                  MouseDoubleClick="LstCamiones_DoubleClick">
+                            <ListBox.Resources>
+                                <Style TargetType="ScrollBar" BasedOn="{StaticResource ModernScrollBarAny}"/>
+                            </ListBox.Resources>
+                            <ListBox.GroupStyle>
+                                <GroupStyle>
+                                    <GroupStyle.ContainerStyle>
+                                        <Style TargetType="GroupItem">
+                                            <Setter Property="Template">
+                                                <Setter.Value>
+                                                    <ControlTemplate TargetType="GroupItem">
+                                                        <Grid>
+                                                            <Grid.RowDefinitions>
+                                                                <RowDefinition Height="Auto"/>
+                                                                <RowDefinition Height="Auto"/>
+                                                            </Grid.RowDefinitions>
+                                                            <!-- Encabezado de la placa compartida -->
+                                                            <Border x:Name="Cab" Grid.Row="0" Background="#EFF6FF"
+                                                                    BorderBrush="#DBE7F5" BorderThickness="0,0,0,1"
+                                                                    Padding="14,7">
+                                                                <Grid>
+                                                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                                        <Path Data="{StaticResource IcoTruck}" Stroke="{DynamicResource EmpresaPrimaryBrush}"
+                                                                              StrokeThickness="1.6" Width="15" Height="15" Stretch="Uniform"
+                                                                              Margin="0,0,8,0" VerticalAlignment="Center"
+                                                                              StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                                                                        <TextBlock Text="{Binding Name}" FontFamily="Segoe UI" FontSize="14"
+                                                                                   FontWeight="Bold" Foreground="{DynamicResource EmpresaPrimaryBrush}"
+                                                                                   VerticalAlignment="Center"/>
+                                                                    </StackPanel>
+                                                                    <Border Background="#DBE7F5" CornerRadius="999" Padding="8,2"
+                                                                            HorizontalAlignment="Right" VerticalAlignment="Center">
+                                                                        <TextBlock FontFamily="Segoe UI" FontSize="12" FontWeight="SemiBold"
+                                                                                   Foreground="{DynamicResource EmpresaPrimaryBrush}"
+                                                                                   Text="{Binding ItemCount, StringFormat='{}{0} recepciones'}"/>
+                                                                    </Border>
+                                                                </Grid>
+                                                            </Border>
+                                                            <!-- Barra que ata las recepciones de la misma placa -->
+                                                            <Grid Grid.Row="1">
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="Auto"/>
+                                                                    <ColumnDefinition Width="*"/>
+                                                                </Grid.ColumnDefinitions>
+                                                                <Border x:Name="Barra" Grid.Column="0" Width="3"
+                                                                        Background="{DynamicResource EmpresaPrimaryBrush}"/>
+                                                                <ItemsPresenter Grid.Column="1"/>
+                                                            </Grid>
+                                                        </Grid>
+                                                        <ControlTemplate.Triggers>
+                                                            <!-- Una sola recepción: no es un camión compartido, así que
+                                                                 ni encabezado ni barra — la fila se ve como siempre. -->
+                                                            <DataTrigger Binding="{Binding ItemCount}" Value="1">
+                                                                <Setter TargetName="Cab" Property="Visibility" Value="Collapsed"/>
+                                                                <Setter TargetName="Barra" Property="Visibility" Value="Collapsed"/>
+                                                            </DataTrigger>
+                                                        </ControlTemplate.Triggers>
+                                                    </ControlTemplate>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </Style>
+                                    </GroupStyle.ContainerStyle>
+                                </GroupStyle>
+                            </ListBox.GroupStyle>
                             <ListBox.ItemContainerStyle>
                                 <Style TargetType="ListBoxItem">
                                     <Setter Property="Padding" Value="0"/>
@@ -315,7 +576,10 @@
                                             <ControlTemplate TargetType="ListBoxItem">
                                                 <Border x:Name="B" Background="White" BorderBrush="#EEF2F8" BorderThickness="0,0,0,1">
                                                     <Grid>
-                                                        <Border x:Name="Sel" Width="3" HorizontalAlignment="Left" Background="{DynamicResource EmpresaPrimaryBrush}" Visibility="Collapsed"/>
+                                                        <!-- Verde y no el azul de marca: mismo criterio que PgRow
+                                                             (tabla de Movimiento) — selección en verde, hover se
+                                                             queda en celeste (#EAF1FB). -->
+                                                        <Border x:Name="Sel" Width="3" HorizontalAlignment="Left" Background="#16A34A" Visibility="Collapsed"/>
                                                         <ContentPresenter/>
                                                     </Grid>
                                                 </Border>
@@ -327,7 +591,7 @@
                                                         <Setter TargetName="B" Property="Background" Value="#EAF1FB"/>
                                                     </Trigger>
                                                     <Trigger Property="IsSelected" Value="True">
-                                                        <Setter TargetName="B" Property="Background" Value="#DBE7F5"/>
+                                                        <Setter TargetName="B" Property="Background" Value="#DCFCE7"/>
                                                         <Setter TargetName="Sel" Property="Visibility" Value="Visible"/>
                                                     </Trigger>
                                                 </ControlTemplate.Triggers>
@@ -347,13 +611,43 @@
                                             <ColumnDefinition Width="44"/>
                                             <ColumnDefinition Width="*"/>
                                             <ColumnDefinition Width="78"/>
+                                            <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
                                         <Border Style="{StaticResource CodeChip}" Grid.Column="0">
                                             <TextBlock Text="{Binding Id}" FontFamily="Consolas" FontSize="13.5" FontWeight="Bold" Foreground="{DynamicResource EmpresaPrimaryBrush}"/>
                                         </Border>
+                                        <!-- Con la placa compartida, lo que distingue a cada fila ya
+                                             NO es la placa (es la misma, y está en el encabezado del
+                                             grupo) sino el proveedor: se oculta la placa y el
+                                             proveedor toma el estilo primario que ella tenía. -->
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="6,0">
-                                            <TextBlock Text="{Binding Placa}" FontFamily="Segoe UI" FontSize="15" FontWeight="Bold" Foreground="#1A1F2E"/>
-                                            <TextBlock Text="{Binding Proveedor}" FontFamily="Segoe UI" FontSize="13" Foreground="#6B7280" TextTrimming="CharacterEllipsis"/>
+                                            <TextBlock Text="{Binding Placa}" FontFamily="Segoe UI" FontSize="15" FontWeight="Bold" Foreground="#1A1F2E">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding PlacaCompartida}" Value="True">
+                                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                            <TextBlock Text="{Binding Proveedor}" TextTrimming="CharacterEllipsis">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="FontFamily" Value="Segoe UI"/>
+                                                        <Setter Property="FontSize" Value="13"/>
+                                                        <Setter Property="Foreground" Value="#6B7280"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding PlacaCompartida}" Value="True">
+                                                                <Setter Property="FontSize" Value="15"/>
+                                                                <Setter Property="FontWeight" Value="Bold"/>
+                                                                <Setter Property="Foreground" Value="#1A1F2E"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
                                         </StackPanel>
                                         <Border Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Center"
                                                 CornerRadius="999" Padding="8,3">
@@ -394,49 +688,51 @@
                                                 </TextBlock>
                                             </StackPanel>
                                         </Border>
+                                        <!-- Basurero de la fila: reemplaza al botón "Quitar" que antes
+                                             vivía aparte en la toolbar de abajo. Tag="{Binding}" lleva el
+                                             camión de ESTA fila al handler, sin depender de la selección. -->
+                                        <Button Grid.Column="3" Style="{StaticResource BotonQuitarFila}" Margin="8,0,0,0"
+                                                Tag="{Binding}" Click="QuitarCamion_Click" ToolTip="Quitar camión"
+                                                permisos:PermisoBehavior.Requiere="Cancelar Pesaje">
+                                            <Path Data="{StaticResource IcoTrash}" Stroke="{Binding RelativeSource={RelativeSource AncestorType=Button}, Path=Foreground}"
+                                                  StrokeThickness="1.8" Width="14" Height="14" Stretch="Uniform"
+                                                  StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                                        </Button>
                                     </Grid>
                                 </DataTemplate>
                             </ListBox.ItemTemplate>
                         </ListBox>
 
                         <!-- Toolbar camiones — un solo botón de edición: abre el megamodal
-                             con todo el proceso (camión + productos).
+                             con todo el proceso (camión + productos). "Quitar" ya no vive
+                             acá: es el basurero de la propia fila en la lista de arriba
+                             (columna ESTADO), igual que "Quitar" en el megamodal de
+                             productos — así cada fila se borra directo, sin tener que
+                             seleccionarla primero.
 
-                             Una sola fila de cuatro celdas iguales (antes 2×2): con los
-                             textos cortos entran holgados en el ancho de la columna, y
-                             las cuatro acciones quedan a la vista sin segunda fila.
-                             UniformGrid y no WrapPanel para que midan todos igual, sin
-                             depender del largo de cada texto. -->
-                        <UniformGrid Grid.Row="2" Rows="1" Columns="4" Margin="12,9">
-                            <Button x:Name="BtnCamionAgregar" Style="{StaticResource ToolBtn}" Margin="0,0,4,0" Click="BtnNuevoProceso_Click" permisos:PermisoBehavior.Requiere="Registrar Entrada" ToolTip="Iniciar un nuevo proceso de descarga">
+                             Una sola fila de tres celdas iguales: con los textos cortos
+                             entran holgados en el ancho de la columna, y las acciones
+                             quedan a la vista sin segunda fila. UniformGrid y no WrapPanel -->
+                        <WrapPanel Grid.Row="2" Margin="12,8">
+                            <Button x:Name="BtnCamionAgregar" Style="{StaticResource ToolSuccess}" Margin="0,0,6,4" Click="BtnNuevoProceso_Click" permisos:PermisoBehavior.Requiere="Registrar Entrada" ToolTip="Iniciar un nuevo proceso de descarga">
                                 <StackPanel Orientation="Horizontal">
-                                    <Path Data="{StaticResource IcoPlus}" Stroke="{DynamicResource EmpresaPrimaryBrush}" StrokeThickness="2.2" Width="13" Height="13" Stretch="Uniform" Margin="0,0,7,0" VerticalAlignment="Center" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                                    <Path Data="{StaticResource IcoPlus}" Stroke="White" StrokeThickness="2.2" Width="13" Height="13" Stretch="Uniform" Margin="0,0,7,0" VerticalAlignment="Center" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
                                     <TextBlock Text="Agregar" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>
-                            <Button x:Name="BtnCamionEditar" Style="{StaticResource ToolBtn}" Margin="4,0,4,0" Click="BtnEditarProceso_Click" permisos:PermisoBehavior.Requiere="Modificar Pesaje" ToolTip="Editar el proceso: camión y productos">
+                            <Button x:Name="BtnCamionEditar" Style="{StaticResource ToolPrimary}" Margin="0,0,6,4" Click="BtnEditarProceso_Click" permisos:PermisoBehavior.Requiere="Modificar Pesaje" ToolTip="Editar el proceso: camión y productos">
                                 <StackPanel Orientation="Horizontal">
-                                    <Path Data="{StaticResource IcoPencil}" Stroke="{DynamicResource EmpresaPrimaryBrush}" StrokeThickness="2" Width="13" Height="13" Stretch="Uniform" Margin="0,0,7,0" VerticalAlignment="Center" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                                    <Path Data="{StaticResource IcoPencil}" Stroke="White" StrokeThickness="2" Width="13" Height="13" Stretch="Uniform" Margin="0,0,7,0" VerticalAlignment="Center" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
                                     <TextBlock Text="Editar" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>
-                            <Button x:Name="BtnCamionQuitar" Style="{StaticResource ToolDanger}" Margin="4,0,4,0" Click="BtnCamionQuitar_Click" permisos:PermisoBehavior.Requiere="Cancelar Pesaje">
-                                <StackPanel Orientation="Horizontal">
-                                    <Path Data="{StaticResource IcoTrash}" Stroke="#DC2626" StrokeThickness="2" Width="13" Height="13" Stretch="Uniform" Margin="0,0,7,0" VerticalAlignment="Center" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
-                                    <TextBlock Text="Quitar" VerticalAlignment="Center"/>
-                                </StackPanel>
-                            </Button>
-                            <!-- Cierra el camión seleccionado. Separado de "Imprimir reporte"
-                                 (que se movió abajo, junto a "Cerrar todos los camiones"):
-                                 antes era un solo botón que hacía las dos cosas juntas; ahora
-                                 son dos decisiones independientes. -->
-                            <Button x:Name="BtnCamionCerrar" Style="{StaticResource ToolSuccess}" Margin="4,0,0,0" Click="BtnCamionCerrar_Click">
+                            <Button x:Name="BtnCamionCerrar" Style="{StaticResource ToolWarn}" Margin="0,0,0,4" Click="BtnCamionCerrar_Click">
                                 <StackPanel Orientation="Horizontal">
                                     <Path Data="{StaticResource IcoCheck}" Stroke="White" StrokeThickness="2.4" Width="13" Height="13" Stretch="Uniform" Margin="0,0,7,0" VerticalAlignment="Center" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
-                                    <TextBlock Text="Cerrar camión" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="TxtBtnCamionCerrar" Text="Cerrar camión" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>
-                        </UniformGrid>
+                        </WrapPanel>
                     </Grid>
                 </Border>
 
@@ -483,13 +779,18 @@
                                       ColumnHeaderStyle="{StaticResource PgHeader}" RowHeight="46"
                                       ItemsSource="{Binding SelectedCamion.Productos}"
                                       SelectionChanged="DgProductos_SelectionChanged" MouseDoubleClick="DgProductos_DoubleClick"
+                                      ScrollViewer.CanContentScroll="True"
                                       ScrollViewer.VerticalScrollBarVisibility="Auto"
-                                      VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling">
+                                      ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                                      ScrollViewer.ScrollChanged="DgProductos_ScrollChanged"
+                                      PreviewMouseWheel="DgProductos_PreviewMouseWheel"
+                                      VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling"
+                                      VirtualizingPanel.ScrollUnit="Pixel">
                                 <DataGrid.Resources>
                                     <Style TargetType="ScrollBar" BasedOn="{StaticResource ModernScrollBarAny}"/>
                                 </DataGrid.Resources>
                                 <DataGrid.Columns>
-                                    <DataGridTemplateColumn Header="CÓDIGO" Width="68">
+                                    <DataGridTemplateColumn Header="CÓDIGO" Width="Auto" MinWidth="85">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
                                                 <Border Style="{StaticResource CodeChip}" HorizontalAlignment="Left" Margin="10,0">
@@ -498,28 +799,24 @@
                                             </DataTemplate>
                                         </DataGridTemplateColumn.CellTemplate>
                                     </DataGridTemplateColumn>
-                                    <DataGridTemplateColumn Header="PRODUCTO" Width="1.3*">
+                                    <DataGridTemplateColumn Header="PRODUCTO" Width="*" MinWidth="180">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
                                                 <TextBlock Text="{Binding ProductoNombre}" FontFamily="Segoe UI" FontSize="14.5" FontWeight="SemiBold" Foreground="#1A1F2E" TextTrimming="CharacterEllipsis" Margin="10,0"/>
                                             </DataTemplate>
                                         </DataGridTemplateColumn.CellTemplate>
                                     </DataGridTemplateColumn>
-                                    <!-- PROVEEDOR se sacó: es el mismo para todo el camión y ya
-                                         se muestra una vez en el encabezado del panel, no hacía
-                                         falta repetirlo en cada fila. El ancho que ocupaba pasa
-                                         a PRODUCTO, que es el que trunca. -->
-                                    <DataGridTemplateColumn Header="REST." Width="72">
+                                    <DataGridTemplateColumn Header="REST." Width="72" MinWidth="72">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
                                                 <TextBlock Text="{Binding BultosRestantes, StringFormat=N1}" FontFamily="Segoe UI" FontSize="14" FontWeight="Bold" Foreground="#1A1F2E" HorizontalAlignment="Center"/>
                                             </DataTemplate>
                                         </DataGridTemplateColumn.CellTemplate>
                                     </DataGridTemplateColumn>
-                                    <DataGridTemplateColumn Header="% RESTANTE" Width="96">
+                                    <DataGridTemplateColumn Header="% RESTANTE" Width="120" MinWidth="120">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
-                                                <StackPanel Margin="10,4" VerticalAlignment="Center">
+                                                <StackPanel Margin="8,4" VerticalAlignment="Center">
                                                     <Border Height="5" Background="#E7EDF5" CornerRadius="2" ClipToBounds="True">
                                                         <Border CornerRadius="2" HorizontalAlignment="Stretch"
                                                                 Background="{Binding ProgresoColor}"
@@ -534,13 +831,10 @@
                                             </DataTemplate>
                                         </DataGridTemplateColumn.CellTemplate>
                                     </DataGridTemplateColumn>
-                                    <!-- Estado al final de la fila: es el chip accionable (clic para
-                                         abrir/cerrar el producto), y en el borde derecho no queda
-                                         entre datos numéricos que sí se leen en conjunto. -->
-                                    <DataGridTemplateColumn Header="ESTADO" Width="80">
+                                    <DataGridTemplateColumn Header="ESTADO" Width="104" MinWidth="104">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
-                                                <Border CornerRadius="4" Padding="8,3" HorizontalAlignment="Center" Cursor="Hand"
+                                                <Border CornerRadius="4" Padding="8,3" Margin="10,0" HorizontalAlignment="Center" Cursor="Hand"
                                                         MouseLeftButtonUp="EstadoProducto_Click" ToolTip="Clic para cambiar estado">
                                                     <Border.Style>
                                                         <Style TargetType="Border">
@@ -586,20 +880,31 @@
                             </DataGrid>
                         </Grid>
 
-                        <!-- Agregar/Editar/Quitar producto viven ahora en el megamodal
-                             ("Editar proceso"); acá solo queda la acción de pesar.
-                             «Tara extra» se mudó al panel de Entradas: opera sobre las
-                             pesadas ya registradas, que son las que se ven ahí. -->
-                        <WrapPanel Grid.Row="2" Margin="12,9">
-                            <Button x:Name="BtnProdPesar" Style="{StaticResource ToolPrimary}" Margin="0,0,10,0" Click="BtnProdPesar_Click">
+                        <WrapPanel Grid.Row="2" Margin="12,8">
+                            <Button x:Name="BtnProdAgregar" Style="{StaticResource ToolSuccess}" Margin="0,0,6,4" Click="BtnProdAgregar_Click" ToolTip="Agregar un producto al camión">
+                                <StackPanel Orientation="Horizontal">
+                                    <Path Data="{StaticResource IcoPlus}" Stroke="White" StrokeThickness="2.2" Width="13" Height="13" Stretch="Uniform" Margin="0,0,7,0" VerticalAlignment="Center" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                                    <TextBlock Text="Agregar" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                            <Button x:Name="BtnProdEditar" Style="{StaticResource ToolPrimary}" Margin="0,0,6,4" Click="BtnProdEditar_Click" ToolTip="Editar el producto seleccionado">
+                                <StackPanel Orientation="Horizontal">
+                                    <Path Data="{StaticResource IcoPencil}" Stroke="White" StrokeThickness="2" Width="13" Height="13" Stretch="Uniform" Margin="0,0,7,0" VerticalAlignment="Center" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                                    <TextBlock Text="Editar" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                            <Button x:Name="BtnProdPesar" Style="{StaticResource ToolPrimary}" Margin="0,0,6,4" Click="BtnProdPesar_Click">
                                 <StackPanel Orientation="Horizontal">
                                     <Path Data="{StaticResource IcoScale}" Stroke="White" StrokeThickness="2" Width="13" Height="13" Stretch="Uniform" Margin="0,0,7,0" VerticalAlignment="Center" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
                                     <TextBlock Text="Pesar" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>
-                            <TextBlock Text="Productos: usá «Editar»"
-                                       FontFamily="Segoe UI" FontSize="13.5" Foreground="#9CA3AF"
-                                       VerticalAlignment="Center"/>
+                            <Button x:Name="BtnProdCerrar" Style="{StaticResource ToolWarn}" Margin="0,0,0,4" Click="BtnProdCerrar_Click">
+                                <StackPanel Orientation="Horizontal">
+                                    <Path Data="{StaticResource IcoCheck}" Stroke="White" StrokeThickness="2.4" Width="13" Height="13" Stretch="Uniform" Margin="0,0,7,0" VerticalAlignment="Center" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                                    <TextBlock x:Name="TxtBtnProdCerrar" Text="Cerrar producto" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
                         </WrapPanel>
                     </Grid>
                 </Border>
@@ -657,7 +962,7 @@
                                 <Style TargetType="ScrollBar" BasedOn="{StaticResource ModernScrollBarAny}"/>
                             </DataGrid.Resources>
                             <DataGrid.Columns>
-                                <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="60">
+                                <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="60" MinWidth="60">
                                     <DataGridTextColumn.ElementStyle>
                                         <Style TargetType="TextBlock">
                                             <Setter Property="FontFamily" Value="Consolas"/>
@@ -668,7 +973,7 @@
                                         </Style>
                                     </DataGridTextColumn.ElementStyle>
                                 </DataGridTextColumn>
-                                <DataGridTextColumn x:Name="ColEntProducto" Header="PRODUCTO" Binding="{Binding ProdNombre}" Width="1.1*" Visibility="Collapsed">
+                                <DataGridTextColumn x:Name="ColEntProducto" Header="PRODUCTO" Binding="{Binding ProdNombre}" Width="1.1*" MinWidth="160" Visibility="Collapsed">
                                     <DataGridTextColumn.ElementStyle>
                                         <Style TargetType="TextBlock">
                                             <Setter Property="FontFamily" Value="Segoe UI"/>
@@ -681,13 +986,13 @@
                                         </Style>
                                     </DataGridTextColumn.ElementStyle>
                                 </DataGridTextColumn>
-                                <DataGridTextColumn Header="BRUTO (KG)" Binding="{Binding Bruto, StringFormat=N2}" Width="96" ElementStyle="{StaticResource EntText}"/>
-                                <DataGridTextColumn Header="TARA (KG)" Binding="{Binding TaraTotal, StringFormat=N2}" Width="96" ElementStyle="{StaticResource EntText}"/>
+                                <DataGridTextColumn Header="BRUTO (KG)" Binding="{Binding Bruto, StringFormat=N2}" Width="96" MinWidth="96" ElementStyle="{StaticResource EntText}"/>
+                                <DataGridTextColumn Header="TARA (KG)" Binding="{Binding TaraTotal, StringFormat=N2}" Width="96" MinWidth="96" ElementStyle="{StaticResource EntText}"/>
                                 <!-- Tara extra por pesada. En chip ámbar cuando está en cero:
                                      esa pesada todavía no tiene las tarimas pesadas, que es
                                      justo lo que vuelve aproximados sus bultos. Mismo criterio
                                      que la columna BULTOS, atado a la misma propiedad. -->
-                                <DataGridTemplateColumn Header="TARA EXTRA" Width="102">
+                                <DataGridTemplateColumn Header="TARA EXTRA" Width="102" MinWidth="102">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
                                             <Border x:Name="ChipTara" CornerRadius="999" Padding="8,2" HorizontalAlignment="Center"
@@ -696,8 +1001,8 @@
                                                     <Border x:Name="PuntoTara" Width="5" Height="5" CornerRadius="3" Background="#D97706"
                                                             Margin="0,0,5,0" VerticalAlignment="Center" Visibility="Collapsed"/>
                                                     <TextBlock x:Name="TxtTara" Text="{Binding TaraExtra, StringFormat=N2}"
-                                                               FontFamily="Segoe UI" FontSize="14" Foreground="#1A1F2E"
-                                                               VerticalAlignment="Center"/>
+                                                                FontFamily="Segoe UI" FontSize="14" Foreground="#1A1F2E"
+                                                                VerticalAlignment="Center"/>
                                                 </StackPanel>
                                             </Border>
                                             <DataTemplate.Triggers>
@@ -712,7 +1017,7 @@
                                         </DataTemplate>
                                     </DataGridTemplateColumn.CellTemplate>
                                 </DataGridTemplateColumn>
-                                <DataGridTextColumn Header="NETO (KG)" Binding="{Binding Neto, StringFormat=N2}" Width="96">
+                                <DataGridTextColumn Header="NETO (KG)" Binding="{Binding Neto, StringFormat=N2}" Width="96" MinWidth="96">
                                     <DataGridTextColumn.ElementStyle>
                                         <Style TargetType="TextBlock">
                                             <Setter Property="FontFamily" Value="Segoe UI"/>
@@ -726,7 +1031,7 @@
                                 </DataGridTextColumn>
                                 <!-- Los bultos ya no se capturan: se estiman desde el peso. En ámbar
                                      cuando la pesada no tiene tara extra y la estimación es alta. -->
-                                <DataGridTextColumn Header="BULTOS" Binding="{Binding BultosTexto}" Width="86">
+                                <DataGridTextColumn Header="BULTOS" Binding="{Binding BultosTexto}" Width="86" MinWidth="86">
                                     <DataGridTextColumn.ElementStyle>
                                         <Style TargetType="TextBlock" BasedOn="{StaticResource EntText}">
                                             <Style.Triggers>
@@ -747,7 +1052,7 @@
                                      scroll horizontal en vez de comprimir la columna hasta
                                      volverla ilegible. El Grid de la fila TOTAL repite este
                                      mismo MinWidth para seguir alineado en los dos casos. -->
-                                <DataGridTemplateColumn Header="FECHA / HORA" Width="*" MinWidth="118">
+                                <DataGridTemplateColumn Header="FECHA / HORA" Width="*" MinWidth="125">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
                                             <StackPanel VerticalAlignment="Center" Margin="10,0">
@@ -778,14 +1083,14 @@
                                 <TranslateTransform x:Name="TotalScrollTransform"/>
                             </Grid.RenderTransform>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="60"/>
-                                <ColumnDefinition x:Name="TotalColProducto" Width="0"/>
-                                <ColumnDefinition Width="96"/>
-                                <ColumnDefinition Width="96"/>
-                                <ColumnDefinition Width="102"/>
-                                <ColumnDefinition Width="96"/>
-                                <ColumnDefinition Width="86"/>
-                                <ColumnDefinition Width="*" MinWidth="118"/>
+                                <ColumnDefinition Width="60" MinWidth="60"/>
+                                <ColumnDefinition x:Name="TotalColProducto" Width="0" MinWidth="0"/>
+                                <ColumnDefinition Width="96" MinWidth="96"/>
+                                <ColumnDefinition Width="96" MinWidth="96"/>
+                                <ColumnDefinition Width="102" MinWidth="102"/>
+                                <ColumnDefinition Width="96" MinWidth="96"/>
+                                <ColumnDefinition Width="86" MinWidth="86"/>
+                                <ColumnDefinition Width="*" MinWidth="125"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="TOTAL" FontFamily="Segoe UI" FontSize="12.5" FontWeight="Bold"
                                        Foreground="#6B7280" VerticalAlignment="Center" Margin="10,0"/>
@@ -832,24 +1137,24 @@
                         <!-- La tara extra (tarimas) se pesa aparte y se reparte entre las
                              pesadas ya registradas del producto o de todo el camión: vive
                              acá, junto a la grilla de esas pesadas. -->
-                        <Button x:Name="BtnProdTaraExtra" Style="{StaticResource ToolBtn}" Margin="0,0,8,0"
+                        <Button x:Name="BtnProdTaraExtra" Style="{StaticResource ToolPrimary}" Margin="0,0,8,0"
                                 Click="BtnProdTaraExtra_Click"
                                 permisos:PermisoBehavior.Requiere="Modificar Pesaje"
                                 ToolTip="Cargar el peso de las tarimas y repartirlo entre las pesadas">
                             <StackPanel Orientation="Horizontal">
-                                <Path Data="{StaticResource IcoPack}" Stroke="{DynamicResource EmpresaPrimaryBrush}" StrokeThickness="2" Width="13" Height="13" Stretch="Uniform" Margin="0,0,7,0" VerticalAlignment="Center" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                                <Path Data="{StaticResource IcoPack}" Stroke="White" StrokeThickness="2" Width="13" Height="13" Stretch="Uniform" Margin="0,0,7,0" VerticalAlignment="Center" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
                                 <TextBlock Text="Tara extra" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
-                        <Button x:Name="BtnEntEditar" Style="{StaticResource ToolBtn}" Margin="0,0,8,0" Click="BtnEntEditar_Click">
+                        <Button x:Name="BtnEntEditar" Style="{StaticResource ToolPrimary}" Margin="0,0,8,0" Click="BtnEntEditar_Click">
                             <StackPanel Orientation="Horizontal">
-                                <Path Data="{StaticResource IcoPencil}" Stroke="{DynamicResource EmpresaPrimaryBrush}" StrokeThickness="2" Width="13" Height="13" Stretch="Uniform" Margin="0,0,7,0" VerticalAlignment="Center" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                                <Path Data="{StaticResource IcoPencil}" Stroke="White" StrokeThickness="2" Width="13" Height="13" Stretch="Uniform" Margin="0,0,7,0" VerticalAlignment="Center" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
                                 <TextBlock Text="Editar" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
                         <Button x:Name="BtnEntQuitar" Style="{StaticResource ToolDanger}" Click="BtnEntQuitar_Click">
                             <StackPanel Orientation="Horizontal">
-                                <Path Data="{StaticResource IcoTrash}" Stroke="#DC2626" StrokeThickness="2" Width="13" Height="13" Stretch="Uniform" Margin="0,0,7,0" VerticalAlignment="Center" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                                <Path Data="{StaticResource IcoTrash}" Stroke="White" StrokeThickness="2" Width="13" Height="13" Stretch="Uniform" Margin="0,0,7,0" VerticalAlignment="Center" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
                                 <TextBlock Text="Quitar" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
@@ -871,26 +1176,26 @@
                  camión abierto o cerrado. Cerrar un camión puntual sigue en su
                  propio panel de Camiones ("Cerrar camión"). -->
             <Border Grid.Row="4" BorderBrush="#D8E1EC" BorderThickness="0,1,0,0" Padding="0,14,0,0">
-                <Grid>
-                    <Button x:Name="BtnImprimirReporte" Style="{StaticResource ToolBtn}" Height="36"
-                            HorizontalAlignment="Left" Click="BtnImprimirReporte_Click">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                    <Button x:Name="BtnImprimirReporte" Style="{StaticResource ToolPrimary}" Height="36"
+                            Margin="0,0,10,0" Click="BtnImprimirReporte_Click">
                         <StackPanel Orientation="Horizontal">
-                            <Path Data="{StaticResource IcoDownload}" Stroke="{DynamicResource EmpresaPrimaryBrush}" StrokeThickness="2.2"
+                            <Path Data="{StaticResource IcoDownload}" Stroke="White" StrokeThickness="2.2"
                                   StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
                                   Width="14" Height="14" Stretch="Uniform" Margin="0,0,7,0" VerticalAlignment="Center"/>
                             <TextBlock Text="Imprimir reporte" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
-                    <Button x:Name="BtnCerrarTodos" Style="{StaticResource ToolBtn}" Height="36"
-                            HorizontalAlignment="Right" Click="BtnCerrarTodos_Click">
+                    <Button x:Name="BtnCerrarTodos" Style="{StaticResource ToolWarn}" Height="36"
+                            Click="BtnCerrarTodos_Click">
                         <StackPanel Orientation="Horizontal">
-                            <Path Data="{StaticResource IcoCheckDbl}" Stroke="{DynamicResource EmpresaPrimaryBrush}" StrokeThickness="2"
+                            <Path Data="{StaticResource IcoCheckDbl}" Stroke="White" StrokeThickness="2"
                                   StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
                                   Width="14" Height="14" Stretch="Uniform" Margin="0,0,7,0" VerticalAlignment="Center"/>
                             <TextBlock Text="Cerrar todos los camiones" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
-                </Grid>
+                </StackPanel>
             </Border>
         </Grid>
 

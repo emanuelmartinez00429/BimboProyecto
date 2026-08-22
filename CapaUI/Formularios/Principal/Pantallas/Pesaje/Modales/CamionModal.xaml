@@ -1,0 +1,161 @@
+<UserControl x:Class="CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales.CamionModal"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Width="480"
+             Height="480"
+             MaxWidth="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Border}, Converter={StaticResource RestarMargen}, ConverterParameter=48}"
+             MaxHeight="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=Border}, Converter={StaticResource RestarMargen}, ConverterParameter=48}"
+             UseLayoutRounding="True"
+             TextOptions.TextRenderingMode="Grayscale"
+             TextOptions.TextFormattingMode="Display">
+
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/CapaUI;component/Formularios/Principal/Pantallas/Pesaje/Modales/PesajeModalStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Border CornerRadius="10" ClipToBounds="True">
+        <Border.Effect><DropShadowEffect Color="Black" BlurRadius="24" ShadowDepth="8" Opacity="0.55"/></Border.Effect>
+        <!-- Alto congelado en código (ver BuscarProveedor_Click) mientras el
+             selector de proveedor está abierto: SelectorCatalogoModal es
+             "chromeless" (hereda este marco, no tiene fondo propio) y sin un
+             alto fijo el marco se movería con la cantidad de filas del
+             filtro. Se libera al cerrar. Mismo mecanismo que ProcesoDescargaModal. -->
+        <Grid x:Name="RootGrid">
+            <Border CornerRadius="10">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="{DynamicResource EmpresaPrimaryDarkColor}" Offset="0"/>
+                        <GradientStop Color="{DynamicResource EmpresaPrimaryColor}" Offset="0.55"/>
+                        <GradientStop Color="{DynamicResource EmpresaPrimaryDarkColor}" Offset="1"/>
+                    </LinearGradientBrush>
+                </Border.Background>
+            </Border>
+
+            <DockPanel x:Name="ContenidoPrincipal">
+                <!-- Franja superior -->
+                <Border DockPanel.Dock="Top" Height="4">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                            <GradientStop Color="#34D399" Offset="0"/>
+                            <GradientStop Color="{DynamicResource EmpresaPrimaryLighterColor}" Offset="0.5"/>
+                            <GradientStop Color="{DynamicResource EmpresaPrimaryLightColor}" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Border.Background>
+                </Border>
+
+                <!-- Header -->
+                <Border DockPanel.Dock="Top" Padding="28,18,28,14"
+                        BorderBrush="#26FFFFFF" BorderThickness="0,0,0,1">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Grid.Column="0" Width="40" Height="40" CornerRadius="10"
+                                Background="#24FFFFFF" Margin="0,0,14,0" VerticalAlignment="Center">
+                            <Path Data="{StaticResource MIcoTruck}" Stroke="White" StrokeThickness="1.6"
+                                  Width="22" Height="22" Stretch="Uniform"
+                                  StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                        </Border>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock x:Name="TxtEyebrow" FontFamily="Segoe UI" FontSize="11.5"
+                                       FontWeight="SemiBold" Foreground="#A6FFFFFF"/>
+                            <TextBlock x:Name="TxtTitulo" FontFamily="Segoe UI" FontSize="21"
+                                       FontWeight="Bold" Foreground="White" Margin="0,2,0,0"/>
+                        </StackPanel>
+                        <Button Grid.Column="2" Style="{StaticResource CloseBtn}"
+                                VerticalAlignment="Top" Click="Cerrar_Click"/>
+                    </Grid>
+                </Border>
+
+                <!-- Footer (fijo abajo) -->
+                <Border DockPanel.Dock="Bottom" Background="#2E000000"
+                        BorderBrush="#1FFFFFFF" BorderThickness="0,1,0,0" Padding="28,14"
+                        CornerRadius="10">
+                    <Grid>
+                        <TextBlock x:Name="TxtPie" VerticalAlignment="Center" FontFamily="Segoe UI"
+                                   FontSize="12.5" Foreground="#A6FFFFFF"/>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                            <Button x:Name="BtnCancelar" Content="Cancelar" Style="{StaticResource GhostBtn}"
+                                    Padding="22,9" Margin="0,0,10,0" Click="Cerrar_Click"/>
+                            <Button x:Name="BtnGuardar" Style="{StaticResource SolidBtn}"
+                                    Padding="24,9" IsEnabled="False" Click="Guardar_Click">
+                                <TextBlock x:Name="TxtBtnGuardar" Text="Registrar" FontFamily="Segoe UI"
+                                           FontSize="14.5" FontWeight="Bold" Foreground="White"/>
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- Error -->
+                <Border DockPanel.Dock="Bottom" x:Name="PanelError" Background="#33DC2626"
+                        CornerRadius="6" Margin="28,0,28,10" Padding="12,8" Visibility="Collapsed">
+                    <TextBlock x:Name="TxtError" FontFamily="Segoe UI" FontSize="12.5"
+                               Foreground="#FECACA" TextWrapping="Wrap"/>
+                </Border>
+
+                <!-- Aviso de placa ya abierta con otro proveedor. Ámbar y no rojo: no
+                     es un error ni bloquea el guardado — es el caso legítimo de un
+                     camión que trae carga de dos proveedores, y cada proveedor va en
+                     su propia recepción. Mismo par de colores que AvisoBultosAprox en
+                     PesajeModal.xaml. -->
+                <Border DockPanel.Dock="Bottom" x:Name="PanelAviso" Background="#33D97706"
+                        CornerRadius="6" Margin="28,0,28,10" Padding="12,8" Visibility="Collapsed">
+                    <TextBlock x:Name="TxtAviso" FontFamily="Segoe UI" FontSize="12.5"
+                               Foreground="#FDE68A" TextWrapping="Wrap"/>
+                </Border>
+
+                <!-- Contenido -->
+                <StackPanel Margin="28,20,28,10">
+                    <TextBlock Text="Proveedor" Style="{StaticResource MLabel}"/>
+                    <Grid Margin="0,0,0,16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox Grid.Column="0" x:Name="TxtProveedor" Style="{StaticResource MInput}" IsReadOnly="True"
+                                 Cursor="Hand" PreviewMouseDoubleClick="TxtCatalogo_PreviewMouseDoubleClick"
+                                 KeyDown="TxtCatalogo_KeyDown" Tag="{Binding ElementName=BtnBuscarProveedor}"/>
+                        <TextBlock Grid.Column="0" Text="Seleccioná un proveedor…" FontFamily="Segoe UI"
+                                   FontSize="13.5" Foreground="#9CA3AF" Margin="24,0,0,0"
+                                   VerticalAlignment="Center" IsHitTestVisible="False"
+                                   Visibility="{Binding Text, ElementName=TxtProveedor, Converter={StaticResource VacioAVisibilidad}}"/>
+                        <Button Grid.Column="1" x:Name="BtnBuscarProveedor" Style="{StaticResource LupaBtnOscuro}"
+                                Click="BuscarProveedor_Click" ToolTip="Seleccionar proveedor"/>
+                    </Grid>
+
+                    <TextBlock Text="Placa del vehículo" Style="{StaticResource MLabel}"/>
+                    <Grid Margin="0,0,0,16">
+                        <TextBox x:Name="TxtPlaca" Style="{StaticResource MInput}" TextChanged="Placa_Changed"/>
+                        <TextBlock Text="Ingresá la placa del vehículo…" FontFamily="Segoe UI"
+                                   FontSize="13.5" Foreground="#9CA3AF" Margin="24,0,0,0"
+                                   VerticalAlignment="Center" IsHitTestVisible="False"
+                                   Visibility="{Binding Text, ElementName=TxtPlaca, Converter={StaticResource VacioAVisibilidad}}"/>
+                    </Grid>
+
+                    <TextBlock Text="Observaciones (opcional)" Style="{StaticResource MLabel}"/>
+                    <Grid>
+                        <TextBox x:Name="TxtObs" Style="{StaticResource MInput}" Height="96"
+                                 AcceptsReturn="True" TextWrapping="Wrap"
+                                 VerticalContentAlignment="Top" VerticalScrollBarVisibility="Auto"
+                                 TextChanged="Obs_Changed"/>
+                        <TextBlock Text="Sin observaciones adicionales" FontFamily="Segoe UI"
+                                   FontSize="13.5" Foreground="#9CA3AF" Margin="24,2,0,0"
+                                   VerticalAlignment="Top" IsHitTestVisible="False"
+                                   Visibility="{Binding Text, ElementName=TxtObs, Converter={StaticResource VacioAVisibilidad}}"/>
+                    </Grid>
+                </StackPanel>
+            </DockPanel>
+
+            <!-- Host del selector de catálogo (Proveedor) — reemplaza todo el
+                 contenido mientras está abierto, mismo mecanismo que
+                 ProcesoDescargaModal. -->
+            <ContentControl x:Name="CatalogoSelectorHost" Visibility="Collapsed"/>
+        </Grid>
+    </Border>
+</UserControl>

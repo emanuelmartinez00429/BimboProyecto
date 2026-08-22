@@ -16,7 +16,12 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
     /// </summary>
     public partial class PesajeViewModel : ObservableObject
     {
-        public const int MaxCamiones = 3;
+        /// <summary>
+        /// Camiones físicos simultáneos en el andén. Se cuenta por <b>placa distinta</b>,
+        /// no por movimiento: un camión que trae carga de dos proveedores son dos
+        /// recepciones en la base pero un solo camión en la puerta.
+        /// </summary>
+        public const int MaxCamiones = 5;
 
         private readonly IPesajeRepository _repo;
         private readonly IUsuarioSesionService _sesionService;
@@ -45,10 +50,22 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
         public bool CamionCerrado => SelectedCamion?.Estado == "Cerrado";
         public string ModoEfectivo => SelectedProducto is not null ? VistaEntradas : "camion";
 
-        public int    CamionesCount      => Camiones.Count;
+        /// <summary>Placas distintas abiertas — camiones físicos, no movimientos.</summary>
+        private int PlacasAbiertas => Camiones
+            .Where(c => c.Estado == "Abierto")
+            .Select(c => (c.Placa ?? "").Trim().ToUpperInvariant())
+            .Distinct()
+            .Count();
+
+        public int    CamionesCount      => PlacasAbiertas;
+        public string CamionesTexto      => $"{PlacasAbiertas}/{MaxCamiones}";
+        public bool   PuedeAgregarCamion => PlacasAbiertas < MaxCamiones;
+
+        /// <summary>
+        /// Movimientos abiertos, no placas: "Cerrar todos" cierra recepción por
+        /// recepción, así que acá sí se cuenta de a una.
+        /// </summary>
         public int    CamionesActivos    => Camiones.Count(c => c.Estado == "Abierto");
-        public string CamionesTexto      => $"{Camiones.Count}/{MaxCamiones}";
-        public bool   PuedeAgregarCamion => Camiones.Count(c => c.Estado == "Abierto") < MaxCamiones;
 
         // ── Totales de la fila al pie de Entradas ─────────────────────────────
         // Suman lo que ya está en memoria (FilasEntradas), que es exactamente lo
@@ -114,6 +131,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
 
             Camiones.Clear();
             foreach (var c in r.Value!) Camiones.Add(MapCamion(c));
+            RecalcularRecepcionesPorPlaca();
             NotificarStats();
 
             SelectedCamion   = Camiones.FirstOrDefault();
@@ -160,23 +178,19 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
         //  Camiones
         // ══════════════════════════════════════════════════════════════════════
         /// <summary>
-        /// Persiste el proceso de descarga completo (camión + productos) en una sola
-        /// operación, tanto para alta (wizard) como para edición (megamodal).
-        /// <para/>
-        /// Orden: primero el camión (para tener su id), después los productos quitados,
-        /// después los nuevos, y al final las actualizaciones de los ya existentes.
-        /// Si falla el camión se corta: sin id no hay dónde colgar los productos.
+        /// Persiste los datos del camión (alta o edición) — nada más. Los productos ya
+        /// no viajan acá: se agregan/editan/quitan uno a la vez desde
+        /// <see cref="AgregarProductoAsync"/>/<see cref="ActualizarProductoAsync"/>/
+        /// <see cref="QuitarProductoAsync"/>, disparados desde <c>ProductoCamionModal</c>
+        /// en la pantalla principal.
         /// <para/>
         /// La tara extra NO se toca acá: se pesa por entrada, no por camión.
         /// </summary>
-        public async Task<bool> GuardarProcesoAsync(
-            CamionPesaje? camionExistente,
-            string placa, string proveedor, int? idProveedor, string obs,
-            IReadOnlyList<(int IdMovProducto, int IdProducto, double PesoManifestado, int BultosDeclarados)> productos,
-            IReadOnlyList<int> idsQuitados)
+        public async Task<bool> GuardarCamionAsync(
+            CamionPesaje? camionExistente, string placa, string proveedor, int? idProveedor, string obs)
         {
             if (idProveedor is null) { Toast?.Invoke("Selecciona un proveedor válido"); return false; }
-            if (!HaySesionActiva("guardar el proceso de descarga")) return false;
+            if (!HaySesionActiva("guardar el camión")) return false;
 
             int idCamion;
 
@@ -193,38 +207,19 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
                 idCamion = camionExistente.Id;
             }
 
-            // Quitados: se anulan por estado, nunca se borran (no se pierde auditoría).
-            foreach (var idMovProd in idsQuitados)
-            {
-                var rDel = await _repo.AnularProductoAsync(idMovProd);
-                if (!rDel.Success) Toast?.Invoke(rDel.Error ?? "No se pudo quitar un producto");
-            }
-
-            foreach (var p in productos)
-            {
-                if (p.IdMovProducto == 0)
-                {
-                    var rAdd = await _repo.AgregarProductoAsync(
-                        idCamion, p.IdProducto, p.PesoManifestado, p.BultosDeclarados, "");
-                    if (!rAdd.Success) Toast?.Invoke(rAdd.Error ?? $"No se pudo agregar un producto");
-                }
-                else
-                {
-                    var rUpd = await _repo.ActualizarProductoAsync(
-                        p.IdMovProducto, p.PesoManifestado, p.BultosDeclarados, "");
-                    if (!rUpd.Success) Toast?.Invoke(rUpd.Error ?? "No se pudo actualizar un producto");
-                }
-            }
-
             await RecargarCamionesAsync(seleccionarId: idCamion);
-            Toast?.Invoke(camionExistente is null ? "Proceso de descarga iniciado" : "Cambios guardados");
+            Toast?.Invoke(camionExistente is null ? "Camión registrado" : "Cambios guardados");
             return true;
         }
 
-        public async Task QuitarCamionAsync()
+        /// <summary>
+        /// Recibe el camión explícito (no <see cref="SelectedCamion"/>): lo dispara el
+        /// ícono de basurero de su propia fila en la lista, así que borra el que se tocó
+        /// sin depender de que ese clic también haya cambiado la selección.
+        /// </summary>
+        public async Task QuitarCamionAsync(CamionPesaje camion)
         {
-            if (SelectedCamion is null) return;
-            var r = await _repo.AnularCamionAsync(SelectedCamion.Id);
+            var r = await _repo.AnularCamionAsync(camion.Id);
             if (!r.Success) { Toast?.Invoke(r.Error ?? "No se pudo quitar"); return; }
 
             await RecargarCamionesAsync();
@@ -260,37 +255,112 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
         // ══════════════════════════════════════════════════════════════════════
         //  Productos
         // ══════════════════════════════════════════════════════════════════════
-        public async Task AgregarProductoAsync(int idProducto, double pesoManifestado, int bultosTeoricos, string obs)
+        /// <summary>
+        /// Agrega un producto resolviendo el destino por <b>placa + proveedor</b>, no por
+        /// el camión seleccionado.
+        /// <para/>
+        /// Un camión puede traer carga de dos proveedores, y en la base eso son dos
+        /// <c>movimientos</c> con la misma placa (uno por proveedor): así cada movimiento
+        /// queda con su proveedor real y solo sus productos, y cada manifiesto se firma y
+        /// se reporta por separado. Acá se busca la recepción de ese proveedor para esa
+        /// placa y, si no existe, se crea — el operador no tiene que darla de alta a mano.
+        /// </summary>
+        public async Task<bool> AgregarProductoAsync(
+            string placa, int idProveedor, string nombreProveedor,
+            int idProducto, double pesoManifestado, int bultosTeoricos, string obs)
         {
-            if (SelectedCamion is null) return;
-            var camion = SelectedCamion;
-            var r = await _repo.AgregarProductoAsync(camion.Id, idProducto, pesoManifestado, bultosTeoricos, obs);
-            if (!r.Success) { Toast?.Invoke(r.Error ?? "No se pudo agregar"); return; }
+            var destino = Camiones.FirstOrDefault(c =>
+                c.Estado == "Abierto"
+                && string.Equals(c.Placa?.Trim(), placa.Trim(), StringComparison.OrdinalIgnoreCase)
+                && c.IdProveedor == idProveedor);
 
-            await CargarProductosAsync(camion);
-            SelectedProducto = camion.Productos.FirstOrDefault(p => p.Id == r.Value);
+            bool recepcionNueva = destino is null;
+            int idMovimiento;
+
+            if (destino is not null)
+            {
+                idMovimiento = destino.Id;
+            }
+            else
+            {
+                // Crear la recepción del otro proveedor no consume cupo: el límite cuenta
+                // placas distintas, y esta placa ya estaba abierta.
+                if (!HaySesionActiva("abrir la recepción del otro proveedor")) return false;
+
+                var rNueva = await _repo.CrearCamionAsync(idProveedor, placa.Trim(), "", UsuarioActual);
+                if (!rNueva.Success)
+                {
+                    Toast?.Invoke(rNueva.Error ?? "No se pudo abrir la recepción del proveedor");
+                    return false;
+                }
+                idMovimiento = rNueva.Value;
+            }
+
+            var r = await _repo.AgregarProductoAsync(idMovimiento, idProducto, pesoManifestado, bultosTeoricos, obs);
+            if (!r.Success) { Toast?.Invoke(r.Error ?? "No se pudo agregar"); return false; }
+
+            await RecargarCamionesAsync(seleccionarId: idMovimiento);
+            SelectedProducto = SelectedCamion?.Productos.FirstOrDefault(p => p.Id == r.Value);
             RecalcularFilas();
-            Toast?.Invoke("Producto agregado al camión");
+
+            // La recepción nueva no debe aparecer por arte de magia: se dice qué pasó.
+            Toast?.Invoke(recepcionNueva
+                ? $"Producto agregado — se abrió una recepción aparte para {nombreProveedor}"
+                : "Producto agregado al camión");
+            return true;
         }
 
-        public async Task ActualizarProductoAsync(ProductoCamion p, double pesoManifestado, int bultosTeoricos, string obs)
+        /// <summary>
+        /// Escribe en cada camión cuántas recepciones abiertas comparten su placa. Es lo
+        /// que le permite a la lista mostrar un camión con dos proveedores como UN camión
+        /// agrupado y no como dos registros sueltos.
+        /// </summary>
+        private void RecalcularRecepcionesPorPlaca()
         {
-            if (SelectedCamion is null) return;
+            var porPlaca = Camiones
+                .Where(c => c.Estado == "Abierto")
+                .GroupBy(c => (c.Placa ?? "").Trim().ToUpperInvariant())
+                .ToDictionary(g => g.Key, g => g.Count());
+
+            foreach (var c in Camiones)
+                c.RecepcionesEnPlaca = porPlaca.TryGetValue((c.Placa ?? "").Trim().ToUpperInvariant(), out var n)
+                    ? n : 1;
+        }
+
+        /// <summary>Recepciones abiertas que comparten placa con <paramref name="placa"/>.</summary>
+        public IReadOnlyList<CamionPesaje> RecepcionesDePlaca(string placa) =>
+            Camiones.Where(c => c.Estado == "Abierto"
+                                && string.Equals(c.Placa?.Trim(), placa.Trim(), StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+
+        /// <summary>
+        /// Devuelve si guardó, igual que <see cref="AgregarProductoAsync"/>: el modal
+        /// espera el resultado para saber si puede cerrarse o limpiarse.
+        /// </summary>
+        public async Task<bool> ActualizarProductoAsync(ProductoCamion p, double pesoManifestado, int bultosTeoricos, string obs)
+        {
+            if (SelectedCamion is null) return false;
             var r = await _repo.ActualizarProductoAsync(p.Id, pesoManifestado, bultosTeoricos, obs);
-            if (!r.Success) { Toast?.Invoke(r.Error ?? "No se pudo actualizar"); return; }
+            if (!r.Success) { Toast?.Invoke(r.Error ?? "No se pudo actualizar"); return false; }
 
             int id = p.Id;
             await CargarProductosAsync(SelectedCamion);
             SelectedProducto = SelectedCamion.Productos.FirstOrDefault(x => x.Id == id);
             RecalcularFilas();
             Toast?.Invoke("Producto actualizado");
+            return true;
         }
 
-        public async Task QuitarProductoAsync()
+        /// <summary>
+        /// Recibe el producto explícito (no <see cref="SelectedProducto"/>): lo dispara
+        /// el botón "Quitar producto" de <c>ProductoCamionModal</c>, ya abierto sobre
+        /// ese producto puntual — mismo criterio que <see cref="QuitarCamionAsync"/>.
+        /// </summary>
+        public async Task QuitarProductoAsync(ProductoCamion producto)
         {
-            if (SelectedCamion is null || SelectedProducto is null) return;
+            if (SelectedCamion is null) return;
             var camion = SelectedCamion;
-            var r = await _repo.AnularProductoAsync(SelectedProducto.Id);
+            var r = await _repo.AnularProductoAsync(producto.Id);
             if (!r.Success) { Toast?.Invoke(r.Error ?? "No se pudo quitar"); return; }
 
             await CargarProductosAsync(camion);
@@ -545,6 +615,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
 
             Camiones.Clear();
             foreach (var c in r.Value!) Camiones.Add(MapCamion(c));
+            RecalcularRecepcionesPorPlaca();
             NotificarStats();
 
             SelectedCamion = seleccionarId.HasValue

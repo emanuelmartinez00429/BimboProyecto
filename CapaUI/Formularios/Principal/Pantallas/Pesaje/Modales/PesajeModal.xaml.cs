@@ -20,14 +20,6 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
         /// </summary>
         public event Func<EntradaPesaje, Task<bool>>? GuardarYSeguir;
 
-        /// <summary>
-        /// "Terminar de pesar" — cierra el PRODUCTO que se está pesando en este
-        /// modal (equivalente a tildar su chip de estado en la tabla de
-        /// Movimiento), no el camión entero. Cerrar el camión completo es una
-        /// acción aparte, disponible desde la pantalla principal.
-        /// </summary>
-        public event Func<EntradaPesaje?, Task>? TerminarProducto;
-
         private readonly ProductoCamion _producto;
         private readonly double _taraInd;
 
@@ -118,7 +110,11 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
             double dif       = _producto.PesoManifestado - netoTotal;
 
             TxtTaraTotal.Text = taraTotal.ToString("N2", CultureInfo.InvariantCulture);
-            TxtNeto.Text      = neto.ToString("N2", CultureInfo.InvariantCulture);
+            // Sin bruto todavía no hay nada que mostrar: "—" (igual que Bultos estimados).
+            // Con bruto cargado, sí se muestra el negativo si corresponde (ver comentario arriba).
+            TxtNeto.Text      = Bruto > 0
+                ? neto.ToString("N2", CultureInfo.InvariantCulture)
+                : "—";
             TxtNetoTotal.Text = netoTotal.ToString("N2", CultureInfo.InvariantCulture);
 
             // Bultos estimados: cuántos bultos representa el peso de producto de esta pesada.
@@ -170,7 +166,6 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
 
             TxtGuardando.Visibility  = guardando ? Visibility.Visible : Visibility.Collapsed;
             BtnVolver.IsEnabled      = !guardando;
-            BtnTerminarProducto.IsEnabled = !guardando;
             TxtBruto.IsEnabled       = !guardando;
             TxtTaraExtraEntrada.IsEnabled = !guardando;
             TxtObs.IsEnabled         = !guardando;
@@ -229,38 +224,6 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
                 // Este método es async void porque WPF lo exige: una excepción que se escape
                 // acá no la puede atrapar nadie y tumba la aplicación con la pesada a medias.
                 Serilog.Log.Error(ex, "PesajeModal: falló el guardado del pesaje");
-            }
-            finally
-            {
-                AplicarEstadoGuardando(false);
-            }
-        }
-
-        private async void TerminarProducto_Click(object sender, RoutedEventArgs e)
-        {
-            if (_guardando || TerminarProducto is null) return;
-
-            // Confirma antes de terminar: es el botón que queda al lado de "Seguir
-            // pesando" (el que se clickea seguido), así que un toque accidentalmente
-            // trae aparejado cerrar el producto — más caro de deshacer que perder un
-            // clic. Mismo patrón que ConfirmacionEstado (MessageBox nativo,
-            // YesNo/Warning, default en No).
-            var confirmar = MessageBox.Show(
-                "Este producto va a quedar cerrado y no se van a poder registrar más " +
-                "pesadas para él.\n\n¿Confirmás que terminaste de pesarlo?",
-                "Terminar de pesar",
-                MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No);
-            if (confirmar != MessageBoxResult.Yes) return;
-
-            var snapshot = Valido ? Snapshot() : null;
-            AplicarEstadoGuardando(true);
-            try
-            {
-                await TerminarProducto(snapshot);
-            }
-            catch (Exception ex)
-            {
-                Serilog.Log.Error(ex, "PesajeModal: falló el cierre del producto");
             }
             finally
             {

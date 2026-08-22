@@ -76,40 +76,6 @@
             </Style.Triggers>
         </Style>
 
-        <!-- DataGrid Cell Style — center -->
-        <Style x:Key="BitacoraCellStyle" TargetType="DataGridCell">
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="0"/>
-            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="DataGridCell">
-                        <Border Background="{TemplateBinding Background}" BorderThickness="0" Padding="0">
-                            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <!-- DataGrid Cell Style — left -->
-        <Style x:Key="BitacoraCellStyleLeft" TargetType="DataGridCell">
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="0"/>
-            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="DataGridCell">
-                        <Border Background="{TemplateBinding Background}" BorderThickness="0" Padding="0">
-                            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Left"/>
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
         <!-- DataGrid Column Header Style -->
         <Style TargetType="DataGridColumnHeader">
             <Setter Property="Background" Value="{DynamicResource EmpresaPrimaryBrush}"/>
@@ -477,7 +443,7 @@
                            SelectionMode="Extended" SelectionUnit="FullRow" IsReadOnly="True"
                            SelectionChanged="DgBitacora_SelectionChanged"
                           Background="White" BorderThickness="0" AlternationCount="2"
-                          RowStyle="{StaticResource BitacoraRowStyle}" CellStyle="{StaticResource BitacoraCellStyle}"
+                          RowStyle="{StaticResource BitacoraRowStyle}" CellStyle="{StaticResource CeldaCentrada}"
                           ScrollViewer.VerticalScrollBarVisibility="Auto"
                           ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                           VirtualizingPanel.IsVirtualizing="True"
@@ -487,7 +453,7 @@
                         <Style TargetType="ScrollBar" BasedOn="{StaticResource ModernScrollBar}"/>
                     </DataGrid.Resources>
                     <DataGrid.Columns>
-                        <DataGridTemplateColumn Width="46" CellStyle="{StaticResource BitacoraCellStyle}">
+                        <DataGridTemplateColumn Width="46" CellStyle="{StaticResource CeldaCentrada}">
                             <DataGridTemplateColumn.Header>
                                 <CheckBox x:Name="ChkSeleccionarPagina"
                                           IsThreeState="True"
@@ -502,7 +468,7 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="FECHA / HORA" Width="150" CellStyle="{StaticResource BitacoraCellStyle}">
+                        <DataGridTemplateColumn Header="FECHA / HORA" Width="150" CellStyle="{StaticResource CeldaCentrada}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock FontFamily="Segoe UI" FontSize="15" Foreground="#6B7280"
@@ -514,7 +480,7 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="USUARIO" Width="200" CellStyle="{StaticResource BitacoraCellStyleLeft}">
+                        <DataGridTemplateColumn Header="USUARIO" Width="200" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding AliasUsuario}"
@@ -523,7 +489,7 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="MÓDULO" Width="160" CellStyle="{StaticResource BitacoraCellStyle}">
+                        <DataGridTemplateColumn Header="MÓDULO" Width="160" CellStyle="{StaticResource CeldaCentrada}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <Border Background="#F0F5FB" CornerRadius="999" Padding="10,2" HorizontalAlignment="Center">
@@ -534,7 +500,7 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="ACCIÓN" Width="150" CellStyle="{StaticResource BitacoraCellStyleLeft}">
+                        <DataGridTemplateColumn Header="ACCIÓN" Width="150" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding NombreAccion}"
@@ -543,7 +509,7 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="CAMPO AFECTADO" Width="160" CellStyle="{StaticResource BitacoraCellStyleLeft}">
+                        <DataGridTemplateColumn Header="CAMPO AFECTADO" Width="160" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding CampoAfectado}"
@@ -552,7 +518,7 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="DETALLE" Width="*" CellStyle="{StaticResource BitacoraCellStyleLeft}">
+                        <DataGridTemplateColumn Header="DETALLE" Width="*" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding EstadoActual}"

@@ -119,44 +119,6 @@
             </Style.Triggers>
         </Style>
 
-        <!-- DataGrid Cell Style para alineacion izquierda-->
-        <Style x:Key="ProductCellStyle" TargetType="DataGridCell">
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="0"/>
-            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="DataGridCell">
-                        <Border Background="{TemplateBinding Background}"
-                                BorderThickness="0"
-                                Padding="0"
-                                >
-                            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center" />
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-        <!-- DataGrid Cell Style para alinecion a la izquierda-->
-        <Style x:Key="ProductCellStyle1" TargetType="DataGridCell">
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="0"/>
-            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="DataGridCell">
-                        <Border Background="{TemplateBinding Background}"
-                          BorderThickness="0"
-                          Padding="0">
-                            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Left"/>
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
         <!-- Element style for plain (non-templated) DataGridTextColumn cells,
              standardized to the largest body font size used in the grid (15.5) -->
         <Style x:Key="ProductCellTextStyle" TargetType="TextBlock">
@@ -816,7 +778,7 @@
                           FontFamily="Segoe UI"
                           FontSize="15.5"
                           RowStyle="{StaticResource ProductRowStyle}"
-                          CellStyle="{StaticResource ProductCellStyle}"
+                          CellStyle="{StaticResource CeldaCentrada}"
                           SelectionChanged="DgProductos_SelectionChanged"
                           MouseDoubleClick="DgProductos_MouseDoubleClick"
                           ScrollViewer.CanContentScroll="True"
@@ -829,7 +791,7 @@
                         <Style TargetType="ScrollBar" BasedOn="{StaticResource ModernScrollBarAny}"/>
                     </DataGrid.Resources>
                     <DataGrid.Columns>
-                        <DataGridTemplateColumn Header="C&#211;DIGO" Width="Auto" MinWidth="90" CellStyle="{StaticResource ProductCellStyle1}">
+                        <DataGridTemplateColumn Header="C&#211;DIGO" Width="Auto" MinWidth="90" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <Border Background="#EFF6FF" CornerRadius="4" Padding="8,2" HorizontalAlignment="Left" Margin="8,0">
@@ -840,7 +802,7 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="PRODUCTO" Width="Auto" MinWidth="160" CellStyle="{StaticResource ProductCellStyle1}">
+                        <DataGridTemplateColumn Header="PRODUCTO" Width="Auto" MinWidth="160" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding Nombre}"
@@ -853,7 +815,7 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="PESO TEÓRICO" Width="Auto" MinWidth="90" CellStyle="{StaticResource ProductCellStyle1}">
+                        <DataGridTemplateColumn Header="PESO TEÓRICO" Width="Auto" MinWidth="90" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding PesoTeorico, StringFormat={}{0:N2}}"
@@ -864,7 +826,7 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="TARA" Width="Auto" MinWidth="110" CellStyle="{StaticResource ProductCellStyle1}">
+                        <DataGridTemplateColumn Header="TARA" Width="Auto" MinWidth="110" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding Tara}"
@@ -877,7 +839,7 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="FABRICANTE" Width="Auto" MinWidth="110" CellStyle="{StaticResource ProductCellStyle1}">
+                        <DataGridTemplateColumn Header="FABRICANTE" Width="Auto" MinWidth="110" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding Fabricante}"
@@ -888,7 +850,7 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="PROVEEDOR" Width="Auto" MinWidth="110" CellStyle="{StaticResource ProductCellStyle1}">
+                        <DataGridTemplateColumn Header="PROVEEDOR" Width="Auto" MinWidth="110" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding Proveedor}"
@@ -899,7 +861,7 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="PA&#205;S" Width="Auto" MinWidth="110" CellStyle="{StaticResource ProductCellStyle1}">
+                        <DataGridTemplateColumn Header="PA&#205;S" Width="Auto" MinWidth="110" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding Pais}"
@@ -910,7 +872,7 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="CONTENIDO" Width="Auto" MinWidth="100" CellStyle="{StaticResource ProductCellStyle1}">
+                        <DataGridTemplateColumn Header="CONTENIDO" Width="Auto" MinWidth="100" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding Contenido}"
@@ -921,7 +883,7 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="PRESENTACI&#211;N" Width="Auto" CellStyle="{StaticResource ProductCellStyle1}">
+                        <DataGridTemplateColumn Header="PRESENTACI&#211;N" Width="Auto" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding Presentacion}"
@@ -932,7 +894,7 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="CATEGOR&#205;A" Width="Auto" CellStyle="{StaticResource ProductCellStyle1}">
+                        <DataGridTemplateColumn Header="CATEGOR&#205;A" Width="Auto" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <Border Background="#F0F5FB" CornerRadius="999" Padding="10,2" HorizontalAlignment="Left" Margin="8,0">
@@ -943,7 +905,7 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="PRECIO / KG" Width="Auto" MinWidth="90" CellStyle="{StaticResource ProductCellStyle1}">
+                        <DataGridTemplateColumn Header="PRECIO / KG" Width="Auto" MinWidth="90" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding PrecioPorKg, StringFormat={}{0:N2}}"
@@ -954,7 +916,7 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="ESTADO" Width="Auto" MinWidth="70" CellStyle="{StaticResource ProductCellStyle}">
+                        <DataGridTemplateColumn Header="ESTADO" Width="Auto" MinWidth="70" CellStyle="{StaticResource CeldaCentrada}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <Grid HorizontalAlignment="Center">

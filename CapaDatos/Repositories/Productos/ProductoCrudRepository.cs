@@ -86,7 +86,7 @@ public class ProductoCrudRepository : RepositorioBase, IProductoRepository
 
     public Task<Result<PagedResult<ProductoDto>>> GetPagedAsync(
         int page, int size, ProductoFiltros filtros, CancellationToken ct = default) =>
-        TryAsync(() => GetPagedInternal(page, size, filtros), "Cargar productos");
+        TryAsync(() => GetPagedInternal(page, size, filtros, ct), "Cargar productos");
 
     public Task<Result<IReadOnlyList<ProductoDto>>> BuscarSugerenciasAsync(
         string termino, ProductoFiltros filtros, CancellationToken ct = default) =>
@@ -197,7 +197,7 @@ public class ProductoCrudRepository : RepositorioBase, IProductoRepository
     // ── Lógica interna ────────────────────────────────────────────────────────
 
     private async Task<PagedResult<ProductoDto>> GetPagedInternal(
-        int page, int size, ProductoFiltros filtros)
+        int page, int size, ProductoFiltros filtros, CancellationToken ct)
     {
         var client = await ConexionSupabase.GetClientAsync();
         var query  = AplicarFiltros(client.From<Modelados.Productos.Productos>().Select(SelectPara(filtros)), filtros);
@@ -220,8 +220,10 @@ public class ProductoCrudRepository : RepositorioBase, IProductoRepository
 
         var (colOrden, dirOrden) = ColumnaOrden(filtros.Orden);
 
-        // Página + conteos en paralelo (conteos via RPC — sin descargar filas)
-        var pageTask    = query.Order(colOrden, dirOrden).Range(from, to).Get();
+        // Página + conteos en paralelo (conteos via RPC — sin descargar filas).
+        // El ct viaja hasta el Get(): quien cancela (timeout o una carga más nueva)
+        // corta la petición de verdad en vez de solo dejar de esperarla.
+        var pageTask    = query.Order(colOrden, dirOrden).Range(from, to).Get(ct);
         var conteosTask = GetConteosRpcAsync(filtrosConteo, client);
         await Task.WhenAll(pageTask, conteosTask);
 
