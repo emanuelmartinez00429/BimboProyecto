@@ -512,49 +512,84 @@
                                             <Setter Property="Template">
                                                 <Setter.Value>
                                                     <ControlTemplate TargetType="GroupItem">
-                                                        <Grid>
-                                                            <Grid.RowDefinitions>
-                                                                <RowDefinition Height="Auto"/>
-                                                                <RowDefinition Height="Auto"/>
-                                                            </Grid.RowDefinitions>
-                                                            <!-- Encabezado de la placa compartida -->
-                                                            <Border x:Name="Cab" Grid.Row="0" Background="#EFF6FF"
-                                                                    BorderBrush="#DBE7F5" BorderThickness="0,0,0,1"
-                                                                    Padding="14,7">
-                                                                <Grid>
-                                                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                                                        <Path Data="{StaticResource IcoTruck}" Stroke="{DynamicResource EmpresaPrimaryBrush}"
-                                                                              StrokeThickness="1.6" Width="15" Height="15" Stretch="Uniform"
-                                                                              Margin="0,0,8,0" VerticalAlignment="Center"
-                                                                              StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
-                                                                        <TextBlock Text="{Binding Name}" FontFamily="Segoe UI" FontSize="14"
-                                                                                   FontWeight="Bold" Foreground="{DynamicResource EmpresaPrimaryBrush}"
-                                                                                   VerticalAlignment="Center"/>
-                                                                    </StackPanel>
-                                                                    <Border Background="#DBE7F5" CornerRadius="999" Padding="8,2"
-                                                                            HorizontalAlignment="Right" VerticalAlignment="Center">
-                                                                        <TextBlock FontFamily="Segoe UI" FontSize="12" FontWeight="SemiBold"
-                                                                                   Foreground="{DynamicResource EmpresaPrimaryBrush}"
-                                                                                   Text="{Binding ItemCount, StringFormat='{}{0} recepciones'}"/>
-                                                                    </Border>
+                                                        <!-- "Tarjeta": envuelve encabezado + filas en un bloque con
+                                                             borde redondeado, sombra sutil y separación del próximo
+                                                             grupo — así cada camión se lee como una unidad propia y
+                                                             no como filas sueltas de una lista continua. Se desarma
+                                                             (sin borde, sin sombra, sin margen) cuando ningún camión
+                                                             de la lista comparte placa: ahí no hay nada que agrupar. -->
+                                                        <Border x:Name="Tarjeta" Margin="0,0,0,10" CornerRadius="10"
+                                                                BorderBrush="#D7E3F5" BorderThickness="1.3" ClipToBounds="True">
+                                                            <Border.Effect>
+                                                                <DropShadowEffect Color="#1A2A44" Opacity="0.07" BlurRadius="12" ShadowDepth="2" Direction="270"/>
+                                                            </Border.Effect>
+                                                            <Grid>
+                                                                <Grid.RowDefinitions>
+                                                                    <RowDefinition Height="Auto"/>
+                                                                    <RowDefinition Height="Auto"/>
+                                                                </Grid.RowDefinitions>
+                                                                <!-- Encabezado de la placa compartida -->
+                                                                <Border x:Name="Cab" Grid.Row="0" Background="#EFF6FF"
+                                                                        BorderBrush="#DBE7F5" BorderThickness="0,0,0,1"
+                                                                        Padding="14,8">
+                                                                    <Grid>
+                                                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                                            <Path Data="{StaticResource IcoTruck}" Stroke="{DynamicResource EmpresaPrimaryBrush}"
+                                                                                  StrokeThickness="1.6" Width="15" Height="15" Stretch="Uniform"
+                                                                                  Margin="0,0,8,0" VerticalAlignment="Center"
+                                                                                  StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                                                                            <TextBlock Text="{Binding Name}" FontFamily="Segoe UI" FontSize="14.5"
+                                                                                       FontWeight="Bold" Foreground="{DynamicResource EmpresaPrimaryBrush}"
+                                                                                       VerticalAlignment="Center"/>
+                                                                        </StackPanel>
+                                                                        <!-- Badge sólido (antes era un tono pastel) — la placa
+                                                                             tiene que "pesar" más que cualquier fila de abajo. -->
+                                                                        <Border Background="{DynamicResource EmpresaPrimaryBrush}" CornerRadius="999" Padding="8,2"
+                                                                                HorizontalAlignment="Right" VerticalAlignment="Center">
+                                                                            <TextBlock FontFamily="Segoe UI" FontSize="12" FontWeight="SemiBold"
+                                                                                       Foreground="White"
+                                                                                       Text="{Binding ItemCount, StringFormat='{}{0} recepciones'}">
+                                                                                <TextBlock.Style>
+                                                                                    <Style TargetType="TextBlock">
+                                                                                        <Style.Triggers>
+                                                                                            <DataTrigger Binding="{Binding ItemCount}" Value="1">
+                                                                                                <Setter Property="Text" Value="1 recepción"/>
+                                                                                            </DataTrigger>
+                                                                                        </Style.Triggers>
+                                                                                    </Style>
+                                                                                </TextBlock.Style>
+                                                                            </TextBlock>
+                                                                        </Border>
+                                                                    </Grid>
+                                                                </Border>
+                                                                <!-- Barra que ata las recepciones de la misma placa -->
+                                                                <Grid Grid.Row="1">
+                                                                    <Grid.ColumnDefinitions>
+                                                                        <ColumnDefinition Width="Auto"/>
+                                                                        <ColumnDefinition Width="*"/>
+                                                                    </Grid.ColumnDefinitions>
+                                                                    <Border x:Name="Barra" Grid.Column="0" Width="4"
+                                                                            Background="{DynamicResource EmpresaPrimaryBrush}"/>
+                                                                    <ItemsPresenter Grid.Column="1"/>
                                                                 </Grid>
-                                                            </Border>
-                                                            <!-- Barra que ata las recepciones de la misma placa -->
-                                                            <Grid Grid.Row="1">
-                                                                <Grid.ColumnDefinitions>
-                                                                    <ColumnDefinition Width="Auto"/>
-                                                                    <ColumnDefinition Width="*"/>
-                                                                </Grid.ColumnDefinitions>
-                                                                <Border x:Name="Barra" Grid.Column="0" Width="3"
-                                                                        Background="{DynamicResource EmpresaPrimaryBrush}"/>
-                                                                <ItemsPresenter Grid.Column="1"/>
                                                             </Grid>
-                                                        </Grid>
+                                                        </Border>
                                                         <ControlTemplate.Triggers>
-                                                            <!-- Una sola recepción: no es un camión compartido, así que
-                                                                 ni encabezado ni barra — la fila se ve como siempre. -->
-                                                            <DataTrigger Binding="{Binding ItemCount}" Value="1">
+                                                            <!-- Ningún camión de la lista comparte placa con otro: no
+                                                                 hay nada que agrupar, así que la tarjeta se desarma —
+                                                                 vuelve a ser una fila plana, igual que antes de tener
+                                                                 grupos. -->
+                                                            <DataTrigger Binding="{Binding DataContext.HayPlacaCompartida, ElementName=LstCamiones}" Value="False">
                                                                 <Setter TargetName="Cab" Property="Visibility" Value="Collapsed"/>
+                                                                <Setter TargetName="Tarjeta" Property="Margin" Value="0"/>
+                                                                <Setter TargetName="Tarjeta" Property="BorderThickness" Value="0"/>
+                                                                <Setter TargetName="Tarjeta" Property="CornerRadius" Value="0"/>
+                                                                <Setter TargetName="Tarjeta" Property="Effect" Value="{x:Null}"/>
+                                                            </DataTrigger>
+                                                            <!-- Una sola recepción en ESTE grupo: no hay nada que atar,
+                                                                 aunque la tarjeta y el encabezado de arriba sí se
+                                                                 muestren. -->
+                                                            <DataTrigger Binding="{Binding ItemCount}" Value="1">
                                                                 <Setter TargetName="Barra" Property="Visibility" Value="Collapsed"/>
                                                             </DataTrigger>
                                                         </ControlTemplate.Triggers>
@@ -621,11 +656,16 @@
                                              grupo) sino el proveedor: se oculta la placa y el
                                              proveedor toma el estilo primario que ella tenía. -->
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="6,0">
+                                            <!-- El header de arriba ya muestra la placa apenas hay algún
+                                                 camión agrupado en la lista (HayPlacaCompartida), así que la
+                                                 fila deja de repetirla — no solo cuando ESTE camión puntual
+                                                 comparte placa (PlacaCompartida), sino siempre que el header
+                                                 esté visible para cualquier camión de la lista. -->
                                             <TextBlock Text="{Binding Placa}" FontFamily="Segoe UI" FontSize="15" FontWeight="Bold" Foreground="#1A1F2E">
                                                 <TextBlock.Style>
                                                     <Style TargetType="TextBlock">
                                                         <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding PlacaCompartida}" Value="True">
+                                                            <DataTrigger Binding="{Binding DataContext.HayPlacaCompartida, ElementName=LstCamiones}" Value="True">
                                                                 <Setter Property="Visibility" Value="Collapsed"/>
                                                             </DataTrigger>
                                                         </Style.Triggers>
@@ -639,7 +679,7 @@
                                                         <Setter Property="FontSize" Value="13"/>
                                                         <Setter Property="Foreground" Value="#6B7280"/>
                                                         <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding PlacaCompartida}" Value="True">
+                                                            <DataTrigger Binding="{Binding DataContext.HayPlacaCompartida, ElementName=LstCamiones}" Value="True">
                                                                 <Setter Property="FontSize" Value="15"/>
                                                                 <Setter Property="FontWeight" Value="Bold"/>
                                                                 <Setter Property="Foreground" Value="#1A1F2E"/>

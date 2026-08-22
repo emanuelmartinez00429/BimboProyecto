@@ -45,6 +45,14 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
         [NotifyPropertyChangedFor(nameof(MostrarEstadoVacio))]
         private bool _isLoading;
 
+        /// <summary>
+        /// Hay al menos un camión (placa) con 2+ recepciones abiertas en la lista. Controla
+        /// que TODOS los encabezados de placa se muestren en <see cref="Camiones"/> —
+        /// incluidos los camiones de 1 sola recepción — apenas exista alguno agrupado, en
+        /// vez de decidirlo grupo por grupo.
+        /// </summary>
+        [ObservableProperty] private bool _hayPlacaCompartida;
+
         public bool HayCamion     => SelectedCamion is not null;
         public bool HayProducto   => SelectedProducto is not null;
         public bool CamionCerrado => SelectedCamion?.Estado == "Cerrado";
@@ -325,6 +333,8 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             foreach (var c in Camiones)
                 c.RecepcionesEnPlaca = porPlaca.TryGetValue((c.Placa ?? "").Trim().ToUpperInvariant(), out var n)
                     ? n : 1;
+
+            HayPlacaCompartida = porPlaca.Values.Any(n => n > 1);
         }
 
         /// <summary>Recepciones abiertas que comparten placa con <paramref name="placa"/>.</summary>
