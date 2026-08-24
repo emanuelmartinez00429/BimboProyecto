@@ -1,6 +1,11 @@
 namespace CapaAplicacion.Reportes.Dtos;
 
-public sealed record EntradaMateriaPrimaFiltro(int IdProducto, int IdProveedor, int IdUsuario);
+public sealed record EntradaMateriaPrimaFiltro(
+    int IdProducto,
+    int IdProveedor,
+    DateTime FechaDesde,
+    DateTime FechaHasta,
+    int IdUsuario);
 public sealed record ProveedorReporteFiltro(int IdProveedor, DateTime FechaDesde, DateTime FechaHasta, int IdUsuario);
 public sealed record MermasReporteFiltro(DateTime FechaDesde, DateTime FechaHasta, int? IdCategoria, int IdUsuario);
 

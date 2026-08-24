@@ -33,10 +33,20 @@ public sealed class ReportStrategyTests
 
         Assert.Equal("Bimbo Honduras", sheet.Cell(1, 1).GetString());
         Assert.Equal("Reporte de Bitácora", sheet.Cell(2, 1).GetString());
+        var correoLabel = sheet.CellsUsed().Single(c => c.GetString() == "Correo usuario");
+        Assert.Equal("usuario@bimbo.test", sheet.Cell(correoLabel.Address.RowNumber, 2).GetString());
+        var rolLabel = sheet.CellsUsed().Single(c => c.GetString() == "Rol");
+        Assert.Equal("Administrador", sheet.Cell(rolLabel.Address.RowNumber, 2).GetString());
+        Assert.DoesNotContain(sheet.CellsUsed(), c => c.GetString() is "Emanuel" or "Martínez");
         var header = sheet.CellsUsed().Single(c => c.GetString() == "FECHA / HORA");
         Assert.Equal("usuario.registrado", sheet.Cell(header.Address.RowNumber + 1, 2).GetString());
         Assert.Equal("Detalle de prueba", sheet.Cell(header.Address.RowNumber + 1, 6).GetString());
         Assert.Equal(XLDataType.DateTime, sheet.Cell(header.Address.RowNumber + 1, 1).DataType);
+        var desdeLabel = sheet.CellsUsed().Single(c => c.GetString() == "Desde");
+        Assert.True(desdeLabel.Address.RowNumber > header.Address.RowNumber + 1);
+        Assert.Equal("01/08/2026", sheet.Cell(desdeLabel.Address.RowNumber, desdeLabel.Address.ColumnNumber + 1).GetString());
+        var hastaLabel = sheet.CellsUsed().Single(c => c.GetString() == "Hasta");
+        Assert.Equal(desdeLabel.Address.RowNumber, hastaLabel.Address.RowNumber);
     }
 
     [Fact]
@@ -60,8 +70,6 @@ public sealed class ReportStrategyTests
         Author = new ReportAuthorDto
         {
             Email = "usuario@bimbo.test",
-            NombreEmpleado = "Emanuel",
-            ApellidoEmpleado = "Martínez",
             Rol = "Administrador",
         },
         Columns = [new("FECHA / HORA", "dd/MM/yyyy HH:mm"), "USUARIO", "MÓDULO", "ACCIÓN", "CAMPO AFECTADO", "DETALLE"],
@@ -69,6 +77,7 @@ public sealed class ReportStrategyTests
         [
             new object?[] { new DateTime(2026,8,16,10,0,0), "usuario.registrado", "Productos", "Crear Producto", "Nombre", "Detalle de prueba" },
         ],
+        FooterMetadata = [new("Desde", "01/08/2026"), new("Hasta", "16/08/2026")],
     };
 
     [Fact]
@@ -83,8 +92,6 @@ public sealed class ReportStrategyTests
             Author = new ReportAuthorDto
             {
                 Email = "operario@bimbo.test",
-                NombreEmpleado = "Fernando",
-                ApellidoEmpleado = "Barahona",
                 Rol = "Pesaje",
             },
             Filters = [new("Placa del camión", "HAD-1234"), new("Proveedor", "HARINERA S.A.")],

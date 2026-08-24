@@ -8,7 +8,153 @@
    <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button"><Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="10" Padding="{TemplateBinding Padding}"><ContentPresenter/></Border><ControlTemplate.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Bd" Property="Background" Value="#EFF6FF"/><Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource EmpresaPrimaryBrush}"/></Trigger><Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="Bd" Property="BorderBrush" Value="#34D399"/><Setter TargetName="Bd" Property="BorderThickness" Value="3"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter>
   </Style>
   <Style x:Key="FieldLabel" TargetType="TextBlock"><Setter Property="FontFamily" Value="Segoe UI"/><Setter Property="FontSize" Value="14"/><Setter Property="FontWeight" Value="SemiBold"/><Setter Property="Foreground" Value="#334155"/><Setter Property="Margin" Value="0,0,0,6"/></Style>
-  <Style x:Key="PreviewGrid" TargetType="DataGrid"><Setter Property="AutoGenerateColumns" Value="True"/><Setter Property="CanUserAddRows" Value="False"/><Setter Property="CanUserSortColumns" Value="False"/><Setter Property="IsReadOnly" Value="True"/><Setter Property="HeadersVisibility" Value="Column"/><Setter Property="GridLinesVisibility" Value="None"/><Setter Property="AlternatingRowBackground" Value="#F8FAFC"/><Setter Property="RowHeight" Value="38"/><Setter Property="BorderThickness" Value="0"/><Setter Property="Background" Value="White"/></Style>
+
+  <!-- Estilo de fila DataGrid: alternancia #E8F0FA, hover #C8D8F0, selección #C2F2E0 + indicador #34D399 -->
+  <Style x:Key="ReporteRowStyle" TargetType="DataGridRow">
+   <Setter Property="Height" Value="38"/>
+   <Setter Property="Background" Value="White"/>
+   <Setter Property="BorderBrush" Value="#EEF2F8"/>
+   <Setter Property="BorderThickness" Value="0,0,0,1"/>
+   <Setter Property="Cursor" Value="Arrow"/>
+   <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+   <Setter Property="Template">
+    <Setter.Value>
+     <ControlTemplate TargetType="DataGridRow">
+      <Border x:Name="DGR_Border"
+              Background="{TemplateBinding Background}"
+              BorderBrush="{TemplateBinding BorderBrush}"
+              BorderThickness="{TemplateBinding BorderThickness}"
+              SnapsToDevicePixels="True">
+       <Grid>
+        <Border x:Name="SelIndicator"
+                Width="3"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Stretch"
+                Background="#34D399"
+                Visibility="Collapsed"
+                Panel.ZIndex="1"/>
+        <DataGridCellsPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"
+                                ItemsPanel="{TemplateBinding ItemsPanel}"/>
+       </Grid>
+      </Border>
+      <ControlTemplate.Triggers>
+       <Trigger Property="IsMouseOver" Value="True">
+        <Setter TargetName="DGR_Border" Property="Background" Value="#C8D8F0"/>
+       </Trigger>
+       <MultiTrigger>
+        <MultiTrigger.Conditions>
+         <Condition Property="IsMouseOver" Value="True"/>
+         <Condition Property="ItemsControl.AlternationIndex" Value="1"/>
+        </MultiTrigger.Conditions>
+        <Setter TargetName="DGR_Border" Property="Background" Value="#C8D8F0"/>
+       </MultiTrigger>
+       <Trigger Property="IsSelected" Value="True">
+        <Setter TargetName="DGR_Border" Property="Background" Value="#C2F2E0"/>
+        <Setter TargetName="SelIndicator" Property="Visibility" Value="Visible"/>
+       </Trigger>
+       <MultiTrigger>
+        <MultiTrigger.Conditions>
+         <Condition Property="IsSelected" Value="True"/>
+         <Condition Property="ItemsControl.AlternationIndex" Value="1"/>
+        </MultiTrigger.Conditions>
+        <Setter TargetName="DGR_Border" Property="Background" Value="#C2F2E0"/>
+       </MultiTrigger>
+      </ControlTemplate.Triggers>
+     </ControlTemplate>
+    </Setter.Value>
+   </Setter>
+   <Style.Triggers>
+    <Trigger Property="ItemsControl.AlternationIndex" Value="1">
+     <Setter Property="Background" Value="#E8F0FA"/>
+    </Trigger>
+   </Style.Triggers>
+  </Style>
+
+  <!-- Estilo de encabezados DataGrid: fondo primario de empresa, texto blanco bold centrado verticalmente -->
+  <Style x:Key="ReporteHeaderStyle" TargetType="DataGridColumnHeader">
+   <Setter Property="Background" Value="{DynamicResource EmpresaPrimaryBrush}"/>
+   <Setter Property="Foreground" Value="White"/>
+   <Setter Property="FontFamily" Value="Segoe UI"/>
+   <Setter Property="FontSize" Value="13"/>
+   <Setter Property="FontWeight" Value="Bold"/>
+   <Setter Property="Height" Value="40"/>
+   <Setter Property="HorizontalContentAlignment" Value="Center"/>
+   <Setter Property="Template">
+    <Setter.Value>
+     <ControlTemplate TargetType="DataGridColumnHeader">
+      <Border Background="{DynamicResource EmpresaPrimaryBrush}" BorderBrush="#1EFFFFFF" BorderThickness="0,0,1,0">
+       <TextBlock Text="{TemplateBinding Content}"
+                  Foreground="White" FontFamily="Segoe UI" FontSize="13" FontWeight="Bold"
+                  HorizontalAlignment="Center" VerticalAlignment="Center" Padding="10,0"/>
+      </Border>
+     </ControlTemplate>
+    </Setter.Value>
+   </Setter>
+  </Style>
+
+  <!-- Estilo de celda DataGrid: sin bordes ruidosos, centrado vertical -->
+  <Style x:Key="ReporteCellStyle" TargetType="DataGridCell">
+   <Setter Property="BorderThickness" Value="0"/>
+   <Setter Property="Padding" Value="0"/>
+   <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+   <Setter Property="Background" Value="Transparent"/>
+   <Setter Property="Template">
+    <Setter.Value>
+     <ControlTemplate TargetType="DataGridCell">
+      <Border Background="{TemplateBinding Background}" BorderThickness="0" Padding="0">
+       <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Stretch"/>
+      </Border>
+     </ControlTemplate>
+    </Setter.Value>
+   </Setter>
+  </Style>
+
+  <!-- Botones de paginación del sistema -->
+  <Style x:Key="PageBtn" TargetType="Button">
+   <Setter Property="MinWidth" Value="30"/>
+   <Setter Property="Height" Value="28"/>
+   <Setter Property="Padding" Value="4,0"/>
+   <Setter Property="FontFamily" Value="Segoe UI"/>
+   <Setter Property="FontSize" Value="14"/>
+   <Setter Property="FontWeight" Value="Medium"/>
+   <Setter Property="Foreground" Value="#1A1F2E"/>
+   <Setter Property="Background" Value="White"/>
+   <Setter Property="BorderBrush" Value="#CBD5E1"/>
+   <Setter Property="BorderThickness" Value="1"/>
+   <Setter Property="Cursor" Value="Hand"/>
+   <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+   <Setter Property="Template">
+    <Setter.Value>
+     <ControlTemplate TargetType="Button">
+      <Border x:Name="Bd"
+              Background="{TemplateBinding Background}"
+              BorderBrush="{TemplateBinding BorderBrush}"
+              BorderThickness="{TemplateBinding BorderThickness}"
+              CornerRadius="4"
+              Padding="{TemplateBinding Padding}">
+       <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+      </Border>
+      <ControlTemplate.Triggers>
+       <Trigger Property="IsMouseOver" Value="True">
+        <Setter TargetName="Bd" Property="Background" Value="#EEF2F8"/>
+        <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource EmpresaPrimaryBrush}"/>
+       </Trigger>
+       <Trigger Property="IsEnabled" Value="False">
+        <Setter Property="Foreground" Value="#CBD5E1"/>
+        <Setter Property="Cursor" Value="Arrow"/>
+       </Trigger>
+      </ControlTemplate.Triggers>
+     </ControlTemplate>
+    </Setter.Value>
+   </Setter>
+  </Style>
+
+  <Style x:Key="ActivePageBtn" TargetType="Button" BasedOn="{StaticResource PageBtn}">
+   <Setter Property="Background" Value="{DynamicResource EmpresaPrimaryBrush}"/>
+   <Setter Property="Foreground" Value="White"/>
+   <Setter Property="FontWeight" Value="Bold"/>
+   <Setter Property="BorderBrush" Value="{DynamicResource EmpresaPrimaryBrush}"/>
+  </Style>
  </UserControl.Resources>
  <Grid>
   <Grid Margin="28" Visibility="{Binding EnMenu,Converter={StaticResource BoolToVisibility}}">
@@ -29,14 +175,225 @@
    <Border Grid.Row="1" Background="White" CornerRadius="10" BorderBrush="#D8E1EC" BorderThickness="1" Padding="18" Margin="0,18,0,14"><WrapPanel VerticalAlignment="Center">
     <StackPanel Width="310" Margin="0,0,18,10" Visibility="{Binding RequiereProducto,Converter={StaticResource BoolToVisibility}}"><TextBlock Text="Producto *" Style="{StaticResource FieldLabel}"/><DockPanel><Button DockPanel.Dock="Right" Style="{StaticResource LupaBtnCompartido}" Command="{Binding AbrirProductoCommand}"/><TextBox Style="{StaticResource InputBox}" IsReadOnly="True" Text="{Binding ProductoSeleccionado.Nombre}" ToolTip="{Binding ProductoSeleccionado.Descripcion}"/></DockPanel></StackPanel>
     <StackPanel Width="310" Margin="0,0,18,10" Visibility="{Binding RequiereProveedor,Converter={StaticResource BoolToVisibility}}"><TextBlock Text="Proveedor *" Style="{StaticResource FieldLabel}"/><DockPanel><Button DockPanel.Dock="Right" Style="{StaticResource LupaBtnCompartido}" Command="{Binding AbrirProveedorCommand}"/><TextBox Style="{StaticResource InputBox}" IsReadOnly="True" Text="{Binding ProveedorSeleccionado.Nombre}" ToolTip="{Binding ProveedorSeleccionado.Descripcion}"/></DockPanel></StackPanel>
-    <StackPanel Width="145" Margin="0,0,18,10" Visibility="{Binding RequiereFechas,Converter={StaticResource BoolToVisibility}}"><TextBlock Text="Fecha desde *" Style="{StaticResource FieldLabel}"/><DatePicker Height="44" SelectedDate="{Binding FechaDesde}"/></StackPanel>
-    <StackPanel Width="145" Margin="0,0,18,10" Visibility="{Binding RequiereFechas,Converter={StaticResource BoolToVisibility}}"><TextBlock Text="Fecha hasta *" Style="{StaticResource FieldLabel}"/><DatePicker Height="44" SelectedDate="{Binding FechaHasta}"/></StackPanel>
+    <StackPanel Width="145" Margin="0,0,18,10" Visibility="{Binding RequiereFechas,Converter={StaticResource BoolToVisibility}}"><TextBlock Text="Desde *" Style="{StaticResource FieldLabel}"/><DatePicker Height="44" DisplayDateEnd="{Binding FechaMaxima,Mode=OneWay}" SelectedDate="{Binding FechaDesde}"/></StackPanel>
+    <StackPanel Width="145" Margin="0,0,18,10" Visibility="{Binding RequiereFechas,Converter={StaticResource BoolToVisibility}}"><TextBlock Text="Hasta *" Style="{StaticResource FieldLabel}"/><DatePicker Height="44" DisplayDateEnd="{Binding FechaMaxima,Mode=OneWay}" SelectedDate="{Binding FechaHasta}"/></StackPanel>
     <StackPanel Width="310" Margin="0,0,18,10" Visibility="{Binding PermiteCategoria,Converter={StaticResource BoolToVisibility}}"><TextBlock Text="Categoría (opcional)" Style="{StaticResource FieldLabel}"/><DockPanel><Button DockPanel.Dock="Right" Style="{StaticResource LupaBtnCompartido}" Command="{Binding AbrirCategoriaCommand}"/><TextBox Style="{StaticResource InputBox}" IsReadOnly="True" Text="{Binding CategoriaSeleccionada.Nombre,TargetNullValue=Todas las categorías}"/></DockPanel></StackPanel>
     <Button Content="Consultar" Command="{Binding ConsultarCommand}" Style="{StaticResource BtnPrimary}" Width="135" VerticalAlignment="Bottom" Margin="0,0,0,10"/>
    </WrapPanel></Border>
-   <Border Grid.Row="2" Background="White" CornerRadius="10" BorderBrush="#D8E1EC" BorderThickness="1" ClipToBounds="True"><Grid><DataGrid ItemsSource="{Binding VistaPrevia}" Style="{StaticResource PreviewGrid}"/><StackPanel Visibility="{Binding IsBusy,Converter={StaticResource BoolToVisibility}}" Background="White" VerticalAlignment="Center" HorizontalAlignment="Center"><TextBlock Text="Consultando reporte..." FontSize="16" Foreground="#64748B"/></StackPanel></Grid></Border>
-   <Grid Grid.Row="3" Margin="0,12,0,0"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><StackPanel Orientation="Horizontal"><Button Content="‹" Command="{Binding PaginaAnteriorCommand}" Width="36" Height="32"/><TextBlock Text="{Binding PageInfo}" Margin="12,0" VerticalAlignment="Center" Foreground="#64748B"/><Button Content="›" Command="{Binding PaginaSiguienteCommand}" Width="36" Height="32"/></StackPanel><StackPanel Grid.Column="1" Orientation="Horizontal"><TextBlock Text="{Binding Mensaje}" VerticalAlignment="Center" Foreground="#64748B" Margin="0,0,16,0" MaxWidth="480" TextTrimming="CharacterEllipsis"/><Button Content="Exportar reporte" Command="{Binding ExportarCommand}" Style="{StaticResource BtnPrimary}" Width="170"/></StackPanel></Grid>
+
+   <!-- Contenedor de la tabla con tarjeta, sombra y bordes redondeados del sistema -->
+   <Border Grid.Row="2"
+           Background="White"
+           CornerRadius="10"
+           BorderBrush="#D8E1EC"
+           BorderThickness="1"
+           ClipToBounds="True">
+    <Border.Effect>
+     <DropShadowEffect Color="#0F172A" BlurRadius="14" ShadowDepth="4" Opacity="0.08"/>
+    </Border.Effect>
+    <Grid>
+     <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="*"/>
+      <RowDefinition Height="Auto"/>
+     </Grid.RowDefinitions>
+
+     <ItemsControl Grid.Row="0"
+                   ItemsSource="{Binding MetadatosVistaPrevia}"
+                   Visibility="{Binding HayResultados,Converter={StaticResource BoolToVisibility}}"
+                   Margin="16,12,16,8">
+      <ItemsControl.ItemsPanel>
+       <ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate>
+      </ItemsControl.ItemsPanel>
+      <ItemsControl.ItemTemplate>
+       <DataTemplate>
+        <Border Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="6" Padding="10,6" Margin="0,0,8,6">
+         <StackPanel Orientation="Horizontal">
+          <TextBlock Text="{Binding Label}" FontWeight="SemiBold" Foreground="#334155"/>
+          <TextBlock Text=": " Foreground="#64748B"/>
+          <TextBlock Text="{Binding Value}" Foreground="#475569" TextWrapping="Wrap" MaxWidth="420"/>
+         </StackPanel>
+        </Border>
+       </DataTemplate>
+      </ItemsControl.ItemTemplate>
+     </ItemsControl>
+
+     <!-- Empty state -->
+     <StackPanel Grid.Row="1"
+                 x:Name="EmptyState"
+                 Visibility="Collapsed"
+                 VerticalAlignment="Center"
+                 HorizontalAlignment="Center">
+      <TextBlock Text="No se encontraron resultados para los filtros seleccionados."
+                 FontFamily="Segoe UI" FontSize="16" Foreground="#6B7280"
+                 HorizontalAlignment="Center"/>
+     </StackPanel>
+
+     <!-- Loading spinner -->
+     <StackPanel Grid.Row="1"
+                 x:Name="LoadingPanel"
+                 Visibility="Collapsed"
+                 VerticalAlignment="Center"
+                 HorizontalAlignment="Center"
+                 Orientation="Horizontal">
+      <Path x:Name="SpinnerPath"
+            Data="M 12 2 A 10 10 0 1 1 2 12"
+            Stroke="{DynamicResource EmpresaPrimaryBrush}"
+            StrokeThickness="2.5"
+            StrokeStartLineCap="Round"
+            StrokeEndLineCap="Round"
+            Width="22" Height="22"
+            Stretch="Uniform"
+            RenderTransformOrigin="0.5,0.5"
+            Margin="0,0,10,0">
+       <Path.RenderTransform>
+        <RotateTransform/>
+       </Path.RenderTransform>
+      </Path>
+      <TextBlock Text="Consultando reporte..."
+                 FontFamily="Segoe UI" FontSize="16" Foreground="#6B7280"
+                 VerticalAlignment="Center"/>
+     </StackPanel>
+
+     <!-- DataGrid -->
+     <DataGrid Grid.Row="1"
+               x:Name="DgPreview"
+               ItemsSource="{Binding VistaPrevia}"
+               AutoGenerateColumns="True"
+               AutoGeneratingColumn="DgPreview_AutoGeneratingColumn"
+               CanUserAddRows="False"
+               CanUserSortColumns="False"
+               IsReadOnly="True"
+               HeadersVisibility="Column"
+               GridLinesVisibility="None"
+               SelectionMode="Single"
+               SelectionUnit="FullRow"
+               Background="White"
+               BorderThickness="0"
+               AlternationCount="2"
+               FontFamily="Segoe UI"
+               FontSize="14.5"
+               RowStyle="{StaticResource ReporteRowStyle}"
+               ColumnHeaderStyle="{StaticResource ReporteHeaderStyle}"
+               CellStyle="{StaticResource ReporteCellStyle}"
+               ScrollViewer.CanContentScroll="True"
+               ScrollViewer.VerticalScrollBarVisibility="Auto"
+               ScrollViewer.HorizontalScrollBarVisibility="Auto"
+               VirtualizingPanel.IsVirtualizing="True"
+               VirtualizingPanel.VirtualizationMode="Recycling"
+               VirtualizingPanel.ScrollUnit="Pixel">
+      <DataGrid.Resources>
+       <Style TargetType="ScrollBar" BasedOn="{StaticResource ModernScrollBarAny}"/>
+      </DataGrid.Resources>
+     </DataGrid>
+
+     <!-- Pagination footer -->
+     <Border Grid.Row="2"
+             Background="#FAFBFC"
+             BorderBrush="#E5E7EB"
+             BorderThickness="0,1,0,0"
+             Padding="12,8">
+      <StackPanel>
+       <ItemsControl ItemsSource="{Binding MetadatosPieVistaPrevia}"
+                     Visibility="{Binding HayMetadatosPie,Converter={StaticResource BoolToVisibility}}"
+                     HorizontalAlignment="Center" Margin="0,0,0,8">
+        <ItemsControl.ItemsPanel>
+         <ItemsPanelTemplate><StackPanel Orientation="Horizontal"/></ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate>
+         <DataTemplate>
+          <StackPanel Orientation="Horizontal" Margin="12,0">
+           <TextBlock Text="{Binding Label}" FontWeight="SemiBold" Foreground="#334155"/>
+           <TextBlock Text=": " Foreground="#64748B"/>
+           <TextBlock Text="{Binding Value}" Foreground="#475569"/>
+          </StackPanel>
+         </DataTemplate>
+        </ItemsControl.ItemTemplate>
+       </ItemsControl>
+       <DockPanel>
+        <TextBlock x:Name="PageInfoText"
+                   DockPanel.Dock="Left"
+                   FontFamily="Segoe UI" FontSize="14"
+                   Foreground="#9CA3AF"
+                   VerticalAlignment="Center"
+                   Text="{Binding PageInfo}"/>
+        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right">
+         <Button Content="&#171;" Style="{StaticResource PageBtn}"
+                 Command="{Binding PrimeraPaginaCommand}" Padding="6,0" Margin="0,0,2,0"
+                 ToolTip="Primera página"/>
+         <Button Content="&#8249;" Style="{StaticResource PageBtn}"
+                 Command="{Binding PaginaAnteriorCommand}" Padding="6,0" Margin="0,0,2,0"
+                 ToolTip="Página anterior"/>
+         <ItemsControl x:Name="PaginacionPanel">
+          <ItemsControl.ItemsPanel>
+           <ItemsPanelTemplate><StackPanel Orientation="Horizontal"/></ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+         </ItemsControl>
+         <Button Content="&#8250;" Style="{StaticResource PageBtn}"
+                 Command="{Binding PaginaSiguienteCommand}" Padding="6,0" Margin="2,0,0,0"
+                 ToolTip="Página siguiente"/>
+         <Button Content="&#187;" Style="{StaticResource PageBtn}"
+                 Command="{Binding UltimaPaginaCommand}" Padding="6,0" Margin="2,0,0,0"
+                 ToolTip="Última página"/>
+        </StackPanel>
+       </DockPanel>
+      </StackPanel>
+     </Border>
+    </Grid>
+   </Border>
+
+   <Grid Grid.Row="3" Margin="0,14,0,0">
+    <Grid.ColumnDefinitions>
+     <ColumnDefinition Width="*"/>
+     <ColumnDefinition Width="Auto"/>
+    </Grid.ColumnDefinitions>
+    <TextBlock Text="{Binding Mensaje}"
+               VerticalAlignment="Center"
+               Foreground="#64748B"
+               FontSize="14"
+               FontFamily="Segoe UI"
+               Margin="0,0,16,0"
+               TextTrimming="CharacterEllipsis"/>
+    <Button Grid.Column="1"
+            Content="Exportar reporte"
+            Command="{Binding ExportarCommand}"
+            Style="{StaticResource BtnPrimary}"
+            Width="170"
+            Height="40"/>
+   </Grid>
   </Grid>
-  <Border x:Name="ModalOverlay" Background="#990F172A" Visibility="Collapsed" Panel.ZIndex="100"><ContentControl x:Name="ModalContent" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+  <Border x:Name="ModalOverlay" Background="#990F172A" Visibility="Collapsed" Panel.ZIndex="100">
+   <Grid>
+    <!-- Los modales autocontenidos, como el selector de formato, conservan su
+         host original. -->
+    <ContentControl x:Name="ModalContent"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"/>
+
+    <!-- SelectorCatalogoModal es chromeless: esta tarjeta le da el mismo marco
+         degradado que ProductoModal, sin permitir que ocupe toda la vista. -->
+    <Border x:Name="SelectorFrame"
+            Width="820" Height="650"
+            MaxWidth="{Binding ActualWidth, ElementName=ModalOverlay, Converter={StaticResource RestarMargen}, ConverterParameter=48}"
+            MaxHeight="{Binding ActualHeight, ElementName=ModalOverlay, Converter={StaticResource RestarMargen}, ConverterParameter=48}"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            CornerRadius="10"
+            ClipToBounds="True"
+            Visibility="Collapsed">
+     <Border.Effect>
+      <DropShadowEffect Color="Black" BlurRadius="24" ShadowDepth="8" Opacity="0.55"/>
+     </Border.Effect>
+     <Border.Background>
+      <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+       <GradientStop Color="{DynamicResource EmpresaPrimaryDarkColor}" Offset="0"/>
+       <GradientStop Color="{DynamicResource EmpresaPrimaryColor}" Offset="0.55"/>
+       <GradientStop Color="{DynamicResource EmpresaPrimaryDarkColor}" Offset="1"/>
+      </LinearGradientBrush>
+     </Border.Background>
+     <ContentControl x:Name="SelectorContent"/>
+    </Border>
+   </Grid>
+  </Border>
  </Grid>
 </UserControl>

@@ -40,7 +40,8 @@ public sealed class ExcelReportStrategy : IReportStrategy
             int metadataRow = 4;
             WriteMetadata(sheet, metadataRow++, "Generado", report.GeneratedAt.ToString("dd/MM/yyyy HH:mm:ss"));
             WriteMetadata(sheet, metadataRow++, "Registros", report.Rows.Count.ToString());
-            WriteMetadata(sheet, metadataRow++, "Usuario", $"{report.Author.NombreEmpleado} {report.Author.ApellidoEmpleado}".Trim());
+            WriteMetadata(sheet, metadataRow++, "Correo usuario", report.Author.Email);
+            WriteMetadata(sheet, metadataRow++, "Rol", report.Author.Rol);
             foreach (var filter in report.Filters) WriteMetadata(sheet, metadataRow++, filter.Label, filter.Value);
 
             int headerRow = metadataRow + 1;
@@ -74,6 +75,20 @@ public sealed class ExcelReportStrategy : IReportStrategy
                 SetValue(sheet.Cell(totalsRow, 2), total.Value);
                 if (!string.IsNullOrWhiteSpace(total.NumberFormat)) sheet.Cell(totalsRow, 2).Style.NumberFormat.Format = ExcelFormat(total.NumberFormat!);
                 totalsRow++;
+            }
+
+            if (report.FooterMetadata.Count > 0)
+            {
+                int footerColumn = 1;
+                foreach (var metadata in report.FooterMetadata)
+                {
+                    sheet.Cell(totalsRow, footerColumn).Value = metadata.Label;
+                    sheet.Cell(totalsRow, footerColumn).Style.Font.Bold = true;
+                    sheet.Cell(totalsRow, footerColumn + 1).Value = metadata.Value;
+                    footerColumn += 2;
+                }
+                sheet.Range(totalsRow, 1, totalsRow, footerColumn - 1).Style.Fill.BackgroundColor = XLColor.FromHtml("#F8FAFC");
+                sheet.Range(totalsRow, 1, totalsRow, footerColumn - 1).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
             }
 
             int lastRow = Math.Max(headerRow, headerRow + report.Rows.Count);

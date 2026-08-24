@@ -40,6 +40,16 @@ namespace CapaUI.Core.Catalogos;
 /// otro lado — p. ej. productos que ya están en la carga del proceso de
 /// descarga. <c>null</c> ⇒ ninguna fila se atenúa.
 /// </param>
+/// <param name="PageSize">
+/// Cantidad máxima de filas por página cuando el selector opera contra el
+/// servidor. El valor histórico del control es 15; consumidores que necesiten
+/// seguir el estándar de las grillas administrativas pueden configurarlo en 50.
+/// </param>
+/// <param name="ForzarPaginacion">
+/// Omite el modo de catálogo completo en memoria y consulta siempre por páginas.
+/// Se usa cuando la interfaz debe presentar paginación aun si el catálogo tiene
+/// menos de 200 registros.
+/// </param>
 public sealed record CatalogoConfig(
     string Clave,
     string Titulo,
@@ -50,7 +60,9 @@ public sealed record CatalogoConfig(
     bool MostrarEstado       = true,
     bool DescripcionPrimero  = false,
     bool PermiteMultiple     = false,
-    Func<int?, bool>? EstaYaElegido = null);
+    Func<int?, bool>? EstaYaElegido = null,
+    int PageSize             = 15,
+    bool ForzarPaginacion    = false);
 
 /// <summary>
 /// Factories de configuración — un miembro por catálogo. Dar de alta un campo

@@ -11,16 +11,26 @@ public sealed class ReporteConsultaRepository : RepositorioBase, IReporteConsult
 {
     public ReporteConsultaRepository(IConexionMonitor conexion) : base(conexion) { }
 
-    public Task<Result<IReadOnlyList<EntradaMateriaPrimaFila>>> ConsultarEntradaMateriaPrimaAsync(EntradaMateriaPrimaFiltro f, CancellationToken ct = default) =>
-        ConsultarAsync("consultar_reporte_entrada_materia_prima", new()
+    public async Task<Result<IReadOnlyList<EntradaMateriaPrimaFila>>> ConsultarEntradaMateriaPrimaAsync(EntradaMateriaPrimaFiltro f, CancellationToken ct = default)
+    {
+        var resultado = await ConsultarAsync("consultar_reporte_entrada_materia_prima", new()
         {
-            ["p_id_producto"] = f.IdProducto, ["p_id_proveedor"] = f.IdProveedor, ["p_usuario_consultando"] = f.IdUsuario,
+            ["p_id_producto"] = f.IdProducto, ["p_id_proveedor"] = f.IdProveedor,
+            ["p_usuario_consultando"] = f.IdUsuario,
         }, x => new EntradaMateriaPrimaFila
         {
             IdPesaje = Int(x, "id_pesaje"), FechaHora = Fecha(x, "fecha_hora"), Producto = Texto(x, "producto"),
             Proveedor = Texto(x, "proveedor"), Placa = Texto(x, "placa"), Pesador = Texto(x, "pesador"),
             PesoBruto = Decimal(x, "peso_bruto"), PesoTara = Decimal(x, "peso_tara"), PesoNeto = Decimal(x, "peso_neto"),
         }, "Consultar entrada de materia prima", ct);
+
+        if (!resultado.Success) return resultado;
+
+        var filas = resultado.Value!
+            .Where(x => x.FechaHora.Date >= f.FechaDesde.Date && x.FechaHora.Date <= f.FechaHasta.Date)
+            .ToList();
+        return Result<IReadOnlyList<EntradaMateriaPrimaFila>>.Ok(filas);
+    }
 
     public Task<Result<IReadOnlyList<ProveedorReporteFila>>> ConsultarProveedorAsync(ProveedorReporteFiltro f, CancellationToken ct = default) =>
         ConsultarAsync("consultar_reporte_por_proveedor", new()

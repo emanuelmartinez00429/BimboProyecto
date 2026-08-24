@@ -29,7 +29,10 @@ public partial class ReporteriaViewModel : ObservableObject
     private IReadOnlyList<ReportColumnDto> _columnas = Array.Empty<ReportColumnDto>();
     private IReadOnlyList<ReportTotalDto> _totales = Array.Empty<ReportTotalDto>();
     private IReadOnlyList<ReportMetadataDto> _filtros = Array.Empty<ReportMetadataDto>();
+    private IReadOnlyList<ReportMetadataDto> _pie = Array.Empty<ReportMetadataDto>();
     private IReadOnlyList<int> _ids = Array.Empty<int>();
+    private bool _entradaIncluyePlaca;
+    private bool _entradaIncluyePesador;
 
     public const int PageSize = 25;
     public bool EnMenu => TipoActual is null;
@@ -39,11 +42,17 @@ public partial class ReporteriaViewModel : ObservableObject
     public bool EsPrueba => TipoActual == ReporteOperativoTipo.PrimerosProductos;
     public bool RequiereProducto => EsEntrada;
     public bool RequiereProveedor => EsEntrada || EsProveedor;
-    public bool RequiereFechas => EsProveedor || EsMermas;
+    public bool RequiereFechas => EsEntrada || EsProveedor || EsMermas;
     public bool PermiteCategoria => EsMermas;
+    public DateTime FechaMaxima => DateTime.Today;
     public bool PuedeExportar => _snapshot.Count > 0 && !IsBusy && SesionPermisos.Tiene(Permiso.GenerarReporte);
     public int TotalPages => Math.Max(1, (int)Math.Ceiling(_snapshot.Count / (double)PageSize));
     public string PageInfo => _snapshot.Count == 0 ? "Sin resultados" : $"Página {Pagina} de {TotalPages} · {_snapshot.Count} registros";
+    public bool SinResultados => _snapshot.Count == 0 && !IsBusy && TipoActual is not null && VistaPrevia is not null;
+    public bool HayResultados => _snapshot.Count > 0 && !IsBusy;
+    public bool HayMetadatosPie => _pie.Count > 0 && HayResultados;
+    public IReadOnlyList<ReportMetadataDto> MetadatosVistaPrevia => _filtros;
+    public IReadOnlyList<ReportMetadataDto> MetadatosPieVistaPrevia => _pie;
 
     [ObservableProperty] private ReporteOperativoTipo? _tipoActual;
     [ObservableProperty] private string _tituloActual = string.Empty;
@@ -87,14 +96,23 @@ public partial class ReporteriaViewModel : ObservableObject
     [RelayCommand] private void LimpiarProveedor() => ProveedorSeleccionado = null;
     [RelayCommand] private void LimpiarCategoria() => CategoriaSeleccionada = null;
     [RelayCommand(CanExecute = nameof(PuedeExportar))] private void Exportar() => FormatoSolicitado?.Invoke();
+    [RelayCommand] private void PrimeraPagina() { if (Pagina > 1) { Pagina = 1; CrearPagina(); } }
     [RelayCommand] private void PaginaAnterior() { if (Pagina > 1) { Pagina--; CrearPagina(); } }
     [RelayCommand] private void PaginaSiguiente() { if (Pagina < TotalPages) { Pagina++; CrearPagina(); } }
+    [RelayCommand] private void UltimaPagina() { if (Pagina < TotalPages) { Pagina = TotalPages; CrearPagina(); } }
+    [RelayCommand] private void IrAPagina(int p) { if (p >= 1 && p <= TotalPages && p != Pagina) { Pagina = p; CrearPagina(); } }
 
     partial void OnProductoSeleccionadoChanged(FiltroItem? value) => Invalidar();
     partial void OnProveedorSeleccionadoChanged(FiltroItem? value) => Invalidar();
     partial void OnCategoriaSeleccionadaChanged(FiltroItem? value) => Invalidar();
     partial void OnFechaDesdeChanged(DateTime? value) => Invalidar();
     partial void OnFechaHastaChanged(DateTime? value) => Invalidar();
+    partial void OnIsBusyChanged(bool value)
+    {
+        OnPropertyChanged(nameof(SinResultados));
+        OnPropertyChanged(nameof(HayResultados));
+        OnPropertyChanged(nameof(HayMetadatosPie));
+    }
 
     [RelayCommand]
     private async Task ConsultarAsync()
@@ -103,7 +121,8 @@ public partial class ReporteriaViewModel : ObservableObject
         if (!SesionPermisos.Tiene(Permiso.ConsultarReporte)) { Mensaje = "No tiene permiso para consultar reportes."; return; }
         if (RequiereProducto && ProductoSeleccionado?.Id is null) { Mensaje = "Seleccione un producto activo."; return; }
         if (RequiereProveedor && ProveedorSeleccionado?.Id is null) { Mensaje = "Seleccione un proveedor activo."; return; }
-        if (RequiereFechas && (FechaDesde is null || FechaHasta is null || FechaDesde > FechaHasta)) { Mensaje = "Seleccione un rango de fechas válido."; return; }
+        if (RequiereFechas && (FechaDesde is null || FechaHasta is null || FechaDesde.Value.Date > FechaHasta.Value.Date)) { Mensaje = "Seleccione un rango de fechas válido."; return; }
+        if (RequiereFechas && FechaHasta!.Value.Date > FechaMaxima) { Mensaje = "La fecha hasta no puede ser posterior a la fecha actual."; return; }
 
         IsBusy = true; Mensaje = "Consultando información..."; Invalidar(sinMensaje: true);
         try
@@ -125,13 +144,43 @@ public partial class ReporteriaViewModel : ObservableObject
 
     private async Task CargarEntradaAsync(int usuario)
     {
-        var r = await _consultas.ConsultarEntradaMateriaPrimaAsync(new(ProductoSeleccionado!.Id!.Value, ProveedorSeleccionado!.Id!.Value, usuario));
+        var r = await _consultas.ConsultarEntradaMateriaPrimaAsync(new(
+            ProductoSeleccionado!.Id!.Value,
+            ProveedorSeleccionado!.Id!.Value,
+            FechaDesde!.Value,
+            FechaHasta!.Value,
+            usuario));
         if (!r.Success) { Mensaje = r.Error; return; }
         var rows = r.Value!;
-        _columnas = [new("Fecha y hora", "dd/MM/yyyy HH:mm"),new("Placa"),new("Pesador"),new("Peso bruto (kg)","N3"),new("Peso tara (kg)","N3"),new("Peso neto (kg)","N3")];
-        _snapshot = rows.Select(x => (IReadOnlyList<object?>)[x.FechaHora,x.Placa,x.Pesador,x.PesoBruto,x.PesoTara,x.PesoNeto]).ToList();
+        var placas = ValoresUnicos(rows.Select(x => x.Placa));
+        var pesadores = ValoresUnicos(rows.Select(x => x.Pesador));
+        _entradaIncluyePlaca = placas.Count > 1;
+        _entradaIncluyePesador = pesadores.Count > 1;
+
+        var columnas = new List<ReportColumnDto> { new("Fecha y hora", "dd/MM/yyyy HH:mm") };
+        if (_entradaIncluyePlaca) columnas.Add(new("Placa"));
+        if (_entradaIncluyePesador) columnas.Add(new("Pesador"));
+        columnas.AddRange([new("Peso bruto (kg)", "N3"), new("Peso tara (kg)", "N3"), new("Peso neto (kg)", "N3")]);
+        _columnas = columnas;
+
+        _snapshot = rows.Select(x =>
+        {
+            var fila = new List<object?> { x.FechaHora };
+            if (_entradaIncluyePlaca) fila.Add(ValorNormalizado(x.Placa));
+            if (_entradaIncluyePesador) fila.Add(ValorNormalizado(x.Pesador));
+            fila.AddRange([x.PesoBruto, x.PesoTara, x.PesoNeto]);
+            return (IReadOnlyList<object?>)fila;
+        }).ToList();
         _ids = rows.Select(x => x.IdPesaje).ToList();
-        _filtros = [new("Producto", Etiqueta(ProductoSeleccionado)),new("Proveedor", Etiqueta(ProveedorSeleccionado))];
+        var filtros = new List<ReportMetadataDto>
+        {
+            new("Producto", ProductoSeleccionado.Nombre),
+            new("Proveedor", ProveedorSeleccionado.Nombre),
+        };
+        if (!_entradaIncluyePlaca) filtros.Add(new("Placa", placas.SingleOrDefault() ?? "—"));
+        if (!_entradaIncluyePesador) filtros.Add(new("Pesador", pesadores.SingleOrDefault() ?? "—"));
+        _filtros = filtros;
+        _pie = PieFechas();
         _totales = [new("Total peso neto (kg)", rows.Sum(x => x.PesoNeto), "N3")]; FinalizarConsulta();
     }
 
@@ -139,9 +188,10 @@ public partial class ReporteriaViewModel : ObservableObject
     {
         var r = await _consultas.ConsultarProveedorAsync(new(ProveedorSeleccionado!.Id!.Value, FechaDesde!.Value, FechaHasta!.Value, usuario));
         if (!r.Success) { Mensaje = r.Error; return; } var rows = r.Value!;
-        _columnas = [new("Fecha de ingreso","dd/MM/yyyy"),new("Producto"),new("Bultos recibidos (estim.)","N3"),new("Peso teórico (kg)","N3"),new("Peso recibido (kg)","N3"),new("Diferencia (kg)","N3"),new("Diferencia monetaria (USD)","N2")];
-        _snapshot = rows.Select(x => (IReadOnlyList<object?>)[x.FechaIngreso,x.Producto,x.BultosEstimados,x.PesoTeorico,x.PesoRecibido,x.DiferenciaKg,x.DiferenciaMonetaria]).ToList();
-        _ids = rows.Select(x => x.IdMovimientoProducto).ToList(); _filtros = FiltrosFecha([new("Proveedor",Etiqueta(ProveedorSeleccionado))]); _totales = []; FinalizarConsulta();
+        _columnas = [new("Fecha de ingreso","dd/MM/yyyy"),new("Producto"),new("Proveedor"),new("Bultos recibidos (estim.)","N3"),new("Peso teórico (kg)","N3"),new("Peso recibido (kg)","N3"),new("Diferencia (kg)","N3"),new("Diferencia monetaria (USD)","N2")];
+        string proveedor = ProveedorSeleccionado!.Nombre;
+        _snapshot = rows.Select(x => (IReadOnlyList<object?>)[x.FechaIngreso,x.Producto,proveedor,x.BultosEstimados,x.PesoTeorico,x.PesoRecibido,x.DiferenciaKg,x.DiferenciaMonetaria]).ToList();
+        _ids = rows.Select(x => x.IdMovimientoProducto).ToList(); _filtros = []; _pie = PieFechas(); _totales = []; FinalizarConsulta();
     }
 
     private async Task CargarMermasAsync(int usuario)
@@ -150,7 +200,7 @@ public partial class ReporteriaViewModel : ObservableObject
         if (!r.Success) { Mensaje = r.Error; return; } var rows = r.Value!;
         _columnas = [new("#"),new("Producto"),new("Proveedor"),new("Categoría"),new("Entradas"),new("Peso teórico (kg)","N3"),new("Peso recibido (kg)","N3"),new("Diferencia (kg)","N3"),new("Merma (%)","N2")];
         int n=0; _snapshot = rows.Select(x => (IReadOnlyList<object?>)[++n,x.Producto,x.Proveedor,x.Categoria,x.CantidadEntradas,x.PesoTeorico,x.PesoRecibido,x.DiferenciaKg,x.MermaPorcentaje]).ToList();
-        _ids = rows.Select(x => x.IdProducto).ToList(); _filtros = FiltrosFecha([new("Categoría",CategoriaSeleccionada is null?"Todas las categorías":Etiqueta(CategoriaSeleccionada))]);
+        _ids = rows.Select(x => x.IdProducto).ToList(); _filtros = [new("Categoría",CategoriaSeleccionada is null?"Todas las categorías":Etiqueta(CategoriaSeleccionada))]; _pie = PieFechas();
         decimal teorico=rows.Sum(x=>x.PesoTeorico), recibido=rows.Sum(x=>x.PesoRecibido), diferencia=teorico-recibido;
         _totales=[new("Total de entradas",rows.Sum(x=>x.CantidadEntradas)),new("Peso teórico total (kg)",teorico,"N3"),new("Peso recibido total (kg)",recibido,"N3"),new("Diferencia total (kg)",diferencia,"N3"),new("Merma global (%)",teorico==0?null:diferencia/teorico*100m,"N2")]; FinalizarConsulta();
     }
@@ -160,7 +210,7 @@ public partial class ReporteriaViewModel : ObservableObject
         var r=await _consultas.ConsultarPrimerosProductosAsync(usuario); if(!r.Success){Mensaje=r.Error;return;}var rows=r.Value!;
         _columnas=[new("ID"),new("Código"),new("Nombre"),new("Categoría"),new("Proveedor"),new("Estado")];
         _snapshot=rows.Select(x=>(IReadOnlyList<object?>)[x.IdProducto,x.Codigo,x.Nombre,x.Categoria,x.Proveedor,x.Estado]).ToList();
-        _ids=rows.Select(x=>x.IdProducto).ToList();_filtros=[new("Criterio","10 productos activos con menor ID")];_totales=[];FinalizarConsulta();
+        _ids=rows.Select(x=>x.IdProducto).ToList();_filtros=[new("Criterio","10 productos activos con menor ID")];_pie=[];_totales=[];FinalizarConsulta();
     }
 
     public async Task ExportarAsync(ReportFormat formato, string ruta, CancellationToken ct=default)
@@ -186,24 +236,143 @@ public partial class ReporteriaViewModel : ObservableObject
     {
         var empresa=await _empresa.ObtenerAsync(); string nombre=empresa.Success?empresa.Value?.NombreEmpresa??"Bimbo Honduras":"Bimbo Honduras";byte[]?logo=null;
         if(empresa.Success&&empresa.Value is not null){var ruta=await _logoCache.ObtenerRutaLocalAsync(empresa.Value.LogoEmpresa);if(!string.IsNullOrWhiteSpace(ruta)&&File.Exists(ruta))logo=await File.ReadAllBytesAsync(ruta);}
-        return new(){Title=TituloDocumento(),SheetName=ClaveReporte(),Landscape=_columnas.Count>6,GeneratedAt=DateTime.Now,Branding=new(){CompanyName=nombre,LogoBytes=logo},Author=new(){Email=sesion.Email,NombreEmpleado=sesion.NombreEmpleado,ApellidoEmpleado=sesion.ApellidoEmpleado,Rol=sesion.NombreRol},Columns=_columnas,Rows=_snapshot,Filters=_filtros,Totals=_totales};
+        return new(){Title=TituloDocumento(),SheetName=ClaveReporte(),Landscape=_columnas.Count>6,GeneratedAt=DateTime.Now,Branding=new(){CompanyName=nombre,LogoBytes=logo},Author=new(){Email=sesion.Email,Rol=sesion.NombreRol},Columns=_columnas,Rows=_snapshot,Filters=_filtros,Totals=_totales,FooterMetadata=_pie};
     }
 
-    private void FinalizarConsulta(){Pagina=1;CrearPagina();Mensaje=_snapshot.Count==0?"No se encontraron resultados.":$"Vista previa lista: {_snapshot.Count} registro(s).";OnPropertyChanged(nameof(PuedeExportar));ExportarCommand.NotifyCanExecuteChanged();}
-    private void CrearPagina(){var table=new DataTable();foreach(var c in _columnas)table.Columns.Add(c.Header);foreach(var row in _snapshot.Skip((Pagina-1)*PageSize).Take(PageSize))table.Rows.Add(row.Select((x,i)=>Mostrar(x,_columnas[i].NumberFormat)).ToArray());VistaPrevia=table.DefaultView;OnPropertyChanged(nameof(PageInfo));OnPropertyChanged(nameof(TotalPages));}
-    private static object Mostrar(object?x,string?formato)=>x switch{null=>"—",DateTime d=>d.ToString(formato??"dd/MM/yyyy HH:mm"),decimal n=>n.ToString(formato??"N3",System.Globalization.CultureInfo.GetCultureInfo("es-HN")),_=>x};
-    private IReadOnlyList<ReportMetadataDto> FiltrosFecha(IEnumerable<ReportMetadataDto> extra)=>extra.Concat([new("Fecha desde",FechaDesde!.Value.ToString("dd/MM/yyyy")),new("Fecha hasta",FechaHasta!.Value.ToString("dd/MM/yyyy"))]).ToList();
-    private static string Etiqueta(FiltroItem?x)=>x is null?string.Empty:$"{x.Descripcion} {x.Nombre}".Trim();
-    private string TituloDocumento()=>TipoActual switch{ReporteOperativoTipo.EntradaMateriaPrima=>"Detalle - Entrada de Materia Prima",ReporteOperativoTipo.PorProveedor=>"Entrada de productos por proveedor",ReporteOperativoTipo.ProductosConMerma=>"Reporte de productos con más merma",_=>"Primeros 10 productos — Reporte de prueba"};
-    private string ClaveReporte()=>TipoActual switch{ReporteOperativoTipo.EntradaMateriaPrima=>"entrada_materia_prima",ReporteOperativoTipo.PorProveedor=>"por_proveedor",ReporteOperativoTipo.ProductosConMerma=>"productos_con_mas_merma",_=>"primeros_10_productos"};
-    private object CrearParametrosRegistro()=>TipoActual switch
+    private void FinalizarConsulta()
     {
-        ReporteOperativoTipo.EntradaMateriaPrima=>new{origen="pesajes",reporte="entrada_materia_prima",filtros=new{id_producto=ProductoSeleccionado!.Id,id_proveedor=ProveedorSeleccionado!.Id},columnas=new[]{"fecha_hora","producto","proveedor","placa","pesador","peso_bruto","peso_tara","peso_neto"},ids_registros=_ids,cantidad_registros=_snapshot.Count},
-        ReporteOperativoTipo.PorProveedor=>new{origen="pesajes",reporte="por_proveedor",filtros=new{id_proveedor=ProveedorSeleccionado!.Id,fecha_desde=FechaDesde!.Value.ToString("yyyy-MM-dd"),fecha_hasta=FechaHasta!.Value.ToString("yyyy-MM-dd")},columnas=new[]{"fecha_ingreso","nombre_producto","bultos_estimados","peso_teorico","peso_recibido","diferencia_kg","diferencia_monetaria"},ids_registros=_ids,cantidad_registros=_snapshot.Count},
-        ReporteOperativoTipo.ProductosConMerma=>new{origen="pesajes",reporte="productos_con_mas_merma",filtros=new{id_categoria=CategoriaSeleccionada?.Id,todas_las_categorias=CategoriaSeleccionada is null,fecha_desde=FechaDesde!.Value.ToString("yyyy-MM-dd"),fecha_hasta=FechaHasta!.Value.ToString("yyyy-MM-dd")},columnas=new[]{"producto","proveedor","categoria","entradas","peso_teorico","peso_recibido","diferencia_kg","merma_porcentaje"},ids_registros=_ids,cantidad_registros=_snapshot.Count},
-        _=>new{origen="productos",reporte="primeros_10_productos",filtros=new{solo_activos=true,orden="id_producto_asc",limite=10},columnas=new[]{"id_producto","codigo","nombre","categoria","proveedor","estado"},ids_registros=_ids,cantidad_registros=_snapshot.Count}
+        Pagina = 1;
+        CrearPagina();
+        Mensaje = _snapshot.Count == 0 ? "No se encontraron resultados." : $"Vista previa lista: {_snapshot.Count} registro(s).";
+        OnPropertyChanged(nameof(PuedeExportar));
+        OnPropertyChanged(nameof(SinResultados));
+        OnPropertyChanged(nameof(HayResultados));
+        OnPropertyChanged(nameof(MetadatosVistaPrevia));
+        OnPropertyChanged(nameof(MetadatosPieVistaPrevia));
+        OnPropertyChanged(nameof(HayMetadatosPie));
+        ExportarCommand.NotifyCanExecuteChanged();
+    }
+
+    private void CrearPagina()
+    {
+        var table = new DataTable();
+        foreach (var c in _columnas) table.Columns.Add(c.Header);
+        foreach (var row in _snapshot.Skip((Pagina - 1) * PageSize).Take(PageSize))
+            table.Rows.Add(row.Select((x, i) => Mostrar(x, _columnas[i].NumberFormat)).ToArray());
+        VistaPrevia = table.DefaultView;
+        OnPropertyChanged(nameof(PageInfo));
+        OnPropertyChanged(nameof(TotalPages));
+        OnPropertyChanged(nameof(SinResultados));
+        OnPropertyChanged(nameof(HayResultados));
+        PrimeraPaginaCommand.NotifyCanExecuteChanged();
+        PaginaAnteriorCommand.NotifyCanExecuteChanged();
+        PaginaSiguienteCommand.NotifyCanExecuteChanged();
+        UltimaPaginaCommand.NotifyCanExecuteChanged();
+    }
+
+    private static object Mostrar(object? x, string? formato) => x switch
+    {
+        null => "—",
+        DateTime d => d.ToString(formato ?? "dd/MM/yyyy HH:mm"),
+        decimal n => n.ToString(formato ?? "N3", System.Globalization.CultureInfo.GetCultureInfo("es-HN")),
+        _ => x
     };
-    private void Invalidar(bool sinMensaje=false){_snapshot=[];_columnas=[];_totales=[];_ids=[];VistaPrevia=null;Pagina=1;if(!sinMensaje)Mensaje="Los filtros cambiaron. Consulte nuevamente.";OnPropertyChanged(nameof(PuedeExportar));ExportarCommand.NotifyCanExecuteChanged();}
-    private void LimpiarFiltrosInterno(){ProductoSeleccionado=null;ProveedorSeleccionado=null;CategoriaSeleccionada=null;FechaDesde=null;FechaHasta=null;Invalidar(true);Mensaje=string.Empty;}
-    private void NotificarModo(){OnPropertyChanged(nameof(EnMenu));OnPropertyChanged(nameof(EsEntrada));OnPropertyChanged(nameof(EsProveedor));OnPropertyChanged(nameof(EsMermas));OnPropertyChanged(nameof(EsPrueba));OnPropertyChanged(nameof(RequiereProducto));OnPropertyChanged(nameof(RequiereProveedor));OnPropertyChanged(nameof(RequiereFechas));OnPropertyChanged(nameof(PermiteCategoria));}
+
+    private IReadOnlyList<ReportMetadataDto> PieFechas() =>
+        [new("Desde", FechaDesde!.Value.ToString("dd/MM/yyyy")), new("Hasta", FechaHasta!.Value.ToString("dd/MM/yyyy"))];
+
+    private static string Etiqueta(FiltroItem? x) => x is null ? string.Empty : $"{x.Descripcion} {x.Nombre}".Trim();
+
+    private static IReadOnlyList<string> ValoresUnicos(IEnumerable<string> valores) =>
+        valores.Select(ValorNormalizado).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+
+    private static string ValorNormalizado(string? valor) =>
+        string.IsNullOrWhiteSpace(valor) ? "—" : valor.Trim();
+
+    private IReadOnlyList<string> ColumnasEntradaAuditoria()
+    {
+        var columnas = new List<string> { "fecha_hora" };
+        if (_entradaIncluyePlaca) columnas.Add("placa");
+        if (_entradaIncluyePesador) columnas.Add("pesador");
+        columnas.AddRange(["peso_bruto", "peso_tara", "peso_neto"]);
+        return columnas;
+    }
+
+    private string TituloDocumento() => TipoActual switch
+    {
+        ReporteOperativoTipo.EntradaMateriaPrima => "Detalle - Entrada de Materia Prima",
+        ReporteOperativoTipo.PorProveedor => "Entrada de productos por proveedor",
+        ReporteOperativoTipo.ProductosConMerma => "Reporte de productos con más merma",
+        _ => "Primeros 10 productos — Reporte de prueba"
+    };
+
+    private string ClaveReporte() => TipoActual switch
+    {
+        ReporteOperativoTipo.EntradaMateriaPrima => "entrada_materia_prima",
+        ReporteOperativoTipo.PorProveedor => "por_proveedor",
+        ReporteOperativoTipo.ProductosConMerma => "productos_con_mas_merma",
+        _ => "primeros_10_productos"
+    };
+
+    private object CrearParametrosRegistro() => TipoActual switch
+    {
+        ReporteOperativoTipo.EntradaMateriaPrima => new { origen = "pesajes", reporte = "entrada_materia_prima", filtros = new { id_producto = ProductoSeleccionado!.Id, id_proveedor = ProveedorSeleccionado!.Id, fecha_desde = FechaDesde!.Value.ToString("yyyy-MM-dd"), fecha_hasta = FechaHasta!.Value.ToString("yyyy-MM-dd") }, columnas = ColumnasEntradaAuditoria(), ids_registros = _ids, cantidad_registros = _snapshot.Count },
+        ReporteOperativoTipo.PorProveedor => new { origen = "pesajes", reporte = "por_proveedor", filtros = new { id_proveedor = ProveedorSeleccionado!.Id, fecha_desde = FechaDesde!.Value.ToString("yyyy-MM-dd"), fecha_hasta = FechaHasta!.Value.ToString("yyyy-MM-dd") }, columnas = new[] { "fecha_ingreso", "nombre_producto", "bultos_estimados", "peso_teorico", "peso_recibido", "diferencia_kg", "diferencia_monetaria" }, ids_registros = _ids, cantidad_registros = _snapshot.Count },
+        ReporteOperativoTipo.ProductosConMerma => new { origen = "pesajes", reporte = "productos_con_mas_merma", filtros = new { id_categoria = CategoriaSeleccionada?.Id, todas_las_categorias = CategoriaSeleccionada is null, fecha_desde = FechaDesde!.Value.ToString("yyyy-MM-dd"), fecha_hasta = FechaHasta!.Value.ToString("yyyy-MM-dd") }, columnas = new[] { "producto", "proveedor", "categoria", "entradas", "peso_teorico", "peso_recibido", "diferencia_kg", "merma_porcentaje" }, ids_registros = _ids, cantidad_registros = _snapshot.Count },
+        _ => new { origen = "productos", reporte = "primeros_10_productos", filtros = new { solo_activos = true, orden = "id_producto_asc", limite = 10 }, columnas = new[] { "id_producto", "codigo", "nombre", "categoria", "proveedor", "estado" }, ids_registros = _ids, cantidad_registros = _snapshot.Count }
+    };
+
+    private void Invalidar(bool sinMensaje = false)
+    {
+        _snapshot = [];
+        _columnas = [];
+        _totales = [];
+        _filtros = [];
+        _pie = [];
+        _ids = [];
+        _entradaIncluyePlaca = false;
+        _entradaIncluyePesador = false;
+        VistaPrevia = null;
+        Pagina = 1;
+        if (!sinMensaje) Mensaje = "Los filtros cambiaron. Consulte nuevamente.";
+        OnPropertyChanged(nameof(PuedeExportar));
+        OnPropertyChanged(nameof(PageInfo));
+        OnPropertyChanged(nameof(TotalPages));
+        OnPropertyChanged(nameof(SinResultados));
+        OnPropertyChanged(nameof(HayResultados));
+        OnPropertyChanged(nameof(MetadatosVistaPrevia));
+        OnPropertyChanged(nameof(MetadatosPieVistaPrevia));
+        OnPropertyChanged(nameof(HayMetadatosPie));
+        ExportarCommand.NotifyCanExecuteChanged();
+        PrimeraPaginaCommand.NotifyCanExecuteChanged();
+        PaginaAnteriorCommand.NotifyCanExecuteChanged();
+        PaginaSiguienteCommand.NotifyCanExecuteChanged();
+        UltimaPaginaCommand.NotifyCanExecuteChanged();
+    }
+
+    private void LimpiarFiltrosInterno()
+    {
+        ProductoSeleccionado = null;
+        ProveedorSeleccionado = null;
+        CategoriaSeleccionada = null;
+        FechaDesde = null;
+        FechaHasta = null;
+        Invalidar(true);
+        Mensaje = string.Empty;
+    }
+
+    private void NotificarModo()
+    {
+        OnPropertyChanged(nameof(EnMenu));
+        OnPropertyChanged(nameof(EsEntrada));
+        OnPropertyChanged(nameof(EsProveedor));
+        OnPropertyChanged(nameof(EsMermas));
+        OnPropertyChanged(nameof(EsPrueba));
+        OnPropertyChanged(nameof(RequiereProducto));
+        OnPropertyChanged(nameof(RequiereProveedor));
+        OnPropertyChanged(nameof(RequiereFechas));
+        OnPropertyChanged(nameof(PermiteCategoria));
+        OnPropertyChanged(nameof(SinResultados));
+        OnPropertyChanged(nameof(HayResultados));
+    }
 }

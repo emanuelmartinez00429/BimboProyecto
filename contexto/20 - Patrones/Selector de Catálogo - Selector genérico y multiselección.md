@@ -54,6 +54,8 @@ private void AbrirSelectorCatalogo(CatalogoConfig cfg, Action<FiltroItem> alSele
 | `DescripcionPrimero` | `false` | Muestra Descripción antes que Nombre — Productos lo usa porque el código es lo que se escanea primero. |
 | `PermiteMultiple` | `false` | Cambia el círculo de selección única por un `CheckBox` independiente por fila. Clickear varias las va sumando; "Seleccionar" las trae todas de una, invocando `Seleccionado` una vez por ítem marcado. |
 | `EstaYaElegido` | `null` | `Func<int?, bool>` — las filas cuyo Id matchea salen atenuadas, sin checkbox, `IsHitTestVisible="False"`. Para "no dejes elegir de nuevo lo que ya está en otro lado" (ej. productos ya agregados a la carga). |
+| `PageSize` | `15` | Máximo de filas por página cuando opera contra el servidor. Reportería lo configura en 50 para coincidir con las grillas administrativas. |
+| `ForzarPaginacion` | `false` | Omite el modo completo en memoria y mantiene paginación server-side aun debajo del umbral de 200 registros. |
 
 ### Contrato de eventos — importante si vas a tocar el host
 
@@ -72,6 +74,12 @@ selector.Seleccionado += item => alSeleccionar(item); // solo agrega, no cierra
 ### Hosting — "chromeless"
 
 `SelectorCatalogoModal` no pinta fondo ni tiene alto propio: hereda el marco degradado del modal que lo aloja, reemplazando su contenido (no se superpone). Ver [[Anatomía compartida de los modales]] para el patrón completo de hosting (`RootGrid`/`ContenidoPrincipal`/`CatalogoSelectorHost`, freeze temporal de altura). Un consumidor que necesite un picker **autocontenido** (con su propio marco, flotando sobre un velo oscuro) es un patrón distinto — ver `SelectorProductosModal` como referencia histórica antes de que se retirara (borrado en la misma sesión que agregó `PermiteMultiple`, precisamente porque duplicaba lo que el genérico ya resolvía).
+
+`ReporteriaView` resuelve el caso autocontenido sin duplicar el selector: mantiene
+el control chromeless y le aporta desde el host una tarjeta de 820×650 con el
+gradiente corporativo. Allí los tres catálogos usan `PageSize = 50` y
+`ForzarPaginacion = true`; no se debe cambiar el valor predeterminado para obtener
+ese comportamiento en un único módulo.
 
 ## Dónde está en el proyecto
 
@@ -96,3 +104,5 @@ selector.Seleccionado += item => alSeleccionar(item); // solo agrega, no cierra
 - [[Sesión 2026-08-19 - Selector de proveedor por tabla y consolidacion de estilos]] — origen de `PermiteMultiple`/`EstaYaElegido`/`DescripcionPrimero`, y el bug de multiselección diagnosticado y corregido
 - [[Deuda Técnica - Pendientes]] — P-044 (multiselección no responde a teclado)
 - [[Módulo Productos]] — `ProductoModal`, el consumidor original del selector en modo simple
+- [[Módulo Reportería]] — host autocontenido y paginación forzada de 50 registros
+- [[Sesión 2026-08-23 - Selectores compactos y paginados en Reportería]]

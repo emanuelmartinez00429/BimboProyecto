@@ -14,7 +14,7 @@ La pantalla `ReporteriaView` concentra cuatro reportes operativos en una grilla 
 
 | Reporte | Filtros | Alcance |
 |---|---|---|
-| Entrada de materia prima | Producto y proveedor mediante lupa | Entradas no anuladas, abiertas o cerradas |
+| Entrada de materia prima | Producto y proveedor mediante lupa, fecha desde y fecha hasta | Entradas no anuladas, abiertas o cerradas dentro del rango inclusivo |
 | Por proveedor | Proveedor mediante lupa y rango de fechas | Movimientos cerrados; fecha física de entrada |
 | Productos con más merma | Rango de fechas y categoría opcional mediante lupa | Movimientos cerrados; mermas positivas primero y luego cero/negativas |
 | Primeros 10 productos | Sin filtros | Productos activos ordenados por ID ascendente |
@@ -33,6 +33,51 @@ El reporte de proveedor calcula bultos como estimación con la fórmula vigente 
 
 Las cuatro RPC son `SECURITY INVOKER`, fijan `search_path`, niegan ejecución a `anon`, permiten `authenticated` y vuelven a validar sesión activa, permiso y catálogos seleccionados. Esto evita confiar únicamente en la visibilidad de botones del cliente.
 
+## Selectores de catálogo y vista previa
+
+Producto, Proveedor y Categoría reutilizan `SelectorCatalogoModal`, alojado en
+Reportería dentro de una tarjeta centrada de 820×650 con el marco degradado de
+los modales del sistema. El overlay oscurece la vista, pero el selector ya no se
+expande sobre toda la pantalla.
+
+Los tres usan `CatalogoConfig` con `PageSize = 50` y `ForzarPaginacion = true`:
+la consulta permanece server-side aun cuando el catálogo tenga menos de 200
+registros, el pie de paginación se mantiene visible y cada búsqueda vuelve a la
+primera página. Esta configuración es local a Reportería; los demás consumidores
+del selector conservan el modo adaptativo con caché en memoria.
+
+## Contenido de la vista previa y los archivos
+
+La vista previa y el documento exportado comparten exactamente `_columnas` y
+`_snapshot`; una columna agregada en ese snapshot aparece tanto en pantalla como
+en PDF/Excel. En `Entrada de materia prima`, la tabla siempre contiene fecha/hora
+y los pesos bruto, tara y neto. Producto y proveedor permanecen como metadatos.
+Placa y pesador son dinámicos: con un solo valor aparecen como metadato; con más
+de un valor pasan a columnas y conservan la asociación de cada pesaje. Un dato
+vacío se representa como `—` y cuenta como valor distinto para evitar atribuir
+información conocida a una fila incompleta. En `Reporte por proveedor`, cada
+fila incluye el Producto consultado y el nombre del Proveedor seleccionado.
+
+Los IDs seleccionados y el rango de fechas permanecen dentro de
+`ParametrosJson` de la bitácora como trazabilidad. La fecha `Hasta` no puede ser
+posterior a la fecha actual; la UI limita el calendario y el ViewModel valida
+otra vez antes de consultar. `Desde` y `Hasta` se muestran horizontalmente
+después de la tabla: sobre la paginación en la vista previa y después de los
+totales en PDF/Excel. El rango se aplica de forma inclusiva en el repositorio
+sobre las filas autorizadas que devuelve la RPC vigente.
+
+El bloque de autoría compartido por PDF y Excel contiene solamente **Correo
+usuario** y **Rol**. Nombre y apellido del empleado fueron retirados de
+`ReportAuthorDto`: el correo ya identifica la cuenta y evita duplicar datos
+personales que no aportan al documento.
+
+La grilla de vista previa de los 4 reportes adopta el diseño unificado de tablas
+del sistema: tarjeta blanca con sombra `#0F172A`, encabezados con color corporativo
+`EmpresaPrimaryBrush`, filas alternas `#E8F0FA`, hover `#C8D8F0`, selección `#C2F2E0`
+con barra indicadora `#34D399`, scrollbars modernas `ModernScrollBarAny`, spinner
+animado de carga, estado vacío y barra de paginación completa (`«`, `‹`, números
+con elipsis `Paginacion.Calcular`, `›`, `»`).
+
 ## Archivos clave
 
 - `CapaUI/Formularios/Principal/Pantallas/Reporteria/ReporteriaView.xaml`
@@ -45,7 +90,11 @@ Las cuatro RPC son `SECURITY INVOKER`, fijan `search_path`, niegan ejecución a 
 
 ## Verificación pendiente
 
-La solución compila y las estrategias tienen pruebas automatizadas. Falta la prueba visual manual con sesión autenticada: abrir lupas, consultar los cuatro reportes, confirmar la vista previa y abrir un PDF y un Excel reales.
+La solución compila y las estrategias tienen pruebas automatizadas. Para el
+cambio del 2026-08-23 quedan pendientes la prueba visual autenticada de las tres
+lupas, la adaptación del marco a 960×600 y la navegación real entre páginas de
+50 registros. La validación automatizada terminó con 0 errores de build y 113
+pruebas superadas.
 
 ## Relaciones
 
@@ -54,3 +103,4 @@ La solución compila y las estrategias tienen pruebas automatizadas. Falta la pr
 - [[ADR-006 - Motor de Reportes y Exportación]]
 - [[Módulo Bitácora]]
 - [[Sesión 2026-08-17 - Módulo Reportería operativo]]
+- [[Sesión 2026-08-23 - Selectores compactos y paginados en Reportería]]

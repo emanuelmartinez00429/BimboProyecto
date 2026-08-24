@@ -12,6 +12,7 @@ public sealed class TabularReportDto
     public IReadOnlyList<IReadOnlyList<object?>> Rows { get; init; } = Array.Empty<IReadOnlyList<object?>>();
     public IReadOnlyList<ReportMetadataDto> Filters { get; init; } = Array.Empty<ReportMetadataDto>();
     public IReadOnlyList<ReportTotalDto> Totals { get; init; } = Array.Empty<ReportTotalDto>();
+    public IReadOnlyList<ReportMetadataDto> FooterMetadata { get; init; } = Array.Empty<ReportMetadataDto>();
 }
 
 public sealed record ReportColumnDto(string Header, string? NumberFormat = null, double? WidthCm = null)

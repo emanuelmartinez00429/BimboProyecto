@@ -16,6 +16,12 @@ estado: en_curso_parcial
 > [!success] Reporte de Pesaje de Insumos BES implementado el 2026-08-21
 > La pantalla de Pesajes cuenta con generación directa en PDF y Excel desde el botón "Imprimir reporte", consolidando pesajes por producto frente a lo manifestado y calculando diferencias (kg y %), con soporte individual y multigestión de camiones. Ver [[Sesión 2026-08-21 - Reporte de Pesaje de Insumos BES (PDF y Excel)]].
 
+> [!success] Selectores compactos y paginados en Reportería — implementado 2026-08-23
+> Producto, Proveedor y Categoría se alojan en una tarjeta modal de 820×650,
+> siguiendo el marco visual de `ProductoModal`, con paginación forzada de 50
+> registros por página. Autor de la implementación: **Codex (sesión gestionada por Emanuel)**.
+> Build y 113 pruebas automatizadas correctas; queda pendiente la comprobación visual autenticada.
+
 Rama prevista: `feat/fase9-reportes` (convención existente `feat/faseN-nombre`).
 
 ## Objetivo
@@ -127,7 +133,7 @@ Vista WPF → comando en ReportViewerViewModel
 > [!warning] Esto es trabajo nuevo, no una adaptación
 > Los repositorios actuales devuelven `PagedResult<T>` completo. El streaming real requiere diseñar el recorrido por páginas encadenadas. No subestimar esta sub-fase.
 
-**9.5 — UI, vista previa e impresión. 🟡 Parcial.** `ReporteriaViewModel` y `ReporteriaView` incorporan selector 2×2, subformulario, vista previa paginada y `SaveFileDialog`. Visor PDF interno e impresión siguen pendientes.
+**9.5 — UI, vista previa e impresión. 🟡 Parcial.** `ReporteriaViewModel` y `ReporteriaView` incorporan selector 2×2, subformulario, vista previa paginada y `SaveFileDialog`. Los selectores de Producto, Proveedor y Categoría ya se presentan en una tarjeta compacta de 820×650 con 50 registros por página. Visor PDF interno e impresión siguen pendientes.
 
 **9.6 — Códigos de barras/QR + pruebas + benchmarks.** ZXing.Net generando `byte[]` hacia los DTOs.
 > [!success] Proyecto de pruebas creado

@@ -296,8 +296,6 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
                     Author = new ReportAuthorDto
                     {
                         Email = sesion.Email,
-                        NombreEmpleado = sesion.NombreEmpleado,
-                        ApellidoEmpleado = sesion.ApellidoEmpleado,
                         Rol = sesion.NombreRol,
                     },
                     Branding = new ReportBrandingDto

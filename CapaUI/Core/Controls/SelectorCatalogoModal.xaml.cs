@@ -33,9 +33,6 @@ public partial class SelectorCatalogoModal : UserControl, IDisposable
     /// <summary>Hasta este total, el catálogo entra entero en memoria.</summary>
     private const int UmbralMemoria = 200;
 
-    /// <summary>Tamaño de página cuando se supera el umbral.</summary>
-    private const int PageSize = 15;
-
     private const int DebounceMs = 300;
 
     public event Action? Cerrado;
@@ -79,6 +76,9 @@ public partial class SelectorCatalogoModal : UserControl, IDisposable
     public SelectorCatalogoModal(CatalogoConfig cfg)
     {
         _cfg = cfg ?? throw new ArgumentNullException(nameof(cfg));
+        if (cfg.PageSize <= 0)
+            throw new ArgumentOutOfRangeException(nameof(cfg), "El tamaño de página debe ser mayor que cero.");
+
         InitializeComponent();
 
         TxtTitulo.Text          = cfg.Titulo;
@@ -123,6 +123,17 @@ public partial class SelectorCatalogoModal : UserControl, IDisposable
     private async Task CargarInicialAsync()
     {
         MostrarCargando(true);
+
+        // Algunos hosts (Reportería) necesitan el mismo contrato visible de las
+        // grillas administrativas: 50 registros por página y navegación incluso
+        // cuando el catálogo entraría completo en memoria. Los demás consumidores
+        // conservan el modo adaptativo y su caché de apertura inmediata.
+        if (_cfg.ForzarPaginacion)
+        {
+            FooterPaginacion.Visibility = Visibility.Visible;
+            await CargarPaginaAsync();
+            return;
+        }
 
         // El callback repinta si la revalidación encontró la tabla cambiada: la
         // lupa abre con lo que ya estaba en memoria y se corrige sola en el acto.
@@ -196,7 +207,7 @@ public partial class SelectorCatalogoModal : UserControl, IDisposable
         int gen = ++_generacion;
         MostrarCargando(true);
 
-        var r = await _cfg.Cargar(_query, _page, PageSize, CancellationToken.None);
+        var r = await _cfg.Cargar(_query, _page, _cfg.PageSize, CancellationToken.None);
 
         // Llegó tarde: ya hay otra carga más nueva en curso.
         if (_dispuesto || gen != _generacion) return;
@@ -214,7 +225,7 @@ public partial class SelectorCatalogoModal : UserControl, IDisposable
         RefrescarPaginacion();
     }
 
-    private int TotalPages => Math.Max(1, (int)Math.Ceiling(_total / (double)PageSize));
+    private int TotalPages => Math.Max(1, (int)Math.Ceiling(_total / (double)_cfg.PageSize));
 
     private void RefrescarPaginacion()
     {

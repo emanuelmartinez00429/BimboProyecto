@@ -388,8 +388,6 @@ public partial class BitacoraViewModel : ObservableObject, IDisposable
                 Author = new ReportAuthorDto
                 {
                     Email = sesion.Email,
-                    NombreEmpleado = sesion.NombreEmpleado,
-                    ApellidoEmpleado = sesion.ApellidoEmpleado,
                     Rol = sesion.NombreRol,
                 },
                 SheetName = "Bitácora",

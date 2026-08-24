@@ -66,8 +66,6 @@ public sealed class PdfReportStrategy : IReportStrategy
             generated.Format.SpaceAfter = Unit.FromPoint(6);
 
             AddAuthorLine(section, "Correo usuario", report.Author.Email);
-            AddAuthorLine(section, "Nombre empleado", report.Author.NombreEmpleado);
-            AddAuthorLine(section, "Apellido empleado", report.Author.ApellidoEmpleado);
             AddAuthorLine(section, "Rol", report.Author.Rol);
             foreach (var filter in report.Filters) AddAuthorLine(section, filter.Label, filter.Value);
             section.AddParagraph().Format.SpaceAfter = Unit.FromPoint(3);
@@ -128,6 +126,20 @@ public sealed class PdfReportStrategy : IReportStrategy
                 paragraph.Format.SpaceAfter = Unit.FromPoint(2);
                 paragraph.AddFormattedText($"{total.Label}: ", TextFormat.Bold);
                 paragraph.AddText(FormatValue(total.Value, total.NumberFormat));
+            }
+
+            if (report.FooterMetadata.Count > 0)
+            {
+                var footerMetadata = section.AddParagraph();
+                footerMetadata.Format.Alignment = ParagraphAlignment.Center;
+                footerMetadata.Format.SpaceBefore = Unit.FromPoint(6);
+                footerMetadata.Format.SpaceAfter = Unit.FromPoint(3);
+                for (int i = 0; i < report.FooterMetadata.Count; i++)
+                {
+                    if (i > 0) footerMetadata.AddText("   |   ");
+                    footerMetadata.AddFormattedText($"{report.FooterMetadata[i].Label}: ", TextFormat.Bold);
+                    footerMetadata.AddText(report.FooterMetadata[i].Value);
+                }
             }
 
             var footer = section.Footers.Primary.AddParagraph();
