@@ -587,11 +587,11 @@ Hallazgos fuera de Roles, **no atacados** por decisión de alcance. Ordenados po
 
 **Solución de fondo:** un RPC de Postgres que reciba `(id_mov_producto | id_movimiento, total)` y haga el reparto en una sola transacción del lado del servidor.
 
-**Estado:** `[ ] Pendiente`
+**Estado:** `[~]` RPC transaccional desplegada; pendiente migrar `PesajeRepository` y retirar los N PATCH directos. Ver [[Sesión 2026-08-24 - RPC idempotentes auditadas de Pesajes]].
 
 ---
 
-### P-033 · Sin verificar: ¿el trigger de pesajes cubre UPDATE?
+### ~~P-033~~ · El trigger de pesajes cubre UPDATE — resuelto 2026-08-24
 
 **Detectado en:** [[Sesión 2026-08-13 - Pesaje solo bruto y tara extra pesada]]
 
@@ -614,7 +614,9 @@ select polname, polcmd from pg_policy where polrelid = 'entradas_producto'::regc
 - Si `peso_tara_total`/`peso_neto` fueran `GENERATED ALWAYS` → poner `PesajeRepository.EscribirDerivados = false`.
 - Si RLS bloquea `UPDATE` de `entradas_producto` para el rol de la app → el modo "tara extra total" no funciona y hace falta una política nueva.
 
-**Estado:** `[ ] Pendiente — verificación en BD`
+**Verificación 2026-08-24:** en el proyecto Bimbo (`bzmmrifjgzlvsphctais`) se comprobó que `trg_calcular_pesos_entrada` es `BEFORE INSERT OR UPDATE OF peso_bruto, peso_tara_extra, id_mov_producto`. La batería de RPC actualizó peso bruto y tara extra y recibió los derivados recalculados. También se detectó que la función del trigger no fija su propio `search_path`; queda como endurecimiento separado.
+
+**Estado:** `[x]` Resuelto — verificado en BD. Ver [[Sesión 2026-08-24 - RPC idempotentes auditadas de Pesajes]].
 
 ---
 
@@ -906,8 +908,8 @@ Los tres pasos, no solo el primero: con el límite únicamente en la UI, cualqui
 | P-029 | Cancelación ausente en 7 ViewModels + timer fantasma | `[ ]` Pendiente | [[Sesión 2026-08-11 - Rediseño de Gestión de Roles]] |
 | P-030 | Verificación en runtime de la pantalla de Roles | `[ ]` Pendiente | [[Sesión 2026-08-12 - Estabilización de la pantalla de Roles]] |
 | P-031 | Frenos de rendimiento de toda la aplicación | `[ ]` Pendiente 🔴 | [[Sesión 2026-08-12 - Estabilización de la pantalla de Roles]] |
-| P-032 | Reparto de tara extra sin transacción (N updates) | `[ ]` Pendiente 🔴 | [[Sesión 2026-08-13 - Pesaje solo bruto y tara extra pesada]] |
-| P-033 | Verificar si el trigger de pesajes cubre UPDATE | `[ ]` Pendiente | [[Sesión 2026-08-13 - Pesaje solo bruto y tara extra pesada]] |
+| P-032 | Reparto de tara extra sin transacción (N updates) | `[~]` RPC lista; integración C# pendiente 🔴 | [[Sesión 2026-08-24 - RPC idempotentes auditadas de Pesajes]] |
+| P-033 | Verificar si el trigger de pesajes cubre UPDATE | `[x]` Resuelto 2026-08-24 | [[Sesión 2026-08-24 - RPC idempotentes auditadas de Pesajes]] |
 | P-034 | Invalidación de caché sobre tablas no publicadas en Realtime | 🟡 Parcial | [[Sesión 2026-08-13 - Guardado fluido y caché de catálogos que no vencía]] → [[Sesión 2026-08-14 - Realtime en columnas de join de Productos]] |
 | P-035 | Configuración de empresa lista; validar flujo manual y trigger de `updated_at` | `[~]` Parcial | [[Sesión 2026-08-14 - Módulo de configuración de empresa y tema dinámico]] |
 | P-036 | Tara y Presentaciones sin pantalla CRUD — combo de unidad filtrado a masa sin dónde vivir | `[~]` Parcial — Presentaciones ✅, Tara pendiente | [[Sesión 2026-08-15 - Modulo CRUD de Presentaciones]] |

@@ -4,6 +4,7 @@ using CapaAplicacion.Pesaje.Dtos;
 using CapaAplicacion.Pesaje.Interfaces;
 using CapaDatos.Modelados.Pesajes;
 using CapaDatos.Repositories;
+using Newtonsoft.Json.Linq;
 using ServicioConexión.Conexion;
 using Op  = Supabase.Postgrest.Constants.Operator;
 using Ord = Supabase.Postgrest.Constants.Ordering;
@@ -49,57 +50,105 @@ public class PesajeRepository : RepositorioBase, IPesajeRepository
             return lista;
         }, "Cargar camiones");
 
-    public Task<Result<int>> CrearCamionAsync(int idProveedor, string placa, string observaciones, int idUsuario, CancellationToken ct = default) =>
-        TryAsync(async () =>
+    public Task<Result<int>> CrearCamionAsync(int idProveedor, string placa, string observaciones, int idUsuario, CancellationToken ct = default)
+    {
+        // Se genera una sola vez por intención del usuario y fuera del delegado que ejecuta
+        // la llamada. Si posteriormente se agrega una política de reintentos, debe reutilizarse.
+        var idSolicitud = Guid.NewGuid();
+
+        return TryAsync(async () =>
         {
+            ct.ThrowIfCancellationRequested();
             var client = await ConexionSupabase.GetClientAsync();
-            var nuevo = new Movimiento
+            var parametros = new Dictionary<string, object?>
             {
-                idProveedor     = idProveedor,
-                placaVehiculo   = placa,
-                fechaAsignacion = DateOnly.FromDateTime(DateTime.Now),
-                idUsuario       = idUsuario,
-                idEstado        = EstadosPesaje.Abierto,
-                observaciones   = string.IsNullOrWhiteSpace(observaciones) ? null : observaciones,
-                // Columna del flujo viejo (tara extra por camión, prorrateada por bultos).
-                // Se deja en 0: la tara extra vigente vive en cada entrada.
-                pesoTaraExtra   = 0m,
+                ["p_id_proveedor"]    = idProveedor,
+                ["p_placa_vehiculo"] = placa,
+                ["p_observaciones"]  = string.IsNullOrWhiteSpace(observaciones) ? null : observaciones,
+                ["p_id_solicitud"]   = idSolicitud,
             };
-            var r = await client.From<Movimiento>().Insert(nuevo);
-            return r.Models.First().idMovimiento;
+
+            // La firma se conserva por compatibilidad; la RPC obtiene el usuario desde auth.uid().
+            _ = idUsuario;
+            var response = await client.Rpc("ingresar_movimiento_pesaje_tabla_bitacora", parametros);
+            ct.ThrowIfCancellationRequested();
+            return ObtenerResultadoRpc(response?.Content, "registrar la recepción")
+                ["id_movimiento"]?.Value<int>()
+                ?? throw new InvalidOperationException("La RPC no devolvió id_movimiento.");
         }, "Registrar camión");
+    }
 
     /// <summary>
     /// NO toca <c>peso_tara_extra</c> a propósito: es una columna del flujo anterior y editar un
     /// camión legado le borraría su tara histórica. La tara extra vigente se guarda por entrada.
     /// </summary>
-    public Task<Result> ActualizarCamionAsync(int idMovimiento, int idProveedor, string placa, string observaciones, CancellationToken ct = default) =>
-        TryAsync(async () =>
+    public Task<Result> ActualizarCamionAsync(int idMovimiento, int idProveedor, string placa, string observaciones, CancellationToken ct = default)
+    {
+        var idSolicitud = Guid.NewGuid();
+
+        return TryAsync(async () =>
         {
+            ct.ThrowIfCancellationRequested();
             var client = await ConexionSupabase.GetClientAsync();
-            await client.From<Movimiento>()
-                .Where(m => m.idMovimiento == idMovimiento)
-                .Set(m => m.idProveedor,   idProveedor)
-                .Set(m => m.placaVehiculo, placa)
-                .Set(m => m.observaciones, string.IsNullOrWhiteSpace(observaciones) ? null : observaciones)
-                .Update();
+            var response = await client.Rpc("actualizar_movimiento_pesaje_tabla_bitacora",
+                new Dictionary<string, object?>
+                {
+                    ["p_id_movimiento"]   = idMovimiento,
+                    ["p_id_proveedor"]    = idProveedor,
+                    ["p_placa_vehiculo"] = placa,
+                    ["p_observaciones"]  = string.IsNullOrWhiteSpace(observaciones) ? null : observaciones,
+                    ["p_id_solicitud"]   = idSolicitud,
+                });
+            ct.ThrowIfCancellationRequested();
+            ValidarIdResultado(response?.Content, "id_movimiento", idMovimiento, "actualizar la recepción");
         }, "Actualizar camión");
+    }
 
     public Task<Result> CerrarCamionAsync(int idMovimiento, CancellationToken ct = default) =>
-        SetEstadoMovimiento(idMovimiento, EstadosPesaje.Cerrado, "Cerrar camión");
+        SetEstadoMovimiento(idMovimiento, EstadosPesaje.Cerrado, "Cerrar camión", ct);
 
     public Task<Result> AnularCamionAsync(int idMovimiento, CancellationToken ct = default) =>
-        SetEstadoMovimiento(idMovimiento, EstadosPesaje.Anulado, "Anular camión");
+        SetEstadoMovimiento(idMovimiento, EstadosPesaje.Anulado, "Anular camión", ct);
 
-    private Task<Result> SetEstadoMovimiento(int idMovimiento, int estado, string ctx) =>
-        TryAsync(async () =>
+    private Task<Result> SetEstadoMovimiento(int idMovimiento, int estado, string ctx, CancellationToken ct)
+    {
+        var idSolicitud = Guid.NewGuid();
+
+        return TryAsync(async () =>
         {
+            ct.ThrowIfCancellationRequested();
             var client = await ConexionSupabase.GetClientAsync();
-            await client.From<Movimiento>()
-                .Where(m => m.idMovimiento == idMovimiento)
-                .Set(m => m.idEstado, estado)
-                .Update();
+            var response = await client.Rpc("cambiar_estado_movimiento_pesaje_tabla_bitacora",
+                new Dictionary<string, object?>
+                {
+                    ["p_id_movimiento"] = idMovimiento,
+                    ["p_id_estado"]     = estado,
+                    ["p_id_solicitud"] = idSolicitud,
+                });
+            ct.ThrowIfCancellationRequested();
+            ValidarIdResultado(response?.Content, "id_movimiento", idMovimiento, ctx.ToLowerInvariant());
         }, ctx);
+    }
+
+    private static JObject ObtenerResultadoRpc(string? json, string operacion)
+    {
+        if (string.IsNullOrWhiteSpace(json))
+            throw new InvalidOperationException($"La RPC no devolvió resultado al {operacion}.");
+
+        var token = JToken.Parse(json);
+        if (token.Type == JTokenType.String)
+            token = JToken.Parse(token.Value<string>() ?? "{}");
+
+        return token as JObject
+            ?? throw new InvalidOperationException($"La RPC devolvió un resultado inválido al {operacion}.");
+    }
+
+    private static void ValidarIdResultado(string? json, string propiedad, int esperado, string operacion)
+    {
+        var recibido = ObtenerResultadoRpc(json, operacion)[propiedad]?.Value<int>();
+        if (recibido != esperado)
+            throw new InvalidOperationException($"La RPC no confirmó el registro esperado al {operacion}.");
+    }
 
     // ══════════════════════════════════════════════════════════════════════
     //  Productos del camión
@@ -215,34 +264,53 @@ public class PesajeRepository : RepositorioBase, IPesajeRepository
     // ══════════════════════════════════════════════════════════════════════
     //  Pesajes (entradas)
     // ══════════════════════════════════════════════════════════════════════
-    public Task<Result<EntradaDto>> CrearEntradaAsync(int idMovProducto, int idProducto, double bruto, double taraExtra, string observaciones, int idUsuario, CancellationToken ct = default) =>
-        TryAsync(async () =>
-        {
-            var client = await ConexionSupabase.GetClientAsync();
-            var ahora = DateTime.Now;
-            var nueva = new EntradaProducto
-            {
-                idMovProducto        = idMovProducto,
-                idProducto           = idProducto,
-                pesoBruto            = (decimal)bruto,
-                pesoTaraExtra        = (decimal)taraExtra,
-                // Los bultos ya no se capturan: son un indicador que se calcula desde el peso.
-                // Se deja NULL en vez de persistir una estimación como si fuera un dato medido.
-                numeroBultosRecibido = null,
-                fechaEntrada         = DateOnly.FromDateTime(ahora),
-                horaEntrada          = TimeOnly.FromDateTime(ahora),
-                idUsuario            = idUsuario,
-                idEstado             = EstadosPesaje.Activo,
-                observaciones        = string.IsNullOrWhiteSpace(observaciones) ? null : observaciones,
-            };
-            var r = await client.From<EntradaProducto>().Insert(nueva);
+    public Task<Result<EntradaDto>> CrearEntradaAsync(int idMovProducto, int idProducto, double bruto, double taraExtra, string observaciones, int idUsuario, CancellationToken ct = default)
+    {
+        var idSolicitud = Guid.NewGuid();
 
-            // trg_calcular_pesos_entrada es BEFORE INSERT, así que la fila que PostgREST
-            // devuelve ya trae tara individual, tara total y neto calculados por la BD.
-            // Mapearla acá evita que quien llama tenga que recalcularlos a mano (adivinando)
-            // o recargar el camión entero (tres round trips) para leer lo que ya tenemos.
-            return MapEntrada(r.Models.First());
+        return TryAsync(async () =>
+        {
+            ct.ThrowIfCancellationRequested();
+            var client = await ConexionSupabase.GetClientAsync();
+            var response = await client.Rpc("ingresar_entrada_producto_pesaje_tabla_bitacora",
+                new Dictionary<string, object?>
+                {
+                    ["p_id_mov_producto"] = idMovProducto,
+                    ["p_id_producto"]     = idProducto,
+                    ["p_peso_bruto"]     = (decimal)bruto,
+                    ["p_peso_tara_extra"] = (decimal)taraExtra,
+                    ["p_observaciones"]  = string.IsNullOrWhiteSpace(observaciones) ? null : observaciones,
+                    ["p_id_solicitud"]   = idSolicitud,
+                });
+            ct.ThrowIfCancellationRequested();
+
+            // La identidad efectiva proviene de auth.uid(); se conserva el argumento legado
+            // para no romper la interfaz mientras se completa la migración del módulo.
+            _ = idUsuario;
+            var resultado = ObtenerResultadoRpc(response?.Content, "registrar el pesaje");
+            return new EntradaDto
+            {
+                Id                = resultado["id_pesaje"]?.Value<int>()
+                                    ?? throw new InvalidOperationException("La RPC no devolvió id_pesaje."),
+                Bruto             = resultado["peso_bruto"]?.Value<double>() ?? 0,
+                TaraInd           = resultado["peso_tara_individual"]?.Value<double>() ?? 0,
+                TaraExtra         = resultado["peso_tara_extra"]?.Value<double>() ?? 0,
+                TaraTotal         = resultado["peso_tara_total"]?.Value<double>() ?? 0,
+                Neto              = resultado["peso_neto"]?.Value<double>() ?? 0,
+                BultosCapturados  = resultado["numero_bultos_recibido"]?.Type == JTokenType.Null
+                                        ? null : resultado["numero_bultos_recibido"]?.Value<int?>(),
+                Fecha             = FormatearFechaRpc(resultado["fecha_entrada"]?.Value<string>()),
+                Hora              = FormatearHoraRpc(resultado["hora_entrada"]?.Value<string>()),
+                Observaciones     = resultado["observaciones"]?.Value<string>() ?? "",
+            };
         }, "Registrar pesaje");
+    }
+
+    private static string FormatearFechaRpc(string? valor) =>
+        DateOnly.TryParse(valor, out var fecha) ? fecha.ToString("dd/MM/yyyy") : valor ?? "";
+
+    private static string FormatearHoraRpc(string? valor) =>
+        TimeOnly.TryParse(valor, out var hora) ? hora.ToString("hh:mm tt") : valor ?? "";
 
     /// <summary>
     /// El trigger de BD puede o no cubrir UPDATE. Escribir también los derivados deja la fila

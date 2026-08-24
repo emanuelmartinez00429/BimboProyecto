@@ -207,6 +207,7 @@ Los modales de Pesaje comparten `Modales/PesajeModalStyles.xaml` (prefijo `M`): 
 - [[Sesión 2026-07-26 - Rediseño del flujo de Pesajes]]
 - [[Sesión 2026-08-19 - Selector de proveedor por tabla y consolidacion de estilos]] — retiro de `SelectorProductosModal`, marco cuadrado, multiselección de productos
 - [[Sesión 2026-08-20 - Guardado de pesajes sin refetch]] — "Seguir pesando" pasó de 4-5 round trips a 1-2, modal ya no se cierra al guardar
+- [[Sesión 2026-08-24 - RPC idempotentes auditadas de Pesajes]] — diez RPC desplegadas; `movimientos` y el ingreso de pesaje ya integrados en C# con detalle legible en Bitácora, sin revocar DML ni modificar RLS
 - [[Guardado sin Refetch - Aplicar en memoria la respuesta del servidor]] — el patrón que resolvió la lentitud del guardado
 - [[Selector de Catálogo - Selector genérico y multiselección]] — el selector que ahora resuelve Proveedor y Producto acá
 - [[Sesión 2026-07-01 - Pantalla Pesaje WPF y Buscador por Proveedor (Fase 1)]]
