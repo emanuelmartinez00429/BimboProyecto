@@ -14,7 +14,7 @@ La pantalla `ReporteriaView` concentra cuatro reportes operativos en una grilla 
 
 | Reporte | Filtros | Alcance |
 |---|---|---|
-| Entrada de materia prima | Producto y proveedor mediante lupa, fecha desde y fecha hasta | Entradas no anuladas, abiertas o cerradas dentro del rango inclusivo |
+| Entrada de materia prima | Proveedor, producto relacionado y rango de fechas | Entradas no anuladas, abiertas o cerradas dentro del rango inclusivo |
 | Por proveedor | Proveedor mediante lupa y rango de fechas | Movimientos cerrados; fecha física de entrada |
 | Productos con más merma | Rango de fechas y categoría opcional mediante lupa | Movimientos cerrados; mermas positivas primero y luego cero/negativas |
 | Primeros 10 productos | Sin filtros | Productos activos ordenados por ID ascendente |
@@ -45,6 +45,14 @@ la consulta permanece server-side aun cuando el catálogo tenga menos de 200
 registros, el pie de paginación se mantiene visible y cada búsqueda vuelve a la
 primera página. Esta configuración es local a Reportería; los demás consumidores
 del selector conservan el modo adaptativo con caché en memoria.
+
+En `Entrada de materia prima` los filtros están encadenados en el orden
+Proveedor → Producto → Desde → Hasta. La lupa de Producto permanece deshabilitada
+hasta seleccionar un proveedor y luego usa `Catalogos.Productos` con su ID. El
+catálogo resuelve la relación existente
+`productos.id_fabricante → fabricante.id_proveedor`, por lo que solo ofrece
+productos activos asociados. Cambiar o limpiar el proveedor descarta el producto
+anterior para impedir una combinación incoherente.
 
 ## Contenido de la vista previa y los archivos
 
@@ -104,3 +112,4 @@ pruebas superadas.
 - [[Módulo Bitácora]]
 - [[Sesión 2026-08-17 - Módulo Reportería operativo]]
 - [[Sesión 2026-08-23 - Selectores compactos y paginados en Reportería]]
+- [[Sesión 2026-08-23 - Proveedor antes de producto en Reportería]]

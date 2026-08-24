@@ -211,12 +211,13 @@ public partial class ReporteriaView : UserControl
     private void AbrirSelector(string tipo)
     {
         if (_vm is null) return;
+        if (tipo == "producto" && _vm.ProveedorSeleccionado?.Id is null) return;
 
         CerrarModal();
         var repo = App.Services.GetRequiredService<ICatalogoRepository>();
         var cfgBase = tipo switch
         {
-            "producto"  => Catalogos.Productos(repo),
+            "producto"  => Catalogos.Productos(repo, _vm.ProveedorSeleccionado!.Id),
             "proveedor" => Catalogos.Proveedores(repo),
             _            => Catalogos.Categorias(repo),
         };

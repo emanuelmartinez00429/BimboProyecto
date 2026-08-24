@@ -44,6 +44,7 @@ public partial class ReporteriaViewModel : ObservableObject
     public bool RequiereProveedor => EsEntrada || EsProveedor;
     public bool RequiereFechas => EsEntrada || EsProveedor || EsMermas;
     public bool PermiteCategoria => EsMermas;
+    public bool PuedeSeleccionarProducto => EsEntrada && ProveedorSeleccionado?.Id is not null && !IsBusy;
     public DateTime FechaMaxima => DateTime.Today;
     public bool PuedeExportar => _snapshot.Count > 0 && !IsBusy && SesionPermisos.Tiene(Permiso.GenerarReporte);
     public int TotalPages => Math.Max(1, (int)Math.Ceiling(_snapshot.Count / (double)PageSize));
@@ -89,7 +90,8 @@ public partial class ReporteriaViewModel : ObservableObject
     }
 
     [RelayCommand] private void Volver() { TipoActual = null; LimpiarFiltrosInterno(); NotificarModo(); }
-    [RelayCommand] private void AbrirProducto() => SelectorSolicitado?.Invoke("producto");
+    [RelayCommand(CanExecute = nameof(PuedeSeleccionarProducto))]
+    private void AbrirProducto() => SelectorSolicitado?.Invoke("producto");
     [RelayCommand] private void AbrirProveedor() => SelectorSolicitado?.Invoke("proveedor");
     [RelayCommand] private void AbrirCategoria() => SelectorSolicitado?.Invoke("categoria");
     [RelayCommand] private void LimpiarProducto() => ProductoSeleccionado = null;
@@ -103,12 +105,24 @@ public partial class ReporteriaViewModel : ObservableObject
     [RelayCommand] private void IrAPagina(int p) { if (p >= 1 && p <= TotalPages && p != Pagina) { Pagina = p; CrearPagina(); } }
 
     partial void OnProductoSeleccionadoChanged(FiltroItem? value) => Invalidar();
-    partial void OnProveedorSeleccionadoChanged(FiltroItem? value) => Invalidar();
+    partial void OnProveedorSeleccionadoChanged(FiltroItem? oldValue, FiltroItem? newValue)
+    {
+        // En Entrada de materia prima el producto depende del proveedor. Si cambia
+        // el catálogo padre, una selección anterior ya no es válida.
+        if (EsEntrada && oldValue?.Id != newValue?.Id)
+            ProductoSeleccionado = null;
+
+        OnPropertyChanged(nameof(PuedeSeleccionarProducto));
+        AbrirProductoCommand.NotifyCanExecuteChanged();
+        Invalidar();
+    }
     partial void OnCategoriaSeleccionadaChanged(FiltroItem? value) => Invalidar();
     partial void OnFechaDesdeChanged(DateTime? value) => Invalidar();
     partial void OnFechaHastaChanged(DateTime? value) => Invalidar();
     partial void OnIsBusyChanged(bool value)
     {
+        OnPropertyChanged(nameof(PuedeSeleccionarProducto));
+        AbrirProductoCommand.NotifyCanExecuteChanged();
         OnPropertyChanged(nameof(SinResultados));
         OnPropertyChanged(nameof(HayResultados));
         OnPropertyChanged(nameof(HayMetadatosPie));
@@ -372,6 +386,8 @@ public partial class ReporteriaViewModel : ObservableObject
         OnPropertyChanged(nameof(RequiereProveedor));
         OnPropertyChanged(nameof(RequiereFechas));
         OnPropertyChanged(nameof(PermiteCategoria));
+        OnPropertyChanged(nameof(PuedeSeleccionarProducto));
+        AbrirProductoCommand.NotifyCanExecuteChanged();
         OnPropertyChanged(nameof(SinResultados));
         OnPropertyChanged(nameof(HayResultados));
     }
