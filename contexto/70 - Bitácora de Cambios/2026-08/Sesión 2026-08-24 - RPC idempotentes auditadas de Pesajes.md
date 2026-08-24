@@ -2,6 +2,8 @@
 type: session-log
 project: Bimbo Honduras
 date: 2026-08-24
+branch: feat/fase8-MaquetadodeRoles
+autor_cambios: Codex (sesión gestionada por Emanuel)
 tags:
   - session
   - pesaje
@@ -98,6 +100,14 @@ La migración `supabase/migrations/202608240003_describir_estados_pesaje_en_bita
 - entrada: `Pesaje activo`, `Pesaje anulado`.
 
 Una prueba transaccional cubrió las tres familias y revirtió las bitácoras temporales sin residuos. Los IDs internos permanecen en las tablas como integridad referencial, pero ya no forman parte de `estado_anterior` ni `estado_actual` para estas transiciones.
+
+## Cierre de sesión — validación funcional informada por Emanuel
+
+Emanuel probó los cambios funcionales de la sesión en la aplicación y confirmó que funcionaron correctamente. Esta validación cubre la integración realizada de las RPC de Pesajes y el registro enriquecido del pesaje en Bitácora.
+
+Quedó pendiente una comprobación visual específica: ejecutar un cambio de estado y verificar en la grilla de Bitácora que la descripción muestre el significado de negocio (`Recepción abierta/cerrada/anulada`, `Producto abierto/cerrado/anulado` o `Pesaje activo/anulado`) en lugar del identificador interno. La transformación ya fue validada a nivel de base de datos mediante una transacción con rollback, pero la evidencia visual en la aplicación todavía no se ha obtenido. Se registró como [[Deuda Técnica - Pendientes|P-046]].
+
+No se revocaron permisos DML, no se modificaron políticas RLS y no se realizaron commit, push ni otras operaciones externas durante el cierre documental.
 
 ## Relaciones
 

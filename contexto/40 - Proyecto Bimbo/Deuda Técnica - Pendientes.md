@@ -874,6 +874,19 @@ Los tres pasos, no solo el primero: con el límite únicamente en la UI, cualqui
 
 ---
 
+### P-046 · Validar visualmente las descripciones de estado de Pesaje en Bitácora
+
+**Archivos:** `supabase/migrations/202608240003_describir_estados_pesaje_en_bitacora.sql`, `CapaUI/Formularios/Principal/Pantallas/Bitacora/`
+**Detectado en:** [[Sesión 2026-08-24 - RPC idempotentes auditadas de Pesajes]]
+
+La traducción en `private.bitacora_pesaje` fue desplegada y validada mediante una transacción con rollback para las tres familias: recepción, producto de recepción y entrada. Emanuel confirmó que los demás cambios funcionales de la sesión operan correctamente, pero quedó pendiente comprobar el resultado en la grilla real de Bitácora.
+
+La prueba manual debe ejecutar cambios de estado y confirmar que las columnas visibles muestran el significado de negocio —por ejemplo, `Recepción cerrada`, `Producto anulado` o `Pesaje anulado`— y nunca textos como `Estado 8`, `Estado 9` o variantes con el ID entre paréntesis.
+
+**Estado:** `[ ] Pendiente` — validación visual en la aplicación.
+
+---
+
 ## Historial de resolución
 
 | ID | Descripción | Estado | Sesión |
@@ -921,6 +934,8 @@ Los tres pasos, no solo el primero: con el límite únicamente en la UI, cualqui
 | P-042 | `PesajeModalStyles.xaml` duplica `ModalInput`/`ModalCombo`/`ModalSegBtn` sin foco ni validación por campo | `[ ]` Pendiente | [[Sesión 2026-08-19 - Selector de proveedor por tabla y consolidacion de estilos]] |
 | P-043 | `ModalInput`/`InputBox` globales: mismo bug de `VerticalAlignment` fijo que ya se corrigió en `MInput` | `[ ]` Pendiente | [[Sesión 2026-08-19 - Selector de proveedor por tabla y consolidacion de estilos]] |
 | P-044 | Multiselección de `SelectorCatalogoModal` no responde a teclado (Space no tilda el checkbox) | `[ ]` Pendiente | [[Sesión 2026-08-19 - Selector de proveedor por tabla y consolidacion de estilos]] |
+| P-045 | Campos de texto de Pesaje sin límites en UI, Dominio ni BD | `[ ]` Pendiente | [[Módulo Pesaje]] |
+| P-046 | Validación visual de descripciones de estado de Pesaje en Bitácora | `[ ]` Pendiente | [[Sesión 2026-08-24 - RPC idempotentes auditadas de Pesajes]] |
 
 ---
 

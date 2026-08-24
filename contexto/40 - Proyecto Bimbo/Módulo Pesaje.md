@@ -74,8 +74,8 @@ El reparto usa `PesajeCalc.RepartirTaraExtra`, que pone el residuo del redondeo 
 
 **El trigger NO usa `numero_bultos_recibido`** — verificado 2026-08-13. Por eso dejar de capturar bultos no altera el neto guardado: el único punto donde los bultos lo tocaban era el prorrateo que hacía la app, que ya no existe.
 
-> [!warning] Sin verificar: ¿el trigger cubre UPDATE?
-> `RepartirTaraExtraAsync` hace `UPDATE` de `peso_tara_extra` sobre entradas ya insertadas. No se pudo comprobar si el trigger está declarado `BEFORE INSERT` o `BEFORE INSERT OR UPDATE` (el MCP de Supabase de la sesión apuntaba a otro proyecto). Como mitigación, `PesajeRepository.ActualizarTaraExtraEntradaAsync` escribe también `peso_tara_total` y `peso_neto` calculados en el cliente con la misma fórmula: la fila queda consistente corra o no el trigger. Si esas columnas resultaran `GENERATED ALWAYS`, hay que poner la constante `EscribirDerivados = false`.
+> [!success] El trigger también cubre UPDATE (verificado 2026-08-24)
+> `trg_calcular_pesos_entrada` está declarado para `INSERT OR UPDATE`, por lo que vuelve a calcular las columnas derivadas cuando cambia `peso_tara_extra`. La duda histórica quedó cerrada durante [[Sesión 2026-08-24 - RPC idempotentes auditadas de Pesajes]].
 
 ---
 
@@ -201,6 +201,8 @@ Los modales de Pesaje comparten `Modales/PesajeModalStyles.xaml` (prefijo `M`): 
 
 - **Tara plana vs por bulto** (arriba) y **catálogo de taras con datos de prueba**.
 - `CapaDatos/Repositorios/productos_movimientos/RepositorioMovimiento.cs` y `RepositorioMovimientoProducto.cs` son una implementación **vieja y sin usar** (métodos estáticos, sin Result Pattern). `CapaUI` no los referencia. Candidatos a eliminar.
+- Las RPC idempotentes y auditadas están desplegadas. `movimientos` y el ingreso de `entradas_producto` ya se consumen desde `PesajeRepository`; falta migrar las demás escrituras directas. No se revocaron permisos DML ni se cambiaron políticas RLS porque ese endurecimiento se realizará al final del desarrollo.
+- La prueba funcional del flujo integrado fue aprobada por Emanuel el 2026-08-24. Queda pendiente confirmar visualmente en Bitácora que los cambios de estado muestran su significado (`Recepción cerrada`, `Pesaje anulado`, etc.) y nunca el identificador numérico; ver P-046.
 
 ## Relaciones
 
