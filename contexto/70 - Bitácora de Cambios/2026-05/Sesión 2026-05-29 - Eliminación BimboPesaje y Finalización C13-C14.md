@@ -1,13 +1,26 @@
 ---
-title: "Sesión 2026-05-29 — Eliminación BimboPesaje y Finalización C13–C14"
-date: 2026-05-29
+title: Sesión 2026-05-29 — Eliminación BimboPesaje y Finalización C13–C14
+type: sesion
+status: Completado
 tags:
   - bitácora
   - arquitectura
   - limpieza
   - c13
   - c14
-status: Completado
+date: 2026-05-29
+updated: 2026-05-29
+summary: "Continuación de la auditoría del 2026-05-29. Dos ítem del plan de remediación habían quedado pendientes en la sesión anterior:"
+scope:
+  - CapaDatos/Logo
+  - CapaDatos/Realtime
+symbols:
+  - GestorNotificaciones
+  - GestorRealtime
+  - OnStartup
+  - ProductosView
+  - Services
+  - ServicioLogo
 ---
 
 # Sesión 2026-05-29 — Eliminación BimboPesaje y Finalización C13–C14

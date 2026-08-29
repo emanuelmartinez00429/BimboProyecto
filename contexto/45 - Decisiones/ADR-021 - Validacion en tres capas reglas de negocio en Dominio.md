@@ -1,11 +1,30 @@
 ---
 title: "ADR-021 — Validación en tres capas: reglas de negocio en Dominio, validador en UI"
+type: adr
+status: vigente
 tags:
   - adr
   - validacion
   - wpf
   - arquitectura
 date: 2026-08-15
+updated: 2026-06-10
+summary: "No existía ninguna clase de validación en toda la solución. Cada BtnGuardarClick traía su propio bloque inline, y el resultado era el esperable:"
+scope:
+  - CapaDominio/Reglas
+  - CapaUI/Core/Validacion/ParseoNumerico
+  - CapaUI/Core/Validacion/ValidadorFormulario
+symbols:
+  - CampoModal
+  - ConfiguracionEmpresaViewModel
+  - EmpleadoModal
+  - ErroresRepositorio
+  - EsCorreo
+  - EsRtn
+  - EsTelefono
+  - FormatoCampo
+  - INotifyDataErrorInfo
+  - IValidacionService
 estado: aceptado
 ---
 

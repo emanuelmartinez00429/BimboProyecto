@@ -1,5 +1,7 @@
 ---
-title: "Sesión 2026-08-12 — Contadores TOTAL/ACTIVOS/INACTIVOS en Productos y Roles"
+title: Sesión 2026-08-12 — Contadores TOTAL/ACTIVOS/INACTIVOS en Productos y Roles
+type: sesion
+status: vigente
 tags:
   - sesion
   - bimbo
@@ -7,6 +9,22 @@ tags:
   - rbac
   - productos
 date: 2026-08-12
+updated: 2026-08-12
+summary: "Corregido el conteo TOTAL de Productos, que quedaba contaminado por el filtro de estado, y reconstruidas las pastillas TOTAL/ACTIVOS/INACTIVOS de Roles con el…"
+scope:
+  - CapaDatos/Repositories/Productos
+  - CapaUI/Formularios/Principal/Pantallas/Roles
+symbols:
+  - Activos
+  - CargarAsync
+  - CargarPaginaAsync
+  - CargarPaginaSilenciosamenteAsync
+  - ControlTemplate
+  - DataContext
+  - GetConteosRpcAsync
+  - GetPagedInternal
+  - HeaderedContentControl
+  - IdEstado
 branch: feat/fase8-MaquetadodeRoles
 autor_cambios: Claude
 ---

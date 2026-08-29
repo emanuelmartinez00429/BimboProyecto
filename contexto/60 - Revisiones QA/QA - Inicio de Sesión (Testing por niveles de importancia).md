@@ -1,5 +1,7 @@
-﻿---
-title: "QA — Inicio de Sesión (Testing por niveles de importancia)"
+---
+title: QA — Inicio de Sesión (Testing por niveles de importancia)
+type: qa
+status: vigente
 tags:
   - qa
   - revision
@@ -9,6 +11,19 @@ tags:
   - dominio
   - tests
 date: 2026-08-21
+updated: 2026-08-21
+summary: "Se creó una suite completa de 112 tests para el módulo de inicio de sesión, divididos en 4 niveles de prioridad (P0–P3). Se detectó un bug real en el medidor de…"
+scope:
+  - CapaDominio/Reglas
+symbols:
+  - CalcularScore
+  - CumpleTodasLasReglas
+  - EsDigitoOtp
+  - LongitudOtp
+  - OtpCompleto
+  - OtpValido
+  - ReglasContrasena
+  - ReglasLogin
 branch: feat/fase8-MaquetadodeRoles
 autor_cambios: Antigravity (agente QA) — Sesión Fernando
 revisor: Antigravity QA

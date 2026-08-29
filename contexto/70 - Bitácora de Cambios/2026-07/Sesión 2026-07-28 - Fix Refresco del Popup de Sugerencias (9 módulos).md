@@ -1,11 +1,28 @@
 ---
-title: "Sesión 2026-07-28 — Fix refresco del popup de sugerencias (9 módulos)"
+title: Sesión 2026-07-28 — Fix refresco del popup de sugerencias (9 módulos)
+type: sesion
+status: vigente
 tags:
   - sesion
   - buscador
   - mvvm
   - bugfix
 date: 2026-07-28
+updated: 2026-07-28
+summary: "El popup de SuggestionSearchBox ahora refleja siempre el texto actual del buscador. Antes, con el popup abierto, seguir escribiendo no actualizaba la lista:…"
+scope:
+  - CapaUI/Formularios/Principal/Pantallas
+symbols:
+  - CancellationTokenSource
+  - ContactosFabricantesView
+  - ContactosProveedoresView
+  - HighlightIndex
+  - ItemsControl
+  - ObservableCollection
+  - OnSuggestItemsChanged
+  - PropertyChanged
+  - RefrescarSugerenciasAsync
+  - SeleccionarSugerencia
 branch: fix/buscador-sugerencias
 autor_cambios: Claude (agente)
 ---

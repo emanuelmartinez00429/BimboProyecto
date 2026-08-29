@@ -36,7 +36,7 @@ process.stdin.on("end", () => {
     if (/^\s*yo\b/i.test(prompt) || /animal/i.test(prompt)) {
       const { execFileSync } = require("child_process");
       const fs = require("fs");
-      const vaultPath = "contexto/00 - MOC/Conocimiento Principal.md";
+      const vaultPath = "contexto/.control/handshake.md";
       let content;
       let source;
       try {

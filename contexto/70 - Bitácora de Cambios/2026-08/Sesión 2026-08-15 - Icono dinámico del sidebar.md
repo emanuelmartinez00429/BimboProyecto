@@ -1,7 +1,25 @@
 ---
-title: "Sesión 2026-08-15 - Icono dinámico del sidebar"
-tags: [sesion, configuracion, empresa, sidebar, storage]
+title: Sesión 2026-08-15 - Icono dinámico del sidebar
+type: sesion
+status: vigente
+tags:
+  - sesion
+  - configuracion
+  - empresa
+  - sidebar
+  - storage
 date: 2026-08-15
+updated: 2026-08-15
+summary: Reemplazar el bimbo-logo.png hardcodeado del menú por empresa.iconosidebar y permitir editarlo desde Configuración de Empresa.
+scope:
+  - CapaAplicacion4/Empresa
+  - CapaDatos/Modelados
+  - CapaDatos/Repositories/Empresa
+  - CapaUI/Core/Empresa
+symbols:
+  - IconoSidebar
+  - IconoSidebarCache
+  - MainWindow
 branch: feat/fase8-MaquetadodeRoles
 autor_cambios: Codex (sesión gestionada por Emanuel)
 ---

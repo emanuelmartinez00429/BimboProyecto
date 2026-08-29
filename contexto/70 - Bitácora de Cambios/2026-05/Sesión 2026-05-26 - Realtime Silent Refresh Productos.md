@@ -1,5 +1,7 @@
 ---
-title: "Sesión 2026-05-26 — Realtime Silent Refresh en ProductosViewModel"
+title: Sesión 2026-05-26 — Realtime Silent Refresh en ProductosViewModel
+type: sesion
+status: vigente
 tags:
   - sesion
   - realtime
@@ -7,6 +9,21 @@ tags:
   - productos
   - fix
 date: 2026-05-26
+updated: 2026-08-14
+summary: El spinner de carga ya no aparece para eventos Realtime. Los datos se actualizan silenciosamente en segundo plano. 0 errores de compilación.
+scope:
+  - CapaUI/Formularios/Principal/Pantallas/Productos
+symbols:
+  - CargarPaginaAsync
+  - CargarPaginaSilenciosamenteAsync
+  - ErrorCarga
+  - GetPagedAsync
+  - IsLoading
+  - ItemsControl
+  - OnCambioProducto
+  - OnVmPropertyChanged
+  - PageRows
+  - PaginacionPanel
 ---
 
 # Sesión 2026-05-26 — Realtime Silent Refresh en ProductosViewModel

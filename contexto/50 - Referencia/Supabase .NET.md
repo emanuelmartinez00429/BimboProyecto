@@ -1,9 +1,16 @@
 ---
 title: Supabase .NET SDK
+type: referencia
+status: vigente
 tags:
   - referencia
   - supabase
   - datos
+date: 2026-05-28
+updated: 2026-05-28
+summary: "// Igualdad query = query.Filter(\"idestado\", Op.Equals, \"1\");"
+scope: []
+symbols: []
 aliases:
   - Supabase
   - postgrest-csharp

@@ -1,11 +1,19 @@
 ---
-title: "Pendiente — Servicio Genérico de Validaciones y Pruebas de Caja Negra"
+title: Pendiente — Servicio Genérico de Validaciones y Pruebas de Caja Negra
+type: adr
+status: vigente
 tags:
   - pendiente
   - validaciones
   - testing
   - calidad
 date: 2026-06-10
+updated: 2026-08-15
+summary: "La parte de validación de formularios está implementada, con un diseño distinto al que se sugiere más abajo. Ver ADR-021 - Validacion en tres capas reglas de…"
+scope:
+  - CapaDominio/Reglas
+symbols:
+  - ValidacionResult
 estado: parcialmente-resuelto
 ---
 

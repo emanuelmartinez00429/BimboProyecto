@@ -1,7 +1,27 @@
 ---
-title: "Plan de Tests Unitarios"
-tags: [tests, calidad, plan, xunit]
+title: Plan de Tests Unitarios
+type: plan
+status: vigente
+tags:
+  - tests
+  - calidad
+  - plan
+  - xunit
 date: 2026-08-14
+updated: 2026-08-14
+summary: "Cubrir con tests unitarios la lógica de negocio, los contratos de aplicación y los ViewModels del portal, priorizando el riesgo de negocio (pesaje, permisos,…"
+scope: []
+symbols:
+  - AccionItemVm
+  - BitacoraViewModel
+  - BultosRecibidos
+  - BultosRestantes
+  - BultosSonAproximados
+  - BultosTeoricos
+  - CatalogoCache
+  - ClienteRepository
+  - ConexionSupabase
+  - DashboardVM
 ---
 
 # Plan de Tests Unitarios

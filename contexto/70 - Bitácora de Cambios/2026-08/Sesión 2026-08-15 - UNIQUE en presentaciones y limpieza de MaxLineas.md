@@ -1,5 +1,7 @@
 ---
-title: "Sesión 2026-08-15 — UNIQUE en presentaciones y limpieza de MaxLineas"
+title: Sesión 2026-08-15 — UNIQUE en presentaciones y limpieza de MaxLineas
+type: sesion
+status: vigente
 tags:
   - sesion
   - supabase
@@ -7,6 +9,19 @@ tags:
   - layout
   - deuda-tecnica
 date: 2026-08-15
+updated: 2026-08-15
+summary: "Migración aplicada (adduniquenombrepresentacion):"
+scope: []
+symbols:
+  - AnchoQueLograMaxLineas
+  - ArrangeOverride
+  - DependencyProperty
+  - List<Linea>
+  - MaxLineas
+  - MinWidth
+  - PanelFiltrosFluido
+  - RepartirEnLineas
+  - Result
 branch: feat/fase8-MaquetadodeRoles-B-Fernando
 autor_cambios: Fernando
 ---

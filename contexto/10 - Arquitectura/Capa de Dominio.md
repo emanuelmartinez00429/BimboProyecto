@@ -1,11 +1,29 @@
 ---
-title: Capa de Dominio — Qué es, qué contiene y cómo está en Bimbo
+title: "Capa de Dominio — Qué es, qué contiene y cómo está en Bimbo"
+type: arquitectura
+status: vigente
 tags:
   - arquitectura
   - clean-architecture
   - dominio
   - ddd
   - dotnet
+date: 2026-05-23
+updated: 2026-05-23
+summary: "La capa de Dominio es el corazón del software. Representa los conceptos del negocio, la información sobre la situación del negocio y las reglas del negocio. No…"
+scope:
+  - CapaDominio/Entities
+symbols:
+  - BaseEntity
+  - Email
+  - Empleado
+  - GestorRealtime
+  - HttpClient
+  - IRepository
+  - IRepository<T>
+  - IServiceCollection
+  - MovimientoRegistradoEvent
+  - PedidoConfirmadoIntegrationEvent
 aliases:
   - Domain Layer
   - CapaDominio

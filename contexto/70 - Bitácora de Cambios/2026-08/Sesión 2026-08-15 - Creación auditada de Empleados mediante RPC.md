@@ -1,5 +1,7 @@
 ---
-title: "Sesión 2026-08-15 — Creación auditada de Empleados mediante RPC"
+title: Sesión 2026-08-15 — Creación auditada de Empleados mediante RPC
+type: sesion
+status: vigente
 tags:
   - sesion
   - empleados
@@ -7,6 +9,19 @@ tags:
   - rpc
   - bitacora
 date: 2026-08-15
+updated: 2026-08-15
+summary: "La creación de empleados dejó de ejecutar un INSERT directo desde C# y ahora usa ingresarempleadotablabitacora, que crea el empleado y su auditoría en una sola…"
+scope:
+  - CapaDatos/Repositories/Empleados
+symbols:
+  - CambiarEstadoAsync
+  - CreateAsync
+  - EmpleadoDto
+  - EmpleadoModal
+  - IEmpleadoRepository
+  - IUsuarioSesionService
+  - Result<int>
+  - UpdateAsync
 branch: feat/fase8-MaquetadodeRoles
 autor_cambios: Codex (sesión gestionada por Emanuel)
 ---

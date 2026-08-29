@@ -1,7 +1,20 @@
 ---
-title: "ADR-007 - Servicio de Sesion Singleton vs SesionActual Estatico"
-tags: [adr, decision, bimbo, gestion-usuarios, sesion]
+title: ADR-007 - Servicio de Sesion Singleton vs SesionActual Estatico
+type: adr
+status: vigente
+tags:
+  - adr
+  - decision
+  - bimbo
+  - gestion-usuarios
+  - sesion
 date: 2026-07-23
+updated: 2026-07-23
+summary: "Crear IUsuarioSesionService como Singleton con: SesionActual (read-only), IniciarSesionAsync(idUsuario), CerrarSesion(), TienePermiso(nombreAccion)."
+scope: []
+symbols:
+  - IUsuarioSesionService
+  - SesionActual
 estado: aceptado
 ---
 

@@ -1,5 +1,7 @@
 ---
 title: "Sesión 2026-08-13 — Instalación de Diagram Design, Diagrama CapaUI, Corrección Alineación Tara, Fix de Filtros ComboBox y Tamaño de Letra en Modales"
+type: sesion
+status: vigente
 tags:
   - sesion
   - diagramas
@@ -10,6 +12,25 @@ tags:
   - modales
   - antigravity
 date: 2026-08-13
+updated: 2026-08-13
+summary: "Se instaló la habilidad diagram-design con regla de disparo automático, se generó el diagrama arquitectónico de CapaUI, se corrigió la alineación vertical de la…"
+scope:
+  - BimboPesaje/Logs
+  - CapaUI/Core/Controls
+  - CapaUI/Formularios/Principal/Pantallas/Fabricantes
+  - CapaUI/Formularios/Principal/Pantallas/Productos
+  - CapaUI/Resources
+symbols:
+  - CaretIndex
+  - CmbFabricante
+  - CmbPais
+  - CmbProveedor
+  - CmbUnidad
+  - ComboBox
+  - ComboFiltro
+  - DataGridTemplateColumn
+  - DataGridTextColumn
+  - DataTemplate
 autor_cambios: Antigravity (Gemini 3.6 Flash / Gemini 3.7 Flash)
 ---
 

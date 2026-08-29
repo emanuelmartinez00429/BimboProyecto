@@ -1,7 +1,30 @@
 ---
-tags: [bitácora, análisis, decisión-técnica, manejo-errores]
-fecha: 2026-05-21
+title: "Sesión 2026-05-21 — Análisis Segunda Opinión: RepositorioBase + TryAsync"
+type: sesion
+status: vigente
+tags:
+  - bitácora
+  - análisis
+  - decisión-técnica
+  - manejo-errores
+date: 2026-05-21
+updated: 2026-05-21
+summary: "La afirmación técnica es falsa. En C#, los miembros protected static de una clase base sí son accesibles desde métodos static de clases derivadas. Esto compila y…"
+scope:
+  - CapaDatos/Repositorios
+symbols:
+  - BuscarSugerenciasAsync
+  - GetFabricantesAsync
+  - GetPagedAsync
+  - GetPaisesAsync
+  - IProductoRepository
+  - List<T>
+  - OperationCanceledException
+  - RepositorioBase
+  - Result<T>
+  - SupabaseRepository
 estado: documentado
+fecha: 2026-05-21
 ---
 
 # Sesión 2026-05-21 — Análisis Segunda Opinión: RepositorioBase + TryAsync

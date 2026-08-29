@@ -1,7 +1,24 @@
 ---
-title: "Módulo Configuración de Empresa"
-tags: [bimbo, modulo, configuracion, empresa, tema, storage]
+title: Módulo Configuración de Empresa
+type: modulo
+status: vigente
+tags:
+  - bimbo
+  - modulo
+  - configuracion
+  - empresa
+  - tema
+  - storage
 date: 2026-08-14
+updated: 2026-08-15
+summary: "Administra la única fila de public.empresa desde el engranaje de la barra superior. La pantalla permite editar los datos generales, reemplazar el logo…"
+scope: []
+symbols:
+  - DynamicResource
+  - EmpresaRepository
+  - EmpresaThemeService
+  - Result
+  - TryAsync
 ---
 
 # Módulo Configuración de Empresa

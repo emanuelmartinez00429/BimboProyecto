@@ -1,11 +1,22 @@
 ---
-title: "Sesión 2026-07-26 — Revisión QA Centralización Estilos Modales (opencode)"
+title: Sesión 2026-07-26 — Revisión QA Centralización Estilos Modales (opencode)
+type: sesion
+status: vigente
 tags:
   - sesion
   - qa
   - revision
   - estilos
 date: 2026-07-26
+updated: 2026-07-26
+summary: "Revisión del commit e059c68 opencode fixes en UI, que centraliza ModalInput/ModalCombo en CapaUI/Resources/Styles.xaml eliminando 9 definiciones locales…"
+scope:
+  - CapaUI/Resources
+symbols:
+  - FontSize
+  - ModalCombo
+  - ModalInput
+  - StaticResource
 branch: feat/fase7-GestióndeUsuarios
 autor_cambios: opencode (gentle-orchestrator)
 revisor: Claude Sonnet 5

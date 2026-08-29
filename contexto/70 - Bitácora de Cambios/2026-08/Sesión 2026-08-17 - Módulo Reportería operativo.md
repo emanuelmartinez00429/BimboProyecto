@@ -1,7 +1,24 @@
 ---
-title: "Sesión 2026-08-17 — Módulo Reportería operativo"
-tags: [sesion, reportes, pdf, excel, supabase]
+title: Sesión 2026-08-17 — Módulo Reportería operativo
+type: sesion
+status: vigente
+tags:
+  - sesion
+  - reportes
+  - pdf
+  - excel
+  - supabase
 date: 2026-08-17
+updated: 2026-08-17
+summary: "Implementar la especificación nueva de reportes y agregar un cuarto reporte de prueba para los primeros 10 productos, con menú 2×2 y subformularios alineados al…"
+scope: []
+symbols:
+  - ExcelReportStrategy
+  - IReporteConsultaRepository
+  - PdfReportStrategy
+  - ReporteriaView
+  - ReporteriaViewModel
+  - TabularReportDto
 branch: feat/fase8-MaquetadodeRoles
 autor_cambios: Codex (sesión gestionada por Emanuel)
 ---

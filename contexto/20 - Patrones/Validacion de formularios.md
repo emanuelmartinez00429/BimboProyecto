@@ -1,11 +1,30 @@
 ---
-title: "Validación de formularios"
+title: Validación de formularios
+type: patron
+status: vigente
 tags:
   - patron
   - validacion
   - wpf
   - modales
 date: 2026-08-15
+updated: 2026-08-15
+summary: "Las reglas de negocio viven en CapaDominio/Reglas/; la presentación del error, en CapaUI/Core/Validacion/. Un modal no escribe sus propios if de validación, ni…"
+scope:
+  - CapaDominio/Reglas
+  - CapaDominio/Reglas/ReglasFormato
+  - CapaUI/Core/Validacion
+symbols:
+  - CampoModal
+  - ConfiguracionEmpresaViewModel
+  - ConfirmacionEstado
+  - Error
+  - ErroresRepositorio
+  - EsCorreo
+  - EsRtn
+  - EsTelefono
+  - FormatoCampo
+  - MessageBox
 lifecycle: verified
 ---
 

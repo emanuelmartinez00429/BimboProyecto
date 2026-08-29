@@ -1,10 +1,32 @@
 ---
 title: Módulo Pesaje (Recepción de Materia Prima)
+type: modulo
+status: vigente
 tags:
   - modulo
   - pesaje
   - movimientos
 date: 2026-08-13
+updated: 2026-08-21
+summary: "Registro de la descarga de camiones de materia prima: qué trae cada camión según el manifiesto, y cuánto pesa realmente en la báscula."
+scope:
+  - CapaAplicacion4/Pesaje
+  - CapaDatos/Modelados/Pesajes
+  - CapaDatos/Repositories/Pesaje
+  - CapaDatos/Repositorios/productos_movimientos
+  - CapaUI/Core/Controls/SelectorCatalogoModal
+  - CapaUI/Resources
+symbols:
+  - ActualizarCamionAsync
+  - CloseBtn
+  - EntradaDto
+  - GhostBtn
+  - MCombo
+  - MIcoX
+  - MInput
+  - MLabel
+  - MSegBtn
+  - MaxHeight
 ---
 
 # Módulo Pesaje — Recepción de Materia Prima

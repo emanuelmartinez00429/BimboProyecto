@@ -1,7 +1,34 @@
 ---
-title: "Módulo Usuarios"
-tags: [bimbo, modulo, gestion-usuarios, auth, permisos]
+title: Módulo Usuarios
+type: modulo
+status: vigente
+tags:
+  - bimbo
+  - modulo
+  - gestion-usuarios
+  - auth
+  - permisos
 date: 2026-07-26
+updated: 2026-08-15
+summary: "Los cuatro modelos RBAC reflejan las tablas acciones, accionesroles, modulos y roles. Incluyen sus columnas de auditoría createdat/updatedat cuando corresponden.…"
+scope:
+  - CapaAplicacion/Usuarios/DTOs
+  - CapaAplicacion/Usuarios/Interfaces
+  - CapaDatos/Modelados/Usuarios
+  - CapaDatos/Repositories/Usuarios
+  - CapaDatos/Services
+  - CapaDominio/Entities
+symbols:
+  - ActualizarUltimoAccesoAsync
+  - CanExecute
+  - EditarCommand
+  - HashSet
+  - HashSet<string>
+  - IUsuarioSesionService
+  - PermisoBehavior
+  - PermisoCatalogo
+  - UsuarioRepository
+  - UsuariosViewModel
 ---
 
 # Módulo Usuarios

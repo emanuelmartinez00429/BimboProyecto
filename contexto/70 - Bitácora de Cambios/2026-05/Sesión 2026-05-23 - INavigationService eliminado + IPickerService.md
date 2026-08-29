@@ -1,5 +1,7 @@
 ---
-title: "Sesión 2026-05-23 — INavigationService eliminado + IPickerService creado"
+title: Sesión 2026-05-23 — INavigationService eliminado + IPickerService creado
+type: sesion
+status: vigente
 tags:
   - bitacora
   - arquitectura
@@ -7,6 +9,18 @@ tags:
   - picker
   - refactor
 date: 2026-05-23
+updated: 2026-05-23
+summary: "El caso de uso real identificado fue el picker/lookup modal: abrir un buscador de otra entidad desde un formulario de edición y retornar el registro…"
+scope:
+  - CapaUI/Services
+  - CapaUI/Services/Navigation
+  - CapaUI/Services/Picker
+  - CapaUI/Services/Picker/Views
+symbols:
+  - INavigationService
+  - IPickerService
+  - MainViewModel
+  - ResultSelected
 ---
 
 # Sesión 2026-05-23 — INavigationService eliminado + IPickerService creado

@@ -1,11 +1,30 @@
 ---
 title: Plan de Seguridad — Roadmap hacia 10/10
-date: 2026-05-23
+type: plan
+status: en-progreso
 tags:
   - seguridad
   - plan
   - bimbo
-status: en-progreso
+date: 2026-05-23
+updated: 2026-07-26
+summary: "Mejoras de postura de seguridad tras un review con 0 vulnerabilidades confirmadas: pasar de segura a auditablemente segura, por impacto/esfuerzo."
+summary_fijo: true
+scope:
+  - CapaDatos/Logo
+  - CapaUI/Formularios/Principal
+  - ServicioConexión/Conexion
+symbols:
+  - AuthService
+  - ForgotCodePanel
+  - ForgotNewPanel
+  - IAuditoriaService
+  - MainWindow
+  - OnExit
+  - Serilog
+  - SesionPermisos
+  - Settings
+  - SignOut
 ---
 
 # Plan de Seguridad — Roadmap hacia 10/10

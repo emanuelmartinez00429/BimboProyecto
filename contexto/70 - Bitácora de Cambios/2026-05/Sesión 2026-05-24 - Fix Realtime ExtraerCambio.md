@@ -1,11 +1,21 @@
 ---
 title: "Sesión 2026-05-24 — Fix Realtime: ExtraerCambio accedía al nivel equivocado"
+type: sesion
+status: vigente
 tags:
   - sesion
   - bugfix
   - realtime
   - supabase
 date: 2026-05-24
+updated: 2026-05-24
+summary: "Al buscar obj.Value<long?>(\"idproducto\") → null (no existe a ese nivel). Al buscar obj.Value<int?>(\"idestado\") → null (no existe a ese nivel)."
+scope:
+  - CapaDatos/Realtime
+symbols:
+  - ExtraerCambio
+  - RealtimeService
+  - SocketResponsePayload
 ---
 
 # Fix Realtime — ExtraerCambio accedía al nivel equivocado del payload

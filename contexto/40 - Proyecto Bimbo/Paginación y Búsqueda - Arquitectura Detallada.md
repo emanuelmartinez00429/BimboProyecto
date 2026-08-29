@@ -1,5 +1,7 @@
 ---
-title: "Paginación y Búsqueda — Arquitectura Detallada"
+title: Paginación y Búsqueda — Arquitectura Detallada
+type: estado
+status: vigente
 tags:
   - patron
   - paginacion
@@ -7,6 +9,22 @@ tags:
   - realtime
   - arquitectura
 date: 2026-05-26
+updated: 2026-08-14
+summary: "Cómo funcionan la paginación server-side, la búsqueda con sugerencias y su integración con Realtime. Productos es la plantilla de referencia."
+summary_fijo: true
+scope:
+  - CapaAplicacion4/Productos/Queries
+symbols:
+  - CanExecute
+  - CargarPaginaAsync
+  - CargarPaginaSilenciosamenteAsync
+  - Command
+  - Desuscribir
+  - GetPagedAsync
+  - GetPaginaDeProductoAsync
+  - HaySeleccionado
+  - IdRegistro
+  - ItemsControl
 ---
 
 # Paginación y Búsqueda — Arquitectura Detallada

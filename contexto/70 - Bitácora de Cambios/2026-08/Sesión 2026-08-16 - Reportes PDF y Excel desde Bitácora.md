@@ -1,10 +1,21 @@
 ---
-title: "Sesión 2026-08-16 — Reportes PDF y Excel desde Bitácora"
+title: Sesión 2026-08-16 — Reportes PDF y Excel desde Bitácora
+type: sesion
+status: vigente
 tags:
   - sesion
   - bitacora
   - reportes
 date: 2026-08-16
+updated: 2026-08-16
+summary: "La pantalla de Bitácora permite seleccionar filas de la página actual, elegir PDF o Excel y obtener un reporte con los datos seleccionados y la identidad…"
+scope:
+  - CapaAplicacion4/Reportes
+  - CapaDatos/Reportes
+  - CapaDatos/Repositories/Reportes
+symbols:
+  - PerfilUsuario
+  - UsuarioSesion
 branch: feat/fase8-MaquetadodeRoles
 autor_cambios: Codex (sesión gestionada por Emanuel)
 ---

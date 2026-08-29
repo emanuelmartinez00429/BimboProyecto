@@ -1,42 +1,46 @@
-# Cómo registrar deuda técnica (NO es un archivo suelto)
+---
+title: "Plantilla — ítem de deuda técnica"
+type: plantilla
+status: vigente
+tags:
+  - plantilla
+date: AAAA-MM-DD
+updated: AAAA-MM-DD
+summary: "Formato de un ítem P-NNN. La deuda no son archivos sueltos: va dentro de Deuda Técnica - Pendientes."
+scope: []
+symbols: []
+---
 
-La deuda técnica se agrega como un ítem **dentro** de
-`40 - Proyecto Bimbo/Deuda Técnica - Pendientes.md`, no como archivo nuevo.
+# Plantilla — ítem de deuda técnica
 
-## Pasos
-
-1. Elegí el siguiente número `P-NNN` libre (mirá el último usado en el documento).
-2. Insertá el ítem en la sección de severidad correcta:
-   - 🔴 **Críticos** — se propagan en cascada o afectan datos/seguridad.
-   - 🟡 **Importantes** — no bloquean pero generan deuda.
-   - 🟢 **Menores** — aceptables por ahora.
-3. Agregá una fila a la **tabla de historial** al final del documento.
-
-## Formato del ítem (copiar dentro del documento)
+> [!warning] Esto NO es una nota suelta
+> Copiá el bloque de abajo **dentro** de [[Deuda Técnica - Pendientes]], en la sección de severidad que
+> corresponda, y agregá su fila en la tabla de historial al final. Un `P-NNN` por agente, sin reservar rangos.
 
 ```markdown
-### P-NNN · Título corto del problema
+### P-NNN · 🔴|🟡|🟢 Título corto del problema
 
-**Archivo:** `CapaX/ruta/Archivo.cs` — método/función
-**Introducido en:** commit `xxxxxxx` (autor, fecha), o "preexistente". Ver [[Sesión …]].
+**Detectado en:** [[Sesión AAAA-MM-DD - …]]
+**Archivo:** `CapaX/ruta/Archivo.cs`
 
-Descripción de qué está mal y por qué.
+Qué está mal y por qué importa. Si hay código, mostralo — antes y después.
 
-**Riesgo:** Qué puede fallar y con qué severidad.
+**Solución de fondo:** qué habría que hacer, no un parche.
 
-**Solución:** Qué se propone hacer.
+**Riesgo:** alto | medio | bajo — y qué pasa si no se arregla.
 
 **Estado:** `[ ] Pendiente`
 ```
 
-## Fila de historial (al final del documento)
+Fila para la tabla de historial:
 
 ```markdown
-| P-NNN | Descripción corta | `[ ]` Pendiente | [[Sesión origen]] |
+| P-NNN | Descripción corta | `[ ]` Pendiente | [[Sesión AAAA-MM-DD - …]] |
 ```
 
-## Al resolverla
+---
 
-- Tachá el título: `### ~~P-NNN · Título~~ ✅ Resuelto AAAA-MM-DD`
-- Cambiá **Estado** a `[x] Resuelto` con nota de verificación.
-- Actualizá la fila de historial a `✅ Resuelto`.
+## Relaciones
+
+- [[Deuda Técnica - Pendientes]]
+- [[AGENTS]]

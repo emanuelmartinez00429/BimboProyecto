@@ -1,7 +1,19 @@
 ---
-title: "Sesión 2026-07-26 - Migración ADRs de Vault y Creación Módulo Usuarios"
-tags: [sesion, bimbo, gestion-usuarios, adr, migracion]
+title: Sesión 2026-07-26 - Migración ADRs de Vault y Creación Módulo Usuarios
+type: sesion
+status: vigente
+tags:
+  - sesion
+  - bimbo
+  - gestion-usuarios
+  - adr
+  - migracion
 date: 2026-07-26
+updated: 2026-07-26
+summary: "Se migraron 7 Architecture Decision Records (ADRs) del vault personal (BimboPesaje/Decisiones/) al repo compartido (contexto/45 - Decisiones/), y se documentó el…"
+scope:
+  - BimboPesaje/Decisiones
+symbols: []
 branch: main
 autor_cambios: Codex (sesión gestionada por Emanuel)
 ---

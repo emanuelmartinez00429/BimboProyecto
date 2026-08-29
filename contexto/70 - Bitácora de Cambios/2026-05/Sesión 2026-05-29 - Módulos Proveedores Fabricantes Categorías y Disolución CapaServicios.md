@@ -1,11 +1,26 @@
 ---
 title: "Sesión 2026-05-29 — Módulos Proveedores, Fabricantes, Categorías y Disolución CapaServicios"
+type: sesion
+status: vigente
 tags:
   - bitácora
   - módulos
   - refactor
   - arquitectura
 date: 2026-05-29
+updated: 2026-05-29
+summary: "Implementación completa de 3 nuevos módulos CRUD (Proveedores, Fabricantes, Categorías) siguiendo el mismo patrón que Productos. Disolución del proyecto…"
+scope:
+  - CapaAplicacion/Xxx
+  - CapaDatos/Realtime
+  - CapaDatos/Repositories/Fabricantes
+  - CapaDatos/Repositories/Proveedores
+  - CapaDatos/Repositories/Xxx
+  - CapaUI/Formularios/Principal/Pantallas/Xxx
+symbols:
+  - EstadoRegistro
+  - Proveedores
+  - SalirSolicitado
 ---
 
 # Sesión 2026-05-29 — Módulos Proveedores, Fabricantes, Categorías y Disolución CapaServicios

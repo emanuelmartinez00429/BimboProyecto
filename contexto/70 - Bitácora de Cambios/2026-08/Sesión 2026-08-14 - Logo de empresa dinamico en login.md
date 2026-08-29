@@ -1,11 +1,22 @@
 ---
-title: "Sesión 2026-08-14 — Logo de empresa dinámico en el login"
+title: Sesión 2026-08-14 — Logo de empresa dinámico en el login
+type: sesion
+status: vigente
 tags:
   - sesion
   - login
   - storage
   - cache
 date: 2026-08-14
+updated: 2026-08-14
+summary: "El login ya no muestra un logo fijo empacado en el .exe: lee empresa.logoempresa, lo baja del bucket público empresa-logos la primera vez y lo cachea localmente.…"
+scope:
+  - CapaDatos/Repositorios
+  - CapaUI/Core/Empresa
+  - CapaUI/Formularios/InicioSesion
+symbols:
+  - ActualizarLogoAsync
+  - Task<string>
 branch: feat/fase8-MaquetadodeRoles
 autor_cambios: Claude Sonnet 5 (Claude Code)
 ---

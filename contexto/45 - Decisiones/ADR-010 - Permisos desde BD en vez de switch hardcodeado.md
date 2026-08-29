@@ -1,7 +1,20 @@
 ---
-title: "ADR-010 - Permisos desde BD en vez de switch hardcodeado"
-tags: [adr, decision, bimbo, gestion-usuarios, permisos]
+title: ADR-010 - Permisos desde BD en vez de switch hardcodeado
+type: adr
+status: vigente
+tags:
+  - adr
+  - decision
+  - bimbo
+  - gestion-usuarios
+  - permisos
 date: 2026-07-23
+updated: 2026-07-23
+summary: "Los permisos estaban hardcodeados en un switch (idRol) con 3 cases fijos: Admin=1, Operador=2, Observador=3. Agregar un nuevo rol o permiso requería tocar código…"
+scope: []
+symbols:
+  - HashSet<string>
+  - ModuloPermisos
 estado: aceptado
 ---
 

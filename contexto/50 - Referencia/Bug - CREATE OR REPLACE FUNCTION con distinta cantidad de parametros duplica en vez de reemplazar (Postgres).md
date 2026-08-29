@@ -1,5 +1,7 @@
 ---
-title: "Bug — CREATE OR REPLACE FUNCTION con distinta cantidad de parámetros duplica en vez de reemplazar (Postgres)"
+title: Bug — CREATE OR REPLACE FUNCTION con distinta cantidad de parámetros duplica en vez de reemplazar (Postgres)
+type: referencia
+status: vigente
 tags:
   - bug
   - postgres
@@ -7,6 +9,15 @@ tags:
   - referencia
   - trampa
 date: 2026-08-14
+updated: 2026-08-14
+summary: Compila sin error. La migración se aplica sin error. Y sin embargo rompe la app en producción.
+scope:
+  - CapaDatos/Repositories/Productos
+symbols:
+  - GetConteosRpcAsync
+  - GetPagedAsync
+  - GetPagedInternal
+  - TryAsync
 ---
 
 # Bug — `CREATE OR REPLACE FUNCTION` con distinta cantidad de parámetros crea una sobrecarga nueva, no reemplaza

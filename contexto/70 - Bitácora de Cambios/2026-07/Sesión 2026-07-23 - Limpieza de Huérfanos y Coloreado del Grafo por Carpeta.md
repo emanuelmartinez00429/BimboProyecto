@@ -1,11 +1,17 @@
 ---
-title: "Sesión 2026-07-23 — Limpieza de Huérfanos y Coloreado del Grafo por Carpeta"
+title: Sesión 2026-07-23 — Limpieza de Huérfanos y Coloreado del Grafo por Carpeta
+type: sesion
+status: vigente
 tags:
   - sesion
   - mantenimiento
   - obsidian
   - grafo
 date: 2026-07-23
+updated: 2026-07-23
+summary: "Escaneada la bóveda completa (87 notas) buscando archivos sin enlaces entrantes y mal ubicados. Conectados los 2 huérfanos reales, eliminado 1 duplicado vacío, y…"
+scope: []
+symbols: []
 autor_cambios: Claude
 ---
 

@@ -1,5 +1,7 @@
 ---
-title: "Sesión 2026-08-11 — Rediseño de Gestión de Roles"
+title: Sesión 2026-08-11 — Rediseño de Gestión de Roles
+type: sesion
+status: vigente
 tags:
   - sesion
   - bimbo
@@ -7,6 +9,25 @@ tags:
   - wpf
   - rendimiento
 date: 2026-08-11
+updated: 2026-08-11
+summary: "La pantalla de Roles pasó de tardar ~3 s en blanco a cargar de una, y se rehízo por completo siguiendo un mockup externo. Quedaron un panel de layout…"
+scope:
+  - CapaAplicacion4/Usuarios/Dtos
+  - CapaAplicacion4/Usuarios/Interfaces
+  - CapaDatos/Repositories/Usuarios
+  - CapaUI/Converters
+  - CapaUI/Core/Controls
+symbols:
+  - AccionItemVm
+  - AffectsMeasure
+  - BitacoraView
+  - Brush
+  - CancellationTokenSource
+  - CargarCatalogoAsync
+  - CategoriasView
+  - CheckBox
+  - DataContext
+  - DataTrigger
 branch: feat/fase8-MaquetadodeRoles
 autor_cambios: Codex (sesión gestionada por Emanuel)
 ---

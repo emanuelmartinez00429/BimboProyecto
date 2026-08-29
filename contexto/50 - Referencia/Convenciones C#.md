@@ -1,9 +1,27 @@
 ---
-title: Convenciones C# — Bimbo
+title: "Convenciones C# — Bimbo"
+type: referencia
+status: vigente
 tags:
   - referencia
   - convenciones
   - dotnet
+date: 2026-07-26
+updated: 2026-07-26
+summary: // 2. Estado privado (no observable) private int page = 1;
+scope:
+  - CapaUI/Resources
+symbols:
+  - Async
+  - FabricanteIdFiltro
+  - Filtros
+  - GetPagedAsync
+  - IProductoRepository
+  - MergedDictionaries
+  - ModalSegBtn
+  - Paged
+  - PagedResult<T>
+  - ProductoCrudRepository
 ---
 
 # Convenciones C# — Bimbo

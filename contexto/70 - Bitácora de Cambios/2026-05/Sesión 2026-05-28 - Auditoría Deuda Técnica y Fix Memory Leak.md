@@ -1,13 +1,30 @@
 ---
-title: "Sesión 2026-05-28 — Auditoría Deuda Técnica y Fix Memory Leak"
+title: Sesión 2026-05-28 — Auditoría Deuda Técnica y Fix Memory Leak
+type: sesion
+status: vigente
 tags:
   - bitácora
   - deuda-técnica
   - memory-leak
   - wpf
   - fix
-fecha: 2026-05-28
+date: 2026-05-28
+updated: 2026-05-28
+summary: Sesión de auditoría y corrección. Se verificó en código el estado real de los ítems de deuda técnica P-001 a P-008 (todos ya estaban resueltos pero el dashboard…
+scope: []
+symbols:
+  - Action<CambioRealtime>
+  - BuscarSugerenciasInternal
+  - DockPanel
+  - FrmMenuPrincipal
+  - GetConteosAsync
+  - GetPagedInternal
+  - IDisposable
+  - IRealtimeService
+  - Loaded
+  - MainViewModel
 estado: Completado
+fecha: 2026-05-28
 ---
 
 # Sesión 2026-05-28 — Auditoría Deuda Técnica y Fix Memory Leak

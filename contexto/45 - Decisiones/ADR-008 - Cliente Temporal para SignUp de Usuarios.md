@@ -1,7 +1,19 @@
 ---
-title: "ADR-008 - Cliente Temporal para SignUp de Usuarios"
-tags: [adr, decision, bimbo, gestion-usuarios, auth, supabase]
+title: ADR-008 - Cliente Temporal para SignUp de Usuarios
+type: adr
+status: vigente
+tags:
+  - adr
+  - decision
+  - bimbo
+  - gestion-usuarios
+  - auth
+  - supabase
 date: 2026-07-23
+updated: 2026-07-23
+summary: "El SDK de Supabase mantiene una sola sesión por instancia de Supabase.Client. Cuando el admin crea un usuario, el SignUp() sobreescribe la sesión del admin en el…"
+scope: []
+symbols: []
 estado: aceptado
 ---
 

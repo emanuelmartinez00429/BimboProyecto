@@ -1,11 +1,27 @@
 ---
 title: "Sesión 2026-08-13 — Pesaje: solo peso bruto y tara extra pesada"
+type: sesion
+status: vigente
 tags:
   - sesion
   - bimbo
   - pesaje
   - wpf
 date: 2026-08-13
+updated: 2026-08-13
+summary: "El modal de pesaje pasó a capturar un solo dato: el peso bruto. Los bultos ahora se estiman desde el peso, y la tara extra dejó de pedirse por adelantado en el…"
+scope: []
+symbols:
+  - Abierto
+  - ActualizarCamionAsync
+  - ActualizarTaraExtraEntradaAsync
+  - BtnVerCerrados
+  - Bultos
+  - BultosAproximados
+  - BultosCapturados
+  - BultosDeclaradosTotal
+  - BultosEstimados
+  - BultosRestantes
 branch: feat/fase8-MaquetadodeRoles
 autor_cambios: Claude
 ---

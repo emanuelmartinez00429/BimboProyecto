@@ -1,11 +1,29 @@
 ---
-title: "Sesión 2026-08-15 — Módulo CRUD de Presentaciones"
+title: Sesión 2026-08-15 — Módulo CRUD de Presentaciones
+type: sesion
+status: vigente
 tags:
   - sesion
   - presentaciones
   - crud
   - catalogo
 date: 2026-08-15
+updated: 2026-08-15
+summary: "presentacionproducto dejó de ser un catálogo de solo lectura: ahora tiene pantalla propia con grilla, buscador, filtros de estado y orden, y modal de…"
+scope:
+  - CapaAplicacion4/Presentaciones
+  - CapaUI/Formularios/Principal/Pantallas/Presentaciones
+symbols:
+  - AddTransient
+  - AnchoMinimoAVisibilidad
+  - Arrange
+  - AtajoGuardar
+  - CargarPaginaSilenciosamenteAsync
+  - CategoriaCrudRepository
+  - CategoriaModal
+  - CategoriasViewModel
+  - CreatedAt
+  - DataTemplate
 branch: feat/fase8-MaquetadodeRoles-B-Fernando
 autor_cambios: Osmany (Claude Code)
 ---

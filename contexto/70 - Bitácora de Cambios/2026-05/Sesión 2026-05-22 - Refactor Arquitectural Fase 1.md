@@ -1,11 +1,30 @@
 ---
-title: "Sesión 2026-05-22 — Refactor Arquitectural Fase 1"
+title: Sesión 2026-05-22 — Refactor Arquitectural Fase 1
+type: sesion
+status: vigente
 tags:
   - bitacora
   - arquitectura
   - clean-architecture
   - refactor
 date: 2026-05-22
+updated: 2026-05-22
+summary: "Tres archivos causaban esta dependencia ilegal: GestorRealtime, ServicioLogo, ServicioPerfilUsuario."
+scope:
+  - CapaDatos/Logo
+  - CapaDatos/Realtime
+  - CapaDominio/Notificaciones
+symbols:
+  - GestorNotificaciones
+  - GestorRealtime
+  - IPerfilUsuarioService
+  - LoginWindow
+  - MainViewModel
+  - MainWindow
+  - Notificacion
+  - RepositorioUsuario
+  - ServicioLogo
+  - ServicioNotificaciones
 ---
 
 # Sesión 2026-05-22 — Refactor Arquitectural Fase 1

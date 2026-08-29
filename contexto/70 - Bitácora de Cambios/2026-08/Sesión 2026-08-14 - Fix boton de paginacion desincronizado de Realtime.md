@@ -1,11 +1,33 @@
 ---
 title: "Sesión 2026-08-14 — Fix: botones de paginación desincronizados de Realtime"
+type: sesion
+status: vigente
 tags:
   - sesion
   - realtime
   - paginacion
   - bugfix
 date: 2026-08-14
+updated: 2026-08-14
+summary: "Los botones numerados de paginación (Productos, Categorías, Fabricantes, Proveedores, ContactosFabricantes, ContactosProveedores) ahora se reconstruyen también…"
+scope:
+  - CapaUI/Formularios/Principal/Pantallas/Categorias
+  - CapaUI/Formularios/Principal/Pantallas/ContactosFabricantes
+  - CapaUI/Formularios/Principal/Pantallas/ContactosProveedores
+  - CapaUI/Formularios/Principal/Pantallas/Fabricantes
+  - CapaUI/Formularios/Principal/Pantallas/Productos
+  - CapaUI/Formularios/Principal/Pantallas/Proveedores
+symbols:
+  - CanExecute
+  - CargarDatosAsync
+  - CargarPaginaAsync
+  - CargarPaginaSilenciosamenteAsync
+  - Command
+  - Empleados
+  - ItemsControl
+  - ItemsSource
+  - OnCambioProducto
+  - OnPropertyChanged
 branch: feat/fase8-MaquetadodeRoles
 autor_cambios: Claude Sonnet 5 (Claude Code)
 ---

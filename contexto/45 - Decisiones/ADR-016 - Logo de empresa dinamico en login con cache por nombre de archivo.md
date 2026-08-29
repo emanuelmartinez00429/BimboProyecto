@@ -1,5 +1,7 @@
 ---
 title: "ADR-016 — Logo de empresa dinámico en login: caché local versionada por nombre de archivo"
+type: adr
+status: vigente
 tags:
   - adr
   - decision
@@ -7,6 +9,14 @@ tags:
   - storage
   - cache
 date: 2026-08-14
+updated: 2026-08-14
+summary: "El logo del login (LoginWindow.xaml) estaba hardcodeado a un recurso empacado en el .exe:"
+scope: []
+symbols:
+  - ActualizarLogoAsync
+  - BitmapImage
+  - DownloadPublicFile
+  - LoginWindow
 estado: aceptado
 ---
 

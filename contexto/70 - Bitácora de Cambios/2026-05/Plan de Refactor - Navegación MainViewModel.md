@@ -1,5 +1,7 @@
 ---
 title: Plan de Refactor — Navegación MainViewModel
+type: plan
+status: pendiente
 tags:
   - bimbo
   - plan
@@ -7,7 +9,23 @@ tags:
   - mvvm
   - refactor
 date: 2026-05-23
-status: pendiente
+updated: 2026-05-23
+summary: "Auditoría detectó 5 hallazgos en el sistema de navegación del menú principal. Este plan los resuelve en 4 fases incrementales, cada una compila y funciona de…"
+scope:
+  - CapaUI/Core/MVVM
+  - CapaUI/Formularios/Principal
+  - CapaUI/Navigation
+symbols:
+  - AddTransient
+  - ConstructionVM
+  - EntityDetailWindow
+  - ICommand
+  - INavigationService
+  - MainViewModel
+  - NavigationService
+  - ObservableObject
+  - PlaceholderVM
+  - ProductosVM
 ---
 
 # Plan de Refactor — Navegación MainViewModel

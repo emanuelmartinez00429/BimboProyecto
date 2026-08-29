@@ -1,8 +1,35 @@
 ---
-tags: [bitácora, sesión, refactor, productos, completado]
-fecha: 2026-05-21
-fases: [4, 5, 6, 7]
+title: Sesión 2026-05-21 — Refactor Fases 4-7
+type: sesion
+status: vigente
+tags:
+  - bitácora
+  - sesión
+  - refactor
+  - productos
+  - completado
+date: 2026-05-21
+updated: 2026-05-21
+summary: "En esta sesión se completaron las 4 fases pendientes del refactor del módulo Productos. La aplicación ahora tiene un stack limpio: DI en todos los niveles,…"
+scope:
+  - BimboPesaje/Formularios/MenuPrincipal
+  - BimboPesaje/Formularios/Productos
+  - CapaAplicacion4/Common
+  - CapaAplicacion4/Productos/Interfaces
+  - CapaDatos/Repositories/Productos
+  - CapaUI/Formularios/Principal/Pantallas/Productos
+symbols:
+  - Constants
+  - GetCategoriasAsync
+  - OnLoaded
+  - ProductoDto
 estado: completado
+fecha: 2026-05-21
+fases:
+  - 4
+  - 5
+  - 6
+  - 7
 ---
 
 # Sesión 2026-05-21 — Refactor Fases 4-7

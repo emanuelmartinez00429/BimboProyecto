@@ -1,5 +1,7 @@
 ---
-title: "Sesión 2026-08-12 — Estabilización de la pantalla de Roles"
+title: Sesión 2026-08-12 — Estabilización de la pantalla de Roles
+type: sesion
+status: vigente
 tags:
   - sesion
   - bimbo
@@ -7,6 +9,20 @@ tags:
   - rendimiento
   - rbac
 date: 2026-08-12
+updated: 2026-08-12
+summary: "Roles dejó de trabarse, de crashear y de duplicar la carga. Se alineó con la arquitectura del resto de los formularios: ComboBox estándar, sin scroll horizontal,…"
+scope: []
+symbols:
+  - AccionItemVm
+  - AffectsParentMeasure
+  - AlternarSelectorRolCommand
+  - AplicarFiltro
+  - ArrangeOverride
+  - ArreglarFila
+  - Auto
+  - CalcularRejilla
+  - ComboBox
+  - DataContext
 branch: feat/fase8-MaquetadodeRoles
 autor_cambios: Claude
 ---

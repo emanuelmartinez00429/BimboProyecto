@@ -1,3 +1,19 @@
+---
+title: ADR-003 — Disolución de CapaServicios en CapaDominio
+type: adr
+status: vigente
+tags:
+  - adr
+date: 2026-05-29
+updated: 2026-05-29
+summary: 1. Las 4 clases ya estaban en el namespace CapaDominio — vivían en el proyecto equivocado desde el origen. 2. CapaUI tenía una referencia directa a…
+scope: []
+symbols:
+  - PesoCalculator
+  - ServicioBuscador
+  - SesionActual
+---
+
 # ADR-003 — Disolución de CapaServicios en CapaDominio
 
 **Fecha:** 2026-05-29  

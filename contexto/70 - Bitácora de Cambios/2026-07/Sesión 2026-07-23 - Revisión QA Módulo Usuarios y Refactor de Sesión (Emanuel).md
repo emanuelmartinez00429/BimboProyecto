@@ -1,5 +1,7 @@
 ---
 title: "Sesión 2026-07-23 — Revisión QA: Módulo Usuarios + Refactor de Sesión (Emanuel)"
+type: sesion
+status: vigente
 tags:
   - sesion
   - qa
@@ -10,6 +12,22 @@ tags:
   - seguridad
   - deuda-tecnica
 date: 2026-07-23
+updated: 2026-07-23
+summary: "Comparación 2f5489d (versión previa, Fernando) → f105047 (Emanuel, 2026-07-23). 36 archivos, +2823 / −150 líneas. Introduce el módulo Usuarios completo…"
+scope:
+  - CapaAplicacion4/Usuarios/Interfaces
+  - CapaDominio/Entities
+symbols:
+  - Accion
+  - AccionRol
+  - BaseModel
+  - CancellationTokenSource
+  - Cerrado
+  - CrearAsync
+  - Guardado
+  - HashSet<string>
+  - IPerfilUsuarioService
+  - IUsuarioSesionService
 branch: feat/fase7-GestióndeUsuarios
 autor_cambios: Codex (sesión gestionada por Emanuel)
 revisor: QA

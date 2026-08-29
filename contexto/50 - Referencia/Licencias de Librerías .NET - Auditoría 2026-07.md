@@ -1,7 +1,21 @@
 ---
-title: "Licencias de Librerías .NET — Auditoría 2026-07"
-tags: [referencia, licencias, gobernanza, nuget, legal]
+title: Licencias de Librerías .NET — Auditoría 2026-07
+type: referencia
+status: vigente
+tags:
+  - referencia
+  - licencias
+  - gobernanza
+  - nuget
+  - legal
 date: 2026-07-26
+updated: 2026-07-26
+summary: Durante la investigación del motor de reportes (ADR-006 - Motor de Reportes y Exportación) se detectó que un informe técnico recomendaba QuestPDF con licencia…
+scope: []
+symbols:
+  - ClosedXML
+  - MediatR
+  - Serilog
 lifecycle: verified
 ---
 

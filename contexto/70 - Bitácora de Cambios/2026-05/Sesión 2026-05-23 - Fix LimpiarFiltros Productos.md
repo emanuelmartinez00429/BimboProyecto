@@ -1,11 +1,26 @@
 ---
-title: "Fix — LimpiarFiltros no reseteaba ComboBoxes"
+title: Fix — LimpiarFiltros no reseteaba ComboBoxes
+type: sesion
+status: vigente
 tags:
   - bugfix
   - productos
   - mvvm
   - eventos
 date: 2026-05-23
+updated: 2026-05-23
+summary: "El botón \"Limpiar Filtros\" del módulo Productos actualizaba correctamente la tabla (recargaba datos sin filtros), pero los ComboBoxes de Fabricante y País, y el…"
+scope: []
+symbols:
+  - CmbFabricante
+  - CmbPais
+  - FiltrosLimpiados
+  - GetFabricantesAsync
+  - ItemsSource
+  - OnPropertyChanged
+  - RbHabilitados
+  - SelectedIndex
+  - SelectionChanged
 ---
 
 # Fix — LimpiarFiltros no reseteaba los ComboBoxes

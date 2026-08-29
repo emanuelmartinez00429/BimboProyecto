@@ -1,5 +1,7 @@
 ---
-title: "Sesión 2026-08-15 — Creación auditada de Productos mediante RPC"
+title: Sesión 2026-08-15 — Creación auditada de Productos mediante RPC
+type: sesion
+status: vigente
 tags:
   - sesion
   - productos
@@ -7,6 +9,19 @@ tags:
   - rpc
   - bitacora
 date: 2026-08-15
+updated: 2026-08-15
+summary: "La creación de productos dejó de hacer un INSERT directo desde C#. Ahora usa ingresarproductotablabitacora, que crea el producto y su registro de bitácora en la…"
+scope:
+  - CapaDatos/Repositories/Productos
+symbols:
+  - CreateAsync
+  - DeleteAsync
+  - IProductoRepository
+  - IUsuarioSesionService
+  - ProductoDto
+  - ProductoModal
+  - Result<int>
+  - UpdateAsync
 branch: feat/fase8-MaquetadodeRoles
 autor_cambios: Codex (sesión gestionada por Emanuel)
 ---

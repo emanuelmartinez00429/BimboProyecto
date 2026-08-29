@@ -1,10 +1,22 @@
 ---
-title: "Caso 03 — ERP Inventario con Clean Architecture"
+title: Caso 03 — ERP Inventario con Clean Architecture
+type: caso
+status: vigente
 tags:
   - caso-de-uso
   - erp
   - clean-architecture
   - cqrs
+date: 2026-05-21
+updated: 2026-05-21
+summary: Application/ DTOs/ProductDto.cs Queries/GetProductsQuery.cs Handlers/GetProductsHandler.cs
+scope: []
+symbols:
+  - CreateProductCommand
+  - GetProductsQuery
+  - IProductRepository
+  - IProductoRepository
+  - ProductDto
 ---
 
 # Caso 03 — ERP Inventario con Clean Architecture

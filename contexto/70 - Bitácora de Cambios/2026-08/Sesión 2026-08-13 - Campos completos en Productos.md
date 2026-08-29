@@ -1,10 +1,22 @@
 ---
-title: "Sesión 2026-08-13 — Campos completos en Productos"
+title: Sesión 2026-08-13 — Campos completos en Productos
+type: sesion
+status: vigente
 tags:
   - sesion
   - productos
   - ui
 date: 2026-08-13
+updated: 2026-08-13
+summary: El catálogo y modal de Productos ahora exponen los campos de producto que estaban ausentes de la UI y los cargan desde la consulta paginada.
+scope:
+  - CapaAplicacion4/Productos/Dtos
+  - CapaDatos/Modelados/Productos
+  - CapaDatos/Repositories/Productos
+  - CapaUI/Formularios/Principal/Pantallas/Productos
+symbols:
+  - DataGrid
+  - RolesViewModel
 branch: feat/fase8-MaquetadodeRoles
 autor_cambios: GPT-5 (Codex)
 ---

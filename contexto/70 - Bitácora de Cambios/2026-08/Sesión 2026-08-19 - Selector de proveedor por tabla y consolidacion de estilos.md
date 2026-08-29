@@ -1,11 +1,30 @@
 ---
-title: "Sesión 2026-08-19 — Selector de proveedor por tabla y consolidación de estilos"
+title: Sesión 2026-08-19 — Selector de proveedor por tabla y consolidación de estilos
+type: sesion
+status: vigente
 tags:
   - sesion
   - pesaje
   - modales
   - estilos
 date: 2026-08-19
+updated: 2026-08-19
+summary: "Sesión larga, un solo hilo: el campo Proveedor del paso 1 pasó de ComboBox precargado a SelectorCatalogoModal. Eso destapó dos bugs de layout, una duplicación de…"
+scope:
+  - CapaUI/Formularios/Principal/Pantallas/Pesaje
+  - CapaUI/Formularios/Principal/Pantallas/Pesaje/Modales
+  - CapaUI/Resources
+symbols:
+  - AbrirProcesoModal
+  - Action<FiltroItem>
+  - Auto
+  - CatCell
+  - CatHeader
+  - CatRow
+  - CatalogoConfig
+  - CeldaInputTabla
+  - CerrarSelectorCatalogo
+  - CheckBox
 branch: feat/fase8-MaquetadodeRoles
 autor_cambios: Claude Fernando (agente)
 ---

@@ -1,3 +1,29 @@
+---
+title: ADR-002 — CQRS + Strategy Pattern para el Buscador Universal
+type: adr
+status: vigente
+tags:
+  - adr
+date: 2026-05-21
+updated: 2026-05-21
+summary: "El buscador universal necesita buscar en múltiples entidades (Productos, Empleados, Clientes) con lógica diferente por entidad: columnas distintas, joins…"
+scope:
+  - CapaAplicacion/Search
+  - CapaAplicacion/Search/Strategies
+  - CapaDatos/Repositories/Search
+symbols:
+  - IProductoRepository
+  - IRepository<Producto>
+  - IRepository<TEntidad>
+  - ISearchStrategy
+  - ProductoCrudRepository
+  - ProductoSearchRepository
+  - SearchHandler
+  - SearchQuery
+  - UniversalSearchHandler
+  - UniversalSearchViewModel
+---
+
 # ADR-002 — CQRS + Strategy Pattern para el Buscador Universal
 
 **Fecha:** 2026-05-21  

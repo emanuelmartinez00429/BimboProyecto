@@ -1,5 +1,7 @@
 ---
-title: "Sesión 2026-05-22 — Recuperación de Contraseña"
+title: Sesión 2026-05-22 — Recuperación de Contraseña
+type: sesion
+status: vigente
 tags:
   - bitacora
   - wpf
@@ -7,6 +9,21 @@ tags:
   - autenticacion
   - implementacion
 date: 2026-05-22
+updated: 2026-05-22
+summary: Los 3 paneles de recuperación de contraseña existían en CapaUI con la UI completa pero la lógica de Supabase estaba incompleta o ausente. El flujo real con…
+scope:
+  - BimboPesaje/Formularios/MenuPrincipal
+  - CapaUI/Formularios/InicioSesion
+symbols:
+  - CheckComplete
+  - ForgotCodePanel
+  - ForgotEmailPanel
+  - ForgotNewPanel
+  - GestionCategorias
+  - GestionFabricantes
+  - GestionProveedores
+  - InvalidCastException
+  - PinDigitBox
 ---
 
 # Sesión 2026-05-22 — Recuperación de Contraseña

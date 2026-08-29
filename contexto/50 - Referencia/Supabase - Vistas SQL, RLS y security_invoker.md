@@ -1,7 +1,20 @@
 ---
 title: "Supabase — Vistas SQL, RLS y security_invoker"
-tags: [referencia, supabase, postgrest, seguridad, rls]
+type: referencia
+status: vigente
+tags:
+  - referencia
+  - supabase
+  - postgrest
+  - seguridad
+  - rls
 date: 2026-07-26
+updated: 2026-07-26
+summary: "Toda vista expuesta en el schema public se crea así:"
+scope: []
+symbols:
+  - Order
+  - Range
 lifecycle: verified
 ---
 

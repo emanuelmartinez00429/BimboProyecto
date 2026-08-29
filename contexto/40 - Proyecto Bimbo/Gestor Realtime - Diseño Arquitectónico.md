@@ -1,5 +1,7 @@
 ---
-title: "Gestor Realtime — Diseño Arquitectónico"
+title: Gestor Realtime — Diseño Arquitectónico
+type: estado
+status: vigente
 tags:
   - patron
   - realtime
@@ -7,6 +9,17 @@ tags:
   - supabase
   - mvvm
 date: 2026-05-24
+updated: 2026-05-24
+summary: "Diseño completo del nuevo gestor de Realtime para CapaUI. Reemplaza el GestorRealtime estático actual (6 canales permanentes, sin integración WPF) por un…"
+scope:
+  - CapaDatos/Realtime
+symbols:
+  - CambioRealtime
+  - GestorRealtime
+  - IRealtimeService
+  - MainViewModel
+  - ProductosViewModel
+  - RealtimeService
 ---
 
 # Gestor Realtime — Diseño Arquitectónico

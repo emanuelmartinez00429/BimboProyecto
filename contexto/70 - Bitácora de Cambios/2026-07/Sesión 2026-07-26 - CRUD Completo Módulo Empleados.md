@@ -1,7 +1,28 @@
 ---
-title: "Sesión 2026-07-26 - CRUD Completo Módulo Empleados"
-tags: [sesion, bimbo, empleados, crud, supabase]
+title: Sesión 2026-07-26 - CRUD Completo Módulo Empleados
+type: sesion
+status: vigente
+tags:
+  - sesion
+  - bimbo
+  - empleados
+  - crud
+  - supabase
 date: 2026-07-26
+updated: 2026-07-26
+summary: "Se completó la funcionalidad CRUD del módulo de Empleados: crear, editar, y cambiar estado. El módulo pasó de ser solo lectura a ser funcional, siguiendo el…"
+scope: []
+symbols:
+  - AbrirModalEditar
+  - AbrirModalNuevo
+  - CambiarEstadoAsync
+  - CreateAsync
+  - Guardado
+  - IEmpleadoRepository
+  - OnEmpleadoGuardado
+  - Result<T>
+  - ToggleEstado
+  - ToggleEstadoAsync
 branch: main
 autor_cambios: Codex (sesión gestionada por Emanuel)
 ---

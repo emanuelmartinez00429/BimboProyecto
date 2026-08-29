@@ -1,5 +1,7 @@
 ---
-title: "Sesión 2026-05-22 — Refactor Arquitectural Fase 2"
+title: Sesión 2026-05-22 — Refactor Arquitectural Fase 2
+type: sesion
+status: vigente
 tags:
   - bitacora
   - arquitectura
@@ -7,6 +9,23 @@ tags:
   - refactor
   - di
 date: 2026-05-22
+updated: 2026-05-22
+summary: // MostrarPrincipal ahora resuelve desde DI (igual que LoginWindow) var main = Services.GetRequiredService<MainWindow>();
+scope:
+  - CapaAplicacion4/Perfil
+  - CapaDatos/Perfil
+  - CapaDominio/Perfil
+symbols:
+  - IPerfilUsuarioService
+  - LoginWindow
+  - MainViewModel
+  - MainWindow
+  - PerfilActual
+  - PerfilUsuarioService
+  - RepositorioUsuario
+  - ServicioPerfilUsuario
+  - Transient
+  - WelcomeScreen
 ---
 
 # Sesión 2026-05-22 — Refactor Arquitectural Fase 2

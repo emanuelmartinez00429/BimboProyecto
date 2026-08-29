@@ -1,7 +1,22 @@
 ---
-title: "ADR-012 - Paginacion server-side con timeout y generacion counter"
-tags: [adr, decision, bimbo, gestion-usuarios, paginacion, timeout]
+title: ADR-012 - Paginacion server-side con timeout y generacion counter
+type: adr
+status: vigente
+tags:
+  - adr
+  - decision
+  - bimbo
+  - gestion-usuarios
+  - paginacion
+  - timeout
 date: 2026-07-23
+updated: 2026-07-23
+summary: "Las queries a Supabase pueden ser lentas. Sin protección, el usuario cambia de página rápido y la UI se congela esperando una respuesta que ya no le importa…"
+scope: []
+symbols:
+  - CancellationTokenSource
+  - CategoriasViewModel
+  - TimeoutMs
 estado: aceptado
 ---
 

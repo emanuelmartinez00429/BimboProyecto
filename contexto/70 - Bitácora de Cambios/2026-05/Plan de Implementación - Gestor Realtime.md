@@ -1,11 +1,33 @@
 ---
-title: "Plan de Implementación — Gestor Realtime"
+title: Plan de Implementación — Gestor Realtime
+type: plan
+status: vigente
 tags:
   - plan
   - realtime
   - implementacion
   - sprint
 date: 2026-05-24
+updated: 2026-05-24
+summary: Leer Gestor Realtime - Diseño Arquitectónico antes de iniciar cualquier fase.
+scope:
+  - CapaAplicacion4/Productos/Interfaces
+  - CapaAplicacion4/Realtime
+  - CapaDatos/Realtime
+  - CapaDatos/Repositories/Productos
+  - CapaUI/Formularios/Principal
+  - CapaUI/Formularios/Principal/Pantallas/Productos
+symbols:
+  - BaseModel
+  - CambioRealtime
+  - ConstructionVM
+  - Desuscribir
+  - Event
+  - GestorRealtime
+  - GetConteosAsync
+  - GetPagedAsync
+  - IDisposable
+  - IProductoRepository
 ---
 
 # Plan de Implementación — Gestor Realtime

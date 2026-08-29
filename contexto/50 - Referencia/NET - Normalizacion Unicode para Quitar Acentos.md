@@ -1,7 +1,20 @@
 ---
-title: ".NET — Normalización Unicode (FormD→FormC) para quitar acentos"
-tags: [referencia, dotnet, unicode, csharp]
+title: .NET — Normalización Unicode (FormD→FormC) para quitar acentos
+type: referencia
+status: vigente
+tags:
+  - referencia
+  - dotnet
+  - unicode
+  - csharp
 date: 2026-07-26
+updated: 2026-07-26
+summary: "Patrón correcto para \"Muñoz\" → \"munoz\" (emails auto-generados, slugs, identificadores desde nombres)."
+scope: []
+symbols:
+  - CharUnicodeInfo
+  - Rune
+  - StringInfo
 lifecycle: verified
 ---
 

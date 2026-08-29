@@ -1,5 +1,7 @@
 ---
-title: "WPF — Texto Dentado (\"Cerrucho\") en Fondos de Color"
+title: "WPF — Texto Dentado (\\"Cerrucho\\") en Fondos de Color"
+type: referencia
+status: vigente
 tags:
   - wpf
   - rendering
@@ -7,6 +9,14 @@ tags:
   - cleartype
   - referencia
 date: 2026-06-21
+updated: 2026-06-21
+summary: "Estas 3 propiedades de rendering son la Fase 2 del soporte multi-resolución. Para el panorama completo (DPI Per-Monitor V2, manifest, modales escalables) ver WPF…"
+scope: []
+symbols:
+  - CornerRadius
+  - Display
+  - Ideal
+  - LinearGradientBrush
 ---
 
 # WPF — Texto Dentado ("Cerrucho") en Fondos de Color

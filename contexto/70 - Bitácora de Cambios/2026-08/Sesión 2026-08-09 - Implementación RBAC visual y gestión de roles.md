@@ -1,11 +1,27 @@
 ---
-title: "Sesión 2026-08-09 — Implementación RBAC visual y gestión de roles"
+title: Sesión 2026-08-09 — Implementación RBAC visual y gestión de roles
+type: sesion
+status: vigente
 tags:
   - sesion
   - bimbo
   - rbac
   - seguridad
 date: 2026-08-09
+updated: 2026-08-09
+summary: El RBAC cargado desde Supabase ya se refleja en la navegación y en las acciones visuales del cliente WPF. También quedó implementada la pantalla para consultar y…
+scope: []
+symbols:
+  - IRolPermisoRepository
+  - IUsuarioSesionService
+  - MainViewModel
+  - ModuloAccionesDto
+  - Permiso
+  - PermisoBehavior
+  - PermisoCatalogo
+  - RolPermisoRepository
+  - RolesView
+  - RolesViewModel
 branch: feat/fase8-MaquetadodeRoles
 autor_cambios: Codex (sesión gestionada por Emanuel)
 ---

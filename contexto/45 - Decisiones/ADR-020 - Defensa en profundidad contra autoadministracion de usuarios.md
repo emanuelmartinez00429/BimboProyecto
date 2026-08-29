@@ -1,7 +1,20 @@
 ---
-title: "ADR-020 - Defensa en profundidad contra autoadministración de usuarios"
-tags: [adr, decision, seguridad, usuarios, rls]
+title: ADR-020 - Defensa en profundidad contra autoadministración de usuarios
+type: adr
+status: vigente
+tags:
+  - adr
+  - decision
+  - seguridad
+  - usuarios
+  - rls
 date: 2026-08-15
+updated: 2026-08-15
+summary: "El módulo permitía que un usuario con permisos administrativos seleccionara su propia fila, cambiara su rol o se deshabilitara. El repositorio confiaba…"
+scope: []
+symbols:
+  - ActualizarUltimoAccesoAsync
+  - IdUsuario
 estado: aceptado
 ---
 

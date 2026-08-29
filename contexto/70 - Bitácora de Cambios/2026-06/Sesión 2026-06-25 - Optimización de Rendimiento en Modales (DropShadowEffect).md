@@ -1,5 +1,7 @@
 ---
-title: "Sesión 2026-06-25 — Optimización de Rendimiento en Modales (DropShadowEffect)"
+title: Sesión 2026-06-25 — Optimización de Rendimiento en Modales (DropShadowEffect)
+type: sesion
+status: vigente
 tags:
   - sesion
   - wpf
@@ -8,6 +10,15 @@ tags:
   - gpu
   - dropshadoweffect
 date: 2026-06-25
+updated: 2026-06-25
+summary: "Una segunda PC presentaba tirones al hacer hover en modales, mouse lento y consumo de RAM oscilando ~30 MB, síntomas ausentes en la PC principal. Investigación…"
+scope: []
+symbols:
+  - BitmapCache
+  - DropShadowEffect
+  - IsMouseOver
+  - TextBox
+  - Trigger
 branch: feat/fase6-IntegracionWpf/MenuPrincipal
 ---
 

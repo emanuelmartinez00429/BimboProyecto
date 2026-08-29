@@ -1,7 +1,33 @@
 ---
-title: "Plan Fase 9 — Subsistema de Reportes"
-tags: [plan, reportes, fase9, arquitectura]
+title: Plan Fase 9 — Subsistema de Reportes
+type: plan
+status: vigente
+tags:
+  - plan
+  - reportes
+  - fase9
+  - arquitectura
 date: 2026-07-26
+updated: 2026-08-21
+summary: "Subsistema de reportes: Bitácora, Reportería y Pesaje BES ya generan PDF y Excel auditados; el motor general sigue pendiente."
+summary_fijo: true
+scope:
+  - CapaAplicacion4/Reportes
+  - CapaAplicacion4/Search/Registry
+  - CapaDatos/Reportes/Strategies
+  - CapaDatos/Repositories
+  - CapaDominio/Reportes
+symbols:
+  - ClosedXmlReportStrategy
+  - CsvReportStrategy
+  - ExcelReportStrategy
+  - IAsyncEnumerable<T>
+  - IEnumerable<IReportStrategy>
+  - ISearchStrategy
+  - List<T>
+  - MigraDocReportStrategy
+  - OpenXmlSaxReportStrategy
+  - OpenXmlWriter
 estado: en_curso_parcial
 ---
 

@@ -1,5 +1,7 @@
 ---
-title: "WPF — Bucle de Layout por Medir en ArrangeOverride"
+title: WPF — Bucle de Layout por Medir en ArrangeOverride
+type: referencia
+status: vigente
 tags:
   - referencia
   - wpf
@@ -7,6 +9,20 @@ tags:
   - rendimiento
   - panel
 date: 2026-08-12
+updated: 2026-08-12
+summary: La pantalla se traba y consume CPU al redimensionar o maximizar la ventana. Empeora cuanto más ancha está. Detectado en RolesView el 2026-08-12.
+scope: []
+symbols:
+  - ArrangeOverride
+  - ContextLayoutManager
+  - DesiredSize
+  - MeasureDuringArrange
+  - MeasureOverride
+  - Panel
+  - RolesView
+  - ScrollContentPresenter
+  - ScrollViewer
+  - UpdateLayout
 lifecycle: verified
 ---
 

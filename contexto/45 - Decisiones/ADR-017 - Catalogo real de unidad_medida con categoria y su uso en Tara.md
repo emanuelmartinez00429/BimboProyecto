@@ -1,5 +1,7 @@
 ---
-title: "ADR-017 — Catálogo real de unidad_medida con categoría (tipo_unidad) y su uso en Tara"
+title: ADR-017 — Catálogo real de unidad_medida con categoría (tipo_unidad) y su uso en Tara
+type: adr
+status: vigente
 tags:
   - adr
   - decision
@@ -7,6 +9,18 @@ tags:
   - tara
   - esquema
 date: 2026-08-14
+updated: 2026-08-14
+summary: "Dos catálogos de unidad desconectados de la realidad, encontrados al investigar el pedido:"
+scope: []
+symbols:
+  - CatalogoCache
+  - CatalogoConfig
+  - ComboBox
+  - ComboBoxItem
+  - PickerProductoRepository
+  - ProductoSearchStrategy
+  - SelectorCatalogoModal
+  - SelectorProductosViewModel
 estado: aceptado
 ---
 

@@ -1,32 +1,37 @@
 ---
 title: "ADR-NNN — Título de la decisión"
+type: adr
+status: vigente
 tags:
   - adr
-  - decision
 date: AAAA-MM-DD
-estado: propuesto   # propuesto | aceptado | reemplazado por [[ADR-XXX]]
+updated: AAAA-MM-DD
+summary: "Una frase: qué se decidió y por qué, sin el detalle."
+scope:
+  - CapaX/ruta/afectada
+symbols:
+  - TipoAfectado
+estado: aceptado          # propuesto | aceptado | reemplazado
+supersedes: []            # [ADR-00N] si reemplaza a otro
 ---
 
 # ADR-NNN — Título de la decisión
 
 ## Contexto
 
-Qué situación o fuerza obliga a decidir. Qué restricciones existen.
+Qué problema apareció y por qué había que decidir algo.
 
 ## Decisión
 
-Qué se decidió hacer, en concreto.
+Qué se eligió, en una frase, y después el detalle.
 
-## Alternativas consideradas
+## Alternativas descartadas
 
-| Opción | Pro | Contra | ¿Elegida? |
-|---|---|---|---|
-| A | … | … | ✅/❌ |
-| B | … | … | ✅/❌ |
+Cada una con **por qué se descartó**. Un ADR sin alternativas no es un ADR.
 
 ## Consecuencias
 
-Qué se gana, qué se sacrifica, qué deuda o seguimiento queda.
+Qué se gana, qué se paga, qué queda pendiente.
 
 ---
 

@@ -1,11 +1,26 @@
 ---
 title: "ADR-015 — Caché de catálogos: mostrar y revalidar"
+type: adr
+status: vigente
 tags:
   - adr
   - decision
   - cache
   - realtime
 date: 2026-08-13
+updated: 2026-08-13
+summary: "La caché no tenía vencimiento ni invalidación efectiva. Editar una presentación en la base no se veía nunca en la lupa: recargar la grilla va por otro camino y…"
+scope: []
+symbols:
+  - CatalogoCache
+  - FiltroItem
+  - IRealtimeService
+  - Observar
+  - ObtenerCompletoAsync
+  - ObtenerParaComboAsync
+  - ProductosViewModel
+  - RealtimeService
+  - SonIguales
 estado: aceptado
 ---
 

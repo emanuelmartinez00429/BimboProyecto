@@ -1,9 +1,23 @@
 ---
 title: Result Pattern
+type: patron
+status: vigente
 tags:
   - patron
   - manejo-errores
   - dotnet
+date: 2026-05-21
+updated: 2026-05-21
+summary: "En lugar de lanzar excepciones para errores esperados, los métodos retornan un objeto Result<T> que puede ser éxito o fallo. El llamador maneja ambos casos…"
+scope:
+  - CapaAplicacion4/Common
+symbols:
+  - ErrorMessage
+  - ProductoCrudRepository
+  - RepositorioProducto
+  - RepositorioUsuario
+  - Result
+  - Result<T>
 aliases:
   - Result<T>
   - Railway Oriented Programming

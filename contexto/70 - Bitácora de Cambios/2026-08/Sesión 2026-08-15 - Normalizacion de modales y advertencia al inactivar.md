@@ -1,5 +1,7 @@
 ---
-title: "Sesión 2026-08-15 — Normalización de modales y advertencia al inactivar"
+title: Sesión 2026-08-15 — Normalización de modales y advertencia al inactivar
+type: sesion
+status: vigente
 tags:
   - sesion
   - wpf
@@ -7,6 +9,21 @@ tags:
   - ux
   - refactor
 date: 2026-08-15
+updated: 2026-08-15
+summary: "Siete entregables. El pedido original era \"que todos los modales queden como el de Productos\", pero la exploración mostró que copiar el XAML de referencia a…"
+scope:
+  - CapaUI/Resources
+symbols:
+  - BtnCerrar
+  - BtnElegir
+  - CampoModal
+  - Click
+  - ComboBox
+  - ContactoFabricanteModal
+  - ContactoProveedorModal
+  - EsBotonDelPie
+  - EstadoFilter
+  - EtiquetaCampo
 branch: feat/fase8-MaquetadodeRoles-B-Fernando
 autor_cambios: Fernando
 ---

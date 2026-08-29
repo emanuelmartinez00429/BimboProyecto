@@ -1,7 +1,28 @@
 ---
-title: "Módulos de Catálogos Administrativos"
-tags: [modulos, catalogos, supabase, auditoria]
+title: Módulos de Catálogos Administrativos
+type: modulo
+status: vigente
+tags:
+  - modulos
+  - catalogos
+  - supabase
+  - auditoria
 date: 2026-08-16
+updated: 2026-08-16
+summary: "Describe el estado vigente de creación de proveedores, fabricantes, categorías y presentaciones."
+scope:
+  - CapaDatos/Repositories/Categorias
+  - CapaDatos/Repositories/Fabricantes
+  - CapaDatos/Repositories/Presentaciones
+  - CapaDatos/Repositories/Proveedores
+symbols:
+  - CreateAsync
+  - EstadoCategoria
+  - IUsuarioSesionService
+  - IdPais
+  - IdProveedor
+  - Insert
+  - UpdateAsync
 ---
 
 # Módulos de Catálogos Administrativos

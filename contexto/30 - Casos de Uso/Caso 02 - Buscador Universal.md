@@ -1,10 +1,18 @@
 ---
-title: "Caso 02 — Buscador Universal Multi-Entidad"
+title: Caso 02 — Buscador Universal Multi-Entidad
+type: caso
+status: vigente
 tags:
   - caso-de-uso
   - search
   - strategy
   - mediator
+date: 2026-05-21
+updated: 2026-05-21
+summary: "El usuario escribe \"Bimbo\" en una caja de búsqueda y espera ver: - Productos con \"Bimbo\" en el nombre - Empleados con \"Bimbo\" en el correo - Clientes con \"Bimbo\"…"
+scope: []
+symbols:
+  - IRepository<T>
 ---
 
 # Caso 02 — Buscador Universal Multi-Entidad

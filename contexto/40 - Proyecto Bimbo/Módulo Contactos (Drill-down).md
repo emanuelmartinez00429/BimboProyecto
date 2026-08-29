@@ -1,11 +1,29 @@
 ---
 title: Módulo Contactos (Drill-down)
+type: modulo
+status: vigente
 tags:
   - bimbo
   - modulo
   - contactos
   - drill-down
 date: 2026-06-21
+updated: 2026-08-16
+summary: "Patrón de vista de detalle anidada: el usuario ve una lista principal (Fabricantes o Proveedores) y al hacer doble clic entra a ver y gestionar los contactos de…"
+scope:
+  - CapaAplicacion4/Contactos
+  - CapaUI/Formularios/Principal/Pantallas
+symbols:
+  - BaseModel
+  - ContactoFabricanteModal
+  - ContactosFabricantesView
+  - ContactosFabricantesViewModel
+  - ContactosProveedoresView
+  - ContactosProveedoresViewModel
+  - ControlTemplate
+  - CreateAsync
+  - DeleteAsync
+  - FabricanteModel
 ---
 
 # Módulo Contactos (Drill-down)

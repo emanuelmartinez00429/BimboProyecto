@@ -1,5 +1,7 @@
-﻿---
-title: "Sesión 2026-08-21 — Reporte de Pesaje de Insumos BES (PDF y Excel)"
+---
+title: Sesión 2026-08-21 — Reporte de Pesaje de Insumos BES (PDF y Excel)
+type: sesion
+status: vigente
 tags:
   - sesion
   - pesaje
@@ -8,6 +10,21 @@ tags:
   - excel
   - migraciones
 date: 2026-08-21
+updated: 2026-08-21
+summary: "Se implementó la generación real de reportes en PDF y Excel desde el botón \"Imprimir reporte\" del módulo de Recepción de Materia Prima (Pesaje), reproduciendo…"
+scope:
+  - BimboProyecto.Tests/Reportes
+  - CapaUI/Formularios/Principal/Pantallas/Pesaje
+  - CapaUI/Formularios/Principal/Pantallas/Pesaje/Modales
+symbols:
+  - AbrirReporte
+  - ChkTodosCamiones
+  - GenerarReportePesajesAsync
+  - IReportGeneratorService
+  - IReporteRepository
+  - LogoEmpresaCache
+  - PesajeView
+  - ReporteModal
 branch: feat/fase8-MaquetadodeRoles
 autor_cambios: Fernando / Antigravity (agente)
 ---

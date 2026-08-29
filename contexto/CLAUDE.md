@@ -1,3 +1,33 @@
+---
+title: Proyecto Bimbo Honduras — Contexto para Claude
+type: protocolo
+status: vigente
+tags:
+  - nota
+date: 2026-05-28
+updated: 2026-05-28
+summary: "Convenciones de código detalladas del proyecto: capas, DI, MVVM con CommunityToolkit, repositorios Supabase y el contrato del buscador con sugerencias."
+summary_fijo: true
+scope:
+  - BimboPesaje/Formularios/MenuPrincipal
+  - CapaAplicacion4/Productos
+  - CapaAplicacion4/Search/Strategies
+  - CapaDatos/Modelados/Productos
+  - CapaDatos/Repositories
+  - CapaUI/Core/Controls
+symbols:
+  - BaseModel
+  - EmpleadoRepository
+  - Fabricante
+  - FooCommand
+  - FrmMenuPrincipal
+  - Guardado
+  - HighlightIndex
+  - INotifyPropertyChanged
+  - IProductoRepository
+  - IRepository<Producto>
+---
+
 # Proyecto Bimbo Honduras — Contexto para Claude
 
 ## ¿Qué es este proyecto?

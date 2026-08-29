@@ -1,5 +1,7 @@
 ---
-title: "Sesión 2026-05-28 — Fix Búsqueda Multi-Campo en Módulo Productos"
+title: Sesión 2026-05-28 — Fix Búsqueda Multi-Campo en Módulo Productos
+type: sesion
+status: vigente
 tags:
   - sesion
   - busqueda
@@ -7,6 +9,18 @@ tags:
   - bug
   - productos
 date: 2026-05-28
+updated: 2026-05-28
+summary: El buscador de sugerencias en Productos ahora encuentra por nombre y por código interno. El placeholder de la UI ya lo prometía — ahora el código lo cumple.
+scope:
+  - CapaDatos/Repositories/Productos
+symbols:
+  - BuscarSugerenciasInternal
+  - CodigoInterno
+  - IProductoRepository
+  - ProductoDto
+  - ProductosView
+  - ProductosViewModel
+  - QueryFilter
 ---
 
 # Sesión 2026-05-28 — Fix Búsqueda Multi-Campo en Módulo Productos

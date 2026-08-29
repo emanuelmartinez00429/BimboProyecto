@@ -1,5 +1,33 @@
 ---
-tags: [proyecto, refactor, plan, productos]
+title: Plan de Refactor — Estado y Fases
+type: plan
+status: vigente
+tags:
+  - proyecto
+  - refactor
+  - plan
+  - productos
+date: 2026-05-21
+updated: 2026-05-21
+summary: "Nuevos archivos creados en CapaAplicacion4/Productos/: Dtos/ProductoDto.cs — DTO completo con FKs e init setters Dtos/FiltroItem.cs — { int? Id, string Nombre }…"
+scope:
+  - BimboPesaje/Formularios/MenuPrincipal
+  - BimboPesaje/Formularios/Productos
+  - CapaAplicacion4/Common
+  - CapaAplicacion4/Productos
+  - CapaAplicacion4/Productos/Interfaces
+  - CapaDatos/Repositories/Productos
+symbols:
+  - Categoria
+  - ClienteRepository
+  - CodigoInterno
+  - Contenido
+  - DeleteAsync
+  - EmpleadoRepository
+  - Fabricante
+  - Guardado
+  - IProductoRepository
+  - IRepository<Producto>
 ---
 
 # Plan de Refactor — Estado y Fases

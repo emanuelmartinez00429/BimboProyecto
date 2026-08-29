@@ -1,11 +1,28 @@
 ---
-title: "Panel de Filtros Fluido — Barra responsive con prioridad y equilibrado"
+title: Panel de Filtros Fluido — Barra responsive con prioridad y equilibrado
+type: patron
+status: vigente
 tags:
   - patron
   - wpf
   - layout
   - responsive
 date: 2026-08-14
+updated: 2026-08-15
+summary: "CapaUI/Core/Controls/PanelFiltrosFluido.cs — Panel custom para barras con varios grupos de controles de ancho distinto (filtros, pastillas, combos) que necesitan…"
+scope:
+  - CapaUI/Core/Controls
+symbols:
+  - AnchoQueLograMaxLineas
+  - Arrange
+  - ArrangeOverride
+  - DesiredSize
+  - "Dictionary<UIElement, Size>"
+  - MaxCombinaciones
+  - MaxLineas
+  - Measure
+  - MeasureOverride
+  - MinWidth
 lifecycle: verified
 ---
 

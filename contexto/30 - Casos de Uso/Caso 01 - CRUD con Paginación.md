@@ -1,10 +1,17 @@
 ---
-title: "Caso 01 — CRUD con Paginación Server-Side"
+title: Caso 01 — CRUD con Paginación Server-Side
+type: caso
+status: vigente
 tags:
   - caso-de-uso
   - crud
   - paginacion
   - dotnet
+date: 2026-05-21
+updated: 2026-05-21
+summary: "Aplicaciones con catálogos grandes (productos, empleados, clientes) no pueden cargar todos los registros en memoria. Se necesita: - Paginación real en la BD (no…"
+scope: []
+symbols: []
 ---
 
 # Caso 01 — CRUD con Paginación Server-Side

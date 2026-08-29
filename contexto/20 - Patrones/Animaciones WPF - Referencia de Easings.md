@@ -1,11 +1,27 @@
 ---
-title: "Animaciones WPF — Referencia de Easings"
+title: Animaciones WPF — Referencia de Easings
+type: patron
+status: vigente
 tags:
   - patron
   - wpf
   - animacion
   - ux
 date: 2026-05-26
+updated: 2026-07-23
+summary: "Guía de qué EasingFunction usar en cada situación dentro del proyecto, basada en lo aprendido al optimizar la animación del sidebar. Incluye los timings reales…"
+scope: []
+symbols:
+  - ContentAreaBorder
+  - EaseIn
+  - EaseInOut
+  - EaseOut
+  - EasingFunction
+  - Height
+  - Linear
+  - MaxHeight
+  - Opacity
+  - QuarticEase
 ---
 
 # Animaciones WPF — Referencia de Easings

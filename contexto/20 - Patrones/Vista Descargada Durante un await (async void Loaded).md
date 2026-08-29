@@ -1,5 +1,7 @@
 ---
-title: "Vista Descargada Durante un await (async void Loaded)"
+title: Vista Descargada Durante un await (async void Loaded)
+type: patron
+status: vigente
 tags:
   - patron
   - wpf
@@ -8,6 +10,15 @@ tags:
   - rendimiento
   - mvvm
 date: 2026-08-11
+updated: 2026-08-11
+summary: "await vm.CargarDatosAsync(); // ← el usuario cierra la pantalla ACÁ PoblarRoles(); // ← corre igual, con vm ya en null → 💥 }"
+scope: []
+symbols:
+  - CancellationTokenSource
+  - Loaded
+  - OnVmPropertyChanged
+  - ReferenceEquals
+  - Unloaded
 lifecycle: verified
 ---
 

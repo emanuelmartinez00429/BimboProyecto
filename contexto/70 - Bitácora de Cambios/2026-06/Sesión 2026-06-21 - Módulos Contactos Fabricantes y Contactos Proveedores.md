@@ -1,11 +1,33 @@
 ---
-title: "Sesión 2026-06-21 — Módulos Contactos Fabricantes y Contactos Proveedores"
+title: Sesión 2026-06-21 — Módulos Contactos Fabricantes y Contactos Proveedores
+type: sesion
+status: vigente
 tags:
   - sesion
   - contactos
   - drill-down
   - realtime
 date: 2026-06-21
+updated: 2026-06-21
+summary: "Implementación completa de dos módulos de gestión de contactos con patrón drill-down: el usuario navega desde una lista de Fabricantes (o Proveedores) hacia los…"
+scope:
+  - CapaAplicacion4/Contactos/Fabricantes/Dtos
+  - CapaAplicacion4/Contactos/Fabricantes/Interfaces
+  - CapaAplicacion4/Contactos/Proveedores/Dtos
+  - CapaAplicacion4/Contactos/Proveedores/Interfaces
+  - CapaDatos/Modelados/Contactos
+  - CapaDatos/Realtime
+symbols:
+  - BaseModel
+  - ConstructionVM
+  - ContactosFabricantesVM
+  - ContactosFabricantesViewModel
+  - ContactosProveedoresVM
+  - ContactosProveedoresViewModel
+  - ControlTemplate
+  - CreateAsync
+  - DataTemplate
+  - DataTrigger
 branch: feat/fase6-IntegracionWpf/MenuPrincipal
 ---
 

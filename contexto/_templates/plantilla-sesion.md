@@ -1,8 +1,16 @@
 ---
 title: "Sesión AAAA-MM-DD — Título descriptivo"
+type: sesion
+status: vigente
 tags:
   - sesion
 date: AAAA-MM-DD
+updated: AAAA-MM-DD
+summary: "Una frase declarativa: qué se logró en esta sesión."
+scope:
+  - CapaUI/ruta/que/tocaste
+symbols:
+  - ClaseQueTocaste
 branch: nombre-de-la-rama
 autor_cambios: TuNombre (agente)
 # revisor: TuNombre   ← solo si es una revisión QA
@@ -11,7 +19,7 @@ autor_cambios: TuNombre (agente)
 # Sesión AAAA-MM-DD — Título descriptivo
 
 > [!success] Resultado
-> Una o dos frases: qué se logró.
+> Una o dos frases: qué se logró. **Esto es lo que sale en el índice** — escribilo bien.
 
 ---
 

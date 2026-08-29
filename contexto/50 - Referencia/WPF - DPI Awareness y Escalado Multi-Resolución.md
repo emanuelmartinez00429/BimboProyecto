@@ -1,5 +1,7 @@
 ---
-title: "WPF — DPI Awareness y Escalado Multi-Resolución"
+title: WPF — DPI Awareness y Escalado Multi-Resolución
+type: referencia
+status: vigente
 tags:
   - wpf
   - dpi
@@ -7,6 +9,20 @@ tags:
   - rendering
   - referencia
 date: 2026-06-21
+updated: 2026-06-21
+summary: "Que la app se vea nítida en cualquier resolución (1366×768 → 4K) y escala de Windows (100%, 125%, 150%, 200%), incluso al mover la ventana entre monitores con…"
+scope: []
+symbols:
+  - ApplicationHighDpiMode
+  - LoginWindow
+  - MainWindow
+  - MaxHeight
+  - MinHeight
+  - MinWidth
+  - ModalContent
+  - ModalOverlay
+  - Path
+  - TextOptions
 ---
 
 # WPF — DPI Awareness y Escalado Multi-Resolución

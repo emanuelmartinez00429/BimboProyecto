@@ -1,5 +1,7 @@
 ---
 title: "Sesión 2026-08-14 — Regresión: la grilla mostraba las filas de la página anterior con el número nuevo"
+type: sesion
+status: vigente
 tags:
   - sesion
   - paginacion
@@ -7,6 +9,24 @@ tags:
   - bugfix
   - mvvm
 date: 2026-08-14
+updated: 2026-08-14
+summary: "RefrescarPaginacion() dejó de rebindear la grilla; ahora reconstruye solo el árbol de botones. El rebind de filas quedó donde corresponde: el case de PageRows.…"
+scope:
+  - CapaUI/Formularios/Principal/Pantallas/Categorias
+  - CapaUI/Formularios/Principal/Pantallas/Fabricantes
+  - CapaUI/Formularios/Principal/Pantallas/Productos
+  - CapaUI/Formularios/Principal/Pantallas/Proveedores
+symbols:
+  - Bitacora
+  - CargarPaginaAsync
+  - CargarPaginaSilenciosamenteAsync
+  - Empleados
+  - OnVmPropertyChanged
+  - Page
+  - PageRows
+  - RefrescarPaginacion
+  - RolesViewModel
+  - TotalPages
 branch: feat/fase8-MaquetadodeRoles
 autor_cambios: Claude Opus 5 (Claude Code)
 ---

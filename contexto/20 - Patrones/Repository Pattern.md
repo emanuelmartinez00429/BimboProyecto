@@ -1,9 +1,20 @@
 ---
 title: Repository Pattern
+type: patron
+status: vigente
 tags:
   - patron
   - datos
   - dotnet
+date: 2026-05-21
+updated: 2026-05-21
+summary: "Abstrae el acceso a datos detrás de una interfaz. El resto de la app no sabe si los datos vienen de Supabase, SQL Server, un archivo o un mock de tests."
+scope: []
+symbols:
+  - IProductoRepository
+  - Producto
+  - ProductoDto
+  - SupabaseRepository
 aliases:
   - Patrón Repositorio
 ---

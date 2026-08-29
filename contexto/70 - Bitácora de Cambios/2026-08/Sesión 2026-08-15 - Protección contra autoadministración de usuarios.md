@@ -1,7 +1,21 @@
 ---
-title: "Sesión 2026-08-15 - Protección contra autoadministración de usuarios"
-tags: [sesion, usuarios, seguridad, rls]
+title: Sesión 2026-08-15 - Protección contra autoadministración de usuarios
+type: sesion
+status: vigente
+tags:
+  - sesion
+  - usuarios
+  - seguridad
+  - rls
 date: 2026-08-15
+updated: 2026-08-15
+summary: Impedir que la sesión actual cambie su propio rol o estado desde el módulo Usuarios.
+scope:
+  - CapaDatos/Repositories/Usuarios
+  - CapaUI/Formularios/Principal/Pantallas/Usuarios
+symbols:
+  - ActualizarUltimoAccesoAsync
+  - IdUsuario
 branch: feat/fase8-MaquetadodeRoles
 autor_cambios: Codex (sesión gestionada por Emanuel)
 ---

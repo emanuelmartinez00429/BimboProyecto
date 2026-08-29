@@ -1,9 +1,32 @@
 ---
 title: Arquitectura Actual — Bimbo
+type: estado
+status: vigente
 tags:
   - bimbo
   - arquitectura
   - moc
+date: 2026-05-29
+updated: 2026-08-19
+summary: "Estado vigente de capas, dependencias y módulos del sistema. Es la nota que hay que leer antes de cambiar cualquier cosa estructural."
+summary_fijo: true
+scope:
+  - CapaAplicacion/Search
+  - CapaDatos/Repositories
+  - CapaUI/Core/Controls
+  - CapaUI/Core/MVVM
+  - CapaUI/Formularios/Principal/Pantallas/Xxx
+symbols:
+  - ActualizarUltimoAccesoAsync
+  - DataTemplate
+  - EmpresaRepository
+  - GestorNotificaciones
+  - GestorRealtime
+  - IConexionMonitor
+  - IEmpresaRepository
+  - IUsuarioSesionService
+  - IdUsuario
+  - LoginWindow
 aliases:
   - Estado actual
 ---

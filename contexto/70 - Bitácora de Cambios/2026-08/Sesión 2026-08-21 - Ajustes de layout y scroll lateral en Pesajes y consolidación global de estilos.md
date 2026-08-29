@@ -1,5 +1,7 @@
 ---
-title: "Sesión 2026-08-21 — Ajustes de layout y scroll lateral en Pesajes y consolidación global de estilos"
+title: Sesión 2026-08-21 — Ajustes de layout y scroll lateral en Pesajes y consolidación global de estilos
+type: sesion
+status: vigente
 tags:
   - sesion
   - pesaje
@@ -8,6 +10,20 @@ tags:
   - estilos
   - wpf
 date: 2026-08-21
+updated: 2026-08-21
+summary: Se ajustó la proporción horizontal y la simetría vertical en PesajeView. Se solucionó el problema de corte y compresión de columnas en las tablas de productos y…
+scope: []
+symbols:
+  - ControlTemplate
+  - DataGrid
+  - DgEntradas
+  - DgProductos
+  - EmpresaPrimaryBrush
+  - EmpresaPrimaryDarkBrush
+  - MinWidth
+  - PesajeView
+  - RolesViewModel
+  - ScrollViewer
 branch: feat/fase8-MaquetadodeRoles
 autor_cambios: Fernando / Antigravity (agente)
 ---

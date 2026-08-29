@@ -1,9 +1,30 @@
 ---
-title: "Sesión 2026-07-26 — Rediseño del flujo de Pesajes (wizard + megamodal)"
-tags: [sesion, pesaje, ux, refactor, fase8]
+title: Sesión 2026-07-26 — Rediseño del flujo de Pesajes (wizard + megamodal)
+type: sesion
+status: vigente
+tags:
+  - sesion
+  - pesaje
+  - ux
+  - refactor
+  - fase8
 date: 2026-07-26
+updated: 2026-07-26
+summary: "Fernando: \"el proceso se ve muy disperso y confuso\". Al entrar a Recepción de Materia Prima el usuario se encontraba tres paneles vacíos sin saber por dónde…"
+scope: []
+symbols:
+  - BultosDeclarados
+  - CamionModal
+  - IConexionMonitor
+  - ObservableObject
+  - ProcesoDescargaModal
+  - ProductoCamionModal
+  - ProductoTaraConsulta
+  - ProductosView
+  - ProductosViewModel
+  - QueryFilter
 branch: feat/fase7-GestióndeUsuarios
-autor_cambios: Claude (Opus 5), dirigido por Fernando
+autor_cambios: "Claude (Opus 5), dirigido por Fernando"
 ---
 
 # Sesión 2026-07-26 — Rediseño del flujo de Pesajes

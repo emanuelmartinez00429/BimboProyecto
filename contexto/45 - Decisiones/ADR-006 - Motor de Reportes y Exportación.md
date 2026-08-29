@@ -1,7 +1,27 @@
 ---
-title: "ADR-006 — Motor de Reportes y Exportación"
-tags: [adr, reportes, pdf, excel, licencias, fase9]
+title: ADR-006 — Motor de Reportes y Exportación
+type: adr
+status: vigente
+tags:
+  - adr
+  - reportes
+  - pdf
+  - excel
+  - licencias
+  - fase9
 date: 2026-07-26
+updated: 2026-07-26
+summary: "La Fase 9 construirá el subsistema de reportes del ERP: PDF, Excel, CSV, impresión, códigos de barras/QR y gráficos. Se recibió un informe técnico externo que…"
+scope: []
+symbols:
+  - HeadingFormat
+  - IReportStrategy
+  - ISearchStrategy
+  - OpenXmlWriter
+  - ReportFormat
+  - "Result<byte[]>"
+  - SearchStrategyRegistry
+  - StreamWriter
 estado: aceptado
 ---
 

@@ -1,3 +1,23 @@
+---
+title: Sesión 2026-05-26 — ComboBox Fabricante Buscable
+type: sesion
+status: vigente
+tags:
+  - sesion
+date: 2026-05-26
+updated: 2026-05-26
+summary: "El ComboBox de Fabricante mostraba todos los ítems como lista estática, sin posibilidad de escribir para filtrar. El ComboBox de País ya tenía búsqueda inline…"
+scope: []
+symbols:
+  - CmbFabricante
+  - CollectionViewSource
+  - FiltroItem
+  - FiltrosLimpiados
+  - ICollectionView
+  - IsEditable
+  - Nombre
+---
+
 # Sesión 2026-05-26 — ComboBox Fabricante Buscable
 
 **Tipo:** UX / Filtros  

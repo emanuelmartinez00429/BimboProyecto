@@ -1,5 +1,7 @@
 ---
-title: "Plan de Mejora — Módulo Productos (Revisión QA)"
+title: Plan de Mejora — Módulo Productos (Revisión QA)
+type: qa
+status: vigente
 tags:
   - qa
   - revision
@@ -9,11 +11,28 @@ tags:
   - arquitectura
   - optimizacion
 date: 2026-08-21
+updated: 2026-08-21
+summary: Plan de acción derivado de la revisión QA exhaustiva del Módulo de Productos realizada el 2026-08-21. El módulo presenta una alta madurez arquitectónica y…
+scope:
+  - CapaAplicacion/CapaDatos/CapaDominio
+  - CapaDominio/Entities
+  - CapaUI/Resources
+symbols:
+  - BitacoraCellStyle
+  - CancellationTokenSource
+  - Categoria
+  - CeldaCentrada
+  - CeldaIzquierda
+  - Center
+  - CreateAsync
+  - CreatedAt
+  - DeleteAsync
+  - EmpleadoCellStyle
 branch: feat/fase8-MaquetadodeRoles
 autor_cambios: Antigravity (agente QA) — Sesión Fernando
 revisor: Antigravity QA
-triaje: Claude Code — 2026-08-21
 estado: Triado
+triaje: Claude Code — 2026-08-21
 ---
 
 > [!warning] Triaje contra el código — 2026-08-21

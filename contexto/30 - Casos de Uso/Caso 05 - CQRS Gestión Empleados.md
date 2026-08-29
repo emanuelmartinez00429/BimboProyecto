@@ -1,10 +1,20 @@
 ---
-title: "Caso 05 — CQRS en Gestión de Empleados"
+title: Caso 05 — CQRS en Gestión de Empleados
+type: caso
+status: vigente
 tags:
   - caso-de-uso
   - cqrs
   - empleados
   - dotnet
+date: 2026-05-21
+updated: 2026-05-21
+summary: "Problemas: el modelo de Empleado para lectura tiene campos calculados (antigüedad, nombre completo) que no necesitan la escritura. La escritura solo necesita…"
+scope: []
+symbols:
+  - Empleado
+  - EmpleadoRepository
+  - EmpleadoSearchStrategy
 ---
 
 # Caso 05 — CQRS en Gestión de Empleados

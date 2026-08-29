@@ -1,7 +1,19 @@
 ---
-title: "PDFsharp / MigraDoc — Referencia"
-tags: [referencia, pdf, reportes, dotnet, migradoc]
+title: PDFsharp / MigraDoc — Referencia
+type: referencia
+status: vigente
+tags:
+  - referencia
+  - pdf
+  - reportes
+  - dotnet
+  - migradoc
 date: 2026-07-26
+updated: 2026-03-24
+summary: Motor de generación de PDF elegido para el subsistema de reportes (ADR-006 - Motor de Reportes y Exportación). Licencia MIT.
+scope: []
+symbols:
+  - IReportStrategy
 lifecycle: verified
 ---
 

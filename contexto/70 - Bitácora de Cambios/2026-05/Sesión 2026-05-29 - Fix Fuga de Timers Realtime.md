@@ -1,6 +1,7 @@
 ---
-title: "Sesión 2026-05-29 — Fix Fuga de Timers Realtime (Keep-Open + Reset Total)"
-date: 2026-05-29
+title: Sesión 2026-05-29 — Fix Fuga de Timers Realtime (Keep-Open + Reset Total)
+type: sesion
+status: Completado
 tags:
   - bitácora
   - realtime
@@ -8,7 +9,23 @@ tags:
   - timers
   - supabase
   - arquitectura
-status: Completado
+date: 2026-05-29
+updated: 2026-05-29
+summary: "El usuario reportó que el subsistema Realtime acumula timers que la memoria no recupera: arrancan al abrir un formulario, no bajan al cerrarlo, y se siguen…"
+scope:
+  - CapaDatos/Realtime
+  - ServicioConexión/Conexion
+symbols:
+  - AddPostgresChangeHandler
+  - CerrarCanal
+  - ConexionSupabase
+  - ConnectAsync
+  - DesconectarAsync
+  - Desuscribir
+  - HandleCierreAsync
+  - PresenceDiff
+  - Push
+  - RealtimeChannel
 ---
 
 # Sesión 2026-05-29 — Fix Fuga de Timers Realtime (Keep-Open + Reset Total)

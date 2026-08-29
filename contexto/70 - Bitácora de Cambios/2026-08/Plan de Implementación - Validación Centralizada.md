@@ -1,5 +1,7 @@
 ---
-title: "Plan de Implementación — Validación Centralizada"
+title: Plan de Implementación — Validación Centralizada
+type: plan
+status: vigente
 tags:
   - plan
   - validacion
@@ -7,6 +9,22 @@ tags:
   - modales
   - arquitectura
 date: 2026-08-15
+updated: 2026-08-15
+summary: "El plan ubicaba las reglas en CapaUI/Core/Validacion/ReglasCampo. Al revisarlo, Fernando señaló que las validaciones son reglas de negocio y les corresponde el…"
+scope:
+  - CapaDominio/Reglas
+  - CapaUI/Core/Validacion/ReglasCampo
+symbols:
+  - CampoModal
+  - ConfiguracionEmpresaViewModel
+  - Control
+  - DialogoConfirmacion
+  - EsDecimalValido
+  - EsEmail
+  - EsRtn
+  - EsTelefono
+  - EstadoCategoria
+  - EstadoRegistro
 branch: feat/fase8-MaquetadodeRoles
 autor_cambios: Fernando
 estado: ejecutado-con-desvios

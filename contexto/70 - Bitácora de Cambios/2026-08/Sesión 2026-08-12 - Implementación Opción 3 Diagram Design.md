@@ -1,7 +1,19 @@
 ---
-title: "Implementación Opción 3 — Diagram Design Automation"
-tags: [diagram-design, hooks, skills, automatización, inyección-contexto]
+title: Implementación Opción 3 — Diagram Design Automation
+type: sesion
+status: vigente
+tags:
+  - diagram-design
+  - hooks
+  - skills
+  - automatización
+  - inyección-contexto
 date: 2026-08-12
+updated: 2026-08-12
+summary: "Implementada la Opción 3 completa (más robusta a largo plazo) para integrar diagram-design en Claude Code:"
+scope: []
+symbols:
+  - UserPromptSubmit
 branch: feat/fase8-MaquetadodeRoles
 autor_cambios: Claude Code
 ---

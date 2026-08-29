@@ -1,9 +1,29 @@
 ---
 title: "Sesión 2026-07-26 — Módulo Bitácora (auditoría, solo lectura)"
-tags: [sesion, bitacora, auditoria, ui]
+type: sesion
+status: vigente
+tags:
+  - sesion
+  - bitacora
+  - auditoria
+  - ui
 date: 2026-07-26
+updated: 2026-07-26
+summary: "Fernando pidió la parte visual de Bitácora, pero primero verificar si la tabla existía en la base. Verificado vía MCP de Supabase: public.bitacora existe, RLS…"
+scope: []
+symbols:
+  - BitacoraCrudRepository
+  - BitacoraModel
+  - BitacoraVM
+  - BitacoraView
+  - BitacoraViewModel
+  - ConstructionVM
+  - DatePicker
+  - IBitacoraRepository
+  - SuggestionSearchBox
+  - Usuarios
 branch: feat/fase7-GestióndeUsuarios
-autor_cambios: Claude (Sonnet 5), dirigido por Fernando
+autor_cambios: "Claude (Sonnet 5), dirigido por Fernando"
 ---
 
 # Sesión 2026-07-26 — Módulo Bitácora (auditoría, solo lectura)

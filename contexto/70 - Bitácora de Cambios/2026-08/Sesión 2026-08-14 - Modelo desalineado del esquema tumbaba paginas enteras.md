@@ -1,5 +1,7 @@
 ---
 title: "Sesión 2026-08-14 — El modelo C# desalineado del esquema tumbaba páginas enteras de Productos"
+type: sesion
+status: vigente
 tags:
   - sesion
   - productos
@@ -8,6 +10,23 @@ tags:
   - bugfix
   - modelado
 date: 2026-08-14
+updated: 2026-08-14
+summary: "Las cuatro FK de productos que son NULLABLE en la base (idpresentacion, idfabricante, idcategoria, idpais) pasaron a ser int? en el modelo C#, el DTO y el modal.…"
+scope:
+  - CapaAplicacion4/Productos/Dtos
+  - CapaDatos/Modelados/Productos
+  - CapaDatos/Repositorios/productos_movimientos
+symbols:
+  - CargarPaginaAsync
+  - CreateAsync
+  - GetPagedInternal
+  - IdCategoria
+  - IdFabricante
+  - IdPais
+  - IdPresentacion
+  - PageRows
+  - ProductoCrudRepository
+  - Result
 branch: feat/fase8-MaquetadodeRoles
 autor_cambios: Claude Opus 5 (Claude Code)
 ---

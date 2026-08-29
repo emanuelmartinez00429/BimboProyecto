@@ -1,6 +1,7 @@
 ---
-title: "Sesión 2026-05-29 — Auditoría Profunda y Plan de Remediación Completo"
-date: 2026-05-29
+title: Sesión 2026-05-29 — Auditoría Profunda y Plan de Remediación Completo
+type: sesion
+status: Completado
 tags:
   - bitácora
   - seguridad
@@ -8,7 +9,27 @@ tags:
   - realtime
   - optimización
   - arquitectura
-status: Completado
+date: 2026-05-29
+updated: 2026-05-29
+summary: "Sesión con dos partes:"
+scope:
+  - CapaAplicacion4/Realtime
+  - CapaDatos/Modelados/Productos
+  - CapaDatos/Realtime
+  - CapaDatos/Repositories/Productos
+  - CapaUI/Core/MVVM
+  - CapaUI/Formularios/InicioSesion
+symbols:
+  - AddScoped
+  - AddTransient
+  - CargarDatosAsync
+  - CerrarCanal
+  - DesconectarAsync
+  - Desuscribir
+  - Dispose
+  - Fabricante
+  - GetCategoriasInternal
+  - GetConteosAsync
 ---
 
 # Sesión 2026-05-29 — Auditoría Profunda y Plan de Remediación Completo

@@ -1,5 +1,7 @@
 ---
-title: "Sesión 2026-05-28 — Refactor P-004 (switch) y P-005 (ListBox)"
+title: Sesión 2026-05-28 — Refactor P-004 (switch) y P-005 (ListBox)
+type: sesion
+status: vigente
 tags:
   - sesion
   - refactor
@@ -8,6 +10,20 @@ tags:
   - productos
   - code-behind
 date: 2026-05-28
+updated: 2026-05-28
+summary: CapaUI compila con 0 errores. El PropertyChanged handler usa switch. VisualTreeHelper eliminado del código de highlight.
+scope: []
+symbols:
+  - ActualizarSuggestions
+  - ContentPresenter
+  - HighlightIndex
+  - IsLoading
+  - IsMouseOver
+  - IsSelected
+  - ItemContainerStyle
+  - ItemsControl
+  - ItemsSource
+  - ListBox
 ---
 
 # Sesión 2026-05-28 — Refactor P-004 y P-005

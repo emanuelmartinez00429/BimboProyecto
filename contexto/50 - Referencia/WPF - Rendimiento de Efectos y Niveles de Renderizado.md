@@ -1,5 +1,7 @@
 ---
-title: "WPF — Rendimiento de Efectos (DropShadowEffect) y Niveles de Renderizado"
+title: WPF — Rendimiento de Efectos (DropShadowEffect) y Niveles de Renderizado
+type: referencia
+status: vigente
 tags:
   - referencia
   - wpf
@@ -8,6 +10,20 @@ tags:
   - gpu
   - dropshadoweffect
 date: 2026-06-25
+updated: 2026-06-25
+summary: "Referencia técnica nacida de un caso real: la app iba fluida en una PC pero con tirones, mouse lento y memoria oscilante en otra. Ver ejecución en Sesión…"
+scope: []
+symbols:
+  - Background
+  - BitmapCache
+  - BlurEffect
+  - BlurRadius
+  - BorderBrush
+  - DropShadowEffect
+  - Effect
+  - IsMouseOver
+  - Serilog
+  - Trigger
 ---
 
 # WPF — Rendimiento de Efectos y Niveles de Renderizado

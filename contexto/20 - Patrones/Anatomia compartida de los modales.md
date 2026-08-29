@@ -1,11 +1,28 @@
 ---
-title: "Anatomía compartida de los modales"
+title: Anatomía compartida de los modales
+type: patron
+status: vigente
 tags:
   - patron
   - wpf
   - modales
   - estilos
 date: 2026-08-15
+updated: 2026-08-19
+summary: "Todo modal de formulario del proyecto usa los mismos estilos, definidos una sola vez en CapaUI/Resources/Styles.xaml. Antes cada modal los redefinía localmente,…"
+scope:
+  - CapaUI/Resources
+symbols:
+  - Background
+  - BasedOn
+  - BorderBrush
+  - BorderThickness
+  - CampoModal
+  - CampoModalEnGrid
+  - Celda
+  - ComboBox
+  - ControlTemplate
+  - DataGrid
 lifecycle: verified
 ---
 

@@ -1,3 +1,27 @@
+---
+title: Sesión 2026-05-29 — SuggestionSearchBox Compartido y Fix 5 Bugs Buscador
+type: sesion
+status: vigente
+tags:
+  - sesion
+date: 2026-05-29
+updated: 2026-05-29
+summary: "El buscador con sugerencias estaba duplicado en los 4 formularios (Productos, Proveedores, Fabricantes, Categorías): cada uno tenía su propia clase…"
+scope:
+  - CapaUI/Core/Controls
+symbols:
+  - ActualizarSuggestions
+  - CategoriaDto
+  - CategoriasView
+  - DockPanel
+  - FabricanteDto
+  - FabricantesView
+  - HighlightIndex
+  - IReadOnlyList<T>
+  - IndexOf
+  - ItemSelected
+---
+
 # Sesión 2026-05-29 — SuggestionSearchBox Compartido y Fix 5 Bugs Buscador
 
 **Fecha:** 2026-05-29  

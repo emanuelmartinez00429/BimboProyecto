@@ -1,5 +1,7 @@
 ---
 title: "Sesión 2026-08-14 — Tooltip + recorte de texto, orden de tabulación explícito y atajo Ctrl+Enter en los modales de edición"
+type: sesion
+status: vigente
 tags:
   - sesion
   - modales
@@ -7,6 +9,22 @@ tags:
   - accesibilidad
   - productos
 date: 2026-08-14
+updated: 2026-08-14
+summary: "Tres comportamientos nuevos, todos reusables vía estilo/comportamiento compartido — sin tocar campo por campo: (1) tooltip + \"…\" cuando un valor no entra en su…"
+scope:
+  - CapaUI/Core/Controls
+  - CapaUI/Resources
+symbols:
+  - AbrirSelector
+  - AtajoGuardar
+  - BtnGuardar
+  - CerrarSelector
+  - Click
+  - ComboBox
+  - ComboFiltro
+  - ControlTemplate
+  - Ctrl
+  - DeferredReference
 branch: feat/fase8-MaquetadodeRoles
 autor_cambios: Claude Opus 5 / Claude Sonnet 5 (Claude Code)
 ---

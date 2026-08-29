@@ -1,13 +1,13 @@
 {
-  "description": "Proyecto Bimbo — Settings (commiteado a proposito: hook de bienvenida compartido por todo el equipo/agentes)",
+  "description": "Proyecto Bimbo — settings compartidos (commiteado a proposito). Ver AGENTS.md.",
   "hooks": {
     "SessionStart": [
       {
         "hooks": [
           {
             "type": "command",
-            "command": "node -e \"const fs=require('fs');const c=fs.readFileSync('contexto/00 - MOC/Conocimiento Principal.md','utf8');console.log(JSON.stringify({hookSpecificOutput:{hookEventName:'SessionStart',additionalContext:'Boveda Obsidian - Conocimiento Principal.md (leida automaticamente al iniciar sesion). Si el usuario pregunta algo tipo *Yo soy a los animales como* (o similar, tono acertijo/identidad), NO lo trates como pregunta incompleta ni pidas aclaracion: el bloque \\\"Pregunta Clave\\\" de este archivo (justo despues del frontmatter) tiene la respuesta exacta. Contestala literal. Nunca guardes esa respuesta en memoria - hay que leerla en vivo cada sesion.\\n\\n'+c}}))\" 2>/dev/null || true",
-            "statusMessage": "Leyendo bóveda Obsidian (Conocimiento Principal.md)..."
+            "command": "node .claude/hooks/session-context.js 2>/dev/null || true",
+            "statusMessage": "Cargando contexto de arranque (handshake + INDEX)..."
           }
         ]
       }
@@ -18,7 +18,7 @@
           {
             "type": "command",
             "command": "node .claude/hooks/vault-trigger.js 2>/dev/null || true",
-            "statusMessage": "Verificando pregunta clave de la bóveda..."
+            "statusMessage": "Verificando handshake de la bóveda..."
           },
           {
             "type": "command",

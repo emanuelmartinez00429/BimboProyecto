@@ -1,7 +1,24 @@
 ---
-title: "Sesión 2026-07-26 — Resolución Deuda Técnica P-013 a P-021"
-tags: [sesion, deuda-tecnica, usuarios, pesaje, seguridad, supabase]
+title: Sesión 2026-07-26 — Resolución Deuda Técnica P-013 a P-021
+type: sesion
+status: vigente
+tags:
+  - sesion
+  - deuda-tecnica
+  - usuarios
+  - pesaje
+  - seguridad
+  - supabase
 date: 2026-07-26
+updated: 2026-07-26
+summary: "Se resolvieron los 8 ítems pendientes de la revisión QA del commit f105047 (Sesión 2026-07-23 - Revisión QA Módulo Usuarios y Refactor de Sesión (Emanuel)), un…"
+scope: []
+symbols:
+  - CrearAsync
+  - IUsuarioSesionService
+  - MapToDto
+  - NonSpacingMark
+  - UsuarioModal
 branch: claude/en-que-estaba-78b882
 autor_cambios: Codex (sesión gestionada por Emanuel)
 ---

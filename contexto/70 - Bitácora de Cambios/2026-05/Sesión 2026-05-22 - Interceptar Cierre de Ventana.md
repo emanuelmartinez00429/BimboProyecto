@@ -1,5 +1,7 @@
 ---
-title: "Sesión 2026-05-22 — Interceptar Cierre de Ventana"
+title: Sesión 2026-05-22 — Interceptar Cierre de Ventana
+type: sesion
+status: vigente
 tags:
   - bitacora
   - winforms
@@ -7,6 +9,16 @@ tags:
   - sesion
   - implementacion
 date: 2026-05-22
+updated: 2026-05-22
+summary: Se detectó que el botón X del shell WPF cerraba la app sin mostrar confirmación ni hacer client.Auth.SignOut() en Supabase. El botón de logout sí mostraba…
+scope:
+  - BimboPesaje/Formularios/MenuPrincipal
+symbols:
+  - CloseRequested
+  - FormClosing
+  - HandleCierreAsync
+  - LogoutRequested
+  - OnFormClosing
 ---
 
 # Sesión 2026-05-22 — Interceptar Cierre de Ventana

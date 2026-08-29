@@ -1,11 +1,29 @@
 ---
 title: "ADR-004 — GhostTextBox: Autocompletado de Dominio en Login"
+type: adr
+status: vigente
 tags:
   - decisión
   - UI
   - login
   - control-compartido
 date: 2026-06-15
+updated: 2026-06-15
+summary: "Al iniciar sesión, el usuario debe escribir su correo completo (ej. fabarahona280@gmail.com). El dominio de correo es el mismo para todos los usuarios de la…"
+scope:
+  - CapaDatos/Modelados
+  - CapaUI/Core/Controls
+symbols:
+  - CancellationTokenSource
+  - ControlTemplate
+  - FormattedText
+  - GhostSuffix
+  - GhostTextBox
+  - IngresarAsync
+  - InnerGotFocus
+  - InnerLostFocus
+  - Loaded
+  - Margin
 estado: implementado
 ---
 

@@ -1,11 +1,18 @@
 ---
-title: "Caso 04 — WPF Desktop App con MVVM y Clean Architecture"
+title: Caso 04 — WPF Desktop App con MVVM y Clean Architecture
+type: caso
+status: vigente
 tags:
   - caso-de-uso
   - wpf
   - mvvm
   - desktop
   - dotnet
+date: 2026-05-26
+updated: 2026-05-26
+summary: "// Constructor limpio — sin new ProductoCrudRepository() public ProductosViewModel(IProductoRepository repo) => repo = repo; }"
+scope: []
+symbols: []
 ---
 
 # Caso 04 — WPF Desktop App con MVVM y Clean Architecture

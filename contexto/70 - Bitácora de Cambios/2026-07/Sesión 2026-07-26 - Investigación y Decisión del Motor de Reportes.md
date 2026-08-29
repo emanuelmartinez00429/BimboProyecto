@@ -1,9 +1,22 @@
 ---
-title: "Sesión 2026-07-26 — Investigación y Decisión del Motor de Reportes"
-tags: [sesion, reportes, licencias, investigacion, fase9]
+title: Sesión 2026-07-26 — Investigación y Decisión del Motor de Reportes
+type: sesion
+status: vigente
+tags:
+  - sesion
+  - reportes
+  - licencias
+  - investigacion
+  - fase9
 date: 2026-07-26
+updated: 2026-07-26
+summary: "Fernando aportó un informe técnico externo sobre el subsistema de reportes del ERP, que recomendaba QuestPDF (PDF) + ClosedXML/OpenXmlWriter (Excel). Pidió:…"
+scope: []
+symbols:
+  - HeadingFormat
+  - IReportStrategy
 branch: feat/fase7-GestióndeUsuarios
-autor_cambios: Claude (Opus 5), dirigido por Fernando
+autor_cambios: "Claude (Opus 5), dirigido por Fernando"
 ---
 
 # Sesión 2026-07-26 — Investigación y Decisión del Motor de Reportes

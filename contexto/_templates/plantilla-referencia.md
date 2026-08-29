@@ -1,32 +1,33 @@
 ---
-title: "Tema de referencia (SDK / API / librería)"
+title: "Tema externo — SDK, API o quirk"
+type: referencia
+status: vigente
 tags:
   - referencia
 date: AAAA-MM-DD
-lifecycle: verified   # draft | verified | archived
+updated: AAAA-MM-DD
+summary: "El hecho externo en una frase: qué falla o cómo se comporta."
+scope: []
+symbols: []
+lifecycle: verified       # draft | verified | archived
 ---
 
-# Tema de referencia
-
-> [!info] Fuente
-> De dónde salió este hecho (doc oficial, issue de GitHub, prueba propia). Enlace si lo hay.
+# Tema externo — SDK, API o quirk
 
 ## El hecho
 
-Qué es cierto sobre esta herramienta externa que el proyecto necesita saber.
+Qué hace la librería, la API o el framework. Versión exacta si importa.
 
-## Por qué importa aquí
+## Cómo nos afectó
 
-Cómo afecta al proyecto Bimbo concretamente.
+Dónde lo encontramos en este proyecto.
 
-## Ejemplo / workaround
+## Qué hacer
 
-```csharp
-// Si aplica
-```
+El patrón correcto, con código.
 
 ---
 
 ## Relaciones
 
-- [[Arquitectura Actual]]
+- [[Convenciones C#]]

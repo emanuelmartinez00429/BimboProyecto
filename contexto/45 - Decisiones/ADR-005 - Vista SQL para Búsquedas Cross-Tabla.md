@@ -1,7 +1,18 @@
 ---
-title: "ADR-005 — Vista SQL para Búsquedas Cross-Tabla"
-tags: [adr, supabase, postgrest, busqueda]
+title: ADR-005 — Vista SQL para Búsquedas Cross-Tabla
+type: adr
+status: vigente
+tags:
+  - adr
+  - supabase
+  - postgrest
+  - busqueda
 date: 2026-07-26
+updated: 2026-07-26
+summary: "P-021: el buscador de Usuarios solo filtraba por aliasusuario. El nombre del empleado vive en la tabla empleados (JOIN por idempleado). PostgREST no permite un…"
+scope: []
+symbols:
+  - Usuarios
 estado: aceptado
 ---
 

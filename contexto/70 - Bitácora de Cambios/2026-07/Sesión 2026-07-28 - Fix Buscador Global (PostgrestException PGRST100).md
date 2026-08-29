@@ -1,11 +1,32 @@
 ---
-title: "Sesión 2026-07-28 — Fix buscador global (PostgrestException PGRST100)"
+title: Sesión 2026-07-28 — Fix buscador global (PostgrestException PGRST100)
+type: sesion
+status: vigente
 tags:
   - sesion
   - buscador
   - bugfix
   - supabase
 date: 2026-07-28
+updated: 2026-07-28
+summary: El buscador global (topbar) crasheaba con una excepción no controlada al buscar productos o empleados. Corregido el filtro OR mal construido en los dos…
+scope:
+  - CapaAplicacion4/Search/Handlers
+  - CapaDatos/Auth
+  - CapaDatos/Repositories/Search
+  - CapaUI/ViewModels/Search
+  - CapaUI/bin
+symbols:
+  - ClienteSearchStrategy
+  - DispatcherUnhandledException
+  - EmpleadoSearchStrategy
+  - IRepository<T>
+  - ISearchStrategy
+  - OperationCanceledException
+  - PostgrestException
+  - ProductoCrudRepository
+  - ProductoSearchStrategy
+  - RepositorioBase
 branch: feat/fase7-GestióndeUsuarios
 autor_cambios: Claude (agente)
 ---

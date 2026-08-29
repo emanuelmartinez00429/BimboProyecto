@@ -1,5 +1,7 @@
 ---
-title: "Sesión 2026-05-23 — Refactor Navegación Fase 1"
+title: Sesión 2026-05-23 — Refactor Navegación Fase 1
+type: sesion
+status: vigente
 tags:
   - bitacora
   - navegacion
@@ -7,6 +9,14 @@ tags:
   - refactor
   - clean-architecture
 date: 2026-05-23
+updated: 2026-05-23
+summary: Auditoría detectó 5 hallazgos en el sistema de navegación del menú principal. Esta sesión implementa la Fase 1 del plan (y Fase 2 + 3 incluidas). Ver plan…
+scope:
+  - CapaUI/Formularios/Principal
+symbols:
+  - ICommand
+  - INotifyPropertyChanged
+  - UniversalSearchViewModel
 ---
 
 # Sesión 2026-05-23 — Refactor Navegación Fase 1

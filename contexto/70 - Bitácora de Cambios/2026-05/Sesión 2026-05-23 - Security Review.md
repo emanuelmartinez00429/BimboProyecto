@@ -1,10 +1,21 @@
 ---
 title: Security Review — feat/fase6-IntegracionWpf/MenuPrincipal
-date: 2026-05-23
+type: sesion
+status: vigente
 tags:
   - seguridad
   - revision
   - bimbo
+date: 2026-05-23
+updated: 2026-05-23
+summary: "La anon key es intencionalmente pública. La seguridad real recae en las políticas RLS de Supabase, no en la ocultación de esta clave."
+scope:
+  - BimboPesaje/Formularios/InicioSesion/UcForgotCodeForm
+  - CapaDatos/Logo
+symbols:
+  - ActualizarLogoAsync
+  - ObtenerRutaLocalAsync
+  - SignOut
 ---
 
 # Security Review — feat/fase6-IntegracionWpf/MenuPrincipal

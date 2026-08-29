@@ -1,7 +1,23 @@
 ---
-title: "Módulo Empleados"
-tags: [bimbo, modulo, empleados, crud]
+title: Módulo Empleados
+type: modulo
+status: vigente
+tags:
+  - bimbo
+  - modulo
+  - empleados
+  - crud
 date: 2026-07-26
+updated: 2026-08-15
+summary: "Desde 2026-08-15 el alta ya no hace un Insert PostgREST directo. Empleado y bitácora se crean en la misma función PostgreSQL, por lo que ambos cambios son…"
+scope: []
+symbols:
+  - CambiarEstadoAsync
+  - Empleados
+  - GestionEmpleados
+  - IUsuarioSesionService
+  - Insert
+  - UpdateAsync
 ---
 
 # Módulo Empleados

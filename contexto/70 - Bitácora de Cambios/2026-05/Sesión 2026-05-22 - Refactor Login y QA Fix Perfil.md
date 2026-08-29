@@ -1,5 +1,7 @@
 ---
-title: "Sesión 2026-05-22 — Refactor Login + QA Fix Perfil"
+title: Sesión 2026-05-22 — Refactor Login + QA Fix Perfil
+type: sesion
+status: vigente
 tags:
   - bitacora
   - wpf
@@ -8,6 +10,22 @@ tags:
   - refactor
   - performance
 date: 2026-05-22
+updated: 2026-05-22
+summary: "Dos bloques de trabajo en esta sesión:"
+scope:
+  - CapaAplicacion4/Auth/Dtos
+  - CapaAplicacion4/Auth/Interfaces
+  - CapaDatos/Auth
+  - CapaDatos/Repositorios/Usuario
+  - CapaUI/Formularios/InicioSesion
+  - CapaUI/Formularios/Principal
+symbols:
+  - IAuthService
+  - IngresarAsync
+  - RepositorioUsuario
+  - ServicioPerfilUsuario
+  - SesionActual
+  - Session
 ---
 
 # Sesión 2026-05-22 — Refactor Login + QA Fix Perfil

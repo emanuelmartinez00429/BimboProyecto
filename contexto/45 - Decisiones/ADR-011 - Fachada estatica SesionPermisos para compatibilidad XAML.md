@@ -1,7 +1,23 @@
 ---
-title: "ADR-011 - Fachada estatica SesionPermisos para compatibilidad XAML"
-tags: [adr, decision, bimbo, gestion-usuarios, xaml, compatibilidad]
+title: ADR-011 - Fachada estatica SesionPermisos para compatibilidad XAML
+type: adr
+status: vigente
+tags:
+  - adr
+  - decision
+  - bimbo
+  - gestion-usuarios
+  - xaml
+  - compatibilidad
 date: 2026-07-23
+updated: 2026-07-23
+summary: El módulo de usuarios movió la sesión a IUsuarioSesionService (DI Singleton). Pero el XAML existente usaba SesionPermisos.Tiene(Permiso.X) directamente en…
+scope: []
+symbols:
+  - DataTrigger
+  - IUsuarioSesionService
+  - IsEnabled
+  - SesionPermisos
 estado: aceptado
 ---
 

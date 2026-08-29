@@ -1,10 +1,21 @@
 ---
 title: Buscador Universal — Bimbo
+type: estado
+status: vigente
 tags:
   - bimbo
   - buscador
   - strategy
   - mediator
+date: 2026-05-21
+updated: 2026-05-21
+summary: "Búsqueda global que encuentra productos, empleados y clientes desde una sola caja de texto. Implementa Strategy Pattern + CQRS + Mediator."
+scope:
+  - CapaAplicacion4/Search
+  - CapaDatos/Repositories/Search
+symbols:
+  - IRepository<T>
+  - SearchAsync
 ---
 
 # Buscador Universal — Bimbo

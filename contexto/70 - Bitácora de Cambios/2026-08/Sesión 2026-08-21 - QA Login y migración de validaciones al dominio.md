@@ -1,5 +1,7 @@
-﻿---
-title: "Sesión 2026-08-21 — QA Login y migración de validaciones al dominio"
+---
+title: Sesión 2026-08-21 — QA Login y migración de validaciones al dominio
+type: sesion
+status: vigente
 tags:
   - sesion
   - qa
@@ -9,6 +11,23 @@ tags:
   - refactorizacion
   - tests
 date: 2026-08-21
+updated: 2026-08-21
+summary: "Se crearon 112 tests de QA para el inicio de sesión (P0–P3), se detectó y corrigió un bug en el medidor de fortaleza de contraseña, y se migró toda la lógica de…"
+scope:
+  - BimboProyecto.Tests/Auth
+  - CapaDominio/Reglas
+  - CapaUI/Formularios/InicioSesion
+symbols:
+  - CalcularScore
+  - CredencialesCompletas
+  - CumpleTodasLasReglas
+  - EsDigitoOtp
+  - LongitudOtp
+  - OtpCompleto
+  - OtpValido
+  - ReglasContrasena
+  - ReglasLogin
+  - TieneLargoMinimo
 branch: feat/fase8-MaquetadodeRoles
 autor_cambios: Fernando / Antigravity (agente)
 ---

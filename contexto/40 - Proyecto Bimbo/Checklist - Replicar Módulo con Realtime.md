@@ -1,11 +1,29 @@
 ---
-title: "Checklist — Replicar Módulo con Realtime"
+title: Checklist — Replicar Módulo con Realtime
+type: estado
+status: vigente
 tags:
   - checklist
   - realtime
   - modulos
   - p006
 date: 2026-05-28
+updated: 2026-08-14
+summary: "Qué revisar y adaptar al copiar el patrón Realtime de Productos a un módulo nuevo: _pkColumns, suscripción, refresh silencioso y paginación."
+summary_fijo: true
+scope:
+  - CapaDatos/Realtime
+symbols:
+  - CanExecute
+  - CargarPaginaSilenciosamenteAsync
+  - IdEmpleado
+  - IdRegistro
+  - ItemsControl
+  - OnCambioProducto
+  - OnCambioXxx
+  - OnVmPropertyChanged
+  - Page
+  - PageRows
 ---
 
 # Checklist — Replicar Módulo con Realtime

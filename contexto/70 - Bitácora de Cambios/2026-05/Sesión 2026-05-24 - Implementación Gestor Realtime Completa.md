@@ -1,5 +1,7 @@
 ---
-title: "Sesión 2026-05-24 — Implementación Gestor Realtime (Fases 2–7)"
+title: Sesión 2026-05-24 — Implementación Gestor Realtime (Fases 2–7)
+type: sesion
+status: vigente
 tags:
   - sesion
   - realtime
@@ -8,6 +10,23 @@ tags:
   - di
   - disposable
 date: 2026-05-24
+updated: 2026-05-24
+summary: "Las 7 fases del nuevo Gestor Realtime están completadas. CapaUI, CapaDatos y CapaAplicacion compilan con 0 errores."
+scope:
+  - CapaDatos/Realtime
+  - CapaUI/Formularios/Principal
+  - CapaUI/Formularios/Principal/Pantallas/Productos
+symbols:
+  - ConstructionVM
+  - GetPagedAsync
+  - IDisposable
+  - IProductoRepository
+  - IRealtimeService
+  - JObject
+  - OnVistaActualChanging
+  - PageRows
+  - PostgresChangesOptions
+  - ProductoCrudRepository
 ---
 
 # Sesión 2026-05-24 — Implementación Gestor Realtime (Fases 2–7)

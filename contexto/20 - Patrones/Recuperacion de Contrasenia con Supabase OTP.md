@@ -1,5 +1,7 @@
 ---
 title: Recuperación de Contraseña con Supabase OTP
+type: patron
+status: vigente
 tags:
   - patron
   - wpf
@@ -7,6 +9,19 @@ tags:
   - autenticacion
   - seguridad
   - dotnet
+date: 2026-05-22
+updated: 2026-05-22
+summary: "En una app de escritorio WPF, el flujo estándar de Supabase para recuperación de contraseña envía un link al email del usuario. Los links contienen tokens en el…"
+scope:
+  - CapaUI/Formularios/InicioSesion
+  - CapaUI/Presentación
+symbols:
+  - ConexionSupabase
+  - InvalidCastException
+  - LoginWindow
+  - PasswordRecovery
+  - SignedIn
+  - VerifyOTP
 aliases:
   - Password Reset OTP
   - ForgotPassword

@@ -1,8 +1,28 @@
 ---
-title: "Selector de Catálogo — Selector genérico y multiselección"
+title: Selector de Catálogo — Selector genérico y multiselección
+type: patron
+status: vigente
 tags:
   - patron
 date: 2026-08-19
+updated: 2026-08-19
+summary: "SelectorCatalogoModal + CatalogoConfig/Catalogos es el selector \"elegir un registro de una tabla\" que usa todo el proyecto — Proveedor, Fabricante, Producto,…"
+scope:
+  - CapaAplicacion4/Common/Catalogos
+  - CapaDatos/Repositories/Catalogos
+  - CapaUI/Core/Catalogos
+  - CapaUI/Core/Controls
+symbols:
+  - CatalogoConfig
+  - CatalogoSelectorHost
+  - Catalogos
+  - Cerrado
+  - CheckBox
+  - ComboBox
+  - ContenidoPrincipal
+  - DataGridCell
+  - DataGridColumnHeader
+  - DataGridRow
 lifecycle: verified
 ---
 

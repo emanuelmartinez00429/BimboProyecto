@@ -1,5 +1,7 @@
 ---
 title: "Sesión 2026-08-14 — Catálogo real de unidad_medida con categoría (tipo_unidad), conectado a contenido y tara"
+type: sesion
+status: vigente
 tags:
   - sesion
   - productos
@@ -7,6 +9,22 @@ tags:
   - esquema
   - supabase
 date: 2026-08-14
+updated: 2026-08-14
+summary: "unidadmedida pasó de ser una tabla sembrada pero sin usar a un catálogo real con categoría (tipounidad: Masa/Volumen/Conteo) y estado. El combo \"Unidad\" del…"
+scope:
+  - CapaDatos/Modelados/Pesajes
+  - CapaDatos/Modelados/Productos
+symbols:
+  - CatalogoCache
+  - CmbUnidad
+  - ComboBox
+  - ComboBoxItem
+  - CreateAsync
+  - Explore
+  - FactorConversion
+  - GetTarasAsync
+  - GetUnidadesAsync
+  - IdEstado
 branch: feat/fase8-MaquetadodeRoles
 autor_cambios: Claude Sonnet 5 (Claude Code)
 ---

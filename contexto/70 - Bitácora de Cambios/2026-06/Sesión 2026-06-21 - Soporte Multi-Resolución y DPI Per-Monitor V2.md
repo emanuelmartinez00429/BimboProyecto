@@ -1,5 +1,7 @@
 ---
-title: "Sesión 2026-06-21 — Soporte Multi-Resolución y DPI Per-Monitor V2"
+title: Sesión 2026-06-21 — Soporte Multi-Resolución y DPI Per-Monitor V2
+type: sesion
+status: vigente
 tags:
   - sesion
   - wpf
@@ -7,6 +9,20 @@ tags:
   - escalado
   - rendering
 date: 2026-06-21
+updated: 2026-06-21
+summary: "Investigación (Microsoft Learn) + implementación de 5 fases para que la app se vea nítida en cualquier resolución y escala de Windows, incluso entre monitores…"
+scope: []
+symbols:
+  - HwndHost
+  - LoginWindow
+  - MainWindow
+  - MaxHeight
+  - MinHeight
+  - MinWidth
+  - ModalContent
+  - ModalOverlay
+  - ScrollViewer
+  - UseLayoutRounding
 branch: feat/fase6-IntegracionWpf/MenuPrincipal
 ---
 

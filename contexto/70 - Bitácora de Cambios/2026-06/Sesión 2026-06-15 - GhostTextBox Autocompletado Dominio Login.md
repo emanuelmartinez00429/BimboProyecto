@@ -1,11 +1,30 @@
 ---
 title: "Sesión 2026-06-15 — GhostTextBox: Autocompletado de Dominio en Login"
+type: sesion
+status: vigente
 tags:
   - bitácora
   - UI
   - login
   - control-compartido
 date: 2026-06-15
+updated: 2026-06-15
+summary: Nuevo UserControl GhostTextBox que muestra texto fantasma gris (patrón Windows 11) en el campo de email del login. El dominio de correo se carga desde la tabla…
+scope:
+  - CapaDatos/Modelados
+  - CapaUI/Core/Controls
+  - CapaUI/Formularios/InicioSesion
+symbols:
+  - CancellationTokenSource
+  - FontFamily
+  - FontSize
+  - GhostSuffix
+  - GhostTextBox
+  - IngresarAsync
+  - InnerGotFocus
+  - InnerLostFocus
+  - Padding
+  - Placeholder
 ---
 
 # Sesión 2026-06-15 — GhostTextBox: Autocompletado de Dominio en Login

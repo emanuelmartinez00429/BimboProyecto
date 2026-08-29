@@ -1,7 +1,20 @@
 ---
-title: "ADR-019 — Configuración de empresa y tema dinámico global"
-tags: [adr, decision, configuracion, tema, rls, storage]
+title: ADR-019 — Configuración de empresa y tema dinámico global
+type: adr
+status: vigente
+tags:
+  - adr
+  - decision
+  - configuracion
+  - tema
+  - rls
+  - storage
 date: 2026-08-14
+updated: 2026-08-15
+summary: "La lectura de empresa y logo debe funcionar antes del login. En cambio, cualquier escritura debe exigir la acción real Modificar Configuración, incluso ante…"
+scope: []
+symbols:
+  - MainWindow
 estado: aceptado
 ---
 

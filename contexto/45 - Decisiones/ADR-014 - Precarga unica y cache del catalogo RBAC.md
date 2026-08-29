@@ -1,5 +1,7 @@
 ---
-title: "ADR-014 — Precarga única y caché del catálogo RBAC"
+title: ADR-014 — Precarga única y caché del catálogo RBAC
+type: adr
+status: vigente
 tags:
   - adr
   - decision
@@ -7,6 +9,17 @@ tags:
   - rendimiento
   - supabase
 date: 2026-08-11
+updated: 2026-08-12
+summary: "La pantalla de Roles tardaba ~3 segundos en blanco en cada visita. La causa no era una consulta lenta sino el patrón de acceso:"
+scope: []
+symbols:
+  - CargarAsync
+  - ComboBox
+  - MainViewModel
+  - ObtenerAccionesAsignadasAsync
+  - ObtenerResumenAsync
+  - RolesResumenDto
+  - SemaphoreSlim
 estado: aceptado
 ---
 

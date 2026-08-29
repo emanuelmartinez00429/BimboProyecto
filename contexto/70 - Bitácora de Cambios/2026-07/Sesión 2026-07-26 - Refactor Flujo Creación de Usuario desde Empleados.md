@@ -1,7 +1,23 @@
 ---
-title: "Sesión 2026-07-26 - Refactor Flujo Creación de Usuario desde Empleados"
-tags: [sesion, bimbo, gestion-usuarios, empleados, refactor, ux]
+title: Sesión 2026-07-26 - Refactor Flujo Creación de Usuario desde Empleados
+type: sesion
+status: vigente
+tags:
+  - sesion
+  - bimbo
+  - gestion-usuarios
+  - empleados
+  - refactor
+  - ux
 date: 2026-07-26
+updated: 2026-07-26
+summary: "Se refactorizó el flujo de creación de usuarios para que se lance desde el módulo de Empleados en vez de desde Usuarios. El botón \"+Nuevo usuario\" se eliminó de…"
+scope: []
+symbols:
+  - AbrirModalCrearUsuario
+  - SolicitarCrearUsuario
+  - SolicitarNuevo
+  - TxtEmpleadoNombre
 branch: main
 autor_cambios: Codex (sesión gestionada por Emanuel)
 ---

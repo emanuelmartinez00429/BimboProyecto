@@ -1,5 +1,7 @@
 ---
-title: "Sesión 2026-08-15 — Validación centralizada y doble clic en catálogos"
+title: Sesión 2026-08-15 — Validación centralizada y doble clic en catálogos
+type: sesion
+status: vigente
 tags:
   - sesion
   - validacion
@@ -7,6 +9,23 @@ tags:
   - modales
   - refactor
 date: 2026-08-15
+updated: 2026-08-15
+summary: Ejecución de Plan de Implementación - Validación Centralizada. Ocho entregables.
+scope:
+  - CapaDominio/Reglas
+  - CapaDominio/Reglas/ReglasFormato
+  - CapaUI/Core/Validacion
+symbols:
+  - CampoModal
+  - ConfiguracionEmpresaViewModel
+  - ConfirmacionEstado
+  - DialogoConfirmacion
+  - EmpleadoModal
+  - ErroresRepositorio
+  - EstadoRegistro
+  - FabricanteModal
+  - ForgotEmailPanel
+  - FormatoCampo
 branch: feat/fase8-MaquetadodeRoles
 autor_cambios: Fernando
 ---

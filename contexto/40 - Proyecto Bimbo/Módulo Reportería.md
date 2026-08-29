@@ -1,7 +1,28 @@
 ---
-title: "Módulo Reportería"
-tags: [modulo, reportes, pdf, excel, supabase]
+title: Módulo Reportería
+type: modulo
+status: vigente
+tags:
+  - modulo
+  - reportes
+  - pdf
+  - excel
+  - supabase
 date: 2026-08-17
+updated: 2026-08-17
+summary: La pantalla ReporteriaView concentra cuatro reportes operativos en una grilla de dos columnas por dos filas. Cada tarjeta abre un subformulario coherente con el…
+scope:
+  - CapaAplicacion4/Reportes/Dtos
+  - CapaAplicacion4/Reportes/Interfaces
+  - CapaDatos/Reportes
+  - CapaDatos/Repositories/Reportes
+  - CapaUI/Formularios/Principal/Pantallas/Reporteria
+symbols:
+  - IReporteConsultaRepository
+  - ReporteRepository
+  - ReporteriaView
+  - ReporteriaViewModel
+  - TabularReportDto
 ---
 
 # Módulo Reportería

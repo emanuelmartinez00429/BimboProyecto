@@ -1,6 +1,7 @@
 ---
-title: "Sesión 2026-07-01 — Pantalla Pesaje (WPF) y Buscador de Productos por Proveedor (Fase 1)"
-date: 2026-07-01
+title: Sesión 2026-07-01 — Pantalla Pesaje (WPF) y Buscador de Productos por Proveedor (Fase 1)
+type: sesion
+status: Fase 1 completada
 tags:
   - bitácora
   - pesaje
@@ -8,8 +9,25 @@ tags:
   - wpf
   - xaml
   - rendimiento
+date: 2026-07-01
+updated: 2026-07-01
+summary: "Se convirtió un diseño de alta fidelidad (export HTML/React \"BimboPesaje Standalone\") a XAML nativo dentro del shell WPF actual: la pantalla Recepción de Materia…"
+scope:
+  - CapaAplicacion4/Pesaje/Interfaces
+  - CapaDatos/Repositories/Pesaje
+  - CapaUI/Formularios/Principal/Pantallas/Pesaje
+symbols:
+  - BuscarPorProveedorAsync
+  - BuscarTodosAsync
+  - CamionModal
+  - CancellationTokenSource
+  - Completed
+  - ConstructionVM
+  - DataGrid
+  - DataTemplate
+  - Effect
+  - FabricanteConsulta
 branch: feat/fase6-IntegracionWpf/MenuPrincipal
-status: Fase 1 completada
 ---
 
 # Sesión 2026-07-01 — Pantalla Pesaje (WPF) y Buscador por Proveedor (Fase 1)

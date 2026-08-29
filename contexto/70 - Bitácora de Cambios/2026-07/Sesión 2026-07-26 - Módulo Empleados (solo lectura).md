@@ -1,7 +1,27 @@
 ---
-title: "Sesión 2026-07-26 — Módulo Empleados (solo lectura)"
-tags: [sesion, empleados, wip, ui]
+title: Sesión 2026-07-26 — Módulo Empleados (solo lectura)
+type: sesion
+status: vigente
+tags:
+  - sesion
+  - empleados
+  - wip
+  - ui
 date: 2026-07-26
+updated: 2026-07-26
+summary: "Fernando pidió crear el módulo de Gestión de Empleados, pero solo la parte visual y de lectura: la lista, el buscador, y los modales de Ver (al seleccionar una…"
+scope: []
+symbols:
+  - BuscarSugerenciasAsync
+  - CambiarEstadoAsync
+  - ConstructionVM
+  - CreateAsync
+  - EmpleadoCrudRepository
+  - EmpleadoModal
+  - Empleados
+  - EmpleadosView
+  - EmpleadosViewModel
+  - GetPagedAsync
 branch: feat/fase7-GestióndeUsuarios
 autor_cambios: Codex (sesión gestionada por Emanuel)
 ---

@@ -1,10 +1,29 @@
 ---
-title: "Sesión 2026-08-20 — Guardado de pesajes sin refetch"
+title: Sesión 2026-08-20 — Guardado de pesajes sin refetch
+type: sesion
+status: vigente
 tags:
   - sesion
   - pesaje
   - performance
 date: 2026-08-20
+updated: 2026-08-20
+summary: "\"Seguir pesando\" tardaba demasiado en responder. Diagnóstico contra la BD real (MCP de Supabase): no era la base de datos — era arquitectura, 4–5 round trips…"
+scope:
+  - CapaAplicacion4/Pesaje/Interfaces
+  - CapaDatos/Repositories
+  - CapaDatos/Repositories/Pesaje
+symbols:
+  - AbrirPesajeModal
+  - Action<T>
+  - ActualizarUI
+  - AgregarEntradaEnMemoria
+  - AnularEntradaAsync
+  - CargarProductosAsync
+  - CerrarCamion
+  - CrearEntradaAsync
+  - EntradaDto
+  - EntradaEnEdicion
 branch: feat/fase8-MaquetadodeRoles
 autor_cambios: Claude Fernando (agente)
 ---

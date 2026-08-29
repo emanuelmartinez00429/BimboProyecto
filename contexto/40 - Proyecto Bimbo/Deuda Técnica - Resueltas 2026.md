@@ -1,0 +1,376 @@
+---
+title: Deuda Técnica — Resueltas 2026
+type: deuda
+status: archivado
+tags:
+  - deuda-tecnica
+  - archivo
+  - historial
+date: 2026-05-28
+updated: 2026-08-23
+summary: "Archivo histórico de los P-NNN ya resueltos, con el diagnóstico original y la sesión que los cerró."
+summary_fijo: true
+scope:
+  - CapaAplicacion4/Common
+  - CapaDatos/Modelados/Usuarios
+  - CapaDatos/Repositories/Productos
+  - CapaDatos/Repositories/Usuarios
+  - CapaUI/Core/Permisos
+  - CapaUI/Formularios/Principal
+symbols:
+  - AnimateChevron
+  - AnimateOpacity
+  - AnimateSubMenu
+  - AnimateWidth
+  - Behavior
+  - BrandBlock
+  - BuscarSugerenciasInternal
+  - CargarPaginaAsync
+  - CargarPaginaSilenciosamenteAsync
+  - ChevUsuarios
+---
+
+# Deuda Técnica — Resueltas 2026
+
+> [!success] Archivo histórico
+> Estos ítems ya están cerrados. Se movieron acá el 2026-08-23 para que
+> [[Deuda Técnica - Pendientes]] cargue solo lo abierto: era lectura obligatoria y la mitad era historia.
+> El diagnóstico original se conserva completo — sirve para entender por qué el código quedó como quedó.
+
+---
+
+## 🔴 Críticos — resolver ANTES de replicar el módulo
+
+### ~~P-013 · Regresión de auditoría: `IdUsuario ?? 0` en Pesaje pierde el "fail-loud"~~ ✅ Resuelto 2026-07-26
+
+**Archivo:** `CapaUI/Formularios/Principal/Pantallas/Pesaje/PesajeViewModel.cs`
+**Introducido en:** commit `f105047` (Emanuel, 2026-07-23), refactor de sesión. Ver [[Sesión 2026-07-23 - Revisión QA Módulo Usuarios y Refactor de Sesión (Emanuel)]].
+
+```csharp
+// ANTES (fallaba explícito si no había sesión):
+private static int UsuarioActual => CapaDominio.SesionActual.IdUsuario; // throw si null
+// AHORA (silencioso):
+private int UsuarioActual => _sesionService.SesionActual?.IdUsuario ?? 0;
+```
+
+El `SesionActual.IdUsuario` borrado lanzaba `InvalidOperationException` a propósito si no había sesión — su comentario lo decía: *"Falla explícitamente… para evitar auditoría falsa (antes tenía default = 1)"*. El reemplazo retorna `0` en silencio, así que un pesaje podría **persistirse con `id_usuario = 0`** (usuario inexistente) en lugar de fallar visiblemente.
+
+**Riesgo:** Registros de auditoría/movimientos atribuidos a un usuario fantasma. Silencioso — no da error.
+
+**Solución aplicada:** `UsuarioActual` lanza `InvalidOperationException` si no hay sesión (garantía de última defensa) + guarda `HaySesionActiva()` en los 2 puntos de uso que loguea (Serilog) y muestra Toast "Sesión expirada" — mensaje genérico al usuario, detalle al log. Ver [[Sesión 2026-07-26 - Resolución Deuda Técnica P-013 a P-021]].
+
+**Estado:** `[x] Resuelto` — `dotnet build` 0 errores.
+
+---
+
+### ~~P-001 · Filtros duplicados 3 veces en `ProductoCrudRepository`~~ ✅ Resuelto 2026-05-28
+
+**Archivo:** `CapaDatos/Repositories/Productos/ProductoCrudRepository.cs`
+**Líneas afectadas:** `GetPagedInternal`, `BuscarSugerenciasInternal`, `GetPaginaDeProductoInternal`
+
+El bloque de aplicación de filtros es idéntico en los tres métodos:
+```csharp
+if (filtros.IdEstado.HasValue)
+    query = query.Filter("id_estado", Op.Equals, filtros.IdEstado.Value.ToString());
+if (filtros.IdFabricante.HasValue)
+    query = query.Filter("id_fabricante", Op.Equals, filtros.IdFabricante.Value.ToString());
+if (filtros.IdPais.HasValue)
+    query = query.Filter("id_pais", Op.Equals, filtros.IdPais.Value.ToString());
+```
+
+**Riesgo:** Agregar un filtro nuevo obliga a cambiarlo en 3 lugares. Fácil olvidar uno → resultados inconsistentes según qué operación se use.
+
+**Solución:**
+```csharp
+private static ISupabaseTable<Productos, RealtimeChannel> AplicarFiltros(
+    ISupabaseTable<Productos, RealtimeChannel> query, ProductoFiltros filtros)
+{
+    if (filtros.IdEstado.HasValue)
+        query = query.Filter("id_estado", Op.Equals, filtros.IdEstado.Value.ToString());
+    if (filtros.IdFabricante.HasValue)
+        query = query.Filter("id_fabricante", Op.Equals, filtros.IdFabricante.Value.ToString());
+    if (filtros.IdPais.HasValue)
+        query = query.Filter("id_pais", Op.Equals, filtros.IdPais.Value.ToString());
+    return query;
+}
+```
+
+**Estado:** `[ ] Pendiente`
+
+---
+
+### ~~P-002 · Magic numbers para estados sin constante ni enum~~ ✅ Resuelto 2026-05-28
+
+**Archivos:** `ProductoCrudRepository.cs`, `ProductosViewModel.cs`
+
+Los valores `1` (activo) y `2` (inactivo) para `id_estado` aparecen dispersos sin ninguna constante central:
+```csharp
+// En ViewModel
+EstadoFilter.Habilitados    => 1,
+EstadoFilter.Deshabilitados => 2,
+
+// En Repositorio (soft-delete)
+.Set(p => p.idEstado, 2)
+
+// En GetConteosAsync
+.Filter("id_estado", Op.Equals, "1")
+```
+
+**Riesgo:** Si otro módulo usa una convención diferente, o si el esquema cambia, los bugs no dan error de compilación — fallan en runtime silenciosamente.
+
+**Solución:** Crear constantes en `CapaAplicacion`:
+```csharp
+// CapaAplicacion4/Common/EstadoRegistro.cs
+public static class EstadoRegistro
+{
+    public const int Activo   = 1;
+    public const int Inactivo = 2;
+}
+```
+
+**Estado:** `[ ] Pendiente`
+
+---
+
+### ~~P-003 · `_filteredCount` calculado en dos lugares del ViewModel~~ ✅ Resuelto 2026-05-28
+
+**Archivo:** `CapaUI/.../Productos/ProductosViewModel.cs`
+**Métodos:** `CargarPaginaAsync` y `CargarPaginaSilenciosamenteAsync`
+
+El mismo switch está duplicado:
+```csharp
+_filteredCount = filtros.IdEstado switch {
+    1 => pagina.Activos,
+    2 => pagina.Inactivos,
+    _ => pagina.Total
+};
+```
+
+**Riesgo:** Si se cambia la lógica en uno y no en el otro, los conteos de la UI mostrarán números distintos según si la actualización vino del usuario o de un evento Realtime.
+
+**Solución:** Extraer a método privado:
+```csharp
+private int ResolverFilteredCount(PagedResult<ProductoDto> pagina, ProductoFiltros filtros) =>
+    filtros.IdEstado switch
+    {
+        EstadoRegistro.Activo   => pagina.Activos,
+        EstadoRegistro.Inactivo => pagina.Inactivos,
+        _                       => pagina.Total
+    };
+```
+
+**Estado:** `[ ] Pendiente`
+
+---
+
+### ~~P-009 · `BrandBlock` dejó de sincronizar su ancho con `Sidebar` (regresión)~~ ✅ Resuelto 2026-07-23
+
+**Archivo:** `CapaUI/Formularios/Principal/MainWindow.xaml.cs` — `CollapseSidebar()` / `ExpandSidebar()`
+**Introducido en:** commit `2f5489d` (2026-07-18, branch `feat/fase6-IntegracionWpf/MenuPrincipal`), sin documentar. Ver [[Sesión 2026-07-23 - Reconciliación Animación Sidebar (ContentAreaBorder) y Regresión BrandBlock]].
+
+`BrandBlock` (`MainWindow.xaml:110`, `Width="226"` fijo) trae el comentario explícito *"mismo ancho que sidebar, anima junto"*. Antes del commit `2f5489d` ambas funciones llamaban `AnimateWidth(BrandBlock, …, 160)` junto con `AnimateWidth(Sidebar, …, 160)`. Esa llamada fue eliminada al introducir el manejo de `ContentAreaBorder` y no quedó ningún binding/trigger que la reemplace.
+
+**Riesgo:** Al colapsar el sidebar (72px), el bloque de marca en la top bar se queda fijo en 226px — desalineación visual entre la barra superior y el sidebar. Es una regresión de funcionalidad, no solo un tema de estilo de código.
+
+**Solución aplicada:** nuevo helper de instancia `AnimateSidebarWidth(double to)` que anima `Sidebar` y `BrandBlock` juntos desde un único call site (`CollapseSidebar()`/`ExpandSidebar()` ya no llaman `AnimateWidth` por separado para cada uno) — imposible que vuelvan a desincronizarse por accidente.
+
+**Estado:** `[x] Resuelto` — `dotnet build` 0 errores.
+
+---
+
+## 🟡 Importantes — no bloquean pero generan deuda en cascada
+
+### ~~P-004 · `PropertyChanged` handler con 30+ condiciones en el code-behind~~ ✅ Resuelto 2026-05-28
+
+**Archivo:** `CapaUI/.../Productos/ProductosView.xaml.cs`
+**Líneas:** ~62–96
+
+```csharp
+_vm.PropertyChanged += (s, ev) => {
+    if (ev.PropertyName == nameof(ProductosViewModel.PageRows))    RefrescarPaginacion();
+    if (ev.PropertyName == nameof(ProductosViewModel.IsLoading))   ActualizarSpinner();
+    // ... 9+ condiciones más
+};
+```
+
+**Riesgo:** Se copiará completo a cada módulo nuevo. Es propenso a typos silenciosos (el PropertyName como string no compila si cambia el nombre de la propiedad). Cada cambio de cualquier propiedad evalúa todas las condiciones.
+
+**Solución ideal:** Mover a bindings declarativos en XAML con Converters o Behaviors donde sea posible.
+
+**Estado:** `[ ] Pendiente`
+
+---
+
+### ~~P-005 · `VisualTreeHelper` para highlight de sugerencias~~ ✅ Resuelto 2026-05-28
+
+**Archivo:** `CapaUI/.../Productos/ProductosView.xaml.cs`
+**Líneas:** ~314–326
+
+Navega el árbol visual manualmente para pintar el ítem seleccionado en el popup de sugerencias. Si el template XAML cambia aunque sea un `Border` de más, falla en runtime sin excepción clara.
+
+**Riesgo al replicar:** Cada módulo con buscador copiará esta lógica frágil y acoplada al XAML específico de Productos.
+
+**Solución:** Encapsular en un `Behavior` o usar `ListBox` con `SelectedItem` binding en lugar de `ItemsControl` manual.
+
+**Estado:** `[ ] Pendiente`
+
+---
+
+### ~~P-010 · Elementos del sidebar repetidos manualmente en 4 bloques paralelos~~ ✅ Resuelto 2026-07-23
+
+**Archivo:** `CapaUI/Formularios/Principal/MainWindow.xaml.cs` — `CollapseSidebar()` / `ExpandSidebar()`
+
+Los ~12 elementos visuales del sidebar (`LblModuloUsuarios`, `ChevUsuarios`, `LblModuloProductos`, … `LogoContainer`, `UserCardButton`) se listan a mano en al menos 4 bloques distintos: fade-out al colapsar, `Visibility.Collapsed` + restore opacity al colapsar, hacerlos `Visible` con opacidad 0 al expandir, fade-in al expandir. `BrandBlock` vivía en una quinta lista (`AnimateWidth`) que se perdió sin que nada avisara — causa raíz de **P-009**.
+
+**Riesgo:** Agregar/quitar un elemento del sidebar (o simplemente refactorizar) obliga a tocar 4–5 listas idénticas. Es fácil que uno quede huérfano, como ya ocurrió.
+
+**Solución aplicada:** campo `private readonly UIElement[] _sidebarChromeElements`, poblado una vez en el constructor tras `InitializeComponent()`. Los 4 bloques de 12 líneas cada uno se reemplazaron por `foreach (var el in _sidebarChromeElements) ...` en `CollapseSidebar()`/`ExpandSidebar()`. `BrandBlock` sigue fuera de este array a propósito (se anima `Width`, no `Opacity`/`Visibility` — ver P-009).
+
+**Estado:** `[x] Resuelto` — `dotnet build` 0 errores.
+
+---
+
+### ~~P-011 · Guard `_animating` no cubre `BtnModulo_Click`~~ ✅ Resuelto 2026-07-23
+
+**Archivo:** `CapaUI/Formularios/Principal/MainWindow.xaml.cs`
+
+`BtnHamburger_Click` verifica `if (_animating) return;` antes de animar. `BtnModulo_Click` también dispara `await ExpandSidebar()` cuando el sidebar está colapsado, pero no verifica `_animating` primero — un click durante la cola de `CollapseSidebar` puede solapar dos animaciones sobre las mismas propiedades (`Sidebar.Width`, `ContentAreaBorder.Opacity`).
+
+**Riesgo:** Animaciones encimadas → estado visual inconsistente, similar al bug que motivó la sesión 2026-05-26 originalmente.
+
+**Solución aplicada:** agregado `if (_animating) return;` como primera línea de `BtnModulo_Click`, mismo patrón que `BtnHamburger_Click`.
+
+**Estado:** `[x] Resuelto` — `dotnet build` 0 errores.
+
+---
+
+### ~~P-012 · Duraciones de animación como magic numbers sin constantes nombradas~~ ✅ Resuelto 2026-07-23
+
+**Archivo:** `CapaUI/Formularios/Principal/MainWindow.xaml.cs`
+
+Los valores `50, 55, 60, 65, 70, 75, 80, 100, 160, 180, 220` ms aparecen como literales dispersos en `CollapseSidebar`/`ExpandSidebar`, sin relación explícita con la tabla de referencia en [[Animaciones WPF - Referencia de Easings]]. (El `180` que rota el chevrón en `AnimateChevron(entry.Chevron, 180)` es un ángulo en grados, no una duración — no forma parte de este ítem aunque coincida numéricamente con `ChevronRotateMs`.)
+
+**Riesgo:** Difícil mantener consistencia entre lo documentado y lo implementado (ya pasó: el timeline documentado en 2026-05-26 quedó desactualizado sin que nada lo señalara). Ajustar un timing implica buscar el número mágico correcto entre varios iguales.
+
+**Solución aplicada:** 15 constantes nuevas (`ContentFadeOutMs`, `ChromeFadeOutMs`, `SidebarWidthAnimMs`, `SubMenuOpenMs`, `ChevronRotateMs`, etc.) agrupadas junto a `SidebarExpanded`/`SidebarCollapsed`/`SubItemHeight`. Todos los `Task.Delay`/`AnimateOpacity`/`AnimateWidth`/`AnimateSubMenu`/`AnimateChevron` del archivo ahora referencian una constante en vez de un literal.
+
+**Estado:** `[x] Resuelto` — `dotnet build` 0 errores.
+
+---
+
+### ~~P-014 · `Debug.WriteLine` logueando prefijos de access token (Usuarios)~~ ✅ Resuelto 2026-07-26
+
+**Archivo:** `CapaDatos/Repositories/Usuarios/UsuarioRepository.cs` — `CrearAsync`
+**Introducido en:** commit `f105047` (Emanuel). Ver [[Sesión 2026-07-23 - Revisión QA Módulo Usuarios y Refactor de Sesión (Emanuel)]].
+
+Tres `Debug.WriteLine` loguean prefijos del access token (`token={session?.AccessToken?[..20]}...`) y emails de sesión antes/después del SignUp y la RPC. Aunque sea solo en Debug y truncado, loguear cualquier parte de un token es un smell de seguridad.
+
+**Riesgo:** Fuga parcial de tokens en logs/Output. Bajo (solo Debug), pero debe limpiarse antes de producción.
+
+**Solución aplicada:** eliminados los 3 `Debug.WriteLine` con token; queda un solo `Serilog.Log.Debug` booleano ("sesión restaurada: sí/no"). Regla permanente agregada al [[Plan de Seguridad - Roadmap 10-10]] §2.1b: nunca loguear secretos, ni truncados.
+
+**Estado:** `[x] Resuelto`
+
+---
+
+### ~~P-015 · Debug scaffolding "[MapToDto] Diagnóstico FK" corre por cada fila~~ ✅ Resuelto 2026-07-26
+
+**Archivo:** `CapaDatos/Repositories/Usuarios/UsuarioRepository.cs` — `MapToDto`
+
+`MapToDto` ejecuta un `Debug.WriteLine` de diagnóstico de FKs (`empleados`/`roles` null u OK) **por cada usuario mapeado en cada carga de página**. Es andamiaje de depuración dejado en el código.
+
+**Riesgo:** Ruido en Output y trabajo inútil en cada render. Menor pero se replicará si se usa este repo como plantilla.
+
+**Solución aplicada:** eliminado el bloque de diagnóstico completo; las variables locales del mapeo se conservan.
+
+**Estado:** `[x] Resuelto`
+
+---
+
+### ~~P-016 · `Normalizar()` del modal itera bytes UTF-8 como `char` (stripping de acentos incorrecto)~~ ✅ Resuelto 2026-07-26
+
+**Archivo:** `CapaUI/.../Usuarios/UsuarioModal.xaml.cs` — `Normalizar`
+
+Para quitar tildes al auto-generar el email, el código hace `Encoding.UTF8.GetBytes(s.Normalize(FormD))` y luego filtra **bytes** casteados a `char` según su categoría Unicode (`NonSpacingMark`). Tratar bytes UTF-8 individuales como caracteres es incorrecto para multi-byte: las marcas combinantes de FormD son secuencias de 2 bytes, así que el filtrado no es confiable (puede dejar bytes sueltos o corromper caracteres).
+
+**Riesgo:** Emails auto-generados con caracteres raros o acentos sin quitar para nombres como "Muñoz", "Peña", "Hernández".
+
+**Solución aplicada:** iteración sobre `char` de la cadena FormD + filtrado `NonSpacingMark` + recomposición FormC. Verificado: `Muñoz→munoz`, `María→maria`, `Peña→pena`. Patrón documentado en [[NET - Normalizacion Unicode para Quitar Acentos]].
+
+**Estado:** `[x] Resuelto`
+
+---
+
+### ~~P-017 · Dependencia muerta: `IUsuarioSesionService` inyectada y no usada en `UsuarioModal`~~ ✅ Resuelto 2026-07-26
+
+**Archivo:** `CapaUI/.../Usuarios/UsuarioModal.xaml.cs`
+
+El constructor recibe y guarda `IUsuarioSesionService _sesionService` pero nunca lo usa.
+
+**Riesgo:** Ninguno funcional; ensucia el contrato del modal y confunde sobre por qué depende de la sesión.
+
+**Solución aplicada:** eliminados campo, parámetro y asignación; actualizados los 2 llamadores en `UsuariosView.xaml.cs`.
+
+**Estado:** `[x] Resuelto`
+
+---
+
+### ~~P-018 · Acoplamiento frágil: permisos por nombre de enum vs. string de BD~~ ✅ Resuelto 2026-07-26
+
+**Archivo:** `CapaUI/Core/Permisos/SesionPermisos.cs` — `Tiene`
+
+`SesionPermisos.Tiene(permiso)` hace `sesion.TieneAccion(permiso.ToString())`. El sistema depende de que el nombre del miembro del enum `Permiso` (p. ej. `Pesajes_Ver`) coincida **exactamente** con `acciones.nombre_accion` en la BD. Si difieren (typo, renombre en BD, mayúsculas), el permiso devuelve `false` en silencio → el módulo se oculta sin ningún error.
+
+**Riesgo:** Permisos "desaparecen" sin diagnóstico. Difícil de depurar porque no hay excepción.
+
+**Solución aplicada:** contrato documentado en el doc-comment de `Permiso.cs` (no renombrar sin migración) + `SesionPermisos.ValidarContraBD()` invocado tras login: loguea con Serilog los valores del enum que la sesión no reconoce. No bloquea la app — es diagnóstico.
+
+**Estado:** `[x] Resuelto (documentación + validación diagnóstica)`
+
+---
+
+## 🟢 Menores — aceptables por ahora
+
+### ~~P-019 · Nombre confuso: propiedad `correoUsuario` mapea a columna `alias_usuario`~~ ✅ Resuelto 2026-07-26
+
+**Archivo:** `CapaDatos/Modelados/Usuarios/Usuarios.cs`
+
+La propiedad C# `correoUsuario` tenía `[Column("alias_usuario")]`. El nombre de la propiedad y el de la columna sugerían conceptos distintos ("correo" vs "alias").
+
+**Solución aplicada:** renombrada la propiedad a `aliasUsuario` en los 2 modelos + 3 servicios que la referencian. El atributo `[Column("alias_usuario")]` no cambió — el esquema de BD quedó intacto.
+
+**Estado:** `[x] Resuelto`
+
+---
+
+### ~~P-020 · Artefactos de tooling de IA commiteados al repo~~ ✅ Resuelto 2026-07-23
+
+**Archivos:** `.atl/.skill-registry.cache.json`, `.atl/skill-registry.md`, `.codegraph/.gitignore` (agregados en `f105047`).
+
+Artefactos generados por herramientas de agentes de IA, no forman parte del código del proyecto.
+
+**Riesgo:** Ruido en el repo, posibles conflictos de merge, tamaño innecesario.
+
+**Solución aplicada:** `.atl/` y `.codegraph/` agregados al `.gitignore` y removidos del índice con `git rm -r --cached` (siguen en disco). Hecho junto con la reestructuración multi-agente. Ver [[Sesión 2026-07-23 - Plan Preparar Bóveda Multi-Agente (AGENTS.md)]].
+
+**Estado:** `[x] Resuelto` (pendiente de commit por el usuario).
+
+---
+
+### ~~P-021 · Búsqueda de Usuarios solo por `alias_usuario`, no por nombre de empleado~~ ✅ Resuelto 2026-07-26
+
+**Archivo:** `CapaDatos/Repositories/Usuarios/UsuarioRepository.cs` — `ObtenerPaginaAsync` / `ObtenerConteosAsync`
+
+La búsqueda filtraba solo `alias_usuario` (correo). El nombre del empleado vive en la tabla joineada `empleados`, y PostgREST no permite un OR que cruce padre + JOIN.
+
+**Solución aplicada:** vista SQL `vista_usuarios_busqueda` (`security_invoker = true`, respeta RLS) que aplana `nombre_completo`; `usuarioVista` apunta a la vista y el OR server-side cubre `alias_usuario` + `nombre_completo` en página y conteos. Primera búsqueda cross-tabla del sistema — ver [[ADR-005 - Vista SQL para Búsquedas Cross-Tabla]].
+
+**Estado:** `[x] Resuelto`
+
+---
+
+## Relaciones
+
+- [[Deuda Técnica - Pendientes]] — deuda abierta y tabla de historial completa
+- [[Arquitectura Actual]] — estado vivo del sistema
+- [[Módulo Productos]] — módulo donde se originó la auditoría de 2026-05-28

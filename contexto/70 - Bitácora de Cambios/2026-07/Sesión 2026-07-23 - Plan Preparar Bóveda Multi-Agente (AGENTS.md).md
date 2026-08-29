@@ -1,5 +1,7 @@
 ---
-title: "Plan — Preparar Bóveda Multi-Agente (AGENTS.md + protocolo)"
+title: Plan — Preparar Bóveda Multi-Agente (AGENTS.md + protocolo)
+type: sesion
+status: vigente
 tags:
   - plan
   - multi-agente
@@ -7,6 +9,16 @@ tags:
   - documentacion
   - infraestructura
 date: 2026-07-23
+updated: 2026-07-23
+summary: "Fase 1 (aditiva) y Fase 2 (movimiento) completas. La bóveda vive ahora en BimboProyecto/contexto/. Creados AGENTS.md (raíz), contexto/AGENTS.md (protocolo),…"
+scope: []
+symbols:
+  - BaseModel
+  - Fabricante
+  - INotifyPropertyChanged
+  - RepositorioBase
+  - Result
+  - TryAsync
 estado: ejecutado
 ---
 

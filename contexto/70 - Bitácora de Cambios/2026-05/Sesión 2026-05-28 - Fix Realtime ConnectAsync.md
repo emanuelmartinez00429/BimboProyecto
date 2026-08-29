@@ -1,11 +1,25 @@
 ---
 title: "Sesión 2026-05-28 — Fix Realtime: Socket must exist"
+type: sesion
+status: vigente
 tags:
   - sesion
   - realtime
   - fix
   - supabase
 date: 2026-05-28
+updated: 2026-05-28
+summary: El formulario de Productos ya no lanza la excepción al abrir. Canal Realtime se establece correctamente.
+scope:
+  - CapaDatos/Realtime
+symbols:
+  - AbrirCanalAsync
+  - AutoConnectRealtime
+  - ConexionSupabase
+  - Connect
+  - ProductosViewModel
+  - RealtimeService
+  - SupabaseOptions
 ---
 
 # Sesión 2026-05-28 — Fix Realtime: "Socket must exist, was Connect called?"

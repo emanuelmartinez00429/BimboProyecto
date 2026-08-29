@@ -1,5 +1,7 @@
 ---
-title: "Sesión 2026-05-26 — Optimización Animación Sidebar (Hamburger)"
+title: Sesión 2026-05-26 — Optimización Animación Sidebar (Hamburger)
+type: sesion
+status: vigente
 tags:
   - sesion
   - animacion
@@ -7,6 +9,21 @@ tags:
   - ux
   - wpf
 date: 2026-05-26
+updated: 2026-07-23
+summary: La animación del hamburger (colapsar/expandir sidebar) pasó de trabarse en el inicio a arrancar desde el primer frame. Se agregó fade cruzado de etiquetas para…
+scope:
+  - CapaUI/Formularios/Principal
+symbols:
+  - AnimateOpacity
+  - AnimateSubMenu
+  - AnimateWidth
+  - BrandBlock
+  - CollapseSidebar
+  - ContentAreaBorder
+  - EaseInOut
+  - ExpUsuarios
+  - ExpandSidebar
+  - LblModuloUsuarios
 ---
 
 # Sesión 2026-05-26 — Optimización Animación Sidebar

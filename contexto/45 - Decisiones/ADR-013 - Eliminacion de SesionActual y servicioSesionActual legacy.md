@@ -1,7 +1,20 @@
 ---
-title: "ADR-013 - Eliminacion de SesionActual y servicioSesionActual legacy"
-tags: [adr, decision, bimbo, gestion-usuarios, legacy, limpieza]
+title: ADR-013 - Eliminacion de SesionActual y servicioSesionActual legacy
+type: adr
+status: vigente
+tags:
+  - adr
+  - decision
+  - bimbo
+  - gestion-usuarios
+  - legacy
+  - limpieza
 date: 2026-07-23
+updated: 2026-07-23
+summary: Los archivos legacy SesionActual.cs y servicioSesionActual.cs en CapaDominio eran holders estáticos que coexistían con el nuevo IUsuarioSesionService. Mientras…
+scope: []
+symbols:
+  - IUsuarioSesionService
 estado: aceptado
 ---
 

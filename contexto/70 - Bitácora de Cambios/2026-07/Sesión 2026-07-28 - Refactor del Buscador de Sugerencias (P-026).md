@@ -1,5 +1,7 @@
 ---
-title: "Sesión 2026-07-28 — Refactor del buscador de sugerencias (P-026)"
+title: Sesión 2026-07-28 — Refactor del buscador de sugerencias (P-026)
+type: sesion
+status: vigente
 tags:
   - sesion
   - buscador
@@ -7,6 +9,21 @@ tags:
   - mvvm
   - deuda-tecnica
 date: 2026-07-28
+updated: 2026-07-28
+summary: "El puente ViewModel → SuggestionSearchBox, que estaba copiado en 9 pantallas, quedó centralizado. Se borraron ~250 líneas duplicadas y las dos clases de bug del…"
+scope:
+  - CapaUI/Core/Controls
+symbols:
+  - CancellationTokenSource
+  - IsViewingContacts
+  - ObservableObject
+  - OnVmPropertyChanged
+  - RealtimeAwareViewModel
+  - RefrescarSugerenciasAsync
+  - Seleccionado
+  - SeleccionarSugerencia
+  - SelectorProductosViewModel
+  - ShowSuggestions
 branch: fix/buscador-sugerencias
 autor_cambios: Claude (agente)
 ---

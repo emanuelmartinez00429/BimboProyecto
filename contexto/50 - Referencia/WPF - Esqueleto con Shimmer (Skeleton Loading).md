@@ -1,5 +1,7 @@
 ---
-title: "WPF — Esqueleto con Shimmer (Skeleton Loading)"
+title: WPF — Esqueleto con Shimmer (Skeleton Loading)
+type: referencia
+status: vigente
 tags:
   - referencia
   - wpf
@@ -9,6 +11,20 @@ tags:
   - skeleton
   - shimmer
 date: 2026-08-11
+updated: 2026-08-11
+summary: "- Esqueleto (skeleton screen / skeleton loader): las cajas grises que ocupan de antemano el espacio que va a tener el contenido real. Término acuñado por Luke…"
+scope: []
+symbols:
+  - ActualWidth
+  - AffectsMeasure
+  - Arrange
+  - BlurEffect
+  - CategoriasView
+  - Collapsed
+  - DataContext
+  - DetenerSpinner
+  - DropShadowEffect
+  - EaseInOut
 lifecycle: archived
 ---
 

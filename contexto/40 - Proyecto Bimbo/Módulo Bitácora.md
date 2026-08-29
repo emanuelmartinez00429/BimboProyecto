@@ -1,10 +1,32 @@
 ---
 title: Módulo Bitácora
+type: modulo
+status: vigente
 tags:
   - modulo
   - bitacora
   - auditoria
 date: 2026-07-26
+updated: 2026-08-16
+summary: "Pantalla de auditoría: muestra el historial de acciones registradas por el sistema en la tabla bitacora. Solo lectura por diseño — la bitácora la escribe el…"
+scope:
+  - BimboProyecto.Tests/Reportes
+  - CapaAplicacion4/Bitacora
+  - CapaAplicacion4/Reportes
+  - CapaDatos/Modelados/Usuarios
+  - CapaDatos/Reportes
+  - CapaDatos/Repositories/Bitacora
+symbols:
+  - Create
+  - DatePicker
+  - Delete
+  - ExcelReportStrategy
+  - FechaHasta
+  - GestionEmpleados
+  - GetPaginaDeRegistroAsync
+  - IBitacoraRepository
+  - IReportGeneratorService
+  - PdfReportStrategy
 ---
 
 # Módulo Bitácora

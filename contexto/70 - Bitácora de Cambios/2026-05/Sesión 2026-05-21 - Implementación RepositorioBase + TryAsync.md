@@ -1,7 +1,34 @@
 ---
-tags: [bitácora, sesión, error-handling, repositorio, completado]
-fecha: 2026-05-21
+title: Sesión 2026-05-21 — Implementación RepositorioBase + TryAsync
+type: sesion
+status: vigente
+tags:
+  - bitácora
+  - sesión
+  - error-handling
+  - repositorio
+  - completado
+date: 2026-05-21
+updated: 2026-05-21
+summary: "Se detectó que el sistema tenía dos estrategias de error coexistiendo:"
+scope:
+  - CapaAplicacion4/Productos/Interfaces
+  - CapaDatos/Repositories
+  - CapaDatos/Repositories/Productos
+  - CapaDatos/Repositories/Search
+symbols:
+  - BtnGuardar
+  - CargarDatosAsync
+  - CargarPaginaAsync
+  - ErrorCarga
+  - MessageBox
+  - OnLoaded
+  - OperationCanceledException
+  - ProductoCrudRepository
+  - RefrescarSugerenciasAsync
+  - RepositorioBase
 estado: completado
+fecha: 2026-05-21
 ---
 
 # Sesión 2026-05-21 — Implementación RepositorioBase + TryAsync

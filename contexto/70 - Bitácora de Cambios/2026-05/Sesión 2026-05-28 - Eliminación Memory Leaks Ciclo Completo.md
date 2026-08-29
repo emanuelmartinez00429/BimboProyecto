@@ -1,13 +1,31 @@
 ---
-title: "Sesión 2026-05-28 — Eliminación Memory Leaks Ciclo Completo"
+title: Sesión 2026-05-28 — Eliminación Memory Leaks Ciclo Completo
+type: sesion
+status: vigente
 tags:
   - bitácora
   - memory-leak
   - wpf
   - dispose
   - lifecycle
-fecha: 2026-05-28
+date: 2026-05-28
+updated: 2026-05-28
+summary: "Auditoría profunda de memory leaks en toda la aplicación. Se identificaron 7 fuentes de leak adicionales al fix anterior de ProductosView, distribuidas en 3…"
+scope:
+  - CapaUI/ViewModels/Search
+symbols:
+  - AddScoped
+  - CerrarCanal
+  - DispatcherTimer
+  - HandleCierreAsync
+  - HwndSource
+  - IDisposable
+  - Loaded
+  - LoginExitoso
+  - MainViewModel
+  - OnCierreRequerido
 estado: Completado
+fecha: 2026-05-28
 ---
 
 # Sesión 2026-05-28 — Eliminación Memory Leaks Ciclo Completo

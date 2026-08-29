@@ -1,14 +1,33 @@
 ---
 title: "Sesión 2026-07-01 — Pesaje Fase 2: Persistencia Real (movimientos/entradas)"
-date: 2026-07-01
+type: sesion
+status: Fase 2 completada (falta verificación con login)
 tags:
   - bitácora
   - pesaje
   - persistencia
   - supabase
   - trigger
+date: 2026-07-01
+updated: 2026-07-01
+summary: Se quitó la semilla en memoria de la pantalla de Recepción de Materia Prima (ver Sesión 2026-07-01 - Pantalla Pesaje WPF y Buscador por Proveedor (Fase 1)) y se…
+scope:
+  - CapaAplicacion4/Pesaje/Dtos
+  - CapaAplicacion4/Pesaje/Interfaces
+  - CapaDatos/Modelados/Pesajes
+  - CapaDatos/Repositories/Pesaje
+symbols:
+  - AnularCamionAsync
+  - AnularEntradaAsync
+  - AnularProductoAsync
+  - CamionDto
+  - EntradaDto
+  - IPesajeRepository
+  - IdProducto
+  - Loaded
+  - MovProductoDto
+  - PesajeModal
 branch: feat/fase6-IntegracionWpf/MenuPrincipal
-status: Fase 2 completada (falta verificación con login)
 ---
 
 # Sesión 2026-07-01 — Pesaje Fase 2: Persistencia Real

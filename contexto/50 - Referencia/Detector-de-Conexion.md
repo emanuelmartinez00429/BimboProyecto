@@ -1,9 +1,39 @@
 ---
+title: Detector / Monitor de Conexión
+type: referencia
+status: vigente
+tags:
+  - arquitectura
+  - conexion
+  - realtime
+  - wpf
+  - supabase
+  - mvvm
+date: 2026-07-24
+updated: 2026-07-24
+summary: Servicio que vigila la red de forma continua mientras hay sesión iniciada y publica uno de cuatro estados de conectividad. Sirve de base para que el resto de la…
+scope:
+  - CapaAplicacion4/Conexion
+  - CapaDatos/Conexion
+  - CapaDatos/Repositories
+  - CapaDatos/Repositories/Search
+  - CapaUI/Core/MVVM
+  - CapaUI/Formularios/Principal
+symbols:
+  - Brush
+  - Conectado
+  - ConexionMonitor
+  - Degradado
+  - Desconocido
+  - EstadoBrush
+  - EstadoCambiado
+  - EstadoConexion
+  - EstadoTexto
+  - Ethernet
+estado: implementado
 titulo: Detector / Monitor de Conexión
 proyecto: Bimbo Honduras — Portal interno
-estado: implementado
 fecha: 2026-05-30
-tags: [arquitectura, conexion, realtime, wpf, supabase, mvvm]
 ---
 
 # Detector / Monitor de Conexión

@@ -1,9 +1,31 @@
 ---
 title: Módulo Productos
+type: modulo
+status: vigente
 tags:
   - bimbo
   - modulo
   - productos
+date: 2026-05-24
+updated: 2026-08-15
+summary: El módulo más completo del proyecto. Referencia para implementar nuevos módulos.
+scope:
+  - CapaAplicacion4/Productos
+  - CapaDatos/Repositories/Productos
+  - CapaDatos/Repositories/Search
+  - CapaUI/Core/Controls
+  - CapaUI/Formularios/Principal/Pantallas/Productos
+symbols:
+  - AtajoGuardar
+  - BuscarSugerenciasAsync
+  - ButtonAutomationPeer
+  - CargarDatosAsync
+  - CargarPaginaAsync
+  - CargarPaginaSilenciosamenteAsync
+  - CatalogoCache
+  - Categorias
+  - ComboFiltro
+  - DeleteAsync
 ---
 
 # Módulo Productos

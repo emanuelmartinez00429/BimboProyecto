@@ -1,10 +1,22 @@
 ---
-title: "Guardado sin Refetch — Aplicar en memoria la respuesta del servidor"
+title: Guardado sin Refetch — Aplicar en memoria la respuesta del servidor
+type: patron
+status: vigente
 tags:
   - patron
   - performance
   - supabase
   - wpf
+date: 2026-08-20
+updated: 2026-08-20
+summary: "Un patrón muy fácil de caer en él: \"guardé algo → para que la UI quede consistente, recargo todo desde el servidor\". Es simple de escribir y parece correcto…"
+scope:
+  - CapaDatos/Repositories/Pesaje
+symbols:
+  - RepartirTaraExtraAsync
+  - RepositorioBase
+  - Result<T>
+  - Task<bool>
 aliases:
   - Guardado optimista con confirmación
   - Evitar refetch tras escritura

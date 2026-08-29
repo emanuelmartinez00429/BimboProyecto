@@ -1,9 +1,19 @@
 ---
 title: SOLID
+type: arquitectura
+status: vigente
 tags:
   - arquitectura
   - principios
   - dotnet
+date: 2026-05-21
+updated: 2026-05-21
+summary: Los 5 principios de diseño orientado a objetos que hacen posible la Clean Architecture.
+scope: []
+symbols:
+  - ProductoCrudRepository
+  - ProductoSearchRepository
+  - ProductosViewModel
 ---
 
 # Principios SOLID

@@ -1,9 +1,21 @@
 ---
 title: Strategy Pattern
+type: patron
+status: vigente
 tags:
   - patron
   - comportamiento
   - dotnet
+date: 2026-05-21
+updated: 2026-05-21
+summary: "Define una familia de algoritmos, encapsula cada uno y los hace intercambiables. El cliente elige qué estrategia usar en tiempo de ejecución, sin cambiar el…"
+scope:
+  - CapaAplicacion4/Search
+symbols:
+  - IRepository<T>
+  - ProveedorSearchStrategy
+  - SearchStrategyRegistry
+  - UniversalSearchHandler
 aliases:
   - Patrón Estrategia
 ---

@@ -1,5 +1,17 @@
 ---
-tags: [setup, mcp, obsidian, claude-code]
+title: MCP Obsidian — Configuración Completa
+type: referencia
+status: vigente
+tags:
+  - setup
+  - mcp
+  - obsidian
+  - claude-code
+date: 2026-06-06
+updated: 2026-06-06
+summary: "Guía paso a paso para conectar un vault de Obsidian a Claude Code vía MCP (Model Context Protocol), basada en la experiencia real de configuración con los…"
+scope: []
+symbols: []
 ---
 
 # MCP Obsidian — Configuración Completa

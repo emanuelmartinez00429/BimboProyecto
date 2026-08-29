@@ -1,5 +1,7 @@
 ---
-title: "Sesión 2026-07-23 — Reconciliación Animación Sidebar (ContentAreaBorder) y Regresión BrandBlock"
+title: Sesión 2026-07-23 — Reconciliación Animación Sidebar (ContentAreaBorder) y Regresión BrandBlock
+type: sesion
+status: vigente
 tags:
   - sesion
   - animacion
@@ -8,6 +10,21 @@ tags:
   - deuda-tecnica
   - regresion
 date: 2026-07-23
+updated: 2026-07-23
+summary: "El comentario del propio XAML dice explícitamente que BrandBlock debe animar junto con Sidebar. Antes del commit 2f5489d, CollapseSidebar()/ExpandSidebar() llamaban:"
+scope:
+  - CapaUI/Formularios/Principal
+symbols:
+  - AnimateChevron
+  - AnimateOpacity
+  - AnimateSubMenu
+  - AnimateWidth
+  - Background
+  - BrandBlock
+  - Brush
+  - ChevronRotateMs
+  - ChromeFadeOutMs
+  - Collapse
 branch: feat/fase6-IntegracionWpf/MenuPrincipal
 ---
 

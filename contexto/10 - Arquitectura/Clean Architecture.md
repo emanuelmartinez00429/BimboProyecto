@@ -1,9 +1,23 @@
 ---
 title: Clean Architecture
+type: arquitectura
+status: vigente
 tags:
   - arquitectura
   - clean-architecture
   - dotnet
+date: 2026-05-21
+updated: 2026-05-21
+summary: Arquitectura propuesta por Robert C. Martin. Organiza el código en capas concéntricas donde las dependencias solo apuntan hacia adentro. El dominio no sabe nada…
+scope:
+  - CapaAplicacion/Productos/Interfaces
+symbols:
+  - IProductoRepository
+  - Producto
+  - ProductoCrudRepository
+  - ProductoDto
+  - ProductoSearchRepository
+  - Productos
 aliases:
   - CA
   - Arquitectura Limpia

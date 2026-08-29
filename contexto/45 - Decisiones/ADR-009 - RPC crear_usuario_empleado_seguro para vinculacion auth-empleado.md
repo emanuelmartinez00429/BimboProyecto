@@ -1,7 +1,19 @@
 ---
-title: "ADR-009 - RPC crear_usuario_empleado_seguro para vinculacion auth-empleado"
-tags: [adr, decision, bimbo, gestion-usuarios, rpc, supabase]
+title: ADR-009 - RPC crear_usuario_empleado_seguro para vinculacion auth-empleado
+type: adr
+status: vigente
+tags:
+  - adr
+  - decision
+  - bimbo
+  - gestion-usuarios
+  - rpc
+  - supabase
 date: 2026-07-23
+updated: 2026-07-23
+summary: "Crear un usuario implica 2 pasos: (1) auth SignUp en Supabase Auth, (2) vincular al empleado en la tabla usuarios. Hacerlo en C# con queries separadas crea…"
+scope: []
+symbols: []
 estado: aceptado
 ---
 

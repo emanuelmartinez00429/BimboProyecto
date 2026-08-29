@@ -1,5 +1,7 @@
 ---
-title: "Bug — Filter OR con Op.Equals en postgrest-csharp"
+title: Bug — Filter OR con Op.Equals en postgrest-csharp
+type: referencia
+status: vigente
 tags:
   - bug
   - supabase
@@ -7,6 +9,19 @@ tags:
   - referencia
   - trampa
 date: 2026-05-28
+updated: 2026-07-28
+summary: "// ❌ TAMBIÉN MAL — mismo problema, wildcard diferente no cambia nada query.Filter(\"or\", Op.Equals, \"(nombreproducto.ilike.termino,codigoproducto.ilike.termino%)\")"
+scope:
+  - CapaDatos/Repositories/Search
+symbols:
+  - DispatcherUnhandledException
+  - Filter
+  - ISearchStrategy
+  - PostgrestException
+  - ProductoCrudRepository
+  - QueryFilter
+  - UniversalSearchHandler
+  - UniversalSearchViewModel
 ---
 
 # Bug — `Filter("or", Op.Equals, "...")` en postgrest-csharp

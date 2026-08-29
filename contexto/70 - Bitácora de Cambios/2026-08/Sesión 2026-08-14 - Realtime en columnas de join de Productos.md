@@ -1,11 +1,27 @@
 ---
-title: "Sesión 2026-08-14 — Realtime en las columnas de join de Productos"
+title: Sesión 2026-08-14 — Realtime en las columnas de join de Productos
+type: sesion
+status: vigente
 tags:
   - sesion
   - productos
   - realtime
   - cache
 date: 2026-08-14
+updated: 2026-08-14
+summary: "La grilla de Productos ahora refleja en vivo los cambios de fabricante, proveedor, categoría, país, presentación, tara y unidad — antes solo escuchaba la tabla…"
+scope:
+  - CapaDatos/Realtime
+  - CapaUI/Formularios/Principal/Pantallas/Productos
+symbols:
+  - BaseOutputPath
+  - CargarDatosAsync
+  - CargarPaginaSilenciosamenteAsync
+  - CatalogoCache
+  - Observar
+  - ProductoDto
+  - ProductosViewModel
+  - SelectPara
 branch: feat/fase8-MaquetadodeRoles
 autor_cambios: Claude Opus 5 / Claude Sonnet 5 (Claude Code)
 ---

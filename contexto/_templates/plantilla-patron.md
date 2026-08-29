@@ -1,33 +1,32 @@
 ---
-title: "Nombre del Patrón"
+title: "Nombre del patrón"
+type: patron
+status: vigente
 tags:
   - patron
 date: AAAA-MM-DD
-lifecycle: verified   # draft | verified | archived
+updated: AAAA-MM-DD
+summary: "Qué resuelve este patrón, en una frase."
+scope:
+  - CapaX/donde/vive
+symbols:
+  - TipoDelPatron
+lifecycle: verified       # draft | verified | archived
 ---
 
-# Nombre del Patrón
-
-> [!abstract]
-> Una frase: qué problema resuelve y cuándo usarlo.
+# Nombre del patrón
 
 ## Cuándo usarlo
 
-Situaciones concretas del proyecto donde aplica.
+La señal concreta que indica que este patrón aplica.
 
 ## Cómo se implementa
 
-```csharp
-// Código mínimo representativo
-```
+Código mínimo y completo. Rutas reales del proyecto.
 
-## Dónde está en el proyecto
+## Cuándo NO usarlo
 
-- `CapaX/…` — ejemplo real en uso.
-
-## Anti-patrones / qué evitar
-
-Qué NO hacer.
+El caso donde este patrón es peor que la alternativa simple.
 
 ---
 

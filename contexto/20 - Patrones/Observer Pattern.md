@@ -1,10 +1,19 @@
 ---
 title: Observer Pattern
+type: patron
+status: vigente
 tags:
   - patron
   - comportamiento
   - wpf
   - dotnet
+date: 2026-05-21
+updated: 2026-05-21
+summary: "Define una dependencia uno-a-muchos entre objetos. Cuando un objeto cambia de estado, todos sus dependientes son notificados y actualizados automáticamente."
+scope: []
+symbols:
+  - CanExecute
+  - ICommand
 aliases:
   - Patrón Observador
   - INotifyPropertyChanged

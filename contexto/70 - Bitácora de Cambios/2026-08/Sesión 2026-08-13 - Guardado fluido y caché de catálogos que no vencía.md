@@ -1,5 +1,7 @@
 ---
-title: "Sesión 2026-08-13 — Guardado fluido en los modales y caché de catálogos que no vencía"
+title: Sesión 2026-08-13 — Guardado fluido en los modales y caché de catálogos que no vencía
+type: sesion
+status: vigente
 tags:
   - sesion
   - productos
@@ -8,6 +10,26 @@ tags:
   - realtime
   - rendimiento
 date: 2026-08-13
+updated: 2026-08-13
+summary: "Se rediseñó el modal de Productos a tres columnas, se corrigieron cuatro bugs funcionales (tara con salto de línea, lupa de fabricantes sin acotar, guardado que…"
+scope:
+  - CapaAplicacion4/Productos/Dtos
+  - CapaDatos/Modelados/Productos
+  - CapaDatos/Repositories/Catalogos
+  - CapaDatos/Repositories/Productos
+  - CapaUI/Core/Catalogos
+  - CapaUI/Core/Controls
+symbols:
+  - BaseOutputPath
+  - BtnGuardar
+  - CampoModal
+  - CargarContactosAsync
+  - CargarPaginaAsync
+  - CargarPaginaSilenciosamenteAsync
+  - CatalogoCache
+  - Center
+  - ColumnDefinition
+  - Content
 branch: feat/fase8-MaquetadodeRoles
 autor_cambios: Claude Opus 5 (Claude Code)
 ---

@@ -1,5 +1,7 @@
 ---
-title: "ADR-018 — Búsqueda insensible a mayúsculas y tildes con columna generada"
+title: ADR-018 — Búsqueda insensible a mayúsculas y tildes con columna generada
+type: adr
+status: vigente
 tags:
   - adr
   - decision
@@ -7,6 +9,17 @@ tags:
   - supabase
   - postgres
 date: 2026-08-14
+updated: 2026-08-14
+summary: "Todos los buscadores del proyecto (Productos, picker de Pesaje, combos de filtro vía ComboFiltro) usaban ILike directo sobre las columnas crudas (nombreproducto,…"
+scope:
+  - CapaAplicacion4/Common
+symbols:
+  - ComboFiltro
+  - EmpleadoRepository
+  - Filter
+  - FormD
+  - ILike
+  - ProductoSearchRepository
 estado: aceptado
 ---
 

@@ -1,5 +1,7 @@
 ---
-title: "Sesión 2026-05-25 — Optimización de Carga y Paginación de Productos"
+title: Sesión 2026-05-25 — Optimización de Carga y Paginación de Productos
+type: sesion
+status: vigente
 tags:
   - sesion
   - optimizacion
@@ -10,6 +12,21 @@ tags:
   - spinner
   - timeout
 date: 2026-05-25
+updated: 2026-05-25
+summary: Carga inicial reducida de ~1.5–2.0s a ~0.5–0.7s. Paginación de ~0.8–1.2s a ~0.3–0.4s. Clicks múltiples eliminados. Spinner visual. Timeout de 10s. 0 errores de…
+scope:
+  - CapaDatos/Repositories/Productos
+symbols:
+  - CanExecute
+  - CargarPaginaAsync
+  - Command
+  - DetenerSpinner
+  - DoubleAnimation
+  - IProductoRepository
+  - IRealtimeService
+  - IniciarSpinner
+  - IsLoading
+  - NotifyCanExecuteChangedFor
 ---
 
 # Sesión 2026-05-25 — Optimización de Carga y Paginación de Productos

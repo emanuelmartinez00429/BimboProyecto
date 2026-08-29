@@ -1,10 +1,17 @@
 ---
 title: CommunityToolkit.Mvvm
+type: referencia
+status: vigente
 tags:
   - referencia
   - wpf
   - mvvm
   - dotnet
+date: 2026-05-21
+updated: 2026-05-21
+summary: "1. El ViewModel debe ser partial class 2. Los campos para [ObservableProperty] deben ser private y en camelCase con 3. [RelayCommand] genera {Método}Command"
+scope: []
+symbols: []
 aliases:
   - ObservableObject
   - RelayCommand

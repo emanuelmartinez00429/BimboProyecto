@@ -1,9 +1,31 @@
 ---
-title: "Sesión 2026-07-26 — Fix Buscador Usuarios (SuggestionSearchBox)"
-tags: [sesion, usuarios, ui, wpf, disonancia-visual]
+title: Sesión 2026-07-26 — Fix Buscador Usuarios (SuggestionSearchBox)
+type: sesion
+status: vigente
+tags:
+  - sesion
+  - usuarios
+  - ui
+  - wpf
+  - disonancia-visual
 date: 2026-07-26
+updated: 2026-07-26
+summary: "Fernando reportó que el buscador de la vista Usuarios \"no se ve igual ni funciona como los de los otros formularios\". Comparación contra los 6 formularios que ya…"
+scope:
+  - CapaUI/Formularios/Principal/Pantallas/Usuarios
+symbols:
+  - Codigo
+  - HighlightIndex
+  - ObtenerConteosAsync
+  - ObtenerPaginaAsync
+  - OnFiltrosLimpiados
+  - OnVmPropertyChanged
+  - RefrescarSugerenciasAsync
+  - SeleccionarSugerencia
+  - ShowSuggestions
+  - SuggestionItemData
 branch: feat/fase7-GestióndeUsuarios
-autor_cambios: Claude (Sonnet 5), dirigido por Fernando
+autor_cambios: "Claude (Sonnet 5), dirigido por Fernando"
 ---
 
 # Sesión 2026-07-26 — Fix Buscador Usuarios (SuggestionSearchBox)

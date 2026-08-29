@@ -1,10 +1,27 @@
 ---
-title: "Sesión 2026-07-26 — Refactor Visual de ComboBox y TextBox (Modales + Toolbars)"
+title: Sesión 2026-07-26 — Refactor Visual de ComboBox y TextBox (Modales + Toolbars)
+type: sesion
+status: vigente
 tags:
   - sesion
   - refactor
   - estilos
 date: 2026-07-26
+updated: 2026-07-26
+summary: "Ronda 1: Centralizados estilos ModalCombo/ModalInput en Resources/Styles.xaml, eliminadas 9 definiciones locales duplicadas en 6 modales CRUD. Ronda 2:…"
+scope:
+  - CapaUI/Resources
+symbols:
+  - BitacoraView
+  - CmbAccion
+  - CmbModulo
+  - CmbRol
+  - CmbUsuario
+  - ComboBoxItem
+  - Content
+  - DisplayMemberPath
+  - FabricanteModal
+  - FabricantesView
 branch: main
 autor_cambios: opencode (gentle-orchestrator)
 revisor: Emanuel Castellanos

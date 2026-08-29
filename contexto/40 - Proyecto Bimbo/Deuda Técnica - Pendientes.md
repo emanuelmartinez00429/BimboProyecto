@@ -1,10 +1,33 @@
 ---
 title: Deuda Técnica — Pendientes
+type: deuda
+status: vigente
 tags:
   - pendiente
   - deuda-tecnica
   - auditoria
 date: 2026-05-28
+updated: 2026-08-23
+summary: "Registro de la deuda técnica abierta P-NNN del portal. Los ítems ya cerrados se archivan en Deuda Técnica - Resueltas 2026."
+summary_fijo: true
+scope:
+  - CapaDatos/Modelados
+  - CapaDatos/Realtime
+  - CapaDatos/Repositories/Categorias
+  - CapaDatos/Repositories/Fabricantes
+  - CapaDatos/Repositories/Pesaje
+  - CapaDatos/Repositories/Productos
+symbols:
+  - ActualizarTaraExtraEntradaAsync
+  - AddScoped
+  - AnimarStep
+  - Bitacora
+  - BitacoraViewModel
+  - BrandBlock
+  - CalcularPaginas
+  - CanExecute
+  - CancellationTokenSource
+  - CargarDatosAsync
 ---
 
 # Deuda Técnica — Pendientes
@@ -18,188 +41,137 @@ date: 2026-05-28
 
 ---
 
+> [!info] Los ítems resueltos se archivaron
+> Este documento contiene **solo la deuda abierta**. El historial completo de ítems cerrados vive en
+> [[Deuda Técnica - Resueltas 2026]]. La tabla de historial al final sigue listando **todos** los `P-NNN`,
+> abiertos y cerrados, para poder consultar el estado de cualquiera de un vistazo.
+
+---
+
 ## 🔴 Críticos — resolver ANTES de replicar el módulo
 
 Estos errores se propagarán en cascada a cada módulo nuevo si no se corrigen primero.
 
----
+### P-023 · 🔴 Catálogo de taras con datos de prueba — afecta el peso que se le paga al proveedor
 
-### ~~P-013 · Regresión de auditoría: `IdUsuario ?? 0` en Pesaje pierde el "fail-loud"~~ ✅ Resuelto 2026-07-26
+**Tablas:** `tara`, `productos.peso_teorico`
+**Detectado en:** [[Sesión 2026-07-26 - Rediseño del flujo de Pesajes]]
 
-**Archivo:** `CapaUI/Formularios/Principal/Pantallas/Pesaje/PesajeViewModel.cs`
-**Introducido en:** commit `f105047` (Emanuel, 2026-07-23), refactor de sesión. Ver [[Sesión 2026-07-23 - Revisión QA Módulo Usuarios y Refactor de Sesión (Emanuel)]].
+La tabla `tara` tiene **una sola fila**: 20 kg, descripción *"tara de 20 kg"*, usada por **503 de 505 productos**. Pero **500 de esos productos tienen `peso_teorico` menor a 10 kg** — el empaque pesaría el doble o más que el producto que contiene. Los 5 restantes (1,000 a 10,000 kg) tienen nombres tipo *"Producto Number 1"*, *"Producto bien five"*.
 
-```csharp
-// ANTES (fallaba explícito si no había sesión):
-private static int UsuarioActual => CapaDominio.SesionActual.IdUsuario; // throw si null
-// AHORA (silencioso):
-private int UsuarioActual => _sesionService.SesionActual?.IdUsuario ?? 0;
-```
+Además existe una tabla `tarima` aparte con su propio `peso_tarima`, y `entradas_producto` ya tiene `id_tarima` — o sea las tarimas se manejan por separado, lo que refuerza que ese 20 kg no es un empaque real.
 
-El `SesionActual.IdUsuario` borrado lanzaba `InvalidOperationException` a propósito si no había sesión — su comentario lo decía: *"Falla explícitamente… para evitar auditoría falsa (antes tenía default = 1)"*. El reemplazo retorna `0` en silencio, así que un pesaje podría **persistirse con `id_usuario = 0`** (usuario inexistente) en lugar de fallar visiblemente.
+**Riesgo:** la tara se resta del peso bruto para calcular el neto, y **el neto es lo que se le paga al proveedor**. Con datos de relleno, todo cálculo de recepción es incorrecto. Además el indicador de bultos teóricos (Fase 8) va a dar números sin sentido hasta que se cargue el catálogo real.
 
-**Riesgo:** Registros de auditoría/movimientos atribuidos a un usuario fantasma. Silencioso — no da error.
+**Solución:** poblar `tara` con los empaques reales y asignar el `id_tara` correcto a cada producto. Verificar también los `peso_teorico` de los 5 productos de prueba.
 
-**Solución aplicada:** `UsuarioActual` lanza `InvalidOperationException` si no hay sesión (garantía de última defensa) + guarda `HaySesionActiva()` en los 2 puntos de uso que loguea (Serilog) y muestra Toast "Sesión expirada" — mensaje genérico al usuario, detalle al log. Ver [[Sesión 2026-07-26 - Resolución Deuda Técnica P-013 a P-021]].
-
-**Estado:** `[x] Resuelto` — `dotnet build` 0 errores.
+**Estado:** `[ ] Pendiente — requiere datos de planta`
 
 ---
 
-### ~~P-001 · Filtros duplicados 3 veces en `ProductoCrudRepository`~~ ✅ Resuelto 2026-05-28
+### P-032 · 🔴 El reparto de tara extra no es transaccional (N updates sueltos)
 
-**Archivo:** `CapaDatos/Repositories/Productos/ProductoCrudRepository.cs`
-**Líneas afectadas:** `GetPagedInternal`, `BuscarSugerenciasInternal`, `GetPaginaDeProductoInternal`
+**Detectado en:** [[Sesión 2026-08-13 - Pesaje solo bruto y tara extra pesada]]
 
-El bloque de aplicación de filtros es idéntico en los tres métodos:
-```csharp
-if (filtros.IdEstado.HasValue)
-    query = query.Filter("id_estado", Op.Equals, filtros.IdEstado.Value.ToString());
-if (filtros.IdFabricante.HasValue)
-    query = query.Filter("id_fabricante", Op.Equals, filtros.IdFabricante.Value.ToString());
-if (filtros.IdPais.HasValue)
-    query = query.Filter("id_pais", Op.Equals, filtros.IdPais.Value.ToString());
-```
+`PesajeViewModel.RepartirTaraExtraAsync` reparte un total entre N pesadas con **N PATCH independientes** de PostgREST (`ActualizarTaraExtraEntradaAsync`, uno por entrada). No hay transacción: si la red se corta a mitad, unas filas quedan con la cuota nueva y otras con la vieja, y `Σ entradas` deja de ser el total real.
 
-**Riesgo:** Agregar un filtro nuevo obliga a cambiarlo en 3 lugares. Fácil olvidar uno → resultados inconsistentes según qué operación se use.
+**Mitigaciones ya implementadas:**
+- **Pre-vuelo**: se validan las N pesadas contra el `CHECK peso_neto > 0` **antes** de escribir ninguna, así el fallo más probable (una pesada de bruto chico) no produce escrituras parciales.
+- **Auto-reparable**: como el total se deriva de `Σ entradas`, reabrir el modal muestra el total real que quedó; volver a aplicar reparte todo desde cero. No hay estado que reconciliar.
+- Se avisa por Toast cuántas filas fallaron.
 
-**Solución:**
-```csharp
-private static ISupabaseTable<Productos, RealtimeChannel> AplicarFiltros(
-    ISupabaseTable<Productos, RealtimeChannel> query, ProductoFiltros filtros)
-{
-    if (filtros.IdEstado.HasValue)
-        query = query.Filter("id_estado", Op.Equals, filtros.IdEstado.Value.ToString());
-    if (filtros.IdFabricante.HasValue)
-        query = query.Filter("id_fabricante", Op.Equals, filtros.IdFabricante.Value.ToString());
-    if (filtros.IdPais.HasValue)
-        query = query.Filter("id_pais", Op.Equals, filtros.IdPais.Value.ToString());
-    return query;
-}
-```
+**Solución de fondo:** un RPC de Postgres que reciba `(id_mov_producto | id_movimiento, total)` y haga el reparto en una sola transacción del lado del servidor.
 
 **Estado:** `[ ] Pendiente`
 
 ---
 
-### ~~P-002 · Magic numbers para estados sin constante ni enum~~ ✅ Resuelto 2026-05-28
+### P-038 · 🔴 Modelos C# desalineados del esquema + el error de carga no llega al usuario
 
-**Archivos:** `ProductoCrudRepository.cs`, `ProductosViewModel.cs`
+**Detectado en:** [[Sesión 2026-08-14 - Modelo desalineado del esquema tumbaba paginas enteras]]
 
-Los valores `1` (activo) y `2` (inactivo) para `id_estado` aparecen dispersos sin ninguna constante central:
-```csharp
-// En ViewModel
-EstadoFilter.Habilitados    => 1,
-EstadoFilter.Deshabilitados => 2,
+Tres problemas de la misma familia, descubiertos al diagnosticar un bug que costó tres rondas de reporte.
 
-// En Repositorio (soft-delete)
-.Set(p => p.idEstado, 2)
+**1. El desalineo modelo↔esquema falla en bloque y en silencio.** `Productos.cs` declaraba como `int` cuatro columnas que en la base son NULLABLE. Una sola fila con NULL hacía que Newtonsoft lanzara y **fallara la consulta entera** — no la fila, la página completa. Ya corregido para `productos`, pero:
 
-// En GetConteosAsync
-.Filter("id_estado", Op.Equals, "1")
+- **`ProductosInsertar.cs` sigue desalineado**: `id_presentacion`, `id_fabricante`, `id_categoria`, `id_pais`, `id_tara` como `int` y `peso_teorico` como `decimal`, todas nullable en la base. Hoy solo lo usa `RepositorioProducto.ingresarProducto` (estático, legacy, sin llamadores activos), así que no explota — pero explotaría apenas se use.
+- **El resto de las tablas no se auditó.** Conviene una pasada comparando cada modelo de `CapaDatos/Modelados/` contra `information_schema.columns`: cualquier value type (`int`, `decimal`, `DateTime`, `bool`) declarado sin `?` sobre una columna `is_nullable = YES` es la misma bomba.
+
+```sql
+-- Para auditar: lista las columnas nullable de una tabla
+select column_name, data_type, is_nullable
+from information_schema.columns
+where table_schema='public' and table_name='<tabla>'
+order by ordinal_position;
 ```
 
-**Riesgo:** Si otro módulo usa una convención diferente, o si el esquema cambia, los bugs no dan error de compilación — fallan en runtime silenciosamente.
+**2. `ErrorCarga` no se muestra.** `ProductosViewModel.CargarPaginaAsync` asigna `ErrorCarga = r.Error` en su return temprano de error, pero eso nunca llegó a la pantalla — el usuario vio una grilla con datos viejos, sin ningún aviso de que la carga había fallado. Con el mensaje visible, este bug se diagnosticaba en minutos en vez de tres rondas. Verificar si `ErrorCarga` está bindeado en las vistas y, si no, mostrarlo (mismo tratamiento en los módulos gemelos).
 
-**Solución:** Crear constantes en `CapaAplicacion`:
-```csharp
-// CapaAplicacion4/Common/EstadoRegistro.cs
-public static class EstadoRegistro
-{
-    public const int Activo   = 1;
-    public const int Inactivo = 2;
-}
-```
+**3. El return temprano deja la grilla mintiendo.** Los cuatro caminos de salida de `CargarPaginaAsync` (timeout, generación invalidada, `!r.Success`) no tocan `PageRows`, así que la pantalla sigue mostrando la página anterior como si fuera la pedida — mientras `Page`, `PageInfo` y los botones ya avanzaron. Aunque se arregle el punto 2, conviene decidir qué debe mostrar la grilla cuando una página falla: vaciarse, quedarse con un estado de error explícito, o revertir `Page` al valor anterior.
+
+**Riesgo:** alto. El punto 1 puede dejar cualquier pantalla inutilizable con un solo registro mal cargado, y el punto 2 hace que se diagnostique a ciegas.
 
 **Estado:** `[ ] Pendiente`
-
----
-
-### ~~P-003 · `_filteredCount` calculado en dos lugares del ViewModel~~ ✅ Resuelto 2026-05-28
-
-**Archivo:** `CapaUI/.../Productos/ProductosViewModel.cs`
-**Métodos:** `CargarPaginaAsync` y `CargarPaginaSilenciosamenteAsync`
-
-El mismo switch está duplicado:
-```csharp
-_filteredCount = filtros.IdEstado switch {
-    1 => pagina.Activos,
-    2 => pagina.Inactivos,
-    _ => pagina.Total
-};
-```
-
-**Riesgo:** Si se cambia la lógica en uno y no en el otro, los conteos de la UI mostrarán números distintos según si la actualización vino del usuario o de un evento Realtime.
-
-**Solución:** Extraer a método privado:
-```csharp
-private int ResolverFilteredCount(PagedResult<ProductoDto> pagina, ProductoFiltros filtros) =>
-    filtros.IdEstado switch
-    {
-        EstadoRegistro.Activo   => pagina.Activos,
-        EstadoRegistro.Inactivo => pagina.Inactivos,
-        _                       => pagina.Total
-    };
-```
-
-**Estado:** `[ ] Pendiente`
-
----
-
-### ~~P-009 · `BrandBlock` dejó de sincronizar su ancho con `Sidebar` (regresión)~~ ✅ Resuelto 2026-07-23
-
-**Archivo:** `CapaUI/Formularios/Principal/MainWindow.xaml.cs` — `CollapseSidebar()` / `ExpandSidebar()`
-**Introducido en:** commit `2f5489d` (2026-07-18, branch `feat/fase6-IntegracionWpf/MenuPrincipal`), sin documentar. Ver [[Sesión 2026-07-23 - Reconciliación Animación Sidebar (ContentAreaBorder) y Regresión BrandBlock]].
-
-`BrandBlock` (`MainWindow.xaml:110`, `Width="226"` fijo) trae el comentario explícito *"mismo ancho que sidebar, anima junto"*. Antes del commit `2f5489d` ambas funciones llamaban `AnimateWidth(BrandBlock, …, 160)` junto con `AnimateWidth(Sidebar, …, 160)`. Esa llamada fue eliminada al introducir el manejo de `ContentAreaBorder` y no quedó ningún binding/trigger que la reemplace.
-
-**Riesgo:** Al colapsar el sidebar (72px), el bloque de marca en la top bar se queda fijo en 226px — desalineación visual entre la barra superior y el sidebar. Es una regresión de funcionalidad, no solo un tema de estilo de código.
-
-**Solución aplicada:** nuevo helper de instancia `AnimateSidebarWidth(double to)` que anima `Sidebar` y `BrandBlock` juntos desde un único call site (`CollapseSidebar()`/`ExpandSidebar()` ya no llaman `AnimateWidth` por separado para cada uno) — imposible que vuelvan a desincronizarse por accidente.
-
-**Estado:** `[x] Resuelto` — `dotnet build` 0 errores.
 
 ---
 
 ## 🟡 Importantes — no bloquean pero generan deuda en cascada
 
+### P-046 · 🟡 El repositorio vive dentro de OneDrive y compite con Obsidian por los archivos
+
+**Detectado en:** auditoría de la bóveda del 2026-08-23.
+
+El repo está en `C:\Users\fbara\OneDrive\Desktop\Proyecto de BIMBO`. OneDrive sincroniza esa carpeta al mismo
+tiempo que Obsidian escribe en `contexto/` y que git escribe en `.git/`. El síntoma ya está documentado en el
+código: el comentario de `.claude/hooks/vault-trigger.js` dice que el archivo *«parpadea» entre versiones por
+conflicto de sync con Obsidian*, y por eso ese hook necesita **tres niveles de respaldo** (`origin/master`
+recién fetcheado → `HEAD` local → archivo en disco) para leer un solo archivo con confianza.
+
+Es una condición de carrera permanente, no un caso borde: tres procesos escribiendo la misma carpeta sin
+coordinación. Además, cada worktree de agente bajo `.claude/worktrees/` es una copia completa del repo que
+OneDrive también sincroniza.
+
+**Solución de fondo:** mover el repo fuera de OneDrive — a otra unidad si existe, o a `C:\dev\BimboProyecto`.
+Requiere: clone limpio en el destino, reabrir `contexto/` como bóveda en Obsidian, y actualizar la ruta del
+MCP `obsidian` en `~/.codex/config.toml`. Los tres respaldos del hook pueden quedarse como cinturón de
+seguridad, pero dejarían de ser la única defensa.
+
+**Riesgo:** medio. No corrompe datos hoy, pero hace que ningún agente pueda confiar en una sola lectura del
+disco — que es exactamente lo contrario de la regla de fuente viva.
+
+**Estado:** `[ ] Pendiente`
+
 ---
 
-### ~~P-004 · `PropertyChanged` handler con 30+ condiciones en el code-behind~~ ✅ Resuelto 2026-05-28
+### ~~P-034~~ · 🟡 Invalidación de caché apoyada en tablas que no publican en Realtime — parcialmente resuelto 2026-08-14
 
-**Archivo:** `CapaUI/.../Productos/ProductosView.xaml.cs`
-**Líneas:** ~62–96
+**Detectado en:** [[Sesión 2026-08-13 - Guardado fluido y caché de catálogos que no vencía]]
 
-```csharp
-_vm.PropertyChanged += (s, ev) => {
-    if (ev.PropertyName == nameof(ProductosViewModel.PageRows))    RefrescarPaginacion();
-    if (ev.PropertyName == nameof(ProductosViewModel.IsLoading))   ActualizarSpinner();
-    // ... 9+ condiciones más
-};
+`ProductosViewModel.cs:238` hacía `Observar("fabricante", _ => CatalogoCache.Invalidar("fabricantes"))`, pero la tabla no estaba en la publicación de Realtime. Verificado contra la base en su momento:
+
+```sql
+select tablename from pg_publication_tables where pubname = 'supabase_realtime';
+-- categoria, empleados, entradas_producto, movimiento_productos,
+-- movimientos, paises, productos, usuarios
 ```
 
-**Riesgo:** Se copiará completo a cada módulo nuevo. Es propenso a typos silenciosos (el PropertyName como string no compila si cambia el nombre de la propiedad). Cada cambio de cualquier propiedad evalúa todas las condiciones.
+Faltaban `presentacion_producto`, `fabricante`, `proveedores` y `tara`. **Ese handler no se ejecutaba nunca** y nadie se había dado cuenta: el modo de falla es silencioso.
 
-**Solución ideal:** Mover a bindings declarativos en XAML con Converters o Behaviors donde sea posible.
+Había además un desalineo latente: `RealtimeService.cs:38` mapeaba la PK bajo la clave `"taras"`, pero la tabla real se llama `tara`.
 
-**Estado:** `[ ] Pendiente`
+**Resuelto en [[Sesión 2026-08-14 - Realtime en columnas de join de Productos]]**, a raíz de un reporte relacionado pero distinto (las columnas de la grilla de Productos que salen de un join no se actualizaban en vivo). Se hicieron los dos primeros pasos de la solución de fondo:
 
----
+1. ✅ `ALTER PUBLICATION supabase_realtime ADD TABLE fabricante, proveedores, presentacion_producto, tara, unidad_medida;` — migración `publicar_catalogos_en_realtime` aplicada y verificada (8 → 13 tablas).
+2. ✅ Corregido `"taras"` → `"tara"` en `_pkColumns`, y agregado `["unidad_medida"] = "id_unidad"`.
+3. ⬜ **Sigue pendiente.** Un suscriptor **de vida larga** a nivel de aplicación: `RealtimeService` cierra el canal con el último suscriptor, y los `Observar` viven en los ViewModels, así que un cambio hecho con **todas** las pantallas relevantes cerradas no lo escucharía nadie. No bloqueó el caso de Productos porque su suscripción vive con la pantalla y `CargarDatosAsync` reconsulta al reabrirla — pero si en el futuro otra caché global (no acotada a una pantalla activa) necesita invalidación por Realtime, este punto 3 vuelve a ser necesario.
 
-### ~~P-005 · `VisualTreeHelper` para highlight de sugerencias~~ ✅ Resuelto 2026-05-28
+`CatalogoCache` (la caché de las lupas) sigue sin depender de esto — [[ADR-015 - Cache de catalogos mostrar y revalidar]] la revalida en cada apertura por diseño, independientemente de si la publicación está al día.
 
-**Archivo:** `CapaUI/.../Productos/ProductosView.xaml.cs`
-**Líneas:** ~314–326
-
-Navega el árbol visual manualmente para pintar el ítem seleccionado en el popup de sugerencias. Si el template XAML cambia aunque sea un `Border` de más, falla en runtime sin excepción clara.
-
-**Riesgo al replicar:** Cada módulo con buscador copiará esta lógica frágil y acoplada al XAML específico de Productos.
-
-**Solución:** Encapsular en un `Behavior` o usar `ListBox` con `SelectedItem` binding en lugar de `ItemsControl` manual.
-
-**Estado:** `[ ] Pendiente`
+**Estado:** `[~] Parcialmente resuelto — falta el punto 3 (suscriptor de vida larga), solo si se necesita`
 
 ---
+
+## 🟢 Menores — aceptables por ahora
 
 ### P-006 · Lógica Realtime acoplada a paginación en el ViewModel
 
@@ -209,161 +181,6 @@ Navega el árbol visual manualmente para pintar el ítem seleccionado en el popu
 Contiene lógica muy específica de "¿estoy en la última página?", "¿el INSERT puede caer en esta página?". Es correcta para Productos, pero si se copia a un módulo sin paginación o con distinta lógica de páginas, producirá bugs sutiles.
 
 **Estado:** `[ ] Aceptar como deuda — documentar en cada módulo nuevo los puntos que deben adaptarse`
-
----
-
-### ~~P-010 · Elementos del sidebar repetidos manualmente en 4 bloques paralelos~~ ✅ Resuelto 2026-07-23
-
-**Archivo:** `CapaUI/Formularios/Principal/MainWindow.xaml.cs` — `CollapseSidebar()` / `ExpandSidebar()`
-
-Los ~12 elementos visuales del sidebar (`LblModuloUsuarios`, `ChevUsuarios`, `LblModuloProductos`, … `LogoContainer`, `UserCardButton`) se listan a mano en al menos 4 bloques distintos: fade-out al colapsar, `Visibility.Collapsed` + restore opacity al colapsar, hacerlos `Visible` con opacidad 0 al expandir, fade-in al expandir. `BrandBlock` vivía en una quinta lista (`AnimateWidth`) que se perdió sin que nada avisara — causa raíz de **P-009**.
-
-**Riesgo:** Agregar/quitar un elemento del sidebar (o simplemente refactorizar) obliga a tocar 4–5 listas idénticas. Es fácil que uno quede huérfano, como ya ocurrió.
-
-**Solución aplicada:** campo `private readonly UIElement[] _sidebarChromeElements`, poblado una vez en el constructor tras `InitializeComponent()`. Los 4 bloques de 12 líneas cada uno se reemplazaron por `foreach (var el in _sidebarChromeElements) ...` en `CollapseSidebar()`/`ExpandSidebar()`. `BrandBlock` sigue fuera de este array a propósito (se anima `Width`, no `Opacity`/`Visibility` — ver P-009).
-
-**Estado:** `[x] Resuelto` — `dotnet build` 0 errores.
-
----
-
-### ~~P-011 · Guard `_animating` no cubre `BtnModulo_Click`~~ ✅ Resuelto 2026-07-23
-
-**Archivo:** `CapaUI/Formularios/Principal/MainWindow.xaml.cs`
-
-`BtnHamburger_Click` verifica `if (_animating) return;` antes de animar. `BtnModulo_Click` también dispara `await ExpandSidebar()` cuando el sidebar está colapsado, pero no verifica `_animating` primero — un click durante la cola de `CollapseSidebar` puede solapar dos animaciones sobre las mismas propiedades (`Sidebar.Width`, `ContentAreaBorder.Opacity`).
-
-**Riesgo:** Animaciones encimadas → estado visual inconsistente, similar al bug que motivó la sesión 2026-05-26 originalmente.
-
-**Solución aplicada:** agregado `if (_animating) return;` como primera línea de `BtnModulo_Click`, mismo patrón que `BtnHamburger_Click`.
-
-**Estado:** `[x] Resuelto` — `dotnet build` 0 errores.
-
----
-
-### ~~P-012 · Duraciones de animación como magic numbers sin constantes nombradas~~ ✅ Resuelto 2026-07-23
-
-**Archivo:** `CapaUI/Formularios/Principal/MainWindow.xaml.cs`
-
-Los valores `50, 55, 60, 65, 70, 75, 80, 100, 160, 180, 220` ms aparecen como literales dispersos en `CollapseSidebar`/`ExpandSidebar`, sin relación explícita con la tabla de referencia en [[Animaciones WPF - Referencia de Easings]]. (El `180` que rota el chevrón en `AnimateChevron(entry.Chevron, 180)` es un ángulo en grados, no una duración — no forma parte de este ítem aunque coincida numéricamente con `ChevronRotateMs`.)
-
-**Riesgo:** Difícil mantener consistencia entre lo documentado y lo implementado (ya pasó: el timeline documentado en 2026-05-26 quedó desactualizado sin que nada lo señalara). Ajustar un timing implica buscar el número mágico correcto entre varios iguales.
-
-**Solución aplicada:** 15 constantes nuevas (`ContentFadeOutMs`, `ChromeFadeOutMs`, `SidebarWidthAnimMs`, `SubMenuOpenMs`, `ChevronRotateMs`, etc.) agrupadas junto a `SidebarExpanded`/`SidebarCollapsed`/`SubItemHeight`. Todos los `Task.Delay`/`AnimateOpacity`/`AnimateWidth`/`AnimateSubMenu`/`AnimateChevron` del archivo ahora referencian una constante en vez de un literal.
-
-**Estado:** `[x] Resuelto` — `dotnet build` 0 errores.
-
----
-
-### ~~P-014 · `Debug.WriteLine` logueando prefijos de access token (Usuarios)~~ ✅ Resuelto 2026-07-26
-
-**Archivo:** `CapaDatos/Repositories/Usuarios/UsuarioRepository.cs` — `CrearAsync`
-**Introducido en:** commit `f105047` (Emanuel). Ver [[Sesión 2026-07-23 - Revisión QA Módulo Usuarios y Refactor de Sesión (Emanuel)]].
-
-Tres `Debug.WriteLine` loguean prefijos del access token (`token={session?.AccessToken?[..20]}...`) y emails de sesión antes/después del SignUp y la RPC. Aunque sea solo en Debug y truncado, loguear cualquier parte de un token es un smell de seguridad.
-
-**Riesgo:** Fuga parcial de tokens en logs/Output. Bajo (solo Debug), pero debe limpiarse antes de producción.
-
-**Solución aplicada:** eliminados los 3 `Debug.WriteLine` con token; queda un solo `Serilog.Log.Debug` booleano ("sesión restaurada: sí/no"). Regla permanente agregada al [[Plan de Seguridad - Roadmap 10-10]] §2.1b: nunca loguear secretos, ni truncados.
-
-**Estado:** `[x] Resuelto`
-
----
-
-### ~~P-015 · Debug scaffolding "[MapToDto] Diagnóstico FK" corre por cada fila~~ ✅ Resuelto 2026-07-26
-
-**Archivo:** `CapaDatos/Repositories/Usuarios/UsuarioRepository.cs` — `MapToDto`
-
-`MapToDto` ejecuta un `Debug.WriteLine` de diagnóstico de FKs (`empleados`/`roles` null u OK) **por cada usuario mapeado en cada carga de página**. Es andamiaje de depuración dejado en el código.
-
-**Riesgo:** Ruido en Output y trabajo inútil en cada render. Menor pero se replicará si se usa este repo como plantilla.
-
-**Solución aplicada:** eliminado el bloque de diagnóstico completo; las variables locales del mapeo se conservan.
-
-**Estado:** `[x] Resuelto`
-
----
-
-### ~~P-016 · `Normalizar()` del modal itera bytes UTF-8 como `char` (stripping de acentos incorrecto)~~ ✅ Resuelto 2026-07-26
-
-**Archivo:** `CapaUI/.../Usuarios/UsuarioModal.xaml.cs` — `Normalizar`
-
-Para quitar tildes al auto-generar el email, el código hace `Encoding.UTF8.GetBytes(s.Normalize(FormD))` y luego filtra **bytes** casteados a `char` según su categoría Unicode (`NonSpacingMark`). Tratar bytes UTF-8 individuales como caracteres es incorrecto para multi-byte: las marcas combinantes de FormD son secuencias de 2 bytes, así que el filtrado no es confiable (puede dejar bytes sueltos o corromper caracteres).
-
-**Riesgo:** Emails auto-generados con caracteres raros o acentos sin quitar para nombres como "Muñoz", "Peña", "Hernández".
-
-**Solución aplicada:** iteración sobre `char` de la cadena FormD + filtrado `NonSpacingMark` + recomposición FormC. Verificado: `Muñoz→munoz`, `María→maria`, `Peña→pena`. Patrón documentado en [[NET - Normalizacion Unicode para Quitar Acentos]].
-
-**Estado:** `[x] Resuelto`
-
----
-
-### ~~P-017 · Dependencia muerta: `IUsuarioSesionService` inyectada y no usada en `UsuarioModal`~~ ✅ Resuelto 2026-07-26
-
-**Archivo:** `CapaUI/.../Usuarios/UsuarioModal.xaml.cs`
-
-El constructor recibe y guarda `IUsuarioSesionService _sesionService` pero nunca lo usa.
-
-**Riesgo:** Ninguno funcional; ensucia el contrato del modal y confunde sobre por qué depende de la sesión.
-
-**Solución aplicada:** eliminados campo, parámetro y asignación; actualizados los 2 llamadores en `UsuariosView.xaml.cs`.
-
-**Estado:** `[x] Resuelto`
-
----
-
-### ~~P-018 · Acoplamiento frágil: permisos por nombre de enum vs. string de BD~~ ✅ Resuelto 2026-07-26
-
-**Archivo:** `CapaUI/Core/Permisos/SesionPermisos.cs` — `Tiene`
-
-`SesionPermisos.Tiene(permiso)` hace `sesion.TieneAccion(permiso.ToString())`. El sistema depende de que el nombre del miembro del enum `Permiso` (p. ej. `Pesajes_Ver`) coincida **exactamente** con `acciones.nombre_accion` en la BD. Si difieren (typo, renombre en BD, mayúsculas), el permiso devuelve `false` en silencio → el módulo se oculta sin ningún error.
-
-**Riesgo:** Permisos "desaparecen" sin diagnóstico. Difícil de depurar porque no hay excepción.
-
-**Solución aplicada:** contrato documentado en el doc-comment de `Permiso.cs` (no renombrar sin migración) + `SesionPermisos.ValidarContraBD()` invocado tras login: loguea con Serilog los valores del enum que la sesión no reconoce. No bloquea la app — es diagnóstico.
-
-**Estado:** `[x] Resuelto (documentación + validación diagnóstica)`
-
----
-
-## 🟢 Menores — aceptables por ahora
-
----
-
-### ~~P-019 · Nombre confuso: propiedad `correoUsuario` mapea a columna `alias_usuario`~~ ✅ Resuelto 2026-07-26
-
-**Archivo:** `CapaDatos/Modelados/Usuarios/Usuarios.cs`
-
-La propiedad C# `correoUsuario` tenía `[Column("alias_usuario")]`. El nombre de la propiedad y el de la columna sugerían conceptos distintos ("correo" vs "alias").
-
-**Solución aplicada:** renombrada la propiedad a `aliasUsuario` en los 2 modelos + 3 servicios que la referencian. El atributo `[Column("alias_usuario")]` no cambió — el esquema de BD quedó intacto.
-
-**Estado:** `[x] Resuelto`
-
----
-
-### ~~P-020 · Artefactos de tooling de IA commiteados al repo~~ ✅ Resuelto 2026-07-23
-
-**Archivos:** `.atl/.skill-registry.cache.json`, `.atl/skill-registry.md`, `.codegraph/.gitignore` (agregados en `f105047`).
-
-Artefactos generados por herramientas de agentes de IA, no forman parte del código del proyecto.
-
-**Riesgo:** Ruido en el repo, posibles conflictos de merge, tamaño innecesario.
-
-**Solución aplicada:** `.atl/` y `.codegraph/` agregados al `.gitignore` y removidos del índice con `git rm -r --cached` (siguen en disco). Hecho junto con la reestructuración multi-agente. Ver [[Sesión 2026-07-23 - Plan Preparar Bóveda Multi-Agente (AGENTS.md)]].
-
-**Estado:** `[x] Resuelto` (pendiente de commit por el usuario).
-
----
-
-### ~~P-021 · Búsqueda de Usuarios solo por `alias_usuario`, no por nombre de empleado~~ ✅ Resuelto 2026-07-26
-
-**Archivo:** `CapaDatos/Repositories/Usuarios/UsuarioRepository.cs` — `ObtenerPaginaAsync` / `ObtenerConteosAsync`
-
-La búsqueda filtraba solo `alias_usuario` (correo). El nombre del empleado vive en la tabla joineada `empleados`, y PostgREST no permite un OR que cruce padre + JOIN.
-
-**Solución aplicada:** vista SQL `vista_usuarios_busqueda` (`security_invoker = true`, respeta RLS) que aplana `nombre_completo`; `usuarioVista` apunta a la vista y el OR server-side cubre `alias_usuario` + `nombre_completo` en página y conteos. Primera búsqueda cross-tabla del sistema — ver [[ADR-005 - Vista SQL para Búsquedas Cross-Tabla]].
-
-**Estado:** `[x] Resuelto`
 
 ---
 
@@ -403,23 +220,6 @@ El constructor #2 y todo el código del `OnLoaded` que carga `ObtenerEmpleadosSi
 Diccionario estático que mapea nombre de tabla a columna PK. Si se agrega una tabla nueva al sistema de Realtime y se olvida actualizar este diccionario, el servicio no podrá extraer el ID del registro cambiado — falla silenciosamente.
 
 **Estado:** `[ ] Agregar validación o comentario de advertencia`
-
----
-
-### P-023 · 🔴 Catálogo de taras con datos de prueba — afecta el peso que se le paga al proveedor
-
-**Tablas:** `tara`, `productos.peso_teorico`
-**Detectado en:** [[Sesión 2026-07-26 - Rediseño del flujo de Pesajes]]
-
-La tabla `tara` tiene **una sola fila**: 20 kg, descripción *"tara de 20 kg"*, usada por **503 de 505 productos**. Pero **500 de esos productos tienen `peso_teorico` menor a 10 kg** — el empaque pesaría el doble o más que el producto que contiene. Los 5 restantes (1,000 a 10,000 kg) tienen nombres tipo *"Producto Number 1"*, *"Producto bien five"*.
-
-Además existe una tabla `tarima` aparte con su propio `peso_tarima`, y `entradas_producto` ya tiene `id_tarima` — o sea las tarimas se manejan por separado, lo que refuerza que ese 20 kg no es un empaque real.
-
-**Riesgo:** la tara se resta del peso bruto para calcular el neto, y **el neto es lo que se le paga al proveedor**. Con datos de relleno, todo cálculo de recepción es incorrecto. Además el indicador de bultos teóricos (Fase 8) va a dar números sin sentido hasta que se cargue el catálogo real.
-
-**Solución:** poblar `tara` con los empaques reales y asignar el `id_tara` correcto a cada producto. Verificar también los `peso_teorico` de los 5 productos de prueba.
-
-**Estado:** `[ ] Pendiente — requiere datos de planta`
 
 ---
 
@@ -574,23 +374,6 @@ Hallazgos fuera de Roles, **no atacados** por decisión de alcance. Ordenados po
 
 ---
 
-### P-032 · 🔴 El reparto de tara extra no es transaccional (N updates sueltos)
-
-**Detectado en:** [[Sesión 2026-08-13 - Pesaje solo bruto y tara extra pesada]]
-
-`PesajeViewModel.RepartirTaraExtraAsync` reparte un total entre N pesadas con **N PATCH independientes** de PostgREST (`ActualizarTaraExtraEntradaAsync`, uno por entrada). No hay transacción: si la red se corta a mitad, unas filas quedan con la cuota nueva y otras con la vieja, y `Σ entradas` deja de ser el total real.
-
-**Mitigaciones ya implementadas:**
-- **Pre-vuelo**: se validan las N pesadas contra el `CHECK peso_neto > 0` **antes** de escribir ninguna, así el fallo más probable (una pesada de bruto chico) no produce escrituras parciales.
-- **Auto-reparable**: como el total se deriva de `Σ entradas`, reabrir el modal muestra el total real que quedó; volver a aplicar reparte todo desde cero. No hay estado que reconciliar.
-- Se avisa por Toast cuántas filas fallaron.
-
-**Solución de fondo:** un RPC de Postgres que reciba `(id_mov_producto | id_movimiento, total)` y haga el reparto en una sola transacción del lado del servidor.
-
-**Estado:** `[ ] Pendiente`
-
----
-
 ### P-033 · Sin verificar: ¿el trigger de pesajes cubre UPDATE?
 
 **Detectado en:** [[Sesión 2026-08-13 - Pesaje solo bruto y tara extra pesada]]
@@ -615,34 +398,6 @@ select polname, polcmd from pg_policy where polrelid = 'entradas_producto'::regc
 - Si RLS bloquea `UPDATE` de `entradas_producto` para el rol de la app → el modo "tara extra total" no funciona y hace falta una política nueva.
 
 **Estado:** `[ ] Pendiente — verificación en BD`
-
----
-
-### ~~P-034~~ · 🟡 Invalidación de caché apoyada en tablas que no publican en Realtime — parcialmente resuelto 2026-08-14
-
-**Detectado en:** [[Sesión 2026-08-13 - Guardado fluido y caché de catálogos que no vencía]]
-
-`ProductosViewModel.cs:238` hacía `Observar("fabricante", _ => CatalogoCache.Invalidar("fabricantes"))`, pero la tabla no estaba en la publicación de Realtime. Verificado contra la base en su momento:
-
-```sql
-select tablename from pg_publication_tables where pubname = 'supabase_realtime';
--- categoria, empleados, entradas_producto, movimiento_productos,
--- movimientos, paises, productos, usuarios
-```
-
-Faltaban `presentacion_producto`, `fabricante`, `proveedores` y `tara`. **Ese handler no se ejecutaba nunca** y nadie se había dado cuenta: el modo de falla es silencioso.
-
-Había además un desalineo latente: `RealtimeService.cs:38` mapeaba la PK bajo la clave `"taras"`, pero la tabla real se llama `tara`.
-
-**Resuelto en [[Sesión 2026-08-14 - Realtime en columnas de join de Productos]]**, a raíz de un reporte relacionado pero distinto (las columnas de la grilla de Productos que salen de un join no se actualizaban en vivo). Se hicieron los dos primeros pasos de la solución de fondo:
-
-1. ✅ `ALTER PUBLICATION supabase_realtime ADD TABLE fabricante, proveedores, presentacion_producto, tara, unidad_medida;` — migración `publicar_catalogos_en_realtime` aplicada y verificada (8 → 13 tablas).
-2. ✅ Corregido `"taras"` → `"tara"` en `_pkColumns`, y agregado `["unidad_medida"] = "id_unidad"`.
-3. ⬜ **Sigue pendiente.** Un suscriptor **de vida larga** a nivel de aplicación: `RealtimeService` cierra el canal con el último suscriptor, y los `Observar` viven en los ViewModels, así que un cambio hecho con **todas** las pantallas relevantes cerradas no lo escucharía nadie. No bloqueó el caso de Productos porque su suscripción vive con la pantalla y `CargarDatosAsync` reconsulta al reabrirla — pero si en el futuro otra caché global (no acotada a una pantalla activa) necesita invalidación por Realtime, este punto 3 vuelve a ser necesario.
-
-`CatalogoCache` (la caché de las lupas) sigue sin depender de esto — [[ADR-015 - Cache de catalogos mostrar y revalidar]] la revalida en cada apertura por diseño, independientemente de si la publicación está al día.
-
-**Estado:** `[~] Parcialmente resuelto — falta el punto 3 (suscriptor de vida larga), solo si se necesita`
 
 ---
 
@@ -696,35 +451,6 @@ Hallazgos de la investigación de esa regresión. Ninguno causó el bug reportad
 Además, `Usuarios`, `Empleados` y `Bitacora` todavía tienen `DgX.ItemsSource = _vm.PageRows` **dentro** de su `RefrescarPaginacion()` (la forma que causó la regresión de esta sesión). Hoy no exhiben el bug porque no tienen Realtime y por lo tanto no recibieron el `case TotalPages` — pero si algún día se les agrega Realtime siguiendo el checklist, hay que separar las responsabilidades primero.
 
 **Solución de fondo:** extraer un `UserControl` de paginación compartido con `ItemsSource` bindeado a una colección calculada, y clampear `Page` en el setter (o en un único lugar del VM base). Eso cierra los tres puntos de una vez y elimina las 9 copias. Es un refactor, no un fix — por eso quedó fuera del alcance de la sesión que lo detectó.
-
-**Estado:** `[ ] Pendiente`
-
----
-
-### P-038 · 🔴 Modelos C# desalineados del esquema + el error de carga no llega al usuario
-
-**Detectado en:** [[Sesión 2026-08-14 - Modelo desalineado del esquema tumbaba paginas enteras]]
-
-Tres problemas de la misma familia, descubiertos al diagnosticar un bug que costó tres rondas de reporte.
-
-**1. El desalineo modelo↔esquema falla en bloque y en silencio.** `Productos.cs` declaraba como `int` cuatro columnas que en la base son NULLABLE. Una sola fila con NULL hacía que Newtonsoft lanzara y **fallara la consulta entera** — no la fila, la página completa. Ya corregido para `productos`, pero:
-
-- **`ProductosInsertar.cs` sigue desalineado**: `id_presentacion`, `id_fabricante`, `id_categoria`, `id_pais`, `id_tara` como `int` y `peso_teorico` como `decimal`, todas nullable en la base. Hoy solo lo usa `RepositorioProducto.ingresarProducto` (estático, legacy, sin llamadores activos), así que no explota — pero explotaría apenas se use.
-- **El resto de las tablas no se auditó.** Conviene una pasada comparando cada modelo de `CapaDatos/Modelados/` contra `information_schema.columns`: cualquier value type (`int`, `decimal`, `DateTime`, `bool`) declarado sin `?` sobre una columna `is_nullable = YES` es la misma bomba.
-
-```sql
--- Para auditar: lista las columnas nullable de una tabla
-select column_name, data_type, is_nullable
-from information_schema.columns
-where table_schema='public' and table_name='<tabla>'
-order by ordinal_position;
-```
-
-**2. `ErrorCarga` no se muestra.** `ProductosViewModel.CargarPaginaAsync` asigna `ErrorCarga = r.Error` en su return temprano de error, pero eso nunca llegó a la pantalla — el usuario vio una grilla con datos viejos, sin ningún aviso de que la carga había fallado. Con el mensaje visible, este bug se diagnosticaba en minutos en vez de tres rondas. Verificar si `ErrorCarga` está bindeado en las vistas y, si no, mostrarlo (mismo tratamiento en los módulos gemelos).
-
-**3. El return temprano deja la grilla mintiendo.** Los cuatro caminos de salida de `CargarPaginaAsync` (timeout, generación invalidada, `!r.Success`) no tocan `PageRows`, así que la pantalla sigue mostrando la página anterior como si fuera la pedida — mientras `Page`, `PageInfo` y los botones ya avanzaron. Aunque se arregle el punto 2, conviene decidir qué debe mostrar la grilla cuando una página falla: vaciarse, quedarse con un estado de error explícito, o revertir `Page` al valor anterior.
-
-**Riesgo:** alto. El punto 1 puede dejar cualquier pantalla inutilizable con un solo registro mal cargado, y el punto 2 hace que se diagnostique a ciegas.
 
 **Estado:** `[ ] Pendiente`
 
@@ -919,6 +645,7 @@ Los tres pasos, no solo el primero: con el límite únicamente en la UI, cualqui
 | P-042 | `PesajeModalStyles.xaml` duplica `ModalInput`/`ModalCombo`/`ModalSegBtn` sin foco ni validación por campo | `[ ]` Pendiente | [[Sesión 2026-08-19 - Selector de proveedor por tabla y consolidacion de estilos]] |
 | P-043 | `ModalInput`/`InputBox` globales: mismo bug de `VerticalAlignment` fijo que ya se corrigió en `MInput` | `[ ]` Pendiente | [[Sesión 2026-08-19 - Selector de proveedor por tabla y consolidacion de estilos]] |
 | P-044 | Multiselección de `SelectorCatalogoModal` no responde a teclado (Space no tilda el checkbox) | `[ ]` Pendiente | [[Sesión 2026-08-19 - Selector de proveedor por tabla y consolidacion de estilos]] |
+| P-046 | Repo dentro de OneDrive: sync compite con Obsidian y git | `[ ]` Pendiente | auditoría de la bóveda 2026-08-23 |
 
 ---
 

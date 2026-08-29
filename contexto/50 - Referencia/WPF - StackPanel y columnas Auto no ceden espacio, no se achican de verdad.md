@@ -1,11 +1,27 @@
 ---
 title: "WPF — StackPanel y columnas Auto no ceden espacio, no se achican de verdad"
+type: referencia
+status: vigente
 tags:
   - wpf
   - layout
   - referencia
   - trampa
 date: 2026-08-14
+updated: 2026-08-14
+summary: "Un StackPanel horizontal, al medir cada hijo, le pasa availableSize.Width = Infinity (porque en teoría puede \"seguir apilando\" sin límite). El hijo nunca se…"
+scope: []
+symbols:
+  - Auto
+  - ColumnDefinition
+  - Dock
+  - DockPanel
+  - MaxWidth
+  - StackPanel
+  - Stretch
+  - TextTrimming
+  - UniformGrid
+  - Visibility
 lifecycle: verified
 ---
 

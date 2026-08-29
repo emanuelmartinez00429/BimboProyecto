@@ -1,5 +1,7 @@
 ---
 title: Interceptar Cierre de Ventana — WPF (CapaUI)
+type: patron
+status: vigente
 tags:
   - patron
   - wpf
@@ -7,6 +9,19 @@ tags:
   - seguridad
   - async
   - dotnet
+date: 2026-05-22
+updated: 2026-05-22
+summary: "En una app WPF, el cierre puede originarse desde múltiples puntos: botón X del chrome personalizado, comando de logout en el ViewModel, o Alt+F4. Sin…"
+scope:
+  - CapaUI/Formularios/Principal
+symbols:
+  - CerrarSesionCommand
+  - CloseReason
+  - FormClosingEventArgs
+  - HandleCierreAsync
+  - IWindowHost
+  - MainWindow
+  - OnClosing
 aliases:
   - OnClosing
   - Cancel-and-Retry

@@ -1,5 +1,7 @@
 ---
 title: "Sesión 2026-05-28 — Refactor Críticos P-001, P-002, P-003"
+type: sesion
+status: vigente
 tags:
   - sesion
   - refactor
@@ -7,6 +9,22 @@ tags:
   - productos
   - repositorio
 date: 2026-05-28
+updated: 2026-05-28
+summary: Los 3 problemas críticos identificados en la auditoría pre-replicación están resueltos. CapaDatos y CapaUI compilan con 0 errores. El módulo Productos ahora es…
+scope:
+  - CapaAplicacion4/Common
+  - CapaDatos/Repositories/Productos
+symbols:
+  - Activo
+  - AplicarFiltros
+  - CargarPaginaAsync
+  - CargarPaginaSilenciosamenteAsync
+  - GetConteosAsync
+  - IPostgrestTable<T>
+  - Inactivo
+  - ProductoCrudRepository
+  - ProductosViewModel
+  - RefrescarConteosAsync
 ---
 
 # Sesión 2026-05-28 — Refactor Críticos P-001, P-002, P-003

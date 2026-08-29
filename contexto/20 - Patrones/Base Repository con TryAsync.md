@@ -1,11 +1,33 @@
 ---
 title: Base Repository con TryAsync
+type: patron
+status: vigente
 tags:
   - patron
   - manejo-errores
   - repositorio
   - arquitectura
   - dotnet
+date: 2026-08-20
+updated: 2026-08-20
+summary: "Con el Result Pattern sabemos que los repositorios deben retornar Result<T> en vez de lanzar excepciones. Pero si cada método repite su propio try/catch, la…"
+scope:
+  - CapaAplicacion4/Productos/Interfaces
+  - CapaDatos/Repositories
+  - CapaDatos/Repositories/Productos
+  - CapaDatos/Repositories/Search
+  - CapaDatos/Repositorios
+symbols:
+  - ErrorCarga
+  - IProductoRepository
+  - List<T>
+  - OperationCanceledException
+  - RepositorioBase
+  - Result
+  - Result<T>
+  - SinConexion
+  - Stopwatch
+  - TaskCanceledException
 aliases:
   - TryAsync
   - RepositorioBase

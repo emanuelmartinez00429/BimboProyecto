@@ -1,9 +1,19 @@
 ---
 title: CQRS + Mediator
+type: patron
+status: vigente
 tags:
   - patron
   - arquitectura
   - dotnet
+date: 2026-05-21
+updated: 2026-05-21
+summary: "CQRS (Command Query Responsibility Segregation): separa las operaciones de lectura (queries) de las de escritura (commands) en modelos distintos. Mediator: un…"
+scope: []
+symbols:
+  - IProductoRepository
+  - ProductoDto
+  - ProductosInsertar
 aliases:
   - CQRS
   - Mediator Pattern

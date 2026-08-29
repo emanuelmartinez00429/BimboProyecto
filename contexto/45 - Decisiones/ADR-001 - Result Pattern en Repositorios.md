@@ -1,3 +1,22 @@
+---
+title: ADR-001 — Result Pattern en Repositorios
+type: adr
+status: vigente
+tags:
+  - adr
+date: 2026-05-21
+updated: 2026-05-21
+summary: "Los repositorios originales retornaban datos directamente o propagaban excepciones al ViewModel. El manejo de errores era inconsistente: algunas vistas tenían…"
+scope:
+  - CapaAplicacion/Common
+  - CapaDatos/Repositories
+symbols:
+  - RepositorioBase
+  - Result<T>
+  - TryAsync
+  - TryAsync<T>
+---
+
 # ADR-001 — Result Pattern en Repositorios
 
 **Fecha:** 2026-05-21  
