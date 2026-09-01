@@ -4,7 +4,7 @@ type: indice
 status: vigente
 tags: [indice, generado, bitacora]
 date: 2026-08-23
-updated: 2026-08-23
+updated: 2026-08-30
 summary: "Índice generado del historial de sesiones, agrupado por mes. Consultá acá cuando necesites saber qué pasó y cuándo."
 scope: []
 symbols: []
@@ -14,14 +14,15 @@ symbols: []
 
 > [!warning] Archivo GENERADO — no editar a mano (`node scripts/build-index.js`)
 
-**95 sesiones** · actualizado 2026-08-23
+**96 sesiones** · actualizado 2026-08-30
 
 No hace falta leerlo entero. Buscá el mes o el tema y abrí solo esa nota.
 
 ---
 
-## 2026-08 — 37
+## 2026-08 — 38
 
+- `2026-08-29` **Predicción y medición del contrato de bóveda (Fase 3)** — Instrumental de medición en scripts/medir/. Métrica 1 corrida: el contrato…
 - `2026-08-21` **Ajustes de layout y scroll lateral en Pesajes y consolidación global de estilos** — Se ajustó la proporción horizontal y la simetría vertical en PesajeView. Se…
 - `2026-08-21` **QA Login y migración de validaciones al dominio** — Se crearon 112 tests de QA para el inicio de sesión (P0–P3), se detectó y…
 - `2026-08-21` **Reporte de Pesaje de Insumos BES (PDF y Excel)** — Se implementó la generación real de reportes en PDF y Excel desde el botón…

@@ -4,7 +4,7 @@ type: indice
 status: vigente
 tags: [indice, generado]
 date: 2026-08-23
-updated: 2026-08-23
+updated: 2026-08-30
 summary: "Índice generado de las notas de la bóveda: una línea por nota con tipo, fecha, resumen y los símbolos de código que declara."
 scope: []
 symbols: []
@@ -16,7 +16,7 @@ symbols: []
 > Sale del frontmatter de cada nota. Regeneralo con `node scripts/build-index.js` cada vez que agregues o cambies una nota.
 > Si hay conflicto de merge acá, no lo resuelvas: regeneralo.
 
-**183 notas** · actualizado 2026-08-23
+**184 notas** · actualizado 2026-08-30
 
 Leé este archivo entero — es barato. Después abrí **solo** las 3–6 notas que la tarea necesita.
 Si no encontrás lo que buscás: `grep -ri "<término>" contexto/ --include="*.md" -l`.
@@ -141,10 +141,11 @@ Si no encontrás lo que buscás: `grep -ri "<término>" contexto/ --include="*.m
 - **Plan de Mejora - Módulo Productos (Revisión QA)** · 2026-08-21 — Plan de acción derivado de la revisión QA exhaustiva del Módulo de Productos…
 - **QA - Inicio de Sesión (Testing por niveles de importancia)** · 2026-08-21 — Se creó una suite completa de 112 tests para el módulo de inicio de sesión,…
 
-## 70 - Bitácora de Cambios — 95
+## 70 - Bitácora de Cambios — 96
 
 *Historial de sesiones — consultá por fecha, no lo leas de corrido*
 
+- `2026-08-29` Predicción y medición del contrato de bóveda (Fase 3)
 - `2026-08-21` Ajustes de layout y scroll lateral en Pesajes y consolidación global de estilos
 - `2026-08-21` QA Login y migración de validaciones al dominio
 - `2026-08-21` Reporte de Pesaje de Insumos BES (PDF y Excel)
@@ -154,9 +155,8 @@ Si no encontrás lo que buscás: `grep -ri "<término>" contexto/ --include="*.m
 - `2026-08-16` Creación auditada de catálogos y contactos mediante RPC
 - `2026-08-16` Reportes PDF y Excel desde Bitácora
 - `2026-08-15` Plan de Implementación — Validación Centralizada
-- `2026-08-15` Creación auditada de Empleados mediante RPC
 
-Historial completo de las 95 sesiones: [[INDEX-bitacora]] (`contexto/INDEX-bitacora.md`).
+Historial completo de las 96 sesiones: [[INDEX-bitacora]] (`contexto/INDEX-bitacora.md`).
 
 ## Raíz de la bóveda y otros
 

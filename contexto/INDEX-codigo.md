@@ -4,7 +4,7 @@ type: indice
 status: vigente
 tags: [indice, generado, codigo]
 date: 2026-08-23
-updated: 2026-08-23
+updated: 2026-08-30
 summary: "Mapa generado de qué notas describen cada área del código y qué símbolos aparecen en varias notas. Abrilo antes de modificar un archivo."
 scope: []
 symbols: []
@@ -76,6 +76,7 @@ Si tocaste un archivo bajo una de estas rutas, revisá si su nota quedó desactu
 - `CapaUI/ViewModels` → [[Sesión 2026-05-28 — Eliminación Memory Leaks Ciclo Completo]], [[Sesión 2026-07-28 — Fix buscador global (PostgrestException PGRST100)]]
 - `CapaUI/bin` → [[Sesión 2026-07-28 — Fix buscador global (PostgrestException PGRST100)]]
 - `ServicioConexión/Conexion` → [[Plan de Seguridad — Roadmap hacia 10/10]], [[Sesión 2026-05-29 — Fix Fuga de Timers Realtime (Keep-Open + Reset Total)]]
+- `scripts/medir` → [[Sesión 2026-08-29 — Predicción y medición del contrato de bóveda (Fase 3)]]
 
 ## Símbolos que aparecen en varias notas
 

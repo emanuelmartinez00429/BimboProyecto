@@ -1,0 +1,12 @@
+{"id":"q01","pregunta":"Que notas de la boveda describen el codigo bajo CapaDatos/Repositories/Productos? Lista solo los titulos, sin explicar.","espera":["Productos"],"mide":"mapa codigo->nota"}
+{"id":"q02","pregunta":"En que notas de la boveda se documenta el simbolo GestorRealtime? Lista solo los titulos.","espera":["Realtime"],"mide":"busqueda por simbolo"}
+{"id":"q03","pregunta":"Cuales son los items de deuda tecnica CRITICOS que siguen abiertos? Lista solo los codigos P-NNN y una linea cada uno.","espera":["P-023","P-032","P-038"],"mide":"consulta filtrada"}
+{"id":"q04","pregunta":"Que motor de reportes se eligio para el proyecto y cual fue la razon principal? Responde en dos frases.","espera":["PDFsharp","MigraDoc"],"mide":"recuperar una decision"}
+{"id":"q05","pregunta":"Cuales fueron las ultimas 5 sesiones registradas en la bitacora? Lista solo fecha y titulo.","espera":["2026-08-21"],"mide":"consulta ordenada"}
+{"id":"q06","pregunta":"Si modifico un archivo bajo CapaUI/Core/Controls, que notas de la boveda podrian quedar desactualizadas? Lista solo los titulos.","espera":["Controls"],"mide":"trazabilidad inversa"}
+{"id":"q07","pregunta":"Que patron usa el proyecto para manejar errores en los repositorios y en que ADR se decidio? Responde en dos frases.","espera":["Result","ADR-001"],"mide":"patron + ADR"}
+{"id":"q08","pregunta":"Como resolvimos la busqueda insensible a tildes en Postgres? Nombra el ADR y la tecnica.","espera":["ADR-018"],"mide":"referencia tecnica puntual"}
+{"id":"q09","pregunta":"Cuantas notas tiene la boveda y como estan repartidas por carpeta? Responde con una lista carpeta: cantidad.","espera":["70","45"],"mide":"agregacion"}
+{"id":"q10","pregunta":"Que decidimos sobre CapaServicios y en que sesion se ejecuto? Responde en dos frases.","espera":["ADR-003","Disoluci"],"mide":"decision + ejecucion"}
+{"id":"q11","pregunta":"Que notas de la boveda mencionan Supabase realtime Y paginacion a la vez? Lista solo los titulos.","espera":["Paginaci"],"mide":"interseccion de dos temas"}
+{"id":"q12","pregunta":"Hay enlaces wiki rotos en la boveda? Cuantos aproximadamente y da tres ejemplos.","espera":["114"],"mide":"salud de la boveda"}
