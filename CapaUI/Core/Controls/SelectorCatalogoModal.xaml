@@ -306,6 +306,12 @@
                                   ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                                   VirtualizingPanel.IsVirtualizing="True"
                                   VirtualizingPanel.VirtualizationMode="Recycling">
+                            <!-- Barra fina (8px) como el resto de las tablas del proyecto:
+                                 la barra gruesa por defecto se comía el borde de la última
+                                 columna cuando aparecía. -->
+                            <DataGrid.Resources>
+                                <Style TargetType="ScrollBar" BasedOn="{StaticResource ModernScrollBarAny}"/>
+                            </DataGrid.Resources>
                             <DataGrid.Columns>
                                 <!-- Indicador: círculo (selección única), checkbox (multi) o
                                      "✓ ya" (fila bloqueada) — las tres comparten la columna,
@@ -351,17 +357,21 @@
                                     </DataGridTemplateColumn.CellTemplate>
                                 </DataGridTemplateColumn>
 
-                                <DataGridTextColumn x:Name="ColNombre" Header="NOMBRE" Width="*"
+                                <!-- Reparto de ancho por defecto: NOMBRE "*" se queda con el
+                                     sobrante y recorta con "…" si hace falta; la columna de
+                                     descripción (RTN, código...) es un dato corto y va "Auto"
+                                     con tope para que un valor largo no empuje al resto.
+                                     ESTADO va fijo: así "Inactivo" nunca queda cortado contra
+                                     la barra de scroll. Para catálogos cuya descripción es
+                                     texto largo (presentaciones, categorías) el code-behind
+                                     invierte NOMBRE/DESCRIPCIÓN según CatalogoConfig.DescripcionExtensa. -->
+                                <DataGridTextColumn x:Name="ColNombre" Header="NOMBRE" Width="*" MinWidth="200"
                                                     Binding="{Binding Nombre}"
                                                     ElementStyle="{StaticResource CatCellText}"/>
-                                <!-- Auto (no "*"): este campo es corto (código, RTN...), no tiene
-                                     por qué competir por el mismo ancho que NOMBRE — se ajusta
-                                     solo a su contenido/encabezado y le deja el resto a NOMBRE,
-                                     que es el que necesita el espacio para no truncar con "...". -->
-                                <DataGridTextColumn x:Name="ColDescripcion" Header="DESCRIPCI&#211;N" Width="Auto"
+                                <DataGridTextColumn x:Name="ColDescripcion" Header="DESCRIPCI&#211;N" Width="Auto" MinWidth="110" MaxWidth="240"
                                                     Binding="{Binding Descripcion}"
                                                     ElementStyle="{StaticResource CatCellMuted}"/>
-                                <DataGridTextColumn x:Name="ColEstado" Header="ESTADO" Width="Auto"
+                                <DataGridTextColumn x:Name="ColEstado" Header="ESTADO" Width="120"
                                                     Binding="{Binding EstadoTexto}"
                                                     ElementStyle="{StaticResource CatCellMuted}"/>
                             </DataGrid.Columns>

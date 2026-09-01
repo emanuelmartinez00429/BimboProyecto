@@ -29,6 +29,13 @@ namespace CapaUI.Core.Catalogos;
 /// Muestra la columna Descripción antes que Nombre (p. ej. Productos: el
 /// código es lo que la gente escanea/reconoce primero, el nombre confirma).
 /// </param>
+/// <param name="DescripcionExtensa">
+/// La columna Descripción lleva texto largo (una frase), no un dato corto
+/// como RTN o un código. Invierte el reparto de ancho de la tabla: Nombre
+/// se ajusta a su contenido y Descripción se queda con el espacio sobrante,
+/// recortando con "…" si no cabe. <c>false</c> (por defecto) ⇒ Nombre es la
+/// columna flexible y Descripción va a su ancho natural.
+/// </param>
 /// <param name="PermiteMultiple">
 /// Habilita checkboxes independientes por fila en vez del círculo de
 /// selección única — clickear varias filas las va sumando todas, y "Elegir"
@@ -59,6 +66,7 @@ public sealed record CatalogoConfig(
     string TituloDescripcion = "Descripción",
     bool MostrarEstado       = true,
     bool DescripcionPrimero  = false,
+    bool DescripcionExtensa  = false,
     bool PermiteMultiple     = false,
     Func<int?, bool>? EstaYaElegido = null,
     int PageSize             = 15,
@@ -72,7 +80,8 @@ public static class Catalogos
 {
     public static CatalogoConfig Presentaciones(ICatalogoRepository r) => new(
         "presentaciones", "Seleccionar presentación", "Buscar presentación...",
-        (t, p, s, ct) => r.GetPresentacionesAsync(t, p, s, ct));
+        (t, p, s, ct) => r.GetPresentacionesAsync(t, p, s, ct),
+        DescripcionExtensa: true);   // la descripción es una frase, no un código
 
     public static CatalogoConfig Taras(ICatalogoRepository r) => new(
         "taras", "Seleccionar tara", "Buscar tara...",
@@ -81,7 +90,8 @@ public static class Catalogos
 
     public static CatalogoConfig Categorias(ICatalogoRepository r) => new(
         "categorias", "Seleccionar categoría", "Buscar categoría...",
-        (t, p, s, ct) => r.GetCategoriasAsync(t, p, s, ct));
+        (t, p, s, ct) => r.GetCategoriasAsync(t, p, s, ct),
+        DescripcionExtensa: true);   // la descripción es una frase, no un código
 
     /// <summary>
     /// Unidades, opcionalmente acotadas a una categoría (masa, volumen, conteo).

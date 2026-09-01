@@ -97,6 +97,22 @@ public partial class SelectorCatalogoModal : UserControl, IDisposable
         if (cfg.DescripcionPrimero)
             Dg.Columns.Move(Dg.Columns.IndexOf(ColDescripcion), Dg.Columns.IndexOf(ColNombre));
 
+        // Reparto de ancho. Por defecto Nombre es la columna flexible ("*") y la
+        // de descripción va a su ancho natural — correcto cuando esa columna es
+        // un dato corto (RTN en proveedores, código en productos...). Si la
+        // descripción es una frase (presentaciones, categorías) se invierte:
+        // Nombre se ajusta a su contenido y Descripción se queda con el sobrante,
+        // recortando con "…" (lo hace CatCellMuted vía TextTrimming).
+        if (cfg.DescripcionExtensa)
+        {
+            ColNombre.Width      = DataGridLength.Auto;
+            ColNombre.MinWidth   = 140;
+            ColNombre.MaxWidth   = 320;   // un nombre largo no puede ahogar a la descripción
+            ColDescripcion.Width    = new DataGridLength(1, DataGridLengthUnitType.Star);
+            ColDescripcion.MinWidth = 220;
+            ColDescripcion.MaxWidth = double.PositiveInfinity;
+        }
+
         if (cfg.PermiteMultiple)
             TxtPie.Text = "Marcá los que necesites y tocá Seleccionar.";
 
