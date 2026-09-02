@@ -1381,8 +1381,10 @@ BEGIN
         v_titulo_notif := 'Usuario activado';
     END IF;
 
+    -- Patron de Proveedor: activar reutiliza USUARIOS_MODIFICAR, desactivar usa USUARIOS_ELIMINAR.
+    -- (No existe una accion USUARIOS_ACTIVAR; validar contra un codigo inexistente bloquea con 42501.)
     IF p_id_estado = 1 THEN
-        v_codigo_accion := 'USUARIOS_ACTIVAR';
+        v_codigo_accion := 'USUARIOS_MODIFICAR';
     ELSE
         v_codigo_accion := 'USUARIOS_ELIMINAR';
     END IF;

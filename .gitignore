@@ -379,3 +379,9 @@ MigrationBackup/
 FodyWeavers.xsd
 # Supabase credentials
 CapaUI/App.config
+
+# Borradores y salidas locales de SQL; migrations solo acepta yyyyMMddHHmmss_nombre.sql.
+/out.sql
+/diff.patch
+/supabase/migrations/temp_*.sql
+/supabase/migrations/*_supermin.sql
