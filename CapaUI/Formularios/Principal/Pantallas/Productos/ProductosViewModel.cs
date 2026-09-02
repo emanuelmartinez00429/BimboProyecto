@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using CapaAplicacion.Common;
 using CapaAplicacion.Productos.Dtos;
 using static CapaAplicacion.Common.EstadoRegistro;
@@ -74,6 +74,7 @@ public partial class ProductosViewModel : RealtimeAwareViewModel
     [NotifyCanExecuteChangedFor(nameof(PaginaAnteriorCommand))]
     [NotifyCanExecuteChangedFor(nameof(PaginaSiguienteCommand))]
     [NotifyCanExecuteChangedFor(nameof(UltimaPaginaCommand))]
+    [NotifyPropertyChangedFor(nameof(NoResults), nameof(MensajeSinResultados))]
     private bool _isLoading;
     [ObservableProperty] private int              _highlightIndex = -1;
     [ObservableProperty] private int              _totalCount;
@@ -91,7 +92,34 @@ public partial class ProductosViewModel : RealtimeAwareViewModel
         : $"{Seleccionado.CodigoInterno} · {Seleccionado.Nombre}";
 
     public int  TotalPages => Math.Max(1, (int)Math.Ceiling(_filteredCount / (double)PageSize));
-    public bool NoResults  => !IsLoading && _filteredCount == 0 && TotalCount > 0;
+    public bool NoResults  => !IsLoading && _filteredCount == 0;
+
+    public string MensajeSinResultados
+    {
+        get
+        {
+            if (IsLoading) return string.Empty;
+
+            if (_estadoFiltro == EstadoFilter.Inactivos)
+                return "No hay registros inactivos";
+
+            if (_estadoFiltro == EstadoFilter.Activos && ActivosCount == 0 && TotalCount > 0)
+                return "No hay registros activos";
+
+            if (TieneFiltrosBusquedaActivos())
+                return "No se encontraron resultados con los filtros actuales";
+
+            return "No hay registros";
+        }
+    }
+
+    private bool TieneFiltrosBusquedaActivos() =>
+        !string.IsNullOrWhiteSpace(_query)
+        || _fabricanteIdFiltro.HasValue
+        || _paisIdFiltro.HasValue
+        || _proveedorIdFiltro.HasValue
+        || _categoriaIdFiltro.HasValue;
+
     public string PageInfo
     {
         get
@@ -430,6 +458,7 @@ public partial class ProductosViewModel : RealtimeAwareViewModel
         OnPropertyChanged(nameof(TotalPages));
         OnPropertyChanged(nameof(PageInfo));
         OnPropertyChanged(nameof(NoResults));
+        OnPropertyChanged(nameof(MensajeSinResultados));
         NotifyPaginationCanExecuteChanged();
         IsLoading = false;
 
@@ -652,6 +681,7 @@ public partial class ProductosViewModel : RealtimeAwareViewModel
             OnPropertyChanged(nameof(TotalPages));
             OnPropertyChanged(nameof(PageInfo));
             OnPropertyChanged(nameof(NoResults));
+            OnPropertyChanged(nameof(MensajeSinResultados));
             NotifyPaginationCanExecuteChanged();
         }
         catch (Exception ex)
@@ -685,6 +715,7 @@ public partial class ProductosViewModel : RealtimeAwareViewModel
         OnPropertyChanged(nameof(TotalPages));
         OnPropertyChanged(nameof(PageInfo));
         OnPropertyChanged(nameof(NoResults));
+        OnPropertyChanged(nameof(MensajeSinResultados));
         NotifyPaginationCanExecuteChanged();
     }
 

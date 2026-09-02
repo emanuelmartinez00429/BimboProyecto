@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
@@ -139,6 +139,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
                 LoadingPanel.Visibility = Visibility.Collapsed;
                 DetenerSpinner();
                 DgProductos.Visibility  = Visibility.Visible;
+                EmptyState.Visibility   = _vm.NoResults ? Visibility.Visible : Visibility.Collapsed;
             }
         }
 

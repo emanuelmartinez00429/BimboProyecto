@@ -727,17 +727,6 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <!-- Empty state -->
-                <StackPanel Grid.Row="0"
-                            x:Name="EmptyState"
-                            Visibility="Collapsed"
-                            VerticalAlignment="Center"
-                            HorizontalAlignment="Center">
-                    <TextBlock FontFamily="Segoe UI" FontSize="16" Foreground="#6B7280" HorizontalAlignment="Center">
-                        Sin resultados. Ajusta los filtros o pulsa <Bold>Limpiar Filtros</Bold>.
-                    </TextBlock>
-                </StackPanel>
-
                 <!-- Loading spinner -->
                 <StackPanel Grid.Row="0"
                             x:Name="LoadingPanel"
@@ -951,6 +940,14 @@
                         </DataGridTemplateColumn>
                     </DataGrid.Columns>
                 </DataGrid>
+
+                <!-- Empty state overlay -->
+                <controls:EmptyStateOverlay Grid.Row="0"
+                                            x:Name="EmptyState"
+                                            Panel.ZIndex="5"
+                                            HeaderOffset="40"
+                                            Mensaje="{Binding MensajeSinResultados}"
+                                            EstaVacio="{Binding NoResults}"/>
 
                 <!-- Pagination footer -->
                 <Border Grid.Row="1"
