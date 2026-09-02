@@ -712,12 +712,44 @@ namespace CapaUI.Formularios.Principal
 
         private static void AnimateSubMenu(Border border, bool open, int itemCount)
         {
-            double target = open ? itemCount * SubItemHeight + 8 : 0;
-            // EaseOut: el acordeón arranca de golpe y desacelera al final (más natural)
-            var anim = new DoubleAnimation(target, TimeSpan.FromMilliseconds(open ? SubMenuOpenMs : SubMenuCloseMs))
+            double from = border.ActualHeight;
+            double target;
+
+            if (open)
+            {
+                // Medir el contenido real en vez de asumir 40px/ítem: con el escalado
+                // de texto de Windows cada subítem crece y el alto fijo cortaba el
+                // último ("Contacto Fabricante" quedaba recortado por ClipToBounds).
+                var content = (FrameworkElement)border.Child;
+                double w = border.ActualWidth > 0 ? border.ActualWidth : double.PositiveInfinity;
+                content.Measure(new Size(w, double.PositiveInfinity));
+                target = content.DesiredSize.Height;
+            }
+            else
+            {
+                target = 0;
+            }
+
+            // EaseOut: el acordeón arranca de golpe y desacelera al final (más natural).
+            // From explícito: tras abrir dejamos MaxHeight = PositiveInfinity como valor
+            // base, así que sin From el cierre animaría desde infinito.
+            var anim = new DoubleAnimation(from, target, TimeSpan.FromMilliseconds(open ? SubMenuOpenMs : SubMenuCloseMs))
             {
                 EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
             };
+
+            if (open)
+            {
+                // Al terminar, liberar el tope: si cambia la escala mientras el
+                // submenú está abierto (o hay ítems ocultos por permisos), el
+                // StackPanel puede crecer sin volver a quedar recortado.
+                anim.Completed += (_, _) =>
+                {
+                    border.BeginAnimation(Border.MaxHeightProperty, null);
+                    border.MaxHeight = double.PositiveInfinity;
+                };
+            }
+
             border.BeginAnimation(Border.MaxHeightProperty, anim);
         }
 
