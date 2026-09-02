@@ -122,7 +122,14 @@ dotnet test BimboProyecto.Tests/BimboProyecto.Tests.csproj
 
 ---
 
-## 4. Relaciones
+## 4. Endurecimiento de RTN y teléfono
+
+- `ReglasFormato` ahora rechaza letras, puntos, paréntesis, símbolos y dígitos Unicode en RTN y teléfono; conserva únicamente separadores documentados.
+- La validación de proveedor también quedó protegida por restricciones `NOT VALID` en Supabase, sin modificar datos históricos.
+- Se añadieron pruebas de regresión para valores que antes podían pasar tras eliminar letras antes de contar dígitos.
+- Verificación: compilación con 0 errores y 0 advertencias; 223 pruebas superadas; inserciones remotas inválidas rechazadas y revertidas por bloques de excepción.
+
+## 5. Relaciones
 
 - [[ADR-021 - Validacion en tres capas reglas de negocio en Dominio]]
 - [[ADR-004 - GhostTextBox Autocompletado de Dominio en Login]]

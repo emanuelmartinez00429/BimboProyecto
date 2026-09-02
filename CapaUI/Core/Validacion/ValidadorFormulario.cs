@@ -267,14 +267,14 @@ public sealed class ValidadorFormulario
         public ConstructorCampo Rtn(string? mensaje = null)
         {
             _campo.Reglas.Add((c => ReglasFormato.EsRtn(c.LeerTexto()),
-                mensaje ?? $"{_campo.Etiqueta} debe tener 14 dígitos."));
+                mensaje ?? $"{_campo.Etiqueta} debe tener 14 dígitos; solo se permiten números, espacios y guiones."));
             return this;
         }
 
         public ConstructorCampo Telefono(string? mensaje = null)
         {
             _campo.Reglas.Add((c => ReglasFormato.EsTelefono(c.LeerTexto()),
-                mensaje ?? $"{_campo.Etiqueta} debe tener entre 8 y 15 dígitos."));
+                mensaje ?? $"{_campo.Etiqueta} debe tener entre 8 y 15 dígitos; solo se permiten números, espacios, guiones y + al inicio."));
             return this;
         }
 

@@ -34,30 +34,36 @@ public static class ReglasFormato
     private static readonly Regex RegexCorreo =
         new(@"^[^@\s]+@[^@\s]+\.[^@\s]+$", RegexOptions.Compiled);
 
-    /// <summary>RTN hondureño: 14 dígitos. Se ignoran guiones y espacios.</summary>
-    private static readonly Regex RegexRtn = new(@"^\d{14}$", RegexOptions.Compiled);
+    /// <summary>RTN hondureño: 14 dígitos ASCII; admite solo espacios y guiones como separadores.</summary>
+    private static readonly Regex RegexRtnCaracteresPermitidos = new(@"^[0-9 -]+$", RegexOptions.Compiled);
 
     /// <summary>
     /// Teléfono: 8 dígitos (formato hondureño) o hasta 15 con código de país,
     /// que es el máximo del estándar E.164.
     /// </summary>
-    private static readonly Regex RegexTelefono = new(@"^\+?\d{8,15}$", RegexOptions.Compiled);
+    private static readonly Regex RegexTelefonoCaracteresPermitidos = new(@"^\+?[0-9 -]+$", RegexOptions.Compiled);
 
     public static bool TieneContenido(string? texto) => !string.IsNullOrWhiteSpace(texto);
 
     public static bool EsCorreo(string? texto) =>
         !TieneContenido(texto) || RegexCorreo.IsMatch(texto!.Trim());
 
-    public static bool EsRtn(string? texto) =>
-        !TieneContenido(texto) || RegexRtn.IsMatch(SoloDigitos(texto!));
+    public static bool EsRtn(string? texto)
+    {
+        if (!TieneContenido(texto)) return true;
+
+        var limpio = texto!.Trim();
+        return RegexRtnCaracteresPermitidos.IsMatch(limpio)
+            && ContarDigitosAscii(limpio) == 14;
+    }
 
     public static bool EsTelefono(string? texto)
     {
         if (!TieneContenido(texto)) return true;
 
         var limpio = texto!.Trim();
-        var signo  = limpio.StartsWith('+') ? "+" : string.Empty;
-        return RegexTelefono.IsMatch(signo + SoloDigitos(limpio));
+        return RegexTelefonoCaracteresPermitidos.IsMatch(limpio)
+            && ContarDigitosAscii(limpio) is >= 8 and <= 15;
     }
 
     public static bool NoExcedeLargo(string? texto, int largoMaximo) =>
@@ -66,14 +72,6 @@ public static class ReglasFormato
     public static bool TieneLargoMinimo(string? texto, int largoMinimo) =>
         (texto?.Length ?? 0) >= largoMinimo;
 
-    private static string SoloDigitos(string texto)
-    {
-        Span<char> destino = texto.Length <= 64 ? stackalloc char[texto.Length] : new char[texto.Length];
-        int usados = 0;
-
-        foreach (var caracter in texto)
-            if (char.IsDigit(caracter)) destino[usados++] = caracter;
-
-        return new string(destino[..usados]);
-    }
+    private static int ContarDigitosAscii(string texto) =>
+        texto.Count(caracter => caracter is >= '0' and <= '9');
 }

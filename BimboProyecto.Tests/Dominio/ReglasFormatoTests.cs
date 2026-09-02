@@ -80,6 +80,9 @@ public sealed class ReglasFormatoTests
     [InlineData("0801-1990-12345")]      // 13 dígitos con guiones
     [InlineData("0801-1990-1234567")]    // 15 dígitos con guiones
     [InlineData("0801ABC1234567")]       // letras dentro
+    [InlineData("0801ABC1990123456")]    // 14 dígitos, pero letras que antes se descartaban
+    [InlineData("0801.1990.123456")]     // separadores no admitidos
+    [InlineData("٠٨٠١-١٩٩٠-١٢٣٤٥٦")]   // dígitos Unicode no ASCII
     public void Rtn_RechazaLargoOContenidoIncorrecto(string rtn) =>
         Assert.False(ReglasFormato.EsRtn(rtn));
 
@@ -100,6 +103,10 @@ public sealed class ReglasFormatoTests
     [InlineData("1234567890123456")]   // 16 dígitos (pasa el máximo E.164)
     [InlineData("+1234567")]           // 7 dígitos con signo
     [InlineData("telefono-invalido")]  // sin dígitos
+    [InlineData("2233ABCD4455")]       // 8 dígitos, pero letras que antes se descartaban
+    [InlineData("+504+22334455")]      // + solo puede estar al inicio
+    [InlineData("(504) 2233-4455")]    // paréntesis fuera del contrato
+    [InlineData("2233.4455")]          // punto fuera del contrato
     public void Telefono_RechazaFueraDeRango(string telefono) =>
         Assert.False(ReglasFormato.EsTelefono(telefono));
 
