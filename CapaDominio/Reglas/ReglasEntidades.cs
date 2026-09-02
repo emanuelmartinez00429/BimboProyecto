@@ -73,6 +73,11 @@ public static class ReglasUsuario
     public static readonly ReglaCampo Password = new(LargoMinimo: 6);
 }
 
+public static class ReglasRol
+{
+    public static readonly ReglaCampo Nombre = new(Obligatorio: true, LargoMaximo: 50);
+}
+
 public static class ReglasContacto
 {
     public static readonly ReglaCampo Nombre   = new(Obligatorio: true, LargoMaximo: 100);

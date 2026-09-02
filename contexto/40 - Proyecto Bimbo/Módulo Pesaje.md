@@ -206,6 +206,8 @@ Los modales de Pesaje comparten `Modales/PesajeModalStyles.xaml` (prefijo `M`): 
 
 ## Relaciones
 
+- [[Plan Offline-First de Pesaje]] — propuesta futura; no representa el comportamiento vigente
+- [[ADR-022 - Persistencia local-first con SQLCipher y sincronización por outbox]] — decisión arquitectónica propuesta
 - [[Sesión 2026-07-26 - Rediseño del flujo de Pesajes]]
 - [[Sesión 2026-08-19 - Selector de proveedor por tabla y consolidacion de estilos]] — retiro de `SelectorProductosModal`, marco cuadrado, multiselección de productos
 - [[Sesión 2026-08-20 - Guardado de pesajes sin refetch]] — "Seguir pesando" pasó de 4-5 round trips a 1-2, modal ya no se cierra al guardar

@@ -10,6 +10,9 @@ aliases:
 
 # Arquitectura Actual — Bimbo
 
+> [!success] Actualizado 2026-09-02 — Administrador inmutable con acceso total
+> La ruta Roles administra el catálogo de roles y sus permisos mediante RPC transaccionales con autorización y bitácora. El rol Administrador se identifica mediante `roles.es_sistema`: su nombre, estado y permisos son inmutables, conserva las 34 acciones actuales y recibe automáticamente toda acción futura. Ver [[Módulo Usuarios]] y [[ADR-024 - Rol Administrador inmutable con acceso total]].
+
 > [!success] Actualizado 2026-08-17 — Módulo Reportería operativo
 > Reportería ofrece cuatro consultas: entrada de materia prima, resumen por proveedor, productos con merma y primeros 10 productos activos. Las consultas pasan por RPC protegidas con `Consultar Reporte`; la exportación PDF/Excel registra primero la operación auditada y solo después escribe el archivo. Ver [[Módulo Reportería]].
 
@@ -22,8 +25,8 @@ aliases:
 > [!success] Actualizado 2026-08-14 — Configuración de empresa y tema dinámico global
 > El engranaje abre un modal protegido por `Modificar Configuración` para editar la fila singleton de `empresa`, reemplazar el logo y aplicar el color corporativo al login, shell, vistas y modales. La escritura usa `IEmpresaRepository`/`EmpresaRepository`, Storage `empresa-logos` y RLS alineado con el permiso de la aplicación. El cliente no escribe `updated_at`; ese campo queda reservado a la automatización de base de datos. Ver [[Módulo Configuración de Empresa]] y [[ADR-019 - Configuración de empresa y tema dinámico global]].
 
-> [!success] Actualizado 2026-08-09 — RBAC aplicado en UI y gestión de roles
-> El menú, las acciones CRUD, la navegación y las aperturas de modal validan el permiso vigente mediante `SesionPermisos`. El contrato usa los 28 nombres literales de `acciones.nombre_accion`; `PermisoCatalogo` traduce los identificadores tipados de C# a valores como `Consultar Producto`. La pantalla `RolesView` permite administrar `acciones_roles` agrupadas por módulo; su repositorio exige `Modificar Configuración` para guardar. Ver [[Sesión 2026-08-09 - Implementación RBAC visual y gestión de roles]].
+> [!success] Actualizado 2026-09-02 — RBAC auditable y detalle integrado de roles
+> El menú, las acciones CRUD, la navegación y las aperturas de modal validan el permiso vigente mediante `SesionPermisos`. El contrato usa los 34 nombres literales de `acciones.nombre_accion`; `PermisoCatalogo` traduce los identificadores tipados de C# a valores como `Consultar Rol`. `RolesView` presenta una cuadrícula y abre por `IdRol` un detalle con `acciones_roles` agrupadas por módulo, sin repetir consultas. Las mutaciones usan RPC auditadas y el Administrador es inmutable. Ver [[Módulo Usuarios]], [[ADR-024 - Rol Administrador inmutable con acceso total]] y [[Sesión 2026-09-02 - Permisos integrados en el detalle del rol]].
 
 > [!success] Actualizado 2026-07-23 — Sesión y permisos refactorizados (commit `f105047`, Emanuel)
 > **`SesionActual` y `servicioSesionActual` (holders estáticos en `CapaDominio`) eliminados.** Reemplazados por `IUsuarioSesionService` (Singleton en DI) + entidad `UsuarioSesion`. Fuente única de verdad de autenticación y permisos.
@@ -166,7 +169,7 @@ ProductosViewModel : RealtimeAwareViewModel
 | [[Módulo Contactos (Drill-down)\|Contactos Fabricantes]] | ✅ Completo | ContactosFabricantesView, ContactosFabricantesViewModel, ContactoFabricanteCrudRepository |
 | [[Módulo Contactos (Drill-down)\|Contactos Proveedores]] | ✅ Completo | ContactosProveedoresView, ContactosProveedoresViewModel, ContactoProveedorCrudRepository |
 | [[Buscador Universal Bimbo]] | ✅ Completo | Multi-entidad con Strategy + Mediator |
-| [[Módulo Usuarios]] | ✅ Completo (RBAC visual y roles 2026-08-09) | UsuariosView, RolesView, UsuarioRepository, RolPermisoRepository, UsuarioSesionService — CRUD + auth + permisos desde BD |
+| [[Módulo Usuarios]] | ✅ Completo (RBAC auditable y detalle de roles 2026-09-02) | UsuariosView, RolesView, RolModal, UsuarioRepository, RolRepository, RolPermisoRepository, UsuarioSesionService — CRUD + auth + permisos desde BD y Administración inmutable |
 | [[Módulo Empleados]] | ✅ Completo (2026-07-26) | EmpleadosView, EmpleadosViewModel, EmpleadoCrudRepository — CRUD completo, crea usuario desde empleado |
 | [[Módulo Bitácora]] | ✅ Completo + reportes PDF/Excel (2026-08-16) | BitacoraView, BitacoraViewModel, BitacoraCrudRepository — consulta de auditoría, selección múltiple y reporte registrado por RPC antes de entregar archivo |
 | [[Módulo Reportería]] | ✅ Cuatro reportes operativos PDF/Excel (2026-08-17) | ReporteriaView, ReporteriaViewModel, ReporteConsultaRepository, cuatro RPC de consulta — vista previa paginada y exportación auditada |

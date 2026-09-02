@@ -3,51 +3,88 @@ using CapaAplicacion.Conexion;
 using CapaAplicacion.Usuarios.Dtos;
 using CapaAplicacion.Usuarios.Interfaces;
 using CapaDatos.Modelados.Usuarios;
+using Newtonsoft.Json.Linq;
 using ServicioConexión.Conexion;
+using Op = Supabase.Postgrest.Constants.Operator;
 using Ord = Supabase.Postgrest.Constants.Ordering;
 
 namespace CapaDatos.Repositories.Usuarios;
 
-public class RolRepository : RepositorioBase, IRolRepository
+public sealed class RolRepository : RepositorioBase, IRolRepository
 {
-    // Caché de proceso: la lista de roles no tiene CRUD propio todavía, así que
-    // no cambia durante la sesión. Ver la misma estrategia en RolPermisoRepository.
-    private static IReadOnlyList<RolDto>? _rolesCache;
-    private static readonly SemaphoreSlim RolesLock = new(1, 1);
+    private const int Activo = 1;
 
     public RolRepository(IConexionMonitor conexion) : base(conexion) { }
 
-    public Task<Result<IReadOnlyList<RolDto>>> ObtenerTodosAsync(CancellationToken ct = default) =>
+    public Task<Result<IReadOnlyList<RolDto>>> ObtenerTodosAsync(
+        bool incluirInactivos = false,
+        CancellationToken ct = default) =>
         TryAsync(async () =>
         {
-            if (_rolesCache is not null)
-                return _rolesCache;
+            var client = await ConexionSupabase.GetClientAsync();
+            var query = client.From<Roles>().Order("nombre_rol", Ord.Ascending);
+            if (!incluirInactivos)
+                query = query.Filter("id_estado", Op.Equals, Activo.ToString());
 
-            await RolesLock.WaitAsync(ct);
-            try
-            {
-                if (_rolesCache is not null)
-                    return _rolesCache;
-
-                var client    = await ConexionSupabase.GetClientAsync();
-                var resultado = await client
-                    .From<Roles>()
-                    .Order("nombre_rol", Ord.Ascending)
-                    .Get();
-                var models = resultado?.Models ?? new List<Roles>();
-                _rolesCache = models
-                    .Select(r => new RolDto
-                    {
-                        IdRol     = r.idRol,
-                        NombreRol = r.nombreRol,
-                    })
-                    .ToList();
-
-                return _rolesCache;
-            }
-            finally
-            {
-                RolesLock.Release();
-            }
+            var resultado = await query.Get(ct);
+            return (IReadOnlyList<RolDto>)(resultado?.Models ?? new List<Roles>())
+                .Select(Mapear)
+                .ToList();
         }, "Obtener roles");
+
+    public Task<Result<RolDto>> CrearAsync(string nombreRol, CancellationToken ct = default) =>
+        EjecutarAsync("crear_rol_seguro", new Dictionary<string, object?>
+        {
+            ["p_nombre_rol"] = nombreRol,
+        }, "Crear rol", ct);
+
+    public Task<Result<RolDto>> ActualizarAsync(int idRol, string nombreRol, CancellationToken ct = default) =>
+        EjecutarAsync("actualizar_rol_seguro", new Dictionary<string, object?>
+        {
+            ["p_id_rol"] = idRol,
+            ["p_nombre_rol"] = nombreRol,
+        }, "Modificar rol", ct);
+
+    public Task<Result<RolDto>> CambiarEstadoAsync(int idRol, int idEstado, CancellationToken ct = default) =>
+        EjecutarAsync("cambiar_estado_rol_seguro", new Dictionary<string, object?>
+        {
+            ["p_id_rol"] = idRol,
+            ["p_id_estado"] = idEstado,
+        }, "Cambiar estado del rol", ct);
+
+    private Task<Result<RolDto>> EjecutarAsync(
+        string funcion,
+        Dictionary<string, object?> parametros,
+        string contexto,
+        CancellationToken ct) =>
+        TryAsync(async () =>
+        {
+            ct.ThrowIfCancellationRequested();
+            var client = await ConexionSupabase.GetClientAsync();
+            var response = await client.Rpc(funcion, parametros);
+            ct.ThrowIfCancellationRequested();
+
+            var token = JToken.Parse(response.Content ?? "{}");
+            if (token.Type == JTokenType.String)
+                token = JToken.Parse(token.Value<string>() ?? "{}");
+            var item = token as JObject ?? token.Children<JObject>().FirstOrDefault()
+                ?? throw new InvalidOperationException("Supabase no devolvió el rol actualizado.");
+
+            return new RolDto
+            {
+                IdRol = item["id_rol"]?.Value<int>() ?? 0,
+                NombreRol = item["nombre_rol"]?.Value<string>() ?? string.Empty,
+                IdEstado = item["id_estado"]?.Value<int>() ?? Activo,
+                EsSistema = item["es_sistema"]?.Value<bool>() ?? false,
+                UsuariosAsignados = item["usuarios_asignados"]?.Value<int>() ?? 0,
+            };
+        }, contexto);
+
+    private static RolDto Mapear(Roles r) => new()
+    {
+        IdRol = r.idRol,
+        NombreRol = r.nombreRol,
+        IdEstado = r.idEstado,
+        EsSistema = r.esSistema,
+    };
 }

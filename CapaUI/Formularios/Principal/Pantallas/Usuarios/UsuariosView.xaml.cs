@@ -273,7 +273,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Usuarios
 
         private void AbrirModalEditar(UsuarioVistaDto u)
         {
-            if (!SesionPermisos.Tiene(Permiso.ModificarUsuario) ||
+            if (!SesionPermisos.TieneAlguno(Permiso.ModificarUsuario, Permiso.EliminarUsuario, Permiso.AsignarRolUsuario) ||
                 _vm.EsUsuarioSesionActual) return;
             var rolRepo       = App.Services.GetRequiredService<IRolRepository>();
             var usuarioRepo   = App.Services.GetRequiredService<IUsuarioRepository>();

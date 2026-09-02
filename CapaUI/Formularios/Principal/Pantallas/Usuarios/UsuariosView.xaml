@@ -621,7 +621,7 @@
         <!-- ROW 5: ACTION BUTTONS -->
         <DockPanel Grid.Row="5" Margin="0,4,0,14" LastChildFill="False">
             <StackPanel DockPanel.Dock="Left" Orientation="Horizontal">
-                <Button Command="{Binding EditarCommand}" permisos:PermisoBehavior.Requiere="Modificar Usuario" Background="{DynamicResource EmpresaPrimaryBrush}"
+                <Button Command="{Binding EditarCommand}" permisos:PermisoBehavior.Requiere="Modificar Usuario,Eliminar Usuario,Asignar Rol a Usuario" Background="{DynamicResource EmpresaPrimaryBrush}"
                         Style="{StaticResource ActionBtn}" Padding="22,0">
                     <StackPanel Orientation="Horizontal">
                         <Path Data="{StaticResource IconPencil}"

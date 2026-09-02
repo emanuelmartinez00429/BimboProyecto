@@ -1,7 +1,7 @@
 namespace CapaUI.Core.Permisos;
 
 /// <summary>
-/// Contrato tipado de las 28 acciones existentes en public.acciones.
+/// Contrato tipado de las acciones existentes en public.acciones.
 /// El identificador C# no se compara directamente con la BD: use
 /// <see cref="PermisoCatalogo.NombreBaseDatos(Permiso)"/>.
 /// </summary>
@@ -35,6 +35,12 @@ public enum Permiso
     ConsultarProveedor,
     ConsultarFabricante,
     ConsultarUsuario,
+    ConsultarRol,
+    CrearRol,
+    ModificarRol,
+    EliminarRol,
+    AsignarPermisosRol,
+    AsignarRolUsuario,
 }
 
 public static class PermisoCatalogo
@@ -70,6 +76,12 @@ public static class PermisoCatalogo
             [Permiso.ConsultarProveedor] = "Consultar Proveedor",
             [Permiso.ConsultarFabricante] = "Consultar Fabricante",
             [Permiso.ConsultarUsuario] = "Consultar Usuario",
+            [Permiso.ConsultarRol] = "Consultar Rol",
+            [Permiso.CrearRol] = "Crear Rol",
+            [Permiso.ModificarRol] = "Modificar Rol",
+            [Permiso.EliminarRol] = "Eliminar Rol",
+            [Permiso.AsignarPermisosRol] = "Asignar Permisos a Rol",
+            [Permiso.AsignarRolUsuario] = "Asignar Rol a Usuario",
         };
 
     private static readonly IReadOnlyDictionary<string, Permiso> PorNombre =

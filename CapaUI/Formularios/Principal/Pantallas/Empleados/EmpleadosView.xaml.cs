@@ -262,7 +262,8 @@ namespace CapaUI.Formularios.Principal.Pantallas.Empleados
 
         private void AbrirModalCrearUsuario(EmpleadoDto emp)
         {
-            if (!SesionPermisos.Tiene(Permiso.CrearUsuario)) return;
+            if (!SesionPermisos.Tiene(Permiso.CrearUsuario)
+                || !SesionPermisos.Tiene(Permiso.AsignarRolUsuario)) return;
             var rolRepo     = App.Services.GetRequiredService<IRolRepository>();
             var usuarioRepo = App.Services.GetRequiredService<IUsuarioRepository>();
             var modal = new UsuarioModal(usuarioRepo, rolRepo,

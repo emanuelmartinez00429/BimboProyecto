@@ -20,4 +20,5 @@ public interface IUsuarioRepository
     Task<Result>                                 CrearAsync(CrearUsuarioDto dto, CancellationToken ct = default);
     Task<Result>                                 ActualizarAsync(ActualizarUsuarioDto dto, CancellationToken ct = default);
     Task<Result>                                 CambiarEstadoAsync(int idUsuario, int idEstado, CancellationToken ct = default);
+    Task<Result>                                 AsignarRolAsync(int idUsuario, int idRol, CancellationToken ct = default);
 }

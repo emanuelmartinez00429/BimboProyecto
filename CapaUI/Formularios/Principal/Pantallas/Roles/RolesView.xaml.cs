@@ -17,7 +17,6 @@ public partial class RolesView : System.Windows.Controls.UserControl
 
     private RolesViewModel? _vm;
     private Storyboard? _spinnerStory;
-    private bool _suprimirCambioRol;
     private readonly List<DispatcherTimer> _temporizadores = new();
 
     public RolesView()
@@ -31,6 +30,9 @@ public partial class RolesView : System.Windows.Controls.UserControl
 
         _vm = App.Services.GetRequiredService<RolesViewModel>();
         _vm.Toast += MostrarAviso;
+        _vm.SolicitarEdicionRol += AbrirModalRol;
+        _vm.ConfirmarCambioEstado += ConfirmarCambioEstado;
+        _vm.ConfirmarCambiosPendientes += ConfirmarCambiosPendientes;
         _vm.PropertyChanged += OnVmPropertyChanged;
         DataContext = _vm;
 
@@ -48,7 +50,6 @@ public partial class RolesView : System.Windows.Controls.UserControl
             await vm.CargarAsync();
             if (!ReferenceEquals(_vm, vm)) return;
 
-            PoblarRoles();
         }
         catch (Exception ex)
         {
@@ -60,39 +61,86 @@ public partial class RolesView : System.Windows.Controls.UserControl
         }
     }
 
-    /// <summary>
-    /// Puebla el ComboBox con el mismo patrón que el resto de los formularios
-    /// (ver <c>UsuariosView.PoblarRoles</c>): items imperativos con el id en Tag
-    /// y una bandera para no disparar SelectionChanged mientras se repuebla.
-    /// </summary>
-    private void PoblarRoles()
-    {
-        if (_vm is null) return;
-
-        _suprimirCambioRol = true;
-        CmbRol.Items.Clear();
-
-        foreach (var rol in _vm.Roles)
-            CmbRol.Items.Add(new ComboBoxItem { Content = rol.Nombre, Tag = rol.IdRol });
-
-        if (CmbRol.Items.Count > 0)
-            CmbRol.SelectedIndex = 0;
-
-        _suprimirCambioRol = false;
-    }
-
-    private void CmbRol_SelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        if (_vm is null || _suprimirCambioRol) return;
-        if (CmbRol.SelectedItem is not ComboBoxItem item || item.Tag is not int idRol) return;
-
-        _vm.SeleccionarRol(idRol);
-    }
-
     private void OnVmPropertyChanged(object? s, System.ComponentModel.PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(RolesViewModel.IsLoading))
             ActualizarCarga();
+    }
+
+    private void AbrirModalRol(RolItemVm? rol)
+    {
+        if (_vm is null) return;
+        var modal = new RolModal(_vm, rol) { Owner = Window.GetWindow(this) };
+        modal.ShowDialog();
+    }
+
+    private bool ConfirmarCambioEstado(RolItemVm rol)
+    {
+        string verbo = rol.EsActivo ? "desactivar" : "activar";
+        return MessageBox.Show(
+            $"¿Desea {verbo} el rol {rol.Nombre}?",
+            "Confirmar cambio de estado",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Question) == MessageBoxResult.Yes;
+    }
+
+    private DecisionCambiosPendientes ConfirmarCambiosPendientes()
+    {
+        var dialogo = new Window
+        {
+            Title = "Cambios pendientes",
+            Owner = Window.GetWindow(this),
+            WindowStartupLocation = WindowStartupLocation.CenterOwner,
+            ResizeMode = ResizeMode.NoResize,
+            SizeToContent = SizeToContent.WidthAndHeight,
+            ShowInTaskbar = false,
+            Background = Brushes.White,
+        };
+        var raiz = new StackPanel { Margin = new Thickness(24), Width = 430 };
+        raiz.Children.Add(new TextBlock
+        {
+            Text = "Hay cambios de permisos sin guardar.",
+            FontSize = 16,
+            FontWeight = FontWeights.SemiBold,
+        });
+        raiz.Children.Add(new TextBlock
+        {
+            Text = "¿Desea guardarlos antes de volver a la lista de roles?",
+            FontSize = 13,
+            Foreground = Brushes.DimGray,
+            TextWrapping = TextWrapping.Wrap,
+            Margin = new Thickness(0, 8, 0, 20),
+        });
+        var botones = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right };
+        raiz.Children.Add(botones);
+        dialogo.Content = raiz;
+
+        var decision = DecisionCambiosPendientes.SeguirEditando;
+        AgregarBoton("Seguir editando", DecisionCambiosPendientes.SeguirEditando, false);
+        AgregarBoton("Descartar", DecisionCambiosPendientes.Descartar, false);
+        AgregarBoton("Guardar", DecisionCambiosPendientes.Guardar, true);
+        dialogo.ShowDialog();
+        return decision;
+
+        void AgregarBoton(string texto, DecisionCambiosPendientes valor, bool predeterminado)
+        {
+            var boton = new Button
+            {
+                Content = texto,
+                MinWidth = 100,
+                Height = 34,
+                Margin = new Thickness(8, 0, 0, 0),
+                Padding = new Thickness(12, 0, 12, 0),
+                IsDefault = predeterminado,
+                IsCancel = valor == DecisionCambiosPendientes.SeguirEditando,
+            };
+            boton.Click += (_, _) =>
+            {
+                decision = valor;
+                dialogo.DialogResult = true;
+            };
+            botones.Children.Add(boton);
+        }
     }
 
     // ── Estado de carga ────────────────────────────────────────────────────
@@ -159,6 +207,9 @@ public partial class RolesView : System.Windows.Controls.UserControl
 
         if (_vm is null) return;
         _vm.Toast -= MostrarAviso;
+        _vm.SolicitarEdicionRol -= AbrirModalRol;
+        _vm.ConfirmarCambioEstado -= ConfirmarCambioEstado;
+        _vm.ConfirmarCambiosPendientes -= ConfirmarCambiosPendientes;
         _vm.PropertyChanged -= OnVmPropertyChanged;
         _vm.Dispose();
         _vm = null;

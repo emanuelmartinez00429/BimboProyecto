@@ -70,7 +70,10 @@ namespace CapaUI.Formularios.Principal
         // ── Visibilidad de módulos ───────────────────────────────────────
         public bool VerPesajes     => SesionPermisos.TieneAlguno(Permiso.ConsultarPesaje, Permiso.RegistrarEntrada, Permiso.ModificarPesaje, Permiso.CompletarPesaje, Permiso.CancelarPesaje);
         public bool VerEmpleados   => SesionPermisos.TieneAlguno(Permiso.ConsultarEmpleado, Permiso.CrearEmpleado, Permiso.ModificarEmpleado, Permiso.EliminarEmpleado);
-        public bool VerUsuarios    => SesionPermisos.TieneAlguno(Permiso.ConsultarUsuario, Permiso.CrearUsuario, Permiso.ModificarUsuario, Permiso.EliminarUsuario);
+        public bool VerUsuarios    => SesionPermisos.TieneAlguno(
+            Permiso.ConsultarUsuario, Permiso.CrearUsuario, Permiso.ModificarUsuario, Permiso.EliminarUsuario,
+            Permiso.ConsultarRol, Permiso.CrearRol, Permiso.ModificarRol, Permiso.EliminarRol,
+            Permiso.AsignarPermisosRol, Permiso.AsignarRolUsuario);
         public bool VerProductos   => SesionPermisos.TieneAlguno(Permiso.ConsultarProducto, Permiso.CrearProducto, Permiso.ModificarProducto, Permiso.EliminarProducto);
         public bool VerProveedores => SesionPermisos.TieneAlguno(Permiso.ConsultarProveedor, Permiso.CrearProveedor, Permiso.ModificarProveedor, Permiso.EliminarProveedor);
         public bool VerReportes    => SesionPermisos.Tiene(Permiso.ConsultarReporte);
@@ -117,9 +120,9 @@ namespace CapaUI.Formularios.Principal
 
             _routePermissions = new Dictionary<string, Permiso[]>
             {
-                [Routes.Usuarios] = [Permiso.ConsultarUsuario, Permiso.CrearUsuario, Permiso.ModificarUsuario, Permiso.EliminarUsuario],
+                [Routes.Usuarios] = [Permiso.ConsultarUsuario, Permiso.CrearUsuario, Permiso.ModificarUsuario, Permiso.EliminarUsuario, Permiso.AsignarRolUsuario],
                 [Routes.Empleados] = [Permiso.ConsultarEmpleado, Permiso.CrearEmpleado, Permiso.ModificarEmpleado, Permiso.EliminarEmpleado],
-                [Routes.Roles] = [Permiso.ModificarConfiguracion],
+                [Routes.Roles] = [Permiso.ConsultarRol],
                 [Routes.Bitacora] = [Permiso.ConsultarUsuario],
                 [Routes.Productos] = [Permiso.ConsultarProducto, Permiso.CrearProducto, Permiso.ModificarProducto, Permiso.EliminarProducto],
                 [Routes.Proveedores] = [Permiso.ConsultarProveedor, Permiso.CrearProveedor, Permiso.ModificarProveedor, Permiso.EliminarProveedor],

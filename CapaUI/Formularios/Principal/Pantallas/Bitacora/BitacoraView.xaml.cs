@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using CapaAplicacion.Bitacora.Dtos;
@@ -21,6 +22,9 @@ namespace CapaUI.Formularios.Principal.Pantallas.Bitacora
         private Storyboard? _spinnerStory;
         private bool _suppressFilterChange;
         private bool _suppressSelectionChange;
+        private int _dragAnchorIndex = -1;
+        private int _lastDragIndex = -1;
+        private bool _isSelectingByDrag;
 
         public BitacoraView()
         {
@@ -242,29 +246,131 @@ namespace CapaUI.Formularios.Principal.Pantallas.Bitacora
         private void DgBitacora_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (_vm == null || _suppressSelectionChange) return;
+            SincronizarSeleccionReporte();
+        }
 
-            var seleccion = DgBitacora.SelectedItems.Cast<BitacoraDto>().ToList();
-            _vm.ActualizarSeleccionReporte(seleccion);
+        private void DgBitacora_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (_vm == null || ObtenerFila(e.OriginalSource as DependencyObject) is not { } fila)
+                return;
+
+            int index = DgBitacora.Items.IndexOf(fila.Item);
+            if (index < 0) return;
+
+            if ((Keyboard.Modifiers & ModifierKeys.Shift) == ModifierKeys.Shift)
+            {
+                _suppressSelectionChange = true;
+                fila.IsSelected = !fila.IsSelected;
+                _suppressSelectionChange = false;
+                SincronizarSeleccionReporte();
+                DgBitacora.Focus();
+                e.Handled = true;
+                ReiniciarArrastre();
+                return;
+            }
+
+            if ((Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control)
+            {
+                ReiniciarArrastre();
+                return;
+            }
+
+            _dragAnchorIndex = index;
+            _lastDragIndex = index;
+            _isSelectingByDrag = true;
+        }
+
+        private void DgBitacora_PreviewMouseMove(object sender, MouseEventArgs e)
+        {
+            if (!_isSelectingByDrag) return;
+            if (e.LeftButton != MouseButtonState.Pressed)
+            {
+                ReiniciarArrastre();
+                return;
+            }
+
+            if (ObtenerFila(e.OriginalSource as DependencyObject) is not { } fila) return;
+
+            int currentIndex = DgBitacora.Items.IndexOf(fila.Item);
+            if (currentIndex < 0 || currentIndex == _lastDragIndex) return;
+
+            _lastDragIndex = currentIndex;
+            SeleccionarRango(_dragAnchorIndex, currentIndex);
+            e.Handled = true;
+        }
+
+        private void DgBitacora_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e) =>
+            ReiniciarArrastre();
+
+        private void BtnSeleccionarPagina_Click(object sender, RoutedEventArgs e)
+        {
+            if (_vm == null || DgBitacora.Items.Count == 0) return;
 
             _suppressSelectionChange = true;
-            ChkSeleccionarPagina.IsChecked = seleccion.Count == 0
-                ? false
-                : seleccion.Count == DgBitacora.Items.Count
-                    ? true
-                    : null;
+            if (DgBitacora.SelectedItems.Count == DgBitacora.Items.Count)
+                DgBitacora.UnselectAll();
+            else
+                DgBitacora.SelectAll();
             _suppressSelectionChange = false;
+
+            SincronizarSeleccionReporte();
         }
 
-        private void ChkSeleccionarPagina_Checked(object sender, RoutedEventArgs e)
+        private void SeleccionarRango(int startIndex, int endIndex)
         {
-            if (_vm == null || _suppressSelectionChange) return;
-            DgBitacora.SelectAll();
-        }
+            if (startIndex < 0 || endIndex < 0) return;
 
-        private void ChkSeleccionarPagina_Unchecked(object sender, RoutedEventArgs e)
-        {
-            if (_vm == null || _suppressSelectionChange) return;
+            int from = Math.Min(startIndex, endIndex);
+            int to = Math.Max(startIndex, endIndex);
+
+            _suppressSelectionChange = true;
             DgBitacora.UnselectAll();
+            for (int i = from; i <= to; i++)
+                DgBitacora.SelectedItems.Add(DgBitacora.Items[i]);
+            _suppressSelectionChange = false;
+
+            SincronizarSeleccionReporte();
+        }
+
+        private void SincronizarSeleccionReporte()
+        {
+            if (_vm == null) return;
+
+            var idsSeleccionados = DgBitacora.SelectedItems
+                .Cast<BitacoraDto>()
+                .Select(x => x.IdBitacora)
+                .ToHashSet();
+            var seleccionOrdenada = DgBitacora.Items
+                .Cast<BitacoraDto>()
+                .Where(x => idsSeleccionados.Contains(x.IdBitacora))
+                .ToList();
+
+            _vm.ActualizarSeleccionReporte(seleccionOrdenada);
+
+            bool paginaCompleta = DgBitacora.Items.Count > 0 &&
+                                  DgBitacora.SelectedItems.Count == DgBitacora.Items.Count;
+            BtnSeleccionarPagina.Content = paginaCompleta
+                ? "Limpiar selección"
+                : "Seleccionar página";
+            BtnSeleccionarPagina.IsEnabled = DgBitacora.Items.Count > 0;
+        }
+
+        private static DataGridRow? ObtenerFila(DependencyObject? source)
+        {
+            while (source is not null && source is not DataGridRow)
+            {
+                source = source is FrameworkContentElement content
+                    ? content.Parent
+                    : VisualTreeHelper.GetParent(source);
+            }
+            return source as DataGridRow;
+        }
+
+        private void ReiniciarArrastre()
+        {
+            _dragAnchorIndex = -1;
+            _lastDragIndex = -1;
+            _isSelectingByDrag = false;
         }
 
         private void AbrirModalFormatoReporte()
@@ -328,10 +434,10 @@ namespace CapaUI.Formularios.Principal.Pantallas.Bitacora
             if (_vm == null) return;
             _suppressSelectionChange = true;
             DgBitacora.UnselectAll();
-            ChkSeleccionarPagina.IsChecked = false;
             _suppressSelectionChange = false;
-            _vm.ActualizarSeleccionReporte(Array.Empty<BitacoraDto>());
             DgBitacora.ItemsSource = _vm.PageRows;
+            ReiniciarArrastre();
+            SincronizarSeleccionReporte();
 
             PaginacionPanel.Items.Clear();
             int total   = _vm.TotalPages;

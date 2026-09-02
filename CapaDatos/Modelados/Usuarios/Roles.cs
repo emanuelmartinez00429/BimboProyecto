@@ -12,6 +12,12 @@ namespace CapaDatos.Modelados.Usuarios
         [Column("nombre_rol")]
         public string nombreRol { get; set; } = string.Empty;
 
+        [Column("id_estado")]
+        public int idEstado { get; set; } = 1;
+
+        [Column("es_sistema")]
+        public bool esSistema { get; set; }
+
         [Column("created_at")]
         public DateTime? createdAt { get; set; }
 

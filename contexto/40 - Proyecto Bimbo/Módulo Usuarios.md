@@ -1,7 +1,7 @@
 ---
 title: "Módulo Usuarios"
 tags: [bimbo, modulo, gestion-usuarios, auth, permisos]
-date: 2026-07-26
+date: 2026-09-01
 ---
 
 # Módulo Usuarios
@@ -30,7 +30,7 @@ date: 2026-07-26
 - `CapaDatos/Modelados/Usuarios/Modulo.cs`
 - `CapaDatos/Modelados/Usuarios/Roles.cs`
 
-Los cuatro modelos RBAC reflejan las tablas `acciones`, `acciones_roles`, `modulos` y `roles`. Incluyen sus columnas de auditoría `created_at`/`updated_at` cuando corresponden. `acciones_roles.id_estado` controla si la asignación está activa; la tabla `roles` vigente no contiene `id_estado`.
+Los cuatro modelos RBAC reflejan las tablas `acciones`, `acciones_roles`, `modulos` y `roles`. Incluyen sus columnas de auditoría `created_at`/`updated_at` cuando corresponden. `acciones_roles.id_estado` controla si la asignación está activa; `roles.id_estado` habilita la baja lógica y `roles.es_sistema` identifica de forma estable el rol Administrador protegido.
 
 ### CapaDatos — Repositorios
 - `CapaDatos/Repositories/Usuarios/RolRepository.cs`
@@ -50,6 +50,7 @@ Los cuatro modelos RBAC reflejan las tablas `acciones`, `acciones_roles`, `modul
 - `CapaUI/Formularios/Principal/Pantallas/Usuarios/UsuarioModal.xaml.cs`
 - `CapaUI/Formularios/Principal/Pantallas/Roles/RolesView.xaml`
 - `CapaUI/Formularios/Principal/Pantallas/Roles/RolesViewModel.cs`
+- `CapaUI/Formularios/Principal/Pantallas/Roles/RolModal.xaml`
 
 ### Archivos eliminados (legacy)
 - ~~`SesionActual.cs`~~ → reemplazado por `IUsuarioSesionService`
@@ -108,15 +109,20 @@ UsuariosViewModel → UsuarioRepository.ObtenerPaginaAsync(page, filters)
 ### Administración de permisos por rol
 ```
 MainWindow → RolesView → RolesViewModel
-    → RolRepository.ObtenerRolesAsync()
-    → RolPermisoRepository.ObtenerCatalogoAsync()
-        → modulos + acciones agrupadas por módulo
-    → seleccionar rol → ObtenerAccionesAsignadasAsync(idRol)
+    → RolPermisoRepository.ObtenerResumenAsync()
+        → carga en paralelo roles, usuarios, catálogo y asignaciones
+    → cuadrícula de tarjetas → abrir detalle por IdRol (sin nueva consulta)
+        → nombre, estado, tipo de sistema, usuarios y permisos activos
+        → acciones agrupadas por módulo con búsqueda y filtros
     → marcar/desmarcar acciones → GuardarAsignacionesAsync(...)
-        → activa/desactiva acciones_roles mediante id_estado
+        → reemplazar_permisos_rol_seguro realiza el reemplazo atómico
 ```
 
-La lectura exige `Usuarios_Ver` o `Usuarios_Modificar`; guardar exige `Usuarios_Modificar`. Los cambios afectan sesiones nuevas: un usuario ya autenticado debe volver a iniciar sesión para recargar su `HashSet` de acciones.
+Desde 2026-09-01 la lectura exige `Consultar Rol`; crear, modificar, desactivar y asignar permisos exigen respectivamente `Crear Rol`, `Modificar Rol`, `Eliminar Rol` y `Asignar Permisos a Rol`. Asignar un rol a otra cuenta exige `Asignar Rol a Usuario`. Los cambios afectan a todos los usuarios del rol y se reflejan al renovar la sesión.
+
+Desde 2026-09-02 `Gestión de Roles` usa una sola ruta con dos estados internos: cuadrícula y detalle. Cada tarjeta abre el detalle por `IdRol`; el nombre es solo informativo y renombrar el rol no afecta la navegación. Crear un rol incorpora el resultado al resumen ya cargado y abre su detalle inmediatamente. Los roles inactivos y de sistema pueden consultarse, pero la edición de permisos solo se habilita si la sesión tiene `Asignar Permisos a Rol`, el rol está activo y no es de sistema. Al volver con cambios pendientes se puede guardar, descartar o seguir editando; si el guardado remoto falla, el detalle permanece abierto.
+
+Desde 2026-09-02 el Administrador no puede renombrarse, desactivarse, perder `es_sistema` ni modificar ninguna asignación. UI, RPC y triggers conservan activas todas las acciones del catálogo; un trigger sobre `acciones` le asigna automáticamente cada acción futura. La pantalla mantiene los permisos visibles con candado, pero deshabilita cambios individuales, por módulo y masivos. Los demás roles siguen siendo editables y tampoco puede desactivarse un rol con usuarios asignados. Ver [[ADR-024 - Rol Administrador inmutable con acceso total]].
 
 ### Aplicación de permisos
 ```
@@ -127,7 +133,7 @@ acciones_roles → UsuarioSesionService → SesionPermisos
     └─ code-behind valida antes de abrir modales o eliminar
 ```
 
-`PermisoBehavior` trabaja en modo cerrado: una cadena vacía o que no corresponda al catálogo `PermisoCatalogo` oculta el elemento y genera un error en Serilog. El XAML utiliza literalmente los 28 valores de `acciones.nombre_accion` (por ejemplo, `Consultar Producto`); el enum C# conserva identificadores sin espacios y `NombreBaseDatos()` realiza la traducción explícita. La base de datos/RLS continúa siendo la frontera final para solicitudes directas fuera del cliente WPF.
+`PermisoBehavior` trabaja en modo cerrado: una cadena vacía o que no corresponda al catálogo `PermisoCatalogo` oculta el elemento y genera un error en Serilog. El XAML utiliza literalmente los 34 valores de `acciones.nombre_accion` (por ejemplo, `Consultar Rol`); el enum C# conserva identificadores sin espacios y `NombreBaseDatos()` realiza la traducción explícita. La base de datos/RLS continúa siendo la frontera final para solicitudes directas fuera del cliente WPF.
 
 ## Patrones en Uso
 - [[Repository Pattern]] — RolRepository, UsuarioRepository
@@ -142,6 +148,8 @@ acciones_roles → UsuarioSesionService → SesionPermisos
 - [[ADR-013 - Eliminacion de SesionActual y servicioSesionActual legacy]] — limpieza de estáticos
 - [[ADR-005 - Vista SQL para Búsquedas Cross-Tabla]] — vista_usuarios_busqueda
 - [[ADR-020 - Defensa en profundidad contra autoadministracion de usuarios]] — bloqueo UI, repositorio y base de datos
+- [[ADR-023 - Rol Administrador de sistema con nucleo de permisos protegido]] — rol compartido y núcleo recuperable
+- [[ADR-024 - Rol Administrador inmutable con acceso total]] — reemplaza el núcleo parcial por acceso total obligatorio
 
 ## Cadenas Críticas
 

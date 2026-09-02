@@ -57,10 +57,15 @@ Las rosas son rojas.
 ### Proyecto
 - [[Arquitectura Actual]] — estado de capas, dependencias, módulos vigentes
 - [[Deuda Técnica - Pendientes]] — ítems abiertos
+- [[Plan Offline-First de Pesaje]] — propuesta local-first con SQLCipher, outbox, multiusuario y sincronización; no implementada
+- [[Plan de Migración de Mutaciones Directas a RPC]] — preparación de las 27 rutas activas para compatibilidad offline-first; no implementada
 - [[Checklist - Replicar Módulo con Realtime]] — guía paso a paso para nuevos módulos
 - [[CLAUDE]] — contexto completo para Claude Code
 
 ### Decisiones arquitecturales
+- [[ADR-024 - Rol Administrador inmutable con acceso total]] — decisión vigente; todas las acciones actuales y futuras son obligatorias
+- [[ADR-023 - Rol Administrador de sistema con nucleo de permisos protegido]] — reemplazado por ADR-024
+- [[ADR-022 - Persistencia local-first con SQLCipher y sincronización por outbox]] — propuesta pendiente de aprobación
 - [[ADR-001 - Result Pattern en Repositorios]]
 - [[ADR-002 - CQRS y Strategy para Buscador Universal]]
 - [[ADR-003 - Disolución de CapaServicios]]
@@ -132,7 +137,11 @@ Regla: `CapaAplicacion` **nunca** referencia `CapaDatos`.
 ## Bitácora
 
 Las sesiones están en `70 - Bitácora de Cambios/`.  
-Sesiones más recientes (2026-08-21):
+Sesiones más recientes (2026-09-02):
+- [[Sesión 2026-09-02 - Permisos integrados en el detalle del rol]]
+- [[Sesión 2026-09-02 - Administrador inmutable con acceso total]]
+- [[Sesión 2026-09-02 - Selección avanzada de filas en Bitácora]]
+- [[Sesión 2026-09-01 - Gestión auditable de roles]]
 - [[Sesión 2026-08-21 - Ajustes de layout y scroll lateral en Pesajes y consolidación global de estilos]]
 - [[Sesión 2026-08-20 - Guardado de pesajes sin refetch]]
 - [[Sesión 2026-08-19 - Selector de proveedor por tabla y consolidacion de estilos]]

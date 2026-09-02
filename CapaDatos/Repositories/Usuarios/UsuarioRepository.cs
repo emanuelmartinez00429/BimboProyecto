@@ -255,6 +255,20 @@ public class UsuarioRepository : RepositorioBase, IUsuarioRepository
                     "No se pudo cambiar el estado del usuario. Verifique los permisos de la tabla 'usuarios'.");
         }, "Cambiar estado de usuario");
 
+    public Task<Result> AsignarRolAsync(int idUsuario, int idRol, CancellationToken ct = default) =>
+        TryAsync(async () =>
+        {
+            ExigirUsuarioObjetivoDistinto(idUsuario);
+            ct.ThrowIfCancellationRequested();
+            var client = await ConexionSupabase.GetClientAsync();
+            await client.Rpc("asignar_rol_usuario_seguro", new Dictionary<string, object?>
+            {
+                ["p_id_usuario"] = idUsuario,
+                ["p_id_rol"] = idRol,
+            });
+            ct.ThrowIfCancellationRequested();
+        }, "Asignar rol a usuario");
+
     private void ExigirUsuarioObjetivoDistinto(int idUsuarioObjetivo)
     {
         var sesion = _sesionService.SesionActual

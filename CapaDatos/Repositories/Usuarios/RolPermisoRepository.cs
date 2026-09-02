@@ -6,14 +6,15 @@ using CapaDatos.Modelados.Usuarios;
 using ServicioConexión.Conexion;
 using Op = Supabase.Postgrest.Constants.Operator;
 using Ord = Supabase.Postgrest.Constants.Ordering;
+using UsuariosModel = CapaDatos.Modelados.Usuarios.Usuarios;
 
 namespace CapaDatos.Repositories.Usuarios;
 
 public sealed class RolPermisoRepository : RepositorioBase, IRolPermisoRepository
 {
     private const int Activo = 1;
-    private const int Inactivo = 2;
-    private const string PermisoAdministrar = "Modificar Configuración";
+    private const string PermisoConsultar = "Consultar Rol";
+    private const string PermisoAdministrar = "Asignar Permisos a Rol";
 
     // Caché de proceso: el catálogo de módulos/acciones es prácticamente estático
     // (solo cambia con una migración de esquema). Evita repetir 2 round-trips a
@@ -45,8 +46,9 @@ public sealed class RolPermisoRepository : RepositorioBase, IRolPermisoRepositor
                 .From<AccionRol>()
                 .Filter("id_estado", Op.Equals, Activo.ToString())
                 .Get(ct);
+            var usuariosTask = client.From<UsuariosModel>().Select("id_usuario,id_rol").Get(ct);
 
-            await Task.WhenAll(catalogoTask, rolesTask, asignacionesTask);
+            await Task.WhenAll(catalogoTask, rolesTask, asignacionesTask, usuariosTask);
 
             var accionesPorRol = new Dictionary<int, IReadOnlySet<int>>();
             foreach (var grupo in (asignacionesTask.Result?.Models ?? new List<AccionRol>())
@@ -56,7 +58,15 @@ public sealed class RolPermisoRepository : RepositorioBase, IRolPermisoRepositor
             return new RolesResumenDto
             {
                 Roles = (rolesTask.Result?.Models ?? new List<Roles>())
-                    .Select(r => new RolDto { IdRol = r.idRol, NombreRol = r.nombreRol })
+                    .Select(r => new RolDto
+                    {
+                        IdRol = r.idRol,
+                        NombreRol = r.nombreRol,
+                        IdEstado = r.idEstado,
+                        EsSistema = r.esSistema,
+                        UsuariosAsignados = (usuariosTask.Result?.Models ?? new List<UsuariosModel>())
+                            .Count(u => u.idRol == r.idRol),
+                    })
                     .ToList(),
                 Modulos = catalogoTask.Result,
                 AccionesPorRol = accionesPorRol,
@@ -121,8 +131,7 @@ public sealed class RolPermisoRepository : RepositorioBase, IRolPermisoRepositor
 
     private void ExigirLectura()
     {
-        if (!_sesion.TienePermiso("Consultar Usuario") &&
-            !_sesion.TienePermiso(PermisoAdministrar))
+        if (!_sesion.TienePermiso(PermisoConsultar))
             throw new UnauthorizedAccessException("No tiene permiso para consultar la configuración de roles.");
     }
 
@@ -154,40 +163,13 @@ public sealed class RolPermisoRepository : RepositorioBase, IRolPermisoRepositor
             if (!_sesion.TienePermiso(PermisoAdministrar))
                 throw new UnauthorizedAccessException("No tiene permiso para modificar roles.");
 
+            ct.ThrowIfCancellationRequested();
             var client = await ConexionSupabase.GetClientAsync();
-            var response = await client
-                .From<AccionRol>()
-                .Filter("id_rol", Op.Equals, idRol.ToString())
-                .Get(ct);
-
-            var existentes = response?.Models ?? new List<AccionRol>();
-            var seleccionadas = idsAcciones.ToHashSet();
-
-            foreach (var relacion in existentes)
+            await client.Rpc("reemplazar_permisos_rol_seguro", new Dictionary<string, object?>
             {
-                int estadoDeseado = seleccionadas.Contains(relacion.idAccion) ? Activo : Inactivo;
-                seleccionadas.Remove(relacion.idAccion);
-
-                if (relacion.idEstado == estadoDeseado)
-                    continue;
-
-                await client.From<AccionRol>()
-                    .Where(x => x.idAccionRol == relacion.idAccionRol)
-                    .Set(x => x.idEstado, estadoDeseado)
-                    .Set(x => x.updatedAt!, DateTime.UtcNow)
-                    .Update();
-            }
-
-            if (seleccionadas.Count > 0)
-            {
-                var nuevas = seleccionadas.Select(idAccion => new AccionRol
-                {
-                    idAccion = idAccion,
-                    idRol = idRol,
-                    idEstado = Activo,
-                }).ToList();
-
-                await client.From<AccionRol>().Insert(nuevas);
-            }
+                ["p_id_rol"] = idRol,
+                ["p_ids_acciones"] = idsAcciones.Distinct().Order().ToArray(),
+            });
+            ct.ThrowIfCancellationRequested();
         }, "Guardar permisos del rol");
 }

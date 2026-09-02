@@ -6,6 +6,15 @@ namespace CapaAplicacion.Usuarios.Dtos;
 /// </summary>
 public sealed class RolDto
 {
-    public int    IdRol     { get; init; }
+    public int IdRol { get; init; }
+    public string NombreRol { get; init; } = string.Empty;
+    public int IdEstado { get; init; } = 1;
+    public bool EsSistema { get; init; }
+    public int UsuariosAsignados { get; init; }
+}
+
+public sealed class GuardarRolDto
+{
+    public int? IdRol { get; init; }
     public string NombreRol { get; init; } = string.Empty;
 }

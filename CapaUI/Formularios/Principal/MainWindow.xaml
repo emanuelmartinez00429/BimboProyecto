@@ -726,7 +726,7 @@
                                 <!-- ══ USUARIOS ══ -->
                                 <StackPanel>
                                     <Button Tag="usuarios" Style="{StaticResource SidebarModuleButton}"
-                                            permisos:PermisoBehavior.Requiere="Consultar Usuario,Crear Usuario,Modificar Usuario,Eliminar Usuario,Consultar Empleado,Crear Empleado,Modificar Empleado,Eliminar Empleado,Modificar Configuración"
+                                            permisos:PermisoBehavior.Requiere="Consultar Usuario,Crear Usuario,Modificar Usuario,Eliminar Usuario,Consultar Empleado,Crear Empleado,Modificar Empleado,Eliminar Empleado,Consultar Rol,Crear Rol,Modificar Rol,Eliminar Rol,Asignar Permisos a Rol,Asignar Rol a Usuario"
                                             Click="BtnModulo_Click" ToolTip="Usuarios">
                                         <Grid>
                                             <Border x:Name="IndUsuarios" Width="3"
@@ -762,7 +762,7 @@
                                             Background="#2E000000">
                                         <StackPanel Margin="0,4">
                                             <Button Style="{StaticResource SidebarSubButton}" Tag="usuarios-sub"
-                                                    permisos:PermisoBehavior.Requiere="Consultar Usuario,Crear Usuario,Modificar Usuario,Eliminar Usuario"
+                                                    permisos:PermisoBehavior.Requiere="Consultar Usuario,Crear Usuario,Modificar Usuario,Eliminar Usuario,Asignar Rol a Usuario"
                                                     Padding="48,10,16,10" Click="BtnSub_Click">
                                                 <Grid>
                                                     <Border x:Name="DotUsuariosSub" Width="4" Height="4" CornerRadius="2"
@@ -786,7 +786,7 @@
                                                 </Grid>
                                             </Button>
                                             <Button Style="{StaticResource SidebarSubButton}" Tag="roles"
-                                                    permisos:PermisoBehavior.Requiere="Modificar Configuración"
+                                                    permisos:PermisoBehavior.Requiere="Consultar Rol"
                                                     Padding="48,10,16,10" Click="BtnSub_Click">
                                                 <Grid>
                                                     <Border x:Name="DotRoles" Width="4" Height="4" CornerRadius="2"

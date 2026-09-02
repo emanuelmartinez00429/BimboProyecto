@@ -158,7 +158,7 @@ public partial class UsuariosViewModel : ObservableObject, IDisposable
         IsLoading  = true;
         ErrorCarga = string.Empty;
 
-        var rolesResult = await _rolRepo.ObtenerTodosAsync(_cts.Token);
+        var rolesResult = await _rolRepo.ObtenerTodosAsync(ct: _cts.Token);
         if (_disposed) return;
 
         if (rolesResult.Success)
@@ -293,7 +293,9 @@ public partial class UsuariosViewModel : ObservableObject, IDisposable
     [RelayCommand(CanExecute = nameof(PuedeAdministrarSeleccionado))]
     private void Editar()
     {
-        if (Seleccionado is not null && SesionPermisos.Tiene(Permiso.ModificarUsuario)) SolicitarEditar?.Invoke(Seleccionado);
+        if (Seleccionado is not null && SesionPermisos.TieneAlguno(
+                Permiso.ModificarUsuario, Permiso.EliminarUsuario, Permiso.AsignarRolUsuario))
+            SolicitarEditar?.Invoke(Seleccionado);
     }
 
     [RelayCommand(CanExecute = nameof(PuedeAdministrarSeleccionado))]

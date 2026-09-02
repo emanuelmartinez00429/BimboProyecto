@@ -48,7 +48,7 @@
                             <TextBlock Text="Gestión de Roles" FontSize="11" FontWeight="SemiBold"
                                        Foreground="{StaticResource RolText}"/>
                         </StackPanel>
-                        <TextBlock Text="Permisos por rol" FontSize="19" FontWeight="Bold"
+                        <TextBlock Text="Roles y permisos" FontSize="19" FontWeight="Bold"
                                    Foreground="{StaticResource RolText}"/>
                     </StackPanel>
                 </StackPanel>
@@ -58,7 +58,8 @@
                      DataContext, sin pasar por Content de un
                      HeaderedContentControl + TemplateBinding, que no
                      terminaba de reflejar el número en pantalla. -->
-                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center"
+                            Visibility="{Binding MostrandoDetalle, Converter={StaticResource BoolToVisibility}}">
                     <Border Background="#EEF2F8" CornerRadius="999"
                             BorderBrush="{StaticResource RolBorder}" BorderThickness="1"
                             Padding="12,6" Margin="0,0,8,0">
@@ -93,12 +94,60 @@
                         </StackPanel>
                     </Border>
                 </StackPanel>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center"
+                            Visibility="{Binding MostrandoDetalle, Converter={StaticResource InverseBoolToVisibility}}">
+                    <Border Background="#EEF2F8" CornerRadius="999" BorderBrush="{StaticResource RolBorder}"
+                            BorderThickness="1" Padding="12,6" Margin="0,0,8,0">
+                        <StackPanel Orientation="Horizontal"><TextBlock Text="TOTAL" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource RolBrand}" Margin="0,0,6,0"/><TextBlock Text="{Binding TotalRoles}" FontSize="13" FontWeight="Bold" Foreground="{StaticResource RolBrand}"/></StackPanel>
+                    </Border>
+                    <Border Background="#ECFDF5" CornerRadius="999" BorderBrush="#D1FAE5" BorderThickness="1" Padding="12,6" Margin="0,0,8,0">
+                        <StackPanel Orientation="Horizontal"><TextBlock Text="ACTIVOS" FontSize="11" FontWeight="SemiBold" Foreground="#047857" Margin="0,0,6,0"/><TextBlock Text="{Binding RolesActivos}" FontSize="13" FontWeight="Bold" Foreground="#047857"/></StackPanel>
+                    </Border>
+                    <Border Background="#F3F4F6" CornerRadius="999" BorderBrush="#E5E7EB" BorderThickness="1" Padding="12,6">
+                        <StackPanel Orientation="Horizontal"><TextBlock Text="INACTIVOS" FontSize="11" FontWeight="SemiBold" Foreground="#6B7280" Margin="0,0,6,0"/><TextBlock Text="{Binding RolesInactivos}" FontSize="13" FontWeight="Bold" Foreground="#6B7280"/></StackPanel>
+                    </Border>
+                </StackPanel>
             </Grid>
 
             <Border Background="{StaticResource RolSurface}" BorderBrush="{StaticResource RolBorder}"
-                    BorderThickness="1" CornerRadius="10" Padding="12" Panel.ZIndex="5">
+                    BorderThickness="1" CornerRadius="10" Padding="12" Panel.ZIndex="5"
+                    Visibility="{Binding MostrandoDetalle, Converter={StaticResource InverseBoolToVisibility}}">
+                <Grid>
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                    <Grid>
+                        <Border Height="38" CornerRadius="8" Padding="14,0" Background="{StaticResource RolFieldBg}" BorderThickness="1" BorderBrush="{StaticResource RolBorder}">
+                            <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                <Path Style="{StaticResource RolIcono}" Data="{StaticResource GeoBuscar}" Width="16" Height="16" StrokeThickness="2.5" Stroke="{StaticResource RolBrand}" Margin="0,0,8,0"/>
+                                <TextBox Grid.Column="1" BorderThickness="0" Background="Transparent" FontSize="14" VerticalContentAlignment="Center" Text="{Binding QueryRoles, UpdateSourceTrigger=PropertyChanged}" ToolTip="Buscar rol por nombre"/>
+                            </Grid>
+                        </Border>
+                    </Grid>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="12,0,0,0">
+                        <ListBox Style="{StaticResource RolSegmento}" ItemsSource="{Binding OpcionesEstadoRol}" SelectedItem="{Binding OpcionEstadoRol}" VerticalAlignment="Center"/>
+                        <Button Content="Nuevo rol" Command="{Binding NuevoRolCommand}" IsEnabled="{Binding PuedeCrearRol}" Style="{StaticResource RolBotonPrimario}" Margin="12,0,0,0"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <Border Background="{StaticResource RolSurface}" BorderBrush="{StaticResource RolBorder}"
+                    BorderThickness="1" CornerRadius="10" Padding="12" Panel.ZIndex="5"
+                    Visibility="{Binding MostrandoDetalle, Converter={StaticResource BoolToVisibility}}">
 
                 <StackPanel>
+                    <Grid Margin="0,0,0,10">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                        <Button Content="← Volver" Command="{Binding VolverAListaCommand}" Style="{StaticResource RolBotonFantasma}" Margin="0,0,14,0"/>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding RolSeleccionado.Nombre}" FontSize="16" FontWeight="Bold" Foreground="{StaticResource RolText}"/>
+                            <TextBlock Text="{Binding RolSeleccionado.EstadoTexto}" FontSize="12" FontWeight="SemiBold" Foreground="#047857" Margin="10,2,0,0"/>
+                            <Border Margin="8,0,0,0" Padding="7,2" CornerRadius="8" Background="#FEF3C7" Visibility="{Binding EsSistemaSeleccionado, Converter={StaticResource BoolToVisibility}}">
+                                <TextBlock Text="SISTEMA" FontSize="9" FontWeight="Bold" Foreground="#92400E"/>
+                            </Border>
+                            <TextBlock FontSize="12" Foreground="{StaticResource RolText2}" Margin="16,2,0,0"><Run Text="Usuarios: "/><Run Text="{Binding RolSeleccionado.UsuariosAsignados}" FontWeight="Bold"/><Run Text="   Permisos activos: "/><Run Text="{Binding RolSeleccionado.Permisos}" FontWeight="Bold"/></TextBlock>
+                        </StackPanel>
+                    </Grid>
+
                     <!-- ── Buscador + limpiar ──────────────────────────────────── -->
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -203,23 +252,10 @@
                             <StackPanel Grid.Column="2" Orientation="Horizontal">
                                 <Button Content="Activar todo" Style="{StaticResource RolBotonMini}"
                                         Command="{Binding ActivarTodoCommand}"
-                                        IsEnabled="{Binding PuedeEditar}" Margin="0,0,6,0"/>
+                                        IsEnabled="{Binding PuedeEditarPermisosSeleccionados}" Margin="0,0,6,0"/>
                                 <Button Content="Quitar todo" Style="{StaticResource RolBotonMini}"
                                         Command="{Binding QuitarTodoCommand}"
-                                        IsEnabled="{Binding PuedeEditar}" Margin="0,0,10,0"/>
-
-                                <TextBlock Text="ROL" Style="{StaticResource RolEtiquetaSeccion}" Margin="0,0,8,0"/>
-
-                                <!-- Selector de rol. ComboBox estandar, igual que CmbRol en
-                                     Usuarios y CmbFabricante en Productos: WPF posiciona su propio
-                                     desplegable y lo reacomoda al maximizar o mover la ventana.
-                                     Antes esto era un Popup escrito a mano, que es una ventana
-                                     top-level aparte y quedaba descolgada en la esquina. -->
-                                <ComboBox x:Name="CmbRol" Width="200" Height="32"
-                                          FontFamily="Segoe UI" FontSize="13"
-                                          BorderBrush="{StaticResource RolBorderInput}"
-                                          VerticalContentAlignment="Center"
-                                          SelectionChanged="CmbRol_SelectionChanged"/>
+                                        IsEnabled="{Binding PuedeEditarPermisosSeleccionados}"/>
                             </StackPanel>
                         </Grid>
                     </Border>
@@ -275,6 +311,72 @@
                         </StackPanel>
                     </Border>
 
+                    <!-- Catálogo de roles -->
+                    <StackPanel Visibility="{Binding MostrandoDetalle, Converter={StaticResource InverseBoolToVisibility}}">
+                        <ItemsControl ItemsSource="{Binding Roles}" Visibility="{Binding SinRoles, Converter={StaticResource InverseBoolToVisibility}}">
+                            <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemContainerStyle>
+                                <Style TargetType="ContentPresenter"><Setter Property="Visibility" Value="{Binding Visible, Converter={StaticResource BoolToVisibility}}"/></Style>
+                            </ItemsControl.ItemContainerStyle>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Width="330" MinHeight="180" Margin="0,0,12,12">
+                                        <Button Command="{Binding DataContext.AbrirDetalleRolCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                CommandParameter="{Binding IdRol}"
+                                                AutomationProperties.Name="{Binding Nombre, StringFormat=Administrar permisos del rol {0}}"
+                                                Style="{StaticResource RolTarjetaSeleccionable}"/>
+                                        <Grid Margin="18" IsHitTestVisible="False">
+                                        <Grid>
+                                            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                                            <Grid>
+                                                <StackPanel>
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <TextBlock Text="{Binding Nombre}" FontSize="17" FontWeight="Bold" Foreground="{StaticResource RolText}"/>
+                                                        <Border Margin="8,0,0,0" Padding="7,2" CornerRadius="8" Background="#FEF3C7"
+                                                                Visibility="{Binding EsSistema, Converter={StaticResource BoolToVisibility}}">
+                                                            <TextBlock Text="SISTEMA" FontSize="9" FontWeight="Bold" Foreground="#92400E"/>
+                                                        </Border>
+                                                    </StackPanel>
+                                                    <TextBlock Text="{Binding EstadoTexto}" FontSize="12" Foreground="#047857" Margin="0,5,0,0"/>
+                                                </StackPanel>
+                                                <Path HorizontalAlignment="Right" Style="{StaticResource RolIcono}" Data="{StaticResource GeoEscudo}" Width="25" Height="25" Stroke="{StaticResource RolBrand}"/>
+                                            </Grid>
+                                            <StackPanel Grid.Row="1" Margin="0,16,0,14">
+                                                <TextBlock FontSize="13" Foreground="{StaticResource RolText2}"><Run Text="Usuarios asignados: "/><Run Text="{Binding UsuariosAsignados}" FontWeight="Bold"/></TextBlock>
+                                                <TextBlock FontSize="13" Foreground="{StaticResource RolText2}" Margin="0,5,0,0"><Run Text="Permisos activos: "/><Run Text="{Binding Permisos}" FontWeight="Bold"/></TextBlock>
+                                                <TextBlock Text="Rol de sistema: nombre, estado y todos sus permisos son inmutables."
+                                                           FontSize="11" Foreground="#92400E" TextWrapping="Wrap" Margin="0,8,0,0"
+                                                           Visibility="{Binding EsSistema, Converter={StaticResource BoolToVisibility}}"/>
+                                            </StackPanel>
+                                        </Grid>
+                                        </Grid>
+                                            <StackPanel VerticalAlignment="Bottom" HorizontalAlignment="Right" Orientation="Horizontal" Margin="18">
+                                                <Button Content="Editar" Margin="0,0,8,0"
+                                                        Command="{Binding DataContext.EditarRolCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                        CommandParameter="{Binding}">
+                                                    <Button.Style>
+                                                        <Style TargetType="Button" BasedOn="{StaticResource RolBotonMini}"><Setter Property="IsEnabled" Value="{Binding PuedeEditarNombre}"/></Style>
+                                                    </Button.Style>
+                                                </Button>
+                                                <Button
+                                                        Command="{Binding DataContext.AlternarEstadoRolCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                        CommandParameter="{Binding}">
+                                                    <Button.Style>
+                                                        <Style TargetType="Button" BasedOn="{StaticResource RolBotonMini}"><Setter Property="IsEnabled" Value="{Binding PuedeCambiarEstado}"/><Setter Property="Content" Value="Desactivar"/><Style.Triggers><DataTrigger Binding="{Binding EsActivo}" Value="False"><Setter Property="Content" Value="Activar"/></DataTrigger></Style.Triggers></Style>
+                                                    </Button.Style>
+                                                </Button>
+                                            </StackPanel>
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <StackPanel Margin="0,70" HorizontalAlignment="Center" Visibility="{Binding SinRoles, Converter={StaticResource BoolToVisibility}}">
+                            <TextBlock Text="Sin roles que coincidan con los filtros" FontSize="13" FontWeight="SemiBold" Foreground="{StaticResource RolText2}"/>
+                            <Button Content="Limpiar filtros" Style="{StaticResource RolBotonMini}" Command="{Binding LimpiarFiltrosRolesCommand}" Margin="0,12,0,0"/>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <StackPanel Visibility="{Binding MostrandoDetalle, Converter={StaticResource BoolToVisibility}}">
                     <!-- Tarjetas de módulo -->
                     <ItemsControl ItemsSource="{Binding Modulos}"
                                   ItemTemplate="{StaticResource RolTarjetaModulo}"
@@ -307,6 +409,7 @@
                                 Command="{Binding LimpiarFiltrosCommand}" Margin="0,12,0,0"
                                 HorizontalAlignment="Center"/>
                     </StackPanel>
+                    </StackPanel>
                 </StackPanel>
             </ScrollViewer>
         </Grid>
@@ -314,7 +417,8 @@
         <!-- ═══════════════════════════ Pie ════════════════════════════════════ -->
         <Border x:Name="PieRoles" Grid.Row="2"
                 Background="{StaticResource RolPie}" BorderBrush="#C9D9EC"
-                BorderThickness="0,1,0,0" Padding="20,10">
+                BorderThickness="0,1,0,0" Padding="20,10"
+                Visibility="{Binding MostrandoDetalle, Converter={StaticResource BoolToVisibility}}">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -331,7 +435,7 @@
                             Command="{Binding DescartarCommand}" Margin="0,0,10,0"/>
 
                     <Button Style="{StaticResource RolBotonPrimario}" Command="{Binding GuardarCommand}"
-                            permisos:PermisoBehavior.Requiere="Modificar Configuración">
+                            permisos:PermisoBehavior.Requiere="Asignar Permisos a Rol">
                         <StackPanel Orientation="Horizontal">
                             <Path Style="{StaticResource RolIcono}" Data="{StaticResource GeoGuardar}"
                                   Width="14" Height="14" StrokeThickness="2.2"

@@ -4,10 +4,12 @@ using CapaAplicacion.Usuarios.Dtos;
 namespace CapaAplicacion.Usuarios.Interfaces;
 
 /// <summary>
-/// Repositorio de roles. Solo lectura — utilizado para
-/// poblar ComboBox de seleccion de rol en el modal de usuario.
+/// Consulta y administración del catálogo de roles.
 /// </summary>
 public interface IRolRepository
 {
-    Task<Result<IReadOnlyList<RolDto>>> ObtenerTodosAsync(CancellationToken ct = default);
+    Task<Result<IReadOnlyList<RolDto>>> ObtenerTodosAsync(bool incluirInactivos = false, CancellationToken ct = default);
+    Task<Result<RolDto>> CrearAsync(string nombreRol, CancellationToken ct = default);
+    Task<Result<RolDto>> ActualizarAsync(int idRol, string nombreRol, CancellationToken ct = default);
+    Task<Result<RolDto>> CambiarEstadoAsync(int idRol, int idEstado, CancellationToken ct = default);
 }

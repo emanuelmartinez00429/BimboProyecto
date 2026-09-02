@@ -8,6 +8,7 @@ using System.Windows.Controls;
 using CapaAplicacion.Common;
 using CapaAplicacion.Usuarios.Dtos;
 using CapaAplicacion.Usuarios.Interfaces;
+using CapaUI.Core.Permisos;
 
 namespace CapaUI.Formularios.Principal.Pantallas.Usuarios
 {
@@ -140,6 +141,9 @@ namespace CapaUI.Formularios.Principal.Pantallas.Usuarios
             if (!_esNuevo && _usuario != null)
             {
                 RowEstado.Visibility = Visibility.Visible;
+                CmbRolModal.IsEnabled = SesionPermisos.Tiene(Permiso.AsignarRolUsuario);
+                RbActivo.IsEnabled = SesionPermisos.Tiene(Permiso.EliminarUsuario);
+                RbInactivo.IsEnabled = SesionPermisos.Tiene(Permiso.EliminarUsuario);
 
                 TxtEmail.Text = _usuario.CorreoUsuario;
 
@@ -250,18 +254,25 @@ namespace CapaUI.Formularios.Principal.Pantallas.Usuarios
                 }
                 else if (_usuario != null)
                 {
-                    var dto = new ActualizarUsuarioDto
+                    if (idRol != _usuario.IdRol)
                     {
-                        IdUsuario = _usuario.IdUsuario,
-                        IdRol     = idRol,
-                        IdEstado  = RbActivo.IsChecked == true ? 1 : 2,
-                    };
+                        var rRol = await _usuarioRepo.AsignarRolAsync(_usuario.IdUsuario, idRol);
+                        if (!rRol.Success)
+                        {
+                            MostrarError(ErroresRepositorio.Traducir(rRol.Error));
+                            return;
+                        }
+                    }
 
-                    var r = await _usuarioRepo.ActualizarAsync(dto);
-                    if (!r.Success)
+                    int idEstado = RbActivo.IsChecked == true ? 1 : 2;
+                    if (idEstado != _usuario.IdEstado)
                     {
-                        MostrarError(ErroresRepositorio.Traducir(r.Error));
-                        return;
+                        var rEstado = await _usuarioRepo.CambiarEstadoAsync(_usuario.IdUsuario, idEstado);
+                        if (!rEstado.Success)
+                        {
+                            MostrarError(ErroresRepositorio.Traducir(rEstado.Error));
+                            return;
+                        }
                     }
                 }
 

@@ -57,7 +57,9 @@ CapaUI/.../Pantallas/Bitacora/BitacoraView.xaml(.cs)
 
 ## Reportes de filas seleccionadas
 
-Desde 2026-08-16 la grilla permite seleccionar una o varias filas de la página visible mediante casillas individuales o la casilla del encabezado. La selección habilita **Crear reporte**, que ofrece PDF o Excel y exporta únicamente las seis columnas visibles.
+Desde 2026-09-02 la grilla mantiene la selección múltiple sin mostrar una columna de casillas. Un clic normal selecciona una sola fila; mantener el clic y arrastrar selecciona un rango continuo; `Shift` + clic agrega o quita filas individuales no contiguas sin afectar las demás. El botón **Seleccionar página** marca todos los registros cargados y cambia a **Limpiar selección** cuando la página completa está seleccionada.
+
+La selección habilita **Crear reporte**, que ofrece PDF o Excel y exporta únicamente las seis columnas visibles. Las filas se entregan al generador en el mismo orden visual de la tabla, independientemente del orden en que fueron seleccionadas.
 
 El archivo incorpora, fuera de la tabla, la identidad de quien lo genera: correo de la sesión, nombre y apellido del empleado y rol. Los nombres del empleado se cargan en `UsuarioSesion` desde `PerfilUsuarioService`; no se reconstruyen a partir del correo ni del alias.
 
@@ -108,5 +110,6 @@ Los registros ya cargados en producción vienen con formato dispar: `tabla_afect
 - [[Paginación y Búsqueda - Arquitectura Detallada]]
 - [[Plan Fase 9 - Subsistema de Reportes]]
 - [[ADR-006 - Motor de Reportes y Exportación]]
+- [[Sesión 2026-09-02 - Selección avanzada de filas en Bitácora]]
 - [[Sesión 2026-08-16 - Reportes PDF y Excel desde Bitácora]]
 - [[Sesión 2026-07-26 - Módulo Bitácora (auditoría, solo lectura)]]

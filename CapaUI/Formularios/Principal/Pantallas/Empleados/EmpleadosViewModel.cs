@@ -36,7 +36,7 @@ public partial class EmpleadosViewModel : ObservableObject, IDisposable
     [ObservableProperty] private IReadOnlyList<SuggestionItemData>? _suggestItems;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HaySeleccionado), nameof(TextoSeleccionado))]
+    [NotifyPropertyChangedFor(nameof(HaySeleccionado), nameof(TextoSeleccionado), nameof(PuedeCrearUsuario))]
     [NotifyCanExecuteChangedFor(nameof(EditarCommand))]
     [NotifyCanExecuteChangedFor(nameof(ToggleEstadoCommand))]
     [NotifyCanExecuteChangedFor(nameof(CrearUsuarioCommand))]
@@ -56,6 +56,9 @@ public partial class EmpleadosViewModel : ObservableObject, IDisposable
     [ObservableProperty] private string _errorCarga = "";
 
     public bool   HaySeleccionado   => Seleccionado is not null;
+    public bool PuedeCrearUsuario => HaySeleccionado
+        && SesionPermisos.Tiene(Permiso.CrearUsuario)
+        && SesionPermisos.Tiene(Permiso.AsignarRolUsuario);
     public string TextoSeleccionado => Seleccionado is null
         ? ""
         : $"{Seleccionado.NombreEmpleado} {Seleccionado.ApellidoEmpleado} · {Seleccionado.NumeroIdentidad}";
@@ -266,10 +269,10 @@ public partial class EmpleadosViewModel : ObservableObject, IDisposable
         if (Seleccionado is not null && SesionPermisos.Tiene(Permiso.ModificarEmpleado)) SolicitarEditar?.Invoke(Seleccionado);
     }
 
-    [RelayCommand(CanExecute = nameof(HaySeleccionado))]
+    [RelayCommand(CanExecute = nameof(PuedeCrearUsuario))]
     private void CrearUsuario()
     {
-        if (Seleccionado is not null && SesionPermisos.Tiene(Permiso.CrearUsuario)) SolicitarCrearUsuario?.Invoke(Seleccionado);
+        if (Seleccionado is not null && PuedeCrearUsuario) SolicitarCrearUsuario?.Invoke(Seleccionado);
     }
 
     /// <summary>

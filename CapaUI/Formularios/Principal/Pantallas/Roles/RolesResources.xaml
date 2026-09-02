@@ -219,6 +219,7 @@
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
 
                             <!-- Casilla -->
@@ -240,11 +241,18 @@
                                         <TextBlock Text="CRÍTICA" FontSize="9" FontWeight="Bold"
                                                    Foreground="{StaticResource RolAmber}"/>
                                     </Border>
+                                    <Border x:Name="BadgeProtegida" Margin="6,0,0,0" Padding="5,1" CornerRadius="3"
+                                            Background="#DBEAFE" VerticalAlignment="Center" Visibility="Collapsed">
+                                        <TextBlock Text="🔒 PROTEGIDA" FontSize="9" FontWeight="Bold" Foreground="#1D4ED8"/>
+                                    </Border>
                                 </StackPanel>
                                 <TextBlock x:Name="Descripcion" Text="{Binding Descripcion}" FontSize="11"
                                            Foreground="{StaticResource RolMuted}" TextWrapping="Wrap"
                                            Margin="0,1,0,0" LineHeight="15"/>
                             </StackPanel>
+                            <TextBlock x:Name="EstadoPermiso" Grid.Column="2" Text="Inactiva" Margin="8,0,0,0"
+                                       FontSize="10" FontWeight="SemiBold" Foreground="{StaticResource RolMuted}"
+                                       VerticalAlignment="Top"/>
                         </Grid>
                     </Border>
 
@@ -255,6 +263,8 @@
                             <Setter TargetName="Casilla" Property="BorderBrush" Value="{StaticResource RolBrand}"/>
                             <Setter TargetName="Tilde" Property="Visibility" Value="Visible"/>
                             <Setter TargetName="Titulo" Property="Foreground" Value="{StaticResource RolText}"/>
+                            <Setter TargetName="EstadoPermiso" Property="Text" Value="Activa"/>
+                            <Setter TargetName="EstadoPermiso" Property="Foreground" Value="#047857"/>
                         </DataTrigger>
 
                         <!-- Sello de criticidad: solo cuando el permiso está concedido -->
@@ -266,6 +276,13 @@
                             <Setter TargetName="Badge" Property="Visibility" Value="Visible"/>
                         </MultiDataTrigger>
 
+                        <DataTrigger Binding="{Binding EsProtegida}" Value="True">
+                            <Setter TargetName="BadgeProtegida" Property="Visibility" Value="Visible"/>
+                            <Setter TargetName="Fondo" Property="Background" Value="#EFF6FF"/>
+                            <Setter Property="Cursor" Value="Arrow"/>
+                            <Setter Property="ToolTip" Value="Acción obligatoria del rol Administrador; no puede retirarse."/>
+                        </DataTrigger>
+
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter TargetName="Fondo" Property="Background" Value="{StaticResource RolRowHover}"/>
                         </Trigger>
@@ -275,6 +292,37 @@
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter Property="Opacity" Value="0.55"/>
                             <Setter Property="Cursor" Value="Arrow"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- La tarjeta completa abre el detalle y conserva foco/teclado nativos de Button. -->
+    <Style x:Key="RolTarjetaSeleccionable" TargetType="Button">
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Focusable" Value="True"/>
+        <Setter Property="Background" Value="White"/>
+        <Setter Property="BorderBrush" Value="{StaticResource RolBorder}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Tarjeta" Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="12"/>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Tarjeta" Property="Background" Value="#F8FAFC"/>
+                            <Setter TargetName="Tarjeta" Property="BorderBrush" Value="{StaticResource RolBrand}"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Tarjeta" Property="Background" Value="#E8EEF7"/>
+                        </Trigger>
+                        <Trigger Property="IsKeyboardFocused" Value="True">
+                            <Setter TargetName="Tarjeta" Property="BorderBrush" Value="{StaticResource RolBrand}"/>
+                            <Setter TargetName="Tarjeta" Property="BorderThickness" Value="2"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -380,7 +428,7 @@
                             <Button Style="{StaticResource RolFilaPermiso}"
                                     Command="{Binding Alternar}"
                                     CommandParameter="{Binding}"
-                                    IsEnabled="{Binding PuedeEditar}"/>
+                                    IsEnabled="{Binding PuedeAlternar}"/>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>

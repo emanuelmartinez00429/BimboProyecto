@@ -1,0 +1,54 @@
+<Window x:Class="CapaUI.Formularios.Principal.Pantallas.Roles.RolModal"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Rol" Width="470" Height="285"
+        WindowStartupLocation="CenterOwner" ResizeMode="NoResize"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent"
+        FontFamily="Segoe UI">
+    <Border Background="White" CornerRadius="14" BorderBrush="#DCE3EC" BorderThickness="1">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="24" ShadowDepth="5" Opacity="0.22"/>
+        </Border.Effect>
+        <Grid Margin="24">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <Grid MouseLeftButtonDown="Encabezado_MouseLeftButtonDown">
+                <StackPanel>
+                    <TextBlock x:Name="TxtContexto" Text="NUEVO ROL" FontSize="11" FontWeight="Bold"
+                               Foreground="{DynamicResource EmpresaPrimaryBrush}"/>
+                    <TextBlock x:Name="TxtTitulo" Text="Crear rol" FontSize="22" FontWeight="Bold"
+                               Foreground="#172033" Margin="0,3,0,0"/>
+                </StackPanel>
+                <Button HorizontalAlignment="Right" Width="32" Height="32" Content="✕"
+                        FontSize="14" Background="#F1F5F9" BorderThickness="0"
+                        Cursor="Hand" Click="Cancelar_Click"/>
+            </Grid>
+
+            <StackPanel Grid.Row="1" Margin="0,24,0,0">
+                <TextBlock Text="Nombre del rol" FontSize="13" FontWeight="SemiBold" Foreground="#334155"/>
+                <TextBox x:Name="TxtNombre" Height="42" Margin="0,7,0,0" Padding="12,0"
+                         MaxLength="50" FontSize="14" VerticalContentAlignment="Center"
+                         BorderBrush="#CBD5E1" BorderThickness="1"/>
+                <TextBlock x:Name="TxtError" Foreground="#B91C1C" FontSize="12"
+                           Margin="2,6,0,0" Visibility="Collapsed"/>
+            </StackPanel>
+
+            <TextBlock Grid.Row="2" Text="El rol se creará activo y sin permisos. Después podrá configurarlo en la pestaña Permisos por rol."
+                       TextWrapping="Wrap" FontSize="12" Foreground="#64748B" VerticalAlignment="Center"/>
+
+            <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="Cancelar" Width="105" Height="38" Margin="0,0,10,0"
+                        Background="#F1F5F9" Foreground="#334155" BorderThickness="0"
+                        Cursor="Hand" Click="Cancelar_Click"/>
+                <Button x:Name="BtnGuardar" Content="Guardar" Width="115" Height="38"
+                        Background="{DynamicResource EmpresaPrimaryBrush}" Foreground="White"
+                        BorderThickness="0" Cursor="Hand" Click="Guardar_Click"/>
+            </StackPanel>
+        </Grid>
+    </Border>
+</Window>
