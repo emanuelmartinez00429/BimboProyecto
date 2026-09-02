@@ -42,9 +42,12 @@ lifecycle: verified
 ```xml
 <StackPanel Style="{StaticResource CampoModal}">
     <TextBlock Text="Nombre" Style="{StaticResource EtiquetaCampo}"/>
-    <TextBox x:Name="TxtNombre" Style="{StaticResource ModalInput}" TabIndex="10" MaxLength="100"/>
+    <TextBox x:Name="TxtNombre" Style="{StaticResource ModalInput}" TabIndex="10"/>
 </StackPanel>
 ```
+
+> [!tip] Sin `MaxLength` en XAML
+> No se declara `MaxLength` manualmente en el control XAML. La propiedad `MaxLength` es asignada automáticamente en tiempo de ejecución por `ValidadorFormulario.Segun(ReglasXxx.Campo)` a través de `TopePreventivo(m)`. Esto mantiene el XAML limpio y evita desincronizaciones con el esquema de base de datos (ver [[Validacion de formularios]] y [[ADR-021 - Validacion en tres capas reglas de negocio en Dominio]]).
 
 Convención de `TabIndex`: de diez en diez por campo (10, 20, 30…), y los pares que van juntos con el siguiente número (un campo de catálogo `30` y su lupa `31`). Deja lugar para insertar un campo en el medio sin renumerar todo.
 
@@ -116,3 +119,7 @@ Dos casos reales, sesión 2026-08-19:
 - [[WPF - StackPanel y columnas Auto no ceden espacio, no se achican de verdad]]
 - [[Deuda Técnica - Pendientes]] — P-042, familia paralela de estilos en Pesaje
 - [[Sesión 2026-08-19 - Selector de proveedor por tabla y consolidacion de estilos]] — origen de `LupaBtnOscuro` y de esta auditoría
+- [[ADR-021 - Validacion en tres capas reglas de negocio en Dominio]] — reglas de dominio y derivación automática de `MaxLength`
+- [[Validacion de formularios]] — patrón de validación en modales
+- [[Sesión 2026-09-02 - Validación de longitud máxima en campos de texto]] — sesión de limpieza de `MaxLength` en XAML y alineación de dominio
+

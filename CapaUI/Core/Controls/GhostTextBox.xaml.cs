@@ -24,6 +24,10 @@ namespace CapaUI.Core.Controls
             DependencyProperty.Register(nameof(Placeholder), typeof(string), typeof(GhostTextBox),
                 new PropertyMetadata(""));
 
+        public static readonly DependencyProperty MaxLengthProperty =
+            DependencyProperty.Register(nameof(MaxLength), typeof(int), typeof(GhostTextBox),
+                new PropertyMetadata(0, OnMaxLengthChanged));
+
         public string Text
         {
             get => (string)GetValue(TextProperty);
@@ -40,6 +44,12 @@ namespace CapaUI.Core.Controls
         {
             get => (string)GetValue(PlaceholderProperty);
             set => SetValue(PlaceholderProperty, value);
+        }
+
+        public int MaxLength
+        {
+            get => (int)GetValue(MaxLengthProperty);
+            set => SetValue(MaxLengthProperty, value);
         }
 
         // ── Events ───────────────────────────────────────────────────────
@@ -68,6 +78,7 @@ namespace CapaUI.Core.Controls
         public GhostTextBox()
         {
             InitializeComponent();
+            InnerBox.AddHandler(ScrollViewer.ScrollChangedEvent, new ScrollChangedEventHandler(InnerBox_ScrollChanged));
         }
 
         // ── DP callbacks ─────────────────────────────────────────────────
@@ -88,7 +99,18 @@ namespace CapaUI.Core.Controls
             ((GhostTextBox)d).UpdateGhostNow();
         }
 
+        private static void OnMaxLengthChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            var ctrl = (GhostTextBox)d;
+            ctrl.InnerBox.MaxLength = (int)e.NewValue;
+        }
+
         // ── Event handlers ───────────────────────────────────────────────
+
+        private void InnerBox_ScrollChanged(object sender, ScrollChangedEventArgs e)
+        {
+            GhostDisplay.ScrollToHorizontalOffset(e.HorizontalOffset);
+        }
 
         private void InnerBox_TextChanged(object sender, TextChangedEventArgs e)
         {
@@ -115,7 +137,7 @@ namespace CapaUI.Core.Controls
                 string remaining = GetRemainingSuffix(input);
                 if (string.IsNullOrEmpty(remaining)) return;
 
-                _ghostDebounce?.Cancel();
+                CancelGhostDebounce();
 
                 _updatingText = true;
                 InnerBox.Text = input + remaining;
@@ -137,9 +159,19 @@ namespace CapaUI.Core.Controls
 
         // ── Ghost logic ──────────────────────────────────────────────────
 
+        private void CancelGhostDebounce()
+        {
+            if (_ghostDebounce is not null)
+            {
+                _ghostDebounce.Cancel();
+                _ghostDebounce.Dispose();
+                _ghostDebounce = null;
+            }
+        }
+
         private void ScheduleGhostUpdate()
         {
-            _ghostDebounce?.Cancel();
+            CancelGhostDebounce();
 
             string input = InnerBox.Text ?? "";
 
@@ -187,7 +219,7 @@ namespace CapaUI.Core.Controls
 
         private void UpdateGhostNow()
         {
-            _ghostDebounce?.Cancel();
+            CancelGhostDebounce();
             string input = InnerBox.Text ?? "";
 
             if (string.IsNullOrEmpty(input))
@@ -224,6 +256,11 @@ namespace CapaUI.Core.Controls
             // Ghost shows: input (for spacing alignment) + remaining suffix
             GhostDisplay.Text = input + remaining;
             GhostDisplay.Foreground = _ghostBrush;
+
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                GhostDisplay.ScrollToHorizontalOffset(InnerBox.HorizontalOffset);
+            }), System.Windows.Threading.DispatcherPriority.Loaded);
         }
 
         /// <summary>
@@ -233,6 +270,9 @@ namespace CapaUI.Core.Controls
         /// </summary>
         private string GetRemainingSuffix(string input)
         {
+            if (string.IsNullOrEmpty(GhostSuffix) || string.IsNullOrEmpty(input))
+                return GhostSuffix ?? string.Empty;
+
             string suffix = GhostSuffix;
 
             // Find the longest tail of input that matches the beginning of suffix
@@ -248,6 +288,10 @@ namespace CapaUI.Core.Controls
                 if (string.Equals(inputTail, suffixHead, StringComparison.OrdinalIgnoreCase))
                     return suffix.Substring(len);
             }
+
+            // If user typed an '@' and it didn't match the suffix prefix, do NOT append suffix
+            if (input.Contains('@'))
+                return string.Empty;
 
             // No overlap at all → full suffix
             return suffix;
@@ -266,9 +310,11 @@ namespace CapaUI.Core.Controls
             string input = InnerBox.Text?.Trim() ?? "";
             if (string.IsNullOrEmpty(input)) return "";
 
-            if (IsFullyCompleted(input)) return input;
+            string full = IsFullyCompleted(input) ? input : input + GetRemainingSuffix(input);
+            if (MaxLength > 0 && full.Length > MaxLength)
+                full = full.Substring(0, MaxLength);
 
-            return input + GetRemainingSuffix(input);
+            return full;
         }
 
         public new bool Focus() => InnerBox.Focus();

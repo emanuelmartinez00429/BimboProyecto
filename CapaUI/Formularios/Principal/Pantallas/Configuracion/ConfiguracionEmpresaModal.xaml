@@ -71,29 +71,29 @@
                                    Foreground="{DynamicResource EmpresaPrimaryBrush}" Margin="0,0,0,18"/>
 
                         <TextBlock Text="Nombre de la empresa" Style="{StaticResource LabelStyle}"/>
-                        <TextBox Text="{Binding NombreEmpresa, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource InputStyle}" Margin="0,0,0,14"/>
+                        <TextBox Text="{Binding NombreEmpresa, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource InputStyle}" MaxLength="200" Margin="0,0,0,14"/>
 
                         <TextBlock Text="RTN" Style="{StaticResource LabelStyle}"/>
-                        <TextBox Text="{Binding RtnEmpresa, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource InputStyle}" Margin="0,0,0,14"/>
+                        <TextBox Text="{Binding RtnEmpresa, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource InputStyle}" MaxLength="20" Margin="0,0,0,14"/>
 
                         <TextBlock Text="Dirección" Style="{StaticResource LabelStyle}"/>
                         <TextBox Text="{Binding DireccionEmpresa, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource InputStyle}"
-                                 AcceptsReturn="True" TextWrapping="Wrap" MinHeight="72" VerticalContentAlignment="Top" Margin="0,0,0,14"/>
+                                 MaxLength="500" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="72" VerticalContentAlignment="Top" Margin="0,0,0,14"/>
 
                         <Grid Margin="0,0,0,14">
                             <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="14"/><ColumnDefinition/></Grid.ColumnDefinitions>
                             <StackPanel Grid.Column="0">
                                 <TextBlock Text="Teléfono" Style="{StaticResource LabelStyle}"/>
-                                <TextBox Text="{Binding TelefonoEmpresa, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource InputStyle}"/>
+                                <TextBox Text="{Binding TelefonoEmpresa, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource InputStyle}" MaxLength="20"/>
                             </StackPanel>
                             <StackPanel Grid.Column="2">
                                 <TextBlock Text="Correo" Style="{StaticResource LabelStyle}"/>
-                                <TextBox Text="{Binding CorreoEmpresa, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource InputStyle}"/>
+                                <TextBox Text="{Binding CorreoEmpresa, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource InputStyle}" MaxLength="100"/>
                             </StackPanel>
                         </Grid>
 
                         <TextBlock Text="Dominio de correo" Style="{StaticResource LabelStyle}"/>
-                        <TextBox Text="{Binding DominioCorreo, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource InputStyle}"/>
+                        <TextBox Text="{Binding DominioCorreo, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource InputStyle}" MaxLength="100"/>
                         <Border Background="#FFFBEB" BorderBrush="#FCD34D" BorderThickness="1"
                                 CornerRadius="7" Padding="10" Margin="0,10,0,0">
                             <StackPanel Orientation="Horizontal">
@@ -140,7 +140,7 @@
                         <Grid>
                             <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="44"/></Grid.ColumnDefinitions>
                             <TextBox Grid.Column="0" Text="{Binding ColorEmpresa, UpdateSourceTrigger=PropertyChanged}"
-                                     Style="{StaticResource InputStyle}" CharacterCasing="Upper"/>
+                                     Style="{StaticResource InputStyle}" CharacterCasing="Upper" MaxLength="7"/>
                             <Border Grid.Column="1" Margin="8,0,0,0" Background="{Binding ColorVistaPrevia}"
                                     BorderBrush="#D1D5DB" BorderThickness="1" CornerRadius="6"/>
                         </Grid>

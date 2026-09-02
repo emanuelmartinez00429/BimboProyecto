@@ -24,7 +24,7 @@ lifecycle: verified
 | `ReglaCampo`, `FormatoCampo` *(Dominio)* | Descriptor: qué exige el negocio de un campo, como dato. |
 | `ReglasProducto`, `ReglasProveedor`… *(Dominio)* | **Qué campos son obligatorios y con qué largo, por entidad.** |
 | `ParseoNumerico` *(UI)* | Convierte el texto a número según el `CultureInfo` del usuario. No es regla de negocio. |
-| `ValidadorFormulario` *(UI)* | API fluida: aplica las reglas y se ocupa del borde rojo, el foco y el mensaje. |
+| `ValidadorFormulario` *(UI)* | API fluida: aplica las reglas, deriva topes preventivos (`MaxLength`) a los controles y se ocupa del borde rojo, el foco y el mensaje. |
 | `Validacion` | Propiedad adjunta `Error` / `TieneError` que disparan los estilos. |
 | `ConfirmacionEstado` | El aviso al pasar un registro de activo a inactivo o viceversa. |
 | `ErroresRepositorio` | Traduce el `23505` de Postgres y unifica el mensaje de excepción inesperada. |
@@ -96,6 +96,16 @@ Dos escapes para lo que no entra:
 
 ---
 
+## Asignación automática de topes preventivos (`MaxLength`)
+
+A partir de la actualización del 2026-09-02, **no se deben declarar atributos `MaxLength` manuales en el XAML de los modales**:
+
+1. **Derivación nativa:** Al llamar a `.Segun(regla)` (o a `.LargoMaximo(n)`), `ValidadorFormulario` ejecuta internamente `TopePreventivo(m)`. Si el control asociado es un `TextBox` o `PasswordBox` y su propiedad `MaxLength` es `0` (valor por defecto en WPF), le asigna automáticamente la longitud máxima de la regla.
+2. **Prevención activa:** El control bloquea la escritura o pegado de caracteres en exceso directamente en el teclado del usuario, eliminando errores por desborde antes de disparar el evento `LostFocus`.
+3. **Cero redundancia en XAML:** Los modales (`ProveedorModal.xaml`, `FabricanteModal.xaml`, etc.) no colocan `MaxLength="100"`. Esto evita discrepancias donde el XAML imponía un tope artificial de 100 caracteres en columnas de base de datos que admiten 200 (`nombre_proveedor`, `nombre_fabricante`).
+
+---
+
 ## Cómo agregar una regla nueva
 
 1. El predicado va en `CapaDominio/Reglas/ReglasFormato` — sin WPF, para que lo pueda usar también un ViewModel o un repositorio.
@@ -109,12 +119,12 @@ Si la regla es de un solo modal, no hace falta nada de esto: `Regla(...)` alcanz
 
 ## Desde un ViewModel (sin controles)
 
-`ConfiguracionEmpresaViewModel` es MVVM y no tiene TextBoxes que pasarle al validador, así que usa las reglas del dominio directamente y reporta por su propia propiedad `Error`:
+`ConfiguracionEmpresaViewModel` es MVVM y no tiene TextBoxes que pasarle al validador, así que usa las reglas del dominio directamente (`ReglasFormato.NoExcedeLargo`, `EsRtn`, `EsTelefono`, `EsCorreo`) y reporta por su propia propiedad `Error`:
 
 ```csharp
-if (!ReglasFormato.EsRtn(RtnEmpresa))
+if (!ReglasFormato.NoExcedeLargo(NombreEmpresa, ReglasEmpresa.Nombre.LargoMaximo ?? 200))
 {
-    Error = "El RTN debe tener 14 dígitos.";
+    Error = "El nombre de la empresa no puede superar los 200 caracteres.";
     return false;
 }
 ```
@@ -133,6 +143,9 @@ Un campo vacío que nunca se tocó **no se marca** hasta que se lo visita o se i
 
 ## Relaciones
 
-- [[ADR-021 - Validacion en tres capas reglas de negocio en Dominio]] — el porqué, con las alternativas descartadas
-- [[Anatomia compartida de los modales]] — la estructura `CampoModal` de la que depende el renglón de error
+- [[ADR-021 - Validacion en tres capas reglas de negocio en Dominio]] — el porqué, con las alternativas descartadas y el addendum de topes preventivos
+- [[Anatomia compartida de los modales]] — la estructura `CampoModal` de la que depende el renglón de error y la eliminación de `MaxLength` en XAML
+- [[ADR-004 - GhostTextBox Autocompletado de Dominio en Login]] — autocompletado con sincronización y límites
 - [[ADR-001 - Result Pattern en Repositorios]] — el `Result` que traduce `ErroresRepositorio`
+- [[Sesión 2026-09-02 - Validación de longitud máxima en campos de texto]] — sesión de derivación de topes y alineación de dominio
+

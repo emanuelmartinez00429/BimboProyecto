@@ -18,6 +18,7 @@ namespace CapaUI.Formularios.InicioSesion
         {
             _win = win;
             InitializeComponent();
+            TxtEmail.MaxLength = ReglasUsuario.Correo.LargoMaximo ?? 50;
         }
 
         private void BtnBack_Click(object sender, RoutedEventArgs e)

@@ -280,6 +280,7 @@ public sealed class ValidadorFormulario
 
         public ConstructorCampo LargoMaximo(int largo, string? mensaje = null)
         {
+            TopePreventivo(largo);
             _campo.Reglas.Add((c => ReglasFormato.NoExcedeLargo(c.LeerTexto(), largo),
                 mensaje ?? $"{_campo.Etiqueta} no puede superar los {largo} caracteres."));
             return this;
@@ -318,7 +319,11 @@ public sealed class ValidadorFormulario
         public ConstructorCampo Segun(ReglaCampo regla)
         {
             if (regla.Obligatorio)          Obligatorio();
-            if (regla.LargoMaximo is int m) LargoMaximo(m);
+            if (regla.LargoMaximo is int m)
+            {
+                TopePreventivo(m);
+                LargoMaximo(m);
+            }
             if (regla.LargoMinimo is int n) LargoMinimo(n);
 
             switch (regla.Formato)
@@ -331,6 +336,14 @@ public sealed class ValidadorFormulario
             }
 
             return this;
+        }
+
+        private void TopePreventivo(int max)
+        {
+            if (_campo.Control is TextBox tb && tb.MaxLength == 0)
+                tb.MaxLength = max;
+            else if (_campo.Control is PasswordBox pb && pb.MaxLength == 0)
+                pb.MaxLength = max;
         }
 
         /// <summary>Regla a medida, para lo que no entra en las de arriba.</summary>

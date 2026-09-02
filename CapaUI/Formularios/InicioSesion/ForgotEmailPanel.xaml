@@ -59,6 +59,7 @@
                     </Viewbox>
                     <TextBox x:Name="TxtEmail" Grid.Column="1"
                              Style="{StaticResource InputTextBox}"
+                             MaxLength="50"
                              TextChanged="TxtEmail_Changed"
                              GotFocus="Email_GotFocus" LostFocus="Email_LostFocus"/>
                 </Grid>

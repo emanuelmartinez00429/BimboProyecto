@@ -235,3 +235,56 @@ El dominio se muestra **siempre** desde que se abre la ventana — no revela si 
 <controls:GhostTextBox GhostSuffix="-HN" Placeholder="Código de producto"/>
 <controls:GhostTextBox GhostSuffix="@bimbo.hn" Placeholder="Correo empleado"/>
 ```
+
+---
+
+## Addendum 2026-09-02 — Estabilización de scroll, límites y prevención de dominios foráneos
+
+En la sesión del 2026-09-02 se implementó una serie de correcciones y mejoras de robustez sobre `GhostTextBox.xaml.cs`:
+
+### 1. Propagación de `MaxLength` como DependencyProperty
+- **Problema previo:** `GhostTextBox` no exponía la propiedad `MaxLength`. Configurar `MaxLength` en XAML o en code-behind no tenía efecto sobre el `TextBox` interactivo interno (`InnerBox`).
+- **Solución:** Se registró `MaxLengthProperty` como DependencyProperty en `GhostTextBox`. En su callback `OnMaxLengthChanged`, el valor se propaga directamente a `InnerBox.MaxLength = (int)e.NewValue`.
+- **Preservación del Ghost:** `GhostDisplay.MaxLength` se mantiene en `0` (ilimitado) de manera intencional para evitar que el texto sugerido completo (`input + sufijo`) sea truncado visualmente mientras el usuario escribe.
+
+### 2. Sincronización Horizontal de ScrollViewer (`InnerBox` ↔ `GhostDisplay`)
+- **Problema previo:** Al escribir cadenas largas (>60 caracteres) que activaban el desplazamiento horizontal dentro de `InnerBox`, el `GhostDisplay` (al ser un control separado de solo lectura) permanecía en `HorizontalOffset = 0`. Esto provocaba un desfase visual severo donde el texto ghost flotaba desalineado respecto al texto ingresado.
+- **Solución:**
+  1. En el constructor se suscribe el evento enrutado `ScrollViewer.ScrollChangedEvent` en `InnerBox`:
+     ```csharp
+     InnerBox.AddHandler(ScrollViewer.ScrollChangedEvent, new ScrollChangedEventHandler(InnerBox_ScrollChanged));
+     ```
+  2. `InnerBox_ScrollChanged` replica inmediatamente el desplazamiento:
+     ```csharp
+     GhostDisplay.ScrollToHorizontalOffset(e.HorizontalOffset);
+     ```
+  3. En `ShowGhostFor`, se despacha la sincronización con prioridad `DispatcherPriority.Loaded` para garantizar que el renderizado de layout de WPF refleje con exactitud la posición tras actualizar el texto del ghost.
+
+### 3. Detección y Supresión de Dominios Foráneos en `GetRemainingSuffix`
+- **Problema previo:** Si el usuario ingresaba un correo con un dominio externo (ej. `usuario@yahoo.com`), `GetRemainingSuffix` no encontraba solapamiento con `@gmail.com` y retornaba el sufijo completo, produciendo concatenaciones inválidas como `usuario@yahoo.com@gmail.com` tanto en pantalla como en el payload enviado a Supabase Auth.
+- **Solución:** Se agregó una guarda: si el texto ingresado contiene el carácter arroba (`@`) y no presenta solapamiento de prefijo con `GhostSuffix`, `GetRemainingSuffix` retorna `string.Empty`, evitando la adición indebida del dominio predeterminado:
+  ```csharp
+  if (input.Contains('@'))
+      return string.Empty;
+  ```
+
+### 4. Recorte Defensivo en `GetFullText()`
+Se añadió una guarda de longitud máxima en `GetFullText()` para asegurar que el resultado final retornado para autenticación nunca sobrepase `MaxLength`:
+```csharp
+if (MaxLength > 0 && full.Length > MaxLength)
+    full = full[..MaxLength];
+```
+
+### 5. Limpieza Segura de `CancellationTokenSource` en Debounce
+Se implementó `CancelGhostDebounce()` para asegurar que las instancias de `CancellationTokenSource` sean debidamente canceladas y liberadas con `.Dispose()` en cada pulsación de tecla, previniendo fugas de handles y acumulación de timers en memoria.
+
+---
+
+## Relaciones
+
+- [[ADR-021 - Validacion en tres capas reglas de negocio en Dominio]] — reglas del dominio y límites máximos de campos
+- [[Validacion de formularios]] — integración de validaciones en formularios
+- [[Anatomia compartida de los modales]] — estilos y controles compartidos
+- [[Sesión 2026-06-15 - Implementación inicial de GhostTextBox]] — sesión donde se concibió el control
+- [[Sesión 2026-09-02 - Validación de longitud máxima en campos de texto]] — sesión de estabilización de GhostTextBox, límites y sincronización
+

@@ -70,6 +70,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Usuarios
             _validador = ValidadorFormulario.Nuevo()
                 .Combo(CmbEmpleado, "El empleado").Segun(ReglasUsuario.Empleado)
                     .SoloSi(() => _esNuevo && !_esCreacionConEmpleado)
+                .Campo(TxtEmail, "El correo").Segun(ReglasUsuario.Correo)
                 .Clave(TxtPassword, "La contraseña").Segun(ReglasUsuario.Password)
                     .SoloSi(() => _esNuevo)
                 .Combo(CmbRolModal, "El rol").Segun(ReglasUsuario.Rol)
@@ -189,13 +190,27 @@ namespace CapaUI.Formularios.Principal.Pantallas.Usuarios
         /// </remarks>
         private static string GenerarEmail(string nombreCompleto)
         {
-            var partes = nombreCompleto.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            if (partes.Length < 2)
-                return TextoBusqueda.Normalizar(nombreCompleto).Trim() + "@empresa.com";
+            const string dominio = "@empresa.com";
+            const int maxTotal = 50;
+            int maxLocal = maxTotal - dominio.Length; // 38
 
-            var nombre   = TextoBusqueda.Normalizar(partes[0]).Trim();
-            var apellido = TextoBusqueda.Normalizar(partes[^1]).Trim();
-            return $"{nombre}.{apellido}@empresa.com";
+            var partes = nombreCompleto.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            string local;
+            if (partes.Length < 2)
+            {
+                local = TextoBusqueda.Normalizar(nombreCompleto).Trim();
+            }
+            else
+            {
+                var nombre   = TextoBusqueda.Normalizar(partes[0]).Trim();
+                var apellido = TextoBusqueda.Normalizar(partes[^1]).Trim();
+                local = $"{nombre}.{apellido}";
+            }
+
+            if (local.Length > maxLocal)
+                local = local[..maxLocal];
+
+            return $"{local}{dominio}";
         }
 
         // ── Acciones ─────────────────────────────────────────────────────

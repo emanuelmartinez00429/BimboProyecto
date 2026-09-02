@@ -45,10 +45,12 @@
                     </Viewbox>
                     <PasswordBox x:Name="TxtNew" Grid.Column="1"
                                  Style="{StaticResource InputPasswordBox}"
+                                 MaxLength="72"
                                  GotFocus="Pass_GotFocus" LostFocus="Pass_LostFocus"
                                  PasswordChanged="TxtNew_Changed"/>
                     <TextBox x:Name="TxtNewVisible" Grid.Column="1"
                              Style="{StaticResource InputTextBox}" Visibility="Collapsed"
+                             MaxLength="72"
                              GotFocus="Pass_GotFocus" LostFocus="Pass_LostFocus"
                              TextChanged="TxtNewVisible_Changed"/>
                     <Button Grid.Column="2" Width="40" Background="Transparent" BorderThickness="0"
@@ -95,10 +97,12 @@
                     </Viewbox>
                     <PasswordBox x:Name="TxtConfirm" Grid.Column="1"
                                  Style="{StaticResource InputPasswordBox}"
+                                 MaxLength="72"
                                  GotFocus="Pass_GotFocus" LostFocus="Pass_LostFocus"
                                  PasswordChanged="TxtConfirm_Changed"/>
                     <TextBox x:Name="TxtConfirmVisible" Grid.Column="1"
                              Style="{StaticResource InputTextBox}" Visibility="Collapsed"
+                             MaxLength="72"
                              GotFocus="Pass_GotFocus" LostFocus="Pass_LostFocus"
                              TextChanged="TxtConfirmVisible_Changed"/>
                     <Button Grid.Column="2" Width="40" Background="Transparent" BorderThickness="0"

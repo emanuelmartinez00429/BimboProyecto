@@ -37,6 +37,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Empleados
             _validador = ValidadorFormulario.Nuevo()
                 .Campo(TxtNombre, "El nombre").Segun(ReglasEmpleado.Nombre)
                 .Campo(TxtApellido, "El apellido").Segun(ReglasEmpleado.Apellido)
+                .Campo(TxtIdentidad, "El número de identidad").Segun(ReglasEmpleado.Identidad)
                 .Campo(TxtTelefono, "El teléfono").Segun(ReglasEmpleado.Telefono)
                 .Campo(TxtCorreo, "El correo").Segun(ReglasEmpleado.Correo)
                 .ValidarAlSalirDelCampo();

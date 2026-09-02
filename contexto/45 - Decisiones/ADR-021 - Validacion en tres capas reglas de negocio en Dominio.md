@@ -86,9 +86,59 @@ El pendiente de 2026-06 listaba también reglas de negocio que siguen sin implem
 
 Tampoco existe todavía proyecto de tests; las reglas puras habilitan las pruebas de caja negra, pero nadie las escribió aún.
 
+## Addendum 2026-09-02 — Propagación automática de topes preventivos y alineación con esquema Supabase
+
+### 1. Tope Preventivo Automático en UI (`TopePreventivo(m)`)
+Se modificó `ValidadorFormulario.Segun()` y `ValidadorFormulario.LargoMaximo()` en `CapaUI/Core/Validacion/ValidadorFormulario.cs` para invocar el método interno `TopePreventivo(m)` en `ConstructorCampo`:
+- Si `_campo.Control is TextBox tb && tb.MaxLength == 0`, se asigna automáticamente `tb.MaxLength = max`.
+- Si `_campo.Control is PasswordBox pb && pb.MaxLength == 0`, se asigna automáticamente `pb.MaxLength = max`.
+- Si `MaxLength` ya fue establecido manualmente (`!= 0`), se respeta la configuración previa.
+
+Esto convierte la validación de longitud máxima en una **medida preventiva activa**: el usuario no puede tipear ni pegar más caracteres de los permitidos por las reglas del dominio en ningún control registrado en el validador, evitando la necesidad de esperar al evento `LostFocus` o al clic de guardado para notar el error.
+
+### 2. Eliminación de `MaxLength` redundante en XAML de Modales
+Se removió el atributo manual `MaxLength="100"` en los XAML de modales CRUD (`ProveedorModal.xaml`, `FabricanteModal.xaml`, `CategoriaModal.xaml`, `PresentacionModal.xaml`, `EmpleadoModal.xaml`).
+- **Problema previo:** El valor estático `100` en XAML causaba truncamientos artificiales en entidades cuyas columnas en PostgreSQL soportan hasta 200 caracteres (ej. `nombre_proveedor` y `nombre_fabricante`), impidiendo el ingreso de nombres válidos de proveedores y fabricantes largos.
+- **Beneficio:** La longitud máxima ahora se deriva limpiamente en tiempo de ejecución desde `CapaDominio/Reglas/ReglasEntidades.cs` mediante `.Segun(ReglasXxx.Campo)`, manteniendo una única fuente de verdad.
+
+### 3. Alineación de Reglas de Dominio con PostgreSQL (`information_schema.columns`)
+Se actualizó `CapaDominio/Reglas/ReglasEntidades.cs` para sincronizar 34 reglas de campo en 10 entidades con el esquema físico real de Supabase:
+- **`ReglasProducto`**: `Codigo` (50, `codigo_producto`), `Nombre` (200, `nombre_producto`), `Contenido` (100, `contenido`).
+- **`ReglasCategoria`**: `Nombre` (100, `nombre_categoria`), `Descripcion` (200, `descripcion_categoria`).
+- **`ReglasPresentacion`**: `Nombre` (100, `nombre_presentacion`), `Descripcion` (500 - tope UI, `descripcion_presentacion` text).
+- **`ReglasFabricante`**: `Nombre` (200, `nombre_fabricante`), `Descripcion` (500 - tope UI, `descripcion_fabricante` text).
+- **`ReglasProveedor`**: `Nombre` (200, `nombre_proveedor`), `Rtn` (20, `rtn_proveedor`), `Telefono` (20, `telefono_proveedor`), `Correo` (100, `correo_proveedor`), `Direccion` (500 - tope UI, `direccion_proveedor` text).
+- **`ReglasEmpleado`**: `Nombre` (100, `nombre_empleado`), `Apellido` (100, `apellido_empleado`), `Identidad` (20, obligatorio, `numero_identidad`), `Telefono` (20, `telefono_empleado`), `Correo` (100, `correo_empleado`).
+- **`ReglasUsuario`**: `Correo` (50, `alias_usuario`, `FormatoCampo.Correo`), `Password` (min 6, max 72, restricción Bcrypt).
+- **`ReglasRol`**: `Nombre` (50, `nombre_rol`).
+- **`ReglasContacto`**: `Nombre` (100, `nombre_contacto`), `Telefono` (20, `telefono_contacto`), `Correo` (100, `correo_contacto`).
+- **`ReglasEmpresa`**: `Nombre` (200, `nombre_empresa`), `Rtn` (20, `rtn_empresa`), `Telefono` (20, `telefono_empresa`), `Correo` (100, `correo_empresa`), `Direccion` (500 - tope UI, `direccion_empresa` text).
+- **Marcador de columnas `text`**: Todas las columnas tipo `text` sin límite nativo en BD se documentaron con el marcador léxico `// Tope de UI de 500 caracteres (columna text en BD)`.
+
+### 4. Cierre de Brechas de Validación en Modales
+Se incorporaron los campos pendientes al validador en sus respectivos code-behinds:
+- `EmpleadoModal.xaml.cs`: `.Campo(TxtIdentidad, "El número de identidad").Segun(ReglasEmpleado.Identidad)`
+- `ProductoModal.xaml.cs`: `.Campo(TxtContenido, "El contenido").Segun(ReglasProducto.Contenido)`
+- `UsuarioModal.xaml.cs`: `.Campo(TxtEmail, "El correo").Segun(ReglasUsuario.Correo)`
+
+### 5. Truncamiento Seguro en Generación Automática de Correo (`GenerarEmail`)
+En `UsuarioModal.xaml.cs`, el método `GenerarEmail` fue ajustado para calcular la longitud disponible de la parte local (`50 - "@empresa.com".Length = 38`). Si la combinación `nombre.apellido` excede 38 caracteres, se recorta mediante slicing (`local[..38]`), garantizando que la dirección final nunca sobrepase los 50 caracteres del campo `alias_usuario` en PostgreSQL mientras preserva el sufijo del dominio completo.
+
+### 6. Suite Automatizada de Deriva de Esquema y Frontera
+Se creó el proyecto de pruebas `BimboProyecto.Tests/Dominio/ReglasEntidadesTests.cs`:
+- **Test de Deriva de Esquema:** Compara dinámicamente las reglas de `CapaDominio` contra `information_schema.columns` en PostgreSQL cuando `BIMBO_POSTGRES_CONNECTION_STRING` está presente.
+- **Tests Offline / CI:** Pruebas unitarias parametrizadas `[Theory]` para ejecución sin base de datos.
+- **Auditoría por Reflexión:** Asegura que toda `ReglaCampo` pública declarada en `CapaDominio` esté registrada y verificada en el mapa de auditoría.
+
+---
+
 ## Relaciones
 
 - [[Pendiente - Servicio Genérico de Validaciones y Pruebas Caja Negra]] — el pendiente que este ADR resuelve parcialmente
-- [[Anatomia compartida de los modales]] — la estructura `CampoModal` de la que depende el renglón de error
+- [[Anatomia compartida de los modales]] — la estructura `CampoModal` de la que depende el renglón de error y la eliminación de `MaxLength` en XAML
+- [[Validacion de formularios]] — guía práctica del patrón de validación en UI
+- [[ADR-004 - GhostTextBox Autocompletado de Dominio en Login]] — autocompletado y topes de longitud en pantalla de login
 - [[ADR-001 - Result Pattern en Repositorios]] — el `Result` que devuelven los repositorios y que `ErroresRepositorio` traduce
 - [[ADR-018 - Busqueda insensible a mayusculas y tildes con columna generada]] — `TextoBusqueda.Normalizar`, que ahora reusa `UsuarioModal`
+- [[Sesión 2026-09-02 - Validación de longitud máxima en campos de texto]] — sesión de implementación integral de topes de longitud, pruebas y sincronización de esquema
+

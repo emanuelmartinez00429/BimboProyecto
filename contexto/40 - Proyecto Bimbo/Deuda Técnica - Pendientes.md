@@ -804,6 +804,8 @@ Auditoría pedida tras notar que `ProcesoDescargaModal` (y el resto de los modal
 1. Si el tamaño compacto es deliberado → nombrar y documentar la variante (ej. `ModalInputCompacto`) en `Styles.xaml`, agregándole el aro de foco y `Validacion.TieneError` que le faltan, y que `PesajeModalStyles.xaml` deje de tener su propia copia.
 2. Si no lo es → migrar directo a `ModalInput`/`ModalCombo`/`ModalSegBtn` y ajustar el layout de Pesaje donde haga falta.
 
+> **Actualización 2026-09-02:** En [[Sesión 2026-09-02 - Validación de longitud máxima en campos de texto]], todos los modales CRUD estándar eliminaron sus `MaxLength` en XAML y adoptaron la derivación automática de topes preventivos vía `ValidadorFormulario.Segun()`. `PesajeModalStyles.xaml` y los modales de Pesaje continúan usando `MInput` sin validación por campo ni `TopePreventivo`, manteniendo abierta esta divergencia hasta que se aborde el refactor del módulo Pesaje.
+
 **Estado:** `[ ] Pendiente`
 
 ---
@@ -870,6 +872,8 @@ Lo de la BD está verificado contra `information_schema`, no supuesto: `movimien
 
 Los tres pasos, no solo el primero: con el límite únicamente en la UI, cualquier otro camino de escritura lo saltea.
 
+> **Actualización 2026-09-02:** En [[Sesión 2026-09-02 - Validación de longitud máxima en campos de texto]], se alinearon 10 clases de dominio (34 reglas) en `ReglasEntidades.cs` contra `information_schema.columns` de Supabase, se incorporó `TopePreventivo(m)` en `ValidadorFormulario` para derivación automática de `MaxLength`, y se implementó una suite completa de pruebas de deriva (`BimboProyecto.Tests/Dominio/ReglasEntidadesTests.cs`). El módulo Pesaje permanece como el único pendiente sin reglas de longitud en `ReglasEntidades.cs` ni topes en sus modales/BD.
+
 **Estado:** `[ ] Pendiente` — se evalúa al cerrar el módulo Pesaje (ver [[Módulo Pesaje]]).
 
 ---
@@ -884,6 +888,29 @@ La traducción en `private.bitacora_pesaje` fue desplegada y validada mediante u
 La prueba manual debe ejecutar cambios de estado y confirmar que las columnas visibles muestran el significado de negocio —por ejemplo, `Recepción cerrada`, `Producto anulado` o `Pesaje anulado`— y nunca textos como `Estado 8`, `Estado 9` o variantes con el ID entre paréntesis.
 
 **Estado:** `[ ] Pendiente` — validación visual en la aplicación.
+
+---
+
+### P-047 · Divergencia de diseño y comportamiento entre `ModalInput` e `InputBox`
+
+**Archivos:** `CapaUI/Resources/Styles.xaml` (estilos `ModalInput` e `InputBox`), `CapaUI/Core/Controls/GhostTextBox.xaml`, `CapaUI/Formularios/InicioSesion/LoginWindow.xaml`, `CapaUI/Formularios/Principal/Pantallas/Configuracion/ConfiguracionEmpresaModal.xaml`
+**Detectado en:** [[Sesión 2026-09-02 - Validación de longitud máxima en campos de texto]]
+
+Existen dos estilos globales principales para cajas de texto en `Styles.xaml`:
+1. **`ModalInput`** (38px de alto, fuente 16.5 Segoe UI, borde 1px, `TextoResponsivo.Activo="True"` con `TextBlock` de recorte `CharacterEllipsis` superpuesto para campos editables desenfocados, triggers para `Validacion.TieneError`). Es consumido por los modales CRUD estándar, donde `ValidadorFormulario.Segun()` deriva automáticamente `MaxLength` preventivo.
+2. **`InputBox`** (44px de alto, fuente 13.5, borde 1.5px, `TextPrimaryBrush`, sin `TextoResponsivo` ni triggers de validación adjunta). Es consumido en vistas como Login (`LoginWindow`), paneles de recuperación (`Forgot*.xaml`) y modales de configuración (`ConfiguracionEmpresaModal`).
+
+Esta bifurcación introduce inconsistencias de comportamiento y mantenimiento:
+- Los formularios fuera de modales CRUD (`LoginWindow`, `ForgotEmailPanel`, `ForgotNewPanel`, `ConfiguracionEmpresaModal`) no usan `ValidadorFormulario`, por lo que no reciben `TopePreventivo` automático y dependen de asignaciones manuales de `MaxLength` en XAML o code-behind.
+- El comportamiento multilínea (`AcceptsReturn="True"`, `TextWrapping="Wrap"`, ej. dirección de empresa) interactúa de forma distinta con los templates de ambos estilos y sufre del bug de alineación vertical fija (P-043).
+
+**Riesgo:** Bajo en runtime, medio en consistencia de desarrollo. Un desarrollador nuevo puede asumir erróneamente que `InputBox` o `GhostTextBox` derivan topes de dominio automáticamente sin requerir configuración manual.
+
+**Solución:**
+1. Diseñar una jerarquía de variantes estandarizada en `Styles.xaml` o compartir un `ControlTemplate` base que soporte alineación vertical flexible y disparadores de validación.
+2. Documentar la matriz de uso de estilos de entrada en [[Anatomia compartida de los modales]].
+
+**Estado:** `[ ] Pendiente`
 
 ---
 
@@ -936,6 +963,7 @@ La prueba manual debe ejecutar cambios de estado y confirmar que las columnas vi
 | P-044 | Multiselección de `SelectorCatalogoModal` no responde a teclado (Space no tilda el checkbox) | `[ ]` Pendiente | [[Sesión 2026-08-19 - Selector de proveedor por tabla y consolidacion de estilos]] |
 | P-045 | Campos de texto de Pesaje sin límites en UI, Dominio ni BD | `[ ]` Pendiente | [[Módulo Pesaje]] |
 | P-046 | Validación visual de descripciones de estado de Pesaje en Bitácora | `[ ]` Pendiente | [[Sesión 2026-08-24 - RPC idempotentes auditadas de Pesajes]] |
+| P-047 | Divergencia de diseño y comportamiento entre `ModalInput` e `InputBox` | `[ ]` Pendiente | [[Sesión 2026-09-02 - Validación de longitud máxima en campos de texto]] |
 
 ---
 
@@ -960,3 +988,6 @@ La prueba manual debe ejecutar cambios de estado y confirmar que las columnas vi
 - [[Sesión 2026-08-15 - Icono dinámico del sidebar]] — origen de P-040
 - [[Sesión 2026-08-19 - Selector de proveedor por tabla y consolidacion de estilos]] — origen de P-042, P-043 y P-044
 - [[Anatomía compartida de los modales]] — tabla de estilos globales contra la que se auditó P-042
+- [[ADR-021 - Validacion en tres capas reglas de negocio en Dominio]] — tres capas de validación y reglas de dominio
+- [[Sesión 2026-09-02 - Validación de longitud máxima en campos de texto]] — origen de P-047 y actualización de P-042/P-045
+

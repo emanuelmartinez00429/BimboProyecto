@@ -28,6 +28,11 @@ namespace CapaUI.Formularios.InicioSesion
             _win   = win;
             _email = email;
             InitializeComponent();
+            int maxLen = ReglasUsuario.Password.LargoMaximo ?? 72;
+            TxtNew.MaxLength = maxLen;
+            TxtNewVisible.MaxLength = maxLen;
+            TxtConfirm.MaxLength = maxLen;
+            TxtConfirmVisible.MaxLength = maxLen;
         }
 
         private string NewPassword     => _show1 ? TxtNewVisible.Text     : TxtNew.Password;

@@ -77,12 +77,12 @@
                 <StackPanel Margin="40,20,40,18">
                     <StackPanel Style="{StaticResource CampoModal}">
                         <TextBlock Text="Nombre" Style="{StaticResource EtiquetaCampo}"/>
-                        <TextBox x:Name="TxtNombre" Style="{StaticResource ModalInput}" TabIndex="10" MaxLength="100"/>
+                        <TextBox x:Name="TxtNombre" Style="{StaticResource ModalInput}" TabIndex="10"/>
                     </StackPanel>
 
                     <StackPanel Style="{StaticResource CampoModal}">
                         <TextBlock Text="Apellido" Style="{StaticResource EtiquetaCampo}"/>
-                        <TextBox x:Name="TxtApellido" Style="{StaticResource ModalInput}" TabIndex="20" MaxLength="100"/>
+                        <TextBox x:Name="TxtApellido" Style="{StaticResource ModalInput}" TabIndex="20"/>
                     </StackPanel>
 
                     <StackPanel Style="{StaticResource CampoModal}">

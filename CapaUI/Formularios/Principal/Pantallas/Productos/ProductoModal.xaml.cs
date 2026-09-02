@@ -88,6 +88,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
             _validador = ValidadorFormulario.Nuevo()
                 .Campo(TxtCodigo, "El código").Segun(ReglasProducto.Codigo)
                 .Campo(TxtNombre, "El nombre").Segun(ReglasProducto.Nombre)
+                .Campo(TxtContenido, "El contenido").Segun(ReglasProducto.Contenido)
                 .Campo(TxtPesoTeorico, "El peso teórico").Segun(ReglasProducto.PesoTeorico)
                 .Campo(TxtPrecioPorKg, "El precio por kg").Segun(ReglasProducto.PrecioPorKg)
                 .ValidarAlSalirDelCampo();

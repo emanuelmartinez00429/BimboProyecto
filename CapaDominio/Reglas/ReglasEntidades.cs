@@ -6,89 +6,151 @@ namespace CapaDominio.Reglas;
 /// <remarks>
 /// <para>
 /// Antes esto vivía en cada modal, dentro de la declaración del validador. Que
-/// el nombre de un producto sea obligatorio y tope en 150 caracteres no es una
+/// el nombre de un producto sea obligatorio y tope en 200 caracteres no es una
 /// decisión de la pantalla: sale del negocio y del esquema de la base. Con la
 /// regla acá, la UI deja de decidirla y pasa a aplicarla — y si mañana hace
 /// falta chequear lo mismo antes de un insert, la fuente ya es única.
 /// </para>
 /// <para>
-/// Los largos máximos reflejan las columnas de Supabase. Si se cambia una
+/// Los largos máximos reflejan las columnas de Supabase (PostgreSQL). Si se cambia una
 /// columna hay que cambiar el número acá, y es el único lugar donde tocarlo.
 /// </para>
 /// </remarks>
 public static class ReglasProducto
 {
+    // Columna: codigo_producto (varchar 50)
     public static readonly ReglaCampo Codigo      = new(Obligatorio: true, LargoMaximo: 50);
-    public static readonly ReglaCampo Nombre      = new(Obligatorio: true, LargoMaximo: 150);
+
+    // Columna: nombre_producto (varchar 200)
+    public static readonly ReglaCampo Nombre      = new(Obligatorio: true, LargoMaximo: 200);
+
+    // Columna: contenido (varchar 100)
+    public static readonly ReglaCampo Contenido   = new(LargoMaximo: 100);
+
+    // Columna: peso_teorico (numeric)
     public static readonly ReglaCampo PesoTeorico = new(Formato: FormatoCampo.Decimal);
+
+    // Columna: precio_por_kg (numeric)
     public static readonly ReglaCampo PrecioPorKg = new(Formato: FormatoCampo.Decimal);
 }
 
 public static class ReglasCategoria
 {
+    // Columna: nombre_categoria (varchar 100)
     public static readonly ReglaCampo Nombre      = new(Obligatorio: true, LargoMaximo: 100);
-    public static readonly ReglaCampo Descripcion = new(LargoMaximo: 255);
+
+    // Columna: descripcion_categoria (varchar 200)
+    public static readonly ReglaCampo Descripcion = new(LargoMaximo: 200);
 }
 
 public static class ReglasPresentacion
 {
+    // Columna: nombre_presentacion (varchar 100)
     public static readonly ReglaCampo Nombre      = new(Obligatorio: true, LargoMaximo: 100);
-    public static readonly ReglaCampo Descripcion = new(LargoMaximo: 255);
+
+    // Columna: descripcion_presentacion (varchar 500)
+    public static readonly ReglaCampo Descripcion = new(LargoMaximo: 500);
 }
 
 public static class ReglasFabricante
 {
-    public static readonly ReglaCampo Nombre      = new(Obligatorio: true, LargoMaximo: 100);
-    public static readonly ReglaCampo Descripcion = new(LargoMaximo: 255);
+    // Columna: nombre_fabricante (varchar 200)
+    public static readonly ReglaCampo Nombre      = new(Obligatorio: true, LargoMaximo: 200);
+
+    // Columna: descripcion_fabricante (varchar 500)
+    public static readonly ReglaCampo Descripcion = new(LargoMaximo: 500);
+
     // Proveedor y País quedan fuera: son opcionales por diseño y el combo
     // ofrece "(Ninguno)" como primera opción.
 }
 
 public static class ReglasProveedor
 {
-    public static readonly ReglaCampo Nombre    = new(Obligatorio: true, LargoMaximo: 100);
-    public static readonly ReglaCampo Rtn       = new(Formato: FormatoCampo.Rtn);
-    public static readonly ReglaCampo Telefono  = new(Formato: FormatoCampo.Telefono);
-    public static readonly ReglaCampo Correo    = new(Formato: FormatoCampo.Correo);
-    public static readonly ReglaCampo Direccion = new(LargoMaximo: 255);
+    // Columna: nombre_proveedor (varchar 200)
+    public static readonly ReglaCampo Nombre    = new(Obligatorio: true, LargoMaximo: 200);
+
+    // Columna: rtn_proveedor (varchar 20)
+    public static readonly ReglaCampo Rtn       = new(LargoMaximo: 20, Formato: FormatoCampo.Rtn);
+
+    // Columna: telefono_proveedor (varchar 20)
+    public static readonly ReglaCampo Telefono  = new(LargoMaximo: 20, Formato: FormatoCampo.Telefono);
+
+    // Columna: correo_proveedor (varchar 100)
+    public static readonly ReglaCampo Correo    = new(LargoMaximo: 100, Formato: FormatoCampo.Correo);
+
+    // Columna: direccion_proveedor (varchar 500)
+    public static readonly ReglaCampo Direccion = new(LargoMaximo: 500);
 }
 
 public static class ReglasEmpleado
 {
-    public static readonly ReglaCampo Nombre   = new(Obligatorio: true, LargoMaximo: 100);
-    public static readonly ReglaCampo Apellido = new(Obligatorio: true, LargoMaximo: 100);
-    public static readonly ReglaCampo Telefono = new(Formato: FormatoCampo.Telefono);
-    public static readonly ReglaCampo Correo   = new(Formato: FormatoCampo.Correo);
+    // Columna: nombre_empleado (varchar 100)
+    public static readonly ReglaCampo Nombre    = new(Obligatorio: true, LargoMaximo: 100);
+
+    // Columna: apellido_empleado (varchar 100)
+    public static readonly ReglaCampo Apellido  = new(Obligatorio: true, LargoMaximo: 100);
+
+    // Columna: numero_identidad (varchar 20)
+    public static readonly ReglaCampo Identidad = new(Obligatorio: true, LargoMaximo: 20);
+
+    // Columna: telefono_empleado (varchar 20)
+    public static readonly ReglaCampo Telefono  = new(LargoMaximo: 20, Formato: FormatoCampo.Telefono);
+
+    // Columna: correo_empleado (varchar 100)
+    public static readonly ReglaCampo Correo    = new(LargoMaximo: 100, Formato: FormatoCampo.Correo);
 }
 
 public static class ReglasUsuario
 {
+    // Columna: id_empleado (integer)
     public static readonly ReglaCampo Empleado = new(Obligatorio: true);
+
+    // Columna: id_rol (integer)
     public static readonly ReglaCampo Rol      = new(Obligatorio: true);
 
+    // Columna: alias_usuario (varchar 50)
+    public static readonly ReglaCampo Correo   = new(Obligatorio: true, LargoMaximo: 50, Formato: FormatoCampo.Correo);
+
     /// <summary>
-    /// Mínimo de 6 caracteres. Es el piso que exige Supabase Auth al dar de alta
-    /// una credencial: por debajo, el alta falla del lado del servidor.
+    /// Supabase Auth / Bcrypt: mínimo 6 caracteres exigido por el servidor de autenticación
+    /// y máximo 72 caracteres defensivo por el truncamiento de algoritmo Bcrypt.
     /// </summary>
-    public static readonly ReglaCampo Password = new(LargoMinimo: 6);
+    // Supabase Auth / Bcrypt (mínimo 6, máximo 72)
+    public static readonly ReglaCampo Password = new(Obligatorio: true, LargoMinimo: 6, LargoMaximo: 72);
 }
 
 public static class ReglasRol
 {
+    // Columna: nombre_rol (varchar 50)
     public static readonly ReglaCampo Nombre = new(Obligatorio: true, LargoMaximo: 50);
 }
 
 public static class ReglasContacto
 {
+    // Columna: nombre_contacto (varchar 100 en contactos_fabricante / contactos_proveedor)
     public static readonly ReglaCampo Nombre   = new(Obligatorio: true, LargoMaximo: 100);
-    public static readonly ReglaCampo Telefono = new(Formato: FormatoCampo.Telefono);
-    public static readonly ReglaCampo Correo   = new(Formato: FormatoCampo.Correo);
+
+    // Columna: telefono_contacto (varchar 20 en contactos_fabricante / contactos_proveedor)
+    public static readonly ReglaCampo Telefono = new(LargoMaximo: 20, Formato: FormatoCampo.Telefono);
+
+    // Columna: correo_contacto (varchar 100 en contactos_fabricante / contactos_proveedor)
+    public static readonly ReglaCampo Correo   = new(LargoMaximo: 100, Formato: FormatoCampo.Correo);
 }
 
 public static class ReglasEmpresa
 {
-    public static readonly ReglaCampo Nombre   = new(Obligatorio: true, LargoMaximo: 150);
-    public static readonly ReglaCampo Rtn      = new(Formato: FormatoCampo.Rtn);
-    public static readonly ReglaCampo Telefono = new(Formato: FormatoCampo.Telefono);
-    public static readonly ReglaCampo Correo   = new(Formato: FormatoCampo.Correo);
+    // Columna: nombre_empresa (varchar 200)
+    public static readonly ReglaCampo Nombre    = new(Obligatorio: true, LargoMaximo: 200);
+
+    // Columna: rtn_empresa (varchar 20)
+    public static readonly ReglaCampo Rtn       = new(LargoMaximo: 20, Formato: FormatoCampo.Rtn);
+
+    // Columna: telefono_empresa (varchar 20)
+    public static readonly ReglaCampo Telefono  = new(LargoMaximo: 20, Formato: FormatoCampo.Telefono);
+
+    // Columna: correo_empresa (varchar 100)
+    public static readonly ReglaCampo Correo    = new(LargoMaximo: 100, Formato: FormatoCampo.Correo);
+
+    // Columna: direccion_empresa (varchar 500)
+    public static readonly ReglaCampo Direccion = new(LargoMaximo: 500);
 }

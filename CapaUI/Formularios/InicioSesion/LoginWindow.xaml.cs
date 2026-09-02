@@ -45,6 +45,9 @@ namespace CapaUI.Formularios.InicioSesion
             _logoCache = logoCache;
             _themeService = themeService;
             InitializeComponent();
+            TxtEmail.MaxLength = ReglasUsuario.Correo.LargoMaximo ?? 50;
+            TxtPassword.MaxLength = ReglasUsuario.Password.LargoMaximo ?? 72;
+            TxtPasswordVisible.MaxLength = ReglasUsuario.Password.LargoMaximo ?? 72;
             Loaded += LoginWindow_Loaded;
         }
 

@@ -202,9 +202,27 @@ public partial class ConfiguracionEmpresaViewModel : ObservableObject
             return false;
         }
 
+        if (!ReglasFormato.NoExcedeLargo(NombreEmpresa, ReglasEmpresa.Nombre.LargoMaximo ?? 200))
+        {
+            Error = $"El nombre de la empresa no puede superar los {ReglasEmpresa.Nombre.LargoMaximo ?? 200} caracteres.";
+            return false;
+        }
+
         if (!ReglasFormato.EsRtn(RtnEmpresa))
         {
             Error = "El RTN debe tener 14 dígitos.";
+            return false;
+        }
+
+        if (!ReglasFormato.NoExcedeLargo(RtnEmpresa, ReglasEmpresa.Rtn.LargoMaximo ?? 20))
+        {
+            Error = "El RTN no puede superar los 20 caracteres.";
+            return false;
+        }
+
+        if (!ReglasFormato.NoExcedeLargo(DireccionEmpresa, ReglasEmpresa.Direccion.LargoMaximo ?? 500))
+        {
+            Error = $"La dirección no puede superar los {ReglasEmpresa.Direccion.LargoMaximo ?? 500} caracteres.";
             return false;
         }
 
@@ -214,9 +232,27 @@ public partial class ConfiguracionEmpresaViewModel : ObservableObject
             return false;
         }
 
+        if (!ReglasFormato.NoExcedeLargo(TelefonoEmpresa, ReglasEmpresa.Telefono.LargoMaximo ?? 20))
+        {
+            Error = "El teléfono no puede superar los 20 caracteres.";
+            return false;
+        }
+
         if (!ReglasFormato.EsCorreo(CorreoEmpresa))
         {
             Error = "El correo no tiene un formato válido.";
+            return false;
+        }
+
+        if (!ReglasFormato.NoExcedeLargo(CorreoEmpresa, ReglasEmpresa.Correo.LargoMaximo ?? 100))
+        {
+            Error = "El correo no puede superar los 100 caracteres.";
+            return false;
+        }
+
+        if (!ReglasFormato.NoExcedeLargo(DominioCorreo, 100))
+        {
+            Error = "El dominio de correo no puede superar los 100 caracteres.";
             return false;
         }
 
