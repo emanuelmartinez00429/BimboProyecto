@@ -1,4 +1,4 @@
-﻿# Reglas del Proyecto Bimbo Honduras (Memoria Persistente)
+# Reglas del Proyecto Bimbo Honduras (Memoria Persistente)
 
 Este archivo define las reglas de oro y directrices de desarrollo, ejecución y documentación para el asistente de IA en este repositorio.
 
@@ -31,9 +31,9 @@ Este archivo define las reglas de oro y directrices de desarrollo, ejecución y 
 ## 2. Reglas de Ejecución y Verificación
 
 1. **Build:**
-   - `dotnet build BimboProyecto.sln` debe compilar siempre con **0 errores** (los warnings de nullable en `CapaDatos` son preexistentes).
+   - `dotnet build BimboProyecto.sln` debe compilar siempre con **0 errores y 0 advertencias** (resueltas el 2026-09-02).
 2. **Tests:**
-   - `dotnet test` debe mantenerse en verde.
+   - `dotnet test` debe mantenerse en verde (100% de pruebas superadas).
 3. **Verificación funcional:**
    - Compilación limpia + prueba manual del flujo/pantalla modificada.
 
@@ -41,13 +41,17 @@ Este archivo define las reglas de oro y directrices de desarrollo, ejecución y 
 
 ## 3. Reglas de Documentación en la Bóveda (`contexto/`)
 
-1. **Documentar siempre:**
+1. **Regla de Documentación Automática vs. Aprobación Previa (Mandatoria e Ineludible):**
+   - **Caso A (Requiere prueba/aprobación del usuario):** Si se desarrolló o modificó una feature que requiere que el usuario la pruebe y apruebe en la aplicación antes de oficializarla, el agente **DEBE avisar explícitamente en la respuesta**:
+     > *"No se ha documentado aún porque debes probar la feature y aprobarla; una vez aprobada, documentamos."*
+   - **Caso B (No requiere aprobación interactiva / fixes técnicos / refactors):** El agente **DEBE documentar en automático todo lo que haga** en la bitácora de sesión (`contexto/70/`) y notas correspondientes **antes** de entregar la respuesta. No se debe esperar a que el usuario lo pida.
+2. **Ubicación según el tipo de cambio:**
    - Trabajo de la sesión → `contexto/70 - Bitácora de Cambios/AAAA-MM/Sesión AAAA-MM-DD - Título.md`.
    - Decisiones arquitecturales → `contexto/45 - Decisiones/ADR-NNN - Título.md`.
    - Patrones recurrentes → `contexto/20 - Patrones/`.
    - Deuda técnica descubierta → ítem `P-NNN` en `contexto/40 - Proyecto Bimbo/Deuda Técnica - Pendientes.md`.
-2. **Regla anti-duplicados:**
+3. **Regla anti-duplicados:**
    - Buscar primero en `contexto/00 - MOC/Conocimiento Principal.md` antes de crear notas nuevas.
-3. **Formato:**
+4. **Formato estricto:**
    - Frontmatter YAML obligatorio (`title`, `tags`, `date` con fecha absoluta).
    - Enlaces con `[[wikilink]]` y sección final `## Relaciones`.

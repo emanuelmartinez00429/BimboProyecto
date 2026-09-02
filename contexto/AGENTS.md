@@ -21,6 +21,10 @@ Si el usuario pregunta algo tipo **"Yo soy a los animales como...?"** (o similar
 
 **Al terminar tu trabajo, documentás lo que hiciste** siguiendo este protocolo. No es opcional: es lo que permite que el siguiente agente entre sin perderse.
 
+**Regla de Documentación Automática vs. Aprobación Previa (Ineludible):**
+- **Si el cambio requiere prueba/aprobación del usuario** (feature visual, pantalla o interacción humana): el agente debe avisar explícitamente: *"No se ha documentado aún porque debes probar la feature y aprobarla; una vez aprobada, documentamos."*
+- **Si el cambio no requiere prueba interactiva** (técnico, backend, refactor, fixes): el agente debe documentar en automático todo lo que haga antes de responder.
+
 ---
 
 ## 1. Taxonomía — qué va en cada carpeta

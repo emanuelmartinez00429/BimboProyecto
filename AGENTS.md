@@ -61,7 +61,13 @@ Debe terminar en **0 errores y 0 advertencias** (las advertencias históricas de
 
 ## Al terminar tu trabajo: DOCUMENTA
 
-No es opcional — es lo que permite que el siguiente agente entre sin perderse. **Cómo clasificar y guardar lo que hiciste** (taxonomía de carpetas, frontmatter, nombres, anti-duplicados, plantillas):
+No es opcional — es lo que permite que el siguiente agente entre sin perderse.
+
+### Regla ineludible: Documentación automática vs. Aviso de prueba previa
+1. **Si el cambio requiere que el usuario pruebe y apruebe la feature primero** (ej. nueva pantalla, flujo interactivo o cambios visuales que requieren validación humana):
+   - **Debes avisar explícitamente**: *"No se ha documentado aún porque debes probar la feature y aprobarla; una vez aprobada, documentamos."*
+2. **Si el cambio es técnico / refactor / fix probado con tests**:
+   - **Debes documentar en automático todo lo que hagas** en `contexto/70/` y notas correspondientes **antes** de responder. No esperes a que te lo pidan.
 
 ➡ **[`contexto/AGENTS.md`](contexto/AGENTS.md)** — protocolo de la bóveda.
 
