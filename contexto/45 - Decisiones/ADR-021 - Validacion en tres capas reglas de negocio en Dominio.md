@@ -130,6 +130,14 @@ Se creó el proyecto de pruebas `BimboProyecto.Tests/Dominio/ReglasEntidadesTest
 - **Tests Offline / CI:** Pruebas unitarias parametrizadas `[Theory]` para ejecución sin base de datos.
 - **Auditoría por Reflexión:** Asegura que toda `ReglaCampo` pública declarada en `CapaDominio` esté registrada y verificada en el mapa de auditoría.
 
+### 7. Migración Supabase: Paridad Física de Columnas de Texto (`varchar(500)`)
+A solicitud y para garantizar paridad estricta entre la base de datos y la UI, se ejecutó la migración `20260902184000_limitar_columnas_texto_a_varchar_500.sql` en Supabase PostgreSQL:
+- **`fabricante.descripcion_fabricante`**: Migrado de `text` a `character varying(500)`.
+- **`presentacion_producto.descripcion_presentacion`**: Migrado de `text` a `character varying(500)`.
+- **`proveedores.direccion_proveedor`**: Migrado de `text` a `character varying(500)`.
+- **`empresa.direccion_empresa`**: Migrado de `text` a `character varying(500)`.
+Se verificó previamente que ninguna fila existente en el catálogo superara los 500 caracteres (0 registros excedidos). Con esta migración, el límite de 500 deja de ser únicamente un tope preventivo de UI y pasa a ser una restricción física enforceada por el motor relacional.
+
 ---
 
 ## Relaciones

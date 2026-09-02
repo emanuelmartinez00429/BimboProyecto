@@ -96,6 +96,16 @@ En `CapaDominio/Reglas/ReglasEntidades.cs` se sincronizaron las 34 reglas de cam
   - Actualización de notas de estado en `P-042` y `P-045` (aislamiento restante de Pesaje).
   - Registro de nueva ficha `P-047` para documentar la divergencia entre `ModalInput` e `InputBox`.
 
+### 2.5 Migración en Base de Datos Supabase (PostgreSQL)
+- **Archivo de migración:** `supabase/migrations/20260902184000_limitar_columnas_texto_a_varchar_500.sql`
+- **Operaciones DDL ejecutadas:**
+  - `ALTER TABLE public.fabricante ALTER COLUMN descripcion_fabricante TYPE character varying(500);`
+  - `ALTER TABLE public.presentacion_producto ALTER COLUMN descripcion_presentacion TYPE character varying(500);`
+  - `ALTER TABLE public.proveedores ALTER COLUMN direccion_proveedor TYPE character varying(500);`
+  - `ALTER TABLE public.empresa ALTER COLUMN direccion_empresa TYPE character varying(500);`
+- **Verificación previa:** Se validó que ninguna fila preexistente en el sistema excediera los 500 caracteres (0 registros violando el límite).
+- **Estado:** Migración aplicada y verificada contra `information_schema.columns` en Supabase PostgreSQL. Ahora las columnas son físicamente `character varying(500)` garantizando paridad física estricta entre la base de datos, el dominio (`ReglasEntidades.cs`) y la UI.
+
 ---
 
 ## 3. Verificación
