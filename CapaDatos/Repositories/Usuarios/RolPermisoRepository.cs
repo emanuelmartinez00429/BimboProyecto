@@ -13,8 +13,8 @@ namespace CapaDatos.Repositories.Usuarios;
 public sealed class RolPermisoRepository : RepositorioBase, IRolPermisoRepository
 {
     private const int Activo = 1;
-    private const string PermisoConsultar = "Consultar Rol";
-    private const string PermisoAdministrar = "Asignar Permisos a Rol";
+    private const string PermisoConsultar = "ROLES_CONSULTAR";
+    private const string PermisoAdministrar = "ROLES_ASIGNAR_PERMISOS";
 
     // Caché de proceso: el catálogo de módulos/acciones es prácticamente estático
     // (solo cambia con una migración de esquema). Evita repetir 2 round-trips a
@@ -169,6 +169,7 @@ public sealed class RolPermisoRepository : RepositorioBase, IRolPermisoRepositor
             {
                 ["p_id_rol"] = idRol,
                 ["p_ids_acciones"] = idsAcciones.Distinct().Order().ToArray(),
+                ["p_id_solicitud"] = Guid.NewGuid(),
             });
             ct.ThrowIfCancellationRequested();
         }, "Guardar permisos del rol");

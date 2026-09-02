@@ -241,7 +241,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Usuarios
                         IdRol      = idRol,
                     };
 
-                    var r = await _usuarioRepo.CrearAsync(dto);
+                    var r = await _usuarioRepo.CrearAsync(dto, Guid.NewGuid());
                     if (!r.Success)
                     {
                         // Se traduce antes de mostrarlo: este modal presenta el
@@ -256,7 +256,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Usuarios
                 {
                     if (idRol != _usuario.IdRol)
                     {
-                        var rRol = await _usuarioRepo.AsignarRolAsync(_usuario.IdUsuario, idRol);
+                        var rRol = await _usuarioRepo.AsignarRolAsync(_usuario.IdUsuario, idRol, Guid.NewGuid());
                         if (!rRol.Success)
                         {
                             MostrarError(ErroresRepositorio.Traducir(rRol.Error));
@@ -267,7 +267,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Usuarios
                     int idEstado = RbActivo.IsChecked == true ? 1 : 2;
                     if (idEstado != _usuario.IdEstado)
                     {
-                        var rEstado = await _usuarioRepo.CambiarEstadoAsync(_usuario.IdUsuario, idEstado);
+                        var rEstado = await _usuarioRepo.CambiarEstadoAsync(_usuario.IdUsuario, idEstado, Guid.NewGuid());
                         if (!rEstado.Success)
                         {
                             MostrarError(ErroresRepositorio.Traducir(rEstado.Error));

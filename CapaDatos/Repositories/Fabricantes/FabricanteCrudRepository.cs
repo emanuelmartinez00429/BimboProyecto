@@ -64,12 +64,10 @@ public class FabricanteCrudRepository : RepositorioBase, IFabricanteRepository
 
     // ── Escritura ─────────────────────────────────────────────────────────────
 
-    public Task<Result<int>> CreateAsync(FabricanteDto dto, CancellationToken ct = default) =>
+    public Task<Result<int>> CreateAsync(FabricanteDto dto, Guid idSolicitud, CancellationToken ct = default) =>
         TryAsync(async () =>
         {
             ct.ThrowIfCancellationRequested();
-            int idUsuario = _sesionService.SesionActual?.IdUsuario
-                ?? throw new InvalidOperationException("No hay una sesión activa; no se puede crear el fabricante.");
 
             var client = await ConexionSupabase.GetClientAsync();
             var parametros = new Dictionary<string, object?>
@@ -77,49 +75,67 @@ public class FabricanteCrudRepository : RepositorioBase, IFabricanteRepository
                 ["p_nombre_fabricante"] = dto.Nombre,
                 ["p_descripcion_fabricante"] = dto.Descripcion,
                 ["p_id_proveedor"] = dto.IdProveedor,
-                ["p_id_estado"] = dto.IdEstado,
                 ["p_id_pais"] = dto.IdPais,
-                ["p_usuario_ingresando"] = idUsuario,
+                ["p_id_solicitud"] = idSolicitud,
             };
 
-            var response = await client.Rpc("ingresar_fabricante_tabla_bitacora", parametros);
+            var response = await client.Rpc("crear_fabricante_seguro", parametros);
             ct.ThrowIfCancellationRequested();
-            return ObtenerIdCreado(response?.Content, "fabricante");
+            return ObtenerIdCreado(response?.Content, "fabricante", "id_fabricante");
         }, "Crear fabricante");
 
-    private static int ObtenerIdCreado(string? json, string entidad)
+        private static int ObtenerIdCreado(string? json, string entidad, string jsonKey)
     {
         if (string.IsNullOrWhiteSpace(json))
-            throw new InvalidOperationException($"La función de creación no devolvió el identificador del {entidad}.");
+            throw new InvalidOperationException($"La función devolvió una respuesta vacía para {entidad}.");
         int id;
-        try { id = JToken.Parse(json).ToObject<int>(); }
-        catch (Exception ex) when (ex is JsonException or FormatException)
-        { throw new InvalidOperationException("La función de creación devolvió un identificador inválido.", ex); }
-        return id > 0 ? id : throw new InvalidOperationException("La función de creación devolvió un identificador inválido.");
+        try { 
+            var token = Newtonsoft.Json.Linq.JToken.Parse(json);
+            if (token is Newtonsoft.Json.Linq.JObject obj) {
+                if (obj.TryGetValue("message", out var msgToken) || obj.TryGetValue("error", out msgToken))
+                    throw new InvalidOperationException(msgToken.Value<string>());
+                if (obj.TryGetValue(jsonKey, out var idToken))
+                    id = idToken.Value<int>();
+                else
+                    throw new InvalidOperationException($"La respuesta no contiene el campo {jsonKey}: {json}");
+            }
+            else {
+                id = token.Value<int>();
+            }
+        }
+        catch (Exception ex) when (ex is Newtonsoft.Json.JsonException or FormatException)
+        { throw new InvalidOperationException("La función devolvió una respuesta inválida.", ex); }
+        
+        return id > 0 ? id : throw new InvalidOperationException("La función devolvió un identificador inválido.");
     }
 
-    public Task<Result> UpdateAsync(FabricanteDto dto, CancellationToken ct = default) =>
+    public Task<Result> UpdateAsync(FabricanteDto dto, Guid idSolicitud, CancellationToken ct = default) =>
         TryAsync(async () =>
         {
             var client = await ConexionSupabase.GetClientAsync();
-            await client.From<FabricanteCrud>()
-                .Where(f => f.idFabricante == dto.Id)
-                .Set(f => f.nombreFabricante,      dto.Nombre)
-                .Set(f => f.descripcionFabricante, dto.Descripcion)
-                .Set(f => f.idProveedor,           dto.IdProveedor)
-                .Set(f => f.idPais,                dto.IdPais)
-                .Set(f => f.idEstado,              dto.IdEstado)
-                .Update();
+            var parametros = new Dictionary<string, object?>
+            {
+                ["p_id_fabricante"] = dto.Id,
+                ["p_nombre_fabricante"] = dto.Nombre,
+                ["p_descripcion_fabricante"] = dto.Descripcion,
+                ["p_id_proveedor"] = dto.IdProveedor,
+                ["p_id_pais"] = dto.IdPais,
+                ["p_id_solicitud"] = idSolicitud,
+            };
+            await client.Rpc("actualizar_fabricante_seguro", parametros);
         }, "Actualizar fabricante");
 
-    public Task<Result> DeleteAsync(int id, CancellationToken ct = default) =>
+    public Task<Result> DeleteAsync(int id, Guid idSolicitud, CancellationToken ct = default) =>
         TryAsync(async () =>
         {
             var client = await ConexionSupabase.GetClientAsync();
-            await client.From<FabricanteCrud>()
-                .Where(f => f.idFabricante == id)
-                .Set(f => f.idEstado, EstadoRegistro.Inactivo)
-                .Update();
+            var parametros = new Dictionary<string, object?>
+            {
+                ["p_id_fabricante"] = id,
+                ["p_id_estado"] = EstadoRegistro.Inactivo,
+                ["p_id_solicitud"] = idSolicitud,
+            };
+            await client.Rpc("cambiar_estado_fabricante_seguro", parametros);
         }, "Eliminar fabricante");
 
     // ── Lógica interna ────────────────────────────────────────────────────────

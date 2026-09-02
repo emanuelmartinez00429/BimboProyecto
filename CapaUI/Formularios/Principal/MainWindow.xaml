@@ -16,6 +16,7 @@
         xmlns:bita="clr-namespace:CapaUI.Formularios.Principal.Pantallas.Bitacora"
         xmlns:reportes="clr-namespace:CapaUI.Formularios.Principal.Pantallas.Reporteria"
         xmlns:roles="clr-namespace:CapaUI.Formularios.Principal.Pantallas.Roles"
+        xmlns:notifs="clr-namespace:CapaUI.Formularios.Principal.Pantallas.Notificaciones"
         xmlns:permisos="clr-namespace:CapaUI.Core.Permisos"
         xmlns:dash="clr-namespace:CapaUI.Formularios.Dashboard"
         xmlns:searchVm="clr-namespace:CapaUI.ViewModels.Search"
@@ -85,6 +86,9 @@
             </DataTemplate>
             <DataTemplate DataType="{x:Type local:ReporteriaVM}">
                 <reportes:ReporteriaView/>
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type notifs:NotificacionesViewModel}">
+                <notifs:NotificacionesView/>
             </DataTemplate>
             <DataTemplate DataType="{x:Type local:PlaceholderVM}">
                 <Grid Background="#F4F5F7">
@@ -226,10 +230,7 @@
                              zona — atarlo a ella se realimentaría y los botones
                              parpadearían al aparecer y desaparecer solos. -->
                         <Grid VerticalAlignment="Center"
-                              Visibility="{Binding ActualWidth,
-                                           RelativeSource={RelativeSource AncestorType={x:Type Window}},
-                                           Converter={StaticResource AnchoMinimoAVisibilidad},
-                                           ConverterParameter=1060}">
+                              Visibility="{Binding VerNotificaciones, Converter={StaticResource BoolToVisibility}}">
                             <Button x:Name="BtnNotif"
                                     Style="{StaticResource TopBarIconButton}"
                                     WindowChrome.IsHitTestVisibleInChrome="True"
@@ -247,14 +248,15 @@
                                     </Canvas>
                                 </Viewbox>
                             </Button>
-                            <!-- Badge rojo "3" -->
+                            <!-- Badge de no leídas -->
                             <Border Background="#EF4444" CornerRadius="7"
                                     MinWidth="13" Height="13" Padding="2,0"
                                     HorizontalAlignment="Right" VerticalAlignment="Top"
                                     Margin="0,5,4,0"
                                     BorderBrush="{DynamicResource EmpresaPrimaryBrush}" BorderThickness="1.5"
-                                    IsHitTestVisible="False">
-                                <TextBlock Text="3" Foreground="White"
+                                    IsHitTestVisible="False"
+                                    Visibility="{Binding Notificaciones.TieneNoLeidas, Converter={StaticResource BoolToVisibility}}">
+                                <TextBlock Text="{Binding Notificaciones.TextoBadge}" Foreground="White"
                                            FontFamily="Segoe UI" FontSize="9" FontWeight="Bold"
                                            HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
@@ -284,11 +286,13 @@
                                                                Foreground="#1A1F2E" VerticalAlignment="Center"/>
                                                     <Border Background="#EF4444" CornerRadius="999"
                                                             Padding="7,1" Margin="8,0,0,0" VerticalAlignment="Center">
-                                                        <TextBlock Text="3 nuevas" Foreground="White"
+                                                        <TextBlock Text="{Binding Notificaciones.TextoNuevas}" Foreground="White"
                                                                    FontFamily="Segoe UI" FontSize="10" FontWeight="Bold"/>
                                                     </Border>
                                                 </StackPanel>
                                                 <Button Content="Marcar todas" HorizontalAlignment="Right"
+                                                        Command="{Binding Notificaciones.MarcarTodasLeidasCommand}"
+                                                        IsEnabled="{Binding Notificaciones.ServicioDisponible}"
                                                         Background="Transparent" BorderThickness="0"
                                                         Foreground="{DynamicResource EmpresaPrimaryBrush}" FontFamily="Segoe UI"
                                                         FontSize="12" FontWeight="SemiBold"
@@ -297,7 +301,7 @@
                                         </Border>
 
                                         <!-- Notif 1 — azul / unread -->
-                                        <Border Background="#FAFBFF" BorderBrush="#F9FAFB"
+                                        <Border Visibility="Collapsed" Background="#FAFBFF" BorderBrush="#F9FAFB"
                                                 BorderThickness="0,0,0,1" Padding="16,12" Cursor="Hand">
                                             <Grid>
                                                 <Grid.ColumnDefinitions>
@@ -328,7 +332,7 @@
                                         </Border>
 
                                         <!-- Notif 2 — rojo / unread -->
-                                        <Border Background="#FAFBFF" BorderBrush="#F9FAFB"
+                                        <Border Visibility="Collapsed" Background="#FAFBFF" BorderBrush="#F9FAFB"
                                                 BorderThickness="0,0,0,1" Padding="16,12" Cursor="Hand">
                                             <Grid>
                                                 <Grid.ColumnDefinitions>
@@ -359,7 +363,7 @@
                                         </Border>
 
                                         <!-- Notif 3 — azul / unread -->
-                                        <Border Background="#FAFBFF" BorderBrush="#F9FAFB"
+                                        <Border Visibility="Collapsed" Background="#FAFBFF" BorderBrush="#F9FAFB"
                                                 BorderThickness="0,0,0,1" Padding="16,12" Cursor="Hand">
                                             <Grid>
                                                 <Grid.ColumnDefinitions>
@@ -390,7 +394,7 @@
                                         </Border>
 
                                         <!-- Notif 4 — verde / read -->
-                                        <Border Background="White" BorderBrush="#F9FAFB"
+                                        <Border Visibility="Collapsed" Background="White" BorderBrush="#F9FAFB"
                                                 BorderThickness="0,0,0,1" Padding="16,12" Cursor="Hand">
                                             <Grid>
                                                 <Grid.ColumnDefinitions>
@@ -416,9 +420,28 @@
                                             </Grid>
                                         </Border>
 
+                                        <ItemsControl ItemsSource="{Binding Notificaciones.Recientes}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Button Command="{Binding DataContext.Notificaciones.MarcarLeidaCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                            CommandParameter="{Binding}" HorizontalContentAlignment="Stretch"
+                                                            Background="White" BorderBrush="#F3F4F6" BorderThickness="0,0,0,1" Padding="16,11">
+                                                        <StackPanel>
+                                                            <TextBlock Text="{Binding Titulo}" FontWeight="SemiBold" Foreground="#1A1F2E"/>
+                                                            <TextBlock Text="{Binding Mensaje}" Foreground="#6B7280" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                                                            <TextBlock Text="{Binding FechaCreacion, StringFormat={}{0:dd/MM/yyyy HH:mm}}" Foreground="#9CA3AF" FontSize="11" Margin="0,4,0,0"/>
+                                                        </StackPanel>
+                                                    </Button>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                        <TextBlock Text="{Binding Notificaciones.MensajeEstado}" Foreground="#6B7280" TextWrapping="Wrap" Margin="16,10"
+                                                   Visibility="{Binding Notificaciones.ServicioDisponible, Converter={StaticResource InverseBoolToVisibility}}"/>
+
                                         <!-- Footer -->
                                         <Border BorderBrush="#F3F4F6" BorderThickness="0,1,0,0" Padding="16,10">
                                             <Button Content="Ver todas las notificaciones"
+                                                    Click="BtnVerNotificaciones_Click"
                                                     Background="Transparent" BorderThickness="0"
                                                     Foreground="{DynamicResource EmpresaPrimaryBrush}" FontFamily="Segoe UI"
                                                     FontSize="13" FontWeight="SemiBold"
@@ -726,7 +749,7 @@
                                 <!-- ══ USUARIOS ══ -->
                                 <StackPanel>
                                     <Button Tag="usuarios" Style="{StaticResource SidebarModuleButton}"
-                                            permisos:PermisoBehavior.Requiere="Consultar Usuario,Crear Usuario,Modificar Usuario,Eliminar Usuario,Consultar Empleado,Crear Empleado,Modificar Empleado,Eliminar Empleado,Consultar Rol,Crear Rol,Modificar Rol,Eliminar Rol,Asignar Permisos a Rol,Asignar Rol a Usuario"
+                                            permisos:PermisoBehavior.Requiere="Consultar Usuario,Crear Usuario,Modificar Usuario,Eliminar Usuario,Consultar Empleado,Crear Empleado,Modificar Empleado,Eliminar Empleado,Consultar Rol,Crear Rol,Modificar Rol,Cambiar Estado de Rol,Asignar Permisos a Rol,Asignar Rol a Usuario"
                                             Click="BtnModulo_Click" ToolTip="Usuarios">
                                         <Grid>
                                             <Border x:Name="IndUsuarios" Width="3"

@@ -142,12 +142,12 @@ namespace CapaUI.Formularios.Principal.Pantallas.Fabricantes
 
                 if (_esNuevo)
                 {
-                    var r = await _repo.CreateAsync(dto);
+                    var r = await _repo.CreateAsync(dto, Guid.NewGuid(), CancellationToken.None);
                     (exito, error) = (r.Success, r.Error);
                 }
                 else
                 {
-                    var r = await _repo.UpdateAsync(dto);
+                    var r = await _repo.UpdateAsync(dto, Guid.NewGuid(), CancellationToken.None);
                     (exito, error) = (r.Success, r.Error);
                 }
 

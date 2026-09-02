@@ -11,6 +11,7 @@ public static class Routes
     public const string Empleados = "empleados";
     public const string Roles     = "roles";
     public const string Bitacora  = "bitacora";
+    public const string Notificaciones = "notificaciones";
 
     // ── Productos ────────────────────────────────────────────────────────
     public const string Productos            = "productos-sub";

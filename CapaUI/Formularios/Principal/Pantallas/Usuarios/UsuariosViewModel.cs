@@ -303,7 +303,7 @@ public partial class UsuariosViewModel : ObservableObject, IDisposable
     {
         if (Seleccionado is null || !SesionPermisos.Tiene(Permiso.EliminarUsuario)) return;
         int nuevoEstado = Seleccionado.IdEstado == 1 ? 2 : 1;
-        var r = await _usuarioRepo.CambiarEstadoAsync(Seleccionado.IdUsuario, nuevoEstado);
+        var r = await _usuarioRepo.CambiarEstadoAsync(Seleccionado.IdUsuario, nuevoEstado, Guid.NewGuid());
         if (!r.Success)
         {
             ErrorCarga = r.Error;

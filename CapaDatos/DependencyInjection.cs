@@ -6,6 +6,7 @@ using CapaAplicacion.Contactos.Fabricantes.Interfaces;
 using CapaAplicacion.Contactos.Proveedores.Interfaces;
 using CapaAplicacion.Fabricantes.Interfaces;
 using CapaAplicacion.Pesaje.Interfaces;
+using CapaAplicacion.Notificaciones.Interfaces;
 using CapaAplicacion.Perfil;
 using CapaAplicacion.Presentaciones.Interfaces;
 using CapaAplicacion.Productos.Interfaces;
@@ -25,6 +26,7 @@ using CapaDatos.Repositories.GestionEmpleados;
 using CapaDatos.Repositories.Empresa;
 using CapaDatos.Repositories.Fabricantes;
 using CapaDatos.Repositories.Pesaje;
+using CapaDatos.Repositories.Notificaciones;
 using CapaDatos.Repositories.Presentaciones;
 using CapaDatos.Repositories.Productos;
 using CapaDatos.Repositories.Proveedores;
@@ -82,6 +84,9 @@ public static class DependencyInjection
 
         // Pesaje — persistencia real (movimientos / movimiento_productos / entradas_producto)
         services.AddTransient<IPesajeRepository, PesajeRepository>();
+
+        // Notificaciones internas — Supabase es la única fuente de verdad.
+        services.AddTransient<INotificacionRepository, NotificacionRepository>();
 
         // Usuarios — CRUD, consulta de roles, y servicio de sesion
         services.AddTransient<IUsuarioRepository, UsuarioRepository>();

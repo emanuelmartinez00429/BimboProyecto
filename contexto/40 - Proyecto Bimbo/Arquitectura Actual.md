@@ -26,7 +26,7 @@ aliases:
 > El engranaje abre un modal protegido por `Modificar Configuración` para editar la fila singleton de `empresa`, reemplazar el logo y aplicar el color corporativo al login, shell, vistas y modales. La escritura usa `IEmpresaRepository`/`EmpresaRepository`, Storage `empresa-logos` y RLS alineado con el permiso de la aplicación. El cliente no escribe `updated_at`; ese campo queda reservado a la automatización de base de datos. Ver [[Módulo Configuración de Empresa]] y [[ADR-019 - Configuración de empresa y tema dinámico global]].
 
 > [!success] Actualizado 2026-09-02 — RBAC auditable y detalle integrado de roles
-> El menú, las acciones CRUD, la navegación y las aperturas de modal validan el permiso vigente mediante `SesionPermisos`. El contrato usa los 34 nombres literales de `acciones.nombre_accion`; `PermisoCatalogo` traduce los identificadores tipados de C# a valores como `Consultar Rol`. `RolesView` presenta una cuadrícula y abre por `IdRol` un detalle con `acciones_roles` agrupadas por módulo, sin repetir consultas. Las mutaciones usan RPC auditadas y el Administrador es inmutable. Ver [[Módulo Usuarios]], [[ADR-024 - Rol Administrador inmutable con acceso total]] y [[Sesión 2026-09-02 - Permisos integrados en el detalle del rol]].
+> El menú, las acciones CRUD, la navegación y las aperturas de modal validan el permiso vigente mediante `SesionPermisos`. El contrato usa `acciones.codigo_accion` como identificador global y estable; los nombres quedan como etiquetas editables. `RolesView` presenta una cuadrícula y abre por `IdRol` un detalle con `acciones_roles` agrupadas por módulo, sin repetir consultas. Las mutaciones usan RPC auditadas e idempotentes y el Administrador es inmutable. Ver [[Módulo Usuarios]], [[ADR-024 - Rol Administrador inmutable con acceso total]] y [[Sesión 2026-09-02 - Permisos integrados en el detalle del rol]].
 
 > [!success] Actualizado 2026-07-23 — Sesión y permisos refactorizados (commit `f105047`, Emanuel)
 > **`SesionActual` y `servicioSesionActual` (holders estáticos en `CapaDominio`) eliminados.** Reemplazados por `IUsuarioSesionService` (Singleton en DI) + entidad `UsuarioSesion`. Fuente única de verdad de autenticación y permisos.
@@ -119,6 +119,8 @@ ProductoDto (DTO de aplicación)
 
 ## Realtime — arquitectura vigente
 
+La bandeja interna usa Supabase como única fuente de verdad. Se suscribe primero a `notificaciones_usuario` filtrando por el usuario interno y después consulta listado y contador mediante RPC. Realtime solo avisa que debe refrescarse el estado; al reconectar se recrea el canal y se vuelven a consultar las RPC. Sin conexión, la bandeja se declara no disponible y no simula operaciones confirmadas. Ver [[Módulo Notificaciones]] y [[ADR-025 - Notificaciones internas con Supabase como fuente de verdad]].
+
 ```
 RealtimeService (Singleton en DI)
     ├─ SuscribirAsync / Desuscribir
@@ -170,6 +172,7 @@ ProductosViewModel : RealtimeAwareViewModel
 | [[Módulo Contactos (Drill-down)\|Contactos Proveedores]] | ✅ Completo | ContactosProveedoresView, ContactosProveedoresViewModel, ContactoProveedorCrudRepository |
 | [[Buscador Universal Bimbo]] | ✅ Completo | Multi-entidad con Strategy + Mediator |
 | [[Módulo Usuarios]] | ✅ Completo (RBAC auditable y detalle de roles 2026-09-02) | UsuariosView, RolesView, RolModal, UsuarioRepository, RolRepository, RolPermisoRepository, UsuarioSesionService — CRUD + auth + permisos desde BD y Administración inmutable |
+| [[Módulo Notificaciones]] | 🟡 Base operativa | Campana, bandeja paginada, lectura y archivado individual, RPC/RLS/Realtime; faltan emisores de catálogos y usuarios |
 | [[Módulo Empleados]] | ✅ Completo (2026-07-26) | EmpleadosView, EmpleadosViewModel, EmpleadoCrudRepository — CRUD completo, crea usuario desde empleado |
 | [[Módulo Bitácora]] | ✅ Completo + reportes PDF/Excel (2026-08-16) | BitacoraView, BitacoraViewModel, BitacoraCrudRepository — consulta de auditoría, selección múltiple y reporte registrado por RPC antes de entregar archivo |
 | [[Módulo Reportería]] | ✅ Cuatro reportes operativos PDF/Excel (2026-08-17) | ReporteriaView, ReporteriaViewModel, ReporteConsultaRepository, cuatro RPC de consulta — vista previa paginada y exportación auditada |

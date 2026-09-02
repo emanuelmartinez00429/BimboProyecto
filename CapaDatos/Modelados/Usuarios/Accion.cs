@@ -12,6 +12,9 @@ namespace CapaDatos.Modelados.Usuarios
         [Column("nombre_accion")]
         public string nombreAccion { get; set; } = string.Empty;
 
+        [Column("codigo_accion")]
+        public string codigoAccion { get; set; } = string.Empty;
+
         [Column("id_modulo")]
         public int idModulo { get; set; }
 

@@ -107,94 +107,93 @@ public class ProductoCrudRepository : RepositorioBase, IProductoRepository
 
     // ── Escritura ─────────────────────────────────────────────────────────────
 
-    public Task<Result<int>> CreateAsync(ProductoDto dto, CancellationToken ct = default) =>
+    public Task<Result<int>> CreateAsync(ProductoDto dto, Guid idSolicitud, CancellationToken ct = default) =>
         TryAsync(async () =>
         {
             ct.ThrowIfCancellationRequested();
-
-            int idUsuario = _sesionService.SesionActual?.IdUsuario
-                ?? throw new InvalidOperationException(
-                    "No hay una sesión activa; no se puede crear el producto.");
 
             var client = await ConexionSupabase.GetClientAsync();
             var parametros = new Dictionary<string, object?>
             {
-                ["p_codigo_producto"]    = dto.CodigoInterno,
-                ["p_nombre_producto"]    = dto.Nombre,
-                ["p_id_presentacion"]    = dto.IdPresentacion,
-                ["p_id_fabricante"]      = dto.IdFabricante,
-                ["p_id_unidad"]          = dto.IdUnidad,
-                ["p_id_estado"]          = dto.IdEstado,
-                ["p_peso_teorico"]       = dto.PesoTeorico,
-                ["p_id_tara"]            = dto.IdTara,
-                ["p_id_categoria"]       = dto.IdCategoria,
-                ["p_contenido"]          = dto.Contenido,
-                ["p_id_pais"]            = dto.IdPais,
-                ["p_precio_por_kg"]       = dto.PrecioPorKg,
-                ["p_usuario_ingresando"] = idUsuario,
+                ["p_codigo_producto"] = dto.CodigoInterno,
+                ["p_nombre_producto"] = dto.Nombre,
+                ["p_id_presentacion"] = dto.IdPresentacion,
+                ["p_id_fabricante"] = dto.IdFabricante,
+                ["p_id_unidad"] = dto.IdUnidad,
+                ["p_peso_teorico"] = dto.PesoTeorico,
+                ["p_id_tara"] = dto.IdTara,
+                ["p_id_categoria"] = dto.IdCategoria,
+                ["p_contenido"] = dto.Contenido,
+                ["p_id_pais"] = dto.IdPais,
+                ["p_precio_por_kg"] = dto.PrecioPorKg,
+                ["p_id_solicitud"] = idSolicitud,
             };
 
-            var response = await client.Rpc(
-                "ingresar_producto_tabla_bitacora",
-                parametros);
-
+            var response = await client.Rpc("crear_producto_seguro", parametros);
             ct.ThrowIfCancellationRequested();
-
-            string? json = response?.Content;
-            if (string.IsNullOrWhiteSpace(json))
-                throw new InvalidOperationException(
-                    "La función de creación no devolvió el identificador del producto.");
-
-            int idProducto;
-            try
-            {
-                idProducto = JToken.Parse(json).ToObject<int>();
-            }
-            catch (Exception ex) when (ex is JsonException or FormatException)
-            {
-                throw new InvalidOperationException(
-                    "La función de creación devolvió un identificador inválido.", ex);
-            }
-
-            if (idProducto <= 0)
-                throw new InvalidOperationException(
-                    "La función de creación devolvió un identificador inválido.");
-
-            return idProducto;
+            return ObtenerIdCreado(response?.Content, "producto", "id_producto");
         }, "Crear producto");
 
-    public Task<Result> UpdateAsync(ProductoDto dto, CancellationToken ct = default) =>
+        private static int ObtenerIdCreado(string? json, string entidad, string jsonKey)
+    {
+        if (string.IsNullOrWhiteSpace(json))
+            throw new InvalidOperationException($"La función devolvió una respuesta vacía para {entidad}.");
+        int id;
+        try { 
+            var token = Newtonsoft.Json.Linq.JToken.Parse(json);
+            if (token is Newtonsoft.Json.Linq.JObject obj) {
+                if (obj.TryGetValue("message", out var msgToken) || obj.TryGetValue("error", out msgToken))
+                    throw new InvalidOperationException(msgToken.Value<string>());
+                if (obj.TryGetValue(jsonKey, out var idToken))
+                    id = idToken.Value<int>();
+                else
+                    throw new InvalidOperationException($"La respuesta no contiene el campo {jsonKey}: {json}");
+            }
+            else {
+                id = token.Value<int>();
+            }
+        }
+        catch (Exception ex) when (ex is Newtonsoft.Json.JsonException or FormatException)
+        { throw new InvalidOperationException("La función devolvió una respuesta inválida.", ex); }
+        
+        return id > 0 ? id : throw new InvalidOperationException("La función devolvió un identificador inválido.");
+    }
+
+    public Task<Result> UpdateAsync(ProductoDto dto, Guid idSolicitud, CancellationToken ct = default) =>
         TryAsync(async () =>
         {
             var client = await ConexionSupabase.GetClientAsync();
-            await client.From<Modelados.Productos.Productos>()
-                .Where(p => p.idProducto == dto.Id)
-                .Set(p => p.codigoProducto,    dto.CodigoInterno)
-                .Set(p => p.nombreProducto,    dto.Nombre)
-                .Set(p => p.contenidoProducto, dto.Contenido)
-                .Set(p => p.idPresentacion,    dto.IdPresentacion)
-                .Set(p => p.idFabricante,      dto.IdFabricante)
-                .Set(p => p.idCategoria,       dto.IdCategoria)
-                .Set(p => p.idPais,            dto.IdPais)
-                .Set(p => p.idEstado,          dto.IdEstado)
-                .Set(p => p.pesoTeorico,       dto.PesoTeorico)
-                .Set(p => p.idTara,            dto.IdTara)
-                .Set(p => p.idUnidad,          dto.IdUnidad)
-                .Set(p => p.precioPorKg,       dto.PrecioPorKg)
-                .Update();
+            var parametros = new Dictionary<string, object?>
+            {
+                ["p_id_producto"] = dto.Id,
+                ["p_codigo_producto"] = dto.CodigoInterno,
+                ["p_nombre_producto"] = dto.Nombre,
+                ["p_id_presentacion"] = dto.IdPresentacion,
+                ["p_id_fabricante"] = dto.IdFabricante,
+                ["p_id_unidad"] = dto.IdUnidad,
+                ["p_peso_teorico"] = dto.PesoTeorico,
+                ["p_id_tara"] = dto.IdTara,
+                ["p_id_categoria"] = dto.IdCategoria,
+                ["p_contenido"] = dto.Contenido,
+                ["p_id_pais"] = dto.IdPais,
+                ["p_precio_por_kg"] = dto.PrecioPorKg,
+                ["p_id_solicitud"] = idSolicitud,
+            };
+            await client.Rpc("actualizar_producto_seguro", parametros);
         }, "Actualizar producto");
 
-    public Task<Result> DeleteAsync(int id, CancellationToken ct = default) =>
+    public Task<Result> DeleteAsync(int id, Guid idSolicitud, CancellationToken ct = default) =>
         TryAsync(async () =>
         {
             var client = await ConexionSupabase.GetClientAsync();
-            await client.From<Modelados.Productos.Productos>()
-                .Where(p => p.idProducto == id)
-                .Set(p => p.idEstado, EstadoRegistro.Inactivo)
-                .Update();
+            var parametros = new Dictionary<string, object?>
+            {
+                ["p_id_producto"] = id,
+                ["p_id_estado"] = EstadoRegistro.Inactivo,
+                ["p_id_solicitud"] = idSolicitud,
+            };
+            await client.Rpc("cambiar_estado_producto_seguro", parametros);
         }, "Eliminar producto");
-
-    // ── Lógica interna ────────────────────────────────────────────────────────
 
     private async Task<PagedResult<ProductoDto>> GetPagedInternal(
         int page, int size, ProductoFiltros filtros, CancellationToken ct)
@@ -205,11 +204,6 @@ public class ProductoCrudRepository : RepositorioBase, IProductoRepository
         int from = (page - 1) * size;
         int to   = from + size - 1;
 
-        // Los conteos van SIN el filtro de estado: las pastillas TOTAL/ACTIVOS/
-        // INACTIVOS desglosan justamente por estado, así que si se les pasa
-        // p_estado terminan todas acotadas al mismo subconjunto (p.ej. filtrando
-        // "Activos", TOTAL deja de ser el total real y pasa a valer lo mismo que
-        // ACTIVOS). Fabricante/país/categoría sí se respetan porque son ortogonales al estado.
         var filtrosConteo = new ProductoFiltros
         {
             IdFabricante = filtros.IdFabricante,
@@ -220,9 +214,6 @@ public class ProductoCrudRepository : RepositorioBase, IProductoRepository
 
         var (colOrden, dirOrden) = ColumnaOrden(filtros.Orden);
 
-        // Página + conteos en paralelo (conteos via RPC — sin descargar filas).
-        // El ct viaja hasta el Get(): quien cancela (timeout o una carga más nueva)
-        // corta la petición de verdad en vez de solo dejar de esperarla.
         var pageTask    = query.Order(colOrden, dirOrden).Range(from, to).Get(ct);
         var conteosTask = GetConteosRpcAsync(filtrosConteo, client);
         await Task.WhenAll(pageTask, conteosTask);
@@ -245,10 +236,6 @@ public class ProductoCrudRepository : RepositorioBase, IProductoRepository
         var client = await ConexionSupabase.GetClientAsync();
         var query  = AplicarFiltros(client.From<Modelados.Productos.Productos>().Select(SelectPara(filtros)), filtros);
 
-        // Un solo filtro contra busqueda_producto (columna generada = nombre +
-        // codigo, ya en minusculas y sin tildes) en vez del OR sobre las dos
-        // columnas crudas: asi "azucar" encuentra "AZÚCAR". El termino se
-        // normaliza del mismo modo para que los dos lados coincidan.
         var aguja = TextoBusqueda.Normalizar(termino);
 
         var resultado = await query
@@ -259,6 +246,8 @@ public class ProductoCrudRepository : RepositorioBase, IProductoRepository
 
         return resultado?.Models.Select(Map).ToList() ?? [];
     }
+
+
 
     // C12: Consultar catálogo directamente en vez de descargar toda la tabla productos
 

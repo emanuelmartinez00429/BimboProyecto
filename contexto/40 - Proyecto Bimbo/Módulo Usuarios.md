@@ -118,7 +118,9 @@ MainWindow → RolesView → RolesViewModel
         → reemplazar_permisos_rol_seguro realiza el reemplazo atómico
 ```
 
-Desde 2026-09-01 la lectura exige `Consultar Rol`; crear, modificar, desactivar y asignar permisos exigen respectivamente `Crear Rol`, `Modificar Rol`, `Eliminar Rol` y `Asignar Permisos a Rol`. Asignar un rol a otra cuenta exige `Asignar Rol a Usuario`. Los cambios afectan a todos los usuarios del rol y se reflejan al renovar la sesión.
+Desde 2026-09-02 la autorización usa `acciones.codigo_accion`, un identificador global, único y estable; `nombre_accion` queda como texto de interfaz. La lectura exige `ROLES_CONSULTAR`; crear, modificar, cambiar estado y asignar permisos exigen respectivamente `ROLES_CREAR`, `ROLES_MODIFICAR`, `ROLES_CAMBIAR_ESTADO` y `ROLES_ASIGNAR_PERMISOS`. Asignar un rol a otra cuenta exige `USUARIOS_ASIGNAR_ROL`. La etiqueta histórica `Eliminar Rol` se corrigió a `Cambiar Estado de Rol` porque la operación solo activa o desactiva.
+
+Las cinco RPC de roles reciben `p_id_solicitud uuid` y usan `private.solicitudes_rpc` para reintentos idempotentes. Una operación repetida devuelve su resultado canónico; una operación sin cambios no registra una modificación ni crea notificación. Auditoría y notificación comparten el mismo `id_solicitud`. `reemplazar_permisos_rol_seguro` emite `PERMISOS_ROL_MODIFICADOS` y `asignar_rol_usuario_seguro` emite `ROL_USUARIO_MODIFICADO` únicamente cuando hubo un cambio real.
 
 Desde 2026-09-02 `Gestión de Roles` usa una sola ruta con dos estados internos: cuadrícula y detalle. Cada tarjeta abre el detalle por `IdRol`; el nombre es solo informativo y renombrar el rol no afecta la navegación. Crear un rol incorpora el resultado al resumen ya cargado y abre su detalle inmediatamente. Los roles inactivos y de sistema pueden consultarse, pero la edición de permisos solo se habilita si la sesión tiene `Asignar Permisos a Rol`, el rol está activo y no es de sistema. Al volver con cambios pendientes se puede guardar, descartar o seguir editando; si el guardado remoto falla, el detalle permanece abierto.
 
@@ -133,7 +135,7 @@ acciones_roles → UsuarioSesionService → SesionPermisos
     └─ code-behind valida antes de abrir modales o eliminar
 ```
 
-`PermisoBehavior` trabaja en modo cerrado: una cadena vacía o que no corresponda al catálogo `PermisoCatalogo` oculta el elemento y genera un error en Serilog. El XAML utiliza literalmente los 34 valores de `acciones.nombre_accion` (por ejemplo, `Consultar Rol`); el enum C# conserva identificadores sin espacios y `NombreBaseDatos()` realiza la traducción explícita. La base de datos/RLS continúa siendo la frontera final para solicitudes directas fuera del cliente WPF.
+`PermisoBehavior` trabaja en modo cerrado: una cadena vacía o que no corresponda al catálogo `PermisoCatalogo` oculta el elemento y genera un error en Serilog. `PermisoCatalogo` acepta las etiquetas legibles usadas por el XAML y las traduce a `codigo_accion`; `IUsuarioSesionService` conserva códigos, no nombres. La base de datos/RLS continúa siendo la frontera final para solicitudes directas fuera del cliente WPF.
 
 ## Patrones en Uso
 - [[Repository Pattern]] — RolRepository, UsuarioRepository

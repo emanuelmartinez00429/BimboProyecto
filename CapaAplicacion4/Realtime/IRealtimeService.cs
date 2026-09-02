@@ -27,6 +27,16 @@ public interface IRealtimeService
     IDisposable Observar(string tabla, Action<CambioRealtime> handler);
 
     /// <summary>
+    /// Abre una suscripción filtrada y no retorna hasta que el canal fue suscrito.
+    /// Se usa cuando el orden suscribir-antes-de-consultar es parte del contrato.
+    /// </summary>
+    Task<IDisposable> ObservarAsync(
+        string tabla,
+        string filtro,
+        Action<CambioRealtime> handler,
+        CancellationToken ct = default);
+
+    /// <summary>
     /// Cierra todos los canales. El WebSocket se mantiene vivo
     /// para reutilizarse en el próximo login sin latencia de reconexión.
     /// Llamar al cerrar sesión para liberar recursos.

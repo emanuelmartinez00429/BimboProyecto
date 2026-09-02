@@ -10,7 +10,7 @@ public interface IProveedorRepository
     Task<Result<PagedResult<ProveedorDto>>>   GetPagedAsync(int page, int size, ProveedorFiltros filtros, CancellationToken ct = default);
     Task<Result<IReadOnlyList<ProveedorDto>>> BuscarSugerenciasAsync(string termino, ProveedorFiltros filtros, CancellationToken ct = default);
     Task<Result<int>>                         GetPaginaDeRegistroAsync(int id, int size, ProveedorFiltros filtros, CancellationToken ct = default);
-    Task<Result<int>> CreateAsync(ProveedorDto dto, CancellationToken ct = default);
-    Task<Result>      UpdateAsync(ProveedorDto dto, CancellationToken ct = default);
-    Task<Result>      DeleteAsync(int id,           CancellationToken ct = default);
+    Task<Result<int>> CreateAsync(ProveedorDto dto, Guid idSolicitud, CancellationToken ct = default);
+    Task<Result>      UpdateAsync(ProveedorDto dto, Guid idSolicitud, CancellationToken ct = default);
+    Task<Result>      DeleteAsync(int id,           Guid idSolicitud, CancellationToken ct = default);
 }

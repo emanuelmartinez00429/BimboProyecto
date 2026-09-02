@@ -36,6 +36,7 @@ public sealed class RolRepository : RepositorioBase, IRolRepository
         EjecutarAsync("crear_rol_seguro", new Dictionary<string, object?>
         {
             ["p_nombre_rol"] = nombreRol,
+            ["p_id_solicitud"] = Guid.NewGuid(),
         }, "Crear rol", ct);
 
     public Task<Result<RolDto>> ActualizarAsync(int idRol, string nombreRol, CancellationToken ct = default) =>
@@ -43,6 +44,7 @@ public sealed class RolRepository : RepositorioBase, IRolRepository
         {
             ["p_id_rol"] = idRol,
             ["p_nombre_rol"] = nombreRol,
+            ["p_id_solicitud"] = Guid.NewGuid(),
         }, "Modificar rol", ct);
 
     public Task<Result<RolDto>> CambiarEstadoAsync(int idRol, int idEstado, CancellationToken ct = default) =>
@@ -50,6 +52,7 @@ public sealed class RolRepository : RepositorioBase, IRolRepository
         {
             ["p_id_rol"] = idRol,
             ["p_id_estado"] = idEstado,
+            ["p_id_solicitud"] = Guid.NewGuid(),
         }, "Cambiar estado del rol", ct);
 
     private Task<Result<RolDto>> EjecutarAsync(

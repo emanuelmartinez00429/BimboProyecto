@@ -17,8 +17,8 @@ public interface IUsuarioRepository
     Task<Result<IReadOnlyList<EmpleadoDto>>>     ObtenerEmpleadosSinUsuarioAsync(CancellationToken ct = default);
 
     // ── Escritura ────────────────────────────────────────────────────────
-    Task<Result>                                 CrearAsync(CrearUsuarioDto dto, CancellationToken ct = default);
-    Task<Result>                                 ActualizarAsync(ActualizarUsuarioDto dto, CancellationToken ct = default);
-    Task<Result>                                 CambiarEstadoAsync(int idUsuario, int idEstado, CancellationToken ct = default);
-    Task<Result>                                 AsignarRolAsync(int idUsuario, int idRol, CancellationToken ct = default);
+    Task<Result>                                 CrearAsync(CrearUsuarioDto dto, Guid idSolicitud, CancellationToken ct = default);
+    Task<Result>                                 ActualizarAsync(ActualizarUsuarioDto dto, Guid idSolicitud, CancellationToken ct = default);
+    Task<Result>                                 CambiarEstadoAsync(int idUsuario, int idEstado, Guid idSolicitud, CancellationToken ct = default);
+    Task<Result>                                 AsignarRolAsync(int idUsuario, int idRol, Guid idSolicitud, CancellationToken ct = default);
 }

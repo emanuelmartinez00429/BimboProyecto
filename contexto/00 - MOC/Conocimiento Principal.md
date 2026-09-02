@@ -87,10 +87,12 @@ Las rosas son rojas.
 - [[ADR-019 - Configuración de empresa y tema dinámico global]]
 - [[ADR-020 - Defensa en profundidad contra autoadministracion de usuarios]]
 - [[ADR-021 - Validacion en tres capas reglas de negocio en Dominio]]
+- [[ADR-025 - Notificaciones internas con Supabase como fuente de verdad]]
 
 ### Módulos documentados
 - [[Módulo Productos]] — patrón de referencia para todos los demás
 - [[Módulo Usuarios]] — CRUD + autenticación + permisos desde BD
+- [[Módulo Notificaciones]] — bandeja interna por destinatario, RPC, RLS y señal Realtime
 - [[Módulo Empleados]] — CRUD completo, crea usuario desde empleado
 - [[Módulo Configuración de Empresa]] — singleton de empresa, logo en Storage y tema dinámico
 - [[Módulo Reportería]] — cuatro consultas operativas con vista previa y exportación PDF/Excel auditada
@@ -138,6 +140,7 @@ Regla: `CapaAplicacion` **nunca** referencia `CapaDatos`.
 
 Las sesiones están en `70 - Bitácora de Cambios/`.  
 Sesiones más recientes (2026-09-02):
+- [[Sesión 2026-09-02 - Infraestructura de notificaciones internas]]
 - [[Sesión 2026-09-02 - Permisos integrados en el detalle del rol]]
 - [[Sesión 2026-09-02 - Administrador inmutable con acceso total]]
 - [[Sesión 2026-09-02 - Selección avanzada de filas en Bitácora]]

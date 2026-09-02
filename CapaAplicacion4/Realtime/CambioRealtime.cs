@@ -7,5 +7,6 @@ namespace CapaAplicacion.Realtime;
 public record CambioRealtime(
     string Operacion,   // "INSERT" | "UPDATE"
     long?  IdRegistro,  // PK del registro afectado
-    int?   NuevoEstado  // id_estado del registro nuevo (null si no aplica)
+    int?   NuevoEstado, // id_estado del registro nuevo (null si no aplica)
+    IReadOnlyDictionary<string, string?>? Valores = null
 );

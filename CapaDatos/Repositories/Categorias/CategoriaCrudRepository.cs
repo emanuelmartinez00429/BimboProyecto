@@ -48,59 +48,76 @@ public class CategoriaCrudRepository : RepositorioBase, ICategoriaRepository
 
     // ── Escritura ─────────────────────────────────────────────────────────────
 
-    public Task<Result<int>> CreateAsync(CategoriaDto dto, CancellationToken ct = default) =>
+    public Task<Result<int>> CreateAsync(CategoriaDto dto, Guid idSolicitud, CancellationToken ct = default) =>
         TryAsync(async () =>
         {
             ct.ThrowIfCancellationRequested();
-            int idUsuario = _sesionService.SesionActual?.IdUsuario
-                ?? throw new InvalidOperationException("No hay una sesión activa; no se puede crear la categoría.");
 
             var client = await ConexionSupabase.GetClientAsync();
             var parametros = new Dictionary<string, object?>
             {
                 ["p_nombre_categoria"] = dto.Nombre,
-                ["p_estado_categoria"] = dto.EstadoCategoria,
                 ["p_descripcion_categoria"] = dto.Descripcion,
-                ["p_usuario_ingresando"] = idUsuario,
+                ["p_id_solicitud"] = idSolicitud,
             };
 
-            var response = await client.Rpc("ingresar_categoria_tabla_bitacora", parametros);
+            var response = await client.Rpc("crear_categoria_seguro", parametros);
             ct.ThrowIfCancellationRequested();
-            return ObtenerIdCreado(response?.Content, "categoría");
+            return ObtenerIdCreado(response?.Content, "categoría", "id_categoria");
         }, "Crear categoría");
 
-    private static int ObtenerIdCreado(string? json, string entidad)
+        private static int ObtenerIdCreado(string? json, string entidad, string jsonKey)
     {
         if (string.IsNullOrWhiteSpace(json))
-            throw new InvalidOperationException($"La función de creación no devolvió el identificador de la {entidad}.");
+            throw new InvalidOperationException($"La función devolvió una respuesta vacía para {entidad}.");
         int id;
-        try { id = JToken.Parse(json).ToObject<int>(); }
-        catch (Exception ex) when (ex is JsonException or FormatException)
-        { throw new InvalidOperationException("La función de creación devolvió un identificador inválido.", ex); }
-        return id > 0 ? id : throw new InvalidOperationException("La función de creación devolvió un identificador inválido.");
+        try { 
+            var token = Newtonsoft.Json.Linq.JToken.Parse(json);
+            if (token is Newtonsoft.Json.Linq.JObject obj) {
+                if (obj.TryGetValue("message", out var msgToken) || obj.TryGetValue("error", out msgToken))
+                    throw new InvalidOperationException(msgToken.Value<string>());
+                if (obj.TryGetValue(jsonKey, out var idToken))
+                    id = idToken.Value<int>();
+                else
+                    throw new InvalidOperationException($"La respuesta no contiene el campo {jsonKey}: {json}");
+            }
+            else {
+                id = token.Value<int>();
+            }
+        }
+        catch (Exception ex) when (ex is Newtonsoft.Json.JsonException or FormatException)
+        { throw new InvalidOperationException("La función devolvió una respuesta inválida.", ex); }
+        
+        return id > 0 ? id : throw new InvalidOperationException("La función devolvió un identificador inválido.");
     }
 
-    public Task<Result> UpdateAsync(CategoriaDto dto, CancellationToken ct = default) =>
+    public Task<Result> UpdateAsync(CategoriaDto dto, Guid idSolicitud, CancellationToken ct = default) =>
         TryAsync(async () =>
         {
             var client = await ConexionSupabase.GetClientAsync();
-            await client.From<Categoria>()
-                .Where(c => c.idCategoria == dto.Id)
-                .Set(c => c.nombreCategoria,      dto.Nombre)
-                .Set(c => c.descripcionCategoria, dto.Descripcion)
-                .Set(c => c.estadoCategoria,      dto.EstadoCategoria)
-                .Update();
+            var parametros = new Dictionary<string, object?>
+            {
+                ["p_id_categoria"] = dto.Id,
+                ["p_nombre_categoria"] = dto.Nombre,
+                ["p_descripcion_categoria"] = dto.Descripcion,
+                ["p_id_solicitud"] = idSolicitud,
+            };
+            await client.Rpc("actualizar_categoria_seguro", parametros);
         }, "Actualizar categoría");
 
-    public Task<Result> DeleteAsync(int id, CancellationToken ct = default) =>
+    public Task<Result> DeleteAsync(int id, Guid idSolicitud, CancellationToken ct = default) =>
         TryAsync(async () =>
         {
             var client = await ConexionSupabase.GetClientAsync();
-            await client.From<Categoria>()
-                .Where(c => c.idCategoria == id)
-                .Set(c => c.estadoCategoria, false)
-                .Update();
+            var parametros = new Dictionary<string, object?>
+            {
+                ["p_id_categoria"] = id,
+                ["p_estado_categoria"] = false,
+                ["p_id_solicitud"] = idSolicitud,
+            };
+            await client.Rpc("cambiar_estado_categoria_seguro", parametros);
         }, "Eliminar categoría");
+
 
     // ── Lógica interna ────────────────────────────────────────────────────────
 

@@ -52,6 +52,7 @@ public class RealtimeService : IRealtimeService
         ["tara"]                   = "id_tara",
         ["unidad_medida"]          = "id_unidad",
         ["tarimas"]                = "id_tarima",
+        ["notificaciones_usuario"] = "id_notificacion_usuario",
     };
 
     public RealtimeService()
@@ -66,16 +67,21 @@ public class RealtimeService : IRealtimeService
 
     // ── IRealtimeService ─────────────────────────────────────────────
 
-    public async Task SuscribirAsync(string tabla, Action<CambioRealtime> handler)
+    public Task SuscribirAsync(string tabla, Action<CambioRealtime> handler)
+        => SuscribirInternoAsync(tabla, tabla, null, handler, CancellationToken.None);
+
+    private async Task SuscribirInternoAsync(
+        string clave, string tabla, string? filtro,
+        Action<CambioRealtime> handler, CancellationToken ct)
     {
         bool necesitaCanal;
 
         lock (_stateLock)
         {
-            if (!_suscriptores.ContainsKey(tabla))
-                _suscriptores[tabla] = new List<Action<CambioRealtime>>();
-            _suscriptores[tabla].Add(handler);
-            necesitaCanal = !_canales.ContainsKey(tabla);
+            if (!_suscriptores.ContainsKey(clave))
+                _suscriptores[clave] = new List<Action<CambioRealtime>>();
+            _suscriptores[clave].Add(handler);
+            necesitaCanal = !_canales.ContainsKey(clave);
         }
 
         if (necesitaCanal)
@@ -84,9 +90,9 @@ public class RealtimeService : IRealtimeService
             try
             {
                 bool yaExiste;
-                lock (_stateLock) { yaExiste = _canales.ContainsKey(tabla); }
+                lock (_stateLock) { yaExiste = _canales.ContainsKey(clave); }
                 if (!yaExiste)
-                    await AbrirCanalAsync(tabla);
+                    await AbrirCanalAsync(clave, tabla, filtro, ct);
             }
             finally
             {
@@ -119,10 +125,21 @@ public class RealtimeService : IRealtimeService
         return new Suscripcion(this, tabla, handler);
     }
 
+    public async Task<IDisposable> ObservarAsync(
+        string tabla, string filtro, Action<CambioRealtime> handler,
+        CancellationToken ct = default)
+    {
+        var clave = $"{tabla}|{filtro}";
+        await SuscribirInternoAsync(clave, tabla, filtro, handler, ct);
+        return new Suscripcion(this, clave, handler);
+    }
+
     // ── Canal lifecycle ──────────────────────────────────────────────
 
-    private async Task AbrirCanalAsync(string tabla)
+    private async Task AbrirCanalAsync(
+        string clave, string tabla, string? filtro, CancellationToken ct)
     {
+        ct.ThrowIfCancellationRequested();
         var client = await ConexionSupabase.GetClientAsync();
 
         // ConnectAsync() es idempotente — si ya está conectado, no hace nada
@@ -145,18 +162,23 @@ public class RealtimeService : IRealtimeService
             }
         }
 
-        var channel = client.Realtime.Channel($"rt-{tabla}");
-        channel.Register(new PostgresChangesOptions("public", tabla, ListenType.All));
-        channel.AddPostgresChangeHandler(ListenType.All, (_, change) => OnCambioRecibido(tabla, change));
+        var channel = client.Realtime.Channel($"rt-{clave}");
+        var opciones = filtro is null
+            ? new PostgresChangesOptions("public", tabla, ListenType.All)
+            : new PostgresChangesOptions("public", tabla, ListenType.All, filtro,
+                new Dictionary<string, string>());
+        channel.Register(opciones);
+        channel.AddPostgresChangeHandler(ListenType.All, (_, change) => OnCambioRecibido(clave, tabla, change));
         await channel.Subscribe();
+        ct.ThrowIfCancellationRequested();
 
-        lock (_stateLock) { _canales[tabla] = channel; }
-        Serilog.Log.Information("Realtime: canal '{Tabla}' abierto", tabla);
+        lock (_stateLock) { _canales[clave] = channel; }
+        Serilog.Log.Information("Realtime: canal '{Tabla}' abierto con filtro '{Filtro}'", tabla, filtro);
     }
 
     // ── Procesamiento de eventos ─────────────────────────────────────
 
-    private void OnCambioRecibido(string tabla, PostgresChangesResponse change)
+    private void OnCambioRecibido(string clave, string tabla, PostgresChangesResponse change)
     {
         try
         {
@@ -165,7 +187,7 @@ public class RealtimeService : IRealtimeService
             List<Action<CambioRealtime>> snapshot;
             lock (_stateLock)
             {
-                if (!_suscriptores.TryGetValue(tabla, out var handlers)) return;
+                if (!_suscriptores.TryGetValue(clave, out var handlers)) return;
                 snapshot = handlers.ToList();
             }
 
@@ -205,7 +227,14 @@ public class RealtimeService : IRealtimeService
             estado = obj.Value<int?>("id_estado");
         }
 
-        return new CambioRealtime(operacion, id, estado);
+        IReadOnlyDictionary<string, string?>? valores = null;
+        if (rowData is JObject registro)
+            valores = registro.Properties().ToDictionary(
+                p => p.Name,
+                p => p.Value.Type == JTokenType.Null ? null : p.Value.ToString(),
+                StringComparer.Ordinal);
+
+        return new CambioRealtime(operacion, id, estado, valores);
     }
 
     // ── Desconexión ─────────────────────────────────────────────────

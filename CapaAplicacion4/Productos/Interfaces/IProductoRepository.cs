@@ -21,7 +21,7 @@ public interface IProductoRepository
     Task<Result<int>>                        GetPaginaDeProductoAsync(ProductoDto producto, int size, ProductoFiltros filtros, CancellationToken ct = default);
 
     // Escritura
-    Task<Result<int>> CreateAsync(ProductoDto dto, CancellationToken ct = default);
-    Task<Result>      UpdateAsync(ProductoDto dto, CancellationToken ct = default);
-    Task<Result>      DeleteAsync(int id,          CancellationToken ct = default);
+    Task<Result<int>> CreateAsync(ProductoDto dto, Guid idSolicitud, CancellationToken ct = default);
+    Task<Result>      UpdateAsync(ProductoDto dto, Guid idSolicitud, CancellationToken ct = default);
+    Task<Result>      DeleteAsync(int id,          Guid idSolicitud, CancellationToken ct = default);
 }

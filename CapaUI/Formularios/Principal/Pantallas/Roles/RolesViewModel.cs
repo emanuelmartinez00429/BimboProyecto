@@ -152,11 +152,11 @@ public sealed partial class RolesViewModel : ObservableObject, IDisposable
     [ObservableProperty] private OpcionSegmento? _opcionEstadoRol;
     [ObservableProperty] private bool _sinRoles;
 
-    public bool PuedeConsultar => _sesion.TienePermiso("Consultar Rol");
-    public bool PuedeCrearRol => _sesion.TienePermiso("Crear Rol");
-    public bool PuedeModificarRol => _sesion.TienePermiso("Modificar Rol");
-    public bool PuedeEliminarRol => _sesion.TienePermiso("Eliminar Rol");
-    public bool PuedeEditar => _sesion.TienePermiso("Asignar Permisos a Rol");
+    public bool PuedeConsultar => _sesion.TienePermiso("ROLES_CONSULTAR");
+    public bool PuedeCrearRol => _sesion.TienePermiso("ROLES_CREAR");
+    public bool PuedeModificarRol => _sesion.TienePermiso("ROLES_MODIFICAR");
+    public bool PuedeEliminarRol => _sesion.TienePermiso("ROLES_CAMBIAR_ESTADO");
+    public bool PuedeEditar => _sesion.TienePermiso("ROLES_ASIGNAR_PERMISOS");
     public bool PuedeEditarPermisosSeleccionados => PuedeEditar && RolSeleccionado?.EsActivo == true && !EsSistemaSeleccionado;
     public bool HayMensaje => !string.IsNullOrEmpty(Mensaje);
     public bool HayQuery => Query.Length > 0;

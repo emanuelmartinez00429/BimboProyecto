@@ -241,6 +241,7 @@ namespace CapaUI.Formularios.Principal
 
             // Arrancar el monitor de conexión (ya estamos logueados y en el hilo de UI)
             _conexionMonitor.Iniciar();
+            await Vm.Notificaciones.InicializarAsync();
             await CargarIconoSidebarAsync();
         }
 
@@ -519,6 +520,13 @@ namespace CapaUI.Formularios.Principal
         // ══════════════════════════════════════════════════════════════════
         private void BtnNotif_Click(object sender, RoutedEventArgs e)
             => NotifPopup.IsOpen = !NotifPopup.IsOpen;
+
+        private void BtnVerNotificaciones_Click(object sender, RoutedEventArgs e)
+        {
+            NotifPopup.IsOpen = false;
+            ClearActiveStates();
+            Vm.NavigateCommand.Execute(Routes.Notificaciones);
+        }
 
         private void BtnConfiguracion_Click(object sender, RoutedEventArgs e)
         {

@@ -128,46 +128,30 @@ public class UsuarioRepository : RepositorioBase, IUsuarioRepository
 
     // ── Escritura ────────────────────────────────────────────────────────────
 
-    public Task<Result> CrearAsync(CrearUsuarioDto dto, CancellationToken ct = default) =>
+    public Task<Result> CrearAsync(CrearUsuarioDto dto, Guid idSolicitud, CancellationToken ct = default) =>
         TryAsync(async () =>
         {
             var client = await ConexionSupabase.GetClientAsync();
 
-            // 1) Crear auth user usando un cliente TEMPORAL
-            //    para NO destruir la sesión del admin logueado.
-            Supabase.Client? tempClient = null;
+            string? url = Environment.GetEnvironmentVariable("SUPABASE_URL") ?? System.Configuration.ConfigurationManager.AppSettings["SUPABASE_URL"];
+            string? key = Environment.GetEnvironmentVariable("SUPABASE_KEY") ?? System.Configuration.ConfigurationManager.AppSettings["SUPABASE_KEY"];
+
+            var tempClient = new Supabase.Client(
+                url!,
+                key!,
+                new Supabase.SupabaseOptions
+                {
+                    AutoRefreshToken = false,
+                    AutoConnectRealtime = false
+                });
+
+            await tempClient.InitializeAsync();
             try
             {
-                string? url = Environment.GetEnvironmentVariable("SUPABASE_URL")
-                    ?? System.Configuration.ConfigurationManager.AppSettings["SUPABASE_URL"];
-                string? key = Environment.GetEnvironmentVariable("SUPABASE_KEY")
-                    ?? System.Configuration.ConfigurationManager.AppSettings["SUPABASE_KEY"];
-
-                if (string.IsNullOrWhiteSpace(url) || string.IsNullOrWhiteSpace(key))
-                    throw new InvalidOperationException("SUPABASE_URL / SUPABASE_KEY no configurados.");
-
-                tempClient = new Supabase.Client(url, key, new Supabase.SupabaseOptions
-                {
-                    AutoConnectRealtime = false,
-                    AutoRefreshToken    = false,
-                });
-                await tempClient.InitializeAsync();
-
-                var sessionBefore = client.Auth.CurrentSession;
-
-                await tempClient.Auth.SignUp(dto.Email, dto.Password);
-
-                // Restaurar sesión del admin en el singleton (por si SignUp la afectó)
-                if (sessionBefore?.AccessToken is not null)
-                    await client.Auth.SetSession(sessionBefore.AccessToken, sessionBefore.RefreshToken);
-
-                // Nunca loguear tokens ni fragmentos — solo el hecho booleano.
-                Serilog.Log.Debug("UsuarioRepository.CrearAsync: sesión admin restaurada tras SignUp: {Restaurada}",
-                    client.Auth.CurrentSession is not null);
+                var sesionNueva = await tempClient.Auth.SignUp(dto.Email, dto.Password);
             }
             catch (Exception ex)
             {
-                // Si el auth user ya existe, no es error — la RPC lo maneja
                 if (!ex.Message.Contains("already", StringComparison.OrdinalIgnoreCase)
                     && !ex.Message.Contains("ya existe", StringComparison.OrdinalIgnoreCase)
                     && !ex.Message.Contains("User already registered", StringComparison.OrdinalIgnoreCase))
@@ -178,7 +162,6 @@ public class UsuarioRepository : RepositorioBase, IUsuarioRepository
             }
             finally
             {
-                // Limpiar el cliente temporal
                 if (tempClient is not null)
                 {
                     try
@@ -186,76 +169,62 @@ public class UsuarioRepository : RepositorioBase, IUsuarioRepository
                         await tempClient.Auth.SignOut();
                         (tempClient.Realtime.Socket as IDisposable)?.Dispose();
                     }
-                    catch { /* cleanup best-effort */ }
+                    catch { }
                 }
             }
 
-            // 2) Llamar a la RPC que vincula auth user con empleado
-            var response = await client.Rpc("crear_usuario_empleado_seguro", new
+            var response = await client.Rpc("crear_usuario_empleado_seguro", new Dictionary<string, object?>
             {
-                p_id_empleado = dto.IdEmpleado,
-                p_email       = dto.Email,
-                p_rol         = dto.IdRol,
+                ["p_id_empleado"] = dto.IdEmpleado,
+                ["p_email"]       = dto.Email,
+                ["p_rol"]         = dto.IdRol,
+                ["p_id_solicitud"] = idSolicitud
             });
 
-            var resultado = response?.Content?.Trim('"') ?? string.Empty;
-
-            switch (resultado)
+            var json = response?.Content;
+            if (!string.IsNullOrWhiteSpace(json))
             {
-                case "USUARIO_CREADO":
-                    return; // éxito
-
-                case "USUARIO_NO_EXISTE":
-                    throw new InvalidOperationException("El empleado especificado no existe en el sistema.");
-
-                case "USUARIO_YA_EXISTE":
-                    throw new InvalidOperationException("El empleado ya tiene un usuario asociado.");
-
-                default:
-                    throw new InvalidOperationException($"Respuesta inesperada del servidor: {resultado}");
+                var token = Newtonsoft.Json.Linq.JToken.Parse(json);
+                if (token is Newtonsoft.Json.Linq.JObject obj && obj.TryGetValue("error", out var errToken))
+                {
+                    var err = (string?)errToken;
+                    if (err == "USUARIO_NO_EXISTE")
+                        throw new InvalidOperationException("El empleado especificado no existe en el sistema.");
+                    if (err == "USUARIO_YA_EXISTE")
+                        throw new InvalidOperationException("El empleado ya tiene un usuario asociado.");
+                }
             }
         }, "Crear usuario");
 
-    public Task<Result> ActualizarAsync(ActualizarUsuarioDto dto, CancellationToken ct = default) =>
+    public Task<Result> ActualizarAsync(ActualizarUsuarioDto dto, Guid idSolicitud, CancellationToken ct = default) =>
         TryAsync(async () =>
         {
             ExigirUsuarioObjetivoDistinto(dto.IdUsuario);
             var client = await ConexionSupabase.GetClientAsync();
-            var query = client.From<UsuariosModel>()
-                .Where(u => u.idUsuario == dto.IdUsuario);
-
-            if (dto.IdRol.HasValue)
-                query = query.Set(u => u.idRol, dto.IdRol.Value);
-            if (dto.IdEstado.HasValue)
-                query = query.Set(u => u.idEstado, dto.IdEstado.Value);
-            if (dto.Email is not null)
-                query = query.Set(u => u.aliasUsuario, dto.Email);
-
-            var response = await query.Update();
-
-            // Supabase devuelve 200 OK con Models vacío cuando RLS bloquea el UPDATE.
-            // Verificar que al menos 1 fila fue afectada.
-            if (response?.Models is null || response.Models.Count == 0)
-                throw new InvalidOperationException(
-                    "No se pudo actualizar el registro. Verifique los permisos de la tabla 'usuarios'.");
+            await client.Rpc("actualizar_usuario_seguro", new Dictionary<string, object?>
+            {
+                ["p_id_usuario"] = dto.IdUsuario,
+                ["p_id_rol"] = dto.IdRol,
+                ["p_id_estado"] = dto.IdEstado,
+                ["p_email"] = dto.Email,
+                ["p_id_solicitud"] = idSolicitud
+            });
         }, "Actualizar usuario");
 
-    public Task<Result> CambiarEstadoAsync(int idUsuario, int idEstado, CancellationToken ct = default) =>
+    public Task<Result> CambiarEstadoAsync(int idUsuario, int idEstado, Guid idSolicitud, CancellationToken ct = default) =>
         TryAsync(async () =>
         {
             ExigirUsuarioObjetivoDistinto(idUsuario);
             var client = await ConexionSupabase.GetClientAsync();
-            var response = await client.From<UsuariosModel>()
-                .Where(u => u.idUsuario == idUsuario)
-                .Set(u => u.idEstado, idEstado)
-                .Update();
-
-            if (response?.Models is null || response.Models.Count == 0)
-                throw new InvalidOperationException(
-                    "No se pudo cambiar el estado del usuario. Verifique los permisos de la tabla 'usuarios'.");
+            await client.Rpc("cambiar_estado_usuario_seguro", new Dictionary<string, object?>
+            {
+                ["p_id_usuario"] = idUsuario,
+                ["p_id_estado"] = idEstado,
+                ["p_id_solicitud"] = idSolicitud
+            });
         }, "Cambiar estado de usuario");
 
-    public Task<Result> AsignarRolAsync(int idUsuario, int idRol, CancellationToken ct = default) =>
+    public Task<Result> AsignarRolAsync(int idUsuario, int idRol, Guid idSolicitud, CancellationToken ct = default) =>
         TryAsync(async () =>
         {
             ExigirUsuarioObjetivoDistinto(idUsuario);
@@ -265,6 +234,7 @@ public class UsuarioRepository : RepositorioBase, IUsuarioRepository
             {
                 ["p_id_usuario"] = idUsuario,
                 ["p_id_rol"] = idRol,
+                ["p_id_solicitud"] = idSolicitud,
             });
             ct.ThrowIfCancellationRequested();
         }, "Asignar rol a usuario");

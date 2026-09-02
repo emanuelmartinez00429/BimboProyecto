@@ -8,13 +8,14 @@ using CapaUI.Core.MVVM;
 using CapaUI.Core.Permisos;
 using CapaUI.Navigation;
 using CapaUI.Formularios.Principal.Pantallas.Usuarios;
+using CapaUI.Formularios.Principal.Pantallas.Notificaciones;
 using CapaUI.ViewModels.Search;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
 namespace CapaUI.Formularios.Principal
 {
-    public partial class MainViewModel : ObservableObject, IDisposable
+    public partial class MainViewModel : ObservableObject, IDisposable, CapaAplicacion.Common.Interfaces.INavegacionService
     {
         private readonly IUsuarioSesionService     _sesionService;
         private readonly UniversalSearchViewModel _searchVm;
@@ -23,6 +24,7 @@ namespace CapaUI.Formularios.Principal
         private readonly Dictionary<string, Func<object>> _routes;
         private readonly Dictionary<string, Permiso[]> _routePermissions;
         private bool _disposed;
+        public NotificacionesViewModel Notificaciones { get; }
 
         // ── Vista actual ─────────────────────────────────────────────────
         [ObservableProperty] private object? _vistaActual;
@@ -72,21 +74,25 @@ namespace CapaUI.Formularios.Principal
         public bool VerEmpleados   => SesionPermisos.TieneAlguno(Permiso.ConsultarEmpleado, Permiso.CrearEmpleado, Permiso.ModificarEmpleado, Permiso.EliminarEmpleado);
         public bool VerUsuarios    => SesionPermisos.TieneAlguno(
             Permiso.ConsultarUsuario, Permiso.CrearUsuario, Permiso.ModificarUsuario, Permiso.EliminarUsuario,
-            Permiso.ConsultarRol, Permiso.CrearRol, Permiso.ModificarRol, Permiso.EliminarRol,
+            Permiso.ConsultarRol, Permiso.CrearRol, Permiso.ModificarRol, Permiso.CambiarEstadoRol,
             Permiso.AsignarPermisosRol, Permiso.AsignarRolUsuario);
         public bool VerProductos   => SesionPermisos.TieneAlguno(Permiso.ConsultarProducto, Permiso.CrearProducto, Permiso.ModificarProducto, Permiso.EliminarProducto);
         public bool VerProveedores => SesionPermisos.TieneAlguno(Permiso.ConsultarProveedor, Permiso.CrearProveedor, Permiso.ModificarProveedor, Permiso.EliminarProveedor);
         public bool VerReportes    => SesionPermisos.Tiene(Permiso.ConsultarReporte);
+        public bool VerNotificaciones => SesionPermisos.Tiene(Permiso.ConsultarNotificaciones);
 
         // ── Eventos ──────────────────────────────────────────────────────
         public event EventHandler? CierreRequerido;
 
         public MainViewModel(IUsuarioSesionService sesionService,
                              UniversalSearchViewModel searchVm,
-                             IConexionMonitor conexionMonitor)
+                             IConexionMonitor conexionMonitor,
+                             NotificacionesViewModel notificaciones)
         {
             _sesionService = sesionService;
             _searchVm      = searchVm;
+            Notificaciones = notificaciones;
+            Notificaciones.NavegacionService = this;
             _searchVm.ResultSelected += OnResultadoBusquedaSeleccionado;
 
             _conexionMonitor = conexionMonitor;
@@ -100,6 +106,7 @@ namespace CapaUI.Formularios.Principal
                 [Routes.Empleados] = () => new EmpleadosVM(),
                 [Routes.Roles]     = () => new RolesVM(),
                 [Routes.Bitacora]  = () => new BitacoraVM(),
+                [Routes.Notificaciones] = () => Notificaciones,
                 // Productos
                 [Routes.Productos]            = () => new ProductosVM(),
                 [Routes.Proveedores]          = () => new ProveedoresVM(),
@@ -124,10 +131,11 @@ namespace CapaUI.Formularios.Principal
                 [Routes.Empleados] = [Permiso.ConsultarEmpleado, Permiso.CrearEmpleado, Permiso.ModificarEmpleado, Permiso.EliminarEmpleado],
                 [Routes.Roles] = [Permiso.ConsultarRol],
                 [Routes.Bitacora] = [Permiso.ConsultarUsuario],
+                [Routes.Notificaciones] = [Permiso.ConsultarNotificaciones],
                 [Routes.Productos] = [Permiso.ConsultarProducto, Permiso.CrearProducto, Permiso.ModificarProducto, Permiso.EliminarProducto],
                 [Routes.Proveedores] = [Permiso.ConsultarProveedor, Permiso.CrearProveedor, Permiso.ModificarProveedor, Permiso.EliminarProveedor],
                 [Routes.Fabricantes] = [Permiso.ConsultarFabricante, Permiso.CrearFabricante, Permiso.ModificarFabricante],
-                [Routes.Categorias] = [Permiso.ModificarConfiguracion],
+                [Routes.Categorias] = [Permiso.ConsultarCategoria, Permiso.CrearCategoria, Permiso.ModificarCategoria, Permiso.DesactivarCategoria, Permiso.ActivarCategoria],
                 [Routes.Presentaciones] = [Permiso.ModificarConfiguracion],
                 [Routes.ContactosProveedores] = [Permiso.ConsultarProveedor, Permiso.CrearProveedor, Permiso.ModificarProveedor, Permiso.EliminarProveedor],
                 [Routes.ContactosFabricantes] = [Permiso.ConsultarFabricante, Permiso.CrearFabricante, Permiso.ModificarFabricante],
@@ -147,12 +155,13 @@ namespace CapaUI.Formularios.Principal
         /// </summary>
         partial void OnVistaActualChanging(object? value)
         {
-            (_vistaActual as IDisposable)?.Dispose();
+            if (_vistaActual is not NotificacionesViewModel)
+                (_vistaActual as IDisposable)?.Dispose();
         }
 
         // ── Navegación ───────────────────────────────────────────────────
         [RelayCommand]
-        private void Navigate(string? routeId)
+        public void Navigate(string routeId)
         {
             if (string.IsNullOrEmpty(routeId)) return;
             if (!_routes.TryGetValue(routeId, out var factory)) return;
@@ -225,6 +234,7 @@ namespace CapaUI.Formularios.Principal
             // Desuscribir del SearchVM y disponerlo
             _searchVm.ResultSelected -= OnResultadoBusquedaSeleccionado;
             (_searchVm as IDisposable)?.Dispose();
+            Notificaciones.Dispose();
         }
     }
 

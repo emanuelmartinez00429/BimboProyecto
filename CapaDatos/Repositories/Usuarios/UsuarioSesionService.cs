@@ -150,7 +150,7 @@ internal static class UsuarioSesionServiceHelper
             if (!resultado.ContainsKey(accion.idModulo))
                 resultado[accion.idModulo] = (modulo.nombreModulo, modulo.descripcionModulo, new());
 
-            resultado[accion.idModulo].acciones.Add(accion.nombreAccion);
+            resultado[accion.idModulo].acciones.Add(accion.codigoAccion);
         }
 
         return resultado
