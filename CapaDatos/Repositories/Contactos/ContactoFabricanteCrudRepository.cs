@@ -83,9 +83,9 @@ public class ContactoFabricanteCrudRepository : RepositorioBase, IContactoFabric
             var client = await ConexionSupabase.GetClientAsync();
             await client.From<ContactoFabricanteModel>()
                 .Where(c => c.idContactoFabricante == dto.Id)
-                .Set(c => c.nombreContacto,   dto.Nombre)
-                .Set(c => c.telefonoContacto, string.IsNullOrWhiteSpace(dto.Telefono) ? null : dto.Telefono)
-                .Set(c => c.correoContacto,   string.IsNullOrWhiteSpace(dto.Correo)   ? null : dto.Correo)
+                .Set(c => c.nombreContacto,    dto.Nombre)
+                .Set(c => c.telefonoContacto!, string.IsNullOrWhiteSpace(dto.Telefono) ? null : dto.Telefono)
+                .Set(c => c.correoContacto!,   string.IsNullOrWhiteSpace(dto.Correo)   ? null : dto.Correo)
                 .Update();
         }, "Actualizar contacto fabricante");
 

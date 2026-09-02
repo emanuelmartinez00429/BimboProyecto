@@ -83,9 +83,9 @@ public class ContactoProveedorCrudRepository : RepositorioBase, IContactoProveed
             var client = await ConexionSupabase.GetClientAsync();
             await client.From<ContactoProveedorModel>()
                 .Where(c => c.idContactoProveedor == dto.Id)
-                .Set(c => c.nombreContacto,   dto.Nombre)
-                .Set(c => c.telefonoContacto, string.IsNullOrWhiteSpace(dto.Telefono) ? null : dto.Telefono)
-                .Set(c => c.correoContacto,   string.IsNullOrWhiteSpace(dto.Correo)   ? null : dto.Correo)
+                .Set(c => c.nombreContacto,    dto.Nombre)
+                .Set(c => c.telefonoContacto!, string.IsNullOrWhiteSpace(dto.Telefono) ? null : dto.Telefono)
+                .Set(c => c.correoContacto!,   string.IsNullOrWhiteSpace(dto.Correo)   ? null : dto.Correo)
                 .Update();
         }, "Actualizar contacto proveedor");
 

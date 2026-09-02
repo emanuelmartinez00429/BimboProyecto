@@ -102,7 +102,7 @@ public class PresentacionCrudRepository : RepositorioBase, IPresentacionReposito
             await client.From<PresentacionCrud>()
                 .Where(p => p.idPresentacion == dto.Id)
                 .Set(p => p.nombrePresentacion,      dto.Nombre)
-                .Set(p => p.descripcionPresentacion, dto.Descripcion)
+                .Set(p => p.descripcionPresentacion!, dto.Descripcion)
                 .Set(p => p.idEstado,                dto.IdEstado)
                 .Update();
         }, "Actualizar presentación");

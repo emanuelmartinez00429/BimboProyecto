@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -17,9 +17,9 @@ namespace CapaDatos.Modelados.Productos
         [PrimaryKey("id_producto")]
         public int idProducto { get; set; }
         [Column("codigo_producto")]
-        public string codigoProducto { get; set; }
+        public string codigoProducto { get; set; } = string.Empty;
         [Column("nombre_producto")]
-        public string nombreProducto { get; set; }
+        public string nombreProducto { get; set; } = string.Empty;
         // Las cuatro FK de abajo son NULLABLE en la base. Declararlas como int a
         // secas hacía que Newtonsoft lanzara al deserializar cualquier fila con
         // NULL ("Cannot convert null value to System.Int32"), la consulta entera
@@ -46,7 +46,7 @@ namespace CapaDatos.Modelados.Productos
         public int? idCategoria { get; set; }
 
         [Column("contenido")]
-        public string contenidoProducto { get; set; }
+        public string? contenidoProducto { get; set; }
 
         [Column("id_pais")]
         public int? idPais { get; set; }
@@ -64,10 +64,10 @@ namespace CapaDatos.Modelados.Productos
         /// Esto va a permitir que no tenga que estar duplicando modelados
         /// usando las navegaciones para las relaciones
         /// </summary>
-        public Presentacion presentacion_producto { get; set; }
-        public Fabricante Fabricante { get; set; }
-        public Categoria Categoria { get; set; }
-        public Paises Paises { get; set; }
+        public Presentacion? presentacion_producto { get; set; }
+        public Fabricante? Fabricante { get; set; }
+        public Categoria? Categoria { get; set; }
+        public Paises? Paises { get; set; }
         public Tara? tara { get; set; }
         public UnidadMedida? unidad_medida { get; set; }
 
