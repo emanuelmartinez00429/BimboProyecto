@@ -45,7 +45,7 @@ Detalle completo de convenciones de código: [`contexto/CLAUDE.md`](contexto/CLA
 dotnet build BimboProyecto.sln
 ```
 
-Debe terminar en **0 errores** (hay warnings preexistentes de nullable en `CapaDatos`, no bloquean). No hay harness de tests de UI: la verificación funcional es **build limpio + prueba visual manual** del flujo tocado.
+Debe terminar en **0 errores y 0 advertencias** (las advertencias históricas de nullable en `CapaDatos` fueron resueltas el 2026-09-02). No hay harness de tests de UI: la verificación funcional es **build limpio + prueba visual manual** del flujo tocado.
 
 ---
 

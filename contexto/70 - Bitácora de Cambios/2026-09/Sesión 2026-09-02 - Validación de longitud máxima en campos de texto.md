@@ -106,18 +106,30 @@ En `CapaDominio/Reglas/ReglasEntidades.cs` se sincronizaron las 34 reglas de cam
 - **Verificación previa:** Se validó que ninguna fila preexistente en el sistema excediera los 500 caracteres (0 registros violando el límite).
 - **Estado:** Migración aplicada y verificada contra `information_schema.columns` en Supabase PostgreSQL. Ahora las columnas son físicamente `character varying(500)` garantizando paridad física estricta entre la base de datos, el dominio (`ReglasEntidades.cs`) y la UI.
 
+### 2.6 Saneamiento integral de advertencias de compilación (CS8618 y CS8603 en CapaDatos)
+- **Contexto:** Históricamente, el proyecto arrastraba advertencias de nullabilidad en `CapaDatos` documentadas en `AGENTS.md` ("hay warnings preexistentes de nullable en CapaDatos, no bloquean").
+- **Problemas corregidos:**
+  1. **CS8618 (Propiedades no nulas sin inicializar en constructor):**
+     - Se inicializaron con `= string.Empty;` en `Categoria.cs`, `Fabricante.cs`, `Paises.cs`, `Presentacion.cs`, `ProductosInsertar.cs`, `Empleados.cs`, `Usuarios.cs`.
+     - En `Productos.cs` y `usuarioVista.cs` se tiparon las relaciones de navegación opcional como `Presentacion?`, `Fabricante?`, `Categoria?`, `Paises?`, `Roles?` y `Empleados?`, coincidiendo con su consumo seguro en UI mediante `?.`.
+  2. **CS8603 (Posible retorno o asignación nula):**
+     - En `RepositorioUsuario.ObtenerPorUuidAsync` se actualizó la firma a `Task<Usuarios?>`, reflejando que si el usuario no existe retorna `null` (consumido con `if (usuario == null)` en `AuthService`).
+     - En `RepositorioCategoria.InsertarCategoria` y `RepositorioProducto.ingresarProducto` se implementó fallback defensivo (`response.Model ?? categoria`, `response.Model ?? datos`).
+     - En llamadas `.Set()` de `PresentacionCrudRepository`, `ContactoProveedorCrudRepository`, `ContactoFabricanteCrudRepository` y `PesajeRepository` se pacificaron las expresiones de propiedades anulables usando el operador de supresión `!`.
+- **Actualización de directriz:** Se actualizó `AGENTS.md` para exigir **0 errores y 0 advertencias**.
+
 ---
 
 ## 3. Verificación
 
 ```powershell
-# Compilación completa de la solución
-dotnet build BimboProyecto.sln
-# Resultado: 0 advertencias, 0 errores
+# Compilación completa limpia de la solución (sin incremental)
+dotnet build BimboProyecto.sln --no-incremental
+# Resultado: 0 advertencias, 0 errores (en todos los proyectos)
 
-# Ejecución de la suite de pruebas unitarias
+# Ejecución de la suite completa de pruebas unitarias
 dotnet test BimboProyecto.Tests/BimboProyecto.Tests.csproj
-# Resultado: 216 superadas (100% pass rate)
+# Resultado: 223 superadas, 0 con error (100% pass rate)
 ```
 
 ---
