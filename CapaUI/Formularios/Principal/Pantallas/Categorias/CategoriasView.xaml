@@ -311,8 +311,8 @@
                         <DataGridTemplateColumn Header="DESCRIPCIÓN" Width="*" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding Descripcion}" FontFamily="Segoe UI" FontSize="15.5"
-                                               Foreground="#6B7280" TextTrimming="CharacterEllipsis" Padding="8,0"/>
+                                    <TextBlock Text="{Binding Descripcion, Converter={StaticResource TextoVacioConverter}, ConverterParameter='Sin descripción'}"
+                                               Style="{StaticResource TextoCeldaConFallback}" Padding="8,0"/>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>

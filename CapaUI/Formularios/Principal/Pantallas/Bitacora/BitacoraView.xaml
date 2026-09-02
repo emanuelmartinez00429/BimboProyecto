@@ -506,19 +506,17 @@
                         <DataGridTemplateColumn Header="CAMPO AFECTADO" Width="160" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding CampoAfectado}"
-                                               FontFamily="Segoe UI" FontSize="15"
-                                               Foreground="#6B7280" TextTrimming="CharacterEllipsis" Padding="8,0"/>
+                                    <TextBlock Text="{Binding CampoAfectado, Converter={StaticResource TextoVacioConverter}}"
+                                               Style="{StaticResource TextoCeldaConFallback}" Padding="8,0"/>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
                         <DataGridTemplateColumn Header="DETALLE" Width="*" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding EstadoActual}"
-                                               ToolTip="{Binding EstadoActual}"
-                                               FontFamily="Segoe UI" FontSize="15"
-                                               Foreground="#6B7280" TextTrimming="CharacterEllipsis" Padding="8,0"/>
+                                    <TextBlock Text="{Binding EstadoActual, Converter={StaticResource TextoVacioConverter}}"
+                                               Style="{StaticResource TextoCeldaConFallback}"
+                                               ToolTip="{Binding EstadoActual}" Padding="8,0"/>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
