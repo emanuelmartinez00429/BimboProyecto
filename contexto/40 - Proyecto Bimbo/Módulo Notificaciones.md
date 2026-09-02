@@ -8,7 +8,7 @@ estado: parcial
 # Módulo Notificaciones
 
 > [!warning] Estado vigente
-> La infraestructura, seguridad, campana y bandeja están implementadas. Los emisores de pesaje, permisos de rol y cambio de rol están conectados. Los eventos de proveedores, fabricantes, usuarios, productos y categorías aún requieren migrar sus mutaciones a RPC idempotentes antes de emitir notificaciones. `PRODUCTO_EXISTENCIA_BAJA` permanece deshabilitado hasta existir un modelo real de inventario.
+> La infraestructura, seguridad, campana y bandeja están implementadas. Los emisores de pesaje, roles, proveedores, fabricantes, usuarios, productos y categorías operan mediante RPC idempotentes. Las notificaciones contienen origen mínimo navegable y la bandeja vuelve a validar el permiso del módulo antes de abrirlo. `PRODUCTO_EXISTENCIA_BAJA` permanece deshabilitado hasta existir un modelo real de inventario.
 
 ## Responsabilidades
 
@@ -44,8 +44,8 @@ La retención acordada es 180 días, pero la depuración automática no forma pa
 
 ## Pendientes
 
-- Modernizar las RPC/mutaciones de proveedores, fabricantes, usuarios, productos y categorías con `p_id_solicitud`, no-op e idempotencia antes de conectar sus emisores.
-- Implementar navegación al registro de origen con una segunda validación del permiso del módulo destino.
+- Ejecutar QA visual autenticada y multisesión de la navegación, bandeja y reconexión.
+- `PRODUCTO_EXISTENCIA_BAJA`, resolución global y retención automática continúan fuera de alcance.
 - Implementar resolución global y retención automática solo con autorización posterior.
 - Ejecutar QA visual autenticada y multisesión.
 

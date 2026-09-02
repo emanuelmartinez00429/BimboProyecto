@@ -46,3 +46,21 @@ Implementar la base segura del submódulo de notificaciones sin SQLite ni compor
 - [[ADR-025 - Notificaciones internas con Supabase como fuente de verdad]]
 - [[Módulo Usuarios]]
 - [[Arquitectura Actual]]
+
+## 11:20 — Reconciliación de emisores empresariales y navegación
+
+### Trabajo realizado
+
+- Se aplicó una migración forward-only que corrige la activación de usuarios, elimina DML directo de catálogos/usuarios y restringe las RPC empresariales a `authenticated`.
+- `actualizar_usuario_seguro` ahora detecta no-op; `private.crear_notificacion` guarda metadata mínima de navegación.
+- La UI conserva el `id_solicitud` al reintentar la misma operación y la bandeja navega solo a orígenes conocidos tras una segunda comprobación RBAC.
+
+### Validaciones
+
+- Compilación con 0 errores y 37 advertencias preexistentes.
+- 118/118 pruebas automatizadas superadas.
+- Verificación remota: sin `USUARIOS_ACTIVAR`, sin DML directo para `anon`/`authenticated`, sin políticas DML en las cinco tablas y `actualizar_usuario_seguro` ejecutable solo por `authenticated`.
+
+### Pendientes
+
+- Falta QA visual autenticada y multisesión; los avisos históricos de asesores fuera del alcance de notificaciones permanecen registrados.

@@ -1,6 +1,7 @@
 using CapaUI.Core.Controls;
 using CapaDominio.Reglas;
 using CapaUI.Core.Validacion;
+using CapaUI.Core.Seguridad;
 using CapaAplicacion.Common;
 using CapaAplicacion.Fabricantes.Dtos;
 using CapaAplicacion.Fabricantes.Interfaces;
@@ -17,6 +18,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Fabricantes
         private readonly FabricanteDto?        _fabricante;
         private readonly bool                  _esNuevo;
         private ValidadorFormulario            _validador = null!;
+        private readonly SolicitudIdempotente  _solicitud = new();
 
         public event Action? Cerrado;
         public event Action? Guardado;
@@ -142,12 +144,12 @@ namespace CapaUI.Formularios.Principal.Pantallas.Fabricantes
 
                 if (_esNuevo)
                 {
-                    var r = await _repo.CreateAsync(dto, Guid.NewGuid(), CancellationToken.None);
+                    var r = await _repo.CreateAsync(dto, _solicitud.Obtener("crear_fabricante", dto), CancellationToken.None);
                     (exito, error) = (r.Success, r.Error);
                 }
                 else
                 {
-                    var r = await _repo.UpdateAsync(dto, Guid.NewGuid(), CancellationToken.None);
+                    var r = await _repo.UpdateAsync(dto, _solicitud.Obtener("actualizar_fabricante", dto), CancellationToken.None);
                     (exito, error) = (r.Success, r.Error);
                 }
 
@@ -157,6 +159,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Fabricantes
                         "Ya existe un fabricante con ese nombre.", TxtNombre);
                     return;
                 }
+                _solicitud.Confirmar();
 
                 Guardado?.Invoke();
             }

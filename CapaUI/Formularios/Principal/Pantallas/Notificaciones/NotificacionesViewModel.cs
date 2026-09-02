@@ -93,14 +93,14 @@ public partial class NotificacionesViewModel : ObservableObject, IDisposable
         if (resultado.Success) await RefrescarAsync(); else MensajeEstado = resultado.Error;
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(PuedeEjecutarAccion))]
     private void EjecutarAccion(NotificacionDto? item)
     {
-        if (item is null || NavegacionService is null) return;
+        if (!PuedeEjecutarAccion(item) || NavegacionService is null) return;
         
-        string? routeId = item.TablaOrigen switch
+        string? routeId = item!.TablaOrigen switch
         {
-            "usuarios" => Routes.Bitacora,
+            "usuarios" => Routes.Usuarios,
             "roles" => Routes.Roles,
             "proveedores" => Routes.Proveedores,
             "fabricantes" => Routes.Fabricantes,
@@ -110,11 +110,14 @@ public partial class NotificacionesViewModel : ObservableObject, IDisposable
             _ => null
         };
         
-        if (routeId != null)
+        if (routeId != null && !NavegacionService.TryNavigate(routeId, out var motivo))
         {
-            NavegacionService.Navigate(routeId);
+            MensajeEstado = motivo ?? "No fue posible abrir el módulo relacionado.";
         }
     }
+
+    private static bool PuedeEjecutarAccion(NotificacionDto? item) =>
+        item is { IdRegistroOrigen: > 0, TablaOrigen: "usuarios" or "roles" or "proveedores" or "fabricantes" or "categorias" or "productos" or "presentaciones" };
 
     [RelayCommand]
     private async Task ArchivarAsync(NotificacionDto? item)

@@ -9,6 +9,7 @@ using CapaAplicacion.Common;
 using CapaAplicacion.Usuarios.Dtos;
 using CapaAplicacion.Usuarios.Interfaces;
 using CapaUI.Core.Permisos;
+using CapaUI.Core.Seguridad;
 
 namespace CapaUI.Formularios.Principal.Pantallas.Usuarios
 {
@@ -23,6 +24,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Usuarios
         private readonly int                   _preselectedIdEmpleado;
         private readonly string?               _preselectedNombre;
         private readonly string?               _preselectedCorreo;
+        private readonly SolicitudIdempotente  _solicitud = new();
 
         public event Action? Cerrado;
         public event Action? Guardado;
@@ -241,7 +243,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Usuarios
                         IdRol      = idRol,
                     };
 
-                    var r = await _usuarioRepo.CrearAsync(dto, Guid.NewGuid());
+                    var r = await _usuarioRepo.CrearAsync(dto, _solicitud.Obtener("crear_usuario", dto));
                     if (!r.Success)
                     {
                         // Se traduce antes de mostrarlo: este modal presenta el
@@ -251,28 +253,33 @@ namespace CapaUI.Formularios.Principal.Pantallas.Usuarios
                             r.Error, "Ya existe un usuario con ese correo."));
                         return;
                     }
+                    _solicitud.Confirmar();
                 }
                 else if (_usuario != null)
                 {
                     if (idRol != _usuario.IdRol)
                     {
-                        var rRol = await _usuarioRepo.AsignarRolAsync(_usuario.IdUsuario, idRol, Guid.NewGuid());
+                        var rRol = await _usuarioRepo.AsignarRolAsync(_usuario.IdUsuario, idRol,
+                            _solicitud.Obtener("asignar_rol_usuario", new { _usuario.IdUsuario, IdRol = idRol }));
                         if (!rRol.Success)
                         {
                             MostrarError(ErroresRepositorio.Traducir(rRol.Error));
                             return;
                         }
+                        _solicitud.Confirmar();
                     }
 
                     int idEstado = RbActivo.IsChecked == true ? 1 : 2;
                     if (idEstado != _usuario.IdEstado)
                     {
-                        var rEstado = await _usuarioRepo.CambiarEstadoAsync(_usuario.IdUsuario, idEstado, Guid.NewGuid());
+                        var rEstado = await _usuarioRepo.CambiarEstadoAsync(_usuario.IdUsuario, idEstado,
+                            _solicitud.Obtener("cambiar_estado_usuario", new { _usuario.IdUsuario, IdEstado = idEstado }));
                         if (!rEstado.Success)
                         {
                             MostrarError(ErroresRepositorio.Traducir(rEstado.Error));
                             return;
                         }
+                        _solicitud.Confirmar();
                     }
                 }
 

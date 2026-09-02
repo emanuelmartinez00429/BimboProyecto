@@ -4,6 +4,7 @@ using CapaAplicacion.Usuarios.Interfaces;
 using CapaUI.Core.MVVM;
 using CapaUI.Core.Controls;
 using CapaUI.Core.Permisos;
+using CapaUI.Core.Seguridad;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
@@ -22,6 +23,7 @@ public partial class UsuariosViewModel : ObservableObject, IDisposable
     private readonly IUsuarioSesionService _sesionService;
     private readonly SuggestionDebouncer   _buscador = new();
     private readonly CancellationTokenSource _cts = new();
+    private readonly SolicitudIdempotente _solicitudEstado = new();
     private bool _disposed;
 
     private string              _query          = "";
@@ -303,12 +305,14 @@ public partial class UsuariosViewModel : ObservableObject, IDisposable
     {
         if (Seleccionado is null || !SesionPermisos.Tiene(Permiso.EliminarUsuario)) return;
         int nuevoEstado = Seleccionado.IdEstado == 1 ? 2 : 1;
-        var r = await _usuarioRepo.CambiarEstadoAsync(Seleccionado.IdUsuario, nuevoEstado, Guid.NewGuid());
+        var r = await _usuarioRepo.CambiarEstadoAsync(Seleccionado.IdUsuario, nuevoEstado,
+            _solicitudEstado.Obtener("cambiar_estado_usuario", new { Seleccionado.IdUsuario, IdEstado = nuevoEstado }));
         if (!r.Success)
         {
             ErrorCarga = r.Error;
             return;
         }
+        _solicitudEstado.Confirmar();
         await CargarPaginaAsync();
     }
 

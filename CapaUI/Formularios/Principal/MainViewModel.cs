@@ -161,10 +161,16 @@ namespace CapaUI.Formularios.Principal
 
         // ── Navegación ───────────────────────────────────────────────────
         [RelayCommand]
-        public void Navigate(string routeId)
+        public void Navigate(string routeId) => TryNavigate(routeId, out _);
+
+        public bool TryNavigate(string routeId, out string? motivo)
         {
-            if (string.IsNullOrEmpty(routeId)) return;
-            if (!_routes.TryGetValue(routeId, out var factory)) return;
+            motivo = null;
+            if (string.IsNullOrEmpty(routeId) || !_routes.TryGetValue(routeId, out var factory))
+            {
+                motivo = "El registro relacionado ya no tiene un módulo disponible.";
+                return false;
+            }
             if (_routePermissions.TryGetValue(routeId, out var requeridos) &&
                 !SesionPermisos.TieneAlguno(requeridos))
             {
@@ -172,7 +178,8 @@ namespace CapaUI.Formularios.Principal
                     "Navegación denegada a {Ruta} para el rol {Rol}",
                     routeId,
                     _sesionService.SesionActual?.IdRol);
-                return;
+                motivo = "No tienes permiso para abrir el módulo relacionado.";
+                return false;
             }
 
             // Ya estamos en esa pantalla: no hay nada que hacer.
@@ -180,10 +187,11 @@ namespace CapaUI.Formularios.Principal
             // la vista y la reconstruye entera — nuevo ViewModel y nueva consulta
             // a la base de datos — porque los VM de ruta son clases y su igualdad
             // es por referencia, así que el setter siempre detecta un cambio.
-            if (_rutaActual == routeId) return;
+            if (_rutaActual == routeId) return true;
 
             _rutaActual = routeId;
             VistaActual = factory();
+            return true;
         }
 
         // ── Estado de conexión (label del top bar) ───────────────────────

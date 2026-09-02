@@ -2,6 +2,7 @@ using CapaAplicacion.Categorias.Dtos;
 using CapaAplicacion.Categorias.Interfaces;
 using CapaDominio.Reglas;
 using CapaUI.Core.Validacion;
+using CapaUI.Core.Seguridad;
 using System;
 using System.Windows;
 using System.Windows.Media.Imaging;
@@ -14,6 +15,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Categorias
         private readonly CategoriaDto?        _categoria;
         private readonly bool                 _esNuevo;
         private ValidadorFormulario           _validador = null!;
+        private readonly SolicitudIdempotente _solicitud = new();
 
         public event Action? Cerrado;
         public event Action? Guardado;
@@ -89,12 +91,12 @@ namespace CapaUI.Formularios.Principal.Pantallas.Categorias
 
                 if (_esNuevo)
                 {
-                    var r = await _repo.CreateAsync(dto, Guid.NewGuid(), CancellationToken.None);
+                    var r = await _repo.CreateAsync(dto, _solicitud.Obtener("crear_categoria", dto), CancellationToken.None);
                     (exito, error) = (r.Success, r.Error);
                 }
                 else
                 {
-                    var r = await _repo.UpdateAsync(dto, Guid.NewGuid(), CancellationToken.None);
+                    var r = await _repo.UpdateAsync(dto, _solicitud.Obtener("actualizar_categoria", dto), CancellationToken.None);
                     (exito, error) = (r.Success, r.Error);
                 }
 
@@ -104,6 +106,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Categorias
                         "Ya existe una categoría con ese nombre.", TxtNombre);
                     return;
                 }
+                _solicitud.Confirmar();
 
                 Guardado?.Invoke();
             }

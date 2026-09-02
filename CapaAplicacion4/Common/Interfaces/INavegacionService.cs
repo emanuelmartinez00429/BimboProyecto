@@ -2,5 +2,5 @@ namespace CapaAplicacion.Common.Interfaces;
 
 public interface INavegacionService
 {
-    void Navigate(string routeId);
+    bool TryNavigate(string routeId, out string? motivo);
 }

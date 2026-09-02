@@ -6,6 +6,7 @@ using CapaUI.Core.Catalogos;
 using CapaUI.Core.Controls;
 using CapaDominio.Reglas;
 using CapaUI.Core.Validacion;
+using CapaUI.Core.Seguridad;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Globalization;
@@ -25,6 +26,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
         private readonly ProductoDto?        _producto;
         private readonly bool                _esNuevo;
         private ValidadorFormulario          _validador = null!;
+        private readonly SolicitudIdempotente _solicitud = new();
 
         // IDs de respaldo de los campos de catálogo. Los textos son solo la
         // etiqueta visible; lo que se persiste es esto.
@@ -397,12 +399,12 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
 
                 if (_esNuevo)
                 {
-                    var r = await _repo.CreateAsync(dto, Guid.NewGuid(), CancellationToken.None);
+                    var r = await _repo.CreateAsync(dto, _solicitud.Obtener("crear_producto", dto), CancellationToken.None);
                     (exito, error) = (r.Success, r.Error);
                 }
                 else
                 {
-                    var r = await _repo.UpdateAsync(dto, Guid.NewGuid(), CancellationToken.None);
+                    var r = await _repo.UpdateAsync(dto, _solicitud.Obtener("actualizar_producto", dto), CancellationToken.None);
                     (exito, error) = (r.Success, r.Error);
                 }
 
@@ -412,6 +414,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
                         "Ya existe un producto con ese código interno.", TxtCodigo);
                     return;
                 }
+                _solicitud.Confirmar();
 
                 Guardado?.Invoke();
             }
