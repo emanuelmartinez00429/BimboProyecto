@@ -18,103 +18,7 @@
         <Geometry x:Key="IconPencil">M11,4 H4 a2,2 0 0 0,-2,2 v14 a2,2 0 0 0,2,2 h14 a2,2 0 0 0,2,-2 v-7 M18.5,2.5 a2.12,2.12 0 0 1,3,3 L12,15 l-4,1 1,-4 z</Geometry>
         <Geometry x:Key="IconTruck">M1,3 h15 v13 H1 z M16,8 h4 l3,3 v5 h-7 z M5.5,19 a1.5,1.5 0 1 0,3,0 a1.5,1.5 0 0 0,-3,0 z M17,19 a1.5,1.5 0 1 0,3,0 a1.5,1.5 0 0 0,-3,0 z</Geometry>
 
-        <Style x:Key="ProductRowStyle" TargetType="DataGridRow">
-            <Setter Property="Height" Value="36"/>
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="BorderBrush" Value="#EEF2F8"/>
-            <Setter Property="BorderThickness" Value="0,0,0,1"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="DataGridRow">
-                        <Border x:Name="DGR_Border"
-                                Background="{TemplateBinding Background}"
-                                BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="{TemplateBinding BorderThickness}"
-                                SnapsToDevicePixels="True">
-                            <Grid>
-                                <Border x:Name="SelIndicator" Width="3" HorizontalAlignment="Left"
-                                        VerticalAlignment="Stretch" Background="#34D399"
-                                        Visibility="Collapsed" Panel.ZIndex="1"/>
-                                <DataGridCellsPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"
-                                                        ItemsPanel="{TemplateBinding ItemsPanel}"/>
-                            </Grid>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="DGR_Border" Property="Background" Value="#C8D8F0"/>
-                            </Trigger>
-                            <MultiTrigger>
-                                <MultiTrigger.Conditions>
-                                    <Condition Property="IsMouseOver" Value="True"/>
-                                    <Condition Property="ItemsControl.AlternationIndex" Value="1"/>
-                                </MultiTrigger.Conditions>
-                                <Setter TargetName="DGR_Border" Property="Background" Value="#C8D8F0"/>
-                            </MultiTrigger>
-                            <Trigger Property="IsSelected" Value="True">
-                                <Setter TargetName="DGR_Border" Property="Background" Value="#C2F2E0"/>
-                                <Setter TargetName="SelIndicator" Property="Visibility" Value="Visible"/>
-                            </Trigger>
-                            <MultiTrigger>
-                                <MultiTrigger.Conditions>
-                                    <Condition Property="IsSelected" Value="True"/>
-                                    <Condition Property="ItemsControl.AlternationIndex" Value="1"/>
-                                </MultiTrigger.Conditions>
-                                <Setter TargetName="DGR_Border" Property="Background" Value="#C2F2E0"/>
-                            </MultiTrigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-            <Style.Triggers>
-                <Trigger Property="ItemsControl.AlternationIndex" Value="1">
-                    <Setter Property="Background" Value="#E8F0FA"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
 
-        <Style TargetType="DataGridColumnHeader">
-            <Setter Property="Background" Value="{DynamicResource EmpresaPrimaryBrush}"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="FontFamily" Value="Segoe UI"/>
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Height" Value="40"/>
-            <Setter Property="HorizontalContentAlignment" Value="Left"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="DataGridColumnHeader">
-                        <Border Background="{DynamicResource EmpresaPrimaryBrush}" BorderBrush="#1EFFFFFF" BorderThickness="0,0,1,0">
-                            <TextBlock Text="{TemplateBinding Content}" Foreground="White"
-                                       FontFamily="Segoe UI" FontSize="13" FontWeight="Bold"
-                                       HorizontalAlignment="Left" VerticalAlignment="Center" Padding="10,0"/>
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <Style x:Key="HeaderCentrado" TargetType="DataGridColumnHeader">
-            <Setter Property="Background" Value="{DynamicResource EmpresaPrimaryBrush}"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="FontFamily" Value="Segoe UI"/>
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Height" Value="40"/>
-            <Setter Property="HorizontalContentAlignment" Value="Center"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="DataGridColumnHeader">
-                        <Border Background="{DynamicResource EmpresaPrimaryBrush}" BorderBrush="#1EFFFFFF" BorderThickness="0,0,1,0">
-                            <TextBlock Text="{TemplateBinding Content}" Foreground="White"
-                                       FontFamily="Segoe UI" FontSize="13" FontWeight="Bold"
-                                       HorizontalAlignment="Center" VerticalAlignment="Center" Padding="8,0"/>
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
 
         <Style x:Key="ActionBtn" TargetType="Button">
             <Setter Property="Height" Value="40"/>
@@ -429,6 +333,9 @@
                         <Style TargetType="ScrollBar" BasedOn="{StaticResource ModernScrollBar}"/>
                     </DataGrid.Resources>
                     <DataGrid.Columns>
+                        <DataGridTemplateColumn Header="#" Width="40" CanUserResize="False" CanUserReorder="False"
+                                                CellStyle="{StaticResource CeldaCentrada}"
+                                                CellTemplate="{StaticResource PlantillaCeldaNumeroFila}"/>
                         <DataGridTemplateColumn Header="NOMBRE" Width="Auto" MinWidth="180" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
@@ -444,7 +351,7 @@
                                         <Border x:Name="BdRtn" Background="#EFF6FF" CornerRadius="4" Padding="8,2">
                                             <TextBlock Text="{Binding Rtn}" FontFamily="Consolas" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource EmpresaPrimaryBrush}"/>
                                         </Border>
-                                        <TextBlock x:Name="TxtRtnVacio" Text="—" Style="{StaticResource TextoCeldaConFallback}" Visibility="Collapsed"/>
+                                        <TextBlock x:Name="TxtRtnVacio" Text="Sin RTN" Style="{StaticResource TextoCeldaConFallback}" Visibility="Collapsed"/>
                                     </Grid>
                                     <DataTemplate.Triggers>
                                         <DataTrigger Binding="{Binding Rtn}" Value="">
@@ -462,7 +369,7 @@
                         <DataGridTemplateColumn Header="TELÉFONO" Width="Auto" MinWidth="125" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding Telefono, Converter={StaticResource TextoVacioConverter}}"
+                                    <TextBlock Text="{Binding Telefono, Converter={StaticResource TextoVacioConverter}, ConverterParameter='Sin teléfono'}"
                                                Style="{StaticResource TextoCeldaConFallback}" HorizontalAlignment="Left" Padding="10,0"/>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
@@ -470,7 +377,7 @@
                         <DataGridTemplateColumn Header="CORREO" Width="Auto" MinWidth="200" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding Correo, Converter={StaticResource TextoVacioConverter}}"
+                                    <TextBlock Text="{Binding Correo, Converter={StaticResource TextoVacioConverter}, ConverterParameter='Sin correo'}"
                                                Style="{StaticResource TextoCeldaConFallback}" Padding="10,0"/>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
@@ -486,6 +393,7 @@
                         <DataGridTemplateColumn Header="CREADO"
                                                 Width="Auto"
                                                 MinWidth="130"
+                                                HeaderStyle="{StaticResource HeaderDerecho}"
                                                 CellStyle="{StaticResource CeldaDerecha}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
@@ -499,6 +407,7 @@
                         <DataGridTemplateColumn Header="ACTUALIZADO"
                                                 Width="Auto"
                                                 MinWidth="130"
+                                                HeaderStyle="{StaticResource HeaderDerecho}"
                                                 CellStyle="{StaticResource CeldaDerecha}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>

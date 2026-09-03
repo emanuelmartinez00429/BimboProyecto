@@ -1,4 +1,4 @@
-﻿---
+---
 title: "Columnas de Auditoría Temporal en DataGrid — Estandarización Creado y Actualizado"
 tags:
   - patron
@@ -21,9 +21,9 @@ Patrón estándar para la exposición de fechas y horas de auditoría (`created_
 1. **Ubicación consistente:**
    Las columnas `CREADO` y `ACTUALIZADO` se ubican de manera obligatoria de forma contigua, inmediatamente a la izquierda de la columna `ESTADO` (o antes de las columnas de acciones si no hay columna de estado).
 
-2. **Alineación diferenciada (Encabezado vs. Datos):**
-   - **Encabezado:** Hereda el estilo del DataGrid (alineación estándar a la izquierda o centro del módulo) para mantener consistencia con los demás títulos de columna.
-   - **Celdas:** Alineación a la derecha (`HorizontalAlignment="Right"` y `CellStyle="{StaticResource CeldaDerecha}"`), respetando las buenas prácticas de UI para datos numéricos y temporales.
+2. **Alineación consistente a la derecha (Encabezado y Celdas):**
+   - **Encabezado:** Debe usar obligatoriamente `HeaderStyle="{StaticResource HeaderDerecho}"` (`HorizontalAlignment="Right"` y `Padding="10,0"`) centralizado en `Styles.xaml`, para que el título de la columna quede alineado verticalmente al píxel con la información temporal.
+   - **Celdas:** Alineación a la derecha (`HorizontalAlignment="Right"`, `CellStyle="{StaticResource CeldaDerecha}"` y `Padding="10,0"`), respetando las buenas prácticas de diseño de interfaz para datos temporales y numéricos.
 
 3. **Dimensionamiento dinámico y seguro:**
    - Usar siempre `Width="Auto"` y `MinWidth="130"`.
@@ -44,6 +44,7 @@ Patrón estándar para la exposición de fechas y horas de auditoría (`created_
 <DataGridTemplateColumn Header="CREADO"
                         Width="Auto"
                         MinWidth="130"
+                        HeaderStyle="{StaticResource HeaderDerecho}"
                         CellStyle="{StaticResource CeldaDerecha}">
     <DataGridTemplateColumn.CellTemplate>
         <DataTemplate>
@@ -59,6 +60,7 @@ Patrón estándar para la exposición de fechas y horas de auditoría (`created_
 <DataGridTemplateColumn Header="ACTUALIZADO"
                         Width="Auto"
                         MinWidth="130"
+                        HeaderStyle="{StaticResource HeaderDerecho}"
                         CellStyle="{StaticResource CeldaDerecha}">
     <DataGridTemplateColumn.CellTemplate>
         <DataTemplate>

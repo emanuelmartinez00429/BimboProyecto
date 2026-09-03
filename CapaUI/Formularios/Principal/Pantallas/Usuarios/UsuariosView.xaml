@@ -505,6 +505,9 @@
                         <Style TargetType="ScrollBar" BasedOn="{StaticResource ModernScrollBar}"/>
                     </DataGrid.Resources>
                     <DataGrid.Columns>
+                        <DataGridTemplateColumn Header="#" Width="40" CanUserResize="False" CanUserReorder="False"
+                                                CellStyle="{StaticResource CeldaCentrada}"
+                                                CellTemplate="{StaticResource PlantillaCeldaNumeroFila}"/>
                         <DataGridTemplateColumn Header="EMPLEADO" Width="220" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
@@ -517,7 +520,7 @@
                         <DataGridTemplateColumn Header="EMAIL" Width="200" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding CorreoUsuario, Converter={StaticResource TextoVacioConverter}}"
+                                    <TextBlock Text="{Binding CorreoUsuario, Converter={StaticResource TextoVacioConverter}, ConverterParameter='Sin correo'}"
                                                Style="{StaticResource TextoCeldaConFallback}" Padding="8,0"/>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
@@ -539,7 +542,7 @@
                                     <TextBlock Style="{StaticResource TextoCeldaConFallback}"
                                                HorizontalAlignment="Center">
                                         <TextBlock.Text>
-                                            <Binding Path="UltimoAcceso" StringFormat="{}{0:dd/MM/yyyy HH:mm}" TargetNullValue="—"/>
+                                            <Binding Path="UltimoAcceso" StringFormat="{}{0:dd/MM/yyyy HH:mm}" TargetNullValue="Sin registros"/>
                                         </TextBlock.Text>
                                     </TextBlock>
                                 </DataTemplate>

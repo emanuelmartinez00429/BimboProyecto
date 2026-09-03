@@ -1,4 +1,4 @@
-﻿---
+---
 title: "Sesión 2026-09-03 — Conexión de RPCs seguras para cambio de estado en catálogos"
 tags:
   - sesion
@@ -61,6 +61,61 @@ En los modales `CategoriaModal`, `ProductoModal`, `ProveedorModal` y `Fabricante
 
 ---
 
+## Estandarización de Fallbacks Contextuales en Tablas
+
+Se eliminaron los guiones genéricos (`—`) en todas las columnas de datos del sistema para reemplazarlos por etiquetas contextuales que indican con precisión la falta de información, en cursiva y color atenuado (`#9CA3AF`), coincidiendo con el encabezado correspondiente:
+
+- **Fabricantes**:
+  - `PROVEEDOR` ➔ *Sin proveedor*
+  - `PAÍS` ➔ *Sin país*
+  - `DESCRIPCIÓN` ➔ *Sin descripción*
+- **Proveedores**:
+  - `RTN` ➔ *Sin RTN*
+  - `TELÉFONO` ➔ *Sin teléfono*
+  - `CORREO` ➔ *Sin correo*
+  - `DIRECCIÓN` ➔ *Sin dirección*
+- **Productos**:
+  - `TARA` ➔ *Sin tara*
+  - `FABRICANTE` ➔ *Sin fabricante*
+  - `PROVEEDOR` ➔ *Sin proveedor*
+  - `PAÍS` ➔ *Sin país*
+  - `CONTENIDO` ➔ *Sin contenido*
+  - `PRESENTACIÓN` ➔ *Sin presentación*
+- **Empleados**:
+  - `IDENTIDAD / DNI` ➔ *Sin identidad*
+  - `TELÉFONO` ➔ *Sin teléfono*
+  - `CORREO` ➔ *Sin correo*
+- **Contactos**:
+  - `TELÉFONO` ➔ *Sin teléfono*
+  - `CORREO` ➔ *Sin correo*
+- **Usuarios**:
+  - `EMAIL` ➔ *Sin correo*
+  - `ÚLTIMO ACCESO` ➔ *Sin registros*
+- **Bitácora**:
+  - `CAMPO AFECTADO` ➔ *Sin campo*
+  - `ESTADO ACTUAL` ➔ *Sin detalle*
+- **Estilos (`Styles.xaml`)**:
+  - El estilo `TextoCeldaConFallback` se actualizó con disparadores para cada una de estas etiquetas, garantizando un renderizado visual idéntico (cursiva gris `#9CA3AF`).
+
+### Alineación y Auto-dimensionamiento en Fabricantes y Productos
+
+- **Alineación a la izquierda**: Se alineó el encabezado y las celdas de la columna `PROVEEDOR` a la izquierda con padding consistente (`10,0`).
+- **Auto-dimensionamiento por contenido y cabecera**: Se cambió el ancho fijo de `PROVEEDOR` (`Width="150"`) a `Width="Auto"` con `MinWidth="180"` y `PAÍS` a `Width="Auto"` con `MinWidth="150"` (tanto en Fabricantes como en Productos), asegurando que nombres como "INDUSTRIAS GRAFICAS...", "DISTRIBUIDORA CARIBE..." o "República Dominicana" se desplieguen completos sin cortarse con elipsis (`...`). Se activó además `ScrollViewer.HorizontalScrollBarVisibility="Auto"`.
+
+### Estandarización Arquitectónica de Tablas y Alineación de Columnas (/goal)
+
+- **Centralización en `Styles.xaml`**:
+  - `ProductRowStyle` promovido a recurso global en `CapaUI/Resources/Styles.xaml`, eliminando más de 250 líneas de código duplicado en los `.xaml` de vistas individuales (`ProductosView`, `CategoriasView`, `PresentacionesView`, `FabricantesView`, `ProveedoresView`, `ContactosFabricantesView`, `ContactosProveedoresView`).
+  - `DataGridColumnHeader` global definido con alineación a la izquierda y padding uniforme `10,0`.
+  - `HeaderCentrado` y `HeaderDerecho` centralizados para uso transversal en todo el sistema.
+  - Saneamiento de colores estáticos (`#1E3A8A`) en `PresentacionesView.xaml` reemplazados por `{DynamicResource EmpresaPrimaryBrush}`.
+- **Alineación consistente a la derecha en el Módulo de Productos**:
+  - `PESO TEÓRICO` y `PRECIO / KG` en `ProductosView.xaml` pasaron a alinearse a la derecha (`HeaderDerecho` + `CeldaDerecha` con formato `{0:N2}`).
+  - `CREADO` y `ACTUALIZADO` unificados con `HeaderDerecho` + `CeldaDerecha` en todas las tablas del módulo (`Productos`, `Categorías`, `Presentaciones`, `Fabricantes`, `Proveedores`).
+  - Columnas de estado unificadas con `HeaderCentrado` + `CeldaCentrada`.
+
+---
+
 ## Verificación
 
 1. **Compilación de la Solución:**
@@ -80,6 +135,7 @@ En los modales `CategoriaModal`, `ProductoModal`, `ProveedorModal` y `Fabricante
 
 - [[Módulos de Catálogos Administrativos]]
 - [[Módulo Productos]]
+- [[Sesión 2026-09-02 - Alineación de columnas y fallback universal de campos vacíos]]
 - [[Plan de Migración de Mutaciones Directas a RPC]]
 - [[Plan de Migración de Presentaciones a RPC segura]]
 - [[Deuda Técnica - Pendientes]]

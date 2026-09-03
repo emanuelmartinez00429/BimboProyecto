@@ -462,6 +462,9 @@
                         <Style TargetType="ScrollBar" BasedOn="{StaticResource ModernScrollBar}"/>
                     </DataGrid.Resources>
                     <DataGrid.Columns>
+                        <DataGridTemplateColumn Header="#" Width="40" CanUserResize="False" CanUserReorder="False"
+                                                CellStyle="{StaticResource CeldaCentrada}"
+                                                CellTemplate="{StaticResource PlantillaCeldaNumeroFila}"/>
                         <DataGridTemplateColumn Header="FECHA / HORA" Width="150" CellStyle="{StaticResource CeldaCentrada}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
@@ -506,7 +509,7 @@
                         <DataGridTemplateColumn Header="CAMPO AFECTADO" Width="160" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding CampoAfectado, Converter={StaticResource TextoVacioConverter}}"
+                                    <TextBlock Text="{Binding CampoAfectado, Converter={StaticResource TextoVacioConverter}, ConverterParameter='Sin campo'}"
                                                Style="{StaticResource TextoCeldaConFallback}" Padding="8,0"/>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
@@ -514,7 +517,7 @@
                         <DataGridTemplateColumn Header="DETALLE" Width="*" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding EstadoActual, Converter={StaticResource TextoVacioConverter}}"
+                                    <TextBlock Text="{Binding EstadoActual, Converter={StaticResource TextoVacioConverter}, ConverterParameter='Sin detalle'}"
                                                Style="{StaticResource TextoCeldaConFallback}"
                                                ToolTip="{Binding EstadoActual}" Padding="8,0"/>
                                 </DataTemplate>

@@ -494,6 +494,9 @@
                         <Style TargetType="ScrollBar" BasedOn="{StaticResource ModernScrollBar}"/>
                     </DataGrid.Resources>
                     <DataGrid.Columns>
+                        <DataGridTemplateColumn Header="#" Width="40" CanUserResize="False" CanUserReorder="False"
+                                                CellStyle="{StaticResource CeldaCentrada}"
+                                                CellTemplate="{StaticResource PlantillaCeldaNumeroFila}"/>
                         <DataGridTemplateColumn Header="EMPLEADO" Width="220" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
@@ -512,7 +515,7 @@
                         <DataGridTemplateColumn Header="IDENTIDAD" Width="150" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding NumeroIdentidad, Converter={StaticResource TextoVacioConverter}}"
+                                    <TextBlock Text="{Binding NumeroIdentidad, Converter={StaticResource TextoVacioConverter}, ConverterParameter='Sin identidad'}"
                                                Style="{StaticResource TextoCeldaConFallback}" Padding="8,0"/>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
@@ -520,7 +523,7 @@
                         <DataGridTemplateColumn Header="TELÉFONO" Width="140" CellStyle="{StaticResource CeldaCentrada}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding TelefonoEmpleado, Converter={StaticResource TextoVacioConverter}}"
+                                    <TextBlock Text="{Binding TelefonoEmpleado, Converter={StaticResource TextoVacioConverter}, ConverterParameter='Sin teléfono'}"
                                                Style="{StaticResource TextoCeldaConFallback}" HorizontalAlignment="Center"/>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
@@ -528,7 +531,7 @@
                         <DataGridTemplateColumn Header="CORREO" Width="220" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding CorreoEmpleado, Converter={StaticResource TextoVacioConverter}}"
+                                    <TextBlock Text="{Binding CorreoEmpleado, Converter={StaticResource TextoVacioConverter}, ConverterParameter='Sin correo'}"
                                                Style="{StaticResource TextoCeldaConFallback}" Padding="8,0"/>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
