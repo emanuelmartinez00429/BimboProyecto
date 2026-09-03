@@ -75,3 +75,103 @@ Integrity mode: development
 
 ### Documentación
 - [ ] Todos los archivos modificados o creados en `contexto/` cumplen el protocolo de la bóveda (frontmatter YAML estricto, enlaces `[[wikilink]]` y sección `## Relaciones`).
+
+
+## 2026-09-03T04:53:04Z
+
+Revisión crítica, validación adversarial y formalización del Architectural Decision Record (ADR-026) para el Plan Técnico de Caching en memoria (FusionCache L1) con invalidación reactiva por Supabase Realtime en Bimbo Honduras (.NET 8 · WPF · Supabase).
+
+Working directory: d:/Proyectos/Proyecto de BIMBO/BimboProyecto
+Integrity mode: development
+
+---
+
+## Contexto y Restricciones Principales
+
+- **Alcance acordado:** Estrictamente diseño y documentación técnica en Obsidian. **Queda prohibido modificar código fuente o archivos de proyecto** (`.cs`, `.xaml`, `.csproj`, `.sln`). No se toca código en este paso.
+- **Principio rector:** La invalidación por evento de Realtime es el mecanismo de frescura; el TTL y fail-safe son la red de seguridad.
+- **Premisa de publicación en Realtime (Verificada empíricamente contra la BD viva):**
+  La consulta en vivo ejecutada sobre `pg_publication_tables`:
+  ```sql
+  select tablename from pg_publication_tables where pubname = 'supabase_realtime';
+  ```
+  confirma que las **8 tablas de catálogo** (`categoria`, `fabricante`, `paises`, `presentacion_producto`, `productos`, `proveedores`, `tara`, `unidad_medida`) **están efectivamente publicadas** en la base de datos de producción (`bzmmrifjgzlvsphctais`). Tablas transaccionales y de soporte como `contactos_fabricante`, `contactos_proveedor`, `bitacora`, `roles`, `acciones`, `modulos` y `empresa` **no** están publicadas.
+- **Relación con ADR-015:**
+  - El archivo real en la bóveda es `[[ADR-015 - Cache de catalogos mostrar y revalidar]]` (cumpliendo la regla de `contexto/AGENTS.md §5`: *"si dudás entre dos nombres, usá el que ya exista"*).
+  - 🔴 **PROHIBIDO tocar el frontmatter de ADR-015:** ADR-015 describe el comportamiento vigente en producción. **No** debe marcarse como `estado: reemplazado`. ADR-026 se creará con `estado: propuesto` y explicitará que superará a ADR-015 únicamente una vez que sea implementado.
+- **Nivel L2:** Evaluado y descartado justificadamente (no hay tier servidor compartido, riesgo de seguridad con secretos de conexión sin RLS en PCs de planta, persistencia de fugas entre usuarios en disco y problemas de serialización en `Result<T>`).
+
+---
+
+## Alcance de Escritura Permitido (Estricto)
+
+El equipo tiene terminantemente prohibido tocar cualquier archivo fuera de la siguiente lista explícita:
+
+1. **`contexto/45 - Decisiones/ADR-026 - Cache en memoria con FusionCache e invalidacion por Realtime.md`** (archivo nuevo).
+2. **`contexto/40 - Proyecto Bimbo/Deuda Técnica - Pendientes.md`** (punto caliente según `contexto/AGENTS.md §7` — edición quirúrgica y localizada):
+   - Agregar **`P-048`**: Fuga de datos entre usuarios en la misma máquina por ausencia de invocación de `CatalogoCache.InvalidarTodo()` y falta de invalidación en `RolPermisoRepository._catalogoCache` sobre el root provider singleton `App.Services`.
+   - Agregar **`P-049`**: `contactos_fabricante` y `contactos_proveedor` con suscripciones Realtime (`Observar()`) vivas en ViewModels contra tablas no publicadas en `supabase_realtime`.
+3. **`contexto/40 - Proyecto Bimbo/Arquitectura Actual.md`** (punto caliente según `contexto/AGENTS.md §7` — edición quirúrgica y localizada):
+   - Agregar un callout descriptivo breve referenciando a `[[ADR-026 - Cache en memoria con FusionCache e invalidacion por Realtime]]` como propuesta arquitectónica.
+
+---
+
+## Requirements
+
+### R1. Auditoría Adversarial y Contraste con el Código Existente
+Revisar cada sección del documento de diseño propuesto contrastándolo línea por línea contra el código real de `BimboProyecto`:
+- Contrastar los puntos de entrada de catálogos actuales (`CatalogoCache.cs`, `CatalogoRepository.cs`, `SelectorCatalogoModal.xaml.cs`, `RolPermisoRepository.cs`, `EmpresaRepository.cs`).
+- Validar la interacción de concurrencia y el orden de ejecución entre `RealtimeService.OnCambioRecibido` (despachado en el hilo de UI) y `InvalidadorCacheRealtime.OnCambio` (invalidación síncrona `RemoveByTag` y desacoplamiento de logs vía `Channel`).
+- Verificar que el ciclo de vida en `MainWindow.xaml.cs` (`OnLoaded` y `LimpiarRecursosAsync`) garantice la eliminación de la fuga entre usuarios distintos que comparten la misma máquina en `App.Services` (root provider estático que no se reconstruye).
+
+### R2. Validación de las 12 Trampas Específicas del Repositorio (Incluyendo Errores Silenciosos)
+Evaluar la suficiencia y solidez de las mitigaciones propuestas en la §7, prestando especial atención a las trampas que compilan limpio pero fallan en silencio:
+1. **`ICacheService` registrado como Singleton:** Si se registra `Transient`, cada ViewModel recibe su propia caché vacía y la función entera se convierte en un no-op silencioso que compila sin quejarse.
+2. **Registro del repositorio concreto por su tipo:** `services.AddTransient<CatalogoRepository>()` y no por `ICatalogoRepository`. Si se registra por interfaz, `sp.GetRequiredService<ICatalogoRepository>()` dentro de la lambda de fábrica se resuelve recursivamente a sí misma produciendo `StackOverflowException`.
+3. **`CancellationToken.None` en la fábrica del decorador:** Si se pasa el `ct` del llamador (como `_ctsVida.Token` de `SelectorCatalogoModal`), abrir y cerrar rápido el modal cancela la carga para cualquier otra pantalla que estuviera esperando el mismo single-flight. El `ct` sólo debe controlar la espera del llamador actual.
+4. **Retiro de `alRevalidar`:** Documentar la desaparición del repintado en caliente en UI (`Dg.ItemsSource`) como riesgo observable, justificado por la publicación al 100% de las 8 tablas en Realtime.
+5. **Detección de tablas no publicadas:** Validación mediante la función `tablas_publicadas_realtime()` para evitar que suscripciones a tablas no publicadas fallen silenciosamente.
+6. **No-serialización de `Result<T>`:** Bloqueo de constructor privado en `Result<T>` frente a `System.Text.Json`.
+7. **Aislamiento de permisos:** Prohibición estricta de cachear datos derivados de `IUsuarioSesionService.SesionActual`.
+8. **Resincronización tras desconexión/reconexión:** Purgar etiquetas de catálogos en `OnReconectado`.
+
+### R3. Selección y Verificación de Dependencias de FusionCache
+- La versión inicial sugerida es `[2.0.2]`, pero la regla de oro real es: *"la versión de `ZiggyCreatures.FusionCache` que soporte tagging (`RemoveByTag`), `ClearAsync(allowFailSafe: false)` y que NO arrastre `Microsoft.Extensions.*` fuera de la línea 8.x en el grupo `net8.0`"*.
+- El equipo está plenamente autorizado a verificar contra nuget.org y `dotnet list package --include-transitive` y justificar/ajustar la versión exacta a fijar en el ADR.
+
+### R4. Redacción Formal de ADR-026 en Obsidian
+Redactar el documento formal de decisión en `contexto/45 - Decisiones/ADR-026 - Cache en memoria con FusionCache e invalidacion por Realtime.md` respetando las directrices de `contexto/AGENTS.md §2`:
+- **Frontmatter estricto:**
+  ```yaml
+  ---
+  title: "ADR-026 — Caché en memoria con FusionCache e invalidación por Realtime"
+  tags:
+    - adr
+    - decision
+    - cache
+    - realtime
+    - rendimiento
+  date: 2026-09-02
+  estado: propuesto
+  ---
+  ```
+  *(Sin campos `autor:` ni `autor_cambios:`, ya que corresponden a notas de sesión).*
+- Contexto de los 5 problemas actuales y eliminación de revalidate-on-open.
+- Confirmación de las 8 tablas publicadas en `supabase_realtime` como base empírica de frescura.
+- Descarte exhaustivo de L2 (Redis/Garnet/SQLite local).
+- Matriz completa de TTL, Jitter, Fail-Safe y zonas Zero-Cache (Pesajes, Bitácora, Notificaciones, Reportes).
+- Roadmap de 5 fases (Fase 0 a Fase 4) con criterios de término medibles.
+- Enlaces bidireccionales con notas existentes (`[[Arquitectura Actual]]`, `[[ADR-015 - Cache de catalogos mostrar y revalidar]]`, `[[Deuda Técnica - Pendientes]]`, `[[Conocimiento Principal]]`).
+
+---
+
+## Acceptance Criteria
+
+### Integridad Arquitectónica y Cero Código
+- [ ] No se modifica ningún archivo fuera de los 3 autorizados en el Alcance de Escritura (cero líneas de código alteradas en `CapaUI`, `CapaDatos`, `CapaAplicacion4`, `CapaDominio` ni migraciones SQL).
+- [ ] El frontmatter de `[[ADR-015 - Cache de catalogos mostrar y revalidar]]` permanece intacto (`estado: aceptado`), sin marcarlo como reemplazado.
+- [ ] El ADR-026 se crea con `estado: propuesto` y tags alineados con la taxonomía del vault (`adr`, `decision`, `cache`, `realtime`, `rendimiento`).
+- [ ] Las 3 trampas silenciosas (`ICacheService` Singleton, `CatalogoRepository` registrado por tipo, `CancellationToken.None` en fábrica) quedan explícitamente incorporadas y justificadas.
+- [ ] El descarte de L2 queda formalmente blindado ante riesgos de seguridad (secretos sin RLS en PCs de planta), persistencia de fugas entre usuarios en disco y limitaciones de serialización.
+- [ ] Se documentan formalmente `P-048` y `P-049` en `Deuda Técnica - Pendientes.md` como puntos calientes respetando la estructura de la tabla y detalle existente.
+- [ ] Se documenta el riesgo observable de la desaparición del repintado en caliente de `alRevalidar` en `SelectorCatalogoModal` como el único cambio perceptible por el usuario final.
