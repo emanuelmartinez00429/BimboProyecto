@@ -1,4 +1,6 @@
 using CapaAplicacion.Common;
+using CapaAplicacion.Common.Cache;
+using CapaDatos.Cache;
 using CapaAplicacion.Conexion;
 using CapaAplicacion.Usuarios.Dtos;
 using CapaAplicacion.Usuarios.Interfaces;
@@ -16,19 +18,22 @@ public sealed class RolPermisoRepository : RepositorioBase, IRolPermisoRepositor
     private const string PermisoConsultar = "ROLES_CONSULTAR";
     private const string PermisoAdministrar = "ROLES_ASIGNAR_PERMISOS";
 
-    // Caché de proceso: el catálogo de módulos/acciones es prácticamente estático
-    // (solo cambia con una migración de esquema). Evita repetir 2 round-trips a
-    // Supabase cada vez que el usuario navega a Roles, que era la causa real de
-    // los ~3s de pantalla en blanco en cada visita.
-    private static IReadOnlyList<ModuloAccionesDto>? _catalogoCache;
-    private static readonly SemaphoreSlim CatalogoLock = new(1, 1);
-
+    // El catálogo de módulos/acciones es prácticamente estático (solo cambia con una
+    // migración de esquema), y sin caché costaba 2 round-trips en cada visita a Roles
+    // — los ~3s de pantalla en blanco.
+    //
+    // Antes esto era un campo static con su propio SemaphoreSlim. El problema no era
+    // el rendimiento sino el ciclo de vida: no había forma de purgarlo, así que el
+    // catálogo cargado por un usuario sobrevivía a su cierre de sesión. Ahora vive en
+    // ICacheService, que se purga entero en el logout junto con todo lo demás.
     private readonly IUsuarioSesionService _sesion;
+    private readonly ICacheService _cache;
 
-    public RolPermisoRepository(IConexionMonitor conexion, IUsuarioSesionService sesion)
+    public RolPermisoRepository(IConexionMonitor conexion, IUsuarioSesionService sesion, ICacheService cache)
         : base(conexion)
     {
         _sesion = sesion;
+        _cache  = cache;
     }
 
     public Task<Result<RolesResumenDto>> ObtenerResumenAsync(CancellationToken ct = default) =>
@@ -81,52 +86,59 @@ public sealed class RolPermisoRepository : RepositorioBase, IRolPermisoRepositor
             return await CargarCatalogoAsync(ct);
         }, "Cargar catálogo de permisos");
 
-    private static async Task<IReadOnlyList<ModuloAccionesDto>> CargarCatalogoAsync(CancellationToken ct)
+    /// <summary>
+    /// El single-flight de la caché reemplaza al double-check locking que había acá:
+    /// varias pantallas pidiendo el catálogo a la vez comparten una sola consulta.
+    /// </summary>
+    private async Task<IReadOnlyList<ModuloAccionesDto>> CargarCatalogoAsync(CancellationToken ct)
     {
-        if (_catalogoCache is not null)
-            return _catalogoCache;
+        var r = await _cache.ObtenerOCrearAsync(
+            TagsCache.RbacDefiniciones,
+            async _ =>
+            {
+                var lista = await ConsultarCatalogoAsync().ConfigureAwait(false);
+                return Result<IReadOnlyList<ModuloAccionesDto>>.Ok(lista);
+            },
+            PoliticasCache.Rbac,
+            etiquetas: [TagsCache.RbacDefiniciones],
+            ct: ct);
 
-        await CatalogoLock.WaitAsync(ct);
-        try
-        {
-            if (_catalogoCache is not null)
-                return _catalogoCache;
+        // El llamador está dentro de TryAsync, que traduce la excepción a Result.
+        if (!r.Success) throw new InvalidOperationException(r.Error);
+        return r.Value!;
+    }
 
-            var client = await ConexionSupabase.GetClientAsync();
-            var accionesTask = client.From<Accion>().Get(ct);
-            var modulosTask = client.From<Modulo>().Get(ct);
-            await Task.WhenAll(accionesTask, modulosTask);
+    private static async Task<IReadOnlyList<ModuloAccionesDto>> ConsultarCatalogoAsync()
+    {
+        var ct = CancellationToken.None;
+        var client = await ConexionSupabase.GetClientAsync();
+        var accionesTask = client.From<Accion>().Get(ct);
+        var modulosTask = client.From<Modulo>().Get(ct);
+        await Task.WhenAll(accionesTask, modulosTask);
 
-            var acciones = accionesTask.Result?.Models ?? new List<Accion>();
-            var modulos = modulosTask.Result?.Models ?? new List<Modulo>();
+        var acciones = accionesTask.Result?.Models ?? new List<Accion>();
+        var modulos = modulosTask.Result?.Models ?? new List<Modulo>();
 
-            _catalogoCache = modulos
-                .OrderBy(m => m.nombreModulo)
-                .Select(m => new ModuloAccionesDto
-                {
-                    IdModulo = m.idModulo,
-                    NombreModulo = m.nombreModulo,
-                    DescripcionModulo = m.descripcionModulo,
-                    Acciones = acciones
-                        .Where(a => a.idModulo == m.idModulo)
-                        .OrderBy(a => a.nombreAccion)
-                        .Select(a => new AccionDto
-                        {
-                            IdAccion = a.idAccion,
-                            NombreAccion = a.nombreAccion,
-                            DescripcionAccion = a.descripcionAccion,
-                        })
-                        .ToList(),
-                })
-                .Where(m => m.Acciones.Count > 0)
-                .ToList();
-
-            return _catalogoCache;
-        }
-        finally
-        {
-            CatalogoLock.Release();
-        }
+        return modulos
+            .OrderBy(m => m.nombreModulo)
+            .Select(m => new ModuloAccionesDto
+            {
+                IdModulo = m.idModulo,
+                NombreModulo = m.nombreModulo,
+                DescripcionModulo = m.descripcionModulo,
+                Acciones = acciones
+                    .Where(a => a.idModulo == m.idModulo)
+                    .OrderBy(a => a.nombreAccion)
+                    .Select(a => new AccionDto
+                    {
+                        IdAccion = a.idAccion,
+                        NombreAccion = a.nombreAccion,
+                        DescripcionAccion = a.descripcionAccion,
+                    })
+                    .ToList(),
+            })
+            .Where(m => m.Acciones.Count > 0)
+            .ToList();
     }
 
     private void ExigirLectura()

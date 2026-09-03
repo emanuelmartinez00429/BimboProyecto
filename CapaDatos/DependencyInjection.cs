@@ -37,6 +37,7 @@ using CapaDatos.Reportes;
 using CapaDominio.Entities;
 using CapaDominio.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
+using ZiggyCreatures.Caching.Fusion;
 
 namespace CapaDatos;
 
@@ -65,9 +66,51 @@ public static class DependencyInjection
         // Formulario de productos (DTO con FKs)
         services.AddTransient<IProductoRepository, ProductoCrudRepository>();
 
-        // Lectura uniforme de catálogos chicos (alimenta el selector genérico de lupa)
-        services.AddTransient<CapaAplicacion.Common.Catalogos.ICatalogoRepository,
-                              Repositories.Catalogos.CatalogoRepository>();
+        // ── Caché L1 en memoria ─────────────────────────────────────────────
+        // Sin nivel distribuido ni backplane, a propósito: esto es una aplicación de
+        // escritorio contra Supabase, no hay un tier compartido donde alojar un Redis,
+        // y Supabase Realtime ya cumple el papel de backplane (ver InvalidadorCacheRealtime).
+        //
+        // Tampoco se configura SizeLimit en MemoryCache: activarlo obliga a que TODA
+        // entrada declare su Size o el runtime lanza InvalidOperationException. Los 8
+        // catálogos completos no llegan a 2 MB, y el límite real ya lo pone el
+        // decorador, que solo retiene lo que entró completo en una página.
+        services.AddFusionCache()
+                .WithDefaultEntryOptions(new ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions
+                {
+                    Duration                 = TimeSpan.FromMinutes(30),
+                    JitterMaxDuration        = TimeSpan.FromMinutes(5),
+                    IsFailSafeEnabled        = true,
+                    FailSafeMaxDuration      = TimeSpan.FromHours(6),
+                    FailSafeThrottleDuration = TimeSpan.FromSeconds(30),
+                    EagerRefreshThreshold    = 0.85f,
+                    FactorySoftTimeout       = TimeSpan.FromMilliseconds(1500),
+                    FactoryHardTimeout       = TimeSpan.FromSeconds(20),
+                });
+
+        // Singleton obligatorio: como Transient cada consumidor recibiría su propio
+        // almacén vacío, la tasa de aciertos sería cero y no lo denunciaría ninguna
+        // excepción — compila, corre y no hace nada.
+        services.AddSingleton<CapaAplicacion.Common.Cache.ICacheService, Cache.FusionCacheService>();
+
+        // Suscriptor de vida larga que traduce eventos de Realtime en purgas.
+        // MainWindow debe invocar Suscribir() en CADA sesión: al cerrar sesión,
+        // RealtimeService vacía su diccionario de suscriptores y este singleton
+        // sobrevive, así que sin esa llamada el segundo login de la máquina se
+        // quedaría sin invalidación reactiva, en silencio.
+        services.AddSingleton<CapaAplicacion.Common.Cache.IInvalidadorCacheRealtime,
+                              Cache.InvalidadorCacheRealtime>();
+
+        // Lectura uniforme de catálogos chicos (alimenta el selector genérico de lupa).
+        // El concreto se registra POR SU TIPO y la interfaz devuelve el decorador: si el
+        // concreto se registrara por la interfaz, el GetRequiredService de la fábrica se
+        // resolvería a sí mismo y sería StackOverflowException — que en .NET no se puede
+        // capturar y cierra el proceso sin dejar rastro en el log.
+        services.AddTransient<Repositories.Catalogos.CatalogoRepository>();
+        services.AddTransient<CapaAplicacion.Common.Catalogos.ICatalogoRepository>(sp =>
+            new Repositories.Catalogos.CachedCatalogoRepository(
+                sp.GetRequiredService<Repositories.Catalogos.CatalogoRepository>(),
+                sp.GetRequiredService<CapaAplicacion.Common.Cache.ICacheService>()));
 
         // Formularios de catálogo
         services.AddTransient<IProveedorRepository, ProveedorCrudRepository>();

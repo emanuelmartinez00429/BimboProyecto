@@ -8,6 +8,7 @@ using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using CapaAplicacion.Common.Cache;
 using CapaAplicacion.Conexion;
 using CapaAplicacion.Realtime;
 using CapaAplicacion.Usuarios.Interfaces;
@@ -34,6 +35,8 @@ namespace CapaUI.Formularios.Principal
         private readonly IConexionMonitor      _conexionMonitor;
         private readonly IEmpresaRepository    _empresaRepository;
         private readonly IconoSidebarCache     _iconoSidebarCache;
+        private readonly ICacheService              _cache;
+        private readonly IInvalidadorCacheRealtime  _invalidadorCache;
 
         // ── Estado del sidebar ────────────────────────────────────────────
         private bool   _collapsed      = false;
@@ -129,13 +132,16 @@ namespace CapaUI.Formularios.Principal
 
         public MainWindow(MainViewModel vm, IUsuarioSesionService sesionService,
                           IRealtimeService realtimeService, IConexionMonitor conexionMonitor,
-                          IEmpresaRepository empresaRepository, IconoSidebarCache iconoSidebarCache)
+                          IEmpresaRepository empresaRepository, IconoSidebarCache iconoSidebarCache,
+                          ICacheService cache, IInvalidadorCacheRealtime invalidadorCache)
         {
             _sesionService   = sesionService;
             _realtimeService = realtimeService;
             _conexionMonitor = conexionMonitor;
             _empresaRepository = empresaRepository;
             _iconoSidebarCache = iconoSidebarCache;
+            _cache             = cache;
+            _invalidadorCache  = invalidadorCache;
             DataContext    = vm;
             InitializeComponent();
 
@@ -241,6 +247,16 @@ namespace CapaUI.Formularios.Principal
 
             // Arrancar el monitor de conexión (ya estamos logueados y en el hilo de UI)
             _conexionMonitor.Iniciar();
+
+            // Suscribir el invalidador de caché EN CADA SESIÓN. Al cerrar sesión,
+            // RealtimeService vacía su diccionario de suscriptores, y este servicio es
+            // singleton: su constructor no vuelve a correr. Sin esta llamada, a partir
+            // del segundo login de la máquina la invalidación reactiva quedaría muerta
+            // en silencio y la caché serviría datos viejos hasta que venza el TTL.
+            // Va antes que las notificaciones para que quede escuchando desde el
+            // primer instante de la sesión.
+            _invalidadorCache.Suscribir();
+
             await Vm.Notificaciones.InicializarAsync();
             await CargarIconoSidebarAsync();
         }
@@ -682,6 +698,17 @@ namespace CapaUI.Formularios.Principal
             _hwndSource = null;
             Vm.CierreRequerido -= OnCierreRequerido;
             Vm.Dispose();
+
+            // Purga total de la caché. NO es opcional: App.Services es un contenedor
+            // raíz que nunca se reconstruye, así que el logout devuelve al login dentro
+            // del mismo proceso. Sin esto, los catálogos que cacheó un supervisor se le
+            // sirven al operario que entra después en la misma terminal — RLS filtra en
+            // el servidor, y la caché es justamente lo que evita ir al servidor.
+            await _cache.LimpiarTodoAsync();
+
+            // Dar de baja los observadores ANTES de desconectar, para soltarlos de forma
+            // limpia en vez de dejarlos huérfanos cuando se vacíe el diccionario.
+            _invalidadorCache.Desuscribir();
 
             // Detener el monitor de conexión (deja de vigilar la red entre sesiones)
             _conexionMonitor.Detener();

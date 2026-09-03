@@ -258,46 +258,14 @@ public partial class ProductosViewModel : RealtimeAwareViewModel
         IsLoading  = true;
         ErrorCarga = string.Empty;
 
-        // Catálogos desde la caché de sesión: la segunda entrada a la pantalla no
-        // espera a la red, y la revalidación de fondo corrige el combo si alguien
-        // tocó la tabla.
-        //
-        // El repoblado se saltea cuando ese filtro está en uso: ComboFiltro.Poblar
-        // vuelve a "(Todos)" sin notificar, así que repoblar por detrás dejaría el
-        // combo diciendo "(Todos)" con la grilla todavía filtrada. La lista nueva
-        // igual queda cacheada y entra en el próximo poblado.
-        var fabTask  = CatalogoCache.ObtenerParaComboAsync(
-            Catalogos.Fabricantes(_catalogos),
-            alRevalidar: lista =>
-            {
-                if (Disposed || _fabricanteIdFiltro is not null) return;
-                _todosFabricantes = lista.ToList();
-                ReacotarFabricantes();
-            });
-
-        var paisTask = CatalogoCache.ObtenerParaComboAsync(
-            Catalogos.Paises(_catalogos),
-            alRevalidar: lista =>
-            {
-                if (Disposed || _paisIdFiltro is not null) return;
-                Paises = lista.ToList();
-            });
-
-        var provTask = CatalogoCache.ObtenerParaComboAsync(
-            Catalogos.Proveedores(_catalogos),
-            alRevalidar: lista =>
-            {
-                if (Disposed || _proveedorIdFiltro is not null) return;
-                Proveedores = lista.ToList();
-            });
-
-        var catTask = CatalogoCache.ObtenerParaComboAsync(
-            Catalogos.Categorias(_catalogos),
-            alRevalidar: lista =>
-            {
-                if (Disposed || _categoriaIdFiltro is not null) return;
-                Categorias = lista.ToList();
-            });
+        // Los catálogos salen de la caché que vive detrás del repositorio (ADR-026):
+        // la segunda entrada a la pantalla no espera a la red. Ya no hay callback de
+        // revalidación — la caché se purga por evento de Realtime, así que lo que
+        // llega acá está fresco por construcción.
+        var fabTask  = ComboAsync(Catalogos.Fabricantes(_catalogos));
+        var paisTask = ComboAsync(Catalogos.Paises(_catalogos));
+        var provTask = ComboAsync(Catalogos.Proveedores(_catalogos));
+        var catTask  = ComboAsync(Catalogos.Categorias(_catalogos));
         await Task.WhenAll(fabTask, paisTask, provTask, catTask);
 
         var rFab = fabTask.Result;
@@ -322,25 +290,40 @@ public partial class ProductosViewModel : RealtimeAwareViewModel
         // Observar() registra el token de baja — se cancela en Dispose() automáticamente
         Observar("productos", OnCambioProducto);
 
-        foreach (var (tabla, clave) in TablasDeJoin)
-            Observar(tabla, _ => OnCambioCatalogo(clave));
+        foreach (var tabla in TablasDeJoin)
+            Observar(tabla, _ => OnCambioCatalogo());
     }
 
     /// <summary>
-    /// Tablas que aportan columnas a la grilla vía join, con la clave de caché de
-    /// su catálogo. Esos nombres no viven en `productos`: renombrar un fabricante
+    /// Trae un catálogo completo para poblar un combo. El tamaño pedido es el mismo
+    /// umbral que usa la lupa: por encima de eso un combo no es usable y corresponde
+    /// el selector paginado.
+    /// </summary>
+    private static async Task<Result<IReadOnlyList<FiltroItem>>> ComboAsync(CatalogoConfig cfg)
+    {
+        var r = await cfg.Cargar(string.Empty, 1, UmbralCombo, default);
+        return r.Success
+            ? Result<IReadOnlyList<FiltroItem>>.Ok(r.Value!.Items)
+            : Result<IReadOnlyList<FiltroItem>>.Fail(r.Error);
+    }
+
+    private const int UmbralCombo = 200;
+
+    /// <summary>
+    /// Tablas que aportan columnas a la grilla vía join. Esos nombres no viven en
+    /// `productos`: renombrar un fabricante
     /// no dispara ningún evento de esa tabla, así que sin estas suscripciones la
     /// columna se queda con el nombre viejo hasta volver a entrar a la pantalla.
     /// </summary>
-    private static readonly (string Tabla, string ClaveCache)[] TablasDeJoin =
+    private static readonly string[] TablasDeJoin =
     {
-        ("fabricante",            "fabricantes"),
-        ("proveedores",           "proveedores"),
-        ("categoria",             "categorias"),
-        ("paises",                "paises"),
-        ("presentacion_producto", "presentaciones"),
-        ("tara",                  "taras"),
-        ("unidad_medida",         "unidades"),
+        "fabricante",
+        "proveedores",
+        "categoria",
+        "paises",
+        "presentacion_producto",
+        "tara",
+        "unidad_medida",
     };
 
     /// <summary>
@@ -349,11 +332,13 @@ public partial class ProductosViewModel : RealtimeAwareViewModel
     /// El refresco va por la vía silenciosa, y su bandera interna colapsa la
     /// ráfaga si un mismo cambio emite varios eventos seguidos.
     /// </summary>
-    private void OnCambioCatalogo(string claveCache)
+    private void OnCambioCatalogo()
     {
         if (Disposed) return;
 
-        CatalogoCache.Invalidar(claveCache);
+        // La purga de la caché ya la hizo InvalidadorCacheRealtime, que se suscribe
+        // en el login y por lo tanto corre su handler antes que el de esta pantalla,
+        // dentro del mismo recorrido de suscriptores. Acá solo queda recargar.
         _ = CargarPaginaSilenciosamenteAsync(actualizarFilas: true, esInsert: false);
     }
 

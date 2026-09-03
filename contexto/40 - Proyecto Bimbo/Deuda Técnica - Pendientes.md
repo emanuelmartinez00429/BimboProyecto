@@ -914,6 +914,110 @@ Esta bifurcación introduce inconsistencias de comportamiento y mantenimiento:
 
 ---
 
+### P-048 · Fuga de datos y permisos entre sesiones en terminal compartida (CatalogoCache y RolPermisoRepository)
+
+**Archivos:** `CapaUI/Core/Catalogos/CatalogoCache.cs:177`, `CapaDatos/Repositories/Usuarios/RolPermisoRepository.cs:23-24`, `CapaUI/Formularios/Principal/MainWindow.xaml.cs:660-692` (`LimpiarRecursosAsync`), `CapaUI/App.xaml.cs`
+**Detectado en:** Auditoría adversarial y diseño de [[ADR-026 - Cache en memoria con FusionCache e invalidacion por Realtime]] (2026-09-02)
+
+En la aplicación de escritorio WPF de Bimbo Honduras, el contenedor de inyección de dependencias `App.Services` es un root provider estático instanciado una sola vez durante el inicio del proceso (`App.xaml.cs`). Cuando un usuario cierra su sesión en la ventana principal (`MainWindow`), la rutina `HandleCerrarSesionAsync()` ejecuta el método privado `LimpiarRecursosAsync()`, dispara el evento `SesionCerrada` y cierra `MainWindow`, retornando a la ventana de login (`LoginWindow`) **sin reiniciar el proceso del sistema operativo**.
+
+Se constató una fuga de estado bidireccional entre usuarios sucesivos en la misma máquina física:
+
+1. **`CatalogoCache` estático sin purga:** `CatalogoCache._cache` es un `ConcurrentDictionary<string, IReadOnlyList<FiltroItem>>` en memoria. A pesar de que expone el método `public static void InvalidarTodo() => _cache.Clear();` (línea 177), `MainWindow.LimpiarRecursosAsync()` **nunca lo invoca**. Los catálogos consultados por el Usuario A permanecen en RAM para el Usuario B.
+2. **`RolPermisoRepository._catalogoCache` privado sin ciclo de vida:** Contiene el campo `private static IReadOnlyList<ModuloAccionesDto>? _catalogoCache` con un `SemaphoreSlim` asociado. No posee ningún método público ni interno para invalidar o limpiar la lista. La estructura de módulos y acciones precargada por el primer usuario persiste inmutable para sesiones posteriores.
+3. **Contenedor Singleton no reiniciado y purga de suscriptores Realtime:** Los servicios y repositorios registrados como Singleton en `App.Services` conservan instancias vivas entre sesiones. A su vez, `RealtimeService.DesconectarAsync()` ejecuta `_suscriptores.Clear()` en logout, por lo que cualquier suscriptor singleton (como `InvalidadorCacheRealtime`) pierde sus manejadores a partir del segundo login si no se re-suscribe explícitamente en el ciclo de vida de la ventana principal.
+
+**Riesgo:** Alto en terminales de planta y despachos con rotación de turnos entre múltiples operarios y supervisores. Si bien `SesionPermisos.Limpiar()` restablece los permisos en memoria del usuario autenticado, los datos de catálogos y la estructura base de permisos no se resetean, pudiendo exponer datos cacheados o provocar inconsistencias de visualización. Además, sin re-suscripción explícita, la reactividad por Realtime se pierde al 100% tras el primer cierre de sesión.
+
+**Solución diseñada:**
+1. Invocar explícitamente `CatalogoCache.InvalidarTodo()` en `MainWindow.LimpiarRecursosAsync()`.
+2. Exponer un método de invalidación en `IRolPermisoRepository` y ejecutarlo durante el cierre de sesión.
+3. Como solución arquitectónica definitiva: Migrar todas las cachés estáticas hacia la abstracción centralizada `ICacheService` gobernada por `FusionCache`, ejecutando `ClearAsync(allowFailSafe: false)` de forma determinística en `LimpiarRecursosAsync()`, tal como se establece en [[ADR-026 - Cache en memoria con FusionCache e invalidacion por Realtime]].
+4. Exponer un método explícito `Suscribir()` en `InvalidadorCacheRealtime` e invocarlo obligatoriamente en `MainWindow.OnLoaded` en cada inicio de sesión, compensando la limpieza de `_suscriptores` en `RealtimeService.DesconectarAsync()`.
+
+**Estado:** `[ ] Pendiente 🔴`
+
+---
+
+### P-049 · Suscripciones inactivas a Realtime en Contactos (tablas no publicadas en supabase_realtime)
+
+**Archivos:** `CapaUI/Formularios/Principal/Pantallas/ContactosFabricantes/ContactosFabricantesViewModel.cs:127`, `CapaUI/Formularios/Principal/Pantallas/ContactosProveedores/ContactosProveedoresViewModel.cs:127`, `CapaDatos/Repositories/Realtime/RealtimeService.cs`
+**Detectado en:** Auditoría adversarial y diseño de [[ADR-026 - Cache en memoria con FusionCache e invalidacion por Realtime]] (2026-09-02)
+
+Tanto `ContactosFabricantesViewModel` como `ContactosProveedoresViewModel` heredan de `RealtimeAwareViewModel` y ejecutan llamadas de suscripción reactiva en su método `CargarDatosAsync()`:
+- `Observar("contactos_fabricante", OnCambioContacto);` (línea 127)
+- `Observar("contactos_proveedor", OnCambioContacto);` (línea 127)
+
+Sin embargo, la auditoría empírica ejecutada directamente sobre el catálogo del sistema PostgreSQL de producción (`bzmmrifjgzlvsphctais`) mediante:
+```sql
+select tablename from pg_publication_tables where pubname = 'supabase_realtime';
+```
+revela que las únicas tablas publicadas en el canal de replicación lógica de Supabase son: `categoria`, `empleados`, `entradas_producto`, `fabricante`, `movimiento_productos`, `movimientos`, `paises`, `presentacion_producto`, `productos`, `proveedores`, `tara`, `unidad_medida` y `usuarios`.
+
+Las tablas secundarias `contactos_fabricante` y `contactos_proveedor` **no forman parte de `supabase_realtime`**.
+
+**Modo de falla silencioso:**
+El cliente `Supabase.Realtime` negocia y abre el canal websocket para la tabla solicitada sin arrojar excepciones. No obstante, PostgreSQL nunca emite eventos WAL hacia el slot de replicación para tablas que no pertenezcan a la publicación. Como consecuencia, las pantallas de contactos jamás reciben eventos de inserción, edición o borrado ejecutados desde otros clientes, generando un comportamiento ilusorio de reactividad y manteniendo canales websocket abiertos en vano.
+
+**Riesgo:** Medio en consistencia de visualización multiusuario; degradación de arquitectura por código que presupone reactividad inexistente.
+
+**Solución diseñada:**
+1. Definir si el tráfico y volumen de `contactos_fabricante` y `contactos_proveedor` ameritan su incorporación a la publicación mediante una migración SQL en Supabase (`ALTER PUBLICATION supabase_realtime ADD TABLE contactos_fabricante, contactos_proveedor;`).
+2. En caso de no incorporarlas, remover las llamadas `Observar()` en ambos ViewModels para liberar recursos del websocket y documentar que la actualización de contactos depende de recarga explícita o navegación drill-down.
+3. Incorporar en `RealtimeService` una verificación defensiva o advertencia en log al intentar suscribirse a tablas fuera del catálogo de `supabase_realtime` (ver trampa 5 en [[ADR-026 - Cache en memoria con FusionCache e invalidacion por Realtime]]).
+
+**Estado:** `[ ] Pendiente`
+
+---
+
+### ~~P-050~~ · ✅ La clave de caché de catálogos no incluía el tamaño de página — resuelto 2026-09-03
+
+**Archivos:** `CapaDatos/Repositories/Catalogos/CachedCatalogoRepository.cs` (método `ConCache`), `CapaUI/Core/Controls/SelectorCatalogoModal.xaml.cs:222`
+**Detectado en:** [[Sesión 2026-09-03 - Implementación de ADR-026 y socket Realtime autenticado]]
+
+`CachedCatalogoRepository.ConCache` decide cachear cuando `page == 1 && termino == ""`, y arma la clave como `catalogos:{tabla}` (o `catalogos:{tabla}:{alcance}`). **El `size` no forma parte de la clave.**
+
+`SelectorCatalogoModal.CargarPaginaAsync` (línea 222) llama `_cfg.Cargar(_query, _page, _cfg.PageSize, ...)`. En la ruta `ForzarPaginacion` —que usa Reportería— la primera carga es exactamente `("", 1, 50)`, que colisiona con la clave que produce la lupa normal al pedir `("", 1, 200)`.
+
+**Caso que falla:** un catálogo con más filas que el `PageSize` paginado pero menos que el umbral de memoria (por ejemplo 120 filas, `PageSize` 50, umbral 200).
+
+1. El usuario abre la lupa normal → `Cargar("", 1, 200)` devuelve 120 filas, `Total = 120`. Como `120 <= 200`, se cachea bajo `catalogos:productos`.
+2. En la misma sesión abre el selector de Reportería → `Cargar("", 1, 50)` **pega en la caché** y recibe las 120 filas.
+3. `CargarPaginaAsync` hace `Dg.ItemsSource = pagina.Items` → la grilla muestra 120 filas en una página que declara ser de 50, y `TotalPages` calcula 3 páginas sobre un conjunto ya completo.
+
+No se manifiesta cuando el catálogo entra entero en el `PageSize` (ambas llamadas devuelven lo mismo) ni cuando lo excede (con `Total > size` el predicado `esCacheable` impide guardar la entrada paginada).
+
+**Solución aplicada (2026-09-03):** el tamaño pasó a formar parte de la clave. `ConCache` ahora arma `$"{TagsCache.CatalogosRaiz}:{tabla}:{ambito}:{size}"`, con `ambito` = el alcance o `"todos"`. La lupa y el selector paginado quedan en entradas separadas (`catalogos:paises:todos:200` y `catalogos:paises:todos:50`). Las etiquetas no cambian, así que la invalidación por evento y la purga consolidada siguen alcanzando ambas.
+
+Fijado con `BimboProyecto.Tests/Cache/CachedCatalogoRepositoryTests.cs`. La prueba se verificó contra el código defectuoso: con la clave anterior falla (recibe 120 filas donde espera 50 y una sola llamada al repositorio en vez de dos), y pasa con el arreglo.
+
+**Estado:** `[x]` Resuelto — ver [[Sesión 2026-09-03 - Implementación de ADR-026 y socket Realtime autenticado]]
+
+---
+
+### P-051 · Política `select_Usuarios` con `USING (true)` sobre PUBLIC
+
+**Archivos:** política `select_Usuarios` sobre `public.usuarios` (Supabase, proyecto `bzmmrifjgzlvsphctais`)
+**Detectado en:** [[Sesión 2026-09-03 - Implementación de ADR-026 y socket Realtime autenticado]]
+
+Al auditar por qué fallaban las suscripciones filtradas de notificaciones se inspeccionaron las políticas RLS involucradas. La única política de `public.usuarios` es:
+
+```sql
+polname:     select_Usuarios
+roles:       {}          -- PUBLIC: aplica a todos los roles
+using_expr:  true
+```
+
+Es decir, **cualquier usuario autenticado puede leer la tabla `usuarios` completa**, sin acotar a su propia fila ni a su ámbito.
+
+**Cuidado al corregir:** la política es *load-bearing*. La política de `notificaciones_usuario` incluye un subquery `EXISTS (SELECT 1 FROM usuarios u WHERE u.id_usuario = ... AND u.uuid_usuario = auth.uid() AND u.id_estado = 1)` que depende de poder leer esa tabla. Endurecerla sin revisar los dependientes rompería la entrega de notificaciones en tiempo real y probablemente otras rutas.
+
+**Solución de fondo:** inventariar qué políticas y RPC dependen de leer `usuarios`, y reemplazar `USING (true)` por una expresión acotada (fila propia, o lectura mediante función `security definer` en el esquema `private`, como ya se hace con `usuario_tiene_permiso_codigo`).
+
+**Estado:** `[ ] Pendiente`
+
+---
+
 ## Historial de resolución
 
 | ID | Descripción | Estado | Sesión |
@@ -964,6 +1068,10 @@ Esta bifurcación introduce inconsistencias de comportamiento y mantenimiento:
 | P-045 | Campos de texto de Pesaje sin límites en UI, Dominio ni BD | `[ ]` Pendiente | [[Módulo Pesaje]] |
 | P-046 | Validación visual de descripciones de estado de Pesaje en Bitácora | `[ ]` Pendiente | [[Sesión 2026-08-24 - RPC idempotentes auditadas de Pesajes]] |
 | P-047 | Divergencia de diseño y comportamiento entre `ModalInput` e `InputBox` | `[ ]` Pendiente | [[Sesión 2026-09-02 - Validación de longitud máxima en campos de texto]] |
+| P-048 | Fuga de datos y permisos entre sesiones en terminal compartida (CatalogoCache / RolPermiso) | `[ ]` Pendiente 🔴 | [[ADR-026 - Cache en memoria con FusionCache e invalidacion por Realtime]] |
+| P-049 | Suscripciones Realtime inactivas en Contactos (tablas no publicadas en publicación) | `[ ]` Pendiente | [[ADR-026 - Cache en memoria con FusionCache e invalidacion por Realtime]] |
+| P-050 | Clave de caché de catálogos sin el tamaño de página (colisión lupa 200 / paginado 50) | `[x]` Resuelto | [[Sesión 2026-09-03 - Implementación de ADR-026 y socket Realtime autenticado]] |
+| P-051 | Política `select_Usuarios` con `USING (true)` sobre PUBLIC | `[ ]` Pendiente | [[Sesión 2026-09-03 - Implementación de ADR-026 y socket Realtime autenticado]] |
 
 ---
 
@@ -990,4 +1098,6 @@ Esta bifurcación introduce inconsistencias de comportamiento y mantenimiento:
 - [[Anatomía compartida de los modales]] — tabla de estilos globales contra la que se auditó P-042
 - [[ADR-021 - Validacion en tres capas reglas de negocio en Dominio]] — tres capas de validación y reglas de dominio
 - [[Sesión 2026-09-02 - Validación de longitud máxima en campos de texto]] — origen de P-047 y actualización de P-042/P-045
+- [[ADR-026 - Cache en memoria con FusionCache e invalidacion por Realtime]] — diseño integral de caché L1 e invalidación reactiva que mitiga P-048 y P-049
 
+- [[Sesión 2026-09-03 - Implementación de ADR-026 y socket Realtime autenticado]] — origen de P-050 y P-051

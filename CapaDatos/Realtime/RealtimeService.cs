@@ -142,6 +142,14 @@ public class RealtimeService : IRealtimeService
         ct.ThrowIfCancellationRequested();
         var client = await ConexionSupabase.GetClientAsync();
 
+        // El socket nace con la anon key (AutoConnectRealtime = true en ConexionSupabase).
+        // Sin esto, realtime.subscription_check_filters() evalúa has_column_privilege()
+        // contra el rol 'anon' — que no tiene SELECT sobre ninguna columna de
+        // notificaciones_usuario — y rechaza CUALQUIER filtro con "invalid column for
+        // filter". Solo se notaba en Notificaciones porque es la única suscripción con
+        // filtro: las demás no ejecutan esa validación.
+        AplicarTokenDeSesion(client);
+
         // ConnectAsync() es idempotente — si ya está conectado, no hace nada
         if (client.Realtime.Socket is null || !client.Realtime.Socket.IsConnected)
             await client.Realtime.ConnectAsync();
@@ -154,6 +162,18 @@ public class RealtimeService : IRealtimeService
             if (!_estadoHandlerRegistrado)
             {
                 _estadoHandlerRegistrado = true;
+
+                // Al renovarse el token (AutoRefreshToken = true) el socket sigue usando
+                // el anterior hasta que se le avise, y las suscripciones con filtro se
+                // caen al expirar. Se registra junto al handler de reconexión para
+                // reutilizar el mismo guard de una sola vez.
+                client.Auth.AddStateChangedListener((_, estado) =>
+                {
+                    if (estado is Supabase.Gotrue.Constants.AuthState.SignedIn
+                               or Supabase.Gotrue.Constants.AuthState.TokenRefreshed)
+                        AplicarTokenDeSesion(client);
+                });
+
                 client.Realtime.AddStateChangedHandler((_, state) =>
                 {
                     if (state == Supabase.Realtime.Constants.SocketState.Reconnect)
@@ -174,6 +194,29 @@ public class RealtimeService : IRealtimeService
 
         lock (_stateLock) { _canales[clave] = channel; }
         Serilog.Log.Information("Realtime: canal '{Tabla}' abierto con filtro '{Filtro}'", tabla, filtro);
+    }
+
+    /// <summary>
+    /// Propaga el JWT de la sesión al socket Realtime.
+    ///
+    /// Supabase Realtime valida los filtros de una suscripción con
+    /// <c>has_column_privilege(claims-&gt;&gt;'role', ...)</c>: con el rol 'anon' la lista de
+    /// columnas visibles vuelve vacía y el servidor rechaza el filtro con
+    /// <c>invalid column for filter</c>, aunque la columna exista. Es idempotente y no
+    /// lanza: si todavía no hay sesión se avisa y el próximo canal lo reintenta.
+    /// </summary>
+    private static void AplicarTokenDeSesion(Supabase.Client client)
+    {
+        var token = client.Auth.CurrentSession?.AccessToken;
+        if (string.IsNullOrEmpty(token))
+        {
+            Serilog.Log.Warning(
+                "Realtime: sin sesión activa al abrir canal — el socket sigue como 'anon' " +
+                "y las suscripciones con filtro serán rechazadas.");
+            return;
+        }
+
+        client.Realtime.SetAuth(token);
     }
 
     // ── Procesamiento de eventos ─────────────────────────────────────

@@ -440,15 +440,19 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
         /// guarda el id real de la unidad; <c>Content</c> es la abreviatura, igual
         /// que mostraba la lista hardcodeada de antes.
         /// </summary>
+        private const int UmbralCombo = 200;
+
         private async Task CargarUnidadesAsync()
         {
             CmbUnidad.Items.Clear();
             CmbUnidad.Items.Add(new ComboBoxItem { Content = "(Sin seleccionar)", Tag = null });
 
-            var r = await CatalogoCache.ObtenerParaComboAsync(Catalogos.Unidades(_catalogos));
+            // La caché vive detrás del repositorio (ADR-026): reabrir el modal no
+            // vuelve a consultar la tabla de unidades.
+            var r = await Catalogos.Unidades(_catalogos).Cargar(string.Empty, 1, UmbralCombo, default);
             if (r.Success)
             {
-                foreach (var u in r.Value!)
+                foreach (var u in r.Value!.Items)
                     CmbUnidad.Items.Add(new ComboBoxItem { Content = u.Descripcion, Tag = u.Id });
             }
 

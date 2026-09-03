@@ -151,12 +151,10 @@ public partial class SelectorCatalogoModal : UserControl, IDisposable
             return;
         }
 
-        // El callback repinta si la revalidación encontró la tabla cambiada: la
-        // lupa abre con lo que ya estaba en memoria y se corrige sola en el acto.
-        var r = await CatalogoCache.ObtenerCompletoAsync(
-            _cfg, UmbralMemoria,
-            alRevalidar: lista => { if (!_dispuesto) PintarEnMemoria(lista, preservarSeleccion: true); },
-            _ctsVida.Token);
+        // La caché vive ahora detrás del repositorio (ADR-026): si el catálogo ya
+        // está en memoria, esto no toca la red. Antes se revalidaba en cada apertura,
+        // así que un acierto de caché pagaba el viaje igual.
+        var r = await _cfg.Cargar(string.Empty, 1, UmbralMemoria, _ctsVida.Token);
 
         if (_dispuesto) return;
 
@@ -167,9 +165,10 @@ public partial class SelectorCatalogoModal : UserControl, IDisposable
             return;
         }
 
-        if (r.Value is { } completo)
+        var pagina = r.Value!;
+        if (pagina.Total <= UmbralMemoria)
         {
-            PintarEnMemoria(completo, preservarSeleccion: false);
+            PintarEnMemoria(pagina.Items);
             return;
         }
 
@@ -182,26 +181,23 @@ public partial class SelectorCatalogoModal : UserControl, IDisposable
 
     /// <summary>
     /// Vuelca la lista completa a la tabla: filtrado en memoria, sin paginación
-    /// ni red por tecla. Se llama al abrir y otra vez si la revalidación trajo
-    /// cambios, por eso <paramref name="preservarSeleccion"/>: en el repintado
-    /// hay que devolverle al usuario la fila que tenía marcada. El texto buscado
-    /// se conserva solo — <see cref="FiltroEnMemoria"/> lee el campo _query.
+    /// ni red por tecla. El texto buscado se conserva solo — <see cref="FiltroEnMemoria"/>
+    /// lee el campo _query.
+    ///
+    /// <para>Se llama una sola vez, al abrir. El repintado en caliente de ADR-015
+    /// desapareció junto con <c>alRevalidar</c>: la caché ahora se invalida por
+    /// evento de Realtime antes de que la lupa se abra, así que no hay nada que
+    /// corregir con el modal a la vista. De paso se va el parpadeo del DataGrid y
+    /// la carrera en la que el repintado desmarcaba la fila recién elegida.</para>
     /// </summary>
-    private void PintarEnMemoria(IReadOnlyList<FiltroItem> items, bool preservarSeleccion)
+    private void PintarEnMemoria(IReadOnlyList<FiltroItem> items)
     {
-        int? idMarcado = preservarSeleccion
-            ? (Dg.SelectedItem as FilaCatalogo)?.Item.Id
-            : null;
-
         _todas = items.Select(CrearFila).ToList();
         _vista = CollectionViewSource.GetDefaultView(_todas);
         _vista.Filter = FiltroEnMemoria;
 
         Dg.ItemsSource = _vista;
         FooterPaginacion.Visibility = Visibility.Collapsed;
-
-        if (idMarcado is not null)
-            Dg.SelectedItem = _todas.FirstOrDefault(f => f.Item.Id == idMarcado);
 
         MostrarCargando(false);
         RefrescarConteoEnMemoria();

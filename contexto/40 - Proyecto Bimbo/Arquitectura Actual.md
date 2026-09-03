@@ -13,6 +13,9 @@ aliases:
 > [!success] Actualizado 2026-09-02 — Administrador inmutable con acceso total
 > La ruta Roles administra el catálogo de roles y sus permisos mediante RPC transaccionales con autorización y bitácora. El rol Administrador se identifica mediante `roles.es_sistema`: su nombre, estado y permisos son inmutables, conserva las 34 acciones actuales y recibe automáticamente toda acción futura. Ver [[Módulo Usuarios]] y [[ADR-024 - Rol Administrador inmutable con acceso total]].
 
+> [!info] Propuesta arquitectónica — Caché L1 en memoria e invalidación reactiva por Realtime
+> Se encuentra en evaluación la transición del modelo de catálogos (*stale-while-revalidate* de [[ADR-015 - Cache de catalogos mostrar y revalidar]]) hacia una caché unificada L1 en memoria administrada mediante `ZiggyCreatures.FusionCache` e invalidación reactiva basada en eventos de `supabase_realtime`. Esta propuesta elimina las consultas de fondo redundantes por apertura de selector modal, erradica el riesgo de fuga de datos entre sesiones en una misma terminal ([[Deuda Técnica - Pendientes#P-048]]), y descarta formalmente el uso de almacenamiento L2 en clientes de planta. Ver [[ADR-026 - Cache en memoria con FusionCache e invalidacion por Realtime]].
+
 > [!success] Actualizado 2026-08-17 — Módulo Reportería operativo
 > Reportería ofrece cuatro consultas: entrada de materia prima, resumen por proveedor, productos con merma y primeros 10 productos activos. Las consultas pasan por RPC protegidas con `Consultar Reporte`; la exportación PDF/Excel registra primero la operación auditada y solo después escribe el archivo. Ver [[Módulo Reportería]].
 
@@ -208,6 +211,17 @@ _Ninguna advertencia activa._ W-001 (CS0067 `SalirSolicitado`) eliminada — eve
 ## Próximos pasos recomendados
 
 1. **Replicar módulo Productos** para Empleados / Movimientos — usar [[Checklist - Replicar Módulo con Realtime]]
-2. **Caché en memoria** para fabricantes/países (no cambian entre sesiones)
+2. **Caché en memoria** para fabricantes/países (no cambian entre sesiones) — propuesta formal en [[ADR-026 - Cache en memoria con FusionCache e invalidacion por Realtime]]
 3. **Result Pattern** consistente en todos los repositorios restantes
 4. **Contactos Empleados** — si aplica, usar [[Módulo Contactos (Drill-down)]] como plantilla
+
+---
+
+## Relaciones
+
+- [[ADR-026 - Cache en memoria con FusionCache e invalidacion por Realtime]] — propuesta arquitectónica de caché L1 e invalidación reactiva
+- [[ADR-015 - Cache de catalogos mostrar y revalidar]] — arquitectura vigente de caché de catálogos
+- [[Deuda Técnica - Pendientes]] — registro de deuda técnica del proyecto
+- [[Conocimiento Principal]] — índice maestro de la base de conocimiento
+- [[Módulo Productos]] — catálogo principal
+- [[Gestor Realtime - Diseño Arquitectónico]] — infraestructura de WebSockets y eventos reactivos
