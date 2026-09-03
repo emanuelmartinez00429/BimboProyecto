@@ -107,6 +107,16 @@ namespace CapaUI.Formularios.Principal.Pantallas.Proveedores
                 {
                     var r = await _repo.UpdateAsync(dto, _solicitud.Obtener("actualizar_proveedor", dto), CancellationToken.None);
                     (exito, error) = (r.Success, r.Error);
+
+                    if (exito && _proveedor != null && dto.IdEstado != _proveedor.IdEstado)
+                    {
+                        var rEstado = await _repo.CambiarEstadoAsync(
+                            dto.Id,
+                            dto.IdEstado,
+                            _solicitud.Obtener("cambiar_estado_proveedor", new { dto.Id, dto.IdEstado }),
+                            CancellationToken.None);
+                        (exito, error) = (rEstado.Success, rEstado.Error);
+                    }
                 }
 
                 if (!exito)

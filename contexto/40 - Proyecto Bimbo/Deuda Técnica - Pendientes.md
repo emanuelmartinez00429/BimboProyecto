@@ -1018,6 +1018,22 @@ Es decir, **cualquier usuario autenticado puede leer la tabla `usuarios` complet
 
 ---
 
+### P-052 · Trigger de auditoría duplica bitácora y choca con el RBAC de las RPC `_seguro` de catálogos
+
+**Archivos:** `log_upd_categoria()`, `log_upd_fabricante()` y el trigger `AFTER UPDATE` equivalente de `proveedores` (Supabase, proyecto `bzmmrifjgzlvsphctais`).
+**Detectado en:** auditoría de las RPC de catálogos, 2026-09-03. Ver [[Plan de Migración de Presentaciones a RPC segura]].
+
+Las tablas `categoria`, `fabricante` y `proveedores` conservan su trigger `AFTER UPDATE` de auditoría legacy (`trg_upd_*`) **además** de haber migrado a `actualizar_<x>_seguro` / `cambiar_estado_<x>_seguro`, que ya auditan por su cuenta con `private.registrar_auditoria_rbac`. Consecuencias:
+
+1. **Doble fila de bitácora** por cada actualización o cambio de estado: una desde la RPC (código granular, p. ej. `CATEGORIAS_MODIFICAR`) y otra desde el trigger (`id_accion = 2` = `PRODUCTOS_MODIFICAR`, `id_modulo = 1`).
+2. **Conflicto de permiso:** `log_upd_categoria` exige `id_accion = 2` (`PRODUCTOS_MODIFICAR`). Un usuario con el permiso granular (`CATEGORIAS_MODIFICAR` / `CATEGORIAS_DESACTIVAR`) pero sin `PRODUCTOS_MODIFICAR` pasa el chequeo de la RPC, se ejecuta el `UPDATE`, y entonces el trigger lanza `42501` y **revierte toda la transacción**. La RPC `_seguro` queda rota justo para los roles que la motivan.
+
+**Solución de fondo:** una vez que el DML directo sobre cada tabla esté revocado a `authenticated`/`anon` (todas las escrituras pasan por las `_seguro`), hacer `DROP TRIGGER trg_upd_<x>` en `categoria`, `fabricante` y `proveedores`, conservando solo `trg_<x>_updated_at`. Dejar las funciones `log_upd_*` en el esquema para poder revertir. Presentaciones ya lo contempla en [[Plan de Migración de Presentaciones a RPC segura]]; este ítem cubre los otros tres.
+
+**Estado:** `[ ] Pendiente`
+
+---
+
 ## Historial de resolución
 
 | ID | Descripción | Estado | Sesión |
@@ -1072,6 +1088,7 @@ Es decir, **cualquier usuario autenticado puede leer la tabla `usuarios` complet
 | P-049 | Suscripciones Realtime inactivas en Contactos (tablas no publicadas en publicación) | `[ ]` Pendiente | [[ADR-026 - Cache en memoria con FusionCache e invalidacion por Realtime]] |
 | P-050 | Clave de caché de catálogos sin el tamaño de página (colisión lupa 200 / paginado 50) | `[x]` Resuelto | [[Sesión 2026-09-03 - Implementación de ADR-026 y socket Realtime autenticado]] |
 | P-051 | Política `select_Usuarios` con `USING (true)` sobre PUBLIC | `[ ]` Pendiente | [[Sesión 2026-09-03 - Implementación de ADR-026 y socket Realtime autenticado]] |
+| P-052 | Trigger de auditoría legacy duplica bitácora y choca con el RBAC de las RPC `_seguro` (categoría/fabricante/proveedor) | `[ ]` Pendiente | [[Plan de Migración de Presentaciones a RPC segura]] |
 
 ---
 
@@ -1099,5 +1116,6 @@ Es decir, **cualquier usuario autenticado puede leer la tabla `usuarios` complet
 - [[ADR-021 - Validacion en tres capas reglas de negocio en Dominio]] — tres capas de validación y reglas de dominio
 - [[Sesión 2026-09-02 - Validación de longitud máxima en campos de texto]] — origen de P-047 y actualización de P-042/P-045
 - [[ADR-026 - Cache en memoria con FusionCache e invalidacion por Realtime]] — diseño integral de caché L1 e invalidación reactiva que mitiga P-048 y P-049
+- [[Plan de Migración de Presentaciones a RPC segura]] — origen de P-052; migración de Presentaciones a la familia `_seguro`
 
 - [[Sesión 2026-09-03 - Implementación de ADR-026 y socket Realtime autenticado]] — origen de P-050 y P-051

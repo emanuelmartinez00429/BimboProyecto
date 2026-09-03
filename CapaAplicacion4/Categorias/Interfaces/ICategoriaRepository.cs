@@ -12,5 +12,6 @@ public interface ICategoriaRepository
     Task<Result<int>>                          GetPaginaDeRegistroAsync(int id, int size, CategoriaFiltros filtros, CancellationToken ct = default);
     Task<Result<int>> CreateAsync(CategoriaDto dto, Guid idSolicitud, CancellationToken ct = default);
     Task<Result>      UpdateAsync(CategoriaDto dto, Guid idSolicitud, CancellationToken ct = default);
+    Task<Result>      CambiarEstadoAsync(int id, bool nuevoEstado, Guid idSolicitud, CancellationToken ct = default);
     Task<Result>      DeleteAsync(int id,           Guid idSolicitud, CancellationToken ct = default);
 }

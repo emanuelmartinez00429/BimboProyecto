@@ -267,7 +267,8 @@
                                    PlacementTarget="{Binding ElementName=BtnNotif}"
                                    Placement="Bottom" VerticalOffset="4"
                                    HorizontalOffset="-396"
-                                   AllowsTransparency="True" StaysOpen="False">
+                                   AllowsTransparency="True" StaysOpen="False"
+                                   Closed="NotifPopup_Closed">
                                 <Border Width="440" MaxHeight="720" Background="White"
                                         CornerRadius="10"
                                         BorderBrush="#E5E7EB" BorderThickness="1"

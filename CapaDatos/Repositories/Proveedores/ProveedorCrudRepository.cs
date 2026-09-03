@@ -139,18 +139,21 @@ public class ProveedorCrudRepository : RepositorioBase, IProveedorRepository
             await client.Rpc("actualizar_proveedor_seguro", parametros);
         }, "Actualizar proveedor");
 
-    public Task<Result> DeleteAsync(int id, Guid idSolicitud, CancellationToken ct = default) =>
+    public Task<Result> CambiarEstadoAsync(int id, int nuevoEstado, Guid idSolicitud, CancellationToken ct = default) =>
         TryAsync(async () =>
         {
             var client = await ConexionSupabase.GetClientAsync();
             var parametros = new Dictionary<string, object?>
             {
                 ["p_id_proveedor"] = id,
-                ["p_id_estado"] = EstadoRegistro.Inactivo,
+                ["p_id_estado"] = nuevoEstado,
                 ["p_id_solicitud"] = idSolicitud,
             };
             await client.Rpc("cambiar_estado_proveedor_seguro", parametros);
-        }, "Eliminar proveedor");
+        }, "Cambiar estado de proveedor");
+
+    public Task<Result> DeleteAsync(int id, Guid idSolicitud, CancellationToken ct = default) =>
+        CambiarEstadoAsync(id, EstadoRegistro.Inactivo, idSolicitud, ct);
 
     // ── Lógica interna ────────────────────────────────────────────────────────
 

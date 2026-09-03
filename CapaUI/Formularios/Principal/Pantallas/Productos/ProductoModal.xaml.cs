@@ -407,6 +407,16 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
                 {
                     var r = await _repo.UpdateAsync(dto, _solicitud.Obtener("actualizar_producto", dto), CancellationToken.None);
                     (exito, error) = (r.Success, r.Error);
+
+                    if (exito && _producto != null && dto.IdEstado != _producto.IdEstado)
+                    {
+                        var rEstado = await _repo.CambiarEstadoAsync(
+                            dto.Id,
+                            dto.IdEstado,
+                            _solicitud.Obtener("cambiar_estado_producto", new { dto.Id, dto.IdEstado }),
+                            CancellationToken.None);
+                        (exito, error) = (rEstado.Success, rEstado.Error);
+                    }
                 }
 
                 if (!exito)

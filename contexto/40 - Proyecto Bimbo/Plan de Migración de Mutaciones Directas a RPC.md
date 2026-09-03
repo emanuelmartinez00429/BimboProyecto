@@ -15,6 +15,9 @@ estado: propuesto
 > [!warning] Estado documental
 > Este plan prepara las 27 rutas activas que todavía escriben directamente en tablas de Supabase. No representa trabajo implementado ni autoriza cambios en código o base de datos. Es independiente de [[Plan Offline-First de Pesaje]] y no modifica su contenido.
 
+> [!note] Nomenclatura real y sub-plan de Presentaciones (2026-09-03)
+> La convención implementada en BD es `crear_/actualizar_/cambiar_estado_<entidad>_seguro`, no `_v2`. Categoría, Proveedor y Fabricante ya tienen la familia `_seguro` completa; **Presentación es el único catálogo sin migrar** (create vía función legacy `SECURITY INVOKER`, update/delete vía DML directo). El detalle, el SQL listo y los defectos encontrados están en [[Plan de Migración de Presentaciones a RPC segura]]. El doble-log/conflicto de permiso latente en los triggers de los otros tres catálogos quedó como P-052 en [[Deuda Técnica - Pendientes]].
+
 ## Objetivo y definición de compatibilidad
 
 Eliminar gradualmente el DML directo de los repositorios empresariales activos y hacer que cada mutación central pase por una RPC específica, segura, auditable e idempotente.
@@ -114,8 +117,9 @@ El flujo de edición de una pesada que actualmente anula y crea otra se reemplaz
 | 12 | Fabricante | `DeleteAsync` lógico | `desactivar_fabricante_v2` |
 | 13 | Categoría | `UpdateAsync` | `actualizar_categoria_v2` |
 | 14 | Categoría | `DeleteAsync` lógico | `desactivar_categoria_v2` |
-| 15 | Presentación | `UpdateAsync` | `actualizar_presentacion_v2` |
-| 16 | Presentación | `DeleteAsync` lógico | `desactivar_presentacion_v2` |
+| 15 | Presentación | `UpdateAsync` | `actualizar_presentacion_seguro` ✅ aplicado 2026-09-03 (BD + capa de datos; UI pendiente) |
+| 16 | Presentación | `DeleteAsync` lógico | `cambiar_estado_presentacion_seguro` ✅ aplicado 2026-09-03 |
+| 15b | Presentación | `CreateAsync` (era `ingresar_presentacion_tabla_bitacora`, INVOKER) | `crear_presentacion_seguro` ✅ aplicado 2026-09-03 |
 | 17 | Contacto de fabricante | `UpdateAsync` | `actualizar_contacto_fabricante_v2` |
 | 18 | Contacto de fabricante | `DeleteAsync` lógico | `desactivar_contacto_fabricante_v2` |
 | 19 | Contacto de proveedor | `UpdateAsync` | `actualizar_contacto_proveedor_v2` |
@@ -247,4 +251,5 @@ Una operación ya creada con el contrato de outbox no cambia a la ruta heredada:
 - [[Módulo Pesaje]]
 - [[Arquitectura Actual]]
 - [[Deuda Técnica - Pendientes]]
+- [[Plan de Migración de Presentaciones a RPC segura]] — sub-plan detallado del catálogo Presentaciones
 

@@ -98,6 +98,16 @@ namespace CapaUI.Formularios.Principal.Pantallas.Categorias
                 {
                     var r = await _repo.UpdateAsync(dto, _solicitud.Obtener("actualizar_categoria", dto), CancellationToken.None);
                     (exito, error) = (r.Success, r.Error);
+
+                    if (exito && _categoria != null && dto.EstadoCategoria != _categoria.EstadoCategoria)
+                    {
+                        var rEstado = await _repo.CambiarEstadoAsync(
+                            dto.Id,
+                            dto.EstadoCategoria,
+                            _solicitud.Obtener("cambiar_estado_categoria", new { dto.Id, dto.EstadoCategoria }),
+                            CancellationToken.None);
+                        (exito, error) = (rEstado.Success, rEstado.Error);
+                    }
                 }
 
                 if (!exito)

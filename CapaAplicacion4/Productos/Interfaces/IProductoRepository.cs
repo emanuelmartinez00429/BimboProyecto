@@ -23,5 +23,6 @@ public interface IProductoRepository
     // Escritura
     Task<Result<int>> CreateAsync(ProductoDto dto, Guid idSolicitud, CancellationToken ct = default);
     Task<Result>      UpdateAsync(ProductoDto dto, Guid idSolicitud, CancellationToken ct = default);
+    Task<Result>      CambiarEstadoAsync(int id, int nuevoEstado, Guid idSolicitud, CancellationToken ct = default);
     Task<Result>      DeleteAsync(int id,          Guid idSolicitud, CancellationToken ct = default);
 }

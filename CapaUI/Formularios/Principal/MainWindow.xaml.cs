@@ -538,8 +538,41 @@ namespace CapaUI.Formularios.Principal
         // ══════════════════════════════════════════════════════════════════
         //  NOTIFICACIONES
         // ══════════════════════════════════════════════════════════════════
+        private const int DebounceNotifMs = 300;
+        private DateTime _ultimoClicNotif = DateTime.MinValue;
+        private DateTime _momentoCierrePopupNotif = DateTime.MinValue;
+
+        private void NotifPopup_Closed(object? sender, EventArgs e)
+        {
+            // Registramos el momento de cierre sin depender de IsMouseOver,
+            // garantizando compatibilidad con pantallas táctiles donde el contacto
+            // del dedo se levanta antes de que el Dispatcher procese el evento Closed.
+            _momentoCierrePopupNotif = DateTime.UtcNow;
+        }
+
         private void BtnNotif_Click(object sender, RoutedEventArgs e)
-            => NotifPopup.IsOpen = !NotifPopup.IsOpen;
+        {
+            var ahora = DateTime.UtcNow;
+
+            // 1. Debounce contra martilleo y multitoques rápidos (pantalla táctil o doble clic accidental):
+            // Si ocurren toques sucesivos en menos de 300 ms, se descartan para evitar
+            // saturar la cola de mensajes y la creación/destrucción de ventanas Win32 (HWND).
+            if ((ahora - _ultimoClicNotif).TotalMilliseconds < DebounceNotifMs)
+            {
+                return;
+            }
+            _ultimoClicNotif = ahora;
+
+            // 2. Si el popup se acaba de cerrar a raíz del TouchDown/MouseDown de este mismo toque
+            // (comportamiento StaysOpen="False" de WPF), evitamos invertir el estado y reabrirlo.
+            if ((ahora - _momentoCierrePopupNotif).TotalMilliseconds < DebounceNotifMs)
+            {
+                _momentoCierrePopupNotif = DateTime.MinValue;
+                return;
+            }
+
+            NotifPopup.IsOpen = !NotifPopup.IsOpen;
+        }
 
         private void BtnVerNotificaciones_Click(object sender, RoutedEventArgs e)
         {

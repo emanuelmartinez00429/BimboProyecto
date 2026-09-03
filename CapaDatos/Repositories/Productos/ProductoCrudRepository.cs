@@ -206,18 +206,21 @@ public class ProductoCrudRepository : RepositorioBase, IProductoRepository
             await client.Rpc("actualizar_producto_seguro", parametros);
         }, "Actualizar producto");
 
-    public Task<Result> DeleteAsync(int id, Guid idSolicitud, CancellationToken ct = default) =>
+    public Task<Result> CambiarEstadoAsync(int id, int nuevoEstado, Guid idSolicitud, CancellationToken ct = default) =>
         TryAsync(async () =>
         {
             var client = await ConexionSupabase.GetClientAsync();
             var parametros = new Dictionary<string, object?>
             {
                 ["p_id_producto"] = id,
-                ["p_id_estado"] = EstadoRegistro.Inactivo,
+                ["p_id_estado"] = nuevoEstado,
                 ["p_id_solicitud"] = idSolicitud,
             };
             await client.Rpc("cambiar_estado_producto_seguro", parametros);
-        }, "Eliminar producto");
+        }, "Cambiar estado de producto");
+
+    public Task<Result> DeleteAsync(int id, Guid idSolicitud, CancellationToken ct = default) =>
+        CambiarEstadoAsync(id, EstadoRegistro.Inactivo, idSolicitud, ct);
 
     private async Task<PagedResult<ProductoDto>> GetPagedInternal(
         int page, int size, ProductoFiltros filtros, CancellationToken ct)

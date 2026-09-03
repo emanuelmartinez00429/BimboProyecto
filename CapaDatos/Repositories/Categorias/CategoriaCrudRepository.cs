@@ -130,18 +130,21 @@ public class CategoriaCrudRepository : RepositorioBase, ICategoriaRepository
             await client.Rpc("actualizar_categoria_seguro", parametros);
         }, "Actualizar categoría");
 
-    public Task<Result> DeleteAsync(int id, Guid idSolicitud, CancellationToken ct = default) =>
+    public Task<Result> CambiarEstadoAsync(int id, bool nuevoEstado, Guid idSolicitud, CancellationToken ct = default) =>
         TryAsync(async () =>
         {
             var client = await ConexionSupabase.GetClientAsync();
             var parametros = new Dictionary<string, object?>
             {
                 ["p_id_categoria"] = id,
-                ["p_estado_categoria"] = false,
+                ["p_estado_categoria"] = nuevoEstado,
                 ["p_id_solicitud"] = idSolicitud,
             };
             await client.Rpc("cambiar_estado_categoria_seguro", parametros);
-        }, "Eliminar categoría");
+        }, "Cambiar estado de categoría");
+
+    public Task<Result> DeleteAsync(int id, Guid idSolicitud, CancellationToken ct = default) =>
+        CambiarEstadoAsync(id, false, idSolicitud, ct);
 
 
     // ── Lógica interna ────────────────────────────────────────────────────────

@@ -15,5 +15,6 @@ public interface IFabricanteRepository
     Task<Result<int>>                          GetPaginaDeRegistroAsync(int id, int size, FabricanteFiltros filtros, CancellationToken ct = default);
     Task<Result<int>> CreateAsync(FabricanteDto dto, Guid idSolicitud, CancellationToken ct = default);
     Task<Result>      UpdateAsync(FabricanteDto dto, Guid idSolicitud, CancellationToken ct = default);
+    Task<Result>      CambiarEstadoAsync(int id, int nuevoEstado, Guid idSolicitud, CancellationToken ct = default);
     Task<Result>      DeleteAsync(int id, Guid idSolicitud, CancellationToken ct = default);
 }

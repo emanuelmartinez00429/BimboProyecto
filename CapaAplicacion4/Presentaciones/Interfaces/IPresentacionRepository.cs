@@ -17,7 +17,8 @@ public interface IPresentacionRepository
     /// </summary>
     Task<Result<int>> GetPaginaDeRegistroAsync(PresentacionDto dto, int size, PresentacionFiltros filtros, CancellationToken ct = default);
 
-    Task<Result<int>> CreateAsync(PresentacionDto dto, CancellationToken ct = default);
-    Task<Result>      UpdateAsync(PresentacionDto dto, CancellationToken ct = default);
-    Task<Result>      DeleteAsync(int id,              CancellationToken ct = default);
+    Task<Result<int>> CreateAsync(PresentacionDto dto, Guid idSolicitud, CancellationToken ct = default);
+    Task<Result>      UpdateAsync(PresentacionDto dto, Guid idSolicitud, CancellationToken ct = default);
+    Task<Result>      CambiarEstadoAsync(int id, int nuevoIdEstado, Guid idSolicitud, CancellationToken ct = default);
+    Task<Result>      DeleteAsync(int id,              Guid idSolicitud, CancellationToken ct = default);
 }

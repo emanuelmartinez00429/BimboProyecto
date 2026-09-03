@@ -151,18 +151,21 @@ public class FabricanteCrudRepository : RepositorioBase, IFabricanteRepository
             await client.Rpc("actualizar_fabricante_seguro", parametros);
         }, "Actualizar fabricante");
 
-    public Task<Result> DeleteAsync(int id, Guid idSolicitud, CancellationToken ct = default) =>
+    public Task<Result> CambiarEstadoAsync(int id, int nuevoEstado, Guid idSolicitud, CancellationToken ct = default) =>
         TryAsync(async () =>
         {
             var client = await ConexionSupabase.GetClientAsync();
             var parametros = new Dictionary<string, object?>
             {
                 ["p_id_fabricante"] = id,
-                ["p_id_estado"] = EstadoRegistro.Inactivo,
+                ["p_id_estado"] = nuevoEstado,
                 ["p_id_solicitud"] = idSolicitud,
             };
             await client.Rpc("cambiar_estado_fabricante_seguro", parametros);
-        }, "Eliminar fabricante");
+        }, "Cambiar estado de fabricante");
+
+    public Task<Result> DeleteAsync(int id, Guid idSolicitud, CancellationToken ct = default) =>
+        CambiarEstadoAsync(id, EstadoRegistro.Inactivo, idSolicitud, ct);
 
     // ── Lógica interna ────────────────────────────────────────────────────────
 

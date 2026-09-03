@@ -1,6 +1,7 @@
 using CapaUI.Core.Controls;
 using CapaDominio.Reglas;
 using CapaUI.Core.Validacion;
+using CapaUI.Core.Seguridad;
 using CapaAplicacion.Common;
 using CapaAplicacion.Presentaciones.Dtos;
 using CapaAplicacion.Presentaciones.Interfaces;
@@ -15,6 +16,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Presentaciones
         private readonly PresentacionDto?        _presentacion;
         private readonly bool                    _esNuevo;
         private ValidadorFormulario              _validador = null!;
+        private readonly SolicitudIdempotente    _solicitud = new();
 
         public event Action? Cerrado;
         public event Action? Guardado;
@@ -92,18 +94,32 @@ namespace CapaUI.Formularios.Principal.Pantallas.Presentaciones
                         : EstadoRegistro.Inactivo,
                 };
 
+                // CreateAsync devuelve Result<int> y UpdateAsync Result: son tipos
+                // distintos, así que no se pueden unificar en un ternario.
                 bool exito;
                 string error;
 
                 if (_esNuevo)
                 {
-                    var r = await _repo.CreateAsync(dto);
+                    var r = await _repo.CreateAsync(dto, _solicitud.Obtener("crear_presentacion", dto), CancellationToken.None);
                     (exito, error) = (r.Success, r.Error);
                 }
                 else
                 {
-                    var r = await _repo.UpdateAsync(dto);
+                    var r = await _repo.UpdateAsync(dto, _solicitud.Obtener("actualizar_presentacion", dto), CancellationToken.None);
                     (exito, error) = (r.Success, r.Error);
+
+                    // El estado es un comando aparte: actualizar_presentacion_seguro
+                    // no lo toca. Solo se llama si realmente cambió.
+                    if (exito && _presentacion != null && dto.IdEstado != _presentacion.IdEstado)
+                    {
+                        var rEstado = await _repo.CambiarEstadoAsync(
+                            dto.Id,
+                            dto.IdEstado,
+                            _solicitud.Obtener("cambiar_estado_presentacion", new { dto.Id, dto.IdEstado }),
+                            CancellationToken.None);
+                        (exito, error) = (rEstado.Success, rEstado.Error);
+                    }
                 }
 
                 if (!exito)
@@ -112,6 +128,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Presentaciones
                         "Ya existe una presentación con ese nombre.", TxtNombre);
                     return;
                 }
+                _solicitud.Confirmar();
 
                 Guardado?.Invoke();
             }

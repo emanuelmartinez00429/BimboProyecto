@@ -85,60 +85,82 @@ public class PresentacionCrudRepository : RepositorioBase, IPresentacionReposito
 
     // ── Escritura ─────────────────────────────────────────────────────────────
 
-    public Task<Result<int>> CreateAsync(PresentacionDto dto, CancellationToken ct = default) =>
+    public Task<Result<int>> CreateAsync(PresentacionDto dto, Guid idSolicitud, CancellationToken ct = default) =>
         TryAsync(async () =>
         {
             ct.ThrowIfCancellationRequested();
-            int idUsuario = _sesionService.SesionActual?.IdUsuario
-                ?? throw new InvalidOperationException("No hay una sesión activa; no se puede crear la presentación.");
 
             var client = await ConexionSupabase.GetClientAsync();
             var parametros = new Dictionary<string, object?>
             {
-                ["p_nombre_presentacion"] = dto.Nombre,
+                ["p_nombre_presentacion"]      = dto.Nombre,
                 ["p_descripcion_presentacion"] = dto.Descripcion,
-                ["p_id_estado"] = dto.IdEstado,
-                ["p_usuario_ingresando"] = idUsuario,
+                ["p_id_solicitud"]             = idSolicitud,
             };
 
-            var response = await client.Rpc("ingresar_presentacion_tabla_bitacora", parametros);
+            var response = await client.Rpc("crear_presentacion_seguro", parametros);
             ct.ThrowIfCancellationRequested();
-            return ObtenerIdCreado(response?.Content, "presentación");
+            return ObtenerIdCreado(response?.Content, "presentación", "id_presentacion");
         }, "Crear presentación");
 
-    private static int ObtenerIdCreado(string? json, string entidad)
+    private static int ObtenerIdCreado(string? json, string entidad, string jsonKey)
     {
         if (string.IsNullOrWhiteSpace(json))
-            throw new InvalidOperationException($"La función de creación no devolvió el identificador de la {entidad}.");
+            throw new InvalidOperationException($"La función devolvió una respuesta vacía para {entidad}.");
         int id;
-        try { id = JToken.Parse(json).ToObject<int>(); }
+        try
+        {
+            var token = JToken.Parse(json);
+            if (token is JObject obj)
+            {
+                if (obj.TryGetValue("message", out var msgToken) || obj.TryGetValue("error", out msgToken))
+                    throw new InvalidOperationException(msgToken!.Value<string>());
+                if (obj.TryGetValue(jsonKey, out var idToken))
+                    id = idToken.Value<int>();
+                else
+                    throw new InvalidOperationException($"La respuesta no contiene el campo {jsonKey}: {json}");
+            }
+            else
+            {
+                id = token.Value<int>();
+            }
+        }
         catch (Exception ex) when (ex is JsonException or FormatException)
-        { throw new InvalidOperationException("La función de creación devolvió un identificador inválido.", ex); }
-        return id > 0 ? id : throw new InvalidOperationException("La función de creación devolvió un identificador inválido.");
+        { throw new InvalidOperationException("La función devolvió una respuesta inválida.", ex); }
+
+        return id > 0 ? id : throw new InvalidOperationException("La función devolvió un identificador inválido.");
     }
 
-    public Task<Result> UpdateAsync(PresentacionDto dto, CancellationToken ct = default) =>
+    public Task<Result> UpdateAsync(PresentacionDto dto, Guid idSolicitud, CancellationToken ct = default) =>
         TryAsync(async () =>
         {
             var client = await ConexionSupabase.GetClientAsync();
-            // updated_at no se toca: lo mueve el trigger trg_presentacion_updated_at.
-            await client.From<PresentacionCrud>()
-                .Where(p => p.idPresentacion == dto.Id)
-                .Set(p => p.nombrePresentacion,      dto.Nombre)
-                .Set(p => p.descripcionPresentacion!, dto.Descripcion)
-                .Set(p => p.idEstado,                dto.IdEstado)
-                .Update();
+            // El estado no se toca acá: lo mueve cambiar_estado_presentacion_seguro.
+            var parametros = new Dictionary<string, object?>
+            {
+                ["p_id_presentacion"]          = dto.Id,
+                ["p_nombre_presentacion"]      = dto.Nombre,
+                ["p_descripcion_presentacion"] = dto.Descripcion,
+                ["p_id_solicitud"]             = idSolicitud,
+            };
+            await client.Rpc("actualizar_presentacion_seguro", parametros);
         }, "Actualizar presentación");
 
-    public Task<Result> DeleteAsync(int id, CancellationToken ct = default) =>
+    public Task<Result> CambiarEstadoAsync(int id, int nuevoIdEstado, Guid idSolicitud, CancellationToken ct = default) =>
         TryAsync(async () =>
         {
             var client = await ConexionSupabase.GetClientAsync();
-            await client.From<PresentacionCrud>()
-                .Where(p => p.idPresentacion == id)
-                .Set(p => p.idEstado, EstadoRegistro.Inactivo)
-                .Update();
-        }, "Eliminar presentación");
+            var parametros = new Dictionary<string, object?>
+            {
+                ["p_id_presentacion"] = id,
+                ["p_id_estado"]       = nuevoIdEstado,
+                ["p_id_solicitud"]    = idSolicitud,
+            };
+            await client.Rpc("cambiar_estado_presentacion_seguro", parametros);
+        }, "Cambiar estado de presentación");
+
+    public Task<Result> DeleteAsync(int id, Guid idSolicitud, CancellationToken ct = default) =>
+        CambiarEstadoAsync(id, EstadoRegistro.Inactivo, idSolicitud, ct);
 
     // ── Lógica interna ────────────────────────────────────────────────────────
 
