@@ -315,8 +315,8 @@
         </Grid>
 
         <!-- ROW 2: TOOLBAR -->
-        <Border Grid.Row="2" Background="White" CornerRadius="10"
-                BorderBrush="#D8E1EC" BorderThickness="1" Padding="12">
+        <Border Grid.Row="2" x:Name="TarjetaToolbar" Background="White" CornerRadius="10"
+                BorderBrush="#D8E1EC" BorderThickness="1" Padding="12" ClipToBounds="True">
             <Border.Effect>
                 <DropShadowEffect Color="Black" BlurRadius="10" ShadowDepth="2" Opacity="0.06"/>
             </Border.Effect>
@@ -334,16 +334,21 @@
                         HighlightIndex="{Binding HighlightIndex, Mode=TwoWay}"
                         Placeholder="Buscar por campo, detalle o tabla afectada..."
                         ItemSelected="SearchBox_ItemSelected"/>
+                    <!-- En ventana angosta el rótulo le come el ancho al buscador,
+                         que es lo que sí tiene que quedar usable: bajo el umbral
+                         queda el icono solo, con el ToolTip siempre presente. -->
                     <Button Grid.Column="1" Command="{Binding LimpiarFiltrosCommand}"
                             Background="{DynamicResource EmpresaPrimaryDarkBrush}" Style="{StaticResource ActionBtn}"
-                            Padding="16,0" Height="38" MinWidth="0">
+                            Padding="16,0" Height="38" MinWidth="0"
+                            ToolTip="Limpiar filtros">
                         <StackPanel Orientation="Horizontal">
                             <Path Data="{StaticResource IconFilter}"
                                   Stroke="White" StrokeThickness="1.8"
                                   StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                                  Width="16" Height="16" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                  Width="16" Height="16" Stretch="Uniform" VerticalAlignment="Center"/>
                             <TextBlock Text="Limpiar Filtros" FontFamily="Segoe UI" FontSize="15.5" FontWeight="SemiBold"
-                                       Foreground="White" VerticalAlignment="Center"/>
+                                       Foreground="White" VerticalAlignment="Center" Margin="6,0,0,0"
+                                       Visibility="{Binding ActualWidth, ElementName=TarjetaToolbar, Converter={StaticResource AnchoMinimoAVisibilidad}, ConverterParameter=760}"/>
                         </StackPanel>
                     </Button>
                 </Grid>

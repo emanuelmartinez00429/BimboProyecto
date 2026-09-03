@@ -95,8 +95,7 @@ public partial class ProveedoresViewModel : RealtimeAwareViewModel
             if (_estadoFiltro == value) return;
             _estadoFiltro = value;
             OnPropertyChanged();
-            _page = 1;
-            _ = CargarPaginaAsync();
+            AplicarCambioDeFiltro();
         }
     }
 
@@ -209,6 +208,19 @@ public partial class ProveedoresViewModel : RealtimeAwareViewModel
         },
         items => { SuggestItems = items; HighlightIndex = -1; });
 
+    /// <summary>
+    /// Entrada única de todo cambio de filtro/orden: vuelve a la primera página,
+    /// recarga la grilla y RE-LANZA la búsqueda de sugerencias con el texto
+    /// actual, para que el popup del SuggestionSearchBox refleje el filtro nuevo
+    /// sin que el usuario tenga que reescribir. Un filtro nuevo solo llama acá.
+    /// </summary>
+    private void AplicarCambioDeFiltro()
+    {
+        _page = 1;
+        _ = CargarPaginaAsync();
+        _ = RefrescarSugerenciasAsync();
+    }
+
     private static SuggestionItemData Map(ProveedorDto p) => new()
     {
         Nombre = p.Nombre,
@@ -274,9 +286,8 @@ public partial class ProveedoresViewModel : RealtimeAwareViewModel
     private void LimpiarFiltros()
     {
         _estadoFiltro = EstadoFilter.Activos;
-        _page = 1;
         FiltrosLimpiados?.Invoke();
-        _ = CargarPaginaAsync();
+        AplicarCambioDeFiltro();
     }
 
     [RelayCommand(CanExecute = nameof(PuedePaginaAnterior))]

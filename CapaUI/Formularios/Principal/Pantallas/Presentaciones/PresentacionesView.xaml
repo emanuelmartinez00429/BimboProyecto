@@ -190,7 +190,7 @@
                     <!-- En ventana angosta el rótulo le come el ancho al buscador,
                          que es lo que sí tiene que quedar usable: bajo el umbral
                          queda el icono solo, con el ToolTip siempre presente. -->
-                    <Button Grid.Column="1" Command="{Binding LimpiarFiltrosCommand}" Background="#4A6FA8"
+                    <Button Grid.Column="1" Command="{Binding LimpiarFiltrosCommand}" Background="{DynamicResource EmpresaPrimaryDarkBrush}"
                             Style="{StaticResource ActionBtn}" Padding="16,0" Height="38" MinWidth="0"
                             ToolTip="Limpiar filtros">
                         <StackPanel Orientation="Horizontal">

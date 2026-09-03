@@ -97,8 +97,7 @@ public partial class EmpleadosViewModel : ObservableObject, IDisposable
             if (_estadoFiltro == value) return;
             _estadoFiltro = value;
             OnPropertyChanged();
-            _page = 1;
-            _ = CargarPaginaAsync();
+            AplicarCambioDeFiltro();
         }
     }
 
@@ -217,6 +216,19 @@ public partial class EmpleadosViewModel : ObservableObject, IDisposable
         },
         items => { SuggestItems = items; HighlightIndex = -1; });
 
+    /// <summary>
+    /// Entrada única de todo cambio de filtro/orden: vuelve a la primera página,
+    /// recarga la grilla y RE-LANZA la búsqueda de sugerencias con el texto
+    /// actual, para que el popup del SuggestionSearchBox refleje el filtro nuevo
+    /// sin que el usuario tenga que reescribir. Un filtro nuevo solo llama acá.
+    /// </summary>
+    private void AplicarCambioDeFiltro()
+    {
+        _page = 1;
+        _ = CargarPaginaAsync();
+        _ = RefrescarSugerenciasAsync();
+    }
+
     private static SuggestionItemData Map(EmpleadoDto e) => new()
     {
         Nombre = $"{e.NombreEmpleado} {e.ApellidoEmpleado}",
@@ -296,9 +308,8 @@ public partial class EmpleadosViewModel : ObservableObject, IDisposable
     private void LimpiarFiltros()
     {
         _estadoFiltro = EstadoEmpleadoFilter.Activos;
-        _page         = 1;
         FiltrosLimpiados?.Invoke();
-        _ = CargarPaginaAsync();
+        AplicarCambioDeFiltro();
     }
 
     // ── Paginación ─────────────────────────────────────────────────────

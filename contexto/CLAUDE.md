@@ -253,6 +253,7 @@ private static SuggestionItemData Map(ProductoDto p) => new() { … };
 - Highlight via `ListBox` + `SelectedIndex="{Binding HighlightIndex, Mode=OneWay}"` + triggers `IsSelected`/`IsMouseOver`. `VisualTreeHelper` fue eliminado al resolver P-005 (2026-05-28); `OneWay` es deliberado — en `TwoWay`, cambiar el `ItemsSource` reescribiría `HighlightIndex` en el VM
 - Al seleccionar sugerencia: buscar en `PageRows` por `Id`, **NO insertar** en la colección
 - El ViewModel **no pre-selecciona**: `HighlightIndex = -1` siempre al llegar sugerencias nuevas
+- **Todo cambio de filtro/orden entra por un único método `AplicarCambioDeFiltro()`** (en Bitácora se llama `ReiniciarYCargar()`): `_page = 1;` → `CargarPaginaAsync()` → **`RefrescarSugerenciasAsync()`**. Ese re-lanzamiento sincroniza el popup con el filtro nuevo sin que el usuario reescriba (2026-09-03). Los setters de filtro y `LimpiarFiltros()` solo llaman a ese método; un filtro nuevo hereda el comportamiento con una línea. Si la caja está vacía el re-lanzamiento es no-op (`aplicar(null)`, popup cerrado). No se toca `SuggestionDebouncer` para esto.
 - ⚠️ **Nunca** exponer un `bool ShowSuggestions` como señal de "mostrar el popup": `[ObservableProperty]` no notifica cuando el valor no cambia, y el popup se congela. Una sola señal (`SuggestItems`) — ver P-026
 
 ---

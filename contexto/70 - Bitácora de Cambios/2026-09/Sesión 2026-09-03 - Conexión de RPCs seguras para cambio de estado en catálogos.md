@@ -114,6 +114,15 @@ Se eliminaron los guiones genéricos (`—`) en todas las columnas de datos del 
   - `CREADO` y `ACTUALIZADO` unificados con `HeaderDerecho` + `CeldaDerecha` en todas las tablas del módulo (`Productos`, `Categorías`, `Presentaciones`, `Fabricantes`, `Proveedores`).
   - Columnas de estado unificadas con `HeaderCentrado` + `CeldaCentrada`.
 
+### 3. Estandarización de Responsividad en Buscadores (`SuggestionSearchBox` y `Limpiar Filtros`)
+
+- **Problema detectado**: El convertidor responsivo `AnchoMinimoAVisibilidad` (umbral 760 px en `TarjetaToolbar`) solo estaba implementado en `ProductosView.xaml` y `PresentacionesView.xaml`. En el resto de submódulos, el botón `Limpiar Filtros` tenía un ancho fijo que comprimía la caja del buscador `SuggestionSearchBox` al achicar la ventana.
+- **Implementación**:
+  - Homologado el contenedor `Border` con `x:Name="TarjetaToolbar"` y `ClipToBounds="True"`.
+  - Conectado `AnchoMinimoAVisibilidad` con `ConverterParameter=760` al texto `"Limpiar Filtros"` y fijado `ToolTip="Limpiar filtros"`.
+  - Saneado el botón en `PresentacionesView.xaml` reemplazando `#4A6FA8` por `{DynamicResource EmpresaPrimaryDarkBrush}`.
+  - Vistas cubiertas: `CategoriasView.xaml`, `FabricantesView.xaml`, `ProveedoresView.xaml`, `EmpleadosView.xaml`, `UsuariosView.xaml`, `BitacoraView.xaml`.
+
 ---
 
 ## Verificación
@@ -133,6 +142,8 @@ Se eliminaron los guiones genéricos (`—`) en todas las columnas de datos del 
 
 ## Relaciones
 
+- [[Buscador y Barra de Herramientas Responsive - Proteccion de Ancho con AnchoMinimoAVisibilidad]]
+- [[Panel de Filtros Fluido - Barra responsive con prioridad y equilibrado]]
 - [[Módulos de Catálogos Administrativos]]
 - [[Módulo Productos]]
 - [[Sesión 2026-09-02 - Alineación de columnas y fallback universal de campos vacíos]]

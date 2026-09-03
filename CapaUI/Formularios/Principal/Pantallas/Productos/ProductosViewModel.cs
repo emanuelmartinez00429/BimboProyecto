@@ -151,8 +151,7 @@ public partial class ProductosViewModel : RealtimeAwareViewModel
             if (_estadoFiltro == value) return;
             _estadoFiltro = value;
             OnPropertyChanged();
-            _page = 1;
-            _ = CargarPaginaAsync();
+            AplicarCambioDeFiltro();
         }
     }
 
@@ -164,8 +163,7 @@ public partial class ProductosViewModel : RealtimeAwareViewModel
             if (_fabricanteIdFiltro == value) return;
             _fabricanteIdFiltro = value;
             OnPropertyChanged();
-            _page = 1;
-            _ = CargarPaginaAsync();
+            AplicarCambioDeFiltro();
         }
     }
 
@@ -177,8 +175,7 @@ public partial class ProductosViewModel : RealtimeAwareViewModel
             if (_paisIdFiltro == value) return;
             _paisIdFiltro = value;
             OnPropertyChanged();
-            _page = 1;
-            _ = CargarPaginaAsync();
+            AplicarCambioDeFiltro();
         }
     }
 
@@ -190,8 +187,7 @@ public partial class ProductosViewModel : RealtimeAwareViewModel
             if (_categoriaIdFiltro == value) return;
             _categoriaIdFiltro = value;
             OnPropertyChanged();
-            _page = 1;
-            _ = CargarPaginaAsync();
+            AplicarCambioDeFiltro();
         }
     }
 
@@ -208,8 +204,7 @@ public partial class ProductosViewModel : RealtimeAwareViewModel
             _proveedorIdFiltro = value;
             OnPropertyChanged();
             ReacotarFabricantes();
-            _page = 1;
-            _ = CargarPaginaAsync();
+            AplicarCambioDeFiltro();
         }
     }
 
@@ -221,8 +216,7 @@ public partial class ProductosViewModel : RealtimeAwareViewModel
             if (_orden == value) return;
             _orden = value;
             OnPropertyChanged();
-            _page = 1;
-            _ = CargarPaginaAsync();
+            AplicarCambioDeFiltro();
         }
     }
 
@@ -463,6 +457,19 @@ public partial class ProductosViewModel : RealtimeAwareViewModel
         },
         items => { SuggestItems = items; HighlightIndex = -1; });
 
+    /// <summary>
+    /// Entrada única de todo cambio de filtro/orden: vuelve a la primera página,
+    /// recarga la grilla y RE-LANZA la búsqueda de sugerencias con el texto
+    /// actual, para que el popup del SuggestionSearchBox refleje el filtro nuevo
+    /// sin que el usuario tenga que reescribir. Un filtro nuevo solo llama acá.
+    /// </summary>
+    private void AplicarCambioDeFiltro()
+    {
+        _page = 1;
+        _ = CargarPaginaAsync();
+        _ = RefrescarSugerenciasAsync();
+    }
+
     private static SuggestionItemData Map(ProductoDto p) => new()
     {
         Codigo = p.CodigoInterno,
@@ -539,7 +546,6 @@ public partial class ProductosViewModel : RealtimeAwareViewModel
         _proveedorIdFiltro  = null;
         _categoriaIdFiltro  = null;
         _orden              = OrdenProducto.IdAsc;
-        _page = 1;
 
         // Los campos se pisan directo arriba, sin pasar por el setter de
         // ProveedorIdFiltro — así que ReacotarFabricantes() nunca corre solo.
@@ -550,7 +556,7 @@ public partial class ProductosViewModel : RealtimeAwareViewModel
         ReacotarFabricantes();
 
         FiltrosLimpiados?.Invoke();
-        _ = CargarPaginaAsync();
+        AplicarCambioDeFiltro();
     }
 
     [RelayCommand(CanExecute = nameof(PuedePaginaAnterior))]

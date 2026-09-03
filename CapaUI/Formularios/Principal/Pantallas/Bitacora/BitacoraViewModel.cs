@@ -188,10 +188,17 @@ public partial class BitacoraViewModel : ObservableObject, IDisposable
 
     public void RefrescarDatos() => _ = CargarPaginaAsync();
 
+    /// <summary>
+    /// Entrada única de todo cambio de filtro: vuelve a la primera página, recarga
+    /// la grilla y RE-LANZA la búsqueda de sugerencias con el texto actual, para
+    /// que el popup del SuggestionSearchBox refleje el filtro nuevo sin que el
+    /// usuario tenga que reescribir. Un filtro nuevo solo llama acá.
+    /// </summary>
     private void ReiniciarYCargar()
     {
         _page = 1;
         _ = CargarPaginaAsync();
+        _ = RefrescarSugerenciasAsync();
     }
 
     /// <summary>Recarga las acciones disponibles según el módulo seleccionado (cascada).</summary>
@@ -319,10 +326,9 @@ public partial class BitacoraViewModel : ObservableObject, IDisposable
         _accionFiltro  = null;
         _fechaDesde    = null;
         _fechaHasta    = null;
-        _page          = 1;
         FiltrosLimpiados?.Invoke();
         _ = RecargarAccionesAsync();
-        _ = CargarPaginaAsync();
+        ReiniciarYCargar();
     }
 
     // ── Reportes ─────────────────────────────────────────────────────────
