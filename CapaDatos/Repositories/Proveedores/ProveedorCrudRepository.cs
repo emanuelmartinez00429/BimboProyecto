@@ -1,10 +1,12 @@
 using CapaAplicacion.Common;
+using CapaAplicacion.Common.Cache;
 using CapaAplicacion.Conexion;
 using CapaAplicacion.Productos.Queries;
 using CapaAplicacion.Proveedores.Dtos;
 using CapaAplicacion.Proveedores.Interfaces;
 using CapaAplicacion.Proveedores.Queries;
 using CapaAplicacion.Usuarios.Interfaces;
+using CapaDatos.Cache;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using ServicioConexión.Conexion;
@@ -20,9 +22,16 @@ namespace CapaDatos.Repositories.Proveedores;
 public class ProveedorCrudRepository : RepositorioBase, IProveedorRepository
 {
     private readonly IUsuarioSesionService _sesionService;
+    private readonly ICacheService         _cache;
 
-    public ProveedorCrudRepository(IConexionMonitor conexion, IUsuarioSesionService sesionService)
-        : base(conexion) => _sesionService = sesionService;
+    public ProveedorCrudRepository(
+        IConexionMonitor conexion,
+        IUsuarioSesionService sesionService,
+        ICacheService cache) : base(conexion)
+    {
+        _sesionService = sesionService;
+        _cache         = cache;
+    }
 
     private static ProveedorDto Map(Prov p) => new()
     {
@@ -44,8 +53,22 @@ public class ProveedorCrudRepository : RepositorioBase, IProveedorRepository
         TryAsync(() => GetPagedInternal(page, size, filtros), "Cargar proveedores");
 
     public Task<Result<IReadOnlyList<ProveedorDto>>> BuscarSugerenciasAsync(
-        string termino, ProveedorFiltros filtros, CancellationToken ct = default) =>
-        TryAsync(() => BuscarSugerenciasInternal(termino, filtros), "Buscar sugerencias proveedores");
+        string termino, ProveedorFiltros filtros, CancellationToken ct = default)
+    {
+        var aguja = TextoBusqueda.Normalizar(termino).Trim();
+        if (aguja.Length < 3)
+            return TryAsync(() => BuscarSugerenciasInternal(aguja, filtros), "Buscar sugerencias proveedores");
+
+        var estado = filtros.IdEstado?.ToString() ?? "todos";
+        var clave  = $"sug:{TagsCache.TablaProveedores}:{aguja}:{estado}";
+
+        return _cache.ObtenerOCrearAsync(
+            clave,
+            _ => TryAsync(() => BuscarSugerenciasInternal(aguja, filtros), "Buscar sugerencias proveedores"),
+            PoliticasCache.Sugerencias,
+            etiquetas: TagsCache.DeCatalogo(TagsCache.TablaProveedores),
+            ct: ct);
+    }
 
     public Task<Result<int>> GetPaginaDeRegistroAsync(
         int id, int size, ProveedorFiltros filtros, CancellationToken ct = default) =>

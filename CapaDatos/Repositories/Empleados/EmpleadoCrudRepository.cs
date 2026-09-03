@@ -1,10 +1,12 @@
 using CapaAplicacion.Common;
+using CapaAplicacion.Common.Cache;
 using CapaAplicacion.Conexion;
 using CapaAplicacion.Empleados.Dtos;
 using CapaAplicacion.Empleados.Interfaces;
 using CapaAplicacion.Empleados.Queries;
 using CapaAplicacion.Productos.Queries;
 using CapaAplicacion.Usuarios.Interfaces;
+using CapaDatos.Cache;
 using CapaDatos.Modelados.Usuarios;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -22,12 +24,15 @@ namespace CapaDatos.Repositories.GestionEmpleados;
 public class EmpleadoCrudRepository : RepositorioBase, IEmpleadoRepository
 {
     private readonly IUsuarioSesionService _sesionService;
+    private readonly ICacheService         _cache;
 
     public EmpleadoCrudRepository(
         IConexionMonitor conexion,
-        IUsuarioSesionService sesionService) : base(conexion)
+        IUsuarioSesionService sesionService,
+        ICacheService cache) : base(conexion)
     {
         _sesionService = sesionService;
+        _cache         = cache;
     }
 
     private static EmpleadoDto Map(CapaDatos.Modelados.Usuarios.Empleados e) => new()
@@ -48,8 +53,22 @@ public class EmpleadoCrudRepository : RepositorioBase, IEmpleadoRepository
         TryAsync(() => GetPagedInternal(page, size, filtros), "Cargar empleados");
 
     public Task<Result<IReadOnlyList<EmpleadoDto>>> BuscarSugerenciasAsync(
-        string termino, EmpleadoFiltros filtros, CancellationToken ct = default) =>
-        TryAsync(() => BuscarSugerenciasInternal(termino, filtros), "Buscar sugerencias empleados");
+        string termino, EmpleadoFiltros filtros, CancellationToken ct = default)
+    {
+        var aguja = TextoBusqueda.Normalizar(termino).Trim();
+        if (aguja.Length < 3)
+            return TryAsync(() => BuscarSugerenciasInternal(aguja, filtros), "Buscar sugerencias empleados");
+
+        var estado = filtros.IdEstado?.ToString() ?? "todos";
+        var clave  = $"sug:{TagsCache.TablaEmpleados}:{aguja}:{estado}";
+
+        return _cache.ObtenerOCrearAsync(
+            clave,
+            _ => TryAsync(() => BuscarSugerenciasInternal(aguja, filtros), "Buscar sugerencias empleados"),
+            PoliticasCache.Sugerencias,
+            etiquetas: TagsCache.DeCatalogo(TagsCache.TablaEmpleados),
+            ct: ct);
+    }
 
     public Task<Result<int>> GetPaginaDeRegistroAsync(
         int id, int size, EmpleadoFiltros filtros, CancellationToken ct = default) =>

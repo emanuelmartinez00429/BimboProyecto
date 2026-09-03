@@ -1,9 +1,11 @@
 using CapaAplicacion.Common;
+using CapaAplicacion.Common.Cache;
 using CapaAplicacion.Conexion;
 using CapaAplicacion.Productos.Dtos;
 using CapaAplicacion.Productos.Interfaces;
 using CapaAplicacion.Productos.Queries;
 using CapaAplicacion.Usuarios.Interfaces;
+using CapaDatos.Cache;
 using CapaDatos.Modelados.Productos;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -19,12 +21,15 @@ namespace CapaDatos.Repositories.Productos;
 public class ProductoCrudRepository : RepositorioBase, IProductoRepository
 {
     private readonly IUsuarioSesionService _sesionService;
+    private readonly ICacheService         _cache;
 
     public ProductoCrudRepository(
         IConexionMonitor conexion,
-        IUsuarioSesionService sesionService) : base(conexion)
+        IUsuarioSesionService sesionService,
+        ICacheService cache) : base(conexion)
     {
         _sesionService = sesionService;
+        _cache         = cache;
     }
 
     /// <summary>
@@ -89,8 +94,27 @@ public class ProductoCrudRepository : RepositorioBase, IProductoRepository
         TryAsync(() => GetPagedInternal(page, size, filtros, ct), "Cargar productos");
 
     public Task<Result<IReadOnlyList<ProductoDto>>> BuscarSugerenciasAsync(
-        string termino, ProductoFiltros filtros, CancellationToken ct = default) =>
-        TryAsync(() => BuscarSugerenciasInternal(termino, filtros), "Buscar sugerencias");
+        string termino, ProductoFiltros filtros, CancellationToken ct = default)
+    {
+        var aguja = TextoBusqueda.Normalizar(termino).Trim();
+        // Menos de 3 caracteres: se consulta en vivo sin cachear (evita inflar memoria con cadenas genéricas).
+        if (aguja.Length < 3)
+            return TryAsync(() => BuscarSugerenciasInternal(aguja, filtros), "Buscar sugerencias");
+
+        var estado = filtros.IdEstado?.ToString() ?? "todos";
+        var prov   = filtros.IdProveedor?.ToString() ?? "todos";
+        var fab    = filtros.IdFabricante?.ToString() ?? "todos";
+        var cat    = filtros.IdCategoria?.ToString() ?? "todos";
+        var pais   = filtros.IdPais?.ToString() ?? "todos";
+        var clave  = $"sug:{TagsCache.TablaProductos}:{aguja}:{estado}:{prov}:{fab}:{cat}:{pais}";
+
+        return _cache.ObtenerOCrearAsync(
+            clave,
+            _ => TryAsync(() => BuscarSugerenciasInternal(aguja, filtros), "Buscar sugerencias"),
+            PoliticasCache.Sugerencias,
+            etiquetas: TagsCache.DeCatalogo(TagsCache.TablaProductos),
+            ct: ct);
+    }
 
     public Task<Result<IReadOnlyList<FiltroItem>>> GetFabricantesAsync(CancellationToken ct = default) =>
         TryAsync(GetFabricantesInternal, "Cargar fabricantes");

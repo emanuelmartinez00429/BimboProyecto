@@ -1,10 +1,12 @@
 using CapaAplicacion.Common;
+using CapaAplicacion.Common.Cache;
 using CapaAplicacion.Conexion;
 using CapaAplicacion.Presentaciones.Dtos;
 using CapaAplicacion.Presentaciones.Interfaces;
 using CapaAplicacion.Presentaciones.Queries;
 using CapaAplicacion.Productos.Queries;
 using CapaAplicacion.Usuarios.Interfaces;
+using CapaDatos.Cache;
 using CapaDatos.Modelados.Productos;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -20,9 +22,16 @@ namespace CapaDatos.Repositories.Presentaciones;
 public class PresentacionCrudRepository : RepositorioBase, IPresentacionRepository
 {
     private readonly IUsuarioSesionService _sesionService;
+    private readonly ICacheService         _cache;
 
-    public PresentacionCrudRepository(IConexionMonitor conexion, IUsuarioSesionService sesionService)
-        : base(conexion) => _sesionService = sesionService;
+    public PresentacionCrudRepository(
+        IConexionMonitor conexion,
+        IUsuarioSesionService sesionService,
+        ICacheService cache) : base(conexion)
+    {
+        _sesionService = sesionService;
+        _cache         = cache;
+    }
 
     private static PresentacionDto Map(PresentacionCrud p) => new()
     {
@@ -53,8 +62,22 @@ public class PresentacionCrudRepository : RepositorioBase, IPresentacionReposito
         TryAsync(() => GetPagedInternal(page, size, filtros), "Cargar presentaciones");
 
     public Task<Result<IReadOnlyList<PresentacionDto>>> BuscarSugerenciasAsync(
-        string termino, PresentacionFiltros filtros, CancellationToken ct = default) =>
-        TryAsync(() => BuscarSugerenciasInternal(termino, filtros), "Buscar sugerencias presentaciones");
+        string termino, PresentacionFiltros filtros, CancellationToken ct = default)
+    {
+        var aguja = TextoBusqueda.Normalizar(termino).Trim();
+        if (aguja.Length < 3)
+            return TryAsync(() => BuscarSugerenciasInternal(aguja, filtros), "Buscar sugerencias presentaciones");
+
+        var estado = filtros.IdEstado?.ToString() ?? "todos";
+        var clave  = $"sug:{TagsCache.TablaPresentacion}:{aguja}:{estado}";
+
+        return _cache.ObtenerOCrearAsync(
+            clave,
+            _ => TryAsync(() => BuscarSugerenciasInternal(aguja, filtros), "Buscar sugerencias presentaciones"),
+            PoliticasCache.Sugerencias,
+            etiquetas: TagsCache.DeCatalogo(TagsCache.TablaPresentacion),
+            ct: ct);
+    }
 
     public Task<Result<int>> GetPaginaDeRegistroAsync(
         PresentacionDto dto, int size, PresentacionFiltros filtros, CancellationToken ct = default) =>

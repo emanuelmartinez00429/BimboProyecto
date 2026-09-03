@@ -60,7 +60,9 @@ public sealed class SuggestionDebouncer : IDisposable
         var token = _cts.Token;
 
         var q = query.Trim();
-        if (string.IsNullOrEmpty(q)) { aplicar(null); return; }
+        // Menos de 2 caracteres no se busca: cierra el popup y evita peticiones
+        // innecesarias de una sola letra a la base de datos mientras se teclea.
+        if (q.Length < 2) { aplicar(null); return; }
 
         try
         {

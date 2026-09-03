@@ -1,4 +1,5 @@
 using CapaAplicacion.Common;
+using CapaAplicacion.Common.Cache;
 using CapaAplicacion.Conexion;
 using CapaAplicacion.Fabricantes.Dtos;
 using CapaAplicacion.Fabricantes.Interfaces;
@@ -6,6 +7,7 @@ using CapaAplicacion.Fabricantes.Queries;
 using CapaAplicacion.Productos.Dtos;
 using CapaAplicacion.Productos.Queries;
 using CapaAplicacion.Usuarios.Interfaces;
+using CapaDatos.Cache;
 using CapaDatos.Modelados.Fabricantes;
 using CapaDatos.Modelados.Productos;
 using ProveedorEnt = CapaDatos.Modelados.Pesajes.Proveedores;
@@ -23,9 +25,16 @@ namespace CapaDatos.Repositories.Fabricantes;
 public class FabricanteCrudRepository : RepositorioBase, IFabricanteRepository
 {
     private readonly IUsuarioSesionService _sesionService;
+    private readonly ICacheService         _cache;
 
-    public FabricanteCrudRepository(IConexionMonitor conexion, IUsuarioSesionService sesionService)
-        : base(conexion) => _sesionService = sesionService;
+    public FabricanteCrudRepository(
+        IConexionMonitor conexion,
+        IUsuarioSesionService sesionService,
+        ICacheService cache) : base(conexion)
+    {
+        _sesionService = sesionService;
+        _cache         = cache;
+    }
 
     private static FabricanteDto Map(
         FabricanteCrud f,
@@ -51,8 +60,23 @@ public class FabricanteCrudRepository : RepositorioBase, IFabricanteRepository
         TryAsync(() => GetPagedInternal(page, size, filtros), "Cargar fabricantes");
 
     public Task<Result<IReadOnlyList<FabricanteDto>>> BuscarSugerenciasAsync(
-        string termino, FabricanteFiltros filtros, CancellationToken ct = default) =>
-        TryAsync(() => BuscarSugerenciasInternal(termino, filtros), "Buscar sugerencias fabricantes");
+        string termino, FabricanteFiltros filtros, CancellationToken ct = default)
+    {
+        var aguja = TextoBusqueda.Normalizar(termino).Trim();
+        if (aguja.Length < 3)
+            return TryAsync(() => BuscarSugerenciasInternal(aguja, filtros), "Buscar sugerencias fabricantes");
+
+        var estado = filtros.IdEstado?.ToString() ?? "todos";
+        var pais   = filtros.IdPais?.ToString() ?? "todos";
+        var clave  = $"sug:{TagsCache.TablaFabricante}:{aguja}:{estado}:{pais}";
+
+        return _cache.ObtenerOCrearAsync(
+            clave,
+            _ => TryAsync(() => BuscarSugerenciasInternal(aguja, filtros), "Buscar sugerencias fabricantes"),
+            PoliticasCache.Sugerencias,
+            etiquetas: TagsCache.DeCatalogo(TagsCache.TablaFabricante),
+            ct: ct);
+    }
 
     public Task<Result<IReadOnlyList<FiltroItem>>> GetPaisesAsync(CancellationToken ct = default) =>
         TryAsync(GetPaisesInternal, "Cargar países");

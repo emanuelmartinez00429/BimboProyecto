@@ -35,6 +35,7 @@ public sealed class InvalidadorCacheRealtime : IInvalidadorCacheRealtime, IDispo
             [TagsCache.TablaPresentacion] = TagsCache.DeTabla(TagsCache.TablaPresentacion),
             [TagsCache.TablaProveedores]  = TagsCache.DeTabla(TagsCache.TablaProveedores),
             [TagsCache.TablaProductos]    = TagsCache.DeTabla(TagsCache.TablaProductos),
+            [TagsCache.TablaEmpleados]    = TagsCache.DeTabla(TagsCache.TablaEmpleados),
         };
 
     private readonly IRealtimeService _realtime;

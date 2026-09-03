@@ -2,9 +2,11 @@ using CapaAplicacion.Categorias.Dtos;
 using CapaAplicacion.Categorias.Interfaces;
 using CapaAplicacion.Categorias.Queries;
 using CapaAplicacion.Common;
+using CapaAplicacion.Common.Cache;
 using CapaAplicacion.Conexion;
 using CapaAplicacion.Productos.Queries;
 using CapaAplicacion.Usuarios.Interfaces;
+using CapaDatos.Cache;
 using CapaDatos.Modelados.Productos;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -20,9 +22,16 @@ namespace CapaDatos.Repositories.Categorias;
 public class CategoriaCrudRepository : RepositorioBase, ICategoriaRepository
 {
     private readonly IUsuarioSesionService _sesionService;
+    private readonly ICacheService         _cache;
 
-    public CategoriaCrudRepository(IConexionMonitor conexion, IUsuarioSesionService sesionService)
-        : base(conexion) => _sesionService = sesionService;
+    public CategoriaCrudRepository(
+        IConexionMonitor conexion,
+        IUsuarioSesionService sesionService,
+        ICacheService cache) : base(conexion)
+    {
+        _sesionService = sesionService;
+        _cache         = cache;
+    }
 
     private static CategoriaDto Map(Categoria c) => new()
     {
@@ -41,8 +50,22 @@ public class CategoriaCrudRepository : RepositorioBase, ICategoriaRepository
         TryAsync(() => GetPagedInternal(page, size, filtros), "Cargar categorías");
 
     public Task<Result<IReadOnlyList<CategoriaDto>>> BuscarSugerenciasAsync(
-        string termino, CategoriaFiltros filtros, CancellationToken ct = default) =>
-        TryAsync(() => BuscarSugerenciasInternal(termino, filtros), "Buscar sugerencias categorías");
+        string termino, CategoriaFiltros filtros, CancellationToken ct = default)
+    {
+        var aguja = TextoBusqueda.Normalizar(termino).Trim();
+        if (aguja.Length < 3)
+            return TryAsync(() => BuscarSugerenciasInternal(aguja, filtros), "Buscar sugerencias categorías");
+
+        var estado = filtros.IdEstado?.ToString() ?? "todos";
+        var clave  = $"sug:{TagsCache.TablaCategoria}:{aguja}:{estado}";
+
+        return _cache.ObtenerOCrearAsync(
+            clave,
+            _ => TryAsync(() => BuscarSugerenciasInternal(aguja, filtros), "Buscar sugerencias categorías"),
+            PoliticasCache.Sugerencias,
+            etiquetas: TagsCache.DeCatalogo(TagsCache.TablaCategoria),
+            ct: ct);
+    }
 
     public Task<Result<int>> GetPaginaDeRegistroAsync(
         int id, int size, CategoriaFiltros filtros, CancellationToken ct = default) =>

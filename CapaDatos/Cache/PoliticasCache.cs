@@ -59,4 +59,16 @@ public static class PoliticasCache
         MaxViejo:                 TimeSpan.FromHours(4),
         EsperaEntreReintentos:    TimeSpan.FromSeconds(30),
         UmbralRefrescoAnticipado: 0.9f);
+
+    /// <summary>
+    /// Sugerencias de búsqueda al teclear en SuggestionSearchBox.
+    /// TTL corto (10 min) con jitter, tolerancia de contingencia (fail-safe 1 hora)
+    /// y purga reactiva vinculada a los tags de Realtime de la tabla.
+    /// </summary>
+    public static readonly PoliticaCache Sugerencias = new(
+        Duracion:                 TimeSpan.FromMinutes(10),
+        Jitter:                   TimeSpan.FromMinutes(2),
+        MaxViejo:                 TimeSpan.FromHours(1),
+        EsperaEntreReintentos:    TimeSpan.FromSeconds(15),
+        UmbralRefrescoAnticipado: null);
 }
