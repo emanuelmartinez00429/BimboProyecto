@@ -1,7 +1,8 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:controls="clr-namespace:CapaUI.Core.Controls"
-                    xmlns:validacion="clr-namespace:CapaUI.Core.Validacion">
+                    xmlns:validacion="clr-namespace:CapaUI.Core.Validacion"
+                    xmlns:converters="clr-namespace:CapaUI.Converters">
 
     <!-- ── Colores de marca ─────────────────────────────────────────────── -->
     <Color x:Key="BrandDarkColor">#1E2D5E</Color>
@@ -23,8 +24,9 @@
     <SolidColorBrush x:Key="TextSecondaryBrush"  Color="{StaticResource TextSecondaryColor}"/>
     <SolidColorBrush x:Key="SurfaceBrush"        Color="{StaticResource SurfaceColor}"/>
 
-    <!-- ── Conversor Bool → Visibility ──────────────────────────────────── -->
+    <!-- ── Conversores Compartidos ──────────────────────────────────────── -->
     <BooleanToVisibilityConverter x:Key="BoolToVisibilityConv"/>
+    <converters:TextoVacioConverter x:Key="TextoVacioConverter"/>
 
     <Geometry x:Key="IconSearchShared">M11,4 a7,7 0 1 1 0,14 a7,7 0 0 1 0,-14 z M20,20 l-4.3,-4.3</Geometry>
     <Style x:Key="LupaBtnCompartido" TargetType="Button">
@@ -564,6 +566,32 @@
         </Setter>
     </Style>
 
+    <Style x:Key="HeaderDerecho" TargetType="DataGridColumnHeader">
+        <Setter Property="Background" Value="{DynamicResource EmpresaPrimaryBrush}"/>
+        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="Height" Value="40"/>
+        <Setter Property="HorizontalContentAlignment" Value="Right"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="DataGridColumnHeader">
+                    <Border Background="{DynamicResource EmpresaPrimaryBrush}" BorderBrush="#1EFFFFFF" BorderThickness="0,0,1,0">
+                        <TextBlock Text="{TemplateBinding Content}"
+                                   Foreground="White"
+                                   FontFamily="Segoe UI"
+                                   FontSize="13"
+                                   FontWeight="Bold"
+                                   HorizontalAlignment="Right"
+                                   VerticalAlignment="Center"
+                                   Padding="10,0"/>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <!-- ══ Barras de scroll discretas ══
          Barra fina sin flechas ni fondo de riel: solo el thumb gris. Estaban
          definidas localmente en ProductosView; se promovieron acá al necesitarlas
@@ -667,6 +695,39 @@
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
+    </Style>
+
+    <Style x:Key="CeldaDerecha" TargetType="DataGridCell" BasedOn="{StaticResource CeldaCentrada}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="DataGridCell">
+                    <Border Background="{TemplateBinding Background}" BorderThickness="0" Padding="0">
+                        <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Right"/>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ══ Texto de celda con atenuación para guion vacío (—) o textos de fallback ══ -->
+    <Style x:Key="TextoCeldaConFallback" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontSize" Value="15.5"/>
+        <Setter Property="Foreground" Value="#1A1F2E"/>
+        <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+        <Style.Triggers>
+            <Trigger Property="Text" Value="—">
+                <Setter Property="Foreground" Value="#9CA3AF"/>
+            </Trigger>
+            <Trigger Property="Text" Value="Sin descripción">
+                <Setter Property="Foreground" Value="#9CA3AF"/>
+                <Setter Property="FontStyle" Value="Italic"/>
+            </Trigger>
+            <Trigger Property="Text" Value="Sin dirección">
+                <Setter Property="Foreground" Value="#9CA3AF"/>
+                <Setter Property="FontStyle" Value="Italic"/>
+            </Trigger>
+        </Style.Triggers>
     </Style>
 
     <!-- ══ Botones de barra de herramientas / Acciones (Compartidos) ══

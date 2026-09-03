@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -16,9 +16,9 @@ namespace CapaDatos.Modelados.Productos
         [PrimaryKey("id_producto")]
         public int idProducto { get; set; }
         [Column("codigo_producto")]
-        public string codigoProducto { get; set; }
+        public string codigoProducto { get; set; } = string.Empty;
         [Column("nombre_producto")]
-        public string nombreProducto { get; set; }
+        public string nombreProducto { get; set; } = string.Empty;
         [Column("id_presentacion")]
         public int idPresentacion { get; set; }
         [Column("id_fabricante")]
@@ -30,7 +30,7 @@ namespace CapaDatos.Modelados.Productos
         [Column("id_categoria")]
         public int idCategoria { get; set; }
         [Column("contenido")]
-        public string contenidoProducto { get; set; }
+        public string contenidoProducto { get; set; } = string.Empty;
 
         [Column("id_pais")]
         public int idPais { get; set; }

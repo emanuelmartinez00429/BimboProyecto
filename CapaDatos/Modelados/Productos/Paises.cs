@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,12 +15,12 @@ namespace CapaDatos.Modelados.Productos
         public int idPais { get; set; }
         
         [Column("nombre_pais")]
-        public string nombrePais { get; set; }
+        public string nombrePais { get; set; } = string.Empty;
         
         [Column("prefijo_pais")]
-        public string prefijoPais { get; set; }
+        public string prefijoPais { get; set; } = string.Empty;
 
         [Column("region")]
-        public string region { get; set; }
+        public string region { get; set; } = string.Empty;
     }
 }

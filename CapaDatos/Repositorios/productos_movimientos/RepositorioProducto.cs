@@ -1,4 +1,4 @@
-﻿using CapaDatos.Modelados;
+using CapaDatos.Modelados;
 using CapaDatos.Modelados.Productos;
 using ServicioConexión.Conexion;
 using System;
@@ -221,7 +221,7 @@ namespace CapaDatos.Repositorios.productos_movimientos
                 var client = await ConexionSupabase.GetClientAsync();
                 var response = await client .From<ProductosInsertar>()
                                             .Insert(datos);
-                return response.Model ?? null;
+                return response.Model ?? datos;
 
             }
             catch (Exception ex)

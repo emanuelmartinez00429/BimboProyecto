@@ -28,6 +28,7 @@ Cada llamada conserva los valores del DTO, agrega `p_usuario_ingresando` y valid
 - Los contratos, DTO, ViewModels y modales no cambiaron.
 - Fabricantes conserva `IdProveedor` e `IdPais` como valores opcionales en C#.
 - Categorías conserva `EstadoCategoria` como booleano.
+- Las tablas presentan las columnas de auditoría `CREADO` y `ACTUALIZADO` antes de `ESTADO` alineadas a la derecha con auto-dimensionamiento (`Width="Auto" MinWidth="130"`).
 
 ## Archivos clave
 
@@ -42,4 +43,7 @@ Cada llamada conserva los valores del DTO, agrega `p_usuario_ingresando` y valid
 - [[Módulo Productos]]
 - [[Módulo Contactos (Drill-down)]]
 - [[Módulo Bitácora]]
+- [[Columnas de Auditoria Temporal en DataGrid - Estandarizacion Creado y Actualizado]]
+- [[Sesión 2026-09-02 - Columnas Creado y Actualizado en tablas de catálogo]]
 - [[Sesión 2026-08-16 - Creación auditada de catálogos y contactos mediante RPC]]
+- [[Sesión 2026-09-02 - Alineación de columnas y fallback universal de campos vacíos]]

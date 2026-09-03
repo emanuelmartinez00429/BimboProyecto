@@ -6,7 +6,7 @@ namespace CapaDatos.Repositorios.Usuario
 {
     public class RepositorioUsuario
     {
-        public static async Task<Usuarios> ObtenerPorUuidAsync(string uuid)
+        public static async Task<Usuarios?> ObtenerPorUuidAsync(string uuid)
         {
             try
             {

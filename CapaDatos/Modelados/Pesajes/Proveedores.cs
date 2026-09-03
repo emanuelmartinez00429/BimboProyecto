@@ -1,3 +1,4 @@
+using System;
 using Supabase.Postgrest.Attributes;
 using Supabase.Postgrest.Models;
 
@@ -26,5 +27,11 @@ namespace CapaDatos.Modelados.Pesajes
 
         [Column("id_estado")]
         public int idEstado { get; set; }
+
+        [Column("created_at", ignoreOnInsert: true, ignoreOnUpdate: true)]
+        public DateTime? createdAt { get; set; }
+
+        [Column("updated_at", ignoreOnInsert: true, ignoreOnUpdate: true)]
+        public DateTime? updatedAt { get; set; }
     }
 }

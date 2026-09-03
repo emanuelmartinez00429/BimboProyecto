@@ -37,9 +37,9 @@ CapaDatos/Repositories/Search/
   ProductoSearchRepository.cs  → implementa IRepository<Producto>
 
 CapaUI/Formularios/Principal/Pantallas/Productos/
-  ProductosView.xaml           → layout con DataGrid, filtros, paginación, spinner
+  ProductosView.xaml           → layout con DataGrid (columnas Creado y Actualizado antes de Estado), filtros, paginación, spinner y EmptyStateOverlay (desde 2026-09-02)
   ProductosView.xaml.cs        → code-behind: DI, highlight, modal, spinner animation
-  ProductosViewModel.cs        → ObservableObject + IProductoRepository + IRealtimeService
+  ProductosViewModel.cs        → ObservableObject + IProductoRepository + IRealtimeService (NoResults y MensajeSinResultados)
   ProductoModal.xaml           → modal crear/editar + campos de peso, tara, precio y auditoría
   ProductoModal.xaml.cs        → acepta ProductoDto?
 ```

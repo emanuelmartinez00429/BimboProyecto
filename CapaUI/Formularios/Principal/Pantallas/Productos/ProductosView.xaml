@@ -727,17 +727,6 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <!-- Empty state -->
-                <StackPanel Grid.Row="0"
-                            x:Name="EmptyState"
-                            Visibility="Collapsed"
-                            VerticalAlignment="Center"
-                            HorizontalAlignment="Center">
-                    <TextBlock FontFamily="Segoe UI" FontSize="16" Foreground="#6B7280" HorizontalAlignment="Center">
-                        Sin resultados. Ajusta los filtros o pulsa <Bold>Limpiar Filtros</Bold>.
-                    </TextBlock>
-                </StackPanel>
-
                 <!-- Loading spinner -->
                 <StackPanel Grid.Row="0"
                             x:Name="LoadingPanel"
@@ -829,10 +818,8 @@
                         <DataGridTemplateColumn Header="TARA" Width="Auto" MinWidth="110" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding Tara}"
-                                               FontFamily="Segoe UI" FontSize="15.5"
-                                               Foreground="#1A1F2E"
-                                               TextTrimming="CharacterEllipsis"
+                                    <TextBlock Text="{Binding Tara, Converter={StaticResource TextoVacioConverter}}"
+                                               Style="{StaticResource TextoCeldaConFallback}"
                                                TextWrapping="NoWrap"
                                                HorizontalAlignment="Left" VerticalAlignment="Center"
                                                Padding="8,0"/>
@@ -842,10 +829,8 @@
                         <DataGridTemplateColumn Header="FABRICANTE" Width="Auto" MinWidth="110" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding Fabricante}"
-                                               FontFamily="Segoe UI" FontSize="15.5"
-                                               Foreground="#1A1F2E"
-                                               TextTrimming="CharacterEllipsis"
+                                    <TextBlock Text="{Binding Fabricante, Converter={StaticResource TextoVacioConverter}}"
+                                               Style="{StaticResource TextoCeldaConFallback}"
                                                HorizontalAlignment="Left" Padding="8,0"/>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
@@ -853,10 +838,8 @@
                         <DataGridTemplateColumn Header="PROVEEDOR" Width="Auto" MinWidth="110" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding Proveedor}"
-                                               FontFamily="Segoe UI" FontSize="15.5"
-                                               Foreground="#1A1F2E"
-                                               TextTrimming="CharacterEllipsis"
+                                    <TextBlock Text="{Binding Proveedor, Converter={StaticResource TextoVacioConverter}}"
+                                               Style="{StaticResource TextoCeldaConFallback}"
                                                HorizontalAlignment="Left" Padding="8,0"/>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
@@ -864,10 +847,8 @@
                         <DataGridTemplateColumn Header="PA&#205;S" Width="Auto" MinWidth="110" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding Pais}"
-                                               FontFamily="Segoe UI" FontSize="15.5"
-                                               Foreground="#1A1F2E"
-                                               TextTrimming="CharacterEllipsis"
+                                    <TextBlock Text="{Binding Pais, Converter={StaticResource TextoVacioConverter}}"
+                                               Style="{StaticResource TextoCeldaConFallback}"
                                                HorizontalAlignment="Left" Padding="8,0"/>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
@@ -875,9 +856,8 @@
                         <DataGridTemplateColumn Header="CONTENIDO" Width="Auto" MinWidth="100" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding Contenido}"
-                                               FontFamily="Segoe UI" FontSize="15.5" FontWeight="SemiBold"
-                                               Foreground="#1A1F2E"
+                                    <TextBlock Text="{Binding Contenido, Converter={StaticResource TextoVacioConverter}}"
+                                               Style="{StaticResource TextoCeldaConFallback}" FontWeight="SemiBold"
                                                HorizontalAlignment="Left"
                                                Padding="8,0"/>
                                 </DataTemplate>
@@ -886,10 +866,8 @@
                         <DataGridTemplateColumn Header="PRESENTACI&#211;N" Width="Auto" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding Presentacion}"
-                                               FontFamily="Segoe UI" FontSize="15.5"
-                                               Foreground="#1A1F2E"
-                                               TextTrimming="CharacterEllipsis"
+                                    <TextBlock Text="{Binding Presentacion, Converter={StaticResource TextoVacioConverter}}"
+                                               Style="{StaticResource TextoCeldaConFallback}"
                                                HorizontalAlignment="Left" Padding="8,0"/>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
@@ -913,6 +891,32 @@
                                                Foreground="#1A1F2E"
                                                HorizontalAlignment="Left" VerticalAlignment="Center"
                                                Padding="8,0"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="CREADO"
+                                                Width="Auto"
+                                                MinWidth="130"
+                                                CellStyle="{StaticResource CeldaDerecha}">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding CreatedAt, StringFormat={}{0:dd/MM/yyyy HH:mm}, TargetNullValue='—'}"
+                                               FontFamily="Segoe UI" FontSize="14" Foreground="#64748B"
+                                               HorizontalAlignment="Right" VerticalAlignment="Center"
+                                               Padding="10,0"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="ACTUALIZADO"
+                                                Width="Auto"
+                                                MinWidth="130"
+                                                CellStyle="{StaticResource CeldaDerecha}">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding UpdatedAt, StringFormat={}{0:dd/MM/yyyy HH:mm}, TargetNullValue='—'}"
+                                               FontFamily="Segoe UI" FontSize="14" Foreground="#64748B"
+                                               HorizontalAlignment="Right" VerticalAlignment="Center"
+                                               Padding="10,0"/>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
@@ -962,6 +966,14 @@
                         </DataGridTemplateColumn>
                     </DataGrid.Columns>
                 </DataGrid>
+
+                <!-- Empty state overlay -->
+                <controls:EmptyStateOverlay Grid.Row="0"
+                                            x:Name="EmptyState"
+                                            Panel.ZIndex="5"
+                                            HeaderOffset="40"
+                                            Mensaje="{Binding MensajeSinResultados}"
+                                            EstaVacio="{Binding NoResults}"/>
 
                 <!-- Pagination footer -->
                 <Border Grid.Row="1"

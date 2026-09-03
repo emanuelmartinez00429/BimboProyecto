@@ -241,7 +241,7 @@ public class PesajeRepository : RepositorioBase, IPesajeRepository
                 .Where(mp => mp.idMovProducto == idMovProducto)
                 .Set(mp => mp.pesoManifestado, (decimal)pesoManifestado)
                 .Set(mp => mp.bultosTeóricos,  bultosDeclarados)
-                .Set(mp => mp.observaciones,   string.IsNullOrWhiteSpace(observaciones) ? null : observaciones)
+                .Set(mp => mp.observaciones!,  string.IsNullOrWhiteSpace(observaciones) ? null : observaciones)
                 .Update();
         }, "Actualizar producto");
 

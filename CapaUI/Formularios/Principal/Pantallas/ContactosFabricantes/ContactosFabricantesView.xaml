@@ -439,17 +439,16 @@
                             <DataGridTemplateColumn Header="DESCRIPCIÓN" Width="*" CellStyle="{StaticResource CeldaIzquierda}">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
-                                        <TextBlock Text="{Binding Descripcion}" FontFamily="Segoe UI"
-                                                   FontSize="15" Foreground="#6B7280"
-                                                   TextTrimming="CharacterEllipsis" Padding="4,0"/>
+                                        <TextBlock Text="{Binding Descripcion, Converter={StaticResource TextoVacioConverter}, ConverterParameter='Sin descripción'}"
+                                                   Style="{StaticResource TextoCeldaConFallback}" Padding="4,0"/>
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
                             <DataGridTemplateColumn Header="PROVEEDOR" Width="180" CellStyle="{StaticResource CeldaCentrada}">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
-                                        <TextBlock Text="{Binding NombreProveedor}" FontFamily="Segoe UI"
-                                                   FontSize="15" Foreground="#1A1F2E"
+                                        <TextBlock Text="{Binding NombreProveedor, Converter={StaticResource TextoVacioConverter}}"
+                                                   Style="{StaticResource TextoCeldaConFallback}"
                                                    HorizontalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
@@ -576,16 +575,16 @@
                             <DataGridTemplateColumn Header="TELÉFONO" Width="180" CellStyle="{StaticResource CeldaCentrada}">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
-                                        <TextBlock Text="{Binding Telefono}" FontFamily="Segoe UI"
-                                                   FontSize="15" Foreground="#374151" HorizontalAlignment="Center"/>
+                                        <TextBlock Text="{Binding Telefono, Converter={StaticResource TextoVacioConverter}}"
+                                                   Style="{StaticResource TextoCeldaConFallback}" HorizontalAlignment="Center"/>
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
                             <DataGridTemplateColumn Header="CORREO" Width="240" CellStyle="{StaticResource CeldaCentrada}">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
-                                        <TextBlock Text="{Binding Correo}" FontFamily="Segoe UI"
-                                                   FontSize="15" Foreground="#374151" HorizontalAlignment="Center"/>
+                                        <TextBlock Text="{Binding Correo, Converter={StaticResource TextoVacioConverter}}"
+                                                   Style="{StaticResource TextoCeldaConFallback}" HorizontalAlignment="Center"/>
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>

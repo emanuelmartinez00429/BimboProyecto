@@ -1,4 +1,4 @@
-﻿using Supabase.Postgrest.Attributes;
+using Supabase.Postgrest.Attributes;
 using Supabase.Postgrest.Models;
 using System;
 using System.Collections.Generic;
@@ -19,7 +19,7 @@ namespace CapaDatos.Modelados.Usuarios
         public int idUsuario { get; set; }
 
         [Column("alias_usuario")]
-        public string aliasUsuario { get; set; }
+        public string aliasUsuario { get; set; } = string.Empty;
 
         [Column("id_empleado")]
         public int idEmpleado { get; set; }
@@ -40,9 +40,9 @@ namespace CapaDatos.Modelados.Usuarios
         [Column("nombre_completo")]
         public string? nombreCompleto { get; set; }
 
-        public Roles roles { get; set; }
+        public Roles? roles { get; set; }
 
-        public Empleados empleados { get; set; }
+        public Empleados? empleados { get; set; }
 
         public string nombre_Rol => roles?.nombreRol ?? "Sin rol";
         public string nombre_Empleado => empleados?.nombreEmpleado ?? "Sin empleado";

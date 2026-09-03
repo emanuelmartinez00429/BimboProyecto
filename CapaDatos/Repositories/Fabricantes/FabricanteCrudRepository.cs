@@ -40,6 +40,8 @@ public class FabricanteCrudRepository : RepositorioBase, IFabricanteRepository
         IdPais          = f.idPais,
         NombrePais      = f.idPais.HasValue      ? paisDic.GetValueOrDefault(f.idPais.Value,      "") : "",
         IdEstado        = f.idEstado,
+        CreatedAt       = f.createdAt?.ToLocalTime(),
+        UpdatedAt       = f.updatedAt?.ToLocalTime(),
     };
 
     // ── Lectura ───────────────────────────────────────────────────────────────

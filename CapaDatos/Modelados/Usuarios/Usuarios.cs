@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,7 +15,7 @@ namespace CapaDatos.Modelados.Usuarios
         public int idUsuario { get; set; }
         
         [Column("alias_usuario")]
-        public string aliasUsuario { get; set; }
+        public string aliasUsuario { get; set; } = string.Empty;
         
         [Column("id_empleado")]
         public int idEmpleado { get; set; }

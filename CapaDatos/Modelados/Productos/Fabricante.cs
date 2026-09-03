@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -16,7 +16,7 @@ namespace CapaDatos.Modelados.Productos
         public int idFabricante { get; set; }
 
         [Column("nombre_fabricante")]
-        public string nombreFabricante { get; set; }
+        public string nombreFabricante { get; set; } = string.Empty;
 
         [Column("id_proveedor")]
         public int? idProveedor { get; set; }

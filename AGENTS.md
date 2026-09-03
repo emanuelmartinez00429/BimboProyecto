@@ -34,6 +34,7 @@ Estado y arquitectura vigentes (fuente de verdad viva): **[`contexto/40 - Proyec
 5. **MVVM con CommunityToolkit** (`[ObservableProperty]`, `[RelayCommand]`), clase `partial`. Nunca `INotifyPropertyChanged` manual ni `RelayCommand` locales.
 6. Repositorios nuevos: heredar `RepositorioBase` + usar `TryAsync` + devolver `Result`/`Result<T>`.
 7. La sesión y los permisos se leen vía `IUsuarioSesionService` (no hay estado estático de sesión).
+8. **Traducción conceptual a la tecnología activa (WPF / .NET 8 / XAML):** Si el usuario describe un requisito de diseño, comportamiento o dimensionamiento usando conceptos coloquiales, genéricos o de otros entornos (ej. Windows Forms como `DisplayedCells`, HTML/CSS como `flex`/`div`, o Android), **nunca** trasladar el término de forma literal como atributo XAML o identificador en C#. Siempre interpretarlo conceptualmente y traducirlo al equivalente nativo, idiomático y validado de WPF (ej. en `DataGrid`, usar `Width="Auto"` con `MinWidth`, nunca inventar literales como `SizeToDisplayedCells` que rompen el parser de XAML). Si un enum o propiedad no existe en WPF, verificar la API oficial antes de generar código.
 
 Detalle completo de convenciones de código: [`contexto/CLAUDE.md`](contexto/CLAUDE.md) y [`contexto/50 - Referencia/Convenciones C#.md`](contexto/50%20-%20Referencia/Convenciones%20C%23.md).
 
@@ -45,7 +46,7 @@ Detalle completo de convenciones de código: [`contexto/CLAUDE.md`](contexto/CLA
 dotnet build BimboProyecto.sln
 ```
 
-Debe terminar en **0 errores** (hay warnings preexistentes de nullable en `CapaDatos`, no bloquean). No hay harness de tests de UI: la verificación funcional es **build limpio + prueba visual manual** del flujo tocado.
+Debe terminar en **0 errores y 0 advertencias** (las advertencias históricas de nullable en `CapaDatos` fueron resueltas el 2026-09-02). No hay harness de tests de UI: la verificación funcional es **build limpio + prueba visual manual** del flujo tocado.
 
 ---
 
@@ -61,7 +62,13 @@ Debe terminar en **0 errores** (hay warnings preexistentes de nullable en `CapaD
 
 ## Al terminar tu trabajo: DOCUMENTA
 
-No es opcional — es lo que permite que el siguiente agente entre sin perderse. **Cómo clasificar y guardar lo que hiciste** (taxonomía de carpetas, frontmatter, nombres, anti-duplicados, plantillas):
+No es opcional — es lo que permite que el siguiente agente entre sin perderse.
+
+### Regla ineludible: Documentación automática vs. Aviso de prueba previa
+1. **Si el cambio requiere que el usuario pruebe y apruebe la feature primero** (ej. nueva pantalla, flujo interactivo o cambios visuales que requieren validación humana):
+   - **Debes avisar explícitamente**: *"No se ha documentado aún porque debes probar la feature y aprobarla; una vez aprobada, documentamos."*
+2. **Si el cambio es técnico / refactor / fix probado con tests**:
+   - **Debes documentar en automático todo lo que hagas** en `contexto/70/` y notas correspondientes **antes** de responder. No esperes a que te lo pidan.
 
 ➡ **[`contexto/AGENTS.md`](contexto/AGENTS.md)** — protocolo de la bóveda.
 

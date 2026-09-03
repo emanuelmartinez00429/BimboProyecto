@@ -99,6 +99,8 @@ Las rosas son rojas.
 - [[Buscador Universal Bimbo]] — Strategy + Mediator en acción
 
 ### Diseño Bimbo-específico
+- [[Empty State en DataGrid - Overlay centrado con encabezados visibles]]
+- [[Columnas de Auditoria Temporal en DataGrid - Estandarizacion Creado y Actualizado]]
 - [[Gestor Realtime - Diseño Arquitectónico]]
 - [[Paginación y Búsqueda - Arquitectura Detallada]]
 
@@ -140,6 +142,8 @@ Regla: `CapaAplicacion` **nunca** referencia `CapaDatos`.
 
 Las sesiones están en `70 - Bitácora de Cambios/`.  
 Sesiones más recientes (2026-09-02):
+- [[Sesión 2026-09-02 - Columnas Creado y Actualizado en tablas de catálogo]]
+- [[Sesión 2026-09-02 - Componente reutilizable EmptyStateOverlay para tablas]]
 - [[Sesión 2026-09-02 - Infraestructura de notificaciones internas]]
 - [[Sesión 2026-09-02 - Permisos integrados en el detalle del rol]]
 - [[Sesión 2026-09-02 - Administrador inmutable con acceso total]]

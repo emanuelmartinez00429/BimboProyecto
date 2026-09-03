@@ -78,8 +78,8 @@ public class ProductoCrudRepository : RepositorioBase, IProductoRepository
         IdUnidad       = p.idUnidad,
         Unidad         = p.abreviatura_Unidad,
         PrecioPorKg    = p.precioPorKg,
-        CreatedAt      = p.createdAt,
-        UpdatedAt      = p.updatedAt,
+        CreatedAt      = p.createdAt?.ToLocalTime(),
+        UpdatedAt      = p.updatedAt?.ToLocalTime(),
     };
 
     // ── Lectura ───────────────────────────────────────────────────────────────

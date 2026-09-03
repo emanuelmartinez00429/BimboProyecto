@@ -30,8 +30,8 @@ public class PresentacionCrudRepository : RepositorioBase, IPresentacionReposito
         Nombre      = p.nombrePresentacion      ?? string.Empty,
         Descripcion = p.descripcionPresentacion ?? string.Empty,
         IdEstado    = p.idEstado,
-        CreatedAt   = p.createdAt,
-        UpdatedAt   = p.updatedAt,
+        CreatedAt   = p.createdAt?.ToLocalTime(),
+        UpdatedAt   = p.updatedAt?.ToLocalTime(),
     };
 
     /// <summary>
@@ -102,7 +102,7 @@ public class PresentacionCrudRepository : RepositorioBase, IPresentacionReposito
             await client.From<PresentacionCrud>()
                 .Where(p => p.idPresentacion == dto.Id)
                 .Set(p => p.nombrePresentacion,      dto.Nombre)
-                .Set(p => p.descripcionPresentacion, dto.Descripcion)
+                .Set(p => p.descripcionPresentacion!, dto.Descripcion)
                 .Set(p => p.idEstado,                dto.IdEstado)
                 .Update();
         }, "Actualizar presentación");

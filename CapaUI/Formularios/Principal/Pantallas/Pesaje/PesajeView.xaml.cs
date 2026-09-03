@@ -50,7 +50,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             if (_vm != null) return;
             _vm = App.Services.GetRequiredService<PesajeViewModel>();
             _vm.Toast           += MostrarToast;
-            _vm.PropertyChanged += (_, __) => PedirActualizarUI();
+            _vm.PropertyChanged += OnVmPropertyChanged;
             DataContext = _vm;
 
             // Agrupar por placa acá y no con un CollectionViewSource en los Resources del
@@ -62,12 +62,31 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             if (vista.GroupDescriptions.Count == 0)
                 vista.GroupDescriptions.Add(new PropertyGroupDescription(nameof(CamionPesaje.Placa)));
 
-            await _vm.CargarAsync();
+            try
+            {
+                // Se captura la instancia ANTES del await. Si el usuario cierra o navega a otra
+                // pantalla mientras carga, Unloaded pone _vm = null y la continuación volvería
+                // sobre una vista ya descargada (_vm fue null). Se compara por referencia
+                // para cubrir también el abrir-cerrar-abrir rápido.
+                var vm = _vm;
+                await vm.CargarAsync();
 
-            _sync = true;
-            LstCamiones.SelectedItem = _vm.SelectedCamion;
-            _sync = false;
-            ActualizarUI();
+                if (!ReferenceEquals(_vm, vm)) return;
+
+                _sync = true;
+                LstCamiones.SelectedItem = _vm.SelectedCamion;
+                _sync = false;
+                ActualizarUI();
+            }
+            catch (Exception ex)
+            {
+                Serilog.Log.Error(ex, "[Pesaje] Falló la carga inicial de la pantalla");
+            }
+        }
+
+        private void OnVmPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            PedirActualizarUI();
         }
 
         private void UserControl_Unloaded(object sender, RoutedEventArgs e)
@@ -76,6 +95,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             DetenerSpinnerProductos();
             if (_vm == null) return;
             _vm.Toast -= MostrarToast;
+            _vm.PropertyChanged -= OnVmPropertyChanged;
             DataContext = null;
             _vm = null!;
         }
@@ -307,7 +327,10 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
         {
             if (sender is FrameworkElement fe && fe.DataContext is ProductoCamion p)
             {
-                await _vm.ToggleEstadoProductoAsync(p);
+                var vm = _vm;
+                if (vm == null) return;
+                await vm.ToggleEstadoProductoAsync(p);
+                if (!ReferenceEquals(_vm, vm)) return;
                 ActualizarUI();
                 e.Handled = true;
             }
@@ -448,7 +471,10 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
 
         private async Task CerrarTodosFlujo()
         {
-            var cerradas = await _vm.CerrarTodosAsync();
+            var vm = _vm;
+            if (vm == null) return;
+            var cerradas = await vm.CerrarTodosAsync();
+            if (!ReferenceEquals(_vm, vm)) return;
             ActualizarUI();
             if (cerradas.Count > 0) AbrirReporte(cerradas);
         }
@@ -494,7 +520,10 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
 
         private async Task QuitarCamionFlujo(CamionPesaje camion)
         {
-            await _vm.QuitarCamionAsync(camion);
+            var vm = _vm;
+            if (vm == null) return;
+            await vm.QuitarCamionAsync(camion);
+            if (!ReferenceEquals(_vm, vm)) return;
             SincronizarSeleccion();
             ActualizarUI();
         }
@@ -505,8 +534,10 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
         /// </summary>
         private async void BtnCamionCerrar_Click(object sender, RoutedEventArgs e)
         {
-            if (_vm.SelectedCamion == null || _vm.CamionCerrado) return;
-            await _vm.DescargarCamionAsync();
+            var vm = _vm;
+            if (vm == null || vm.SelectedCamion == null || vm.CamionCerrado) return;
+            await vm.DescargarCamionAsync();
+            if (!ReferenceEquals(_vm, vm)) return;
             ActualizarUI();
         }
 
@@ -567,7 +598,10 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
                 MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No);
             if (confirmar != MessageBoxResult.Yes) return;
 
-            await _vm.ToggleEstadoProductoAsync(p);
+            var vm = _vm;
+            if (vm == null) return;
+            await vm.ToggleEstadoProductoAsync(p);
+            if (!ReferenceEquals(_vm, vm)) return;
             ActualizarUI();
         }
 
@@ -598,7 +632,10 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
 
         private async Task QuitarEntradaFlujo(EntradaPesaje ent)
         {
-            await _vm.QuitarEntradaAsync(ent);
+            var vm = _vm;
+            if (vm == null) return;
+            await vm.QuitarEntradaAsync(ent);
+            if (!ReferenceEquals(_vm, vm)) return;
             ActualizarUI();
         }
 
@@ -789,6 +826,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
 
         private void SincronizarSeleccion()
         {
+            if (_vm == null) return;
             _sync = true;
             LstCamiones.SelectedItem = _vm.SelectedCamion;
             if (_vm.SelectedProducto != null) DgProductos.SelectedItem = _vm.SelectedProducto;

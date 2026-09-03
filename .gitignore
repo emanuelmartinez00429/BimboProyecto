@@ -385,3 +385,6 @@ CapaUI/App.config
 /diff.patch
 /supabase/migrations/temp_*.sql
 /supabase/migrations/*_supermin.sql
+
+# Reportes de análisis de código muerto (temporales)
+analisis-muerto/

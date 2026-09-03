@@ -311,8 +311,34 @@
                         <DataGridTemplateColumn Header="DESCRIPCIÓN" Width="*" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding Descripcion}" FontFamily="Segoe UI" FontSize="15.5"
-                                               Foreground="#6B7280" TextTrimming="CharacterEllipsis" Padding="8,0"/>
+                                    <TextBlock Text="{Binding Descripcion, Converter={StaticResource TextoVacioConverter}, ConverterParameter='Sin descripción'}"
+                                               Style="{StaticResource TextoCeldaConFallback}" Padding="8,0"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="CREADO"
+                                                Width="Auto"
+                                                MinWidth="130"
+                                                CellStyle="{StaticResource CeldaDerecha}">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding CreatedAt, StringFormat={}{0:dd/MM/yyyy HH:mm}, TargetNullValue='—'}"
+                                               FontFamily="Segoe UI" FontSize="14" Foreground="#64748B"
+                                               HorizontalAlignment="Right" VerticalAlignment="Center"
+                                               Padding="10,0"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="ACTUALIZADO"
+                                                Width="Auto"
+                                                MinWidth="130"
+                                                CellStyle="{StaticResource CeldaDerecha}">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding UpdatedAt, StringFormat={}{0:dd/MM/yyyy HH:mm}, TargetNullValue='—'}"
+                                               FontFamily="Segoe UI" FontSize="14" Foreground="#64748B"
+                                               HorizontalAlignment="Right" VerticalAlignment="Center"
+                                               Padding="10,0"/>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>

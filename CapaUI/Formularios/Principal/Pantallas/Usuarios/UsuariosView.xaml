@@ -517,9 +517,8 @@
                         <DataGridTemplateColumn Header="EMAIL" Width="200" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding CorreoUsuario}"
-                                               FontFamily="Segoe UI" FontSize="15.5"
-                                               Foreground="#6B7280" TextTrimming="CharacterEllipsis" Padding="8,0"/>
+                                    <TextBlock Text="{Binding CorreoUsuario, Converter={StaticResource TextoVacioConverter}}"
+                                               Style="{StaticResource TextoCeldaConFallback}" Padding="8,0"/>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
@@ -537,10 +536,10 @@
                         <DataGridTemplateColumn Header="ÚLTIMO ACCESO" Width="160" CellStyle="{StaticResource CeldaCentrada}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock FontFamily="Segoe UI" FontSize="15.5" Foreground="#6B7280"
+                                    <TextBlock Style="{StaticResource TextoCeldaConFallback}"
                                                HorizontalAlignment="Center">
                                         <TextBlock.Text>
-                                            <Binding Path="UltimoAcceso" StringFormat="{}{0:dd/MM/yyyy HH:mm}"/>
+                                            <Binding Path="UltimoAcceso" StringFormat="{}{0:dd/MM/yyyy HH:mm}" TargetNullValue="—"/>
                                         </TextBlock.Text>
                                     </TextBlock>
                                 </DataTemplate>

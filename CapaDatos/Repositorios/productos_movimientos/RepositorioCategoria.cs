@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -36,7 +36,7 @@ namespace CapaDatos.Repositorios.productos_movimientos
                 using var ctsInsertar = new CancellationTokenSource(TimeSpan.FromSeconds(ConexionSupabase.TimeoutSeconds));
                 var response = await client.From<Categoria>()
                                            .Insert(categoria, cancellationToken: ctsInsertar.Token);
-                return response.Model ?? null;
+                return response.Model ?? categoria;
             }
             catch (Exception ex)
             {

@@ -1,4 +1,4 @@
-﻿using Supabase.Postgrest.Attributes;
+using Supabase.Postgrest.Attributes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,6 +14,6 @@ namespace CapaDatos.Modelados.Productos
         [PrimaryKey("id_presentacion")]
         public int idPresentacion { get; set; } 
         [Column("nombre_presentacion")]
-        public string nombrePresentacion { get; set; }
+        public string nombrePresentacion { get; set; } = string.Empty;
     }
 }

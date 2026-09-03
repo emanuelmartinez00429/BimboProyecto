@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,19 +15,19 @@ namespace CapaDatos.Modelados.Usuarios
         public int idEmpleado { get; set; }
 
         [Column("nombre_empleado")]
-        public string nombreEmpleado { get; set; }
+        public string nombreEmpleado { get; set; } = string.Empty;
         
         [Column("apellido_empleado")]
-        public string apellidoEmpleado { get; set; }
+        public string apellidoEmpleado { get; set; } = string.Empty;
 
         [Column("correo_empleado")]
-        public string correoEmpleado { get; set; }
+        public string correoEmpleado { get; set; } = string.Empty;
         
         [Column("telefono_empleado")]
-        public string telefonoEmpleado { get; set; }
+        public string telefonoEmpleado { get; set; } = string.Empty;
         
         [Column("numero_identidad")]
-        public string numeroIdentidad { get; set; }
+        public string numeroIdentidad { get; set; } = string.Empty;
 
         [Column("id_estado")]
         public int idEstado { get; set; }
