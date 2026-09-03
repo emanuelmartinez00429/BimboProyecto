@@ -45,6 +45,10 @@ namespace CapaUI.Formularios.Principal.Pantallas.Usuarios
             await vm.CargarDatosAsync();
             if (!ReferenceEquals(_vm, vm)) return;
 
+            if (Window.GetWindow(this)?.DataContext is MainViewModel principal &&
+                principal.ConsumirRegistroNotificacionPendiente("usuarios") is int idUsuario)
+                await vm.NavegarARegistroAsync(idUsuario);
+
             PoblarRoles();
         }
 

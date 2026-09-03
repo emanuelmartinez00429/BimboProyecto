@@ -61,14 +61,14 @@ public sealed class NotificacionRepository : RepositorioBase, INotificacionRepos
     public Task<Result> RestaurarAsync(long idNotificacion, CancellationToken ct = default) =>
         EjecutarAsync("restaurar_mi_notificacion", idNotificacion, "Restaurar notificación", ct);
 
-    public Task<Result<int>> MarcarTodasLeidasAsync(CancellationToken ct = default) =>
+    public Task<Result<int>> MarcarTodasLeidasYArchivarAsync(CancellationToken ct = default) =>
         TryAsync(async () =>
         {
             ct.ThrowIfCancellationRequested();
             var client = await ConexionSupabase.GetClientAsync();
             var response = await client.Rpc("marcar_todas_mis_notificaciones_leidas", new { });
             return LeerToken(response.Content).Value<int>();
-        }, "Marcar todas las notificaciones como leídas");
+        }, "Marcar todas las notificaciones como leídas y archivar");
 
     private Task<Result> EjecutarAsync(string rpc, long id, string contexto, CancellationToken ct) =>
         TryAsync(async () =>

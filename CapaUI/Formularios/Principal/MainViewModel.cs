@@ -15,7 +15,9 @@ using CommunityToolkit.Mvvm.Input;
 
 namespace CapaUI.Formularios.Principal
 {
-    public partial class MainViewModel : ObservableObject, IDisposable, CapaAplicacion.Common.Interfaces.INavegacionService
+    public partial class MainViewModel : ObservableObject, IDisposable,
+        CapaAplicacion.Common.Interfaces.INavegacionService,
+        CapaAplicacion.Common.Interfaces.INotificacionNavigationService
     {
         private readonly IUsuarioSesionService     _sesionService;
         private readonly UniversalSearchViewModel _searchVm;
@@ -24,6 +26,7 @@ namespace CapaUI.Formularios.Principal
         private readonly Dictionary<string, Func<object>> _routes;
         private readonly Dictionary<string, Permiso[]> _routePermissions;
         private bool _disposed;
+        private (string Tabla, int Id)? _registroNotificacionPendiente;
         public NotificacionesViewModel Notificaciones { get; }
 
         // ── Vista actual ─────────────────────────────────────────────────
@@ -192,6 +195,30 @@ namespace CapaUI.Formularios.Principal
             _rutaActual = routeId;
             VistaActual = factory();
             return true;
+        }
+
+        public bool PuedeNavegar(string? tablaOrigen, int? idRegistroOrigen) =>
+            idRegistroOrigen is > 0 && tablaOrigen is "usuarios" or "roles";
+
+        public bool TryNavegar(string tablaOrigen, int idRegistroOrigen, out string? motivo)
+        {
+            var ruta = tablaOrigen switch { "usuarios" => Routes.Usuarios, "roles" => Routes.Roles, _ => null };
+            if (ruta is null)
+            {
+                motivo = "El registro relacionado todavía no admite navegación directa.";
+                return false;
+            }
+            if (!TryNavigate(ruta, out motivo)) return false;
+            _registroNotificacionPendiente = (tablaOrigen, idRegistroOrigen);
+            return true;
+        }
+
+        /// <summary>La vista destino consume la solicitud cuando concluye su carga.</summary>
+        public int? ConsumirRegistroNotificacionPendiente(string tablaOrigen)
+        {
+            if (_registroNotificacionPendiente is not { } solicitud || solicitud.Tabla != tablaOrigen) return null;
+            _registroNotificacionPendiente = null;
+            return solicitud.Id;
         }
 
         // ── Estado de conexión (label del top bar) ───────────────────────

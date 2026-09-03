@@ -291,6 +291,27 @@ public partial class UsuariosViewModel : ObservableObject, IDisposable
         _ = CargarPaginaAsync();
     }
 
+    /// <summary>Adaptador de navegación: localiza por PK y selecciona la fila visible.</summary>
+    public async Task<bool> NavegarARegistroAsync(int idUsuario)
+    {
+        var obtenido = await _usuarioRepo.ObtenerPorIdAsync(idUsuario, _cts.Token);
+        if (!obtenido.Success || _disposed) { ErrorCarga = obtenido.Error ?? "El usuario ya no existe."; return false; }
+
+        var usuario = obtenido.Value!;
+        _estadoFiltro = EstadoUsuarioFilter.Todos;
+        _rolFiltro = null;
+        _page = 1;
+        _query = usuario.CorreoUsuario;
+        OnPropertyChanged(nameof(EstadoFiltro));
+        OnPropertyChanged(nameof(RolFiltro));
+        OnPropertyChanged(nameof(Page));
+        OnPropertyChanged(nameof(Query));
+        await CargarPaginaAsync();
+        Seleccionado = PageRows.FirstOrDefault(x => x.IdUsuario == idUsuario);
+        if (Seleccionado is null) ErrorCarga = "El usuario existe, pero no está disponible para seleccionarse.";
+        return Seleccionado is not null;
+    }
+
     // ── Comandos CRUD ──────────────────────────────────────────────────
     [RelayCommand(CanExecute = nameof(PuedeAdministrarSeleccionado))]
     private void Editar()

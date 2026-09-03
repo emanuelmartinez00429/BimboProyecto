@@ -37,6 +37,7 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="pack://application:,,,/CapaUI;component/Formularios/Principal/MenuResources.xaml"/>
+                <ResourceDictionary Source="pack://application:,,,/CapaUI;component/Formularios/Principal/Pantallas/Notificaciones/NotificacionesResources.xaml"/>
             </ResourceDictionary.MergedDictionaries>
 
             <DataTemplate DataType="{x:Type local:WelcomeVM}">
@@ -265,9 +266,9 @@
                             <Popup x:Name="NotifPopup"
                                    PlacementTarget="{Binding ElementName=BtnNotif}"
                                    Placement="Bottom" VerticalOffset="4"
-                                   HorizontalOffset="-316"
+                                   HorizontalOffset="-396"
                                    AllowsTransparency="True" StaysOpen="False">
-                                <Border Width="360" Background="White"
+                                <Border Width="440" MaxHeight="720" Background="White"
                                         CornerRadius="10"
                                         BorderBrush="#E5E7EB" BorderThickness="1"
                                         ClipToBounds="False">
@@ -285,18 +286,17 @@
                                                                FontFamily="Segoe UI" FontSize="14" FontWeight="Bold"
                                                                Foreground="#1A1F2E" VerticalAlignment="Center"/>
                                                     <Border Background="#EF4444" CornerRadius="999"
-                                                            Padding="7,1" Margin="8,0,0,0" VerticalAlignment="Center">
+                                                            Padding="7,1" Margin="8,0,0,0" VerticalAlignment="Center"
+                                                            Visibility="{Binding Notificaciones.TieneNoLeidas, Converter={StaticResource BoolToVisibility}}">
                                                         <TextBlock Text="{Binding Notificaciones.TextoNuevas}" Foreground="White"
                                                                    FontFamily="Segoe UI" FontSize="10" FontWeight="Bold"/>
                                                     </Border>
                                                 </StackPanel>
-                                                <Button Content="Marcar todas" HorizontalAlignment="Right"
-                                                        Command="{Binding Notificaciones.MarcarTodasLeidasCommand}"
+                                                <Button Content="Marcar todas como leídas y archivar" HorizontalAlignment="Right"
+                                                        Command="{Binding Notificaciones.MarcarTodasLeidasYArchivarCommand}"
                                                         IsEnabled="{Binding Notificaciones.ServicioDisponible}"
-                                                        Background="Transparent" BorderThickness="0"
-                                                        Foreground="{DynamicResource EmpresaPrimaryBrush}" FontFamily="Segoe UI"
-                                                        FontSize="12" FontWeight="SemiBold"
-                                                        Cursor="Hand" VerticalAlignment="Center"/>
+                                                        Style="{StaticResource NotifBotonTextoSecundario}"
+                                                        FontSize="11" Padding="10,0" VerticalAlignment="Center"/>
                                             </Grid>
                                         </Border>
 
@@ -420,32 +420,28 @@
                                             </Grid>
                                         </Border>
 
-                                        <ItemsControl ItemsSource="{Binding Notificaciones.Recientes}">
-                                            <ItemsControl.ItemTemplate>
-                                                <DataTemplate>
-                                                    <Button Command="{Binding DataContext.Notificaciones.MarcarLeidaCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                            CommandParameter="{Binding}" HorizontalContentAlignment="Stretch"
-                                                            Background="White" BorderBrush="#F3F4F6" BorderThickness="0,0,0,1" Padding="16,11">
-                                                        <StackPanel>
-                                                            <TextBlock Text="{Binding Titulo}" FontWeight="SemiBold" Foreground="#1A1F2E"/>
-                                                            <TextBlock Text="{Binding Mensaje}" Foreground="#6B7280" TextWrapping="Wrap" Margin="0,3,0,0"/>
-                                                            <TextBlock Text="{Binding FechaCreacion, StringFormat={}{0:dd/MM/yyyy HH:mm}}" Foreground="#9CA3AF" FontSize="11" Margin="0,4,0,0"/>
-                                                        </StackPanel>
-                                                    </Button>
-                                                </DataTemplate>
-                                            </ItemsControl.ItemTemplate>
-                                        </ItemsControl>
-                                        <TextBlock Text="{Binding Notificaciones.MensajeEstado}" Foreground="#6B7280" TextWrapping="Wrap" Margin="16,10"
-                                                   Visibility="{Binding Notificaciones.ServicioDisponible, Converter={StaticResource InverseBoolToVisibility}}"/>
+                                        <ScrollViewer MaxHeight="540" VerticalScrollBarVisibility="Auto">
+                                            <ItemsControl DataContext="{Binding Notificaciones}"
+                                                          ItemsSource="{Binding Recientes}"
+                                                          ItemTemplate="{StaticResource NotifTarjetaCompacta}"/>
+                                        </ScrollViewer>
+                                        <TextBlock Text="{Binding Notificaciones.MensajeRecientes}" Foreground="#6B7280"
+                                                   TextWrapping="Wrap" TextAlignment="Center" Margin="16,10">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Style.Triggers>
+                                                        <Trigger Property="Text" Value=""><Setter Property="Visibility" Value="Collapsed"/></Trigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
 
                                         <!-- Footer -->
                                         <Border BorderBrush="#F3F4F6" BorderThickness="0,1,0,0" Padding="16,10">
                                             <Button Content="Ver todas las notificaciones"
                                                     Click="BtnVerNotificaciones_Click"
-                                                    Background="Transparent" BorderThickness="0"
-                                                    Foreground="{DynamicResource EmpresaPrimaryBrush}" FontFamily="Segoe UI"
-                                                    FontSize="13" FontWeight="SemiBold"
-                                                    Cursor="Hand" HorizontalAlignment="Center"/>
+                                                    Style="{StaticResource NotifBotonTextoSecundario}"
+                                                    HorizontalAlignment="Center"/>
                                         </Border>
                                     </StackPanel>
                                 </Border>

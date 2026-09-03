@@ -11,8 +11,12 @@ using CommunityToolkit.Mvvm.Input;
 
 namespace CapaUI.Formularios.Principal.Pantallas.Notificaciones;
 
+public sealed record OpcionFiltroNotificacion(string Valor, string Etiqueta);
+
 public partial class NotificacionesViewModel : ObservableObject, IDisposable
 {
+    private static readonly OpcionFiltroNotificacion EstadoBandeja = new("todas", "Bandeja");
+    private static readonly OpcionFiltroNotificacion SeveridadTodas = new(string.Empty, "Todas");
     private readonly INotificacionRepository _repositorio;
     private readonly IRealtimeService _realtime;
     private readonly IConexionMonitor _conexion;
@@ -23,14 +27,27 @@ public partial class NotificacionesViewModel : ObservableObject, IDisposable
     private bool _disposed;
 
     public ObservableCollection<NotificacionDto> Notificaciones { get; } = new();
-    public IEnumerable<NotificacionDto> Recientes => Notificaciones.Take(5);
-    public IReadOnlyList<string> Estados { get; } = ["todas", "no_leidas", "leidas", "archivadas"];
-    public IReadOnlyList<string> Severidades { get; } = ["Todas", "informativa", "advertencia", "critica"];
+    public ObservableCollection<NotificacionDto> Recientes { get; } = new();
+    public IReadOnlyList<OpcionFiltroNotificacion> Estados { get; } =
+    [
+        EstadoBandeja,
+        new("no_leidas", "No leídas"),
+        new("leidas", "Leídas"),
+        new("archivadas", "Archivadas"),
+    ];
+    public IReadOnlyList<OpcionFiltroNotificacion> Severidades { get; } =
+    [
+        SeveridadTodas,
+        new("informativa", "Informativa"),
+        new("advertencia", "Advertencia"),
+        new("critica", "Crítica"),
+    ];
 
-    public INavegacionService? NavegacionService { get; set; }
+    public INotificacionNavigationService? NavegacionService { get; set; }
+    public event Action<NotificacionDto>? SolicitarDetalle;
 
-    [ObservableProperty] private string _estadoSeleccionado = "todas";
-    [ObservableProperty] private string _severidadSeleccionada = "Todas";
+    [ObservableProperty] private OpcionFiltroNotificacion _estadoSeleccionado = EstadoBandeja;
+    [ObservableProperty] private OpcionFiltroNotificacion _severidadSeleccionada = SeveridadTodas;
     [ObservableProperty] private bool _estaCargando;
     [ObservableProperty] private bool _servicioDisponible;
     [ObservableProperty] private string _mensajeEstado = "Cargando notificaciones…";
@@ -41,6 +58,9 @@ public partial class NotificacionesViewModel : ObservableObject, IDisposable
     public bool TieneNoLeidas => NoLeidas > 0;
     public string TextoBadge => NoLeidas > 99 ? "99+" : NoLeidas.ToString();
     public string TextoNuevas => NoLeidas == 1 ? "1 nueva" : $"{NoLeidas} nuevas";
+    public string MensajeRecientes => !ServicioDisponible
+        ? MensajeEstado
+        : Recientes.Count == 0 ? "No hay notificaciones en Bandeja." : string.Empty;
 
     public NotificacionesViewModel(INotificacionRepository repositorio, IRealtimeService realtime,
         IConexionMonitor conexion, IUsuarioSesionService sesion)
@@ -59,6 +79,9 @@ public partial class NotificacionesViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(TextoBadge));
         OnPropertyChanged(nameof(TextoNuevas));
     }
+
+    partial void OnServicioDisponibleChanged(bool value) => OnPropertyChanged(nameof(MensajeRecientes));
+    partial void OnMensajeEstadoChanged(string value) => OnPropertyChanged(nameof(MensajeRecientes));
 
     public async Task InicializarAsync()
     {
@@ -86,38 +109,41 @@ public partial class NotificacionesViewModel : ObservableObject, IDisposable
     }
 
     [RelayCommand]
-    private async Task MarcarTodasLeidasAsync()
+    private async Task AbrirDetalleAsync(NotificacionDto? item)
+    {
+        if (item is null) return;
+        if (!item.EstaLeida && ServicioDisponible)
+        {
+            var resultado = await _repositorio.MarcarLeidaAsync(item.IdNotificacion);
+            if (!resultado.Success) { MensajeEstado = resultado.Error; return; }
+            await RefrescarAsync();
+            item = Recientes.FirstOrDefault(x => x.IdNotificacion == item.IdNotificacion)
+                ?? Notificaciones.FirstOrDefault(x => x.IdNotificacion == item.IdNotificacion)
+                ?? item;
+        }
+        SolicitarDetalle?.Invoke(item);
+    }
+
+    [RelayCommand]
+    private async Task MarcarTodasLeidasYArchivarAsync()
     {
         if (!ServicioDisponible) return;
-        var resultado = await _repositorio.MarcarTodasLeidasAsync();
-        if (resultado.Success) await RefrescarAsync(); else MensajeEstado = resultado.Error;
+        var resultado = await _repositorio.MarcarTodasLeidasYArchivarAsync();
+        if (!resultado.Success) { MensajeEstado = resultado.Error; return; }
+
+        EstadoSeleccionado = EstadoBandeja;
+        await RefrescarAsync();
     }
 
     [RelayCommand(CanExecute = nameof(PuedeEjecutarAccion))]
     private void EjecutarAccion(NotificacionDto? item)
     {
         if (!PuedeEjecutarAccion(item) || NavegacionService is null) return;
-        
-        string? routeId = item!.TablaOrigen switch
-        {
-            "usuarios" => Routes.Usuarios,
-            "roles" => Routes.Roles,
-            "proveedores" => Routes.Proveedores,
-            "fabricantes" => Routes.Fabricantes,
-            "categorias" => Routes.Categorias,
-            "productos" => Routes.Productos,
-            "presentaciones" => Routes.Presentaciones,
-            _ => null
-        };
-        
-        if (routeId != null && !NavegacionService.TryNavigate(routeId, out var motivo))
-        {
-            MensajeEstado = motivo ?? "No fue posible abrir el módulo relacionado.";
-        }
+        if (!NavegacionService.TryNavegar(item!.TablaOrigen!, item.IdRegistroOrigen!.Value, out var motivo))
+            MensajeEstado = motivo ?? "No fue posible abrir el registro relacionado.";
     }
 
-    private static bool PuedeEjecutarAccion(NotificacionDto? item) =>
-        item is { IdRegistroOrigen: > 0, TablaOrigen: "usuarios" or "roles" or "proveedores" or "fabricantes" or "categorias" or "productos" or "presentaciones" };
+    private bool PuedeEjecutarAccion(NotificacionDto? item) => NavegacionService?.PuedeNavegar(item?.TablaOrigen, item?.IdRegistroOrigen) == true;
 
     [RelayCommand]
     private async Task ArchivarAsync(NotificacionDto? item)
@@ -157,6 +183,8 @@ public partial class NotificacionesViewModel : ObservableObject, IDisposable
             ServicioDisponible = false;
             MensajeEstado = $"Servicio de notificaciones no disponible: {ex.Message}";
             Notificaciones.Clear();
+            Recientes.Clear();
+            OnPropertyChanged(nameof(MensajeRecientes));
             NoLeidas = 0;
         }
     }
@@ -164,6 +192,8 @@ public partial class NotificacionesViewModel : ObservableObject, IDisposable
     private async Task RefrescarAsync()
     {
         await CargarAsync(reemplazar: true);
+        if (!ServicioDisponible) return;
+        await CargarRecientesAsync();
         if (!ServicioDisponible) return;
         var contador = await _repositorio.ContarNoLeidasAsync(_cts?.Token ?? default);
         if (contador.Success) NoLeidas = contador.Value;
@@ -190,8 +220,8 @@ public partial class NotificacionesViewModel : ObservableObject, IDisposable
 
             var resultado = await _repositorio.ListarAsync(new FiltroNotificacionesDto
             {
-                EstadoBandeja = EstadoSeleccionado,
-                Severidad = SeveridadSeleccionada == "Todas" ? null : SeveridadSeleccionada,
+                EstadoBandeja = EstadoSeleccionado.Valor,
+                Severidad = string.IsNullOrEmpty(SeveridadSeleccionada.Valor) ? null : SeveridadSeleccionada.Valor,
                 Limite = 25,
                 CursorFecha = cursorFecha,
                 CursorId = cursorId,
@@ -201,7 +231,12 @@ public partial class NotificacionesViewModel : ObservableObject, IDisposable
             {
                 ServicioDisponible = false;
                 MensajeEstado = resultado.Error;
-                if (reemplazar) Notificaciones.Clear();
+                if (reemplazar)
+                {
+                    Notificaciones.Clear();
+                    Recientes.Clear();
+                    OnPropertyChanged(nameof(MensajeRecientes));
+                }
                 return;
             }
 
@@ -212,9 +247,30 @@ public partial class NotificacionesViewModel : ObservableObject, IDisposable
             HayMas = pagina.Count == 25;
             ServicioDisponible = true;
             MensajeEstado = Notificaciones.Count == 0 ? "No hay notificaciones para estos filtros." : string.Empty;
-            OnPropertyChanged(nameof(Recientes));
         }
         finally { EstaCargando = false; }
+    }
+
+    private async Task CargarRecientesAsync()
+    {
+        var resultado = await _repositorio.ListarAsync(new FiltroNotificacionesDto
+        {
+            EstadoBandeja = EstadoBandeja.Valor,
+            Limite = 5,
+        }, _cts?.Token ?? default);
+
+        if (!resultado.Success)
+        {
+            ServicioDisponible = false;
+            MensajeEstado = resultado.Error;
+            Recientes.Clear();
+            OnPropertyChanged(nameof(MensajeRecientes));
+            return;
+        }
+
+        Recientes.Clear();
+        foreach (var item in resultado.Value!) Recientes.Add(item);
+        OnPropertyChanged(nameof(MensajeRecientes));
     }
 
     private async void OnCambioRealtime(CambioRealtime cambio)
@@ -246,9 +302,10 @@ public partial class NotificacionesViewModel : ObservableObject, IDisposable
         ServicioDisponible = false;
         MensajeEstado = "Servicio de notificaciones no disponible. Se actualizará al recuperar la conexión.";
         Notificaciones.Clear();
+        Recientes.Clear();
+        OnPropertyChanged(nameof(MensajeRecientes));
         NoLeidas = 0;
         HayMas = false;
-        OnPropertyChanged(nameof(Recientes));
     }
 
     public void Dispose()

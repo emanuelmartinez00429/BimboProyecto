@@ -49,6 +49,9 @@ public partial class RolesView : System.Windows.Controls.UserControl
             var vm = _vm;
             await vm.CargarAsync();
             if (!ReferenceEquals(_vm, vm)) return;
+            if (Window.GetWindow(this)?.DataContext is MainViewModel principal &&
+                principal.ConsumirRegistroNotificacionPendiente("roles") is int idRol)
+                vm.AbrirDetalleRolCommand.Execute(idRol);
 
         }
         catch (Exception ex)

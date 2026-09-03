@@ -22,5 +22,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\CapaUI\Core\Permisos\Permiso.cs" Link="Core\Permisos\Permiso.cs" />
+    <Compile Include="..\CapaUI\Formularios\Principal\Pantallas\Notificaciones\NotificacionMetadataRenderer.cs"
+             Link="Notificaciones\NotificacionMetadataRenderer.cs" />
   </ItemGroup>
 </Project>

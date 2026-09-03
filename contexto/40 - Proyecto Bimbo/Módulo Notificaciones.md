@@ -1,14 +1,14 @@
 ---
 title: "Módulo Notificaciones"
 tags: [bimbo, notificaciones, supabase, realtime, rbac]
-date: 2026-09-02
-estado: parcial
+date: 2026-09-03
+estado: operativo
 ---
 
 # Módulo Notificaciones
 
-> [!warning] Estado vigente
-> La infraestructura, seguridad, campana y bandeja están implementadas. Los emisores de pesaje, roles, proveedores, fabricantes, usuarios, productos y categorías operan mediante RPC idempotentes. Las notificaciones contienen origen mínimo navegable y la bandeja vuelve a validar el permiso del módulo antes de abrirlo. `PRODUCTO_EXISTENCIA_BAJA` permanece deshabilitado hasta existir un modelo real de inventario.
+> [!success] Estado vigente
+> La infraestructura, seguridad, campana, bandeja y diálogo de detalle están operativos. La corrección visual fue aprobada el 2026-09-03: ambas bandejas comparten estilos, distinguen severidad de lectura y ofrecen acciones inequívocas. Los emisores de pesaje, roles, proveedores, fabricantes, usuarios, productos y categorías operan mediante RPC idempotentes. Las notificaciones contienen origen mínimo navegable y la bandeja vuelve a validar el permiso del módulo antes de abrirlo. `PRODUCTO_EXISTENCIA_BAJA` permanece deshabilitado hasta existir un modelo real de inventario.
 
 ## Responsabilidades
 
@@ -16,7 +16,7 @@ estado: parcial
 - `notificaciones`: evento general seleccionado para la bandeja.
 - `notificaciones_usuario`: destinatario y lectura/archivo individual.
 - Supabase Realtime: señal de cambio sobre `notificaciones_usuario`, no fuente de verdad.
-- RPC: única vía del cliente para listar, contar y modificar su estado individual.
+- RPC: única vía del cliente para listar, contar y modificar el estado individual o masivo de sus notificaciones.
 
 No existe caché SQLite, modo offline ni cola local. Si Supabase no está disponible, la UI vacía el estado derivado, informa la desconexión y bloquea operaciones. Al reconectar, se suscribe antes de consultar nuevamente listado y contador.
 
@@ -30,24 +30,28 @@ Las RPC resuelven al usuario con `auth.uid()`, verifican usuario/rol/asignación
 
 - `CapaAplicacion4/Notificaciones/`: DTO y contrato del repositorio.
 - `CapaDatos/Repositories/Notificaciones/NotificacionRepository.cs`: llamadas RPC.
-- `CapaUI/Formularios/Principal/Pantallas/Notificaciones/`: ViewModel y bandeja WPF.
-- `MainWindow`: campana, contador y vista previa.
+- `CapaUI/Formularios/Principal/Pantallas/Notificaciones/NotificacionesResources.xaml`: botones de texto e icono, estados interactivos, tarjetas y colores de severidad compartidos.
+- `CapaUI/Formularios/Principal/Pantallas/Notificaciones/NotificacionesView.xaml`: bandeja completa con filtros `Bandeja`, `No leídas`, `Leídas` y `Archivadas`.
+- `CapaUI/Formularios/Principal/Pantallas/Notificaciones/NotificacionDetalleWindow.xaml`: diálogo declarativo con altura ajustada al contenido y renderizado seguro de metadata.
+- `CapaUI/Formularios/Principal/Pantallas/Notificaciones/NotificacionesViewModel.cs`: listado, cinco recientes, contador, navegación y comandos de estado.
+- `MainWindow`: campana, contador y desplegable limitado a las cinco notificaciones más recientes de Bandeja.
 - `RealtimeService`: canal opcionalmente filtrado y espera de suscripción.
+- `BimboProyecto.Tests/Notificaciones/ContratoNotificacionesTests.cs`: contrato C#/XAML de la corrección.
 
-La inicialización sigue: validar permiso → suscribir canal filtrado → listar → contar. Los eventos `INSERT`/`UPDATE` provocan una recarga autorizada y se deduplican por `id_notificacion`.
+La inicialización sigue: validar permiso → suscribir canal filtrado → listar → cargar cinco recientes → contar. Los eventos `INSERT`/`UPDATE` provocan una recarga autorizada. Después de cualquier mutación, incluida la acción masiva, la UI vuelve a consultar listado, recientes y contador mediante RPC; no modifica las colecciones de forma optimista.
 
 ## Persistencia
 
-Las migraciones `20260902115932_notificaciones_internas_rbac.sql` y `20260902123358_endurecer_notificaciones_indices.sql` crean catálogo, eventos, destinatarios, restricciones, índices, políticas, privilegios y RPC. `private.crear_notificacion` no es ejecutable por el cliente y distribuye a usuarios activos que tenían `NOTIFICACIONES_CONSULTAR` al ocurrir el evento.
+Las migraciones `20260902115932_notificaciones_internas_rbac.sql` y `20260902123358_endurecer_notificaciones_indices.sql` crean catálogo, eventos, destinatarios, restricciones, índices, políticas, privilegios y RPC. La migración forward-only `20260903075117_archivar_notificaciones_al_marcar_todas.sql` conserva el nombre, firma, propietario, `SECURITY DEFINER`, `search_path` y privilegios de `marcar_todas_mis_notificaciones_leidas()` mientras reemplaza su comportamiento masivo. `private.crear_notificacion` no es ejecutable por el cliente y distribuye a usuarios activos que tenían `NOTIFICACIONES_CONSULTAR` al ocurrir el evento.
 
-La retención acordada es 180 días, pero la depuración automática no forma parte de esta entrega. Archivar es individual; resolver será global y requerirá `NOTIFICACIONES_GESTIONAR` cuando se implemente.
+`Marcar todas como leídas y archivar` ejecuta un único `UPDATE` autorizado por `auth.uid()` sobre todas las filas no archivadas del usuario: conserva la primera fecha de lectura, asigna la fecha de archivo y deja intactas las filas ya archivadas. Incluye tanto notificaciones no leídas como previamente leídas y mantiene al usuario en `Bandeja`, que queda vacía después de la recarga. El archivado y la restauración individuales continúan disponibles.
+
+La retención acordada es 180 días, pero la depuración automática no forma parte de esta entrega. Resolver será global y requerirá `NOTIFICACIONES_GESTIONAR` cuando se implemente.
 
 ## Pendientes
 
-- Ejecutar QA visual autenticada y multisesión de la navegación, bandeja y reconexión.
-- `PRODUCTO_EXISTENCIA_BAJA`, resolución global y retención automática continúan fuera de alcance.
-- Implementar resolución global y retención automática solo con autorización posterior.
-- Ejecutar QA visual autenticada y multisesión.
+- La corrección visual de bandejas y diálogo fue aprobada el 2026-09-03; queda pendiente una prueba manual multisesión de navegación y reconexión con dos sesiones WPF autenticadas.
+- `PRODUCTO_EXISTENCIA_BAJA`, resolución global y retención automática continúan fuera de alcance y requieren autorización posterior.
 
 ## Relaciones
 
@@ -55,3 +59,4 @@ La retención acordada es 180 días, pero la depuración automática no forma pa
 - [[Módulo Usuarios]]
 - [[ADR-025 - Notificaciones internas con Supabase como fuente de verdad]]
 - [[Sesión 2026-09-02 - Infraestructura de notificaciones internas]]
+- [[Sesión 2026-09-03 - Corrección visual y acción masiva de Notificaciones]]

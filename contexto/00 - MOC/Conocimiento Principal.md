@@ -141,7 +141,9 @@ Regla: `CapaAplicacion` **nunca** referencia `CapaDatos`.
 ## Bitácora
 
 Las sesiones están en `70 - Bitácora de Cambios/`.  
-Sesiones más recientes (2026-09-02):
+Sesiones más recientes (2026-09-03):
+- [[Sesión 2026-09-03 - Corrección visual y acción masiva de Notificaciones]]
+- [[Sesión 2026-09-03 - Implementación de ADR-026 y socket Realtime autenticado]]
 - [[Sesión 2026-09-02 - Columnas Creado y Actualizado en tablas de catálogo]]
 - [[Sesión 2026-09-02 - Componente reutilizable EmptyStateOverlay para tablas]]
 - [[Sesión 2026-09-02 - Infraestructura de notificaciones internas]]

@@ -155,6 +155,7 @@ namespace CapaUI.Formularios.Principal
             };
 
             Vm.CierreRequerido += OnCierreRequerido;
+            Vm.Notificaciones.SolicitarDetalle += MostrarDetalleNotificacion;
 
             Loaded            += OnLoaded;
             SourceInitialized += OnSourceInitialized;
@@ -260,6 +261,9 @@ namespace CapaUI.Formularios.Principal
             await Vm.Notificaciones.InicializarAsync();
             await CargarIconoSidebarAsync();
         }
+
+        private void MostrarDetalleNotificacion(CapaAplicacion.Notificaciones.Dtos.NotificacionDto notificacion)
+            => new Pantallas.Notificaciones.NotificacionDetalleWindow(notificacion) { Owner = this }.ShowDialog();
 
         private async Task CargarIconoSidebarAsync(string? rutaStorage = null)
         {
@@ -697,6 +701,7 @@ namespace CapaUI.Formularios.Principal
             _hwndSource?.RemoveHook(WndProc);
             _hwndSource = null;
             Vm.CierreRequerido -= OnCierreRequerido;
+            Vm.Notificaciones.SolicitarDetalle -= MostrarDetalleNotificacion;
             Vm.Dispose();
 
             // Purga total de la caché. NO es opcional: App.Services es un contenedor

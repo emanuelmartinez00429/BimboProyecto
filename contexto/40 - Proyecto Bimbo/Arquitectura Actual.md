@@ -10,6 +10,9 @@ aliases:
 
 # Arquitectura Actual — Bimbo
 
+> [!success] Actualizado 2026-09-03 — Notificaciones visuales y archivo masivo atómico
+> La campana, la bandeja completa y el diálogo de detalle comparten recursos WPF, distinguen severidad de lectura y exponen acciones inequívocas; la corrección visual fue aprobada el 2026-09-03. `Marcar todas como leídas y archivar` conserva al usuario en Bandeja y ejecuta un único `UPDATE` autorizado sobre todas sus filas no archivadas, seguido de una recarga RPC de listado y contador. Ver [[Módulo Notificaciones]] y [[Sesión 2026-09-03 - Corrección visual y acción masiva de Notificaciones]].
+
 > [!success] Actualizado 2026-09-02 — Administrador inmutable con acceso total
 > La ruta Roles administra el catálogo de roles y sus permisos mediante RPC transaccionales con autorización y bitácora. El rol Administrador se identifica mediante `roles.es_sistema`: su nombre, estado y permisos son inmutables, conserva las 34 acciones actuales y recibe automáticamente toda acción futura. Ver [[Módulo Usuarios]] y [[ADR-024 - Rol Administrador inmutable con acceso total]].
 
@@ -122,7 +125,7 @@ ProductoDto (DTO de aplicación)
 
 ## Realtime — arquitectura vigente
 
-La bandeja interna usa Supabase como única fuente de verdad. Se suscribe primero a `notificaciones_usuario` filtrando por el usuario interno y después consulta listado y contador mediante RPC. Realtime solo avisa que debe refrescarse el estado; al reconectar se recrea el canal y se vuelven a consultar las RPC. Sin conexión, la bandeja se declara no disponible y no simula operaciones confirmadas. Ver [[Módulo Notificaciones]] y [[ADR-025 - Notificaciones internas con Supabase como fuente de verdad]].
+La bandeja interna usa Supabase como única fuente de verdad. Se suscribe primero a `notificaciones_usuario` filtrando por el usuario interno y después consulta por RPC la lista activa, las cinco recientes del desplegable y el contador de no leídas. Realtime solo avisa que debe refrescarse el estado; al reconectar se recrea el canal y se vuelven a consultar las RPC. Las mutaciones individuales y masivas también terminan con esa recarga autorizada, sin modificar colecciones locales de forma optimista. Sin conexión, la bandeja se declara no disponible y no simula operaciones confirmadas. Ver [[Módulo Notificaciones]] y [[ADR-025 - Notificaciones internas con Supabase como fuente de verdad]].
 
 ```
 RealtimeService (Singleton en DI)
@@ -175,7 +178,7 @@ ProductosViewModel : RealtimeAwareViewModel
 | [[Módulo Contactos (Drill-down)\|Contactos Proveedores]] | ✅ Completo | ContactosProveedoresView, ContactosProveedoresViewModel, ContactoProveedorCrudRepository |
 | [[Buscador Universal Bimbo]] | ✅ Completo | Multi-entidad con Strategy + Mediator |
 | [[Módulo Usuarios]] | ✅ Completo (RBAC auditable y detalle de roles 2026-09-02) | UsuariosView, RolesView, RolModal, UsuarioRepository, RolRepository, RolPermisoRepository, UsuarioSesionService — CRUD + auth + permisos desde BD y Administración inmutable |
-| [[Módulo Notificaciones]] | 🟢 Operativo | Campana, bandeja paginada, lectura, archivado, emisores empresariales idempotentes, RPC/RLS/Realtime y navegación autorizada |
+| [[Módulo Notificaciones]] | 🟢 Operativo (corrección visual aprobada 2026-09-03) | Campana con cinco recientes, bandeja paginada, diálogo XAML, severidad visual, lectura/archivo individual y masivo atómico, emisores idempotentes, RPC/RLS/Realtime y navegación autorizada |
 | [[Módulo Empleados]] | ✅ Completo (2026-07-26) | EmpleadosView, EmpleadosViewModel, EmpleadoCrudRepository — CRUD completo, crea usuario desde empleado |
 | [[Módulo Bitácora]] | ✅ Completo + reportes PDF/Excel (2026-08-16) | BitacoraView, BitacoraViewModel, BitacoraCrudRepository — consulta de auditoría, selección múltiple y reporte registrado por RPC antes de entregar archivo |
 | [[Módulo Reportería]] | ✅ Cuatro reportes operativos PDF/Excel (2026-08-17) | ReporteriaView, ReporteriaViewModel, ReporteConsultaRepository, cuatro RPC de consulta — vista previa paginada y exportación auditada |
@@ -219,6 +222,8 @@ _Ninguna advertencia activa._ W-001 (CS0067 `SalirSolicitado`) eliminada — eve
 
 ## Relaciones
 
+- [[Sesión 2026-09-03 - Corrección visual y acción masiva de Notificaciones]] — rediseño aprobado y cambio atómico de estado
+- [[Módulo Notificaciones]] — campana, bandeja, detalle y persistencia de notificaciones internas
 - [[ADR-026 - Cache en memoria con FusionCache e invalidacion por Realtime]] — propuesta arquitectónica de caché L1 e invalidación reactiva
 - [[ADR-015 - Cache de catalogos mostrar y revalidar]] — arquitectura vigente de caché de catálogos
 - [[Deuda Técnica - Pendientes]] — registro de deuda técnica del proyecto
