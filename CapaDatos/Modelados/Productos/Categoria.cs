@@ -20,5 +20,11 @@ namespace CapaDatos.Modelados.Productos
 
         [Column("estado_categoria")]
         public bool estadoCategoria { get; set; }
+
+        [Column("created_at", ignoreOnInsert: true, ignoreOnUpdate: true)]
+        public DateTime? createdAt { get; set; }
+
+        [Column("updated_at", ignoreOnInsert: true, ignoreOnUpdate: true)]
+        public DateTime? updatedAt { get; set; }
     }
 }

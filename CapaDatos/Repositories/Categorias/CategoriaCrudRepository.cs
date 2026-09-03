@@ -30,6 +30,8 @@ public class CategoriaCrudRepository : RepositorioBase, ICategoriaRepository
         Nombre          = c.nombreCategoria     ?? string.Empty,
         Descripcion     = c.descripcionCategoria ?? string.Empty,
         EstadoCategoria = c.estadoCategoria,
+        CreatedAt       = c.createdAt?.ToLocalTime(),
+        UpdatedAt       = c.updatedAt?.ToLocalTime(),
     };
 
     // ── Lectura ───────────────────────────────────────────────────────────────

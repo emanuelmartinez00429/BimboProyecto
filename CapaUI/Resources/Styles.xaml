@@ -566,6 +566,32 @@
         </Setter>
     </Style>
 
+    <Style x:Key="HeaderDerecho" TargetType="DataGridColumnHeader">
+        <Setter Property="Background" Value="{DynamicResource EmpresaPrimaryBrush}"/>
+        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="Height" Value="40"/>
+        <Setter Property="HorizontalContentAlignment" Value="Right"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="DataGridColumnHeader">
+                    <Border Background="{DynamicResource EmpresaPrimaryBrush}" BorderBrush="#1EFFFFFF" BorderThickness="0,0,1,0">
+                        <TextBlock Text="{TemplateBinding Content}"
+                                   Foreground="White"
+                                   FontFamily="Segoe UI"
+                                   FontSize="13"
+                                   FontWeight="Bold"
+                                   HorizontalAlignment="Right"
+                                   VerticalAlignment="Center"
+                                   Padding="10,0"/>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <!-- ══ Barras de scroll discretas ══
          Barra fina sin flechas ni fondo de riel: solo el thumb gris. Estaban
          definidas localmente en ProductosView; se promovieron acá al necesitarlas
@@ -665,6 +691,18 @@
                 <ControlTemplate TargetType="DataGridCell">
                     <Border Background="{TemplateBinding Background}" BorderThickness="0" Padding="0">
                         <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Left"/>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="CeldaDerecha" TargetType="DataGridCell" BasedOn="{StaticResource CeldaCentrada}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="DataGridCell">
+                    <Border Background="{TemplateBinding Background}" BorderThickness="0" Padding="0">
+                        <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Right"/>
                     </Border>
                 </ControlTemplate>
             </Setter.Value>

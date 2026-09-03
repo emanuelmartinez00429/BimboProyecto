@@ -370,11 +370,29 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="ACTUALIZADO" Width="150" CellStyle="{StaticResource CeldaCentrada}">
+                        <DataGridTemplateColumn Header="CREADO"
+                                                Width="Auto"
+                                                MinWidth="130"
+                                                CellStyle="{StaticResource CeldaDerecha}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding UpdatedAt, StringFormat=\{0:dd/MM/yyyy HH:mm\}}"
-                                               FontFamily="Segoe UI" FontSize="14" Foreground="#9CA3AF"/>
+                                    <TextBlock Text="{Binding CreatedAt, StringFormat={}{0:dd/MM/yyyy HH:mm}, TargetNullValue='—'}"
+                                               FontFamily="Segoe UI" FontSize="14" Foreground="#64748B"
+                                               HorizontalAlignment="Right" VerticalAlignment="Center"
+                                               Padding="10,0"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="ACTUALIZADO"
+                                                Width="Auto"
+                                                MinWidth="130"
+                                                CellStyle="{StaticResource CeldaDerecha}">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding UpdatedAt, StringFormat={}{0:dd/MM/yyyy HH:mm}, TargetNullValue='—'}"
+                                               FontFamily="Segoe UI" FontSize="14" Foreground="#64748B"
+                                               HorizontalAlignment="Right" VerticalAlignment="Center"
+                                               Padding="10,0"/>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>

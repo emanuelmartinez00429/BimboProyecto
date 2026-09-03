@@ -33,6 +33,8 @@ public class ProveedorCrudRepository : RepositorioBase, IProveedorRepository
         Correo    = p.correoProveedor    ?? string.Empty,
         Direccion = p.direccionProveedor ?? string.Empty,
         IdEstado  = p.idEstado,
+        CreatedAt = p.createdAt?.ToLocalTime(),
+        UpdatedAt = p.updatedAt?.ToLocalTime(),
     };
 
     // ── Lectura ───────────────────────────────────────────────────────────────

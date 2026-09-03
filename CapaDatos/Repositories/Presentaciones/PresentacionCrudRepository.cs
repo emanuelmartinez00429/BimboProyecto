@@ -30,8 +30,8 @@ public class PresentacionCrudRepository : RepositorioBase, IPresentacionReposito
         Nombre      = p.nombrePresentacion      ?? string.Empty,
         Descripcion = p.descripcionPresentacion ?? string.Empty,
         IdEstado    = p.idEstado,
-        CreatedAt   = p.createdAt,
-        UpdatedAt   = p.updatedAt,
+        CreatedAt   = p.createdAt?.ToLocalTime(),
+        UpdatedAt   = p.updatedAt?.ToLocalTime(),
     };
 
     /// <summary>
