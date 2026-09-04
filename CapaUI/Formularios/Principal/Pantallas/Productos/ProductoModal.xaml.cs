@@ -15,7 +15,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Threading;
 
 namespace CapaUI.Formularios.Principal.Pantallas.Productos
 {
@@ -56,8 +55,8 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
         /// <summary>
         /// El Border del overlay (ModalOverlay en la vista que lo hospeda) — el
         /// mismo que ya usan los bindings de MaxWidth/MaxHeight del XAML. Se
-        /// engancha su SizeChanged para volver a medir el modal cuando la
-        /// ventana cambia de tamaño de verdad; ver <see cref="FijarAlturaOriginal"/>.
+        /// engancha su SizeChanged para reajustar el marco cuando la ventana se
+        /// achica con el selector abierto; ver <see cref="OverlayAncestor_SizeChanged"/>.
         /// </summary>
         private Border? _overlayAncestor;
 
@@ -133,18 +132,16 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
                 RbInactivo.IsChecked = _producto.IdEstado != 1;
             }
 
-            FijarAlturaOriginal();
+            // El formulario NO se congela al cargar: así los renglones de error
+            // del validador (que se insertan bajo el campo) agrandan el marco de
+            // verdad en vez de sacar scrollbar. El MaxHeight del XAML lo acota al
+            // hueco disponible; la barra queda como último recurso real (ventana
+            // demasiado chica). El alto fijo solo se necesita mientras la tabla
+            // del selector está abierta — ver AbrirSelector / CerrarSelector.
 
-            // Reenganchar contra el resize real de la ventana: sin esto, el
-            // alto quedaba fijo para siempre al valor del primer Loaded (ver
-            // FijarAlturaOriginal) y el modal no volvía a crecer si se abría
-            // con la ventana chica y esta se agrandaba después — ni mostraba
-            // scrollbar si se abría grande y la ventana se achicaba (el marco
-            // quedaba más alto que el hueco disponible y el ClipToBounds del
-            // Border raíz lo cortaba en silencio). Es el mismo Border que ya
-            // usan MaxWidth/MaxHeight arriba en el XAML (RelativeSource
-            // AncestorType=Border) — un solo contenedor, una sola fuente de
-            // verdad del tamaño disponible.
+            // Solo hace falta reajustar el marco congelado si la ventana se
+            // achica con el selector abierto; con el formulario a la vista el
+            // MaxHeight del XAML ya sigue el tamaño disponible.
             _overlayAncestor = FindAncestor<Border>(this);
             if (_overlayAncestor != null)
                 _overlayAncestor.SizeChanged += OverlayAncestor_SizeChanged;
@@ -154,13 +151,21 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
             TxtCodigo.Focus();
         }
 
+        /// <summary>Margen que el modal deja contra el borde del overlay (igual que el ConverterParameter de MaxHeight en el XAML).</summary>
+        private const double MargenOverlay = 48;
+
         private void OverlayAncestor_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            // Soltar el alto congelado y volver a fijarlo contra el nuevo
-            // tamaño disponible — mismo mecanismo que el Loaded inicial, solo
-            // que disparado por un resize real en vez de la primera carga.
-            RootGrid.Height = double.NaN;
-            FijarAlturaOriginal();
+            // Con el formulario a la vista no hay nada que hacer: se auto-dimensiona
+            // y el MaxHeight del XAML lo acota al hueco disponible.
+            if (_selectorAbierto is null || double.IsNaN(RootGrid.Height)) return;
+
+            // Selector abierto (marco congelado): si la ventana se achicó por
+            // debajo del alto fijo, bajarlo al disponible. El scroll interno de
+            // la tabla absorbe el recorte.
+            double disponible = ((FrameworkElement)sender).ActualHeight - MargenOverlay;
+            if (disponible > 0 && RootGrid.Height > disponible)
+                RootGrid.Height = disponible;
         }
 
         private static T? FindAncestor<T>(DependencyObject start) where T : DependencyObject
@@ -170,27 +175,6 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
                 parent = VisualTreeHelper.GetParent(parent);
             return parent as T;
         }
-
-        /// <summary>
-        /// Congela el marco al alto que ocupa el formulario recién cargado (o
-        /// recién recalculado tras un resize, ver <see cref="OverlayAncestor_SizeChanged"/>).
-        /// Sin esto, el modal se auto-dimensiona a su contenido: cambiar a modo
-        /// tabla (<see cref="AbrirSelector"/>) y volver a filtrar dentro de ella
-        /// hacía que el marco creciera o encogiera con la cantidad de filas
-        /// visibles (el Border de la tabla solo tenía un rango Min/Max, no un
-        /// alto fijo). Al fijar RootGrid.Height, el renglón "*" de la tabla
-        /// queda con una altura de verdad —ya no depende de su contenido— y el
-        /// marco se mantiene del tamaño del modal en ambos modos, hasta el
-        /// próximo resize real de la ventana.
-        /// Se difiere un tick (DispatcherPriority.Loaded) para leer el alto ya
-        /// asentado tras el layout completo, no uno a medio popular.
-        /// </summary>
-        private void FijarAlturaOriginal() =>
-            Dispatcher.BeginInvoke(new Action(() =>
-            {
-                if (double.IsNaN(RootGrid.Height))
-                    RootGrid.Height = RootGrid.ActualHeight;
-            }), DispatcherPriority.Loaded);
 
         private void BtnCerrar_Click(object sender, RoutedEventArgs e) => Cerrado?.Invoke();
 
@@ -318,8 +302,10 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
 
         /// <summary>
         /// Cambia el contenido del modal por la tabla del catálogo. No se
-        /// superpone: el formulario se colapsa y el marco se reajusta al alto de
-        /// la tabla, así se ve una sola tarjeta y no dos encimadas.
+        /// superpone: el formulario se colapsa y el marco toma un alto fijo (el
+        /// que tiene el formulario en ese momento), así la tabla lo llena y no
+        /// crece/encoge al filtrar. Al elegir un item vuelve el formulario y el
+        /// marco se libera para auto-dimensionarse de nuevo.
         /// </summary>
         private void AbrirSelector(CatalogoConfig cfg, Action<FiltroItem> alSeleccionar)
         {
@@ -333,6 +319,12 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
 
             _focoPrevio             = Keyboard.FocusedElement;
             _selectorAbierto        = selector;
+
+            // Congelar el marco al alto actual del formulario ANTES de colapsarlo:
+            // le da a la fila "*" de la tabla una altura de verdad (no depende de
+            // su contenido) y evita que el marco crezca/encoja al filtrar.
+            RootGrid.Height         = RootGrid.ActualHeight;
+
             SelectorHost.Content    = selector;
             SelectorHost.Visibility = Visibility.Visible;
             FormHost.Visibility     = Visibility.Collapsed;
@@ -345,6 +337,10 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
             SelectorHost.Content    = null;
             SelectorHost.Visibility = Visibility.Collapsed;
             FormHost.Visibility     = Visibility.Visible;
+
+            // Liberar el marco: el formulario vuelve a auto-dimensionarse, así los
+            // renglones de error del validador lo agrandan en vez de sacar barra.
+            RootGrid.Height         = double.NaN;
 
             // Después de reponer FormHost — no se puede enfocar algo colapsado.
             // Si el elemento previo ya no sirve, se cae al primer campo antes que

@@ -47,7 +47,19 @@ namespace CapaUI.Formularios.Principal.Pantallas.Fabricantes
             DataContext = _vm;
             DgFabricantes.ItemsSource = _vm.PageRows;
 
-            await _vm.CargarDatosAsync();
+            try
+            {
+                var vm = _vm;
+                await vm.CargarDatosAsync();
+            }
+            catch (OperationCanceledException)
+            {
+                // Navegación rápida: la vista se descargó mientras cargaba.
+            }
+            catch (Exception ex)
+            {
+                Serilog.Log.Error(ex, "[Fabricantes] Falló la carga inicial de la pantalla");
+            }
         }
 
         private void UserControl_Unloaded(object sender, RoutedEventArgs e)

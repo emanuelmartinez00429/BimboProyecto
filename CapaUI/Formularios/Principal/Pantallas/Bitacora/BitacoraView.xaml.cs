@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -49,11 +49,22 @@ namespace CapaUI.Formularios.Principal.Pantallas.Bitacora
             // pantalla mientras carga, Unloaded pone _vm = null y la continuación
             // volvería sobre una vista ya descargada. Se compara por referencia
             // para cubrir también el abrir-cerrar-abrir rápido.
-            var vm = _vm;
-            await vm.CargarDatosAsync();
-            if (!ReferenceEquals(_vm, vm)) return;
+            try
+            {
+                var vm = _vm;
+                await vm.CargarDatosAsync();
+                if (!ReferenceEquals(_vm, vm)) return;
 
-            PoblarFiltros();
+                PoblarFiltros();
+            }
+            catch (OperationCanceledException)
+            {
+                // Navegación rápida: la vista se descargó mientras cargaba.
+            }
+            catch (Exception ex)
+            {
+                Serilog.Log.Error(ex, "[Bitacora] Falló la carga inicial de la pantalla");
+            }
         }
 
         private void UserControl_Unloaded(object sender, RoutedEventArgs e)

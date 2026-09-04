@@ -1,7 +1,9 @@
 using CapaAplicacion.Common;
+using CapaAplicacion.Common.Cache;
 using CapaAplicacion.Conexion;
 using CapaAplicacion.Usuarios.Dtos;
 using CapaAplicacion.Usuarios.Interfaces;
+using CapaDatos.Cache;
 using CapaDatos.Modelados.Usuarios;
 using Newtonsoft.Json.Linq;
 using ServicioConexión.Conexion;
@@ -13,23 +15,42 @@ namespace CapaDatos.Repositories.Usuarios;
 public sealed class RolRepository : RepositorioBase, IRolRepository
 {
     private const int Activo = 1;
+    private readonly ICacheService _cache;
 
-    public RolRepository(IConexionMonitor conexion) : base(conexion) { }
+    public RolRepository(IConexionMonitor conexion, ICacheService cache) : base(conexion)
+    {
+        _cache = cache;
+    }
 
     public Task<Result<IReadOnlyList<RolDto>>> ObtenerTodosAsync(
         bool incluirInactivos = false,
         CancellationToken ct = default) =>
         TryAsync(async () =>
         {
-            var client = await ConexionSupabase.GetClientAsync();
-            var query = client.From<Roles>().Order("nombre_rol", Ord.Ascending);
-            if (!incluirInactivos)
-                query = query.Filter("id_estado", Op.Equals, Activo.ToString());
+            var cacheKey = $"catalogos:roles:{(incluirInactivos ? "todos" : "activos")}";
+            var resultado = await _cache.ObtenerOCrearAsync(
+                cacheKey,
+                async _ =>
+                {
+                    var client = await ConexionSupabase.GetClientAsync().ConfigureAwait(false);
+                    var query = client.From<Roles>().Order("nombre_rol", Ord.Ascending);
+                    if (!incluirInactivos)
+                        query = query.Filter("id_estado", Op.Equals, Activo.ToString());
 
-            var resultado = await query.Get(ct);
-            return (IReadOnlyList<RolDto>)(resultado?.Models ?? new List<Roles>())
-                .Select(Mapear)
-                .ToList();
+                    // Factoría de FusionCache ejecutada con CancellationToken.None: regla de oro ADR-026.
+                    // Garantiza protección Single-Flight para que cancelaciones rápidas al alternar pestañas
+                    // no aborten la consulta compartida en vuelo ni disparen TaskCanceledException.
+                    var res = await query.Get(CancellationToken.None).ConfigureAwait(false);
+                    IReadOnlyList<RolDto> lista = (res?.Models ?? new List<Roles>())
+                        .Select(Mapear)
+                        .ToList();
+                    return Result<IReadOnlyList<RolDto>>.Ok(lista);
+                },
+                PoliticasCache.Rbac,
+                etiquetas: TagsCache.DeCatalogo(TagsCache.TablaRoles),
+                ct: ct);
+
+            return resultado.Value ?? (IReadOnlyList<RolDto>)Array.Empty<RolDto>();
         }, "Obtener roles");
 
     public Task<Result<RolDto>> CrearAsync(string nombreRol, CancellationToken ct = default) =>
@@ -73,7 +94,7 @@ public sealed class RolRepository : RepositorioBase, IRolRepository
             var item = token as JObject ?? token.Children<JObject>().FirstOrDefault()
                 ?? throw new InvalidOperationException("Supabase no devolvió el rol actualizado.");
 
-            return new RolDto
+            var rolActualizado = new RolDto
             {
                 IdRol = item["id_rol"]?.Value<int>() ?? 0,
                 NombreRol = item["nombre_rol"]?.Value<string>() ?? string.Empty,
@@ -81,6 +102,9 @@ public sealed class RolRepository : RepositorioBase, IRolRepository
                 EsSistema = item["es_sistema"]?.Value<bool>() ?? false,
                 UsuariosAsignados = item["usuarios_asignados"]?.Value<int>() ?? 0,
             };
+
+            _cache.InvalidarEtiqueta(TagsCache.DeTabla(TagsCache.TablaRoles));
+            return rolActualizado;
         }, contexto);
 
     private static RolDto Mapear(Roles r) => new()

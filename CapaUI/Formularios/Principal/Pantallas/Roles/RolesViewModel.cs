@@ -199,7 +199,17 @@ public sealed partial class RolesViewModel : ObservableObject, IDisposable
         IsLoading = true;
         Mensaje = string.Empty;
 
-        var resultado = await _permisosRepo.ObtenerResumenAsync(_cts.Token);
+        CapaAplicacion.Common.Result<CapaAplicacion.Usuarios.Dtos.RolesResumenDto> resultado;
+        try
+        {
+            resultado = await _permisosRepo.ObtenerResumenAsync(_cts.Token);
+        }
+        catch (OperationCanceledException)
+        {
+            // Cancelación intencional al cambiar de pestaña mientras cargaba.
+            return;
+        }
+
         if (_disposed) return;
         if (!resultado.Success)
         {

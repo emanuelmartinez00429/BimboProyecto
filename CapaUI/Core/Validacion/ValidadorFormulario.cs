@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Media;
+using System.Windows.Threading;
 
 namespace CapaUI.Core.Validacion;
 
@@ -57,6 +58,18 @@ public sealed class ValidadorFormulario
     public ConstructorCampo Combo(Selector combo, string etiqueta) =>
         Agregar(new CampoValidado(combo, etiqueta, () => combo.SelectedItem?.ToString(), () => combo.SelectedItem is not null));
 
+    public ConstructorCampo Catalogo(TextBox caja, string etiqueta, Func<int?>? obtenerId = null) =>
+        Agregar(new CampoValidado(
+            caja,
+            etiqueta,
+            () => caja.Text,
+            obtenerId != null
+                ? () => !string.IsNullOrWhiteSpace(caja.Text) && obtenerId().HasValue
+                : () => !string.IsNullOrWhiteSpace(caja.Text)));
+
+    public ConstructorCampo Catalogo(TextBox caja, string etiqueta, Func<bool> tieneValor) =>
+        Agregar(new CampoValidado(caja, etiqueta, () => caja.Text, tieneValor));
+
     private ConstructorCampo Agregar(CampoValidado campo)
     {
         _campos.Add(campo);
@@ -66,8 +79,9 @@ public sealed class ValidadorFormulario
     // ── Evaluación ────────────────────────────────────────────────────────
 
     /// <summary>
-    /// Engancha cada campo a su <c>LostFocus</c> para avisar apenas se sale de
-    /// uno, sin esperar al guardado.
+    /// Engancha cada campo a su <c>LostFocus</c> y cambios de valor para avisar
+    /// sin esperar al guardado, y limpiar el error en cuanto se elija o ingrese
+    /// un valor válido (p. ej. al seleccionar un elemento de catálogo en la lupa).
     /// </summary>
     /// <remarks>
     /// Un campo vacío que nunca se tocó no se marca: si no, abrir un formulario
@@ -84,6 +98,31 @@ public sealed class ValidadorFormulario
                 actual.Visitado = true;
                 Evaluar(actual);
             };
+
+            if (actual.Control is TextBox tb)
+            {
+                tb.TextChanged += (_, _) =>
+                {
+                    if (actual.Visitado)
+                        actual.Control.Dispatcher.BeginInvoke(new Action(() => Evaluar(actual)), DispatcherPriority.Input);
+                };
+            }
+            else if (actual.Control is PasswordBox pb)
+            {
+                pb.PasswordChanged += (_, _) =>
+                {
+                    if (actual.Visitado)
+                        actual.Control.Dispatcher.BeginInvoke(new Action(() => Evaluar(actual)), DispatcherPriority.Input);
+                };
+            }
+            else if (actual.Control is Selector sel)
+            {
+                sel.SelectionChanged += (_, _) =>
+                {
+                    if (actual.Visitado)
+                        actual.Control.Dispatcher.BeginInvoke(new Action(() => Evaluar(actual)), DispatcherPriority.Input);
+                };
+            }
         }
         return this;
     }

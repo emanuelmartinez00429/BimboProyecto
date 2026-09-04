@@ -78,6 +78,10 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
                 _sync = false;
                 ActualizarUI();
             }
+            catch (OperationCanceledException)
+            {
+                // Cancelación intencional al cambiar de vista.
+            }
             catch (Exception ex)
             {
                 Serilog.Log.Error(ex, "[Pesaje] Falló la carga inicial de la pantalla");

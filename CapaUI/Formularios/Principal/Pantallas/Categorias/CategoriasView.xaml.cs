@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -37,7 +37,19 @@ namespace CapaUI.Formularios.Principal.Pantallas.Categorias
             DataContext = _vm;
             DgCategorias.ItemsSource = _vm.PageRows;
 
-            await _vm.CargarDatosAsync();
+            try
+            {
+                var vm = _vm;
+                await vm.CargarDatosAsync();
+            }
+            catch (OperationCanceledException)
+            {
+                // Navegación rápida: la vista se descargó mientras cargaba.
+            }
+            catch (Exception ex)
+            {
+                Serilog.Log.Error(ex, "[Categorias] Falló la carga inicial de la pantalla");
+            }
         }
 
         private void UserControl_Unloaded(object sender, RoutedEventArgs e)

@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using CapaAplicacion.Usuarios.Dtos;
 using CapaAplicacion.Usuarios.Interfaces;
 using CapaUI.Core.MVVM;
@@ -155,18 +155,25 @@ public partial class UsuariosViewModel : ObservableObject, IDisposable
     // ── Carga ──────────────────────────────────────────────────────────
     public async Task CargarDatosAsync()
     {
-        IsLoading  = true;
-        ErrorCarga = string.Empty;
+        try
+        {
+            IsLoading  = true;
+            ErrorCarga = string.Empty;
 
-        var rolesResult = await _rolRepo.ObtenerTodosAsync(ct: _cts.Token);
-        if (_disposed) return;
+            var rolesResult = await _rolRepo.ObtenerTodosAsync(ct: _cts.Token);
+            if (_disposed) return;
 
-        if (rolesResult.Success)
-            Roles = rolesResult.Value!.ToList();
-        else
-            ErrorCarga = rolesResult.Error;
+            if (rolesResult.Success)
+                Roles = rolesResult.Value!.ToList();
+            else
+                ErrorCarga = rolesResult.Error;
 
-        await CargarPaginaAsync();
+            await CargarPaginaAsync();
+        }
+        catch (OperationCanceledException)
+        {
+            // Cancelación intencional al desmontar la vista o cambiar de pestaña.
+        }
     }
 
     public void RefrescarDatos() => _ = CargarPaginaAsync();
@@ -194,57 +201,64 @@ public partial class UsuariosViewModel : ObservableObject, IDisposable
             _                            => null,
         };
 
-        var task = _usuarioRepo.ObtenerPaginaAsync(_page, PageSize, idEstado, _rolFiltro, _query, _cts.Token);
-
-        // El Task.Delay del timeout se cancela apenas gana la consulta. Sin esto,
-        // CADA carga de página dejaba un timer de 10 s vivo en el TimerQueue
-        // aunque la consulta hubiera vuelto en 200 ms: abrir y cerrar la pantalla
-        // varias veces iba acumulando timers.
-        var relojTimeout = CancellationTokenSource.CreateLinkedTokenSource(_cts.Token);
-        var demora = Task.Delay(TimeoutMs, relojTimeout.Token);
-        var ganador = await Task.WhenAny(task, demora);
-        relojTimeout.Cancel();
-        relojTimeout.Dispose();
-
-        if (_disposed) return;
-
-        if (ganador != task)
+        try
         {
-            if (myGen != _loadGeneration) return;
-            ErrorCarga = "La carga tardó demasiado. Intente de nuevo.";
-            IsLoading  = false;
-            return;
+            var task = _usuarioRepo.ObtenerPaginaAsync(_page, PageSize, idEstado, _rolFiltro, _query, _cts.Token);
+
+            // El Task.Delay del timeout se cancela apenas gana la consulta. Sin esto,
+            // CADA carga de página dejaba un timer de 10 s vivo en el TimerQueue
+            // aunque la consulta hubiera vuelto en 200 ms: abrir y cerrar la pantalla
+            // varias veces iba acumulando timers.
+            var relojTimeout = CancellationTokenSource.CreateLinkedTokenSource(_cts.Token);
+            var demora = Task.Delay(TimeoutMs, relojTimeout.Token);
+            var ganador = await Task.WhenAny(task, demora);
+            relojTimeout.Cancel();
+            relojTimeout.Dispose();
+
+            if (_disposed) return;
+
+            if (ganador != task)
+            {
+                if (myGen != _loadGeneration) return;
+                ErrorCarga = "La carga tardó demasiado. Intente de nuevo.";
+                IsLoading  = false;
+                return;
+            }
+
+            var r = await task;
+            if (_disposed || myGen != _loadGeneration) return;
+
+            if (!r.Success)
+            {
+                ErrorCarga = r.Error;
+                IsLoading  = false;
+                return;
+            }
+
+            var pagina = r.Value!;
+
+            TotalCount     = pagina.Total;
+            ActivosCount   = pagina.Activos;
+            InactivosCount = pagina.Inactivos;
+            _filteredCount = _estadoFiltro switch
+            {
+                EstadoUsuarioFilter.Activos   => pagina.Activos,
+                EstadoUsuarioFilter.Inactivos => pagina.Inactivos,
+                _                            => pagina.Total,
+            };
+
+            PageRows = new ObservableCollection<UsuarioVistaDto>(pagina.Items);
+
+            OnPropertyChanged(nameof(TotalPages));
+            OnPropertyChanged(nameof(PageInfo));
+            OnPropertyChanged(nameof(NoResults));
+            NotifyPaginationCanExecuteChanged();
+            IsLoading = false;
         }
-
-        var r = await task;
-        if (_disposed || myGen != _loadGeneration) return;
-
-        if (!r.Success)
+        catch (OperationCanceledException)
         {
-            ErrorCarga = r.Error;
-            IsLoading  = false;
-            return;
+            // Cancelación intencional al desmontar la vista o cambiar de pestaña.
         }
-
-        var pagina = r.Value!;
-
-        TotalCount     = pagina.Total;
-        ActivosCount   = pagina.Activos;
-        InactivosCount = pagina.Inactivos;
-        _filteredCount = _estadoFiltro switch
-        {
-            EstadoUsuarioFilter.Activos   => pagina.Activos,
-            EstadoUsuarioFilter.Inactivos => pagina.Inactivos,
-            _                            => pagina.Total,
-        };
-
-        PageRows = new ObservableCollection<UsuarioVistaDto>(pagina.Items);
-
-        OnPropertyChanged(nameof(TotalPages));
-        OnPropertyChanged(nameof(PageInfo));
-        OnPropertyChanged(nameof(NoResults));
-        NotifyPaginationCanExecuteChanged();
-        IsLoading = false;
     }
 
     // ── Búsqueda con debounce ──────────────────────────────────────────

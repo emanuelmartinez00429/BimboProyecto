@@ -77,6 +77,17 @@ namespace CapaUI
                 .CreateLogger();
 
             _ = Services; // fuerza inicialización en el hilo UI (el getter ya crea el provider)
+
+            DispatcherUnhandledException += (s, args) =>
+            {
+                if (args.Exception is OperationCanceledException or TaskCanceledException)
+                {
+                    args.Handled = true;
+                    return;
+                }
+                Log.Fatal(args.Exception, "Excepción no controlada en el Dispatcher");
+            };
+
             Services.GetRequiredService<EmpresaThemeService>().CargarCacheSinRed();
             ShutdownMode = ShutdownMode.OnExplicitShutdown;
             MostrarLogin();

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
@@ -41,15 +41,26 @@ namespace CapaUI.Formularios.Principal.Pantallas.Usuarios
             // del await volvería sobre una vista ya descargada.
             // Se compara por referencia y no contra null para cubrir también el
             // abrir-cerrar-abrir rápido: ahí _vm no es null, pero es OTRO VM.
-            var vm = _vm;
-            await vm.CargarDatosAsync();
-            if (!ReferenceEquals(_vm, vm)) return;
+            try
+            {
+                var vm = _vm;
+                await vm.CargarDatosAsync();
+                if (!ReferenceEquals(_vm, vm)) return;
 
-            if (Window.GetWindow(this)?.DataContext is MainViewModel principal &&
-                principal.ConsumirRegistroNotificacionPendiente("usuarios") is int idUsuario)
-                await vm.NavegarARegistroAsync(idUsuario);
+                if (Window.GetWindow(this)?.DataContext is MainViewModel principal &&
+                    principal.ConsumirRegistroNotificacionPendiente("usuarios") is int idUsuario)
+                    await vm.NavegarARegistroAsync(idUsuario);
 
-            PoblarRoles();
+                PoblarRoles();
+            }
+            catch (OperationCanceledException)
+            {
+                // Navegación rápida: la vista se descargó mientras cargaba. Salida limpia sin error.
+            }
+            catch (Exception ex)
+            {
+                Serilog.Log.Error(ex, "[Usuarios] Falló la carga inicial de la pantalla");
+            }
         }
 
         private void UserControl_Unloaded(object sender, RoutedEventArgs e)

@@ -54,6 +54,10 @@ public partial class RolesView : System.Windows.Controls.UserControl
                 vm.AbrirDetalleRolCommand.Execute(idRol);
 
         }
+        catch (OperationCanceledException)
+        {
+            // Salida limpia por navegación rápida mientras cargaba la pantalla.
+        }
         catch (Exception ex)
         {
             Serilog.Log.Error(ex, "[Roles] Falló la carga inicial de la pantalla");

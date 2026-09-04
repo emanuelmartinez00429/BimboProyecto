@@ -176,4 +176,38 @@ public class FusionCacheServiceTests
 
         Assert.False(r.Success);
     }
+
+    [Fact(DisplayName = "Invalidar etiqueta de roles purga las entradas de roles registradas")]
+    public async Task Invalidar_etiqueta_roles_purga_entradas_cacheadas()
+    {
+        var (cache, _) = Crear();
+        var llamadas = 0;
+
+        Task<Result<int>> Fabrica(CancellationToken _)
+        {
+            llamadas++;
+            return Task.FromResult(Result<int>.Ok(100 + llamadas));
+        }
+
+        var r1 = await cache.ObtenerOCrearAsync(
+            "catalogos:roles:activos", Fabrica, Politica(),
+            etiquetas: TagsCache.DeCatalogo(TagsCache.TablaRoles));
+
+        var r2 = await cache.ObtenerOCrearAsync(
+            "catalogos:roles:activos", Fabrica, Politica(),
+            etiquetas: TagsCache.DeCatalogo(TagsCache.TablaRoles));
+
+        Assert.Equal(1, llamadas);
+        Assert.Equal(101, r1.Value);
+        Assert.Equal(101, r2.Value);
+
+        cache.InvalidarEtiqueta(TagsCache.DeTabla(TagsCache.TablaRoles));
+
+        var r3 = await cache.ObtenerOCrearAsync(
+            "catalogos:roles:activos", Fabrica, Politica(),
+            etiquetas: TagsCache.DeCatalogo(TagsCache.TablaRoles));
+
+        Assert.Equal(2, llamadas);
+        Assert.Equal(102, r3.Value);
+    }
 }
