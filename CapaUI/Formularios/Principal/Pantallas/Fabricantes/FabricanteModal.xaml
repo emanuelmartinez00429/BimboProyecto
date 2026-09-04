@@ -19,7 +19,7 @@
     <Border CornerRadius="10" ClipToBounds="True"
             MaxHeight="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=Border}}">
         <Border.Effect><DropShadowEffect Color="Black" BlurRadius="24" ShadowDepth="8" Opacity="0.55"/></Border.Effect>
-        <Grid>
+        <Grid x:Name="RootGrid">
             <Border CornerRadius="10">
                 <Border.Background>
                     <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
@@ -29,7 +29,7 @@
                     </LinearGradientBrush>
                 </Border.Background>
             </Border>
-            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <ScrollViewer x:Name="FormHost" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
             <StackPanel>
                 <Border Height="4">
                     <Border.Background>
@@ -87,7 +87,20 @@
 
                     <StackPanel Style="{StaticResource CampoModal}">
                         <TextBlock Text="Proveedor" Style="{StaticResource EtiquetaCampo}"/>
-                        <ComboBox x:Name="CmbProveedor" Style="{StaticResource ModalCombo}" TabIndex="30"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="44"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox Grid.Column="0" x:Name="TxtProveedor" Style="{StaticResource ModalInput}" IsReadOnly="True" TabIndex="30"
+                                     Cursor="Hand" PreviewMouseDoubleClick="TxtCatalogo_PreviewMouseDoubleClick"
+                                     KeyDown="TxtCatalogo_KeyDown"
+                                     Tag="{Binding ElementName=BtnBuscarProveedor}"/>
+                            <Button Grid.Column="1" x:Name="BtnBuscarProveedor" TabIndex="31"
+                                    Style="{StaticResource LupaBtnOscuro}"
+                                    Click="BuscarProveedor_Click"
+                                    ToolTip="Seleccionar proveedor"/>
+                        </Grid>
                     </StackPanel>
 
                     <StackPanel Style="{StaticResource CampoModal}">
@@ -168,6 +181,11 @@
                 </Border>
             </StackPanel>
             </ScrollViewer>
+
+            <!-- Selector de catálogo: REEMPLAZA al formulario dentro del mismo
+                 marco (no se superpone). Al elegir un proveedor vuelve el
+                 formulario, colapsado y no destruido: volver es instantáneo. -->
+            <ContentControl x:Name="SelectorHost" Visibility="Collapsed"/>
         </Grid>
     </Border>
 </UserControl>

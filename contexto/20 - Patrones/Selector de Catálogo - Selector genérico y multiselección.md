@@ -86,7 +86,7 @@ ese comportamiento en un único módulo.
 - `CapaUI/Core/Controls/SelectorCatalogoModal.xaml(.cs)` — el control.
 - `CapaUI/Core/Catalogos/CatalogoConfig.cs` — `CatalogoConfig` + la fábrica `Catalogos` (un miembro por catálogo).
 - `CapaAplicacion4/Common/Catalogos/ICatalogoRepository.cs` / `CapaDatos/Repositories/Catalogos/CatalogoRepository.cs` — la consulta uniforme.
-- Consumidores: `ProductoModal` (Presentación, Fabricante, Categoría, País, Proveedor), `ProcesoDescargaModal` (Proveedor con `EstaYaElegido`=false siempre, Producto con `PermiteMultiple` + `EstaYaElegido` + acotado por proveedor), `ReporteriaView` (Producto/Proveedor/Categoría, modo simple).
+- Consumidores: `ProductoModal` (Presentación, Fabricante, Categoría, País, Proveedor), `FabricanteModal` (Proveedor — 2026-09-03, reemplazó un `ComboBox` eager), `CamionModal` (Proveedor), `ProcesoDescargaModal` (Proveedor con `EstaYaElegido`=false siempre, Producto con `PermiteMultiple` + `EstaYaElegido` + acotado por proveedor), `ReporteriaView` (Producto/Proveedor/Categoría, modo simple).
 
 ## Anti-patrones / qué evitar
 

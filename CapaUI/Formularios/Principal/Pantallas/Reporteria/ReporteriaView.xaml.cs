@@ -121,7 +121,7 @@ public partial class ReporteriaView : UserControl
                 header.Contains("Entradas", StringComparison.OrdinalIgnoreCase) ||
                 header.Contains("Diferencia", StringComparison.OrdinalIgnoreCase))
             {
-                elementStyle.Setters.Add(new Setter(TextBlock.HorizontalAlignmentProperty, HorizontalAlignment.Right));
+                elementStyle.Setters.Add(new Setter(TextBlock.HorizontalAlignmentProperty, HorizontalAlignment.Left));
             }
             else if (header.Equals("ID", StringComparison.OrdinalIgnoreCase) ||
                      header.Equals("#", StringComparison.OrdinalIgnoreCase) ||

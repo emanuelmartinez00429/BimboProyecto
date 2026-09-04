@@ -716,14 +716,14 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="PESO TEÓRICO" Width="Auto" MinWidth="110" HeaderStyle="{StaticResource HeaderDerecho}" CellStyle="{StaticResource CeldaDerecha}">
+                        <DataGridTemplateColumn Header="PESO TEÓRICO" Width="Auto" MinWidth="110" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding PesoTeorico, StringFormat={}{0:N2}}"
+                                    <TextBlock Text="{Binding PesoTeorico, StringFormat={}{0:N2}, TargetNullValue='—'}"
                                                FontFamily="Segoe UI" FontSize="15.5"
                                                Foreground="#1A1F2E"
-                                               HorizontalAlignment="Right" VerticalAlignment="Center"
-                                               Padding="10,0"/>
+                                               HorizontalAlignment="Left" VerticalAlignment="Center"
+                                               Padding="8,0"/>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
@@ -795,14 +795,14 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="PRECIO / KG" Width="Auto" MinWidth="110" HeaderStyle="{StaticResource HeaderDerecho}" CellStyle="{StaticResource CeldaDerecha}">
+                        <DataGridTemplateColumn Header="PRECIO / KG" Width="Auto" MinWidth="110" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding PrecioPorKg, StringFormat={}{0:N2}}"
+                                    <TextBlock Text="{Binding PrecioPorKg, StringFormat={}{0:N2}, TargetNullValue='—'}"
                                                FontFamily="Segoe UI" FontSize="15.5"
                                                Foreground="#1A1F2E"
-                                               HorizontalAlignment="Right" VerticalAlignment="Center"
-                                               Padding="10,0"/>
+                                               HorizontalAlignment="Left" VerticalAlignment="Center"
+                                               Padding="8,0"/>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>

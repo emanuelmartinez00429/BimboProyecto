@@ -125,14 +125,24 @@ Se eliminaron los guiones genéricos (`—`) en todas las columnas de datos del 
 
 ---
 
+## 4. Homologación de Alineación a la Izquierda en Columnas Numéricas de Tablas
+
+- **Motivo**: Requerimiento del usuario para alinear a la izquierda los datos y campos numéricos de las tablas, manteniendo la coherencia visual con el resto de columnas de texto/catálogos.
+- **Cambios realizados**:
+  - `ProductosView.xaml`:
+    - `PESO TEÓRICO`: Se removió `HeaderDerecho` y `CeldaDerecha`; se configuró `CellStyle="{StaticResource CeldaIzquierda}"`, `HorizontalAlignment="Left"`, `Padding="8,0"` y `TargetNullValue='—'`.
+    - `PRECIO / KG`: Se removió `HeaderDerecho` y `CeldaDerecha`; se configuró `CellStyle="{StaticResource CeldaIzquierda}"`, `HorizontalAlignment="Left"`, `Padding="8,0"` y `TargetNullValue='—'`.
+    - `CONTENIDO` y `TARA`: Ya se encontraban alineados a la izquierda con `CeldaIzquierda`.
+  - `ReporteriaView.xaml.cs`:
+    - Generación dinámica de columnas de pesos, bultos y diferencias numéricas homologada a `HorizontalAlignment.Left`.
+  - En las demás tablas (`Categorías`, `Fabricantes`, `Proveedores`, `Presentaciones`, `Empleados`, `Usuarios`, `Bitácora`, `Pesaje - DgEntradas`):
+    - Se verificó que todas las columnas numéricas/pesos ya se encontraban alineadas a la izquierda.
+
+---
+
 ## Verificación
 
-1. **Compilación de la Solución:**
-   ```bash
-   dotnet build BimboProyecto.sln
-   ```
-   *Resultado:* Compilación correcta. 0 Advertencias, 0 Errores.
-2. **Pruebas Unitarias:**
+1. **Compilación y Pruebas Unitarias:**
    ```bash
    dotnet test BimboProyecto.sln
    ```
