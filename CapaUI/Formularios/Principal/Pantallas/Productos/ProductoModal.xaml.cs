@@ -82,14 +82,18 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
 
         private async void OnLoaded(object sender, RoutedEventArgs e)
         {
-            // Los campos de catálogo (Presentación, Fabricante…) no se validan:
-            // son opcionales en la base a propósito.
             _validador = ValidadorFormulario.Nuevo()
                 .Campo(TxtCodigo, "El código").Segun(ReglasProducto.Codigo)
                 .Campo(TxtNombre, "El nombre").Segun(ReglasProducto.Nombre)
+                .Catalogo(TxtPresentacion, "La presentación", () => _idPresentacion).Obligatorio()
+                .Catalogo(TxtCategoria, "La categoría", () => _idCategoria).Obligatorio()
+                .Catalogo(TxtProveedor, "El proveedor", () => _idProveedor).Obligatorio()
+                .Catalogo(TxtFabricante, "El fabricante", () => _idFabricante).Obligatorio()
                 .Campo(TxtContenido, "El contenido").Segun(ReglasProducto.Contenido)
                 .Campo(TxtPesoTeorico, "El peso teórico").Segun(ReglasProducto.PesoTeorico)
+                .Catalogo(TxtTara, "La tara", () => _idTara).Obligatorio()
                 .Campo(TxtPrecioPorKg, "El precio por kg").Segun(ReglasProducto.PrecioPorKg)
+                .Catalogo(TxtPais, "El país importado", () => _idPais).Obligatorio()
                 .ValidarAlSalirDelCampo();
 
             TxtModalContext.Text = _esNuevo ? "NUEVO REGISTRO" : "EDICIÓN";
@@ -105,6 +109,15 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
             // su lupa.
             if (!_esNuevo && _producto != null)
             {
+                _idPresentacion = _producto.IdPresentacion;
+                _idFabricante   = _producto.IdFabricante;
+                _idCategoria    = _producto.IdCategoria;
+                _idPais         = _producto.IdPais;
+                _idTara         = _producto.IdTara;
+                // Sin esto la lupa de fabricantes abria sin alcance y listaba
+                // todos, aunque el formulario ya mostrara un proveedor.
+                _idProveedor    = _producto.IdProveedor;
+
                 TxtCodigo.Text       = _producto.CodigoInterno;
                 TxtNombre.Text       = _producto.Nombre;
                 TxtPresentacion.Text = _producto.Presentacion;
@@ -118,15 +131,6 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
                 TxtPrecioPorKg.Text  = FormatearDecimal(_producto.PrecioPorKg);
                 TxtCreatedAt.Text    = FormatearFecha(_producto.CreatedAt);
                 TxtUpdatedAt.Text    = FormatearFecha(_producto.UpdatedAt);
-
-                _idPresentacion = _producto.IdPresentacion;
-                _idFabricante   = _producto.IdFabricante;
-                _idCategoria    = _producto.IdCategoria;
-                _idPais         = _producto.IdPais;
-                _idTara         = _producto.IdTara;
-                // Sin esto la lupa de fabricantes abria sin alcance y listaba
-                // todos, aunque el formulario ya mostrara un proveedor.
-                _idProveedor    = _producto.IdProveedor;
 
                 RbActivo.IsChecked   = _producto.IdEstado == 1;
                 RbInactivo.IsChecked = _producto.IdEstado != 1;
@@ -183,29 +187,29 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
         private void BuscarPresentacion_Click(object sender, RoutedEventArgs e) =>
             AbrirSelector(Catalogos.Presentaciones(_catalogos), item =>
             {
-                TxtPresentacion.Text = item.Nombre;
                 _idPresentacion      = item.Id;
+                TxtPresentacion.Text = item.Nombre;
             });
 
         private void BuscarTara_Click(object sender, RoutedEventArgs e) =>
             AbrirSelector(Catalogos.Taras(_catalogos), item =>
             {
-                TxtTara.Text = item.Nombre;
                 _idTara      = item.Id;
+                TxtTara.Text = item.Nombre;
             });
 
         private void BuscarCategoria_Click(object sender, RoutedEventArgs e) =>
             AbrirSelector(Catalogos.Categorias(_catalogos), item =>
             {
-                TxtCategoria.Text = item.Nombre;
                 _idCategoria      = item.Id;
+                TxtCategoria.Text = item.Nombre;
             });
 
         private void BuscarPais_Click(object sender, RoutedEventArgs e) =>
             AbrirSelector(Catalogos.Paises(_catalogos), item =>
             {
-                TxtPais.Text = item.Nombre;
                 _idPais      = item.Id;
+                TxtPais.Text = item.Nombre;
             });
 
         /// <summary>
@@ -275,13 +279,13 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
             AbrirSelector(Catalogos.Proveedores(_catalogos), item =>
             {
                 bool cambio       = _idProveedor != item.Id;
-                TxtProveedor.Text = item.Nombre;
                 _idProveedor      = item.Id;
+                TxtProveedor.Text = item.Nombre;
 
                 if (cambio && _idFabricante.HasValue)
                 {
-                    TxtFabricante.Text = string.Empty;
                     _idFabricante      = null;
+                    TxtFabricante.Text = string.Empty;
                 }
             });
 
@@ -291,13 +295,35 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
         /// en un solo lugar.
         /// </summary>
         private void BuscarFabricante_Click(object sender, RoutedEventArgs e) =>
-            AbrirSelector(Catalogos.Fabricantes(_catalogos, _idProveedor), item =>
+            AbrirSelector(Catalogos.Fabricantes(_catalogos, _idProveedor), async item =>
             {
-                TxtFabricante.Text = item.Nombre;
                 _idFabricante      = item.Id;
+                TxtFabricante.Text = item.Nombre;
 
                 // Elegir fabricante directo mantiene el proveedor coherente.
-                if (item.IdPadre.HasValue) _idProveedor = item.IdPadre;
+                if (item.IdPadre.HasValue)
+                {
+                    bool cambioProv = _idProveedor != item.IdPadre;
+                    _idProveedor = item.IdPadre;
+
+                    if (cambioProv || string.IsNullOrWhiteSpace(TxtProveedor.Text))
+                    {
+                        try
+                        {
+                            var r = await _catalogos.GetProveedoresAsync(string.Empty, 1, 200);
+                            if (r.Success && r.Value != null)
+                            {
+                                var prov = r.Value.Items.FirstOrDefault(p => p.Id == item.IdPadre);
+                                if (prov != null)
+                                    TxtProveedor.Text = prov.Nombre;
+                            }
+                        }
+                        catch
+                        {
+                            // En caso de fallo de red transitorio, _idProveedor ya quedó consistente.
+                        }
+                    }
+                }
             });
 
         /// <summary>

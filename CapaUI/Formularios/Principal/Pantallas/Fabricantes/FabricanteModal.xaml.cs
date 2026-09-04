@@ -54,11 +54,10 @@ namespace CapaUI.Formularios.Principal.Pantallas.Fabricantes
 
         private async void OnLoaded(object sender, RoutedEventArgs e)
         {
-            // Proveedor y País no se validan: son opcionales por diseño (el país
-            // ofrece "(Ninguno)" en su combo; el proveedor se deja en blanco).
             _validador = ValidadorFormulario.Nuevo()
                 .Campo(TxtNombre, "El nombre").Segun(ReglasFabricante.Nombre)
                 .Campo(TxtDescripcion, "La descripción").Segun(ReglasFabricante.Descripcion)
+                .Catalogo(TxtProveedor, "El proveedor", () => _idProveedor).Obligatorio()
                 .ValidarAlSalirDelCampo();
 
             TxtModalContext.Text = _esNuevo ? "NUEVO REGISTRO" : "EDICIÓN";
@@ -116,8 +115,8 @@ namespace CapaUI.Formularios.Principal.Pantallas.Fabricantes
         private void BuscarProveedor_Click(object sender, RoutedEventArgs e) =>
             AbrirSelector(Catalogos.Proveedores(_catalogos), item =>
             {
-                TxtProveedor.Text = item.Nombre;
                 _idProveedor      = item.Id;
+                TxtProveedor.Text = item.Nombre;
             });
 
         /// <summary>

@@ -140,13 +140,36 @@ Se eliminaron los guiones genéricos (`—`) en todas las columnas de datos del 
 
 ---
 
+## 5. Validación Obligatoria en Campos de Catálogo con Lupa
+
+- **Motivo**: Requerimiento del usuario para asegurar que todos los campos seleccionables mediante lupa sean estrictamente obligatorios antes de permitir guardar el formulario.
+- **Implementación**:
+  - `ValidadorFormulario.cs`:
+    - Incorporado `.Catalogo(TextBox caja, string etiqueta, Func<int?>? obtenerId = null)` y sobrecarga con predicado booleano, permitiendo verificar simultáneamente que el campo no esté vacío en texto y que su clave foránea (ID) esté asignada.
+    - Soporte gramatical en `Obligatorio()`: genera automáticamente *"La [campo] es obligatoria."* o *"El [campo] es obligatorio."* según el género de la etiqueta.
+    - Búsqueda recursiva en el árbol visual (`BuscarPanelDelCampo`) para ubicar el `StackPanel` contenedor aunque el `TextBox` y el botón de la lupa estén envueltos dentro de un `Grid`.
+  - `ProductoModal.xaml.cs`:
+    - Agregada validación obligatoria para los 6 campos de catálogo con lupa:
+      - `TxtPresentacion` (*"La presentación"* con `_idPresentacion`)
+      - `TxtCategoria` (*"La categoría"* con `_idCategoria`)
+      - `TxtProveedor` (*"El proveedor"* con `_idProveedor`)
+      - `TxtFabricante` (*"El fabricante"* con `_idFabricante`)
+      - `TxtTara` (*"La tara"* con `_idTara`)
+      - `TxtPais` (*"El país importado"* con `_idPais`)
+    - Orden de asignación blindado (`_idXxx = item.Id` antes de `TxtXxx.Text = item.Nombre`) para que la evaluación en vivo limpie el error al instante.
+    - Sincronización automática de proveedor padre: al elegir un fabricante directo, se resuelve y llena automáticamente el nombre del proveedor en `TxtProveedor.Text`, dejando ambos campos validados.
+  - `FabricanteModal.xaml.cs`:
+    - Incorporada regla obligatoria `.Catalogo(TxtProveedor, "El proveedor", () => _idProveedor).Obligatorio()`.
+
+---
+
 ## Verificación
 
 1. **Compilación y Pruebas Unitarias:**
    ```bash
    dotnet test BimboProyecto.sln
    ```
-   *Resultado:* 243 de 243 pruebas superadas (100%).
+   *Resultado:* 244 de 244 pruebas superadas (100%).
 
 ---
 

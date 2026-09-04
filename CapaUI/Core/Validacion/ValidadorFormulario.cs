@@ -291,8 +291,12 @@ public sealed class ValidadorFormulario
 
         public ConstructorCampo Obligatorio(string? mensaje = null)
         {
+            string mensajePorDefecto = _campo.Etiqueta.StartsWith("La ", StringComparison.OrdinalIgnoreCase)
+                ? $"{_campo.Etiqueta} es obligatoria."
+                : $"{_campo.Etiqueta} es obligatorio.";
+
             _campo.Reglas.Add((c => c.TieneValor(),
-                mensaje ?? $"{_campo.Etiqueta} es obligatorio."));
+                mensaje ?? mensajePorDefecto));
             return this;
         }
 
@@ -410,6 +414,8 @@ public sealed class ValidadorFormulario
         public ConstructorCampo Campo(TextBox caja, string etiqueta) => _validador.Campo(caja, etiqueta);
         public ConstructorCampo Clave(PasswordBox caja, string etiqueta) => _validador.Clave(caja, etiqueta);
         public ConstructorCampo Combo(Selector combo, string etiqueta) => _validador.Combo(combo, etiqueta);
+        public ConstructorCampo Catalogo(TextBox caja, string etiqueta, Func<int?>? obtenerId = null) => _validador.Catalogo(caja, etiqueta, obtenerId);
+        public ConstructorCampo Catalogo(TextBox caja, string etiqueta, Func<bool> tieneValor) => _validador.Catalogo(caja, etiqueta, tieneValor);
 
         public ValidadorFormulario ValidarAlSalirDelCampo() => _validador.ValidarAlSalirDelCampo();
         public ValidadorFormulario Listo() => _validador;

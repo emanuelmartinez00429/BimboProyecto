@@ -80,7 +80,24 @@ private async void BtnGuardar_Click(object sender, RoutedEventArgs e)
 
 `Obligatorio()` · `Correo()` · `Rtn()` · `Telefono()` · `LargoMaximo(n)` · `LargoMinimo(n)` · `Decimal()` · `Entero()`
 
-Dos escapes para lo que no entra:
+### Validación de Campos de Catálogo (Lupas)
+
+Para campos de solo lectura que se completan a través de un selector de catálogo (`SelectorCatalogoModal`), se utiliza `.Catalogo()`:
+
+```csharp
+_validador = ValidadorFormulario.Nuevo()
+    .Campo(TxtNombre, "El nombre").Segun(ReglasProducto.Nombre)
+    .Catalogo(TxtPresentacion, "La presentación", () => _idPresentacion).Obligatorio()
+    .Catalogo(TxtProveedor, "El proveedor", () => _idProveedor).Obligatorio()
+    ...
+```
+
+1. **Doble verificación:** Evalúa tanto que el `TextBox` contenga texto visible como que la clave foránea (`_idXxx`) tenga un ID válido asignado.
+2. **Concordancia de género automática:** Si la etiqueta comienza con *"La "* genera *"La [etiqueta] es obligatoria."*; si comienza con *"El "* genera *"El [etiqueta] es obligatorio."*.
+3. **Soporte para Grid/Lupa en el árbol visual:** `BuscarPanelDelCampo` recorre hasta 4 niveles hacia arriba en la jerarquía visual para localizar el `StackPanel` contenedor (`CampoModal`), permitiendo insertar el renglón de error debajo del campo aun cuando el `TextBox` y el `Button` de la lupa estén dentro de un `Grid` interno.
+4. **Limpieza inmediata:** En los callbacks de selección de catálogo se asigna primero el ID y luego el texto (`_idXxx = item.Id; TxtXxx.Text = item.Nombre;`). Al dispararse `TextChanged`, `ValidadorFormulario` comprueba que el ID ya está presente y remueve el borde rojo y el mensaje de error al instante.
+
+Tres escapes para lo que no entra:
 
 ```csharp
 // Regla a medida
