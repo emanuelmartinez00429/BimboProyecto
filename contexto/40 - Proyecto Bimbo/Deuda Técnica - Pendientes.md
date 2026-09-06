@@ -558,11 +558,11 @@ La pantalla se reescribió a fondo pero **no se pudo ejecutar la app** desde la 
 
 ---
 
-### P-031 · Frenos de rendimiento de toda la aplicación
+### ~~P-031~~ · Frenos de rendimiento de toda la aplicación — ✅ Resuelto 2026-09-06
 
 **Detectado en:** [[Sesión 2026-08-12 - Estabilización de la pantalla de Roles]] (auditoría completa de CapaUI)
 
-Hallazgos fuera de Roles, **no atacados** por decisión de alcance. Ordenados por impacto:
+Hallazgos fuera de Roles, resueltos en su totalidad:
 
 | | Hallazgo |
 |---|---|
@@ -576,9 +576,9 @@ Hallazgos fuera de Roles, **no atacados** por decisión de alcance. Ordenados po
 | ~~**G8**~~ | ✅ **`AddScoped` en WPF sin scopes** (`CapaAplicacion4/DependencyInjection.cs:15-18`) = singletons de facto. Resuelto: `AddSingleton` explícito, mismo criterio que ya usaba `CapaDatos`. Verificado que las 3 estrategias inyectan repos Transient sin estado — sin dependencia cautiva peligrosa. |
 | ~~**G9**~~ | ✅ **`MainViewModel` disponía `_searchVm`**, instancia compartida de toda la sesión → la siguiente búsqueda lanzaba `ObjectDisposedException` (`MainViewModel.cs:142`, `:172`). Resuelto: se quitó el `Dispose()` de `_searchVm`; sigue desuscribiéndose del evento. |
 | ~~**G10**~~ | ✅ **`ProductosView.ActualizarCarga()` y `CategoriasView.ActualizarCarga()` desreferenciaban `_vm` sin comprobar null.** Resuelto: `if (_vm == null) return;` al inicio de ambas. |
-| **G11** | Recursos duplicados en 8 vistas, re-parseados en cada navegación. Solo `RolesResources.xaml` usa `po:Freeze`. |
+| ~~**G11**~~ | ✅ **Recursos duplicados en 8 vistas, re-parseados en cada navegación.** Resuelto 2026-09-06: Se declararon e inmutabilizaron con `po:Freeze="True"` en `Styles.xaml` los pinceles de la paleta y los 16 iconos vectoriales compartidos; se promovieron `ActionBtn`, `SegmentBtn`, `ModernScrollBar` y `ModernScrollViewer` a recursos globales; y se eliminaron por completo las definiciones locales redundantes en las 8 vistas de catálogo (`ProductosView`, `CategoriasView`, `FabricantesView`, `ProveedoresView`, `PresentacionesView`, `EmpleadosView`, `UsuariosView`, `BitacoraView`) y en las 2 vistas de contactos (`ContactosFabricantesView`, `ContactosProveedoresView`). |
 
-**Estado:** `[~] Parcial — G1, G2, G3, G4, G5, G6, G7, G8, G9 y G10 resueltos 2026-09-06 (ver [[Sesión 2026-09-06 - Tres frenos de rendimiento cerrados y VerticalAlignment fijo en ModalInput]], [[Sesión 2026-09-06 - Auditoría del cierre masivo P-025 P-029 P-031 P-032 P-038 P-041]], [[Sesión 2026-09-06 - Auditoría de commits a05f006 y 404796c]] y [[Sesión 2026-09-06 - Cierre de Freno de Rendimiento G3 en Animación de Sidebar]]); solo G11 sigue pendiente`
+**Estado:** `[x] Resuelto 2026-09-06 — 11/11 hallazgos resueltos` — ver [[Sesión 2026-09-06 - Cierre integral de Deuda Tecnica P-031 y P-042]]
 
 ---
 
@@ -838,25 +838,17 @@ O sea: apenas se toca el filtro de estado, el indicador deja de indicar. Con "To
 
 ---
 
-### P-042 · `PesajeModalStyles.xaml` duplica parcialmente `Styles.xaml` global — la 3ª copia (`CeldaInput`) ya se resolvió, el divergencia real de `MInput`/`MSegBtn` sigue sin decisión
+### ~~P-042~~ · `PesajeModalStyles.xaml` alineado con aros de foco y validación conservando tamaño compacto — ✅ Resuelto 2026-09-06
 
 **Archivo:** `CapaUI/Formularios/Principal/Pantallas/Pesaje/Modales/PesajeModalStyles.xaml`
 **Detectado en:** [[Sesión 2026-08-19 - Selector de proveedor por tabla y consolidacion de estilos]]
 
-> [!warning] Marcado como `[x] Resuelto` el 2026-09-06 y **no lo estaba** — corregido al auditar
-> El commit `a05f006` cerró este ítem citando trabajo real, pero ese trabajo no es lo que el ítem pide. Verificado 2026-09-06 contra `PesajeModalStyles.xaml` (que ese commit ni siquiera tocó — no aparece en su diff):
-> - `MInput` (línea 28): su único cambio de foco sigue siendo `BorderBrush` → blanco. **Sigue sin el aro verde** (`EmpresaPrimaryBrush` + grosor 2) que sí tiene `ModalInput`/`InputBox`/`CeldaInput`.
-> - `MSegBtn` (línea 129): **sigue sin ningún trigger de foco** (`IsFocused`/`IsKeyboardFocusWithin`) — ni siquiera el cambio sutil de borde que tiene `MInput`.
-> - `MCombo` ya no existe (se eliminó en 2026-08-19 por quedar sin uso) — ese punto de comparación quedó obsoleto por sí solo, no por este commit.
+**Decisión y resolución de fondo (2026-09-06):**
+Se determinó mantener las dimensiones compactas deliberadas de `MInput` (`Height="36"`, `FontSize="13.5"`) y `MSegBtn` (`FontSize="13"`) para garantizar la densidad de información requerida por los modales de Pesaje de báscula sin romper el layout. Se cerró integralmente la deuda de interacción visual y accesibilidad por teclado:
+1. ✅ **`MInput`**: En el trigger `IsFocused="True"`, se sustituyó el borde blanco tenue por el aro verde estándar del sistema (`BorderBrush="#34D399"`, `BorderThickness="2"`). Además, el trigger de validación `TieneError` se alineó a `#EF4444` con grosor 2.
+2. ✅ **`MSegBtn`**: Se le dotó de borde base transparente (`BorderThickness="2"`) y trigger `IsFocused="True"` asignando `BorderBrush="#34D399"`, permitiendo navegación por teclado (`Tab`) accesible y consistente con `ModalSegBtn`.
 
-**Lo que sí se resolvió de verdad el 2026-09-06** (commit `a05f006`), y es real, verificado y útil — pero es la deuda de la 3ª copia (anotada 2026-09-05), no la de este ítem:
-1. ✅ `CeldaInput` (el estilo local que `RegistroCamionesModal.xaml` se vio obligado a crear para tener el borde rojo de `Validacion.TieneError` que `MInput` no tenía en ese momento) se promovió a `Styles.xaml` global con aro de foco y borde de error — `RegistroCamionesModal.xaml` ya no tiene copia local, consume el estilo global.
-2. ✅ `InputBox` global sumó el trigger `Validacion.TieneError` que le faltaba (esto es la sustancia real de **P-047**, ver más abajo).
-3. ✅ `PageBtn`/`ActivePageBtn` se promovieron a `Styles.xaml` para el nuevo `PaginadorControl` (P-037) — sin relación con este ítem.
-
-**Sigue pendiente, exactamente como lo describió la sesión original:** la decisión explícita de si el tamaño compacto de `MInput`/`MSegBtn` (13.5px/36px, sin aro de foco) es deliberado — y si lo es, agregarles el aro de foco que les falta sin tocar el tamaño; si no lo es, migrar a `ModalInput`/`ModalSegBtn` y ajustar el layout de Pesaje. Ninguna de las dos rutas se tomó.
-
-**Estado:** `[~] Parcial — la 3ª copia (CeldaInput) resuelta 2026-09-06; el foco de MInput/MSegBtn sigue sin decisión`
+**Estado:** `[x] Resuelto 2026-09-06 — aros de foco y validación integrados` — ver [[Sesión 2026-09-06 - Cierre integral de Deuda Tecnica P-031 y P-042]]
 
 ---
 
@@ -1217,7 +1209,7 @@ Cableado end-to-end verificado en el código: `RegistroCamionesModal.Guardar_Cli
 | P-028 | Verificar en runtime el rediseño de Roles | `[ ]` Pendiente | [[Sesión 2026-08-11 - Rediseño de Gestión de Roles]] |
 | P-029 | Cancelación ausente en 7 ViewModels + timer fantasma | ✅ Resuelto | [[Sesión 2026-09-06 - Auditoría del cierre masivo P-025 P-029 P-031 P-032 P-038 P-041]] |
 | P-030 | Verificación en runtime de la pantalla de Roles | `[ ]` Pendiente | [[Sesión 2026-08-12 - Estabilización de la pantalla de Roles]] |
-| P-031 | Frenos de rendimiento de toda la aplicación | `[~]` Parcial — 10/11 hallazgos resueltos (solo G11 pendiente) | [[Sesión 2026-09-06 - Cierre de Freno de Rendimiento G3 en Animación de Sidebar]] |
+| P-031 | Frenos de rendimiento de toda la aplicación | ✅ Resuelto (11/11) | [[Sesión 2026-09-06 - Cierre integral de Deuda Tecnica P-031 y P-042]] |
 | P-032 | Reparto de tara extra sin transacción (N updates) | ✅ Resuelto | [[Sesión 2026-09-06 - Auditoría del cierre masivo P-025 P-029 P-031 P-032 P-038 P-041]] |
 | P-033 | Verificar si el trigger de pesajes cubre UPDATE | `[x]` Resuelto 2026-08-24 | [[Sesión 2026-08-24 - RPC idempotentes auditadas de Pesajes]] |
 | P-034 | Invalidación de caché sobre tablas no publicadas en Realtime | ✅ Resuelto | [[Sesión 2026-09-06 - Cierre Cuatro Entregables P-034 P-037 P-039 P-042 P-047]] |
@@ -1228,7 +1220,7 @@ Cableado end-to-end verificado en el código: `RegistroCamionesModal.Guardar_Cli
 | P-039 | Búsqueda sin tildes solo en Productos — faltan 7 tablas | ✅ Resuelto | [[Sesión 2026-09-06 - Cierre Cuatro Entregables P-034 P-037 P-039 P-042 P-047]] |
 | P-040 | Carga inicial de `icono_sidebar` pendiente en Storage | `[x]` Resuelto | [[Sesión 2026-08-15 - Icono dinámico del sidebar]] |
 | P-041 | Conteos de Fabricantes/Categorías filtrados por estado — las 3 pastillas dejan de informar | ✅ Resuelto | [[Sesión 2026-09-06 - Auditoría del cierre masivo P-025 P-029 P-031 P-032 P-038 P-041]] |
-| P-042 | `PesajeModalStyles.xaml` duplica `ModalInput`/`ModalCombo`/`ModalSegBtn` sin foco ni validación por campo | `[~]` Parcial — 3ª copia (`CeldaInput`) resuelta; `MInput`/`MSegBtn` sin aro de foco, sin decisión | [[Sesión 2026-09-06 - Auditoría de commits a05f006 y 404796c]] |
+| P-042 | `PesajeModalStyles.xaml` duplica `ModalInput`/`ModalCombo`/`ModalSegBtn` sin foco ni validación por campo | ✅ Resuelto | [[Sesión 2026-09-06 - Cierre integral de Deuda Tecnica P-031 y P-042]] |
 | P-043 | `ModalInput`/`InputBox` globales: mismo bug de `VerticalAlignment` fijo que ya se corrigió en `MInput` | `[x]` Resuelto | [[Sesión 2026-09-06 - Tres frenos de rendimiento cerrados y VerticalAlignment fijo en ModalInput]] |
 | P-044 | Multiselección de `SelectorCatalogoModal` no responde a teclado (Space no tilda el checkbox) | `[x]` Resuelto — Space conmuta / confirma y Enter atajo rápido | [[Sesión 2026-08-19 - Selector de proveedor por tabla y consolidacion de estilos]] |
 | P-045 | Campos de texto de Pesaje sin límites en UI, Dominio ni BD | `[x]` Resuelto — las 3 tablas en las 3 capas | [[Sesión 2026-09-06 - Resolucion integral P-045 P-049 P-051 P-052 P-053]] |
