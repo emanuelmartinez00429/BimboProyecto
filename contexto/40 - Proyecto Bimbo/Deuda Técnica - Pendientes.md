@@ -450,17 +450,15 @@ Ambas conviven **a propósito**: cambiar el trigger alteraría el `peso_neto` de
 
 ---
 
-### P-025 · Repositorios de movimientos duplicados y sin uso
+### ~~P-025~~ · Repositorios de movimientos duplicados y sin uso — resuelto 2026-09-06
 
-**Archivos:** `CapaDatos/Repositorios/productos_movimientos/RepositorioMovimiento.cs`, `RepositorioMovimientoProducto.cs`
+**Archivos (eliminados):** los 10 archivos de `CapaDatos/Repositorios/` (`RepositorioPais`, `RepositorioEmpleado`, y los 8 de `productos_movimientos/`: `RepositorioCategoria`, `RepositorioEntrada`, `RepositorioMovimiento`, `RepositorioMovimientoProducto`, `RepositorioProducto`, `RepositorioProveedor`, `RepositorioTara`, `RepositorioTarima`).
 
-Implementación **vieja** del acceso a `movimientos`/`movimiento_productos`: métodos estáticos, sin Result Pattern, sin `RepositorioBase`. Hace lo mismo que `CapaDatos/Repositories/Pesaje/PesajeRepository.cs`, que es el que realmente se usa.
+Implementación **vieja** del acceso a `movimientos`/`movimiento_productos`/etc: métodos estáticos, sin Result Pattern, sin `RepositorioBase`. Hacía lo mismo que sus equivalentes en `CapaDatos/Repositories/` (con "s"), que son los que realmente se usan.
 
-Verificado: **`CapaUI` no los referencia en ningún lado**.
+**Verificado 2026-09-06:** `grep -rl` de cada uno de los 10 nombres de clase contra todo el repo (fuera de `obj/`/`bin/`) — cero referencias. Build limpio tras la eliminación.
 
-**Riesgo:** confunde a quien busque el repositorio de pesaje (hay dos carpetas parecidas: `Repositorios/` y `Repositories/`). Un agente nuevo podría modificar el archivo equivocado.
-
-**Estado:** `[ ] Eliminar tras confirmar que nada más los usa`
+**Estado:** `[x] Resuelto 2026-09-06` — ver [[Sesión 2026-09-06 - Auditoría del cierre masivo P-025 P-029 P-031 P-032 P-038 P-041]]
 
 ---
 
@@ -517,7 +515,7 @@ Quedan dos verificaciones:
 
 ---
 
-### P-029 · Cancelación ausente en 7 ViewModels + timer fantasma del timeout
+### ~~P-029~~ · Cancelación ausente en 7 ViewModels + timer fantasma del timeout — resuelto 2026-09-06
 
 **Archivos:** `ProductosViewModel`, `ProveedoresViewModel`, `FabricantesViewModel`, `CategoriasViewModel`, `EmpleadosViewModel`, `ContactosFabricantesViewModel`, `ContactosProveedoresViewModel`, `BitacoraViewModel`
 **Detectado en:** [[Sesión 2026-08-11 - Rediseño de Gestión de Roles]] — ver [[Vista Descargada Durante un await (async void Loaded)]]
@@ -536,7 +534,9 @@ Dos problemas que van juntos, corregidos ya en `UsuariosViewModel` y pendientes 
 
 **No crashean:** ninguno de los 7 tiene código después del `await` en `Loaded`, así que no reproducen el `NullReferenceException`. Esto es rendimiento y prolijidad, no un bug visible.
 
-**Estado:** `[ ] Pendiente`
+**Verificado 2026-09-06** en `BitacoraViewModel` y `CategoriasViewModel` (y por muestreo en el resto): cada uno tiene ahora su `_cts`, lo pasa a `GetPagedAsync(..., _cts.Token)`, usa `CancellationTokenSource.CreateLinkedTokenSource` para el `Task.Delay` del timeout (se cancela apenas gana la consulta real) y guarda `if (_disposed) return;` tras cada `await`. `Dispose()`/`OnDispose()` cancela y libera el CTS. Mismo patrón que ya tenía `UsuariosViewModel`.
+
+**Estado:** `[x] Resuelto 2026-09-06` — ver [[Sesión 2026-09-06 - Auditoría del cierre masivo P-025 P-029 P-031 P-032 P-038 P-041]]
 
 ---
 
@@ -566,23 +566,23 @@ Hallazgos fuera de Roles, **no atacados** por decisión de alcance. Ordenados po
 
 | | Hallazgo |
 |---|---|
-| **G1** | **Login: ~2,7 s de `Task.Delay` artificiales, en serie con la red** (`LoginWindow.xaml.cs:163-212`). `AnimarStep` se espera *antes* de `LoginAsync()`. Además 103 `Dispatcher.Invoke` innecesarios (ya está en el hilo UI). |
-| **G2** | **`bimbo-logo.png` es 3000×1391 y se muestra a 50 px** (`MainWindow.xaml:151`), sin `DecodePixelWidth` → ~16,7 MB de RAM. `bimbo_no_bg.png` se recrea con `new BitmapImage(uri)` en cada apertura de modal (5 archivos). |
+| ~~**G1**~~ | ✅ **Login: `Task.Delay` artificiales.** El Paso 3 ("Sincronizar módulos") no tenía red detrás y saltaba de 70% a 100% con el mismo barrido de `Task.Delay(6)` que los pasos con red real — 236ms cien por ciento artificiales. Resuelto: salta directo a 100%. Además se quitaron los `Dispatcher.Invoke` redundantes de `AnimarStep` (ya se está en el hilo UI). Los Pasos 1 y 2 **ya corrían** en paralelo con la red real vía `Task.WhenAll` desde antes — la cifra original de "~2,7s en serie" de este hallazgo estaba desactualizada al momento de atacarlo. |
+| ~~**G2**~~ | ✅ **`bimbo-logo.png` sin `DecodePixelWidth`.** `MainWindow.xaml` ahora decodifica a 50px reales (`DecodePixelHeight="50"`) en vez de cargar los 3000×1391 completos. La segunda mitad del hallazgo (`bimbo_no_bg.png` "recreado en 5 archivos") ya no aplica — verificado 2026-09-06 que hoy solo hay una referencia estática en `LoginWindow.xaml`, no un patrón de recreación por modal; la descripción original quedó desactualizada en ese punto. |
 | **G3** | **`CacheMode="BitmapCache"` sobre `Sidebar` y `BrandBlock`, cuyo `Width` se anima** (`MainWindow.xaml:127`, `:528`). Peor caso de BitmapCache: re-rasteriza el bitmap completo por frame. |
-| **G4** | **`DashboardView` tiene un `Storyboard RepeatBehavior="Forever"` que nunca se detiene** (`DashboardView.xaml:549`, sin `Unloaded`). Se acumula uno por cada visita. |
-| **G5** | **`PesajeView` es la única vista que no llama `_vm.Dispose()`** y suscribe `PropertyChanged` con lambda anónima no desuscribible (`PesajeView.xaml.cs:44`, `:55-62`). |
-| **G6** | **Guardar un proceso de descarga hace ~20 viajes de red en serie** (`PesajeViewModel.cs:189-238`). Son independientes → `Task.WhenAll`. |
+| ~~**G4**~~ | ✅ **`DashboardView` tenía un `Storyboard RepeatBehavior="Forever"` que nunca se detenía.** Resuelto: ciclo de vida determinístico en `DashboardView.xaml.cs` (`Loaded`/`Unloaded`) que inicia y detiene el Storyboard limpiando memoria, evitando la excepción de Namescope que causa `StopStoryboard` en XAML al descargarse. |
+| ~~**G5**~~ | ✅ **`PesajeView` no llamaba `_vm.Dispose()`.** El primer intento de arreglo (2026-09-06) agregó `(_vm as IDisposable)?.Dispose()` en el `View`, pero `PesajeViewModel` no implementaba `IDisposable` — el cast siempre daba `null`, el `Dispose()` nunca corría. Corregido en la auditoría de la misma fecha: `PesajeViewModel` ahora implementa `IDisposable` de verdad (vacío hoy a propósito, no tiene CTS ni suscripciones que liberar; queda listo para cuando las tenga). La sospecha original de "lambda anónima no desuscribible" en `PropertyChanged` no se confirmó — ya era un método nombrado, correctamente desuscrito. |
+| ~~**G6**~~ | ✅ **Guardar un proceso de descarga hacía ~20 viajes de red en serie.** Resuelto: `PesajeViewModel.cs` reemplazó el `foreach` secuencial de carga de productos por camión con `Task.WhenAll`, ya que son independientes entre sí. |
 | ~~**G7**~~ | ✅ **`<DropShadowEffect Opacity="0"/>` no apaga el shader** (`ContactoFabricanteModal.xaml:222`, `ContactoProveedorModal.xaml:213`). Resuelto: `Effect="{x:Null}"` en ambos. |
 | ~~**G8**~~ | ✅ **`AddScoped` en WPF sin scopes** (`CapaAplicacion4/DependencyInjection.cs:15-18`) = singletons de facto. Resuelto: `AddSingleton` explícito, mismo criterio que ya usaba `CapaDatos`. Verificado que las 3 estrategias inyectan repos Transient sin estado — sin dependencia cautiva peligrosa. |
 | ~~**G9**~~ | ✅ **`MainViewModel` disponía `_searchVm`**, instancia compartida de toda la sesión → la siguiente búsqueda lanzaba `ObjectDisposedException` (`MainViewModel.cs:142`, `:172`). Resuelto: se quitó el `Dispose()` de `_searchVm`; sigue desuscribiéndose del evento. |
-| **G10** | `ProductosView.ActualizarCarga()` y `CategoriasView.ActualizarCarga()` desreferencian `_vm` sin comprobar null. |
+| ~~**G10**~~ | ✅ **`ProductosView.ActualizarCarga()` y `CategoriasView.ActualizarCarga()` desreferenciaban `_vm` sin comprobar null.** Resuelto: `if (_vm == null) return;` al inicio de ambas. |
 | **G11** | Recursos duplicados en 8 vistas, re-parseados en cada navegación. Solo `RolesResources.xaml` usa `po:Freeze`. |
 
-**Estado:** `[~] Parcial — G7, G8 y G9 resueltos 2026-09-06 (ver [[Sesión 2026-09-06 - Tres frenos de rendimiento cerrados y VerticalAlignment fijo en ModalInput]]); G1-G6, G10 y G11 siguen pendientes`
+**Estado:** `[~] Parcial — G1, G2, G4, G5, G6, G7, G8, G9 y G10 resueltos 2026-09-06 (ver [[Sesión 2026-09-06 - Tres frenos de rendimiento cerrados y VerticalAlignment fijo en ModalInput]] y [[Sesión 2026-09-06 - Auditoría del cierre masivo P-025 P-029 P-031 P-032 P-038 P-041]]); solo G3 y G11 siguen pendientes`
 
 ---
 
-### P-032 · 🔴 El reparto de tara extra no es transaccional (N updates sueltos)
+### ~~P-032~~ · El reparto de tara extra ya es transaccional — resuelto 2026-09-06
 
 **Detectado en:** [[Sesión 2026-08-13 - Pesaje solo bruto y tara extra pesada]]
 
@@ -593,9 +593,15 @@ Hallazgos fuera de Roles, **no atacados** por decisión de alcance. Ordenados po
 - **Auto-reparable**: como el total se deriva de `Σ entradas`, reabrir el modal muestra el total real que quedó; volver a aplicar reparte todo desde cero. No hay estado que reconciliar.
 - Se avisa por Toast cuántas filas fallaron.
 
-**Solución de fondo:** un RPC de Postgres que reciba `(id_mov_producto | id_movimiento, total)` y haga el reparto en una sola transacción del lado del servidor.
+**Solución de fondo (implementada 2026-09-06):** `PesajeRepository.RepartirTaraExtraLoteAsync` llama a la RPC `repartir_tara_extra_pesaje_tabla_bitacora` en una sola petición; `PesajeViewModel.RepartirTaraExtraAsync` ya no hace el bucle de N `ActualizarTaraExtraEntradaAsync`.
 
-**Estado:** `[~]` RPC transaccional desplegada; pendiente migrar `PesajeRepository` y retirar los N PATCH directos. Ver [[Sesión 2026-08-24 - RPC idempotentes auditadas de Pesajes]].
+**Verificado en BD 2026-09-06** (no solo que la migración existiera en el repo — que el cuerpo desplegado sea realmente atómico):
+```sql
+select pg_get_functiondef(oid) from pg_proc where proname='repartir_tara_extra_pesaje_tabla_bitacora';
+```
+La función hace `select ... for update` sobre todas las filas primero, cuenta cuántas cumplen la condición (activas, producto abierto) y si el conteo no coincide, **aborta con `raise exception` antes de escribir nada** — el `update` real corre dentro de la misma transacción implícita de la función. Genuinamente atómico, no solo "una sola llamada de red".
+
+**Estado:** `[x] Resuelto 2026-09-06` — ver [[Sesión 2026-09-06 - Auditoría del cierre masivo P-025 P-029 P-031 P-032 P-038 P-041]]
 
 ---
 
@@ -718,7 +724,7 @@ Además, `Usuarios`, `Empleados` y `Bitacora` todavía tienen `DgX.ItemsSource =
 
 ---
 
-### P-038 · 🔴 Modelos C# desalineados del esquema + el error de carga no llega al usuario
+### ~~P-038~~ · Modelos C# alineados del esquema + el error de carga ya llega al usuario — resuelto 2026-09-06
 
 **Detectado en:** [[Sesión 2026-08-14 - Modelo desalineado del esquema tumbaba paginas enteras]]
 
@@ -743,7 +749,25 @@ order by ordinal_position;
 
 **Riesgo:** alto. El punto 1 puede dejar cualquier pantalla inutilizable con un solo registro mal cargado, y el punto 2 hace que se diagnostique a ciegas.
 
-**Estado:** `[ ] Pendiente`
+**Resuelto 2026-09-06, verificado columna por columna contra `information_schema.columns` en vivo** (no contra lo que el commit afirmaba):
+
+| Tabla.columna | `is_nullable` real | Modelo ahora |
+|---|---|---|
+| `entradas_producto.id_mov_producto` | YES | `int?` ✅ |
+| `entradas_producto.peso_tara_extra/individual/total` | YES | `decimal?` ✅ |
+| `categoria.descripcion_categoria` | YES | `string?` ✅ |
+| `categoria.estado_categoria` | YES | `bool?` ✅ |
+| `productos.id_presentacion/id_fabricante/id_tara/id_categoria/id_pais` | YES | `int?` ✅ |
+| `productos.contenido` | YES | `string?` ✅ |
+| `productos.peso_teorico` | YES | `decimal?` ✅ |
+| `usuarios.ultimo_acceso` | YES | `DateTime?` ✅ |
+| `productos.id_estado` (control, no se tocó) | NO | `int` sin cambio ✅ |
+
+Punto 2: `ProductosViewModel.MensajeSinResultados` antepone `"Error al cargar: {ErrorCarga}"` cuando hay error. Punto 3: `CargarPaginaAsync` en Productos, Categorías y Bitácora ahora hace `PageRows = new ObservableCollection<T>()` en los caminos de error, en vez de dejar la página anterior mintiendo mientras el paginador ya avanzó.
+
+**Lo que sigue sin hacerse:** la auditoría exhaustiva de *todas* las tablas de `CapaDatos/Modelados/` que pide el punto 1 — solo se corrigieron y verificaron las columnas que este cambio tocó. Si aparece otro caso de "una fila NULL tumba la página completa" en un módulo no tocado acá, es la misma familia de bug.
+
+**Estado:** `[x] Resuelto 2026-09-06 (auditoría parcial del punto 1)` — ver [[Sesión 2026-09-06 - Auditoría del cierre masivo P-025 P-029 P-031 P-032 P-038 P-041]]
 
 ---
 
@@ -782,7 +806,7 @@ La ruta ya no es `'sin_icono'` — quedó guardada en algún momento entre la de
 
 ---
 
-### P-041 · Fabricantes y Categorías pasan el filtro de estado al RPC de conteos y las tres pastillas dejan de informar
+### ~~P-041~~ · Fabricantes y Categorías pasan el filtro de estado al RPC de conteos y las tres pastillas dejan de informar — resuelto 2026-09-06
 
 **Archivos:** `CapaDatos/Repositories/Fabricantes/FabricanteCrudRepository.cs` (`GetConteosRpcAsync`), `CapaDatos/Repositories/Categorias/CategoriaCrudRepository.cs` (ídem)
 **Detectado en:** [[Sesión 2026-08-15 - Modulo CRUD de Presentaciones]]
@@ -802,9 +826,9 @@ O sea: apenas se toca el filtro de estado, el indicador deja de indicar. Con "To
 
 **Riesgo:** bajo en consecuencias (no corrompe datos, no rompe la grilla) pero es información incorrecta en pantalla: el usuario lee "0 inactivos" cuando hay inactivos.
 
-**Solución:** en ambos repositorios, construir el objeto de filtros de los conteos sin `IdEstado`, igual que Productos. Los RPC `contar_fabricantes` y `contar_categorias` ya tratan el parámetro como opcional (`DEFAULT NULL`), así que **no hace falta migración**: alcanza con no mandarlo.
+**Solución (implementada 2026-09-06):** en ambos repositorios, `ConstruirParametrosConteo` ya no manda `p_estado`, igual que Productos. Verificado en BD que `contar_fabricantes(p_estado integer, p_pais integer)` y `contar_categorias(p_estado boolean)` ya trataban el parámetro como opcional — no hizo falta migración.
 
-**Estado:** `[ ] Pendiente`
+**Estado:** `[x] Resuelto 2026-09-06` — ver [[Sesión 2026-09-06 - Auditoría del cierre masivo P-025 P-029 P-031 P-032 P-038 P-041]]
 
 ---
 
@@ -1189,23 +1213,23 @@ Cableado end-to-end verificado en el código: `RegistroCamionesModal.Guardar_Cli
 | P-021 | Búsqueda de Usuarios incompleta (solo alias) | ✅ Resuelto | [[Sesión 2026-07-26 - Resolución Deuda Técnica P-013 a P-021]] |
 | P-023 | Catálogo de taras con datos de prueba | `[ ]` Pendiente 🔴 | [[Sesión 2026-07-26 - Rediseño del flujo de Pesajes]] |
 | P-024 | Tara plana (trigger) vs por bulto (bultos teóricos) | `[ ]` Pendiente | [[Sesión 2026-07-26 - Rediseño del flujo de Pesajes]] |
-| P-025 | Repositorios de movimientos duplicados sin uso | `[ ]` Pendiente | [[Sesión 2026-07-26 - Rediseño del flujo de Pesajes]] |
+| P-025 | Repositorios de movimientos duplicados sin uso | ✅ Resuelto | [[Sesión 2026-09-06 - Auditoría del cierre masivo P-025 P-029 P-031 P-032 P-038 P-041]] |
 | P-026 | Puente VM → SuggestionSearchBox duplicado 9× | ✅ Resuelto | [[Sesión 2026-07-28 - Refactor del Buscador de Sugerencias (P-026)]] |
 | P-027 | Verificación funcional del RBAC con rol Consulta | ✅ Resuelto | [[Sesión 2026-08-09 - Implementación RBAC visual y gestión de roles]] |
 | P-028 | Verificar en runtime el rediseño de Roles | `[ ]` Pendiente | [[Sesión 2026-08-11 - Rediseño de Gestión de Roles]] |
-| P-029 | Cancelación ausente en 7 ViewModels + timer fantasma | `[ ]` Pendiente | [[Sesión 2026-08-11 - Rediseño de Gestión de Roles]] |
+| P-029 | Cancelación ausente en 7 ViewModels + timer fantasma | ✅ Resuelto | [[Sesión 2026-09-06 - Auditoría del cierre masivo P-025 P-029 P-031 P-032 P-038 P-041]] |
 | P-030 | Verificación en runtime de la pantalla de Roles | `[ ]` Pendiente | [[Sesión 2026-08-12 - Estabilización de la pantalla de Roles]] |
-| P-031 | Frenos de rendimiento de toda la aplicación | `[ ]` Pendiente 🔴 | [[Sesión 2026-08-12 - Estabilización de la pantalla de Roles]] |
-| P-032 | Reparto de tara extra sin transacción (N updates) | `[~]` RPC lista; integración C# pendiente 🔴 | [[Sesión 2026-08-24 - RPC idempotentes auditadas de Pesajes]] |
+| P-031 | Frenos de rendimiento de toda la aplicación | `[~]` Parcial — 9/11 hallazgos resueltos | [[Sesión 2026-09-06 - Auditoría del cierre masivo P-025 P-029 P-031 P-032 P-038 P-041]] |
+| P-032 | Reparto de tara extra sin transacción (N updates) | ✅ Resuelto | [[Sesión 2026-09-06 - Auditoría del cierre masivo P-025 P-029 P-031 P-032 P-038 P-041]] |
 | P-033 | Verificar si el trigger de pesajes cubre UPDATE | `[x]` Resuelto 2026-08-24 | [[Sesión 2026-08-24 - RPC idempotentes auditadas de Pesajes]] |
 | P-034 | Invalidación de caché sobre tablas no publicadas en Realtime | 🟡 Parcial | [[Sesión 2026-08-13 - Guardado fluido y caché de catálogos que no vencía]] → [[Sesión 2026-08-14 - Realtime en columnas de join de Productos]] |
 | P-035 | Configuración de empresa lista; validar flujo manual y trigger de `updated_at` | `[~]` Parcial | [[Sesión 2026-08-14 - Módulo de configuración de empresa y tema dinámico]] |
 | P-036 | Tara y Presentaciones sin pantalla CRUD — combo de unidad filtrado a masa sin dónde vivir | `[~]` Parcial — Presentaciones ✅, Tara pendiente | [[Sesión 2026-08-15 - Modulo CRUD de Presentaciones]] |
 | P-037 | Paginación: code-behind duplicado 9× sin clamp de `Page` ni binding del resaltado | `[ ]` Pendiente | [[Sesión 2026-08-14 - Regresion la grilla mostraba la pagina anterior]] |
-| P-038 | Modelos C# desalineados del esquema + `ErrorCarga` no llega al usuario | `[ ]` Pendiente 🔴 | [[Sesión 2026-08-14 - Modelo desalineado del esquema tumbaba paginas enteras]] |
+| P-038 | Modelos C# desalineados del esquema + `ErrorCarga` no llega al usuario | ✅ Resuelto | [[Sesión 2026-09-06 - Auditoría del cierre masivo P-025 P-029 P-031 P-032 P-038 P-041]] |
 | P-039 | Búsqueda sin tildes solo en Productos — faltan 7 tablas | `[ ]` Pendiente | [[ADR-018 - Busqueda insensible a mayusculas y tildes con columna generada]] |
 | P-040 | Carga inicial de `icono_sidebar` pendiente en Storage | `[x]` Resuelto | [[Sesión 2026-08-15 - Icono dinámico del sidebar]] |
-| P-041 | Conteos de Fabricantes/Categorías filtrados por estado — las 3 pastillas dejan de informar | `[ ]` Pendiente | [[Sesión 2026-08-15 - Modulo CRUD de Presentaciones]] |
+| P-041 | Conteos de Fabricantes/Categorías filtrados por estado — las 3 pastillas dejan de informar | ✅ Resuelto | [[Sesión 2026-09-06 - Auditoría del cierre masivo P-025 P-029 P-031 P-032 P-038 P-041]] |
 | P-042 | `PesajeModalStyles.xaml` duplica `ModalInput`/`ModalCombo`/`ModalSegBtn` sin foco ni validación por campo | `[ ]` Pendiente — agravado 2026-09-05 (3ª copia local: `CeldaInput`) | [[Sesión 2026-08-19 - Selector de proveedor por tabla y consolidacion de estilos]] |
 | P-043 | `ModalInput`/`InputBox` globales: mismo bug de `VerticalAlignment` fijo que ya se corrigió en `MInput` | `[x]` Resuelto | [[Sesión 2026-09-06 - Tres frenos de rendimiento cerrados y VerticalAlignment fijo en ModalInput]] |
 | P-044 | Multiselección de `SelectorCatalogoModal` no responde a teclado (Space no tilda el checkbox) | `[ ]` Pendiente | [[Sesión 2026-08-19 - Selector de proveedor por tabla y consolidacion de estilos]] |

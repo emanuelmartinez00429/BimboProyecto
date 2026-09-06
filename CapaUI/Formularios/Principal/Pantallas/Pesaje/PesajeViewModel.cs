@@ -23,7 +23,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
     /// Estado y lógica de "Recepción de Materia Prima" (Fase 2, persistencia real).
     /// Lee/escribe en movimientos / movimiento_productos / entradas_producto vía IPesajeRepository.
     /// </summary>
-    public partial class PesajeViewModel : ObservableObject
+    public partial class PesajeViewModel : ObservableObject, IDisposable
     {
         /// <summary>
         /// Camiones físicos simultáneos en el andén. Se cuenta por <b>placa distinta</b>,
@@ -1026,5 +1026,16 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             pc.NotificarAgregados();
             return pc;
         }
+
+        /// <summary>
+        /// P-031 G5: <c>PesajeView</c> es Transient y crea una instancia nueva por cada
+        /// visita a la pantalla (<c>App.Services.GetRequiredService&lt;PesajeViewModel&gt;()</c>
+        /// en <c>Loaded</c>); antes no había ningún <c>Dispose()</c> al que <c>Unloaded</c>
+        /// pudiera llamar. Hoy este ViewModel no suscribe Realtime ni mantiene un
+        /// <see cref="CancellationTokenSource"/> propio, así que no hay nada que liberar —
+        /// pero implementarlo evita que una futura suscripción (siguiendo el patrón de
+        /// P-029) quede huérfana por falta de un Dispose real al que engancharse.
+        /// </summary>
+        public void Dispose() { }
     }
 }

@@ -142,6 +142,7 @@ Regla: `CapaAplicacion` **nunca** referencia `CapaDatos`.
 
 Las sesiones están en `70 - Bitácora de Cambios/`.  
 Sesiones más recientes (2026-09-06):
+- [[Sesión 2026-09-06 - Auditoría del cierre masivo P-025 P-029 P-031 P-032 P-038 P-041]]
 - [[Sesión 2026-09-06 - Tres frenos de rendimiento cerrados y VerticalAlignment fijo en ModalInput]]
 - [[Sesión 2026-09-06 - Resolucion integral P-045 P-049 P-051 P-052 P-053]]
 - [[Sesión 2026-09-05 - Alta múltiple de camiones y topes de texto en movimientos]]
