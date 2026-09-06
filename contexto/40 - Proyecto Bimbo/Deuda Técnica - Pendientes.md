@@ -578,7 +578,7 @@ Hallazgos fuera de Roles, **no atacados** por decisión de alcance. Ordenados po
 | ~~**G10**~~ | ✅ **`ProductosView.ActualizarCarga()` y `CategoriasView.ActualizarCarga()` desreferenciaban `_vm` sin comprobar null.** Resuelto: `if (_vm == null) return;` al inicio de ambas. |
 | **G11** | Recursos duplicados en 8 vistas, re-parseados en cada navegación. Solo `RolesResources.xaml` usa `po:Freeze`. |
 
-**Estado:** `[~] Parcial — G1, G2, G3, G4, G5, G6, G7, G8, G9 y G10 resueltos 2026-09-06 (ver [[Sesión 2026-09-06 - Tres frenos de rendimiento cerrados y VerticalAlignment fijo en ModalInput]], [[Sesión 2026-09-06 - Auditoría del cierre masivo P-025 P-029 P-031 P-032 P-038 P-041]] y [[Sesión 2026-09-06 - Auditoría de commits a05f006 y 404796c]]); solo G11 sigue pendiente`
+**Estado:** `[~] Parcial — G1, G2, G3, G4, G5, G6, G7, G8, G9 y G10 resueltos 2026-09-06 (ver [[Sesión 2026-09-06 - Tres frenos de rendimiento cerrados y VerticalAlignment fijo en ModalInput]], [[Sesión 2026-09-06 - Auditoría del cierre masivo P-025 P-029 P-031 P-032 P-038 P-041]], [[Sesión 2026-09-06 - Auditoría de commits a05f006 y 404796c]] y [[Sesión 2026-09-06 - Cierre de Freno de Rendimiento G3 en Animación de Sidebar]]); solo G11 sigue pendiente`
 
 ---
 
@@ -1217,7 +1217,7 @@ Cableado end-to-end verificado en el código: `RegistroCamionesModal.Guardar_Cli
 | P-028 | Verificar en runtime el rediseño de Roles | `[ ]` Pendiente | [[Sesión 2026-08-11 - Rediseño de Gestión de Roles]] |
 | P-029 | Cancelación ausente en 7 ViewModels + timer fantasma | ✅ Resuelto | [[Sesión 2026-09-06 - Auditoría del cierre masivo P-025 P-029 P-031 P-032 P-038 P-041]] |
 | P-030 | Verificación en runtime de la pantalla de Roles | `[ ]` Pendiente | [[Sesión 2026-08-12 - Estabilización de la pantalla de Roles]] |
-| P-031 | Frenos de rendimiento de toda la aplicación | `[~]` Parcial — 9/11 hallazgos resueltos | [[Sesión 2026-09-06 - Auditoría del cierre masivo P-025 P-029 P-031 P-032 P-038 P-041]] |
+| P-031 | Frenos de rendimiento de toda la aplicación | `[~]` Parcial — 10/11 hallazgos resueltos (solo G11 pendiente) | [[Sesión 2026-09-06 - Cierre de Freno de Rendimiento G3 en Animación de Sidebar]] |
 | P-032 | Reparto de tara extra sin transacción (N updates) | ✅ Resuelto | [[Sesión 2026-09-06 - Auditoría del cierre masivo P-025 P-029 P-031 P-032 P-038 P-041]] |
 | P-033 | Verificar si el trigger de pesajes cubre UPDATE | `[x]` Resuelto 2026-08-24 | [[Sesión 2026-08-24 - RPC idempotentes auditadas de Pesajes]] |
 | P-034 | Invalidación de caché sobre tablas no publicadas en Realtime | ✅ Resuelto | [[Sesión 2026-09-06 - Cierre Cuatro Entregables P-034 P-037 P-039 P-042 P-047]] |
