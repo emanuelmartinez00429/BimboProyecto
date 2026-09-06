@@ -769,7 +769,7 @@
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding Contenido, Converter={StaticResource TextoVacioConverter}, ConverterParameter='Sin contenido'}"
-                                               Style="{StaticResource TextoCeldaConFallback}" FontWeight="SemiBold"
+                                               Style="{StaticResource TextoCeldaConFallback}"
                                                HorizontalAlignment="Left"
                                                Padding="8,0"/>
                                 </DataTemplate>
