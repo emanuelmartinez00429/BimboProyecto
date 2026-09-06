@@ -167,6 +167,16 @@ namespace CapaUI.Formularios.Principal.Pantallas.Categorias
                 AbrirModalEditar(_vm.Seleccionado);
         }
 
+        // Enter con una fila seleccionada abre el modal de edición, igual que el
+        // doble clic — antes Enter solo hacía la navegación de celda por defecto
+        // de WPF (sin efecto real acá, la grilla es IsReadOnly).
+        private void DgCategorias_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (e.Key != System.Windows.Input.Key.Enter || _vm?.Seleccionado == null) return;
+            e.Handled = true;
+            AbrirModalEditar(_vm.Seleccionado);
+        }
+
 
 
         private void AbrirModalNuevo()

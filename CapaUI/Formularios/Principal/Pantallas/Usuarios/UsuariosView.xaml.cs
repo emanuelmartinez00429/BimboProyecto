@@ -217,6 +217,17 @@ namespace CapaUI.Formularios.Principal.Pantallas.Usuarios
                 _vm.EditarCommand.Execute(null);
         }
 
+        // Enter con una fila seleccionada abre el modal de edición, igual que el
+        // doble clic — antes Enter solo hacía la navegación de celda por defecto
+        // de WPF (sin efecto real acá, la grilla es IsReadOnly).
+        private void DgUsuarios_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (e.Key != System.Windows.Input.Key.Enter) return;
+            if (_vm?.EditarCommand.CanExecute(null) != true) return;
+            e.Handled = true;
+            _vm.EditarCommand.Execute(null);
+        }
+
         private void SeleccionarEnTabla()
         {
             if (_vm.Seleccionado == null) return;

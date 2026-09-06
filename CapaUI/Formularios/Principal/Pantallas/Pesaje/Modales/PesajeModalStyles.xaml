@@ -57,16 +57,19 @@
                                       VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
                     </Border>
                     <ControlTemplate.Triggers>
+                        <!-- P-042: Aro de foco verde #34D399 de 2px, consistente con ModalInput y CeldaInput -->
                         <Trigger Property="IsFocused" Value="True">
-                            <Setter TargetName="Bd" Property="BorderBrush" Value="White"/>
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="#34D399"/>
+                            <Setter TargetName="Bd" Property="BorderThickness" Value="2"/>
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter TargetName="Bd" Property="Background" Value="#8CFFFFFF"/>
                             <Setter Property="Foreground" Value="#6B7280"/>
                         </Trigger>
+                        <!-- Error de validación: va después de foco para prevalecer en rojo mientras se edita -->
                         <Trigger Property="validacion:Validacion.TieneError" Value="True">
-                            <Setter TargetName="Bd" Property="BorderBrush" Value="#FCA5A5"/>
-                            <Setter TargetName="Bd" Property="BorderThickness" Value="1.5"/>
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="#EF4444"/>
+                            <Setter TargetName="Bd" Property="BorderThickness" Value="2"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -134,10 +137,14 @@
         <Setter Property="Padding" Value="12,5"/>
         <Setter Property="Cursor" Value="Hand"/>
         <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="BorderBrush" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="2"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="RadioButton">
                     <Border x:Name="Bd" Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
                             CornerRadius="6" Padding="{TemplateBinding Padding}">
                         <ContentPresenter/>
                     </Border>
@@ -148,6 +155,10 @@
                         </Trigger>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter TargetName="Bd" Property="Background" Value="#26FFFFFF"/>
+                        </Trigger>
+                        <!-- P-042: Aro de foco verde #34D399 idéntico a ModalSegBtn -->
+                        <Trigger Property="IsFocused" Value="True">
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="#34D399"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>

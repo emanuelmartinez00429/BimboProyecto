@@ -185,6 +185,17 @@ namespace CapaUI.Formularios.Principal.Pantallas.ContactosProveedores
             _ = _vm.AbrirProveedorAsync(prov);
         }
 
+        // Enter con un proveedor seleccionado abre su detalle, igual que el
+        // doble clic — antes Enter solo hacía la navegación de celda por defecto
+        // de WPF (sin efecto real acá, la grilla es IsReadOnly).
+        private void DgProveedores_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (e.Key != System.Windows.Input.Key.Enter) return;
+            if (DgProveedores.SelectedItem is not ProveedorDto prov) return;
+            e.Handled = true;
+            _ = _vm.AbrirProveedorAsync(prov);
+        }
+
         // ── Eventos DataGrid Contactos ──────────────────────
 
         private void DgContactos_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -196,6 +207,16 @@ namespace CapaUI.Formularios.Principal.Pantallas.ContactosProveedores
         private void DgContactos_MouseDoubleClick(object sender, WpfMouseButton e)
         {
             if (_vm?.ContactoSeleccionado != null) AbrirModalEditar(_vm.ContactoSeleccionado);
+        }
+
+        // Enter con un contacto seleccionado abre el modal de edición, igual que
+        // el doble clic — antes Enter solo hacía la navegación de celda por
+        // defecto de WPF (sin efecto real acá, la grilla es IsReadOnly).
+        private void DgContactos_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (e.Key != System.Windows.Input.Key.Enter || _vm?.ContactoSeleccionado == null) return;
+            e.Handled = true;
+            AbrirModalEditar(_vm.ContactoSeleccionado);
         }
 
         // ── Botones de cabecera ─────────────────────────────

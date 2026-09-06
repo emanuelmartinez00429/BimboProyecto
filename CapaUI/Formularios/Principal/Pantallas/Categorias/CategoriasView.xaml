@@ -11,78 +11,7 @@
              TextOptions.TextRenderingMode="Grayscale"
              TextOptions.TextFormattingMode="Display">
 
-    <UserControl.Resources>
-        <Geometry x:Key="IconFilter">M3,6 h18 M6,12 h12 M10,18 h4</Geometry>
-        <Geometry x:Key="IconCheck">M20,6 L9,17 l-5,-5</Geometry>
-        <Geometry x:Key="IconPlus">M12,5 v14 M5,12 h14</Geometry>
-        <Geometry x:Key="IconPencil">M11,4 H4 a2,2 0 0 0,-2,2 v14 a2,2 0 0 0,2,2 h14 a2,2 0 0 0,2,-2 v-7 M18.5,2.5 a2.12,2.12 0 0 1,3,3 L12,15 l-4,1 1,-4 z</Geometry>
-        <Geometry x:Key="IconTag">M20.59,13.41 l-7.17,7.17 a2,2 0 0 1,-2.83,0 L2,12 V2 h10 l8.59,8.59 a2,2 0 0 1,0,2.82 z M7,7 h.01</Geometry>
 
-
-        <Style x:Key="ActionBtn" TargetType="Button">
-            <Setter Property="Height" Value="40"/><Setter Property="MinWidth" Value="120"/>
-            <Setter Property="FontFamily" Value="Segoe UI"/><Setter Property="FontSize" Value="15.5"/>
-            <Setter Property="FontWeight" Value="SemiBold"/><Setter Property="Foreground" Value="White"/>
-            <Setter Property="BorderThickness" Value="0"/><Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
-                            <Border.Effect><DropShadowEffect BlurRadius="6" ShadowDepth="2" Opacity="0.3" Color="Black"/></Border.Effect>
-                            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsPressed" Value="True"><Setter TargetName="Bd" Property="RenderTransform"><Setter.Value><TranslateTransform Y="1"/></Setter.Value></Setter></Trigger>
-                            <Trigger Property="IsEnabled" Value="False"><Setter TargetName="Bd" Property="Background" Value="#CBD5E1"/><Setter TargetName="Bd" Property="Opacity" Value="0.7"/><Setter Property="Cursor" Value="Arrow"/></Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-
-
-        <Style x:Key="SegmentBtn" TargetType="RadioButton">
-            <Setter Property="Background" Value="Transparent"/><Setter Property="Foreground" Value="#6B7280"/>
-            <Setter Property="FontFamily" Value="Segoe UI"/><Setter Property="FontSize" Value="15"/>
-            <Setter Property="Padding" Value="10,4"/><Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="BorderThickness" Value="0"/><Setter Property="FocusVisualStyle" Value="{x:Null}"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="RadioButton">
-                        <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
-                            <ContentPresenter/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsChecked" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="White"/>
-                                <Setter Property="Foreground" Value="#1A1F2E"/>
-                                <Setter TargetName="Bd" Property="Effect"><Setter.Value><DropShadowEffect Color="Black" BlurRadius="4" ShadowDepth="1" Opacity="0.08"/></Setter.Value></Setter>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <Style x:Key="ModernScrollBar" TargetType="ScrollBar">
-            <Setter Property="Width" Value="8"/><Setter Property="Background" Value="#F3F4F6"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="ScrollBar">
-                        <Grid x:Name="GridRoot" Width="8">
-                            <Track x:Name="PART_Track" IsDirectionReversed="True">
-                                <Track.DecreaseRepeatButton><RepeatButton Command="ScrollBar.LineUpCommand" Opacity="0" Height="0"/></Track.DecreaseRepeatButton>
-                                <Track.Thumb><Thumb x:Name="Thumb"><Thumb.Template><ControlTemplate TargetType="Thumb"><Border Background="#94A3B8" CornerRadius="4" Margin="2,0"/></ControlTemplate></Thumb.Template></Thumb></Track.Thumb>
-                                <Track.IncreaseRepeatButton><RepeatButton Command="ScrollBar.LineDownCommand" Opacity="0" Height="0"/></Track.IncreaseRepeatButton>
-                            </Track>
-                        </Grid>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-    </UserControl.Resources>
 
     <Grid>
     <Grid Margin="22,18,22,0">
@@ -220,6 +149,7 @@
                           SelectionMode="Single" SelectionUnit="FullRow" Background="White" BorderThickness="0"
                           AlternationCount="2" RowStyle="{StaticResource ProductRowStyle}" CellStyle="{StaticResource CeldaIzquierda}"
                           SelectionChanged="DgCategorias_SelectionChanged" MouseDoubleClick="DgCategorias_MouseDoubleClick"
+                          PreviewKeyDown="DgCategorias_PreviewKeyDown"
                           ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.HorizontalScrollBarVisibility="Auto"
                           VirtualizingPanel.IsVirtualizing="True"
                           VirtualizingPanel.VirtualizationMode="Recycling"

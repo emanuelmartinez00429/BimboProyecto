@@ -12,52 +12,7 @@
              TextOptions.TextFormattingMode="Display">
 
     <UserControl.Resources>
-        <Geometry x:Key="IconPlus">M12,5 v14 M5,12 h14</Geometry>
-        <Geometry x:Key="IconPencil">M11,4 H4 a2,2 0 0 0,-2,2 v14 a2,2 0 0 0,2,2 h14 a2,2 0 0 0,2,-2 v-7 M18.5,2.5 a2.12,2.12 0 0 1,3,3 L12,15 l-4,1 1,-4 z</Geometry>
-        <Geometry x:Key="IconTrash">M3,6 h18 M8,6 V4 a1,1 0 0 1,1,-1 h6 a1,1 0 0 1,1,1 v2 M19,6 l-1,14 a2,2 0 0 1,-2,2 H8 a2,2 0 0 1,-2,-2 L5,6</Geometry>
-        <Geometry x:Key="IconArrowLeft">M19,12 H5 M12,19 l-7,-7 7,-7</Geometry>
-        <Geometry x:Key="IconCheck">M20,6 L9,17 l-5,-5</Geometry>
-        <Geometry x:Key="IconFactory">M2,20 V8 l7,-5 v5 l7,-5 v17 z</Geometry>
-        <Geometry x:Key="IconPerson">M20,21 v-2 a4,4 0 0 0,-4,-4 H8 a4,4 0 0 0,-4,4 v2 M12,11 a4,4 0 1 0,0,-8 a4,4 0 0 0,0,8 z</Geometry>
 
-
-
-        <Style x:Key="ActionBtn" TargetType="Button">
-            <Setter Property="Height" Value="36"/>
-            <Setter Property="MinWidth" Value="110"/>
-            <Setter Property="FontFamily" Value="Segoe UI"/>
-            <Setter Property="FontSize" Value="15"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border x:Name="Bd" Background="{TemplateBinding Background}"
-                                CornerRadius="8" Padding="{TemplateBinding Padding}">
-                            <Border.Effect>
-                                <DropShadowEffect BlurRadius="6" ShadowDepth="2" Opacity="0.25" Color="Black"/>
-                            </Border.Effect>
-                            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="Bd" Property="RenderTransform">
-                                    <Setter.Value><TranslateTransform Y="1"/></Setter.Value>
-                                </Setter>
-                            </Trigger>
-                            <Trigger Property="IsEnabled" Value="False">
-                                <Setter TargetName="Bd" Property="Background" Value="#CBD5E1"/>
-                                <Setter TargetName="Bd" Property="Opacity" Value="0.7"/>
-                                <Setter Property="Cursor" Value="Arrow"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
 
         <Style x:Key="GhostBtn" TargetType="Button">
             <Setter Property="Height" Value="34"/>
@@ -305,6 +260,7 @@
                               CellStyle="{StaticResource CeldaCentrada}"
                               SelectionChanged="DgFabricantes_SelectionChanged"
                               MouseDoubleClick="DgFabricantes_MouseDoubleClick"
+                              PreviewKeyDown="DgFabricantes_PreviewKeyDown"
                               ScrollViewer.VerticalScrollBarVisibility="Auto"
                               VirtualizingPanel.IsVirtualizing="True"
                               VirtualizingPanel.VirtualizationMode="Recycling"
@@ -427,6 +383,7 @@
                               CellStyle="{StaticResource CeldaCentrada}"
                               SelectionChanged="DgContactos_SelectionChanged"
                               MouseDoubleClick="DgContactos_MouseDoubleClick"
+                              PreviewKeyDown="DgContactos_PreviewKeyDown"
                               ScrollViewer.VerticalScrollBarVisibility="Auto"
                               VirtualizingPanel.IsVirtualizing="True"
                               VirtualizingPanel.VirtualizationMode="Recycling"
