@@ -806,7 +806,11 @@ Auditoría pedida tras notar que `ProcesoDescargaModal` (y el resto de los modal
 
 > **Actualización 2026-09-02:** En [[Sesión 2026-09-02 - Validación de longitud máxima en campos de texto]], todos los modales CRUD estándar eliminaron sus `MaxLength` en XAML y adoptaron la derivación automática de topes preventivos vía `ValidadorFormulario.Segun()`. `PesajeModalStyles.xaml` y los modales de Pesaje continúan usando `MInput` sin validación por campo ni `TopePreventivo`, manteniendo abierta esta divergencia hasta que se aborde el refactor del módulo Pesaje.
 
-**Estado:** `[ ] Pendiente`
+> **Actualización 2026-09-05 — la divergencia costó una tercera copia.** En [[Sesión 2026-09-05 - Alta múltiple de camiones y topes de texto en movimientos]], `RegistroCamionesModal` necesitaba el borde rojo de `Validacion.TieneError`: es una tabla de 5 filas y sin él no hay forma de señalar **cuál** fila está mal sin desarmar el layout. Como `MInput` no lo tiene, se definió `CeldaInput`, un estilo **local del modal** que sí lo trae. No fue por capricho: `MInput` además tiene borde `#80FFFFFF`, invisible sobre la tarjeta blanca de la tabla.
+>
+> Ahora hay **tres** estilos de input conviviendo en Pesaje (`MInput`, `MInputDisplay`, `CeldaInput`) y solo el último reacciona a la validación. Refuerza la opción 1 de la solución: la variante compacta con aro de foco y `TieneError` tiene que existir **una sola vez** y en `Styles.xaml`, no redefinirse en cada modal que la necesite.
+
+**Estado:** `[ ] Pendiente` — agravado: tercera copia local del input en 2026-09-05.
 
 ---
 
@@ -844,10 +848,13 @@ Con `CatalogoConfig.PermiteMultiple` (hoy solo el selector de Productos de `Proc
 
 ---
 
-### P-045 · Pesaje quedó fuera de la validación centralizada: sus campos de texto no tienen tope en ninguna capa
+### ~~P-045~~ · ✅ Pesaje quedó fuera de la validación centralizada: sus campos de texto no tenían tope en ninguna capa — resuelto 2026-09-06
 
-**Archivos:** `CapaDominio/Reglas/ReglasEntidades.cs`, `CapaUI/Formularios/Principal/Pantallas/Pesaje/Modales/ProcesoDescargaModal.xaml`, `CapaUI/Formularios/Principal/Pantallas/Pesaje/Modales/PesajeModal.xaml`
+**Archivos:** `CapaDominio/Reglas/ReglasEntidades.cs`, `CapaUI/Formularios/Principal/Pantallas/Pesaje/Modales/` (`ProductoCamionModal.xaml`, `PesajeModal.xaml`, `CamionModal.xaml`)
 **Detectado en:** security review del rediseño visual de Pesaje (2026-08-20)
+
+> [!note] `ProcesoDescargaModal` ya no existe
+> El ítem original apuntaba a ese archivo. Se había partido en `CamionModal` + `ProductoCamionModal` antes de esta fecha; las rutas de arriba están corregidas.
 
 > [!warning] Esto **no** es una vulnerabilidad — no escalarlo
 > El security review que lo destapó dio cero hallazgos, y ese resultado es correcto. Para tocar estos campos hace falta sesión válida **más** el permiso `Registrar Entrada`; RLS está habilitado en `movimientos`, `movimiento_productos` y `entradas_producto`, y PostgREST parametriza (no hay superficie de inyección). Es deuda de **calidad de datos**, no de seguridad.
@@ -872,9 +879,34 @@ Lo de la BD está verificado contra `information_schema`, no supuesto: `movimien
 
 Los tres pasos, no solo el primero: con el límite únicamente en la UI, cualquier otro camino de escritura lo saltea.
 
+> [!success] Los tres pasos se aplicaron — pero solo a `movimientos` (2026-09-05)
+> Ver [[Sesión 2026-09-05 - Alta múltiple de camiones y topes de texto en movimientos]].
+>
+> | Columna | Antes | Ahora |
+> |---|---|---|
+> | `movimientos.placa_vehiculo` | `varchar` sin longitud | ✅ `varchar(20)` |
+> | `movimientos.observaciones` | `text` | ✅ `varchar(500)` |
+> | `movimiento_productos.observaciones` | `text` | ❌ sigue `text` |
+> | `entradas_producto.observaciones` | `text` | ❌ sigue `text` |
+>
+> Del lado de la app: `ReglasCamion` declarada en Dominio y `ValidadorFormulario` cableado en `RegistroCamionesModal` (con `MaxLength` puesto por `TopePreventivo`). `ProductoCamionModal` y `PesajeModal` **siguen sin validador**.
+>
+> **La clase se llama `ReglasCamion`, no `ReglasPesaje`** como proponía este ítem: `ReglasEntidades.cs` se organiza por entidad, y lo que falta pertenece a otras dos tablas. Cuando les toque, van como `ReglasProductoCamion` y `ReglasEntradaPesaje` — no amontonadas en una sola clase.
+>
 > **Actualización 2026-09-02:** En [[Sesión 2026-09-02 - Validación de longitud máxima en campos de texto]], se alinearon 10 clases de dominio (34 reglas) en `ReglasEntidades.cs` contra `information_schema.columns` de Supabase, se incorporó `TopePreventivo(m)` en `ValidadorFormulario` para derivación automática de `MaxLength`, y se implementó una suite completa de pruebas de deriva (`BimboProyecto.Tests/Dominio/ReglasEntidadesTests.cs`). El módulo Pesaje permanece como el único pendiente sin reglas de longitud en `ReglasEntidades.cs` ni topes en sus modales/BD.
 
-**Estado:** `[ ] Pendiente` — se evalúa al cerrar el módulo Pesaje (ver [[Módulo Pesaje]]).
+> [!success] Cerradas las dos `observaciones` que faltaban (2026-09-06)
+> Migración `20260906050000_resolucion_integral_p045_p049_p051_p052_p053.sql`: `movimiento_productos.observaciones` y `entradas_producto.observaciones` pasan de `text` a `varchar(500)`. Verificado contra `information_schema.columns`.
+>
+> Del lado de Dominio, exactamente como anticipaba la nota de arriba: `ReglasProductoCamion.Observaciones` y `ReglasEntradaPesaje.Observaciones` (`LargoMaximo: 500`) en `CapaDominio/Reglas/ReglasEntidades.cs`, sin amontonarlas en una sola clase.
+>
+> Del lado de UI, `ProductoCamionModal` y `PesajeModal` —que quedaron sin validador en la resolución parcial— ahora cablean `ValidadorFormulario.Nuevo().Campo(TxtObs, "Las observaciones").Segun(Reglas…Camion.Observaciones).ValidarAlSalirDelCampo()`.
+>
+> `BimboProyecto.Tests/Dominio/ReglasEntidadesTests.cs` se extendió de 34 a **43 reglas** en 13 clases (sumando `ReglasCamion`, `ReglasProductoCamion`, `ReglasEntradaPesaje`); su Test A sigue verificando contra `information_schema.columns` que ningún `LargoMaximo` sea más permisivo que la columna física.
+>
+> Las tres tablas de Pesaje (`movimientos`, `movimiento_productos`, `entradas_producto`) quedan cubiertas en las tres capas. Detalle completo en [[Sesión 2026-09-06 - Resolucion integral P-045 P-049 P-051 P-052 P-053]].
+
+**Estado:** `[x]` Resuelto — verificado en BD y con test de deriva de esquema.
 
 ---
 
@@ -939,7 +971,7 @@ Se constató una fuga de estado bidireccional entre usuarios sucesivos en la mis
 
 ---
 
-### P-049 · Suscripciones inactivas a Realtime en Contactos (tablas no publicadas en supabase_realtime)
+### ~~P-049~~ · ✅ Suscripciones inactivas a Realtime en Contactos (tablas no publicadas en supabase_realtime) — resuelto 2026-09-06
 
 **Archivos:** `CapaUI/Formularios/Principal/Pantallas/ContactosFabricantes/ContactosFabricantesViewModel.cs:127`, `CapaUI/Formularios/Principal/Pantallas/ContactosProveedores/ContactosProveedoresViewModel.cs:127`, `CapaDatos/Repositories/Realtime/RealtimeService.cs`
 **Detectado en:** Auditoría adversarial y diseño de [[ADR-026 - Cache en memoria con FusionCache e invalidacion por Realtime]] (2026-09-02)
@@ -961,12 +993,18 @@ El cliente `Supabase.Realtime` negocia y abre el canal websocket para la tabla s
 
 **Riesgo:** Medio en consistencia de visualización multiusuario; degradación de arquitectura por código que presupone reactividad inexistente.
 
-**Solución diseñada:**
-1. Definir si el tráfico y volumen de `contactos_fabricante` y `contactos_proveedor` ameritan su incorporación a la publicación mediante una migración SQL en Supabase (`ALTER PUBLICATION supabase_realtime ADD TABLE contactos_fabricante, contactos_proveedor;`).
-2. En caso de no incorporarlas, remover las llamadas `Observar()` en ambos ViewModels para liberar recursos del websocket y documentar que la actualización de contactos depende de recarga explícita o navegación drill-down.
-3. Incorporar en `RealtimeService` una verificación defensiva o advertencia en log al intentar suscribirse a tablas fuera del catálogo de `supabase_realtime` (ver trampa 5 en [[ADR-026 - Cache en memoria con FusionCache e invalidacion por Realtime]]).
+**Solución aplicada:** migración `20260906050000_resolucion_integral_p045_p049_p051_p052_p053.sql` — `ALTER PUBLICATION supabase_realtime ADD TABLE public.contactos_fabricante, public.contactos_proveedor;`. Se optó por la opción 1 (incorporar las tablas), no por retirar las suscripciones.
 
-**Estado:** `[ ] Pendiente`
+**Verificado 2026-09-06 contra la base viva:**
+```sql
+select tablename from pg_publication_tables
+where pubname='supabase_realtime' and tablename in ('contactos_fabricante','contactos_proveedor');
+```
+Ambas tablas aparecen en el resultado. Las suscripciones `Observar("contactos_fabricante", …)` / `Observar("contactos_proveedor", …)` de los ViewModels ahora reciben eventos reales.
+
+Queda sin abordar el punto 3 de la solución diseñada (verificación defensiva en `RealtimeService` para tablas fuera de la publicación) — no es necesario ya para este caso puntual, pero sigue siendo la red de seguridad genérica contra la próxima tabla que alguien suscriba sin publicar primero.
+
+**Estado:** `[x]` Resuelto — verificado en BD. Ver [[Sesión 2026-09-06 - Resolucion integral P-045 P-049 P-051 P-052 P-053]].
 
 ---
 
@@ -995,7 +1033,7 @@ Fijado con `BimboProyecto.Tests/Cache/CachedCatalogoRepositoryTests.cs`. La prue
 
 ---
 
-### P-051 · Política `select_Usuarios` con `USING (true)` sobre PUBLIC
+### ~~P-051~~ · ✅ Política `select_Usuarios` con `USING (true)` sobre PUBLIC — resuelto 2026-09-06
 
 **Archivos:** política `select_Usuarios` sobre `public.usuarios` (Supabase, proyecto `bzmmrifjgzlvsphctais`)
 **Detectado en:** [[Sesión 2026-09-03 - Implementación de ADR-026 y socket Realtime autenticado]]
@@ -1012,25 +1050,85 @@ Es decir, **cualquier usuario autenticado puede leer la tabla `usuarios` complet
 
 **Cuidado al corregir:** la política es *load-bearing*. La política de `notificaciones_usuario` incluye un subquery `EXISTS (SELECT 1 FROM usuarios u WHERE u.id_usuario = ... AND u.uuid_usuario = auth.uid() AND u.id_estado = 1)` que depende de poder leer esa tabla. Endurecerla sin revisar los dependientes rompería la entrega de notificaciones en tiempo real y probablemente otras rutas.
 
-**Solución de fondo:** inventariar qué políticas y RPC dependen de leer `usuarios`, y reemplazar `USING (true)` por una expresión acotada (fila propia, o lectura mediante función `security definer` en el esquema `private`, como ya se hace con `usuario_tiene_permiso_codigo`).
+**Solución aplicada:** migración `20260906050000_resolucion_integral_p045_p049_p051_p052_p053.sql` —
+```sql
+create policy "select_Usuarios" on public.usuarios
+    for select
+    using (
+        uuid_usuario = auth.uid()
+        or private.usuario_tiene_permiso_codigo('USUARIOS_CONSULTAR')
+        or private.usuario_tiene_permiso_codigo('USUARIOS_VER')
+    );
+```
+Cubre exactamente el `EXISTS` de la política de `notificaciones_usuario` que era la dependencia *load-bearing*: ese subquery filtra `u.uuid_usuario = auth.uid()`, que también es una de las ramas `OR` de la nueva política — la fila propia sigue siendo legible sin necesidad del `USING (true)` original.
 
-**Estado:** `[ ] Pendiente`
+**Verificado 2026-09-06 contra la base viva:**
+```sql
+select polname, pg_get_expr(polqual, polrelid) as using_expr
+from pg_policy where polrelid = 'public.usuarios'::regclass;
+```
+Devuelve la expresión de arriba, ya no `true`. Confirmado además con `get_advisors` (tipo `security`) que la tabla no quedó marcada como insegura por esta política.
+
+**Estado:** `[x]` Resuelto — verificado en BD. Ver [[Sesión 2026-09-06 - Resolucion integral P-045 P-049 P-051 P-052 P-053]].
 
 ---
 
-### P-052 · Trigger de auditoría duplica bitácora y choca con el RBAC de las RPC `_seguro` de catálogos
+### ~~P-052~~ · ✅ Trigger de auditoría duplicaba bitácora y chocaba con el RBAC de las RPC `_seguro` de catálogos — resuelto 2026-09-06
 
 **Archivos:** `log_upd_categoria()`, `log_upd_fabricante()` y el trigger `AFTER UPDATE` equivalente de `proveedores` (Supabase, proyecto `bzmmrifjgzlvsphctais`).
 **Detectado en:** auditoría de las RPC de catálogos, 2026-09-03. Ver [[Plan de Migración de Presentaciones a RPC segura]].
 
-Las tablas `categoria`, `fabricante` y `proveedores` conservan su trigger `AFTER UPDATE` de auditoría legacy (`trg_upd_*`) **además** de haber migrado a `actualizar_<x>_seguro` / `cambiar_estado_<x>_seguro`, que ya auditan por su cuenta con `private.registrar_auditoria_rbac`. Consecuencias:
+Las tablas `categoria`, `fabricante` y `proveedores` conservaban su trigger `AFTER UPDATE` de auditoría legacy (`trg_upd_*`) **además** de haber migrado a `actualizar_<x>_seguro` / `cambiar_estado_<x>_seguro`, que ya auditan por su cuenta con `private.registrar_auditoria_rbac`. Consecuencias:
 
 1. **Doble fila de bitácora** por cada actualización o cambio de estado: una desde la RPC (código granular, p. ej. `CATEGORIAS_MODIFICAR`) y otra desde el trigger (`id_accion = 2` = `PRODUCTOS_MODIFICAR`, `id_modulo = 1`).
-2. **Conflicto de permiso:** `log_upd_categoria` exige `id_accion = 2` (`PRODUCTOS_MODIFICAR`). Un usuario con el permiso granular (`CATEGORIAS_MODIFICAR` / `CATEGORIAS_DESACTIVAR`) pero sin `PRODUCTOS_MODIFICAR` pasa el chequeo de la RPC, se ejecuta el `UPDATE`, y entonces el trigger lanza `42501` y **revierte toda la transacción**. La RPC `_seguro` queda rota justo para los roles que la motivan.
+2. **Conflicto de permiso:** `log_upd_categoria` exige `id_accion = 2` (`PRODUCTOS_MODIFICAR`). Un usuario con el permiso granular (`CATEGORIAS_MODIFICAR` / `CATEGORIAS_DESACTIVAR`) pero sin `PRODUCTOS_MODIFICAR` pasaba el chequeo de la RPC, se ejecutaba el `UPDATE`, y entonces el trigger lanzaba `42501` y **revertía toda la transacción**. La RPC `_seguro` quedaba rota justo para los roles que la motivan.
 
-**Solución de fondo:** una vez que el DML directo sobre cada tabla esté revocado a `authenticated`/`anon` (todas las escrituras pasan por las `_seguro`), hacer `DROP TRIGGER trg_upd_<x>` en `categoria`, `fabricante` y `proveedores`, conservando solo `trg_<x>_updated_at`. Dejar las funciones `log_upd_*` en el esquema para poder revertir. Presentaciones ya lo contempla en [[Plan de Migración de Presentaciones a RPC segura]]; este ítem cubre los otros tres.
+**Solución aplicada:** migración `20260906050000_resolucion_integral_p045_p049_p051_p052_p053.sql` — `DROP TRIGGER IF EXISTS` sobre `trg_upd_categoria`, `trg_upd_fabricante`, `trg_upd_proveedor` y `trg_upd_proveedores`, y `DROP FUNCTION IF EXISTS` sobre `log_upd_categoria()`, `log_upd_fabricante()`, `log_upd_proveedor()`.
 
-**Estado:** `[ ] Pendiente`
+**Verificado 2026-09-06 contra la base viva** (`bzmmrifjgzlvsphctais`, de solo lectura):
+```sql
+select t.tgname, p.proname
+from pg_trigger t
+join pg_class c on c.oid = t.tgrelid
+join pg_proc p on p.oid = t.tgfoid
+where c.relname in ('categoria','fabricante','proveedores') and not t.tgisinternal;
+```
+Los únicos triggers que quedan en las tres tablas son `trg_categoria_updated_at`, `trg_fabricante_updated_at` y `trg_proveedores_updated_at`, y los tres llaman a la misma función `actualizar_updated_at()` (solo fija `updated_at = now()`, sin bitácora ni chequeo de permiso). Ningún trigger ni función con `PRODUCTOS_MODIFICAR` o `id_accion = 2` sobrevive en el esquema `public`. El doble registro de bitácora y el `42501` que revertía la transacción no ocurren más.
+
+**Estado:** `[x]` Resuelto — verificado en BD. Ver [[Sesión 2026-09-06 - Resolucion integral P-045 P-049 P-051 P-052 P-053]].
+
+---
+
+### ~~P-053~~ · ✅ El alta múltiple de camiones escribía N INSERT sueltos sin transacción — resuelto 2026-09-06
+
+**Archivo:** `CapaUI/Formularios/Principal/Pantallas/Pesaje/PesajeViewModel.cs` — `RegistrarCamionesAsync`
+**Detectado en:** [[Sesión 2026-09-05 - Alta múltiple de camiones y topes de texto en movimientos]] (introducido a conciencia en esa misma sesión)
+
+`RegistroCamionesModal` confirma hasta 5 camiones de una vez, y el ViewModel los persiste con un `CrearCamionAsync` por camión. **No hay transacción**: si la red se corta en el tercero, quedan dos recepciones creadas y tres sin crear.
+
+Es la misma familia que [[Deuda Técnica - Pendientes|P-032]] (`RepartirTaraExtraAsync` y sus N PATCH), y la solución es la misma: una RPC transaccional, en la línea de las que se desplegaron en [[Sesión 2026-08-24 - RPC idempotentes auditadas de Pesajes]].
+
+**Mitigación implementada (no lo cierra):**
+
+- El pre-vuelo del modal valida **todo** antes de escribir nada: cupo del andén, duplicados internos, duplicados contra las recepciones abiertas y los largos de campo. El fallo más probable —datos mal cargados— no llega a producir escrituras parciales.
+- Si igual se corta, el lote se detiene en el primer error y se informa cuántos entraron ("Se registraron 2 de 5 camiones. …").
+- El modal queda abierto con lo que falta, descontándose las filas ya persistidas y refrescando su lista de recepciones abiertas (`AplicarGuardadoParcial`) — sin eso, reintentar duplicaría las que sí entraron.
+
+> [!note] Lo que ya entró NO se deshace, y es deliberado
+> Un rollback en la app tendría que anular movimientos recién creados que **quizá ya se están pesando** en otra terminal. Un camión de más se quita con el basurero de su fila, que es una acción normal de la pantalla; una recepción anulada por debajo de un operario que está pesando, no.
+
+**Riesgo:** bajo. El resultado parcial es visible, informado y corregible desde la propia pantalla — no queda estado silenciosamente inconsistente.
+
+**Solución aplicada:** RPC `registrar_camiones_lote_seguro(p_camiones jsonb, p_id_solicitud uuid, p_id_operacion uuid)` en `20260906050000_resolucion_integral_p045_p049_p051_p052_p053.sql` — recorre el arreglo JSON en un solo `LOOP` de PL/pgSQL; una excepción en cualquier fila (proveedor inválido, placa vacía o de más de 20 caracteres, observaciones de más de 500) aborta toda la transacción y no persiste ningún `INSERT` del lote. Registra bitácora por camión con `private.bitacora_pesaje` dentro de la misma transacción. Alias `registrar_camiones_lote` para nombre corto; ambos con `REVOKE ALL FROM public, anon` y `GRANT EXECUTE TO authenticated, service_role`.
+
+Cableado end-to-end verificado en el código: `RegistroCamionesModal.Guardar_Click` → evento `Confirmado` → `PesajeView.AbrirRegistroCamionesModal` (`PesajeView.xaml.cs:667`) → `PesajeViewModel.RegistrarCamionesAsync` → `IPesajeRepository.RegistrarCamionesLoteAsync` → RPC. No quedó como código muerto ejercitado solo por tests: es la ruta real que usa el modal.
+
+**Verificado 2026-09-06:** `get_advisors` (tipo `security`) confirma que solo `authenticated`/`service_role` pueden ejecutar la RPC — sin advisory de `anon_security_definer_function_executable` para ninguna de las dos funciones. `BimboProyecto.Tests/Pesaje/PesajeRepositoryLoteTests.cs` cubre el mapeo del resultado. Build 0/0, suite completa en verde.
+
+> [!note] La mitigación de P-032/P-053 (guardado parcial, `AplicarGuardadoParcial`) sigue en el código
+> Con la RPC atómica, una llamada exitosa crea siempre el lote completo y una fallida no crea nada — no hay estado intermedio real. La rama de "guardado parcial" en `PesajeView.xaml.cs` queda como manejo defensivo para el caso `!r.Success` con reintento manual del usuario, no porque el servidor pueda devolver un resultado parcial.
+
+**Estado:** `[x]` Resuelto — verificado en BD y en código. Ver [[Sesión 2026-09-06 - Resolucion integral P-045 P-049 P-051 P-052 P-053]].
 
 ---
 
@@ -1078,17 +1176,18 @@ Las tablas `categoria`, `fabricante` y `proveedores` conservan su trigger `AFTER
 | P-039 | Búsqueda sin tildes solo en Productos — faltan 7 tablas | `[ ]` Pendiente | [[ADR-018 - Busqueda insensible a mayusculas y tildes con columna generada]] |
 | P-040 | Carga inicial de `icono_sidebar` pendiente en Storage | `[ ]` Pendiente | [[Sesión 2026-08-15 - Icono dinámico del sidebar]] |
 | P-041 | Conteos de Fabricantes/Categorías filtrados por estado — las 3 pastillas dejan de informar | `[ ]` Pendiente | [[Sesión 2026-08-15 - Modulo CRUD de Presentaciones]] |
-| P-042 | `PesajeModalStyles.xaml` duplica `ModalInput`/`ModalCombo`/`ModalSegBtn` sin foco ni validación por campo | `[ ]` Pendiente | [[Sesión 2026-08-19 - Selector de proveedor por tabla y consolidacion de estilos]] |
+| P-042 | `PesajeModalStyles.xaml` duplica `ModalInput`/`ModalCombo`/`ModalSegBtn` sin foco ni validación por campo | `[ ]` Pendiente — agravado 2026-09-05 (3ª copia local: `CeldaInput`) | [[Sesión 2026-08-19 - Selector de proveedor por tabla y consolidacion de estilos]] |
 | P-043 | `ModalInput`/`InputBox` globales: mismo bug de `VerticalAlignment` fijo que ya se corrigió en `MInput` | `[ ]` Pendiente | [[Sesión 2026-08-19 - Selector de proveedor por tabla y consolidacion de estilos]] |
 | P-044 | Multiselección de `SelectorCatalogoModal` no responde a teclado (Space no tilda el checkbox) | `[ ]` Pendiente | [[Sesión 2026-08-19 - Selector de proveedor por tabla y consolidacion de estilos]] |
-| P-045 | Campos de texto de Pesaje sin límites en UI, Dominio ni BD | `[ ]` Pendiente | [[Módulo Pesaje]] |
+| P-045 | Campos de texto de Pesaje sin límites en UI, Dominio ni BD | `[x]` Resuelto — las 3 tablas en las 3 capas | [[Sesión 2026-09-06 - Resolucion integral P-045 P-049 P-051 P-052 P-053]] |
 | P-046 | Validación visual de descripciones de estado de Pesaje en Bitácora | `[ ]` Pendiente | [[Sesión 2026-08-24 - RPC idempotentes auditadas de Pesajes]] |
 | P-047 | Divergencia de diseño y comportamiento entre `ModalInput` e `InputBox` | `[ ]` Pendiente | [[Sesión 2026-09-02 - Validación de longitud máxima en campos de texto]] |
 | P-048 | Fuga de datos y permisos entre sesiones en terminal compartida (CatalogoCache / RolPermiso) | `[ ]` Pendiente 🔴 | [[ADR-026 - Cache en memoria con FusionCache e invalidacion por Realtime]] |
-| P-049 | Suscripciones Realtime inactivas en Contactos (tablas no publicadas en publicación) | `[ ]` Pendiente | [[ADR-026 - Cache en memoria con FusionCache e invalidacion por Realtime]] |
+| P-049 | Suscripciones Realtime inactivas en Contactos (tablas no publicadas en publicación) | `[x]` Resuelto | [[Sesión 2026-09-06 - Resolucion integral P-045 P-049 P-051 P-052 P-053]] |
 | P-050 | Clave de caché de catálogos sin el tamaño de página (colisión lupa 200 / paginado 50) | `[x]` Resuelto | [[Sesión 2026-09-03 - Implementación de ADR-026 y socket Realtime autenticado]] |
-| P-051 | Política `select_Usuarios` con `USING (true)` sobre PUBLIC | `[ ]` Pendiente | [[Sesión 2026-09-03 - Implementación de ADR-026 y socket Realtime autenticado]] |
-| P-052 | Trigger de auditoría legacy duplica bitácora y choca con el RBAC de las RPC `_seguro` (categoría/fabricante/proveedor) | `[ ]` Pendiente | [[Plan de Migración de Presentaciones a RPC segura]] |
+| P-051 | Política `select_Usuarios` con `USING (true)` sobre PUBLIC | `[x]` Resuelto | [[Sesión 2026-09-06 - Resolucion integral P-045 P-049 P-051 P-052 P-053]] |
+| P-052 | Trigger de auditoría legacy duplicaba bitácora y chocaba con el RBAC de las RPC `_seguro` (categoría/fabricante/proveedor) | `[x]` Resuelto | [[Sesión 2026-09-05 - Alta múltiple de camiones y topes de texto en movimientos]] |
+| P-053 | Alta múltiple de camiones: N INSERT sueltos sin transacción (misma familia que P-032) | `[x]` Resuelto | [[Sesión 2026-09-06 - Resolucion integral P-045 P-049 P-051 P-052 P-053]] |
 
 ---
 
@@ -1119,3 +1218,5 @@ Las tablas `categoria`, `fabricante` y `proveedores` conservan su trigger `AFTER
 - [[Plan de Migración de Presentaciones a RPC segura]] — origen de P-052; migración de Presentaciones a la familia `_seguro`
 
 - [[Sesión 2026-09-03 - Implementación de ADR-026 y socket Realtime autenticado]] — origen de P-050 y P-051
+- [[Sesión 2026-09-05 - Alta múltiple de camiones y topes de texto en movimientos]] — origen de P-053; resolución parcial de P-045 y agravamiento de P-042
+- [[Sesión 2026-09-06 - Resolucion integral P-045 P-049 P-051 P-052 P-053]] — resolución de P-045 (RPC), P-049, P-051, P-052 y P-053

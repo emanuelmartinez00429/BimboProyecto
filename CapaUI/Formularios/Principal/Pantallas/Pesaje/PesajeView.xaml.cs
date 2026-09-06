@@ -483,12 +483,13 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             if (cerradas.Count > 0) AbrirReporte(cerradas);
         }
 
-        /// <summary>Alta de camión: solo sus datos — los productos se agregan después,
-        /// uno a la vez, desde el panel de Movimiento.</summary>
+        /// <summary>Alta de camiones: la tabla del proceso de descarga, hasta
+        /// <see cref="PesajeViewModel.MaxCamiones"/> de una sola vez. Solo sus datos —
+        /// los productos se agregan después, uno a la vez, desde el panel de Movimiento.</summary>
         private void BtnNuevoProceso_Click(object sender, RoutedEventArgs e)
         {
             if (SesionPermisos.Tiene(Permiso.RegistrarEntrada))
-                AbrirCamionModal(null);
+                AbrirRegistroCamionesModal();
         }
 
         /// <summary>Edita los datos del camión seleccionado (placa/proveedor/observaciones).
@@ -647,9 +648,51 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
         //  Modales
         // ══════════════════════════════════════════════════════════════════════
         /// <summary>
-        /// Alta o edición de UN camión (<paramref name="camion"/> null = alta) — solo
-        /// sus datos. Reemplaza al viejo "proceso de descarga" (wizard + megamodal);
-        /// los productos ya no viajan acá, ver <see cref="AbrirProductoModal"/>.
+        /// Tabla de alta del proceso de descarga: hasta
+        /// <see cref="PesajeViewModel.MaxCamiones"/> camiones en una sola pasada. En el
+        /// andén los camiones llegan juntos, así que darlos de alta de a uno significaba
+        /// abrir y cerrar <see cref="CamionModal"/> cinco veces seguidas.
+        /// <para/>
+        /// Editar sigue siendo de a uno — ver <see cref="AbrirCamionModal"/>.
+        /// </summary>
+        private void AbrirRegistroCamionesModal()
+        {
+            // Las recepciones abiertas viajan al modal para dos cosas: avisar que una placa
+            // ya está abierta con otro proveedor (no bloquea) y rechazar el duplicado
+            // exacto placa+proveedor (sí bloquea).
+            var abiertos = _vm.Camiones.Where(c => c.Estado == "Abierto").ToList();
+            var modal = new RegistroCamionesModal(abiertos);
+
+            modal.Cerrado += CerrarModal;
+            modal.Confirmado += async camiones =>
+            {
+                var lote = camiones
+                    .Select(c => (c.Placa, c.IdProveedor, c.Descripcion))
+                    .ToList();
+
+                int creados = await _vm.RegistrarCamionesAsync(lote);
+
+                // Si entraron todos, se cierra. Si el lote se cortó a mitad el modal queda
+                // abierto con lo que falta —el VM ya dijo por Toast cuántos entraron— pero
+                // hay que descontarle lo que sí se guardó, o el próximo "Guardar" lo
+                // registraría dos veces.
+                if (creados == lote.Count)
+                    CerrarModal();
+                else
+                    modal.AplicarGuardadoParcial(
+                        creados, _vm.Camiones.Where(c => c.Estado == "Abierto").ToList());
+
+                SincronizarSeleccion();
+                ActualizarUI();
+            };
+
+            MostrarModal(modal);
+        }
+
+        /// <summary>
+        /// Edición de UN camión — solo sus datos. El alta ya no pasa por acá: es
+        /// <see cref="AbrirRegistroCamionesModal"/>. Los productos no viajan en este
+        /// modal, ver <see cref="AbrirProductoModal"/>.
         /// </summary>
         private void AbrirCamionModal(CamionPesaje? camion)
         {

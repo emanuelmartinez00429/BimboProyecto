@@ -4,6 +4,11 @@ using CapaAplicacion.Pesaje.Dtos;
 namespace CapaAplicacion.Pesaje.Interfaces;
 
 /// <summary>
+/// Resultado del alta atómica de un lote de camiones en el servidor.
+/// </summary>
+public record ResultadoAltaLoteCamiones(int Creados, int PrimerIdMovimiento, IReadOnlyList<int> IdsMovimiento);
+
+/// <summary>
 /// Persistencia del módulo de Recepción de Materia Prima (Fase 2).
 /// Mapea a las tablas reales `movimientos` / `movimiento_productos` / `entradas_producto`.
 /// "Quitar" = anular por estado (id_estado = 9). El trigger de BD calcula neto/tara al insertar pesajes.
@@ -13,6 +18,15 @@ public interface IPesajeRepository
     // ── Camiones (movimientos) ──────────────────────────────────────────────
     Task<Result<IReadOnlyList<CamionDto>>> GetCamionesActivosAsync(CancellationToken ct = default);
     Task<Result<int>> CrearCamionAsync(int idProveedor, string placa, string observaciones, int idUsuario, CancellationToken ct = default);
+
+    /// <summary>
+    /// Registra de forma atómica (en una sola transacción en el servidor) un lote de camiones.
+    /// Si cualquier fila falla, la transacción se aborta completamente y ningún camión es persistido.
+    /// </summary>
+    Task<Result<ResultadoAltaLoteCamiones>> RegistrarCamionesLoteAsync(
+        IReadOnlyList<(string Placa, int IdProveedor, string? Observaciones)> camiones,
+        Guid idSolicitud,
+        CancellationToken ct = default);
     Task<Result>      ActualizarCamionAsync(int idMovimiento, int idProveedor, string placa, string observaciones, CancellationToken ct = default);
     Task<Result>      CerrarCamionAsync(int idMovimiento, CancellationToken ct = default);
     Task<Result>      AnularCamionAsync(int idMovimiento, CancellationToken ct = default);

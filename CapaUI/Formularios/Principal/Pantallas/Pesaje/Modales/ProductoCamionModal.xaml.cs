@@ -7,8 +7,10 @@ using System.Windows;
 using System.Windows.Controls;
 using CapaAplicacion.Common.Catalogos;
 using CapaAplicacion.Productos.Dtos;
+using CapaDominio.Reglas;
 using CapaUI.Core.Catalogos;
 using CapaUI.Core.Controls;
+using CapaUI.Core.Validacion;
 using CapaUI.Formularios.Principal.Pantallas.Pesaje.Modelos;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -55,6 +57,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
         private ProveedorItem? _proveedorElegido;
         private int? _idProductoElegido;
         private int _agregados;
+        private ValidadorFormulario? _validador;
 
         /// <summary>Guarda de reentrada: sin esto, dos clics seguidos insertan dos productos.</summary>
         private bool _guardando;
@@ -94,6 +97,10 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
 
             _anchoPropio = Width;
             _altoPropio  = Height;
+
+            _validador = ValidadorFormulario.Nuevo()
+                .Campo(TxtObs, "Las observaciones").Segun(ReglasProductoCamion.Observaciones)
+                .ValidarAlSalirDelCampo();
 
             // El proveedor arranca siempre con el del camión sobre el que se abrió.
             if (_camion.IdProveedor.HasValue)
@@ -255,6 +262,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
         private async Task GuardarAsync(bool cerrar)
         {
             if (_guardando || Guardar is null) return;
+            if (_validador is not null && !_validador.Validar()) return;
             if (_proveedorElegido is null || !_idProductoElegido.HasValue) return;
             if (!double.TryParse(TxtPeso.Text, NumberStyles.Any, CultureInfo.InvariantCulture, out var peso)) return;
             if (!int.TryParse(TxtBultos.Text, out var bultos)) return;
@@ -314,6 +322,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
             TxtPeso.Text       = "";
             TxtBultos.Text     = "";
             TxtObs.Text        = "";
+            _validador?.Limpiar();
 
             TxtPie.Text = _agregados == 1
                 ? "1 producto agregado"

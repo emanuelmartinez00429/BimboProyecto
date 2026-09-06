@@ -1,6 +1,7 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:controls="clr-namespace:CapaUI.Core.Controls">
+                    xmlns:controls="clr-namespace:CapaUI.Core.Controls"
+                    xmlns:validacion="clr-namespace:CapaUI.Core.Validacion">
 
     <!-- Iconos compartidos -->
     <Geometry x:Key="MIcoClose">M6,6 l12,12 M18,6 l-12,12</Geometry>
@@ -62,6 +63,10 @@
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter TargetName="Bd" Property="Background" Value="#8CFFFFFF"/>
                             <Setter Property="Foreground" Value="#6B7280"/>
+                        </Trigger>
+                        <Trigger Property="validacion:Validacion.TieneError" Value="True">
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="#FCA5A5"/>
+                            <Setter TargetName="Bd" Property="BorderThickness" Value="1.5"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>

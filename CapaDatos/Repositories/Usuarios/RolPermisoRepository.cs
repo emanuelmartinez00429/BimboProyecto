@@ -185,4 +185,9 @@ public sealed class RolPermisoRepository : RepositorioBase, IRolPermisoRepositor
             });
             ct.ThrowIfCancellationRequested();
         }, "Guardar permisos del rol");
+
+    public void PurgarCache()
+    {
+        _cache.InvalidarEtiqueta(TagsCache.RbacDefiniciones);
+    }
 }

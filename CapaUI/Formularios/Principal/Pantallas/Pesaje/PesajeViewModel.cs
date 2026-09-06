@@ -512,6 +512,54 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
         }
 
         /// <summary>
+        /// Alta atómica de VARIOS camiones en una sola transacción en el servidor — lo que confirma
+        /// <c>RegistroCamionesModal</c>. Devuelve cuántos quedaron registrados.
+        /// </summary>
+        /// <remarks>
+        /// Delegado a <see cref="IPesajeRepository.RegistrarCamionesLoteAsync"/> mediante la
+        /// RPC atómica <c>registrar_camiones_lote_seguro</c>. Si cualquier inserción falla, la
+        /// transacción se aborta completamente en el servidor y ningún camión es persistido.
+        /// </remarks>
+        public async Task<int> RegistrarCamionesAsync(
+            IReadOnlyList<(string Placa, int IdProveedor, string Observaciones)> camiones,
+            CancellationToken ct = default)
+        {
+            if (camiones.Count == 0) return 0;
+            if (!HaySesionActiva("registrar los camiones")) return 0;
+
+            var lote = camiones
+                .Select(c => (c.Placa, c.IdProveedor, (string?)c.Observaciones))
+                .ToList();
+
+            var idSolicitud = Guid.NewGuid();
+            var r = await _repo.RegistrarCamionesLoteAsync(lote, idSolicitud, ct);
+
+            if (!r.Success)
+            {
+                string error = r.Error ?? "No se pudo registrar el lote de camiones";
+                Serilog.Log.Warning("PesajeVM: error al registrar lote de camiones: {Error}", error);
+                Toast?.Invoke(error);
+                return 0;
+            }
+
+            var resultado = r.Value!;
+            int creados = resultado.Creados;
+            int? primerId = resultado.PrimerIdMovimiento > 0 ? resultado.PrimerIdMovimiento : null;
+
+            if (creados > 0)
+            {
+                await RecargarCamionesAsync(seleccionarId: primerId);
+                Toast?.Invoke(creados == 1 ? "Camión registrado" : $"{creados} camiones registrados");
+            }
+            else
+            {
+                Toast?.Invoke("No se registraron camiones");
+            }
+
+            return creados;
+        }
+
+        /// <summary>
         /// Recibe el camión explícito (no <see cref="SelectedCamion"/>): lo dispara el
         /// ícono de basurero de su propia fila en la lista, así que borra el que se tocó
         /// sin depender de que ese clic también haya cambiado la selección.

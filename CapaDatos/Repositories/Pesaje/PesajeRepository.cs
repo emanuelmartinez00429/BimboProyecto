@@ -79,6 +79,64 @@ public class PesajeRepository : RepositorioBase, IPesajeRepository
     }
 
     /// <summary>
+    /// Registra de forma atómica (en una sola transacción en el servidor) un lote de camiones.
+    /// Si cualquier fila falla, la transacción se aborta completamente y ningún camión es persistido.
+    /// </summary>
+    public Task<Result<ResultadoAltaLoteCamiones>> RegistrarCamionesLoteAsync(
+        IReadOnlyList<(string Placa, int IdProveedor, string? Observaciones)> camiones,
+        Guid idSolicitud,
+        CancellationToken ct = default)
+    {
+        if (camiones == null || camiones.Count == 0)
+            return Task.FromResult(Result<ResultadoAltaLoteCamiones>.Ok(new ResultadoAltaLoteCamiones(0, 0, Array.Empty<int>())));
+
+        var solicitudEfectiva = idSolicitud == Guid.Empty ? Guid.NewGuid() : idSolicitud;
+
+        return TryAsync(async () =>
+        {
+            ct.ThrowIfCancellationRequested();
+            var client = await ConexionSupabase.GetClientAsync();
+
+            var loteJson = camiones.Select(c => new Dictionary<string, object?>
+            {
+                ["id_proveedor"]   = c.IdProveedor,
+                ["placa"]          = c.Placa?.Trim().ToUpperInvariant(),
+                ["placa_vehiculo"] = c.Placa?.Trim().ToUpperInvariant(),
+                ["observaciones"]  = string.IsNullOrWhiteSpace(c.Observaciones) ? null : c.Observaciones.Trim(),
+            }).ToArray();
+
+            var parametros = new Dictionary<string, object?>
+            {
+                ["p_camiones"]     = loteJson,
+                ["p_id_solicitud"] = solicitudEfectiva,
+            };
+
+            var response = await client.Rpc("registrar_camiones_lote_seguro", parametros);
+            ct.ThrowIfCancellationRequested();
+
+            var res = ObtenerResultadoRpc(response?.Content, "registrar el lote de camiones");
+            int creados = res["creados"]?.Value<int>() ?? 0;
+
+            var idsTokens = res["ids_movimiento"] as JArray
+                            ?? res["ids"] as JArray
+                            ?? res["ids_movimientos"] as JArray;
+
+            IReadOnlyList<int> ids = idsTokens != null
+                ? idsTokens.Select(t => t.Value<int>()).ToList()
+                : Array.Empty<int>();
+
+            int primerId = res["primer_id"]?.Value<int>()
+                           ?? res["primer_id_movimiento"]?.Value<int>()
+                           ?? (ids.Count > 0 ? ids[0] : 0);
+
+            if (creados == 0 && ids.Count > 0)
+                creados = ids.Count;
+
+            return new ResultadoAltaLoteCamiones(creados, primerId, ids);
+        }, "Registrar camiones en lote");
+    }
+
+    /// <summary>
     /// NO toca <c>peso_tara_extra</c> a propósito: es una columna del flujo anterior y editar un
     /// camión legado le borraría su tara histórica. La tara extra vigente se guarda por entrada.
     /// </summary>

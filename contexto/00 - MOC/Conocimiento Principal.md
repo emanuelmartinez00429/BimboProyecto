@@ -141,7 +141,9 @@ Regla: `CapaAplicacion` **nunca** referencia `CapaDatos`.
 ## Bitácora
 
 Las sesiones están en `70 - Bitácora de Cambios/`.  
-Sesiones más recientes (2026-09-03):
+Sesiones más recientes (2026-09-06):
+- [[Sesión 2026-09-06 - Resolucion integral P-045 P-049 P-051 P-052 P-053]]
+- [[Sesión 2026-09-05 - Alta múltiple de camiones y topes de texto en movimientos]]
 - [[Sesión 2026-09-03 - Corrección visual y acción masiva de Notificaciones]]
 - [[Sesión 2026-09-03 - Implementación de ADR-026 y socket Realtime autenticado]]
 - [[Sesión 2026-09-02 - Columnas Creado y Actualizado en tablas de catálogo]]

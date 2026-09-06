@@ -137,6 +137,56 @@ public static class ReglasContacto
     public static readonly ReglaCampo Correo   = new(LargoMaximo: 100, Formato: FormatoCampo.Correo);
 }
 
+/// <summary>
+/// Camión de una recepción de materia prima — la fila de <c>movimientos</c>.
+/// </summary>
+/// <remarks>
+/// Los dos largos salen de <c>20260905215247_limitar_texto_movimientos.sql</c>.
+/// Antes de esa migración las columnas no tenían tope (varchar sin límite y
+/// <c>text</c>), así que no había nada de la base que reflejar acá.
+/// </remarks>
+public static class ReglasCamion
+{
+    // Columna: id_proveedor (integer NOT NULL, FK a proveedores)
+    public static readonly ReglaCampo Proveedor   = new(Obligatorio: true);
+
+    // Columna: placa_vehiculo (varchar 20)
+    public static readonly ReglaCampo Placa       = new(Obligatorio: true, LargoMaximo: 20);
+
+    // Columna: observaciones (varchar 500) — «Descripción» en la pantalla de registro
+    public static readonly ReglaCampo Descripcion = new(LargoMaximo: 500);
+}
+
+/// <summary>
+/// Producto asignado a un camión de recepción — la fila de <c>movimiento_productos</c>.
+/// </summary>
+public static class ReglasProductoCamion
+{
+    // Columna: id_producto (integer NOT NULL)
+    public static readonly ReglaCampo IdProducto    = new(Obligatorio: true);
+
+    // Columna: cantidad / peso manifestado / bultos teóricos
+    public static readonly ReglaCampo Cantidad      = new(Obligatorio: true);
+
+    // Columna: observaciones (varchar 500)
+    public static readonly ReglaCampo Observaciones = new(LargoMaximo: 500);
+}
+
+/// <summary>
+/// Pesaje individual de materia prima — la fila de <c>entradas_producto</c>.
+/// </summary>
+public static class ReglasEntradaPesaje
+{
+    // Columna: peso_bruto (numeric NOT NULL)
+    public static readonly ReglaCampo PesoBruto     = new(Obligatorio: true);
+
+    // Columna: peso_tara_extra (numeric NOT NULL, default 0)
+    public static readonly ReglaCampo TaraExtra     = new(Obligatorio: false);
+
+    // Columna: observaciones (varchar 500)
+    public static readonly ReglaCampo Observaciones = new(LargoMaximo: 500);
+}
+
 public static class ReglasEmpresa
 {
     // Columna: nombre_empresa (varchar 200)

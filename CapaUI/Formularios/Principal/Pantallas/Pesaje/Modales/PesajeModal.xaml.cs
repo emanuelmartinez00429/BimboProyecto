@@ -4,6 +4,8 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using CapaDominio.Reglas;
+using CapaUI.Core.Validacion;
 using CapaUI.Formularios.Principal.Pantallas.Pesaje.Modelos;
 
 namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
@@ -33,6 +35,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
 
         /// <summary>Guarda de reentrada: sin esto, dos clics seguidos insertaban dos pesajes.</summary>
         private bool _guardando;
+        private ValidadorFormulario? _validador;
 
         /// <summary>
         /// Entrada que se está corrigiendo, o <c>null</c> si lo próximo es una pesada nueva.
@@ -70,6 +73,10 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
             TxtTaraInd.Text   = _taraInd.ToString("N2", CultureInfo.InvariantCulture);
             TxtManifestado.Text = producto.PesoManifestado.ToString("N0", CultureInfo.InvariantCulture) + " kg";
             TxtBultosDeclarados.Text = producto.BultosDeclarados.ToString("N0", CultureInfo.InvariantCulture);
+
+            _validador = ValidadorFormulario.Nuevo()
+                .Campo(TxtObs, "Las observaciones").Segun(ReglasEntradaPesaje.Observaciones)
+                .ValidarAlSalirDelCampo();
 
             if (editInitial != null)
             {
@@ -201,6 +208,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
             TxtBruto.Clear();
             TxtTaraExtraEntrada.Clear();
             TxtObs.Clear();
+            _validador?.Limpiar();
 
             Recalcular(this, null!);
             TxtBruto.Focus();
@@ -209,6 +217,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
         private async void Seguir_Click(object sender, RoutedEventArgs e)
         {
             if (_guardando || !Valido || GuardarYSeguir is null) return;
+            if (_validador is not null && !_validador.Validar()) return;
 
             var snapshot = Snapshot();
             AplicarEstadoGuardando(true);

@@ -22,4 +22,10 @@ public interface IRolPermisoRepository
         int idRol,
         IReadOnlyCollection<int> idsAcciones,
         CancellationToken ct = default);
+
+    /// <summary>
+    /// Invalida las definiciones de RBAC cacheadas en memoria.
+    /// Invocado durante la limpieza de sesión para evitar filtraciones entre usuarios.
+    /// </summary>
+    void PurgarCache();
 }

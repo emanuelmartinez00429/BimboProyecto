@@ -31,11 +31,11 @@ public sealed record DefinicionAuditoriaRegla(
 /// <para/>
 /// <b>Test A (Deriva de Esquema contra PostgreSQL):</b> Se conecta a PostgreSQL mediante <c>Npgsql</c>
 /// leyendo <c>BIMBO_POSTGRES_CONNECTION_STRING</c>. Si no existe la variable, omite limpiamente para CI offline.
-/// Si existe, consulta <c>information_schema.columns</c> para verificar que las 34 reglas coincidan con la BD física,
+/// Si existe, consulta <c>information_schema.columns</c> para verificar que las 43 reglas coincidan con la BD física,
 /// que ningún <c>LargoMaximo</c> sea más permisivo que la columna en BD, y que las columnas <c>text</c> tengan tope de UI de 500.
 /// <para/>
 /// <b>Test B (Valores Fijados para Ejecución Offline / CI):</b> Pruebas deterministas con <see cref="TheoryAttribute"/>
-/// que validan las 34 reglas de dominio en las 10 clases de negocio sin requerir conexión a BD.
+/// que validan las 43 reglas de dominio en las 13 clases de negocio sin requerir conexión a BD.
 /// <para/>
 /// <b>Test C (Auditoría Exhaustiva por Reflexión):</b> Inspecciona por Reflection el ensamblado de <see cref="ReglasProducto"/>
 /// para asegurar que el 100% de los campos <see cref="ReglaCampo"/> declarados en <c>CapaDominio.Reglas</c> estén cubiertos
@@ -44,7 +44,7 @@ public sealed record DefinicionAuditoriaRegla(
 public sealed class ReglasEntidadesTests
 {
     /// <summary>
-    /// Catálogo autoritativo de las 34 reglas de negocio mapeadas a su columna física o servicio.
+    /// Catálogo autoritativo de las 43 reglas de negocio mapeadas a su columna física o servicio.
     /// </summary>
     public static readonly IReadOnlyList<DefinicionAuditoriaRegla> CatalogoAuditoria = new DefinicionAuditoriaRegla[]
     {
@@ -135,6 +135,30 @@ public sealed class ReglasEntidadesTests
             "empresa", "correo_empresa", ObligatorioEsperado: false, LargoMaximoEsperado: 100, LargoMinimoEsperado: null, FormatoEsperado: FormatoCampo.Correo),
         new("ReglasEmpresa", nameof(ReglasEmpresa.Direccion), ReglasEmpresa.Direccion,
             "empresa", "direccion_empresa", ObligatorioEsperado: false, LargoMaximoEsperado: 500, LargoMinimoEsperado: null, FormatoEsperado: FormatoCampo.Ninguno, EsTopeUI: false),
+
+        // ── 11. ReglasCamion (3 campos) ─────────────────────────────────────
+        new("ReglasCamion", nameof(ReglasCamion.Proveedor), ReglasCamion.Proveedor,
+            "movimientos", "id_proveedor", ObligatorioEsperado: true, LargoMaximoEsperado: null, LargoMinimoEsperado: null, FormatoEsperado: FormatoCampo.Ninguno),
+        new("ReglasCamion", nameof(ReglasCamion.Placa), ReglasCamion.Placa,
+            "movimientos", "placa_vehiculo", ObligatorioEsperado: true, LargoMaximoEsperado: 20, LargoMinimoEsperado: null, FormatoEsperado: FormatoCampo.Ninguno),
+        new("ReglasCamion", nameof(ReglasCamion.Descripcion), ReglasCamion.Descripcion,
+            "movimientos", "observaciones", ObligatorioEsperado: false, LargoMaximoEsperado: 500, LargoMinimoEsperado: null, FormatoEsperado: FormatoCampo.Ninguno, EsTopeUI: false),
+
+        // ── 12. ReglasProductoCamion (3 campos) ─────────────────────────────
+        new("ReglasProductoCamion", nameof(ReglasProductoCamion.IdProducto), ReglasProductoCamion.IdProducto,
+            "movimiento_productos", "id_producto", ObligatorioEsperado: true, LargoMaximoEsperado: null, LargoMinimoEsperado: null, FormatoEsperado: FormatoCampo.Ninguno),
+        new("ReglasProductoCamion", nameof(ReglasProductoCamion.Cantidad), ReglasProductoCamion.Cantidad,
+            "movimiento_productos", "peso_manifestado", ObligatorioEsperado: true, LargoMaximoEsperado: null, LargoMinimoEsperado: null, FormatoEsperado: FormatoCampo.Ninguno),
+        new("ReglasProductoCamion", nameof(ReglasProductoCamion.Observaciones), ReglasProductoCamion.Observaciones,
+            "movimiento_productos", "observaciones", ObligatorioEsperado: false, LargoMaximoEsperado: 500, LargoMinimoEsperado: null, FormatoEsperado: FormatoCampo.Ninguno, EsTopeUI: false),
+
+        // ── 13. ReglasEntradaPesaje (3 campos) ──────────────────────────────
+        new("ReglasEntradaPesaje", nameof(ReglasEntradaPesaje.PesoBruto), ReglasEntradaPesaje.PesoBruto,
+            "entradas_producto", "peso_bruto", ObligatorioEsperado: true, LargoMaximoEsperado: null, LargoMinimoEsperado: null, FormatoEsperado: FormatoCampo.Ninguno),
+        new("ReglasEntradaPesaje", nameof(ReglasEntradaPesaje.TaraExtra), ReglasEntradaPesaje.TaraExtra,
+            "entradas_producto", "peso_tara_extra", ObligatorioEsperado: false, LargoMaximoEsperado: null, LargoMinimoEsperado: null, FormatoEsperado: FormatoCampo.Ninguno),
+        new("ReglasEntradaPesaje", nameof(ReglasEntradaPesaje.Observaciones), ReglasEntradaPesaje.Observaciones,
+            "entradas_producto", "observaciones", ObligatorioEsperado: false, LargoMaximoEsperado: 500, LargoMinimoEsperado: null, FormatoEsperado: FormatoCampo.Ninguno, EsTopeUI: false),
     };
 
     public static TheoryData<DefinicionAuditoriaRegla> ObtenerDatosAuditoria()
@@ -378,6 +402,40 @@ public sealed class ReglasEntidadesTests
         Assert.Equal(500, ReglasEmpresa.Direccion.LargoMaximo);
     }
 
+    [Fact]
+    public void TestB_ReglasCamion_TienePlacaYDescripcion()
+    {
+        Assert.True(ReglasCamion.Proveedor.Obligatorio);
+
+        Assert.True(ReglasCamion.Placa.Obligatorio);
+        Assert.Equal(20, ReglasCamion.Placa.LargoMaximo);
+
+        Assert.False(ReglasCamion.Descripcion.Obligatorio);
+        Assert.Equal(500, ReglasCamion.Descripcion.LargoMaximo);
+    }
+
+    [Fact]
+    public void TestB_ReglasProductoCamion_TieneTopesYFormatos()
+    {
+        Assert.True(ReglasProductoCamion.IdProducto.Obligatorio);
+
+        Assert.True(ReglasProductoCamion.Cantidad.Obligatorio);
+
+        Assert.False(ReglasProductoCamion.Observaciones.Obligatorio);
+        Assert.Equal(500, ReglasProductoCamion.Observaciones.LargoMaximo);
+    }
+
+    [Fact]
+    public void TestB_ReglasEntradaPesaje_TieneTopesYFormatos()
+    {
+        Assert.True(ReglasEntradaPesaje.PesoBruto.Obligatorio);
+
+        Assert.False(ReglasEntradaPesaje.TaraExtra.Obligatorio);
+
+        Assert.False(ReglasEntradaPesaje.Observaciones.Obligatorio);
+        Assert.Equal(500, ReglasEntradaPesaje.Observaciones.LargoMaximo);
+    }
+
     // ========================================================================
     // TEST C: Auditoría Exhaustiva por Reflexión
     // ========================================================================
@@ -405,9 +463,9 @@ public sealed class ReglasEntidadesTests
             }
         }
 
-        // Exactamente 34 reglas declaradas y 34 en el catálogo
-        Assert.Equal(34, camposReflexion.Count);
-        Assert.Equal(34, CatalogoAuditoria.Count);
+        // Exactamente 43 reglas declaradas y 43 en el catálogo
+        Assert.Equal(43, camposReflexion.Count);
+        Assert.Equal(43, CatalogoAuditoria.Count);
 
         var mapeoCatalogo = CatalogoAuditoria.ToDictionary(
             d => $"{d.ClaseDominio}.{d.NombreCampo}",
