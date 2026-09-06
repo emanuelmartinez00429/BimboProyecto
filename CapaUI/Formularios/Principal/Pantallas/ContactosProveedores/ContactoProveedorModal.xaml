@@ -215,9 +215,7 @@
                                         </Trigger>
                                         <Trigger Property="IsEnabled" Value="False">
                                             <Setter TargetName="Bd" Property="Background" Value="#CBD5E1"/>
-                                            <Setter TargetName="Bd" Property="Effect">
-                                                <Setter.Value><DropShadowEffect Opacity="0"/></Setter.Value>
-                                            </Setter>
+                                            <Setter TargetName="Bd" Property="Effect" Value="{x:Null}"/>
                                         </Trigger>
                                     </ControlTemplate.Triggers>
                                 </ControlTemplate>

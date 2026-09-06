@@ -157,7 +157,7 @@
                             CornerRadius="8">
                         <ScrollViewer x:Name="PART_ContentHost"
                                       Margin="{TemplateBinding Padding}"
-                                      VerticalAlignment="Center"/>
+                                      VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsFocused" Value="True">
@@ -241,7 +241,7 @@
                         <Grid>
                             <ScrollViewer x:Name="PART_ContentHost"
                                           Margin="{TemplateBinding Padding}"
-                                          VerticalAlignment="Center"
+                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                                           VerticalScrollBarVisibility="Disabled"/>
                             <!-- Recorte visual "…" para los campos EDITABLES (Nombre,
                                  Código…): acá no se puede tocar TextBox.Text como hace
@@ -259,7 +259,7 @@
                                        Visibility="Collapsed"
                                        x:Name="PART_Recorte"
                                        Margin="{TemplateBinding Padding}"
-                                       VerticalAlignment="Center"
+                                       VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                                        Background="{TemplateBinding Background}"
                                        Foreground="{TemplateBinding Foreground}"
                                        FontFamily="{TemplateBinding FontFamily}"

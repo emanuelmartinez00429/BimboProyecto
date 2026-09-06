@@ -328,6 +328,20 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
         }
 
         /// <summary>
+        /// Mientras se escribe, el TextBox sigue el cursor: con texto largo eso deja
+        /// visible la COLA, no el inicio. Al salir del campo se vuelve a ver desde el
+        /// principio — que es además el estado en el que aparece la vista previa
+        /// recortada con "…" (el TextBlock superpuesto en el XAML), así que conviene
+        /// que las dos cosas cambien juntas al perder el foco.
+        /// </summary>
+        private void Descripcion_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (sender is not TextBox caja) return;
+            caja.CaretIndex = 0;
+            caja.ScrollToHome();
+        }
+
+        /// <summary>
         /// Avisa —sin bloquear— que alguna placa de la tabla ya está abierta con OTRO
         /// proveedor. No es un error: un camión que trae carga de dos proveedores se
         /// registra como dos recepciones, una por proveedor. El aviso está para que no

@@ -266,9 +266,10 @@ namespace CapaUI.Formularios.Principal
             // Disponer la vista actual (si es IDisposable)
             (VistaActual as IDisposable)?.Dispose();
 
-            // Desuscribir del SearchVM y disponerlo
+            // Desuscribir del SearchVM — NO disponerlo: es una instancia compartida del
+            // contenedor DI que vive para todo el proceso. Disponerlo aquí causaba
+            // ObjectDisposedException en la siguiente búsqueda.
             _searchVm.ResultSelected -= OnResultadoBusquedaSeleccionado;
-            (_searchVm as IDisposable)?.Dispose();
             Notificaciones.Dispose();
         }
     }

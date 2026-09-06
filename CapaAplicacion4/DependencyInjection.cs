@@ -14,10 +14,10 @@ public static class DependencyInjection
         services.AddMediatR(cfg =>
             cfg.RegisterServicesFromAssembly(typeof(UniversalSearchHandler).Assembly));
 
-        services.AddScoped<ISearchStrategy, ProductoSearchStrategy>();
-        services.AddScoped<ISearchStrategy, EmpleadoSearchStrategy>();
-        services.AddScoped<ISearchStrategy, ClienteSearchStrategy>();
-        services.AddScoped<SearchStrategyRegistry>();
+        services.AddSingleton<ISearchStrategy, ProductoSearchStrategy>();
+        services.AddSingleton<ISearchStrategy, EmpleadoSearchStrategy>();
+        services.AddSingleton<ISearchStrategy, ClienteSearchStrategy>();
+        services.AddSingleton<SearchStrategyRegistry>();
         services.AddTransient<IReportGeneratorService, ReportGeneratorService>();
 
         return services;

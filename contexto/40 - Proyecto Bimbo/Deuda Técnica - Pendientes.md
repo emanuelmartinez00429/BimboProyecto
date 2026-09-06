@@ -572,13 +572,13 @@ Hallazgos fuera de Roles, **no atacados** por decisión de alcance. Ordenados po
 | **G4** | **`DashboardView` tiene un `Storyboard RepeatBehavior="Forever"` que nunca se detiene** (`DashboardView.xaml:549`, sin `Unloaded`). Se acumula uno por cada visita. |
 | **G5** | **`PesajeView` es la única vista que no llama `_vm.Dispose()`** y suscribe `PropertyChanged` con lambda anónima no desuscribible (`PesajeView.xaml.cs:44`, `:55-62`). |
 | **G6** | **Guardar un proceso de descarga hace ~20 viajes de red en serie** (`PesajeViewModel.cs:189-238`). Son independientes → `Task.WhenAll`. |
-| **G7** | **`<DropShadowEffect Opacity="0"/>` no apaga el shader** (`ContactoFabricanteModal.xaml:222`, `ContactoProveedorModal.xaml:213`). Lo correcto es `Value="{x:Null}"`. |
-| **G8** | **`AddScoped` en WPF sin scopes** (`CapaAplicacion4/DependencyInjection.cs:15-18`) = singletons de facto. `CapaDatos` ya resolvió esto con Singleton explícito. |
-| **G9** | **`MainViewModel` dispone `_searchVm`**, instancia compartida de toda la sesión → la siguiente búsqueda lanza `ObjectDisposedException` (`MainViewModel.cs:142`, `:172`). |
+| ~~**G7**~~ | ✅ **`<DropShadowEffect Opacity="0"/>` no apaga el shader** (`ContactoFabricanteModal.xaml:222`, `ContactoProveedorModal.xaml:213`). Resuelto: `Effect="{x:Null}"` en ambos. |
+| ~~**G8**~~ | ✅ **`AddScoped` en WPF sin scopes** (`CapaAplicacion4/DependencyInjection.cs:15-18`) = singletons de facto. Resuelto: `AddSingleton` explícito, mismo criterio que ya usaba `CapaDatos`. Verificado que las 3 estrategias inyectan repos Transient sin estado — sin dependencia cautiva peligrosa. |
+| ~~**G9**~~ | ✅ **`MainViewModel` disponía `_searchVm`**, instancia compartida de toda la sesión → la siguiente búsqueda lanzaba `ObjectDisposedException` (`MainViewModel.cs:142`, `:172`). Resuelto: se quitó el `Dispose()` de `_searchVm`; sigue desuscribiéndose del evento. |
 | **G10** | `ProductosView.ActualizarCarga()` y `CategoriasView.ActualizarCarga()` desreferencian `_vm` sin comprobar null. |
 | **G11** | Recursos duplicados en 8 vistas, re-parseados en cada navegación. Solo `RolesResources.xaml` usa `po:Freeze`. |
 
-**Estado:** `[ ] Pendiente`
+**Estado:** `[~] Parcial — G7, G8 y G9 resueltos 2026-09-06 (ver [[Sesión 2026-09-06 - Tres frenos de rendimiento cerrados y VerticalAlignment fijo en ModalInput]]); G1-G6, G10 y G11 siguen pendientes`
 
 ---
 
@@ -834,7 +834,7 @@ Auditoría pedida tras notar que `ProcesoDescargaModal` (y el resto de los modal
 
 ---
 
-### P-043 · `ModalInput`/`InputBox` (global) tienen el mismo bug de `VerticalAlignment` fijo que ya se corrigió en `MInput`
+### ~~P-043~~ · ✅ `ModalInput`/`InputBox` (global) tenían el mismo bug de `VerticalAlignment` fijo que ya se corrigió en `MInput` — resuelto 2026-09-06
 
 **Archivo:** `CapaUI/Resources/Styles.xaml` — estilos `ModalInput` (líneas ~208-296) e `InputBox` (líneas ~141-167)
 **Detectado en:** [[Sesión 2026-08-19 - Selector de proveedor por tabla y consolidacion de estilos]]
@@ -849,7 +849,13 @@ El `ControlTemplate` de `MInput` (Pesaje) tenía `VerticalAlignment="Center"` **
 
 **Solución:** mismo fix de una línea, dos veces — en cada `ControlTemplate`, cambiar `VerticalAlignment="Center"` del `PART_ContentHost` por `VerticalAlignment="{TemplateBinding VerticalContentAlignment}"`. Sin riesgo para los campos de una sola línea: siguen viniendo con `VerticalContentAlignment="Center"` por el `Setter` del propio estilo, así que no cambia nada para ellos — solo lo hereda quien lo pise local, como ya hace `ConfiguracionEmpresaModal`.
 
-**Estado:** `[ ] Pendiente`
+**Solución aplicada — en dos tandas.** Una sesión anterior (2026-09-06, sin documentar) arregló solo `InputBox`; `ModalInput` quedó con el bug. Al revisar el trabajo se completó lo que faltaba:
+
+1. `InputBox` (línea ~157): `VerticalAlignment="{TemplateBinding VerticalContentAlignment}"` en `PART_ContentHost`.
+2. `ModalInput` (línea ~244): mismo cambio en su `PART_ContentHost`.
+3. **Un segundo bug que el fix de una sola línea habría dejado sin cerrar:** `ModalInput` tiene además un `TextBlock` superpuesto (`PART_Recorte`, con `TextTrimming="CharacterEllipsis"`, visible solo sin foco) que **también** tenía `VerticalAlignment="Center"` fijo. Arreglar solo `PART_ContentHost` habría dejado un campo top-alineado mostrando el texto arriba mientras se edita, pero saltando al centro apenas se le saca el foco — un bug visual nuevo. Se corrigió también (línea ~262).
+
+**Estado:** `[x]` Resuelto — build 0/0, 270/270 tests. Ver [[Sesión 2026-09-06 - Tres frenos de rendimiento cerrados y VerticalAlignment fijo en ModalInput]].
 
 ---
 
@@ -1201,7 +1207,7 @@ Cableado end-to-end verificado en el código: `RegistroCamionesModal.Guardar_Cli
 | P-040 | Carga inicial de `icono_sidebar` pendiente en Storage | `[x]` Resuelto | [[Sesión 2026-08-15 - Icono dinámico del sidebar]] |
 | P-041 | Conteos de Fabricantes/Categorías filtrados por estado — las 3 pastillas dejan de informar | `[ ]` Pendiente | [[Sesión 2026-08-15 - Modulo CRUD de Presentaciones]] |
 | P-042 | `PesajeModalStyles.xaml` duplica `ModalInput`/`ModalCombo`/`ModalSegBtn` sin foco ni validación por campo | `[ ]` Pendiente — agravado 2026-09-05 (3ª copia local: `CeldaInput`) | [[Sesión 2026-08-19 - Selector de proveedor por tabla y consolidacion de estilos]] |
-| P-043 | `ModalInput`/`InputBox` globales: mismo bug de `VerticalAlignment` fijo que ya se corrigió en `MInput` | `[ ]` Pendiente | [[Sesión 2026-08-19 - Selector de proveedor por tabla y consolidacion de estilos]] |
+| P-043 | `ModalInput`/`InputBox` globales: mismo bug de `VerticalAlignment` fijo que ya se corrigió en `MInput` | `[x]` Resuelto | [[Sesión 2026-09-06 - Tres frenos de rendimiento cerrados y VerticalAlignment fijo en ModalInput]] |
 | P-044 | Multiselección de `SelectorCatalogoModal` no responde a teclado (Space no tilda el checkbox) | `[ ]` Pendiente | [[Sesión 2026-08-19 - Selector de proveedor por tabla y consolidacion de estilos]] |
 | P-045 | Campos de texto de Pesaje sin límites en UI, Dominio ni BD | `[x]` Resuelto — las 3 tablas en las 3 capas | [[Sesión 2026-09-06 - Resolucion integral P-045 P-049 P-051 P-052 P-053]] |
 | P-046 | Validación visual de descripciones de estado de Pesaje en Bitácora | `[ ]` Pendiente | [[Sesión 2026-08-24 - RPC idempotentes auditadas de Pesajes]] |
@@ -1244,3 +1250,4 @@ Cableado end-to-end verificado en el código: `RegistroCamionesModal.Guardar_Cli
 - [[Sesión 2026-09-03 - Implementación de ADR-026 y socket Realtime autenticado]] — origen de P-050 y P-051
 - [[Sesión 2026-09-05 - Alta múltiple de camiones y topes de texto en movimientos]] — origen de P-053; resolución parcial de P-045 y agravamiento de P-042
 - [[Sesión 2026-09-06 - Resolucion integral P-045 P-049 P-051 P-052 P-053]] — resolución de P-045 (RPC), P-049, P-051, P-052 y P-053
+- [[Sesión 2026-09-06 - Tres frenos de rendimiento cerrados y VerticalAlignment fijo en ModalInput]] — cierra G7/G8/G9 de P-031 y resuelve P-043

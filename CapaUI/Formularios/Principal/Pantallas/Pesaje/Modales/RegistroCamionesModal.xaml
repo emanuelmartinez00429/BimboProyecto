@@ -383,9 +383,22 @@
 
                                                     <!-- Descripción -->
                                                     <StackPanel x:Name="CeldaDescripcion" Grid.Column="3" Margin="0,0,10,0" Visibility="Collapsed">
-                                                        <TextBox Style="{StaticResource CeldaInput}"
-                                                                 Loaded="CajaDescripcion_Loaded"
-                                                                 TextChanged="Descripcion_Changed"/>
+                                                        <Grid>
+                                                            <TextBox x:Name="CajaDescripcion" Style="{StaticResource CeldaInput}"
+                                                                     Loaded="CajaDescripcion_Loaded"
+                                                                     TextChanged="Descripcion_Changed"
+                                                                     LostFocus="Descripcion_LostFocus"/>
+                                                            <!-- Vista previa recortada: un TextBox no soporta TextTrimming, así
+                                                                 que se tapa con un TextBlock idéntico mientras no tiene foco.
+                                                                 Con foco se oculta y aparece el TextBox real para editar —
+                                                                 IsHitTestVisible=False para que el click pase directo a la caja. -->
+                                                            <TextBlock Text="{Binding Text, ElementName=CajaDescripcion}"
+                                                                       TextTrimming="CharacterEllipsis"
+                                                                       FontFamily="Segoe UI" FontSize="13.5" Foreground="#1A1F2E"
+                                                                       Background="White" Margin="1" Padding="10,0"
+                                                                       VerticalAlignment="Center" IsHitTestVisible="False"
+                                                                       Visibility="{Binding IsKeyboardFocusWithin, ElementName=CajaDescripcion, Converter={StaticResource InverseBoolToVisibility}}"/>
+                                                        </Grid>
                                                     </StackPanel>
 
                                                     <!-- Basurero -->
