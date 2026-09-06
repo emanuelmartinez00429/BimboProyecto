@@ -67,6 +67,19 @@ public partial class SelectorCatalogoModal : UserControl, IDisposable
     private readonly Dictionary<int, FiltroItem> _marcados = new();
 
     /// <summary>
+    /// Ids que alguna vez pasaron por el checkbox en esta apertura del modal
+    /// (tildado y después destildado incluido). Existe solo para el atajo de
+    /// Enter de <see cref="Confirmar"/> en modo múltiple (P-044): sin esto,
+    /// destildar una fila deja igual su <c>Dg.SelectedItem</c> (clickear el
+    /// checkbox también selecciona la fila) y el atajo la emitiría de nuevo
+    /// como si el usuario jamás la hubiera tocado — el mismo riesgo que el
+    /// comentario original de <see cref="Dg_DoubleClick"/> ya advertía para el
+    /// doble clic. El atajo solo debe correr sobre una fila que el operador
+    /// jamás marcó, no sobre una que marcó y se arrepintió.
+    /// </summary>
+    private readonly HashSet<int> _idsTocados = new();
+
+    /// <summary>
     /// Vive lo que vive el modal. Aparte de <c>_cts</c>, que se recrea en cada
     /// tecla del buscador: acá cuelga la revalidación de fondo, que tiene que
     /// abortarse al cerrar la lupa y no cuando el usuario sigue escribiendo.
@@ -472,6 +485,7 @@ public partial class SelectorCatalogoModal : UserControl, IDisposable
         if (sender is CheckBox cb && cb.DataContext is FilaCatalogo f && f.Item.Id is int id)
         {
             f.Marcado = cb.IsChecked == true;
+            _idsTocados.Add(id);
             if (f.Marcado) _marcados[id] = f.Item;
             else           _marcados.Remove(id);
         }
@@ -498,6 +512,7 @@ public partial class SelectorCatalogoModal : UserControl, IDisposable
     private void Limpiar_Click(object sender, RoutedEventArgs e)
     {
         _marcados.Clear();
+        _idsTocados.Clear();
 
         // Destildar lo que está en pantalla: FilaCatalogo notifica Marcado, así
         // que los CheckBox visibles se apagan solos.
@@ -517,6 +532,7 @@ public partial class SelectorCatalogoModal : UserControl, IDisposable
         fila.Marcado = !fila.Marcado;
         if (fila.Item.Id is int id)
         {
+            _idsTocados.Add(id);
             if (fila.Marcado) _marcados[id] = fila.Item;
             else           _marcados.Remove(id);
         }
@@ -559,8 +575,14 @@ public partial class SelectorCatalogoModal : UserControl, IDisposable
             }
 
             // P-044 atajo rápido por teclado: si el operador presiona Enter sobre una fila
-            // y aún no ha marcado ninguna casilla, se emite esa fila directamente.
-            if (Dg.SelectedItem is FilaCatalogo filaActual && !filaActual.YaElegido)
+            // que jamás tocó (ni tildó ni destildó) se emite esa fila directamente.
+            // Exige "nunca tocada" y no solo "sin marcar ahora": clickear el checkbox
+            // también selecciona la fila (Dg.SelectedItem), así que tildarla y
+            // arrepentirse (destildarla) la dejaría igual de "seleccionada pero sin
+            // marcar" — el atajo la emitiría por error pese a que el usuario ya dijo
+            // que no la quería. Mismo riesgo que ya evita Dg_DoubleClick.
+            if (Dg.SelectedItem is FilaCatalogo filaActual && !filaActual.YaElegido
+                && filaActual.Item.Id is int idActual && !_idsTocados.Contains(idActual))
             {
                 Emitir(new[] { filaActual.Item });
                 return;

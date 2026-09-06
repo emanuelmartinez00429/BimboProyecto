@@ -568,7 +568,7 @@ Hallazgos fuera de Roles, **no atacados** por decisión de alcance. Ordenados po
 |---|---|
 | ~~**G1**~~ | ✅ **Login: `Task.Delay` artificiales.** El Paso 3 ("Sincronizar módulos") no tenía red detrás y saltaba de 70% a 100% con el mismo barrido de `Task.Delay(6)` que los pasos con red real — 236ms cien por ciento artificiales. Resuelto: salta directo a 100%. Además se quitaron los `Dispatcher.Invoke` redundantes de `AnimarStep` (ya se está en el hilo UI). Los Pasos 1 y 2 **ya corrían** en paralelo con la red real vía `Task.WhenAll` desde antes — la cifra original de "~2,7s en serie" de este hallazgo estaba desactualizada al momento de atacarlo. |
 | ~~**G2**~~ | ✅ **`bimbo-logo.png` sin `DecodePixelWidth`.** `MainWindow.xaml` ahora decodifica a 50px reales (`DecodePixelHeight="50"`) en vez de cargar los 3000×1391 completos. La segunda mitad del hallazgo (`bimbo_no_bg.png` "recreado en 5 archivos") ya no aplica — verificado 2026-09-06 que hoy solo hay una referencia estática en `LoginWindow.xaml`, no un patrón de recreación por modal; la descripción original quedó desactualizada en ese punto. |
-| **G3** | **`CacheMode="BitmapCache"` sobre `Sidebar` y `BrandBlock`, cuyo `Width` se anima** (`MainWindow.xaml:127`, `:528`). Peor caso de BitmapCache: re-rasteriza el bitmap completo por frame. |
+| ~~**G3**~~ | ✅ **`CacheMode="BitmapCache"` sobre `Sidebar` y `BrandBlock`, cuyo `Width` se anima** (`MainWindow.xaml:127`, `:528`). Peor caso de BitmapCache: re-rasteriza el bitmap completo por frame. Resuelto 2026-09-06: se quitó `CacheMode="BitmapCache"` de ambos elementos. |
 | ~~**G4**~~ | ✅ **`DashboardView` tenía un `Storyboard RepeatBehavior="Forever"` que nunca se detenía.** Resuelto: ciclo de vida determinístico en `DashboardView.xaml.cs` (`Loaded`/`Unloaded`) que inicia y detiene el Storyboard limpiando memoria, evitando la excepción de Namescope que causa `StopStoryboard` en XAML al descargarse. |
 | ~~**G5**~~ | ✅ **`PesajeView` no llamaba `_vm.Dispose()`.** El primer intento de arreglo (2026-09-06) agregó `(_vm as IDisposable)?.Dispose()` en el `View`, pero `PesajeViewModel` no implementaba `IDisposable` — el cast siempre daba `null`, el `Dispose()` nunca corría. Corregido en la auditoría de la misma fecha: `PesajeViewModel` ahora implementa `IDisposable` de verdad (vacío hoy a propósito, no tiene CTS ni suscripciones que liberar; queda listo para cuando las tenga). La sospecha original de "lambda anónima no desuscribible" en `PropertyChanged` no se confirmó — ya era un método nombrado, correctamente desuscrito. |
 | ~~**G6**~~ | ✅ **Guardar un proceso de descarga hacía ~20 viajes de red en serie.** Resuelto: `PesajeViewModel.cs` reemplazó el `foreach` secuencial de carga de productos por camión con `Task.WhenAll`, ya que son independientes entre sí. |
@@ -578,7 +578,7 @@ Hallazgos fuera de Roles, **no atacados** por decisión de alcance. Ordenados po
 | ~~**G10**~~ | ✅ **`ProductosView.ActualizarCarga()` y `CategoriasView.ActualizarCarga()` desreferenciaban `_vm` sin comprobar null.** Resuelto: `if (_vm == null) return;` al inicio de ambas. |
 | **G11** | Recursos duplicados en 8 vistas, re-parseados en cada navegación. Solo `RolesResources.xaml` usa `po:Freeze`. |
 
-**Estado:** `[~] Parcial — G1, G2, G4, G5, G6, G7, G8, G9 y G10 resueltos 2026-09-06 (ver [[Sesión 2026-09-06 - Tres frenos de rendimiento cerrados y VerticalAlignment fijo en ModalInput]] y [[Sesión 2026-09-06 - Auditoría del cierre masivo P-025 P-029 P-031 P-032 P-038 P-041]]); solo G3 y G11 siguen pendientes`
+**Estado:** `[~] Parcial — G1, G2, G3, G4, G5, G6, G7, G8, G9 y G10 resueltos 2026-09-06 (ver [[Sesión 2026-09-06 - Tres frenos de rendimiento cerrados y VerticalAlignment fijo en ModalInput]], [[Sesión 2026-09-06 - Auditoría del cierre masivo P-025 P-029 P-031 P-032 P-038 P-041]] y [[Sesión 2026-09-06 - Auditoría de commits a05f006 y 404796c]]); solo G11 sigue pendiente`
 
 ---
 
@@ -649,7 +649,15 @@ select polname, polcmd from pg_policy where polrelid = 'entradas_producto'::regc
    - En logout (`MainWindow.LimpiarRecursosAsync:749`) se invoca `_invalidadorCache.Desuscribir()`.
    - Verificado con suite de pruebas unitarias dedicada: `BimboProyecto.Tests/Cache/InvalidadorCacheRealtimeTests.cs` (4 pruebas unitarias aprobadas).
 
-**Estado:** `[x]` Resuelto.
+> [!bug] Hallazgo al auditar (2026-09-06): la 10ª tabla se agregó al mapa sin publicarla — corregido
+> El mismo commit que subió el conteo de 8 a 10 tablas agregó `roles` al diccionario de `InvalidadorCacheRealtime` (para purgar la caché de `RolRepository`), pero nunca la agregó a `supabase_realtime`. Verificado en BD:
+> ```sql
+> select tablename from pg_publication_tables where pubname='supabase_realtime' and tablename in ('roles','acciones_roles');
+> -- (vacío)
+> ```
+> La suscripción se abría y **jamás recibía un evento** — exactamente el mismo modo de falla silenciosa que este ítem existe para prevenir, reintroducido para una tabla nueva. Corregido con `supabase/migrations/20260906170000_publicar_roles_en_realtime.sql` (`ALTER PUBLICATION supabase_realtime ADD TABLE public.roles;`), aplicada y reverificada en BD. RLS de `roles` ya es `USING (true)` para `authenticated`, así que publicarla no expone nada nuevo.
+
+**Estado:** `[x]` Resuelto (incluyendo la publicación de `roles`, corregida 2026-09-06).
 
 ---
 
@@ -830,21 +838,25 @@ O sea: apenas se toca el filtro de estado, el indicador deja de indicar. Con "To
 
 ---
 
-### ~~P-042~~ · ✅ `PesajeModalStyles.xaml` y modales de Pesaje estandarizados con estilos globales — resuelto 2026-09-06
+### P-042 · `PesajeModalStyles.xaml` duplica parcialmente `Styles.xaml` global — la 3ª copia (`CeldaInput`) ya se resolvió, el divergencia real de `MInput`/`MSegBtn` sigue sin decisión
 
 **Archivo:** `CapaUI/Formularios/Principal/Pantallas/Pesaje/Modales/PesajeModalStyles.xaml`
 **Detectado en:** [[Sesión 2026-08-19 - Selector de proveedor por tabla y consolidacion de estilos]]
 
-**Solución aplicada (2026-09-06):**
-1. ✅ **Promoción de `CeldaInput` a `Styles.xaml` global:**
-   - La variante compacta de input (34px de alto, padding `10,0`, aro de foco con `EmpresaPrimaryBrush` y borde de error `#EF4444` ante `validacion:Validacion.TieneError`) se extrajo como estilo centralizado oficial en `Styles.xaml`.
-   - Se eliminó la copia local duplicada en `RegistroCamionesModal.xaml`, consumiendo directamente el estilo global.
-2. ✅ **Soporte de error en `InputBox`:**
-   - Se integró el trigger de validación `validacion:Validacion.TieneError` (borde rojo `#EF4444`, grosor 2) en el estilo global `InputBox`.
-3. ✅ **Promoción global de botones de paginación:**
-   - Se promovieron `PageBtn` y `ActivePageBtn` a nivel de aplicación en `Styles.xaml` para ser consumidos uniformemente por el nuevo `PaginadorControl`.
+> [!warning] Marcado como `[x] Resuelto` el 2026-09-06 y **no lo estaba** — corregido al auditar
+> El commit `a05f006` cerró este ítem citando trabajo real, pero ese trabajo no es lo que el ítem pide. Verificado 2026-09-06 contra `PesajeModalStyles.xaml` (que ese commit ni siquiera tocó — no aparece en su diff):
+> - `MInput` (línea 28): su único cambio de foco sigue siendo `BorderBrush` → blanco. **Sigue sin el aro verde** (`EmpresaPrimaryBrush` + grosor 2) que sí tiene `ModalInput`/`InputBox`/`CeldaInput`.
+> - `MSegBtn` (línea 129): **sigue sin ningún trigger de foco** (`IsFocused`/`IsKeyboardFocusWithin`) — ni siquiera el cambio sutil de borde que tiene `MInput`.
+> - `MCombo` ya no existe (se eliminó en 2026-08-19 por quedar sin uso) — ese punto de comparación quedó obsoleto por sí solo, no por este commit.
 
-**Estado:** `[x]` Resuelto.
+**Lo que sí se resolvió de verdad el 2026-09-06** (commit `a05f006`), y es real, verificado y útil — pero es la deuda de la 3ª copia (anotada 2026-09-05), no la de este ítem:
+1. ✅ `CeldaInput` (el estilo local que `RegistroCamionesModal.xaml` se vio obligado a crear para tener el borde rojo de `Validacion.TieneError` que `MInput` no tenía en ese momento) se promovió a `Styles.xaml` global con aro de foco y borde de error — `RegistroCamionesModal.xaml` ya no tiene copia local, consume el estilo global.
+2. ✅ `InputBox` global sumó el trigger `Validacion.TieneError` que le faltaba (esto es la sustancia real de **P-047**, ver más abajo).
+3. ✅ `PageBtn`/`ActivePageBtn` se promovieron a `Styles.xaml` para el nuevo `PaginadorControl` (P-037) — sin relación con este ítem.
+
+**Sigue pendiente, exactamente como lo describió la sesión original:** la decisión explícita de si el tamaño compacto de `MInput`/`MSegBtn` (13.5px/36px, sin aro de foco) es deliberado — y si lo es, agregarles el aro de foco que les falta sin tocar el tamaño; si no lo es, migrar a `ModalInput`/`ModalSegBtn` y ajustar el layout de Pesaje. Ninguna de las dos rutas se tomó.
+
+**Estado:** `[~] Parcial — la 3ª copia (CeldaInput) resuelta 2026-09-06; el foco de MInput/MSegBtn sigue sin decisión`
 
 ---
 
@@ -885,7 +897,11 @@ El `ControlTemplate` de `MInput` (Pesaje) tenía `VerticalAlignment="Center"` **
   - Detección defensiva de botones con `EsBoton` recorriendo el árbol visual/lógico para no secuestrar eventos nativos.
   - Centralización de marcado en `ToggleMarcado(fila)` reutilizado por doble clic y teclado.
 
-**Estado:** `[x]` Resuelto — build 0/0, 270/270 tests.
+> [!bug] Hallazgo al auditar (2026-09-06): el atajo de Enter reabría el hueco que el propio código ya evitaba para el doble clic — corregido
+> `_marcados.Count == 0` no distingue "nunca tocó ningún checkbox" de "tildó una fila y se arrepintió": clickear el checkbox también selecciona la fila (`Dg.SelectedItem`), así que tildar y destildar una fila la deja con 0 marcas pero **todavía seleccionada**. El atajo de Enter la habría emitido igual, exactamente el escenario que el comentario original de `Dg_DoubleClick` ya advertía ("sin marcas no se emite nada... agregaría justo la última que se tocó"). El botón "Elegir" ya se protegía de esto (`BtnElegir.IsEnabled` exige `marcados > 0` en modo múltiple), pero el atajo de teclado no pasaba por esa misma condición.
+> Corregido agregando `_idsTocados` (HashSet de ids que pasaron por el checkbox alguna vez en esta apertura del modal, tildados o no): el atajo de Enter ahora solo dispara sobre una fila que **nunca** se tocó, no sobre una que se tocó y quedó sin marcar.
+
+**Estado:** `[x]` Resuelto — build 0/0, 286/286 tests (incluye la corrección del atajo de Enter).
 
 ---
 
@@ -1212,7 +1228,7 @@ Cableado end-to-end verificado en el código: `RegistroCamionesModal.Guardar_Cli
 | P-039 | Búsqueda sin tildes solo en Productos — faltan 7 tablas | ✅ Resuelto | [[Sesión 2026-09-06 - Cierre Cuatro Entregables P-034 P-037 P-039 P-042 P-047]] |
 | P-040 | Carga inicial de `icono_sidebar` pendiente en Storage | `[x]` Resuelto | [[Sesión 2026-08-15 - Icono dinámico del sidebar]] |
 | P-041 | Conteos de Fabricantes/Categorías filtrados por estado — las 3 pastillas dejan de informar | ✅ Resuelto | [[Sesión 2026-09-06 - Auditoría del cierre masivo P-025 P-029 P-031 P-032 P-038 P-041]] |
-| P-042 | `PesajeModalStyles.xaml` duplica `ModalInput`/`ModalCombo`/`ModalSegBtn` sin foco ni validación por campo | ✅ Resuelto | [[Sesión 2026-09-06 - Cierre Cuatro Entregables P-034 P-037 P-039 P-042 P-047]] |
+| P-042 | `PesajeModalStyles.xaml` duplica `ModalInput`/`ModalCombo`/`ModalSegBtn` sin foco ni validación por campo | `[~]` Parcial — 3ª copia (`CeldaInput`) resuelta; `MInput`/`MSegBtn` sin aro de foco, sin decisión | [[Sesión 2026-09-06 - Auditoría de commits a05f006 y 404796c]] |
 | P-043 | `ModalInput`/`InputBox` globales: mismo bug de `VerticalAlignment` fijo que ya se corrigió en `MInput` | `[x]` Resuelto | [[Sesión 2026-09-06 - Tres frenos de rendimiento cerrados y VerticalAlignment fijo en ModalInput]] |
 | P-044 | Multiselección de `SelectorCatalogoModal` no responde a teclado (Space no tilda el checkbox) | `[x]` Resuelto — Space conmuta / confirma y Enter atajo rápido | [[Sesión 2026-08-19 - Selector de proveedor por tabla y consolidacion de estilos]] |
 | P-045 | Campos de texto de Pesaje sin límites en UI, Dominio ni BD | `[x]` Resuelto — las 3 tablas en las 3 capas | [[Sesión 2026-09-06 - Resolucion integral P-045 P-049 P-051 P-052 P-053]] |

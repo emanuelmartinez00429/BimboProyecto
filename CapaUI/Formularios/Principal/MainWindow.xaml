@@ -150,7 +150,6 @@
                     <!-- ── BRAND BLOCK (mismo ancho que sidebar, anima junto) ── -->
                     <Border x:Name="BrandBlock" DockPanel.Dock="Left" Width="226"
                             Background="{DynamicResource EmpresaPrimaryBrush}"
-                            CacheMode="BitmapCache"
                             BorderBrush="#2EFFFFFF" BorderThickness="0,0,1,0">
                         <DockPanel Margin="12,0" LastChildFill="True"
                                    WindowChrome.IsHitTestVisibleInChrome="True">
@@ -682,7 +681,6 @@
                 <Border x:Name="Sidebar" Grid.Column="0"
                         Width="226"
                         Background="{StaticResource SidebarGradient}"
-                        CacheMode="BitmapCache"
                         ClipToBounds="True">
                     <Grid>
                         <Grid.RowDefinitions>
