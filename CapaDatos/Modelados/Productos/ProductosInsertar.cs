@@ -20,22 +20,22 @@ namespace CapaDatos.Modelados.Productos
         [Column("nombre_producto")]
         public string nombreProducto { get; set; } = string.Empty;
         [Column("id_presentacion")]
-        public int idPresentacion { get; set; }
+        public int? idPresentacion { get; set; }
         [Column("id_fabricante")]
-        public int idFabricante { get; set; }
+        public int? idFabricante { get; set; }
         [Column("id_estado")]
         public int idEstado { get; set; }
         [Column("id_tara")]
-        public int idTara { get; set; }
+        public int? idTara { get; set; }
         [Column("id_categoria")]
-        public int idCategoria { get; set; }
+        public int? idCategoria { get; set; }
         [Column("contenido")]
-        public string contenidoProducto { get; set; } = string.Empty;
+        public string? contenidoProducto { get; set; }
 
         [Column("id_pais")]
-        public int idPais { get; set; }
+        public int? idPais { get; set; }
         [Column("peso_teorico")]
-        public decimal pesoTeorico { get; set; }
+        public decimal? pesoTeorico { get; set; }
 
     }
 }

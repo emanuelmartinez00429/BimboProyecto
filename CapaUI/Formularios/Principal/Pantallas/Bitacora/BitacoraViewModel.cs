@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using CapaAplicacion.Bitacora.Dtos;
@@ -30,6 +30,7 @@ public partial class BitacoraViewModel : ObservableObject, IDisposable
     private readonly IUsuarioSesionService _sesionService;
     private readonly SuggestionDebouncer    _buscador = new();
     private IReadOnlyList<BitacoraDto> _seleccionReporte = Array.Empty<BitacoraDto>();
+    private readonly CancellationTokenSource _cts = new();
     private bool _disposed;
 
     private string    _query = "";
@@ -227,8 +228,18 @@ public partial class BitacoraViewModel : ObservableObject, IDisposable
         IsLoading  = true;
         ErrorCarga = string.Empty;
 
-        var task = _repo.GetPagedAsync(_page, PageSize, BuildFiltros());
-        if (await Task.WhenAny(task, Task.Delay(TimeoutMs)) != task)
+        var task = _repo.GetPagedAsync(_page, PageSize, BuildFiltros(), _cts.Token);
+
+        // P-029: el Task.Delay del timeout usa un token enlazado que se cancela
+        // apenas gana la consulta. Sin esto, CADA carga dejaba un timer de 10 s
+        // vivo en el TimerQueue aunque la consulta tardara solo 200 ms.
+        using var ctsTimeout = CancellationTokenSource.CreateLinkedTokenSource(_cts.Token);
+        var demora   = Task.Delay(TimeoutMs, ctsTimeout.Token);
+        var ganador  = await Task.WhenAny(task, demora);
+        ctsTimeout.Cancel();
+
+        if (_disposed) return;
+        if (ganador != task)
         {
             if (myGen != _loadGeneration) return;
             ErrorCarga = "La carga tardó demasiado. Intente de nuevo.";
@@ -237,7 +248,7 @@ public partial class BitacoraViewModel : ObservableObject, IDisposable
         }
 
         var r = await task;
-        if (myGen != _loadGeneration) return;
+        if (_disposed || myGen != _loadGeneration) return;
 
         if (!r.Success)
         {
@@ -517,6 +528,8 @@ public partial class BitacoraViewModel : ObservableObject, IDisposable
     {
         if (_disposed) return;
         _disposed = true;
+        _cts.Cancel();
+        _cts.Dispose();
         _buscador.Dispose();
     }
 }

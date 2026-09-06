@@ -29,6 +29,8 @@ public partial class PresentacionesViewModel : RealtimeAwareViewModel
     private int               _filteredCount;
     private int?              _pendingSelectionId;
     private int               _loadGeneration;
+    // P-029: CTS para cancelar peticiones en vuelo al desmontar la vista.
+    private readonly CancellationTokenSource _cts = new();
 
     public const int PageSize = 50;
 
@@ -165,8 +167,18 @@ public partial class PresentacionesViewModel : RealtimeAwareViewModel
 
         var filtros = BuildFiltros();
 
-        var task = _repo.GetPagedAsync(_page, PageSize, filtros);
-        if (await Task.WhenAny(task, Task.Delay(TimeoutMs)) != task)
+        var task = _repo.GetPagedAsync(_page, PageSize, filtros, _cts.Token);
+
+        // P-029: el Task.Delay del timeout usa un token enlazado que se cancela
+        // apenas gana la consulta. Sin esto, CADA carga dejaba un timer de 10 s
+        // vivo en el TimerQueue aunque la consulta tardara solo 200 ms.
+        using var ctsTimeout = CancellationTokenSource.CreateLinkedTokenSource(_cts.Token);
+        var demora   = Task.Delay(TimeoutMs, ctsTimeout.Token);
+        var ganador  = await Task.WhenAny(task, demora);
+        ctsTimeout.Cancel();
+
+        if (Disposed) return;
+        if (ganador != task)
         {
             if (myGen != _loadGeneration) return;
             ErrorCarga = "La carga tardó demasiado. Intente de nuevo.";
@@ -175,7 +187,7 @@ public partial class PresentacionesViewModel : RealtimeAwareViewModel
         }
 
         var r = await task;
-        if (myGen != _loadGeneration) return;
+        if (Disposed || myGen != _loadGeneration) return;
 
         if (!r.Success)
         {
@@ -453,6 +465,8 @@ public partial class PresentacionesViewModel : RealtimeAwareViewModel
 
     protected override void OnDispose()
     {
+        _cts.Cancel();
+        _cts.Dispose();
         _buscador.Dispose();
     }
 }

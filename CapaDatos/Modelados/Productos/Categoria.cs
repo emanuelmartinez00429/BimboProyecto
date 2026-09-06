@@ -16,10 +16,10 @@ namespace CapaDatos.Modelados.Productos
         [Column("nombre_categoria")]
         public string nombreCategoria { get; set; } = string.Empty;
         [Column("descripcion_categoria")]
-        public string descripcionCategoria { get; set; } = string.Empty;
+        public string? descripcionCategoria { get; set; }
 
         [Column("estado_categoria")]
-        public bool estadoCategoria { get; set; }
+        public bool? estadoCategoria { get; set; }
 
         [Column("created_at", ignoreOnInsert: true, ignoreOnUpdate: true)]
         public DateTime? createdAt { get; set; }

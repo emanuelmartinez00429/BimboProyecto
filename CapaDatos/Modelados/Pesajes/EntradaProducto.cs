@@ -10,7 +10,7 @@ namespace CapaDatos.Modelados.Pesajes
         public int idPesaje { get; set; }
 
         [Column("id_mov_producto")]
-        public int idMovProducto { get; set; }
+        public int? idMovProducto { get; set; }
 
         [Column("id_producto")]
         public int idProducto { get; set; }
@@ -19,14 +19,14 @@ namespace CapaDatos.Modelados.Pesajes
         public decimal pesoBruto { get; set; }
 
         [Column("peso_tara_extra")]
-        public decimal pesoTaraExtra { get; set; }
+        public decimal? pesoTaraExtra { get; set; }
 
         // Solo lectura — calculados por trigger en BD
         [Column("peso_tara_individual")]
-        public decimal pesoTaraIndividual { get; set; }
+        public decimal? pesoTaraIndividual { get; set; }
 
         [Column("peso_tara_total")]
-        public decimal pesoTaraTotal { get; set; }
+        public decimal? pesoTaraTotal { get; set; }
 
         [Column("peso_neto")]
         public decimal pesoNeto { get; set; }

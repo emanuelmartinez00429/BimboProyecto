@@ -92,13 +92,16 @@ public partial class ProductosViewModel : RealtimeAwareViewModel
         : $"{Seleccionado.CodigoInterno} · {Seleccionado.Nombre}";
 
     public int  TotalPages => Math.Max(1, (int)Math.Ceiling(_filteredCount / (double)PageSize));
-    public bool NoResults  => !IsLoading && _filteredCount == 0;
+    public bool NoResults  => !IsLoading && (_filteredCount == 0 || !string.IsNullOrWhiteSpace(ErrorCarga));
 
     public string MensajeSinResultados
     {
         get
         {
             if (IsLoading) return string.Empty;
+
+            if (!string.IsNullOrWhiteSpace(ErrorCarga))
+                return $"Error al cargar: {ErrorCarga}";
 
             if (_estadoFiltro == EstadoFilter.Inactivos)
                 return "No hay registros inactivos";
@@ -412,6 +415,9 @@ public partial class ProductosViewModel : RealtimeAwareViewModel
             // venció el timeout, hay que avisar.
             if (myGen != _loadGeneration) return;
             ErrorCarga = "La carga tardó demasiado. Intente de nuevo.";
+            PageRows = new ObservableCollection<ProductoDto>();
+            OnPropertyChanged(nameof(NoResults));
+            OnPropertyChanged(nameof(MensajeSinResultados));
             IsLoading  = false;
             return;
         }
@@ -421,6 +427,9 @@ public partial class ProductosViewModel : RealtimeAwareViewModel
         if (!r.Success)
         {
             ErrorCarga = r.Error;
+            PageRows = new ObservableCollection<ProductoDto>();
+            OnPropertyChanged(nameof(NoResults));
+            OnPropertyChanged(nameof(MensajeSinResultados));
             IsLoading  = false;
             return;
         }

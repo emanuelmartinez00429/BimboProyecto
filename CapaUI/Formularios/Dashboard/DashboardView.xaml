@@ -545,7 +545,7 @@
                                     </Ellipse.RenderTransform>
                                     <Ellipse.Triggers>
                                         <EventTrigger RoutedEvent="Loaded">
-                                            <BeginStoryboard>
+                                            <BeginStoryboard x:Name="LivePulseStoryboard">
                                                 <Storyboard RepeatBehavior="Forever">
                                                     <DoubleAnimation
                                                         Storyboard.TargetProperty="Opacity"
@@ -561,6 +561,9 @@
                                                         AutoReverse="True"/>
                                                 </Storyboard>
                                             </BeginStoryboard>
+                                        </EventTrigger>
+                                        <EventTrigger RoutedEvent="Unloaded">
+                                            <StopStoryboard BeginStoryboardName="LivePulseStoryboard"/>
                                         </EventTrigger>
                                     </Ellipse.Triggers>
                                 </Ellipse>

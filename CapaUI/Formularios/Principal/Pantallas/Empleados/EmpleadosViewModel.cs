@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using CapaAplicacion.Empleados.Dtos;
 using CapaAplicacion.Empleados.Interfaces;
 using CapaAplicacion.Empleados.Queries;
@@ -20,6 +20,7 @@ public partial class EmpleadosViewModel : ObservableObject, IDisposable
 {
     private readonly IEmpleadoRepository _repo;
     private readonly SuggestionDebouncer    _buscador = new();
+    private readonly CancellationTokenSource _cts = new();
     private bool _disposed;
 
     private string               _query        = "";
@@ -160,8 +161,18 @@ public partial class EmpleadosViewModel : ObservableObject, IDisposable
         ErrorCarga = string.Empty;
 
         var filtros = BuildFiltros();
-        var task = _repo.GetPagedAsync(_page, PageSize, filtros);
-        if (await Task.WhenAny(task, Task.Delay(TimeoutMs)) != task)
+        var task = _repo.GetPagedAsync(_page, PageSize, filtros, _cts.Token);
+
+        // P-029: el Task.Delay del timeout usa un token enlazado que se cancela
+        // apenas gana la consulta. Sin esto, CADA carga dejaba un timer de 10 s
+        // vivo en el TimerQueue aunque la consulta tardara solo 200 ms.
+        using var ctsTimeout = CancellationTokenSource.CreateLinkedTokenSource(_cts.Token);
+        var demora   = Task.Delay(TimeoutMs, ctsTimeout.Token);
+        var ganador  = await Task.WhenAny(task, demora);
+        ctsTimeout.Cancel();
+
+        if (_disposed) return;
+        if (ganador != task)
         {
             if (myGen != _loadGeneration) return;
             ErrorCarga = "La carga tardó demasiado. Intente de nuevo.";
@@ -170,7 +181,7 @@ public partial class EmpleadosViewModel : ObservableObject, IDisposable
         }
 
         var r = await task;
-        if (myGen != _loadGeneration) return;
+        if (_disposed || myGen != _loadGeneration) return;
 
         if (!r.Success)
         {
@@ -341,6 +352,8 @@ public partial class EmpleadosViewModel : ObservableObject, IDisposable
     {
         if (_disposed) return;
         _disposed = true;
+        _cts.Cancel();
+        _cts.Dispose();
         _buscador.Dispose();
     }
 }

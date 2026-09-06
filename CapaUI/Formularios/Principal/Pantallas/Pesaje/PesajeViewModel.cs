@@ -216,24 +216,27 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
 
                 var idsMovimientos = new List<int>();
 
-                foreach (var camion in camionesAExportar)
-                {
-                    idsMovimientos.Add(camion.Id);
-
-                    // Si el camión no tiene productos cargados en memoria, los cargamos del repo
-                    var productos = camion.Productos;
-                    if (productos == null || productos.Count == 0)
+                // P-031 G6: Si hay camiones sin productos cargados, consultarlos en paralelo
+                // en vez de hacer N viajes de red en serie (Task.WhenAll).
+                var tareasCarga = camionesAExportar
+                    .Where(c => c.Productos == null || c.Productos.Count == 0)
+                    .Select(async c =>
                     {
-                        var prodRes = await _repo.GetProductosAsync(camion.Id, ct);
+                        var prodRes = await _repo.GetProductosAsync(c.Id, ct);
                         if (prodRes.Success && prodRes.Value != null)
                         {
                             foreach (var pDto in prodRes.Value)
                             {
-                                var pModel = MapProducto(pDto, camion.Proveedor);
-                                camion.Productos.Add(pModel);
+                                var pModel = MapProducto(pDto, c.Proveedor);
+                                c.Productos.Add(pModel);
                             }
                         }
-                    }
+                    });
+                await Task.WhenAll(tareasCarga);
+
+                foreach (var camion in camionesAExportar)
+                {
+                    idsMovimientos.Add(camion.Id);
 
                     foreach (var prod in camion.Productos)
                     {
@@ -847,9 +850,10 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
         /// pesaje: reemitir N ids, fechas y usuarios destruiría la auditoría de pesadas que
         /// no se están corrigiendo — sólo se les está completando un dato.
         /// <para/>
-        /// Pre-vuelo obligatorio: si alguna pesada quedara con neto ≤ 0 no se escribe NADA.
-        /// No hay transacción (son N PATCH sueltos), y el <c>peso_neto</c> es lo que se le
-        /// paga al proveedor: mejor fallar entero que dejar un reparto a medias.
+        /// Pre-vuelo obligatorio en cliente: si alguna pesada quedaría con neto ≤ 0 se muestra
+        /// mensaje amigable antes de ir al servidor.
+        /// La escritura es ATÓMICA en el servidor (RPC <c>repartir_tara_extra_pesaje_tabla_bitacora</c>):
+        /// si alguna pesada viola restricciones, la transacción se aborta y ningún UPDATE persiste.
         /// </summary>
         public async Task<bool> RepartirTaraExtraAsync(IReadOnlyList<EntradaPesaje> entradas, double totalKg)
         {
@@ -865,7 +869,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
 
             var cuotas = PesajeCalc.RepartirTaraExtra(totalKg, entradas.Count);
 
-            // Pre-vuelo: ninguna escritura hasta saber que todas pasan el CHECK.
+            // Pre-vuelo: validación en cliente para mensaje amigable antes de ir al servidor.
             for (int i = 0; i < entradas.Count; i++)
             {
                 double neto = entradas[i].Bruto - entradas[i].TaraInd - cuotas[i];
@@ -880,19 +884,16 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
                 }
             }
 
-            int fallidas = 0;
-            for (int i = 0; i < entradas.Count; i++)
+            // Reparto atómico en una sola llamada al servidor (P-032).
+            var idsPesaje   = entradas.Select(e => e.Id).ToList();
+            var idSolicitud = Guid.NewGuid();
+            var resultado   = await _repo.RepartirTaraExtraLoteAsync(idsPesaje, totalKg, idSolicitud);
+
+            if (!resultado.Success)
             {
-                var e = entradas[i];
-                double taraTotal = e.TaraInd + cuotas[i];
-                var r = await _repo.ActualizarTaraExtraEntradaAsync(
-                    e.Id, cuotas[i], taraTotal, e.Bruto - taraTotal);
-                if (!r.Success)
-                {
-                    fallidas++;
-                    Serilog.Log.Error("PesajeVM: falló el reparto de tara extra en la entrada {Id}: {Error}",
-                        e.Id, r.Error);
-                }
+                Serilog.Log.Error("PesajeVM: falló el reparto atómico de tara extra: {Error}", resultado.Error);
+                Toast?.Invoke($"Error al repartir la tara extra: {resultado.Error}");
+                return false;
             }
 
             int? idProd = SelectedProducto?.Id;
@@ -902,10 +903,8 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
                 : null;
             RecalcularFilas();
 
-            Toast?.Invoke(fallidas == 0
-                ? $"Tara extra repartida entre {entradas.Count} pesada(s)"
-                : $"Atención: {fallidas} de {entradas.Count} pesadas no se actualizaron. Volvé a aplicar el total.");
-            return fallidas == 0;
+            Toast?.Invoke($"Tara extra repartida entre {entradas.Count} pesada(s)");
+            return true;
         }
 
         // ══════════════════════════════════════════════════════════════════════

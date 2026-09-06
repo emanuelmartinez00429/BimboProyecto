@@ -115,7 +115,7 @@ public class UsuarioSesionService : IUsuarioSesionService
         {
             await client.From<UsuariosModel>()
                 .Where(u => u.idUsuario == idUsuario)
-                .Set(u => u.ultimoAcceso, DateTime.UtcNow)
+                .Set(u => u.ultimoAcceso!, DateTime.UtcNow)
                 .Update();
         }
         catch

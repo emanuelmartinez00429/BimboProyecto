@@ -34,7 +34,7 @@ namespace CapaDatos.Modelados.Usuarios
         public string? uuidUsuario { get; set; }
 
         [Column("ultimo_acceso")]
-        public DateTime ultimoAcceso { get; set; }
+        public DateTime? ultimoAcceso { get; set; }
 
         /// <summary>Nombre + apellido del empleado, aplanado por la vista para búsqueda.</summary>
         [Column("nombre_completo")]

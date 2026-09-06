@@ -286,8 +286,12 @@ namespace CapaUI.Formularios.InicioSesion
                 // Diagnóstico del contrato Permiso(enum) ↔ acciones.nombre_accion (P-018)
                 CapaUI.Core.Permisos.SesionPermisos.ValidarContraBD();
 
-                // Step 3: Sincronizar módulos (sin llamada de red detrás, solo cosmético)
-                await AnimarStep(S3Dot, S3Text, 70, 100);
+                // Step 3: Sincronizar módulos — no hay llamada de red detrás, así que no
+                // hay nada que la animación deba esperar. Antes hacía el mismo barrido de
+                // Task.Delay(6) por punto que los pasos con red real (P-031 G1): ~236ms
+                // cien por ciento artificiales, sin ningún trabajo que estuvieran tapando.
+                // Salta directo al valor final; el check sigue marcando el paso igual.
+                SetProgress(100);
                 CompletarStep(S3Dot, S3Text);
 
                 // Step 4: Preparar espacio de trabajo — se completa de verdad antes de navegar,
@@ -311,10 +315,14 @@ namespace CapaUI.Formularios.InicioSesion
             label.Foreground = _primaryBrush;
             label.FontWeight = FontWeights.SemiBold;
 
+            // Sin Dispatcher.Invoke (P-031 G1): este método solo se llama desde
+            // IngresarAsync, un handler async void del hilo de UI — cada continuación
+            // tras el await ya vuelve acá por el SynchronizationContext de WPF, así que
+            // ya estamos en el hilo correcto. El Invoke no protegía nada, solo agregaba
+            // una vuelta de más por cada uno de los ~72 pasos que quedan (steps 1 y 2).
             for (int i = desde; i <= hasta; i++)
             {
-                int pct = i;
-                Dispatcher.Invoke(() => SetProgress(pct));
+                SetProgress(i);
                 await System.Threading.Tasks.Task.Delay(6);
             }
             await System.Threading.Tasks.Task.Delay(50);

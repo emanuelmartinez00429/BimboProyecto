@@ -8,7 +8,7 @@ public sealed class UsuarioVistaDto
     public int      IdRol         { get; init; }
     public int      IdEstado      { get; init; }
     public string?  UuidUsuario   { get; init; }
-    public DateTime UltimoAcceso  { get; init; }
+    public DateTime? UltimoAcceso  { get; init; }
     public string   NombreRol     { get; init; } = string.Empty;
     public string   NombreEmpleado { get; init; } = string.Empty;
 }

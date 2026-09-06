@@ -9,6 +9,11 @@ namespace CapaAplicacion.Pesaje.Interfaces;
 public record ResultadoAltaLoteCamiones(int Creados, int PrimerIdMovimiento, IReadOnlyList<int> IdsMovimiento);
 
 /// <summary>
+/// Resultado del reparto atómico de tara extra entre varias pesadas (P-032).
+/// </summary>
+public record ResultadoRepartoTaraExtra(int CantidadActualizada, IReadOnlyList<int> IdsPesaje, double PesoTaraExtraTotal);
+
+/// <summary>
 /// Persistencia del módulo de Recepción de Materia Prima (Fase 2).
 /// Mapea a las tablas reales `movimientos` / `movimiento_productos` / `entradas_producto`.
 /// "Quitar" = anular por estado (id_estado = 9). El trigger de BD calcula neto/tara al insertar pesajes.
@@ -58,5 +63,14 @@ public interface IPesajeRepository
     /// que la fila quede consistente aunque el trigger de BD no cubra UPDATE.
     /// </summary>
     Task<Result>      ActualizarTaraExtraEntradaAsync(int idPesaje, double taraExtra, double taraTotal, double neto, CancellationToken ct = default);
-    Task<Result>      AnularEntradaAsync(int idPesaje, CancellationToken ct = default);
+
+    /// <summary>
+    /// Reparte una tara extra total entre las pesadas indicadas en una sola transacción
+    /// del lado del servidor (RPC <c>repartir_tara_extra_pesaje_tabla_bitacora</c>).
+    /// Si alguna pesada viola restricciones, la transacción se aborta y ningún UPDATE persiste.
+    /// </summary>
+    Task<Result<ResultadoRepartoTaraExtra>> RepartirTaraExtraLoteAsync(
+        IReadOnlyList<int> idsPesaje, double totalKg, Guid idSolicitud, CancellationToken ct = default);
+
+    Task<Result> AnularEntradaAsync(int idPesaje, CancellationToken ct = default);
 }

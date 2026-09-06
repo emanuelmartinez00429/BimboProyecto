@@ -30,7 +30,7 @@ namespace CapaDatos.Modelados.Usuarios
         public string? uuidUsuario { get; set; }
 
         [Column("ultimo_acceso")]
-        public DateTime ultimoAcceso { get; set; }
+        public DateTime? ultimoAcceso { get; set; }
 
 
     }

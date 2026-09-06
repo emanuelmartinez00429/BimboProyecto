@@ -101,6 +101,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             _vm.Toast -= MostrarToast;
             _vm.PropertyChanged -= OnVmPropertyChanged;
             DataContext = null;
+            (_vm as IDisposable)?.Dispose();
             _vm = null!;
         }
 

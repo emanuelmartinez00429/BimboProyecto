@@ -249,7 +249,8 @@ public class PesajeRepository : RepositorioBase, IPesajeRepository
                 .Order("hora_entrada", Ord.Ascending)
                 .Get();
             var entradasPorMp = (entRes?.Models ?? new())
-                .GroupBy(e => e.idMovProducto)
+                .Where(e => e.idMovProducto.HasValue)
+                .GroupBy(e => e.idMovProducto!.Value)
                 .ToDictionary(g => g.Key, g => g.Select(MapEntrada).ToList());
 
             IReadOnlyList<MovProductoDto> lista = movProds.Select(m =>
@@ -386,16 +387,61 @@ public class PesajeRepository : RepositorioBase, IPesajeRepository
             var client = await ConexionSupabase.GetClientAsync();
             var q = client.From<EntradaProducto>()
                 .Where(e => e.idPesaje == idPesaje)
-                .Set(e => e.pesoTaraExtra, (decimal)taraExtra);
+                .Set(e => e.pesoTaraExtra!, (decimal)taraExtra);
 
             // peso_tara_individual NO se toca: la calcula el trigger desde el catálogo y no
             // cambia al repartir la tara extra.
             if (EscribirDerivados)
-                q = q.Set(e => e.pesoTaraTotal, (decimal)taraTotal)
-                     .Set(e => e.pesoNeto,      (decimal)neto);
+                q = q.Set(e => e.pesoTaraTotal!, (decimal)taraTotal)
+                     .Set(e => e.pesoNeto,       (decimal)neto);
 
             await q.Update();
         }, "Actualizar tara extra del pesaje");
+
+    /// <summary>
+    /// Reparte la tara extra total entre las pesadas indicadas en una sola transacción
+    /// del lado del servidor (P-032). Usa la RPC <c>repartir_tara_extra_pesaje_tabla_bitacora</c>
+    /// ya desplegada en la migración 202608240001_rpc_pesajes_idempotentes.sql.
+    /// Si cualquier pesada viola restricciones, la transacción se aborta completamente.
+    /// </summary>
+    public Task<Result<ResultadoRepartoTaraExtra>> RepartirTaraExtraLoteAsync(
+        IReadOnlyList<int> idsPesaje, double totalKg, Guid idSolicitud, CancellationToken ct = default)
+    {
+        if (idsPesaje is null || idsPesaje.Count == 0)
+            return Task.FromResult(Result<ResultadoRepartoTaraExtra>.Ok(
+                new ResultadoRepartoTaraExtra(0, Array.Empty<int>(), totalKg)));
+
+        var solicitudEfectiva = idSolicitud == Guid.Empty ? Guid.NewGuid() : idSolicitud;
+
+        return TryAsync(async () =>
+        {
+            ct.ThrowIfCancellationRequested();
+            var client = await ConexionSupabase.GetClientAsync();
+
+            var parametros = new Dictionary<string, object?>
+            {
+                ["p_ids_pesaje"]           = idsPesaje.ToArray(),
+                ["p_peso_tara_extra_total"] = (decimal)totalKg,
+                ["p_id_solicitud"]          = solicitudEfectiva,
+            };
+
+            var response = await client.Rpc("repartir_tara_extra_pesaje_tabla_bitacora", parametros);
+            ct.ThrowIfCancellationRequested();
+
+            var res = ObtenerResultadoRpc(response?.Content, "repartir la tara extra");
+
+            int cantidad = res["cantidad_actualizada"]?.Value<int>() ?? 0;
+
+            var idsToken = res["ids_pesaje"] as JArray;
+            IReadOnlyList<int> ids = idsToken != null
+                ? idsToken.Select(t => t.Value<int>()).ToList()
+                : idsPesaje;
+
+            double pesoTotal = res["peso_tara_extra_total"]?.Value<double>() ?? totalKg;
+
+            return new ResultadoRepartoTaraExtra(cantidad, ids, pesoTotal);
+        }, "Repartir tara extra en lote");
+    }
 
     public Task<Result> AnularEntradaAsync(int idPesaje, CancellationToken ct = default) =>
         TryAsync(async () =>
@@ -412,9 +458,9 @@ public class PesajeRepository : RepositorioBase, IPesajeRepository
     {
         Id            = e.idPesaje,
         Bruto         = (double)e.pesoBruto,
-        TaraInd       = (double)e.pesoTaraIndividual,
-        TaraExtra     = (double)e.pesoTaraExtra,
-        TaraTotal     = (double)e.pesoTaraTotal,
+        TaraInd       = (double)(e.pesoTaraIndividual ?? 0),
+        TaraExtra     = (double)(e.pesoTaraExtra ?? 0),
+        TaraTotal     = (double)(e.pesoTaraTotal ?? 0),
         Neto          = (double)e.pesoNeto,
         // Sin `?? 0`: null distingue "entrada nueva, no se capturan bultos" de
         // "entrada vieja que capturó 0".

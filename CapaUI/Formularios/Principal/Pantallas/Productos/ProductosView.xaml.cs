@@ -139,6 +139,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
 
         private void ActualizarCarga()
         {
+            if (_vm == null) return;
             if (_vm.IsLoading)
             {
                 DgProductos.Visibility  = Visibility.Collapsed;

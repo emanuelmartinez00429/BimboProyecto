@@ -38,7 +38,7 @@ public class CategoriaCrudRepository : RepositorioBase, ICategoriaRepository
         Id              = c.idCategoria,
         Nombre          = c.nombreCategoria     ?? string.Empty,
         Descripcion     = c.descripcionCategoria ?? string.Empty,
-        EstadoCategoria = c.estadoCategoria,
+        EstadoCategoria = c.estadoCategoria ?? true,
         CreatedAt       = c.createdAt?.ToLocalTime(),
         UpdatedAt       = c.updatedAt?.ToLocalTime(),
     };
@@ -227,8 +227,9 @@ public class CategoriaCrudRepository : RepositorioBase, ICategoriaRepository
         CategoriaFiltros filtros, Supabase.Client client)
     {
         var parametros = new Dictionary<string, object?>();
-        if (filtros.IdEstado.HasValue)
-            parametros["p_estado"] = filtros.IdEstado.Value == EstadoRegistro.Activo;
+        // p_estado se omite a propósito: los conteos deben reflejar el universo
+        // TOTAL / ACTIVOS / INACTIVOS sin importar el filtro de estado activo en la UI.
+        // La RPC contar_categorias acepta p_estado como opcional (DEFAULT NULL).
 
         var response = await client.Rpc("contar_categorias", parametros);
         var json     = response?.Content;

@@ -172,9 +172,13 @@
                                     Background="Transparent" CornerRadius="8"
                                     Padding="10,4" Margin="8,0,0,0"
                                     HorizontalAlignment="Left" VerticalAlignment="Center">
-                                <Image x:Name="ImgIconoSidebar" Source="/Resources/bimbo-logo.png" Height="50"
-       Stretch="Uniform"
-       RenderOptions.BitmapScalingMode="HighQuality"/>
+                                <Image x:Name="ImgIconoSidebar" Height="50"
+                                       Stretch="Uniform"
+                                       RenderOptions.BitmapScalingMode="HighQuality">
+                                    <Image.Source>
+                                        <BitmapImage UriSource="/Resources/bimbo-logo.png" DecodePixelHeight="50"/>
+                                    </Image.Source>
+                                </Image>
                             </Border>
                         </DockPanel>
                     </Border>

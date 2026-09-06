@@ -97,6 +97,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Categorias
 
         private void ActualizarCarga()
         {
+            if (_vm == null) return;
             if (_vm.IsLoading)
             {
                 DgCategorias.Visibility = Visibility.Collapsed;

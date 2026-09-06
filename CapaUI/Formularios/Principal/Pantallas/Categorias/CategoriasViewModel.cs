@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using CapaAplicacion.Common;
 using CapaAplicacion.Categorias.Dtos;
 using static CapaAplicacion.Common.EstadoRegistro;
@@ -28,6 +28,8 @@ public partial class CategoriasViewModel : RealtimeAwareViewModel
     private int          _filteredCount;
     private int?         _pendingSelectionId;
     private int          _loadGeneration;
+    // P-029: CTS para cancelar peticiones en vuelo al desmontar la vista.
+    private readonly CancellationTokenSource _cts = new();
 
     public const int PageSize = 50;
 
@@ -59,7 +61,7 @@ public partial class CategoriasViewModel : RealtimeAwareViewModel
         : $"{Seleccionado.Nombre} · {Seleccionado.Descripcion}";
 
     public int  TotalPages => Math.Max(1, (int)Math.Ceiling(_filteredCount / (double)PageSize));
-    public bool NoResults  => !IsLoading && _filteredCount == 0 && TotalCount > 0;
+    public bool NoResults  => !IsLoading && ((_filteredCount == 0 && TotalCount > 0) || !string.IsNullOrWhiteSpace(ErrorCarga));
     public string PageInfo
     {
         get
@@ -152,21 +154,35 @@ public partial class CategoriasViewModel : RealtimeAwareViewModel
 
         var filtros = BuildFiltros();
 
-        var task = _repo.GetPagedAsync(_page, PageSize, filtros);
-        if (await Task.WhenAny(task, Task.Delay(TimeoutMs)) != task)
+        var task = _repo.GetPagedAsync(_page, PageSize, filtros, _cts.Token);
+
+        // P-029: el Task.Delay del timeout usa un token enlazado que se cancela
+        // apenas gana la consulta. Sin esto, CADA carga dejaba un timer de 10 s
+        // vivo en el TimerQueue aunque la consulta tardara solo 200 ms.
+        using var ctsTimeout = CancellationTokenSource.CreateLinkedTokenSource(_cts.Token);
+        var demora   = Task.Delay(TimeoutMs, ctsTimeout.Token);
+        var ganador  = await Task.WhenAny(task, demora);
+        ctsTimeout.Cancel();
+
+        if (Disposed) return;
+        if (ganador != task)
         {
             if (myGen != _loadGeneration) return;
             ErrorCarga = "La carga tardó demasiado. Intente de nuevo.";
+            PageRows = new ObservableCollection<CategoriaDto>();
+            OnPropertyChanged(nameof(NoResults));
             IsLoading  = false;
             return;
         }
 
         var r = await task;
-        if (myGen != _loadGeneration) return;
+        if (Disposed || myGen != _loadGeneration) return;
 
         if (!r.Success)
         {
             ErrorCarga = r.Error;
+            PageRows = new ObservableCollection<CategoriaDto>();
+            OnPropertyChanged(nameof(NoResults));
             IsLoading  = false;
             return;
         }
@@ -433,6 +449,8 @@ public partial class CategoriasViewModel : RealtimeAwareViewModel
 
     protected override void OnDispose()
     {
+        _cts.Cancel();
+        _cts.Dispose();
         _buscador.Dispose();
     }
 }

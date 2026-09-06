@@ -295,7 +295,10 @@ public class FabricanteCrudRepository : RepositorioBase, IFabricanteRepository
         FabricanteFiltros filtros, Supabase.Client client)
     {
         var parametros = new Dictionary<string, object?>();
-        if (filtros.IdEstado.HasValue) parametros["p_estado"] = filtros.IdEstado.Value;
+        // NO se pasa p_estado: el propósito de las pastillas TOTAL/ACTIVOS/INACTIVOS
+        // es mostrar la distribución del universo filtrado por atributos ortogonales
+        // (país), sin acotar al estado que el usuario ya eligió en el filtro de la vista.
+        // Patrón idéntico al correcto de ProductoCrudRepository.GetConteosRpcAsync.
         if (filtros.IdPais.HasValue)   parametros["p_pais"]   = filtros.IdPais.Value;
 
         var response = await client.Rpc("contar_fabricantes", parametros);
