@@ -182,13 +182,9 @@ public class EmpleadoCrudRepository : RepositorioBase, IEmpleadoRepository
         var client = await ConexionSupabase.GetClientAsync();
         var query  = AplicarFiltros(client.From<CapaDatos.Modelados.Usuarios.Empleados>().Select("*"), filtros);
 
+        var aguja = TextoBusqueda.Normalizar(termino);
         var resultado = await query
-            .Or(new List<Supabase.Postgrest.Interfaces.IPostgrestQueryFilter>
-            {
-                new Supabase.Postgrest.QueryFilter("nombre_empleado",   Op.ILike, $"%{termino}%"),
-                new Supabase.Postgrest.QueryFilter("apellido_empleado", Op.ILike, $"%{termino}%"),
-                new Supabase.Postgrest.QueryFilter("numero_identidad",  Op.ILike, $"%{termino}%"),
-            })
+            .Filter("busqueda_empleado", Op.ILike, $"%{aguja}%")
             .Order("nombre_empleado", Ord.Ascending)
             .Limit(10)
             .Get();

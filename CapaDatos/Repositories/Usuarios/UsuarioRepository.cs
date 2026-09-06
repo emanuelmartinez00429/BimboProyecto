@@ -66,11 +66,10 @@ public class UsuarioRepository : RepositorioBase, IUsuarioRepository
             if (idRol.HasValue)
                 query = query.Filter("id_rol", Op.Equals, idRol.Value.ToString());
             if (!string.IsNullOrWhiteSpace(busqueda))
-                query = query.Or(new List<Supabase.Postgrest.Interfaces.IPostgrestQueryFilter>
-                {
-                    new Supabase.Postgrest.QueryFilter("alias_usuario",   Op.ILike, $"%{busqueda}%"),
-                    new Supabase.Postgrest.QueryFilter("nombre_completo", Op.ILike, $"%{busqueda}%"),
-                });
+            {
+                var aguja = TextoBusqueda.Normalizar(busqueda);
+                query = query.Filter("busqueda_usuario", Op.ILike, $"%{aguja}%");
+            }
 
             int from = (page - 1) * pageSize;
             int to   = from + pageSize - 1;
@@ -295,11 +294,10 @@ public class UsuarioRepository : RepositorioBase, IUsuarioRepository
         if (idRol.HasValue)
             query = query.Filter("id_rol", Op.Equals, idRol.Value.ToString());
         if (!string.IsNullOrWhiteSpace(busqueda))
-            query = query.Or(new List<Supabase.Postgrest.Interfaces.IPostgrestQueryFilter>
-            {
-                new Supabase.Postgrest.QueryFilter("alias_usuario",   Op.ILike, $"%{busqueda}%"),
-                new Supabase.Postgrest.QueryFilter("nombre_completo", Op.ILike, $"%{busqueda}%"),
-            });
+        {
+            var aguja = TextoBusqueda.Normalizar(busqueda);
+            query = query.Filter("busqueda_usuario", Op.ILike, $"%{aguja}%");
+        }
 
         var resultado = await query.Get();
         var models    = resultado?.Models ?? new List<usuarioVista>();

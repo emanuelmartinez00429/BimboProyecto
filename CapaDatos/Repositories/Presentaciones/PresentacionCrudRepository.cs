@@ -205,12 +205,9 @@ public class PresentacionCrudRepository : RepositorioBase, IPresentacionReposito
 
         var (colOrden, dirOrden) = ColumnaOrden(filtros.Orden);
 
+        var aguja = TextoBusqueda.Normalizar(termino);
         var resultado = await query
-            .Or(new List<IPostgrestQueryFilter>
-            {
-                new QueryFilter("nombre_presentacion",      Op.ILike, $"%{termino}%"),
-                new QueryFilter("descripcion_presentacion", Op.ILike, $"%{termino}%"),
-            })
+            .Filter("busqueda_presentacion", Op.ILike, $"%{aguja}%")
             .Order(colOrden, dirOrden)
             .Limit(10)
             .Get();

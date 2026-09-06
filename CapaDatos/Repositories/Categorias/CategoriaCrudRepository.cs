@@ -180,12 +180,9 @@ public class CategoriaCrudRepository : RepositorioBase, ICategoriaRepository
         var client = await ConexionSupabase.GetClientAsync();
         var query  = AplicarFiltros(client.From<Categoria>().Select("*"), filtros);
 
+        var aguja = TextoBusqueda.Normalizar(termino);
         var resultado = await query
-            .Or(new List<IPostgrestQueryFilter>
-            {
-                new QueryFilter("nombre_categoria",     Op.ILike, $"%{termino}%"),
-                new QueryFilter("descripcion_categoria", Op.ILike, $"%{termino}%"),
-            })
+            .Filter("busqueda_categoria", Op.ILike, $"%{aguja}%")
             .Order("nombre_categoria", Ord.Ascending)
             .Limit(10)
             .Get();

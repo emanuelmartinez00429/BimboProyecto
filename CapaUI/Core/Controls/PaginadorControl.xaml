@@ -1,0 +1,41 @@
+<UserControl x:Class="CapaUI.Core.Controls.PaginadorControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             x:Name="RootPaginador"
+             Background="#FAFBFC"
+             BorderBrush="#E5E7EB"
+             BorderThickness="0,1,0,0"
+             Padding="12,8">
+
+    <Border Background="{Binding Background, ElementName=RootPaginador}"
+            BorderBrush="{Binding BorderBrush, ElementName=RootPaginador}"
+            BorderThickness="{Binding BorderThickness, ElementName=RootPaginador}"
+            Padding="{Binding Padding, ElementName=RootPaginador}">
+        <DockPanel>
+            <TextBlock x:Name="TxtPageInfo"
+                       DockPanel.Dock="Left"
+                       FontFamily="Segoe UI" FontSize="14"
+                       Foreground="#9CA3AF"
+                       VerticalAlignment="Center"
+                       Text="{Binding PageInfo, ElementName=RootPaginador}"/>
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button x:Name="BtnPrimera" Content="&#171;" Style="{DynamicResource PageBtn}"
+                        Padding="6,0" Margin="0,0,2,0"
+                        Click="BtnPrimera_Click"/>
+                <Button x:Name="BtnAnterior" Content="&#8249;" Style="{DynamicResource PageBtn}"
+                        Padding="6,0" Margin="0,0,2,0"
+                        Click="BtnAnterior_Click"/>
+                <StackPanel x:Name="PaginacionPanel" Orientation="Horizontal"/>
+                <Button x:Name="BtnSiguiente" Content="&#8250;" Style="{DynamicResource PageBtn}"
+                        Padding="6,0" Margin="2,0,0,0"
+                        Click="BtnSiguiente_Click"/>
+                <Button x:Name="BtnUltima" Content="&#187;" Style="{DynamicResource PageBtn}"
+                        Padding="6,0" Margin="2,0,0,0"
+                        Click="BtnUltima_Click"/>
+            </StackPanel>
+        </DockPanel>
+    </Border>
+</UserControl>

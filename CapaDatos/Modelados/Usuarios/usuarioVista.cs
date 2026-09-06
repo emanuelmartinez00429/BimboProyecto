@@ -40,6 +40,10 @@ namespace CapaDatos.Modelados.Usuarios
         [Column("nombre_completo")]
         public string? nombreCompleto { get; set; }
 
+        /// <summary>Columna generada en vista para búsqueda sin tildes (ADR-018 / P-039).</summary>
+        [Column("busqueda_usuario")]
+        public string? busquedaUsuario { get; set; }
+
         public Roles? roles { get; set; }
 
         public Empleados? empleados { get; set; }

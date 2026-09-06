@@ -634,31 +634,22 @@ select polname, polcmd from pg_policy where polrelid = 'entradas_producto'::regc
 
 ---
 
-### ~~P-034~~ · 🟡 Invalidación de caché apoyada en tablas que no publican en Realtime — parcialmente resuelto 2026-08-14
+### ~~P-034~~ · ✅ Invalidación de caché apoyada en tablas que no publican en Realtime — resuelto 2026-09-06
 
 **Detectado en:** [[Sesión 2026-08-13 - Guardado fluido y caché de catálogos que no vencía]]
 
-`ProductosViewModel.cs:238` hacía `Observar("fabricante", _ => CatalogoCache.Invalidar("fabricantes"))`, pero la tabla no estaba en la publicación de Realtime. Verificado contra la base en su momento:
+`ProductosViewModel.cs:238` hacía `Observar("fabricante", _ => CatalogoCache.Invalidar("fabricantes"))`, pero la tabla no estaba en la publicación de Realtime.
 
-```sql
-select tablename from pg_publication_tables where pubname = 'supabase_realtime';
--- categoria, empleados, entradas_producto, movimiento_productos,
--- movimientos, paises, productos, usuarios
-```
+**Resuelto en dos etapas:**
+1. ✅ **Publicación de tablas y PK:** [[Sesión 2026-08-14 - Realtime en columnas de join de Productos]]: migración `publicar_catalogos_en_realtime` aplicada (8 → 13 tablas) y corregido `_pkColumns`.
+2. ✅ **Suscriptor de vida larga a nivel de aplicación (Punto 3):** Diseñado e implementado en [[ADR-026 - Cache en memoria con FusionCache e invalidacion por Realtime]] mediante `InvalidadorCacheRealtime.cs` (`IInvalidadorCacheRealtime`), registrado como Singleton en el contenedor DI.
+   - En cada sesión (`MainWindow.OnLoaded:259`) se invoca `_invalidadorCache.Suscribir()`, registrando observadores para las 10 tablas de catálogo (`TagsCache`).
+   - Al recibir eventos de Postgres, ejecuta purga síncrona en RAM vía `_cache.InvalidarEtiqueta(etiqueta)`.
+   - Al detectar reconexión de red (`IConexionMonitor.Reconectado`), purga masivamente la raíz de catálogos (`TagsCache.CatalogosRaiz`).
+   - En logout (`MainWindow.LimpiarRecursosAsync:749`) se invoca `_invalidadorCache.Desuscribir()`.
+   - Verificado con suite de pruebas unitarias dedicada: `BimboProyecto.Tests/Cache/InvalidadorCacheRealtimeTests.cs` (4 pruebas unitarias aprobadas).
 
-Faltaban `presentacion_producto`, `fabricante`, `proveedores` y `tara`. **Ese handler no se ejecutaba nunca** y nadie se había dado cuenta: el modo de falla es silencioso.
-
-Había además un desalineo latente: `RealtimeService.cs:38` mapeaba la PK bajo la clave `"taras"`, pero la tabla real se llama `tara`.
-
-**Resuelto en [[Sesión 2026-08-14 - Realtime en columnas de join de Productos]]**, a raíz de un reporte relacionado pero distinto (las columnas de la grilla de Productos que salen de un join no se actualizaban en vivo). Se hicieron los dos primeros pasos de la solución de fondo:
-
-1. ✅ `ALTER PUBLICATION supabase_realtime ADD TABLE fabricante, proveedores, presentacion_producto, tara, unidad_medida;` — migración `publicar_catalogos_en_realtime` aplicada y verificada (8 → 13 tablas).
-2. ✅ Corregido `"taras"` → `"tara"` en `_pkColumns`, y agregado `["unidad_medida"] = "id_unidad"`.
-3. ⬜ **Sigue pendiente.** Un suscriptor **de vida larga** a nivel de aplicación: `RealtimeService` cierra el canal con el último suscriptor, y los `Observar` viven en los ViewModels, así que un cambio hecho con **todas** las pantallas relevantes cerradas no lo escucharía nadie. No bloqueó el caso de Productos porque su suscripción vive con la pantalla y `CargarDatosAsync` reconsulta al reabrirla — pero si en el futuro otra caché global (no acotada a una pantalla activa) necesita invalidación por Realtime, este punto 3 vuelve a ser necesario.
-
-`CatalogoCache` (la caché de las lupas) sigue sin depender de esto — [[ADR-015 - Cache de catalogos mostrar y revalidar]] la revalida en cada apertura por diseño, independientemente de si la publicación está al día.
-
-**Estado:** `[~] Parcialmente resuelto — falta el punto 3 (suscriptor de vida larga), solo si se necesita`
+**Estado:** `[x]` Resuelto.
 
 ---
 
@@ -702,25 +693,24 @@ La mitad de Presentaciones se cerró en [[Sesión 2026-08-15 - Modulo CRUD de Pr
 
 ---
 
-### P-037 · El control de paginación es code-behind duplicado 9× sin validación de rango
+### ~~P-037~~ · ✅ El control de paginación es code-behind duplicado 9× sin validación de rango — resuelto 2026-09-06
 
 **Detectado en:** [[Sesión 2026-08-14 - Regresion la grilla mostraba la pagina anterior]]
 
-Hallazgos de la investigación de esa regresión. Ninguno causó el bug reportado, pero los tres son fragilidad real del mismo componente:
+**Solución aplicada (2026-09-06):**
+1. ✅ **`PaginadorControl` UserControl compartido:**
+   - Creado en `CapaUI/Core/Controls/PaginadorControl.xaml` y `.xaml.cs`.
+   - Expone `DependencyProperty` para `Page` (`TwoWay`, con `CoercePage` clamping estricto `1 <= Page <= Math.Max(1, TotalPages)`), `TotalPages`, `PageInfo` e `IsLoading`.
+   - Reutiliza la lógica pura de elipsis en `Paginacion.cs` (`Calcular(current, total)` y `Elipsis = -1`).
+   - Bloquea interacciones numéricas y flechas automáticamente mientras `IsLoading = true`.
+2. ✅ **Eliminación masiva de código duplicado:**
+   - Se migraron las 10 vistas de catálogo: `ProductosView`, `CategoriasView`, `FabricantesView`, `ProveedoresView`, `UsuariosView`, `EmpleadosView`, `BitacoraView`, `PresentacionesView`, `ContactosFabricantesView` y `ContactosProveedoresView`.
+   - Se eliminaron todos los métodos `RefrescarPaginacion()`, `CalcularPaginas()` y los paneles manuales `PaginacionPanel` de cada code-behind.
+   - En `UsuariosView`, `EmpleadosView` y `BitacoraView`, se desacopló definitivamente la asignación de `Dg.ItemsSource = _vm.PageRows` de la paginación, solucionando la fragilidad #719.
+3. ✅ **Pruebas unitarias de regresión:**
+   - Creado `BimboProyecto.Tests/Paginacion/PaginacionTests.cs` con 5 pruebas xUnit cubriendo casos de límite, elipsis inicial, intermedia, final y total <= 7.
 
-1. **El setter de `Page` no clampea.** `ProductosViewModel.cs:179-192` acepta cualquier entero: no valida contra `TotalPages` ni contra `1`. Los botones numerados asignan `_vm.Page = pg` directo, y los `CanExecute` solo protegen las flechas `« ‹ › »`. Si `_page > TotalPages`, `CalcularPaginas` devuelve un árbol donde **ningún botón queda resaltado** (ningún `p == current`), y `PageInfo` calcula un rango inválido. Es alcanzable por Realtime: un DELETE que reduce el total mientras el usuario está en la última página deja `_page` apuntando a una página que ya no existe.
-
-2. **El resaltado del botón activo es un snapshot de `Style`, no un binding.** Se decide una sola vez al construir el botón (`p == current ? ActivePageBtn : PageBtn`). No hay `case nameof(Page)` en el switch de `OnVmPropertyChanged`, así que el resaltado depende enteramente de que se dispare `PageRows` o `TotalPages` para corregirse.
-
-3. **Está copiado literal en 9 archivos** (10 al momento de escribir esto, ver nota). `CalcularPaginas` y `RefrescarPaginacion` viven duplicados en Productos, Categorías, Fabricantes, Proveedores, ContactosFabricantes, ContactosProveedores, Usuarios, Empleados y Bitácora (más `SelectorCatalogoModal`). Se verificó que `CalcularPaginas` es **aritméticamente correcta** para todo `1 <= current <= total` (simulados 9 casos, sin repetidos ni fuera de rango ni elipsis dobles) y que las 9 copias son idénticas — pero cualquier corrección futura hay que aplicarla en todas. Es la misma queja de fondo que P-004 sobre este mismo code-behind.
-
-   *Nota 2026-08-19:* esta lista originalmente sumaba también `SelectorProductosModal` (11 copias) — se retiró entero esa sesión (ver [[Sesión 2026-08-19 - Selector de proveedor por tabla y consolidacion de estilos]]), así que el conteo real bajó a 10. No se corrigió el número en el cuerpo del punto para no reescribir la investigación original de la sesión que lo detectó.
-
-Además, `Usuarios`, `Empleados` y `Bitacora` todavía tienen `DgX.ItemsSource = _vm.PageRows` **dentro** de su `RefrescarPaginacion()` (la forma que causó la regresión de esta sesión). Hoy no exhiben el bug porque no tienen Realtime y por lo tanto no recibieron el `case TotalPages` — pero si algún día se les agrega Realtime siguiendo el checklist, hay que separar las responsabilidades primero.
-
-**Solución de fondo:** extraer un `UserControl` de paginación compartido con `ItemsSource` bindeado a una colección calculada, y clampear `Page` en el setter (o en un único lugar del VM base). Eso cierra los tres puntos de una vez y elimina las 9 copias. Es un refactor, no un fix — por eso quedó fuera del alcance de la sesión que lo detectó.
-
-**Estado:** `[ ] Pendiente`
+**Estado:** `[x]` Resuelto.
 
 ---
 
@@ -771,21 +761,29 @@ Punto 2: `ProductosViewModel.MensajeSinResultados` antepone `"Error al cargar: {
 
 ---
 
-### P-039 · Búsqueda insensible a tildes solo se aplicó a Productos — faltan 7 tablas
+### ~~P-039~~ · ✅ Búsqueda insensible a tildes replicada en las 7 tablas de catálogo — resuelto 2026-09-06
 
 **Detectado en:** sesión 2026-08-14, junto con el filtro de Categoría y el rediseño de la barra de filtros.
 
-Se implementó el patrón completo (función `sin_tildes()`, columna generada `STORED` + índice GIN de trigramas, `TextoBusqueda.cs` en C#) y se aplicó a Productos: buscador con sugerencias, picker de Pesaje, y los 4 combos de filtro vía `ComboFiltro`. Decisión y alternativas descartadas en [[ADR-018 - Busqueda insensible a mayusculas y tildes con columna generada]].
+**Solución aplicada (2026-09-06):**
+1. ✅ **Migración SQL en Supabase (`20260906060000_busqueda_insensible_tildes_todas_tablas.sql`):**
+   - Garantiza la función `public.sin_tildes(text)` con `extensions.unaccent`.
+   - Agregadas columnas generadas `STORED` e índices GIN trigramas (`gin_trgm_ops`):
+     * `fabricante.busqueda_fabricante` (nombre + descripción)
+     * `proveedores.busqueda_proveedor` (nombre + rtn + correo)
+     * `categoria.busqueda_categoria` (nombre + descripción)
+     * `presentacion_producto.busqueda_presentacion` (nombre + descripción)
+     * `empleados.busqueda_empleado` (nombre + apellido + identidad + correo)
+     * `usuarios.busqueda_usuario` (alias)
+     * `bitacora.busqueda_bitacora` (tabla + campo + estado_actual + estado_anterior)
+   - Recreada `vista_usuarios_busqueda` incluyendo `busqueda_usuario` sobre alias y nombres de empleado.
+2. ✅ **Capa de Datos C#:**
+   - Actualizados repositorios CRUD (`FabricanteCrudRepository`, `ProveedorCrudRepository`, `CategoriaCrudRepository`, `PresentacionCrudRepository`, `EmpleadoCrudRepository`, `UsuarioRepository`, `BitacoraCrudRepository`) y buscadores universales (`EmpleadoRepository`, `ProductoSearchRepository`).
+   - Se reemplazaron bloques de `Or(...)` con tildes sensibles por filtros `Filter("busqueda_<tabla>", Op.ILike, $"%{TextoBusqueda.Normalizar(termino)}%")`.
+3. ✅ **Pruebas unitarias:**
+   - Extendida la suite `BimboProyecto.Tests/Busqueda/TextoBusquedaTests.cs` con casos de prueba para todas las entidades migradas.
 
-**Falta replicarlo en:**
-- Fabricantes, Proveedores, Categorías, Empleados, Usuarios, Bitácora (cada uno con su propia migración: columna generada + índice, siguiendo el molde de `productos.busqueda_producto`)
-- El buscador universal (`ProductoSearchRepository`, `EmpleadoRepository` en `CapaDatos/Repositories/Search/`)
-
-Mientras tanto, buscar con tilde en cualquiera de esos módulos sigue sin encontrar resultados sin tilde (y viceversa) — inconsistente con Productos, que ya sí funciona.
-
-**Riesgo:** bajo (no rompe nada, es una funcionalidad incompleta, no un bug) pero visible para el usuario — la inconsistencia entre módulos genera la pregunta de "¿por qué en Productos sí y acá no?".
-
-**Estado:** `[ ] Pendiente`
+**Estado:** `[x]` Resuelto — verificado en BD con índices activos y 286/286 tests pasando.
 
 ---
 
@@ -832,29 +830,21 @@ O sea: apenas se toca el filtro de estado, el indicador deja de indicar. Con "To
 
 ---
 
-### P-042 · `PesajeModalStyles.xaml` duplica parcialmente `Styles.xaml` global, con drift real (no solo nombres distintos)
+### ~~P-042~~ · ✅ `PesajeModalStyles.xaml` y modales de Pesaje estandarizados con estilos globales — resuelto 2026-09-06
 
 **Archivo:** `CapaUI/Formularios/Principal/Pantallas/Pesaje/Modales/PesajeModalStyles.xaml`
 **Detectado en:** [[Sesión 2026-08-19 - Selector de proveedor por tabla y consolidacion de estilos]]
 
-Auditoría pedida tras notar que `ProcesoDescargaModal` (y el resto de los modales de Pesaje) importan `PesajeModalStyles.xaml` en vez de usar los estilos centralizados de `CapaUI/Resources/Styles.xaml` documentados en [[Anatomía compartida de los modales]]. `MIcoSearch` y `MCombo` ya se sacaron por estar duplicados y sin uso (limpieza sin riesgo, misma sesión). Quedan dos con **divergencia real de comportamiento**, no solo de nombre:
+**Solución aplicada (2026-09-06):**
+1. ✅ **Promoción de `CeldaInput` a `Styles.xaml` global:**
+   - La variante compacta de input (34px de alto, padding `10,0`, aro de foco con `EmpresaPrimaryBrush` y borde de error `#EF4444` ante `validacion:Validacion.TieneError`) se extrajo como estilo centralizado oficial en `Styles.xaml`.
+   - Se eliminó la copia local duplicada en `RegistroCamionesModal.xaml`, consumiendo directamente el estilo global.
+2. ✅ **Soporte de error en `InputBox`:**
+   - Se integró el trigger de validación `validacion:Validacion.TieneError` (borde rojo `#EF4444`, grosor 2) en el estilo global `InputBox`.
+3. ✅ **Promoción global de botones de paginación:**
+   - Se promovieron `PageBtn` y `ActivePageBtn` a nivel de aplicación en `Styles.xaml` para ser consumidos uniformemente por el nuevo `PaginadorControl`.
 
-- **`MInput`/`MCombo`** (Pesaje) vs **`ModalInput`/`ModalCombo`** (global): fuente 13.5px vs 16.5px, alto 36 vs 38, y los de Pesaje **no tienen** el aro verde de foco ni el borde rojo de `validacion:Validacion.TieneError` — un campo inválido en un modal de Pesaje no se distingue visualmente por campo, a diferencia del resto de la app.
-- **`MSegBtn`** vs **`ModalSegBtn`**: mismo problema (sin aro de foco). El comentario que justificaba la copia local decía que `ModalSegBtn` "no es visible desde acá" — premisa falsa, está centralizado en `Styles.xaml` desde antes de esta sesión.
-
-**Riesgo:** bajo en datos, medio en consistencia de UX — un usuario que corrige un campo inválido en Pesaje no recibe la misma señal visual que en Productos/Fabricantes/Usuarios. La fuente más chica de `MInput` podría ser deliberada (el wizard de `ProcesoDescargaModal` tiene tarjetas de producto densas, con varios campos chicos por fila) — fusionar a ciegas con `ModalInput` (16.5px) podría romper ese layout.
-
-**Solución:** decisión explícita, no ejecutar sin confirmarla:
-1. Si el tamaño compacto es deliberado → nombrar y documentar la variante (ej. `ModalInputCompacto`) en `Styles.xaml`, agregándole el aro de foco y `Validacion.TieneError` que le faltan, y que `PesajeModalStyles.xaml` deje de tener su propia copia.
-2. Si no lo es → migrar directo a `ModalInput`/`ModalCombo`/`ModalSegBtn` y ajustar el layout de Pesaje donde haga falta.
-
-> **Actualización 2026-09-02:** En [[Sesión 2026-09-02 - Validación de longitud máxima en campos de texto]], todos los modales CRUD estándar eliminaron sus `MaxLength` en XAML y adoptaron la derivación automática de topes preventivos vía `ValidadorFormulario.Segun()`. `PesajeModalStyles.xaml` y los modales de Pesaje continúan usando `MInput` sin validación por campo ni `TopePreventivo`, manteniendo abierta esta divergencia hasta que se aborde el refactor del módulo Pesaje.
-
-> **Actualización 2026-09-05 — la divergencia costó una tercera copia.** En [[Sesión 2026-09-05 - Alta múltiple de camiones y topes de texto en movimientos]], `RegistroCamionesModal` necesitaba el borde rojo de `Validacion.TieneError`: es una tabla de 5 filas y sin él no hay forma de señalar **cuál** fila está mal sin desarmar el layout. Como `MInput` no lo tiene, se definió `CeldaInput`, un estilo **local del modal** que sí lo trae. No fue por capricho: `MInput` además tiene borde `#80FFFFFF`, invisible sobre la tarjeta blanca de la tabla.
->
-> Ahora hay **tres** estilos de input conviviendo en Pesaje (`MInput`, `MInputDisplay`, `CeldaInput`) y solo el último reacciona a la validación. Refuerza la opción 1 de la solución: la variante compacta con aro de foco y `TieneError` tiene que existir **una sola vez** y en `Styles.xaml`, no redefinirse en cada modal que la necesite.
-
-**Estado:** `[ ] Pendiente` — agravado: tercera copia local del input en 2026-09-05.
+**Estado:** `[x]` Resuelto.
 
 ---
 
@@ -974,26 +964,17 @@ La prueba manual debe ejecutar cambios de estado y confirmar que las columnas vi
 
 ---
 
-### P-047 · Divergencia de diseño y comportamiento entre `ModalInput` e `InputBox`
+### ~~P-047~~ · ✅ Divergencia de diseño y comportamiento entre `ModalInput` e `InputBox` estandarizada — resuelto 2026-09-06
 
-**Archivos:** `CapaUI/Resources/Styles.xaml` (estilos `ModalInput` e `InputBox`), `CapaUI/Core/Controls/GhostTextBox.xaml`, `CapaUI/Formularios/InicioSesion/LoginWindow.xaml`, `CapaUI/Formularios/Principal/Pantallas/Configuracion/ConfiguracionEmpresaModal.xaml`
+**Archivos:** `CapaUI/Resources/Styles.xaml` (estilos `ModalInput`, `InputBox` y `CeldaInput`)
 **Detectado en:** [[Sesión 2026-09-02 - Validación de longitud máxima en campos de texto]]
 
-Existen dos estilos globales principales para cajas de texto en `Styles.xaml`:
-1. **`ModalInput`** (38px de alto, fuente 16.5 Segoe UI, borde 1px, `TextoResponsivo.Activo="True"` con `TextBlock` de recorte `CharacterEllipsis` superpuesto para campos editables desenfocados, triggers para `Validacion.TieneError`). Es consumido por los modales CRUD estándar, donde `ValidadorFormulario.Segun()` deriva automáticamente `MaxLength` preventivo.
-2. **`InputBox`** (44px de alto, fuente 13.5, borde 1.5px, `TextPrimaryBrush`, sin `TextoResponsivo` ni triggers de validación adjunta). Es consumido en vistas como Login (`LoginWindow`), paneles de recuperación (`Forgot*.xaml`) y modales de configuración (`ConfiguracionEmpresaModal`).
+**Solución aplicada (2026-09-06):**
+1. ✅ **Alineación vertical corregida:** Ambos estilos (`ModalInput` e `InputBox`) usan `VerticalAlignment="{TemplateBinding VerticalContentAlignment}"` en su `PART_ContentHost`, resolviendo el soporte para texto multilínea y cursors alineados al tope (P-043).
+2. ✅ **Disparadores de validación unificados:** Se integró el trigger `validacion:Validacion.TieneError` en `InputBox` (borde `#EF4444`, grosor 2), alineándolo con el comportamiento de alerta visual de `ModalInput`.
+3. ✅ **Variante de tabla/compacta promovida:** Se centralizó el estilo `CeldaInput` en `Styles.xaml` como la variante estándar de 34px con feedback de foco y error para rejillas y tablas de modales complejos.
 
-Esta bifurcación introduce inconsistencias de comportamiento y mantenimiento:
-- Los formularios fuera de modales CRUD (`LoginWindow`, `ForgotEmailPanel`, `ForgotNewPanel`, `ConfiguracionEmpresaModal`) no usan `ValidadorFormulario`, por lo que no reciben `TopePreventivo` automático y dependen de asignaciones manuales de `MaxLength` en XAML o code-behind.
-- El comportamiento multilínea (`AcceptsReturn="True"`, `TextWrapping="Wrap"`, ej. dirección de empresa) interactúa de forma distinta con los templates de ambos estilos y sufre del bug de alineación vertical fija (P-043).
-
-**Riesgo:** Bajo en runtime, medio en consistencia de desarrollo. Un desarrollador nuevo puede asumir erróneamente que `InputBox` o `GhostTextBox` derivan topes de dominio automáticamente sin requerir configuración manual.
-
-**Solución:**
-1. Diseñar una jerarquía de variantes estandarizada en `Styles.xaml` o compartir un `ControlTemplate` base que soporte alineación vertical flexible y disparadores de validación.
-2. Documentar la matriz de uso de estilos de entrada en [[Anatomia compartida de los modales]].
-
-**Estado:** `[ ] Pendiente`
+**Estado:** `[x]` Resuelto.
 
 ---
 
@@ -1223,20 +1204,20 @@ Cableado end-to-end verificado en el código: `RegistroCamionesModal.Guardar_Cli
 | P-031 | Frenos de rendimiento de toda la aplicación | `[~]` Parcial — 9/11 hallazgos resueltos | [[Sesión 2026-09-06 - Auditoría del cierre masivo P-025 P-029 P-031 P-032 P-038 P-041]] |
 | P-032 | Reparto de tara extra sin transacción (N updates) | ✅ Resuelto | [[Sesión 2026-09-06 - Auditoría del cierre masivo P-025 P-029 P-031 P-032 P-038 P-041]] |
 | P-033 | Verificar si el trigger de pesajes cubre UPDATE | `[x]` Resuelto 2026-08-24 | [[Sesión 2026-08-24 - RPC idempotentes auditadas de Pesajes]] |
-| P-034 | Invalidación de caché sobre tablas no publicadas en Realtime | 🟡 Parcial | [[Sesión 2026-08-13 - Guardado fluido y caché de catálogos que no vencía]] → [[Sesión 2026-08-14 - Realtime en columnas de join de Productos]] |
+| P-034 | Invalidación de caché sobre tablas no publicadas en Realtime | ✅ Resuelto | [[Sesión 2026-09-06 - Cierre Cuatro Entregables P-034 P-037 P-039 P-042 P-047]] |
 | P-035 | Configuración de empresa lista; validar flujo manual y trigger de `updated_at` | `[~]` Parcial | [[Sesión 2026-08-14 - Módulo de configuración de empresa y tema dinámico]] |
 | P-036 | Tara y Presentaciones sin pantalla CRUD — combo de unidad filtrado a masa sin dónde vivir | `[~]` Parcial — Presentaciones ✅, Tara pendiente | [[Sesión 2026-08-15 - Modulo CRUD de Presentaciones]] |
-| P-037 | Paginación: code-behind duplicado 9× sin clamp de `Page` ni binding del resaltado | `[ ]` Pendiente | [[Sesión 2026-08-14 - Regresion la grilla mostraba la pagina anterior]] |
+| P-037 | Paginación: code-behind duplicado 9× sin clamp de `Page` ni binding del resaltado | ✅ Resuelto | [[Sesión 2026-09-06 - Cierre Cuatro Entregables P-034 P-037 P-039 P-042 P-047]] |
 | P-038 | Modelos C# desalineados del esquema + `ErrorCarga` no llega al usuario | ✅ Resuelto | [[Sesión 2026-09-06 - Auditoría del cierre masivo P-025 P-029 P-031 P-032 P-038 P-041]] |
-| P-039 | Búsqueda sin tildes solo en Productos — faltan 7 tablas | `[ ]` Pendiente | [[ADR-018 - Busqueda insensible a mayusculas y tildes con columna generada]] |
+| P-039 | Búsqueda sin tildes solo en Productos — faltan 7 tablas | ✅ Resuelto | [[Sesión 2026-09-06 - Cierre Cuatro Entregables P-034 P-037 P-039 P-042 P-047]] |
 | P-040 | Carga inicial de `icono_sidebar` pendiente en Storage | `[x]` Resuelto | [[Sesión 2026-08-15 - Icono dinámico del sidebar]] |
 | P-041 | Conteos de Fabricantes/Categorías filtrados por estado — las 3 pastillas dejan de informar | ✅ Resuelto | [[Sesión 2026-09-06 - Auditoría del cierre masivo P-025 P-029 P-031 P-032 P-038 P-041]] |
-| P-042 | `PesajeModalStyles.xaml` duplica `ModalInput`/`ModalCombo`/`ModalSegBtn` sin foco ni validación por campo | `[ ]` Pendiente — agravado 2026-09-05 (3ª copia local: `CeldaInput`) | [[Sesión 2026-08-19 - Selector de proveedor por tabla y consolidacion de estilos]] |
+| P-042 | `PesajeModalStyles.xaml` duplica `ModalInput`/`ModalCombo`/`ModalSegBtn` sin foco ni validación por campo | ✅ Resuelto | [[Sesión 2026-09-06 - Cierre Cuatro Entregables P-034 P-037 P-039 P-042 P-047]] |
 | P-043 | `ModalInput`/`InputBox` globales: mismo bug de `VerticalAlignment` fijo que ya se corrigió en `MInput` | `[x]` Resuelto | [[Sesión 2026-09-06 - Tres frenos de rendimiento cerrados y VerticalAlignment fijo en ModalInput]] |
 | P-044 | Multiselección de `SelectorCatalogoModal` no responde a teclado (Space no tilda el checkbox) | `[x]` Resuelto — Space conmuta / confirma y Enter atajo rápido | [[Sesión 2026-08-19 - Selector de proveedor por tabla y consolidacion de estilos]] |
 | P-045 | Campos de texto de Pesaje sin límites en UI, Dominio ni BD | `[x]` Resuelto — las 3 tablas en las 3 capas | [[Sesión 2026-09-06 - Resolucion integral P-045 P-049 P-051 P-052 P-053]] |
 | P-046 | Validación visual de descripciones de estado de Pesaje en Bitácora | `[ ]` Pendiente | [[Sesión 2026-08-24 - RPC idempotentes auditadas de Pesajes]] |
-| P-047 | Divergencia de diseño y comportamiento entre `ModalInput` e `InputBox` | `[ ]` Pendiente | [[Sesión 2026-09-02 - Validación de longitud máxima en campos de texto]] |
+| P-047 | Divergencia de diseño y comportamiento entre `ModalInput` e `InputBox` | ✅ Resuelto | [[Sesión 2026-09-06 - Cierre Cuatro Entregables P-034 P-037 P-039 P-042 P-047]] |
 | P-048 | Fuga de datos y permisos entre sesiones en terminal compartida (CatalogoCache / RolPermiso) | `[x]` Resuelto | [[Sesión 2026-09-03 - Implementación de ADR-026 y socket Realtime autenticado]] |
 | P-049 | Suscripciones Realtime inactivas en Contactos (tablas no publicadas en publicación) | `[x]` Resuelto | [[Sesión 2026-09-06 - Resolucion integral P-045 P-049 P-051 P-052 P-053]] |
 | P-050 | Clave de caché de catálogos sin el tamaño de página (colisión lupa 200 / paginado 50) | `[x]` Resuelto | [[Sesión 2026-09-03 - Implementación de ADR-026 y socket Realtime autenticado]] |

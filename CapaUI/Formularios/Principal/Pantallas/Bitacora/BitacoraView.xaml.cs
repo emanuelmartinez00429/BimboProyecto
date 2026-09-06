@@ -91,7 +91,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Bitacora
 
             switch (ev.PropertyName)
             {
-                case nameof(BitacoraViewModel.PageRows):  RefrescarPaginacion(); break;
+                case nameof(BitacoraViewModel.PageRows):  ActualizarFilas();    break;
                 case nameof(BitacoraViewModel.IsLoading): ActualizarCarga();     break;
                 case nameof(BitacoraViewModel.NoResults):
                     EmptyState.Visibility = _vm.NoResults ? Visibility.Visible : Visibility.Collapsed;
@@ -438,9 +438,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Bitacora
             }
         }
 
-        // ── Pagination ─────────────────────────────────────────────────
-
-        private void RefrescarPaginacion()
+        private void ActualizarFilas()
         {
             if (_vm == null) return;
             _suppressSelectionChange = true;
@@ -449,57 +447,6 @@ namespace CapaUI.Formularios.Principal.Pantallas.Bitacora
             DgBitacora.ItemsSource = _vm.PageRows;
             ReiniciarArrastre();
             SincronizarSeleccionReporte();
-
-            PaginacionPanel.Items.Clear();
-            int total   = _vm.TotalPages;
-            int current = _vm.Page;
-
-            foreach (var p in CalcularPaginas(current, total))
-            {
-                if (p == -1)
-                {
-                    PaginacionPanel.Items.Add(new TextBlock
-                    {
-                        Text = "…",
-                        FontFamily = new FontFamily("Segoe UI"),
-                        FontSize = 13, VerticalAlignment = VerticalAlignment.Center,
-                        Margin = new Thickness(2, 0, 2, 0),
-                        Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#6B7280"))
-                    });
-                }
-                else
-                {
-                    var btn = new Button
-                    {
-                        Content = p.ToString(),
-                        Margin  = new Thickness(2, 0, 2, 0),
-                        Style   = (Style)(p == current
-                            ? FindResource("ActivePageBtn")
-                            : FindResource("PageBtn")),
-                        Tag = p
-                    };
-                    btn.Click += (s, ev) =>
-                    {
-                        if (_vm.IsLoading) return;
-                        if (s is Button b && b.Tag is int pg) _vm.Page = pg;
-                    };
-                    PaginacionPanel.Items.Add(btn);
-                }
-            }
-        }
-
-        private static IEnumerable<int> CalcularPaginas(int current, int total)
-        {
-            if (total <= 7)
-                return Enumerable.Range(1, total);
-
-            var pages = new List<int> { 1 };
-            if (current > 3) pages.Add(-1);
-            for (int i = Math.Max(2, current - 1); i <= Math.Min(total - 1, current + 1); i++)
-                pages.Add(i);
-            if (current < total - 2) pages.Add(-1);
-            pages.Add(total);
-            return pages;
         }
     }
 }

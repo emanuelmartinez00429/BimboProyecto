@@ -188,12 +188,9 @@ public class ProveedorCrudRepository : RepositorioBase, IProveedorRepository
         var client = await ConexionSupabase.GetClientAsync();
         var query  = AplicarFiltros(client.From<Prov>().Select("*"), filtros);
 
+        var aguja = TextoBusqueda.Normalizar(termino);
         var resultado = await query
-            .Or(new List<IPostgrestQueryFilter>
-            {
-                new QueryFilter("nombre_proveedor", Op.ILike, $"%{termino}%"),
-                new QueryFilter("rtn_proveedor",    Op.ILike, $"%{termino}%"),
-            })
+            .Filter("busqueda_proveedor", Op.ILike, $"%{aguja}%")
             .Order("nombre_proveedor", Ord.Ascending)
             .Limit(10)
             .Get();

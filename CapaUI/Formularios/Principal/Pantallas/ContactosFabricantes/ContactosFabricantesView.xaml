@@ -136,48 +136,7 @@
             </Setter>
         </Style>
 
-        <Style x:Key="PageBtn" TargetType="Button">
-            <Setter Property="MinWidth" Value="30"/>
-            <Setter Property="Height" Value="28"/>
-            <Setter Property="Padding" Value="4,0"/>
-            <Setter Property="FontFamily" Value="Segoe UI"/>
-            <Setter Property="FontSize" Value="15"/>
-            <Setter Property="Foreground" Value="#1A1F2E"/>
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="BorderBrush" Value="#CBD5E1"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border x:Name="Bd" Background="{TemplateBinding Background}"
-                                BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="4" Padding="{TemplateBinding Padding}">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="#EEF2F8"/>
-                                <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource EmpresaPrimaryBrush}"/>
-                            </Trigger>
-                            <Trigger Property="IsEnabled" Value="False">
-                                <Setter Property="Foreground" Value="#CBD5E1"/>
-                                <Setter Property="Cursor" Value="Arrow"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
 
-        <Style x:Key="ActivePageBtn" TargetType="Button" BasedOn="{StaticResource PageBtn}">
-            <Setter Property="Background" Value="{DynamicResource EmpresaPrimaryBrush}"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource EmpresaPrimaryBrush}"/>
-        </Style>
     </UserControl.Resources>
 
     <Grid>
@@ -431,30 +390,13 @@
                     </DataGrid>
                 </Grid>
 
-                <!-- Paginación (Nivel 1) -->
-                <Border x:Name="PaginacionBar" Grid.Row="1"
-                        Background="White" BorderBrush="#E2E8F0" BorderThickness="0,1,0,0" Padding="16,10">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" FontFamily="Segoe UI" FontSize="14.5"
-                                   Foreground="#6B7280" VerticalAlignment="Center"
-                                   Text="{Binding PageInfo}"/>
-                        <StackPanel Grid.Column="1" Orientation="Horizontal">
-                            <Button Style="{StaticResource PageBtn}"
-                                    Command="{Binding PrimeraPaginaCommand}" Content="«" Margin="2,0"/>
-                            <Button Style="{StaticResource PageBtn}"
-                                    Command="{Binding PaginaAnteriorCommand}" Content="‹" Margin="2,0"/>
-                            <ItemsControl x:Name="PaginacionPanel" Margin="2,0"/>
-                            <Button Style="{StaticResource PageBtn}"
-                                    Command="{Binding PaginaSiguienteCommand}" Content="›" Margin="2,0"/>
-                            <Button Style="{StaticResource PageBtn}"
-                                    Command="{Binding UltimaPaginaCommand}" Content="»" Margin="2,0"/>
-                        </StackPanel>
-                    </Grid>
-                </Border>
+                <!-- Pagination footer (P-037) -->
+                <controls:PaginadorControl x:Name="PaginacionBar"
+                                           Grid.Row="1"
+                                           Page="{Binding Page, Mode=TwoWay}"
+                                           TotalPages="{Binding TotalPages}"
+                                           PageInfo="{Binding PageInfo}"
+                                           IsLoading="{Binding IsLoading}"/>
 
                 <!-- Nivel 2: Contactos del fabricante seleccionado -->
                 <Grid x:Name="PanelContactos" Grid.RowSpan="2" Visibility="Collapsed">

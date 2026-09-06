@@ -19,49 +19,7 @@
             <Geometry x:Key="IcoTrashFila">M3,6 h18 M8,6 V4 a1,1 0 0 1,1,-1 h6 a1,1 0 0 1,1,1 v2 m2,0 v14 a2,2 0 0 1,-2,2 H7 a2,2 0 0 1,-2,-2 V6</Geometry>
             <Geometry x:Key="IcoMas">M12,5 v14 M5,12 h14</Geometry>
 
-            <!-- Input de CELDA de tabla. No reusa MInput a propósito: MInput vive
-                 sobre el degradado azul del modal y su borde es #80FFFFFF, que
-                 sobre la tarjeta blanca de esta tabla es invisible. Además éste
-                 sí reacciona a validacion:Validacion.TieneError — MInput no lo
-                 hace (ver [[Deuda Técnica - Pendientes|P-042]]), y en una tabla
-                 de 5 filas el borde rojo es la única forma de señalar CUÁL fila
-                 está mal sin desarmar el layout. -->
-            <Style x:Key="CeldaInput" TargetType="TextBox">
-                <Setter Property="Height" Value="34"/>
-                <Setter Property="Padding" Value="10,0"/>
-                <Setter Property="FontFamily" Value="Segoe UI"/>
-                <Setter Property="FontSize" Value="13.5"/>
-                <Setter Property="Foreground" Value="#1A1F2E"/>
-                <Setter Property="Background" Value="White"/>
-                <Setter Property="BorderBrush" Value="#CBD5E1"/>
-                <Setter Property="BorderThickness" Value="1"/>
-                <Setter Property="VerticalContentAlignment" Value="Center"/>
-                <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
-                <Setter Property="Template">
-                    <Setter.Value>
-                        <ControlTemplate TargetType="TextBox">
-                            <Border x:Name="Bd" Background="{TemplateBinding Background}"
-                                    BorderBrush="{TemplateBinding BorderBrush}"
-                                    BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6">
-                                <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}"
-                                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
-                            </Border>
-                            <ControlTemplate.Triggers>
-                                <Trigger Property="IsKeyboardFocusWithin" Value="True">
-                                    <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource EmpresaPrimaryBrush}"/>
-                                    <Setter TargetName="Bd" Property="BorderThickness" Value="2"/>
-                                </Trigger>
-                                <!-- Después del foco: con error se ve rojo aunque esté
-                                     enfocado, mismo orden que ModalInput en Styles.xaml. -->
-                                <Trigger Property="validacion:Validacion.TieneError" Value="True">
-                                    <Setter TargetName="Bd" Property="BorderBrush" Value="#EF4444"/>
-                                    <Setter TargetName="Bd" Property="BorderThickness" Value="2"/>
-                                </Trigger>
-                            </ControlTemplate.Triggers>
-                        </ControlTemplate>
-                    </Setter.Value>
-                </Setter>
-            </Style>
+
 
             <!-- Lupa de la celda de Proveedor: la misma idea que LupaBtnOscuro pero
                  al alto de la fila (34, no 38) y sobre fondo claro. -->

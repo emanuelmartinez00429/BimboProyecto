@@ -125,13 +125,9 @@ public class BitacoraCrudRepository : RepositorioBase, IBitacoraRepository
             client.From<BitacoraModel>().Select("*, usuarios(*), acciones(*), modulos(*)"),
             filtros);
 
+        var aguja = TextoBusqueda.Normalizar(termino);
         var resultado = await query
-            .Or(new List<Supabase.Postgrest.Interfaces.IPostgrestQueryFilter>
-            {
-                new Supabase.Postgrest.QueryFilter("campo_afectado", Op.ILike, $"%{termino}%"),
-                new Supabase.Postgrest.QueryFilter("estado_actual",  Op.ILike, $"%{termino}%"),
-                new Supabase.Postgrest.QueryFilter("tabla_afectada", Op.ILike, $"%{termino}%"),
-            })
+            .Filter("busqueda_bitacora", Op.ILike, $"%{aguja}%")
             .Order("fecha_hora", Ord.Descending)
             .Limit(10)
             .Get();

@@ -1,3 +1,4 @@
+using CapaAplicacion.Common;
 using CapaDatos.Modelados.Usuarios;
 using CapaDominio.Entities;
 using Supabase.Postgrest;
@@ -22,18 +23,12 @@ public class EmpleadoRepository
 
     public override async Task<IEnumerable<Empleado>> SearchAsync(string term, CancellationToken ct = default)
     {
-        var client  = await GetClientAsync();
-        var pattern = $"%{term}%";
+        var client   = await GetClientAsync();
+        var aguja    = TextoBusqueda.Normalizar(term);
         var response = await client
             .From<Empleados>()
             .Select("*")
-            .Or(new List<IPostgrestQueryFilter>
-            {
-                new QueryFilter("nombre_empleado",   Op.ILike, pattern),
-                new QueryFilter("apellido_empleado", Op.ILike, pattern),
-                new QueryFilter("numero_identidad",  Op.ILike, pattern),
-                new QueryFilter("correo_empleado",   Op.ILike, pattern),
-            })
+            .Filter("busqueda_empleado", Op.ILike, $"%{aguja}%")
             .Get();
         return response.Models.Select(MapToDomain).ToList();
     }

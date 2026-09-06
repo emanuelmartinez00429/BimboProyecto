@@ -204,11 +204,9 @@ public class FabricanteCrudRepository : RepositorioBase, IFabricanteRepository
         var client = await ConexionSupabase.GetClientAsync();
         var query  = AplicarFiltros(client.From<FabricanteCrud>().Select("*"), filtros);
 
+        var aguja = TextoBusqueda.Normalizar(termino);
         var resultTask  = query
-            .Or(new List<IPostgrestQueryFilter>
-            {
-                new QueryFilter("nombre_fabricante", Op.ILike, $"%{termino}%"),
-            })
+            .Filter("busqueda_fabricante", Op.ILike, $"%{aguja}%")
             .Order("nombre_fabricante", Ord.Ascending)
             .Limit(10)
             .Get();

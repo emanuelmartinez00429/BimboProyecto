@@ -57,4 +57,15 @@ public sealed class TextoBusquedaTests
     [Fact]
     public void Contiene_NoMatcheaLoQueNoEsta() =>
         Assert.False(TextoBusqueda.Contiene("AZÚCAR", "harina"));
+
+    [Theory]
+    [InlineData("MOLINO LA ESPAÑOLA", "espacola", false)]
+    [InlineData("MOLINO LA ESPAÑOLA", "espanola", true)]
+    [InlineData("Lácteos y Derivados S.A.", "lacteos", true)]
+    [InlineData("Categoría: Emulsión", "emulsion", true)]
+    [InlineData("Operación de Pesaje", "operacion", true)]
+    [InlineData("Ramón González", "ramon", true)]
+    [InlineData("Ramón González", "gonzalez", true)]
+    public void Contiene_VerificaEntidadesP039(string textoEntidad, string terminoBusqueda, bool esperado) =>
+        Assert.Equal(esperado, TextoBusqueda.Contiene(textoEntidad, terminoBusqueda));
 }

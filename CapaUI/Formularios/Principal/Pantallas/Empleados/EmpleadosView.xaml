@@ -143,53 +143,7 @@
             </Setter>
         </Style>
 
-        <!-- Pagination Button Style -->
-        <Style x:Key="PageBtn" TargetType="Button">
-            <Setter Property="MinWidth" Value="30"/>
-            <Setter Property="Height" Value="28"/>
-            <Setter Property="Padding" Value="4,0"/>
-            <Setter Property="FontFamily" Value="Segoe UI"/>
-            <Setter Property="FontSize" Value="15"/>
-            <Setter Property="FontWeight" Value="Medium"/>
-            <Setter Property="Foreground" Value="#1A1F2E"/>
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="BorderBrush" Value="#CBD5E1"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border x:Name="Bd"
-                                Background="{TemplateBinding Background}"
-                                BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="4"
-                                Padding="{TemplateBinding Padding}">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="#EEF2F8"/>
-                                <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource EmpresaPrimaryBrush}"/>
-                            </Trigger>
-                            <Trigger Property="IsEnabled" Value="False">
-                                <Setter Property="Foreground" Value="#CBD5E1"/>
-                                <Setter Property="Cursor" Value="Arrow"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
 
-        <!-- Active Page Button Style -->
-        <Style x:Key="ActivePageBtn" TargetType="Button" BasedOn="{StaticResource PageBtn}">
-            <Setter Property="Background" Value="{DynamicResource EmpresaPrimaryBrush}"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource EmpresaPrimaryBrush}"/>
-        </Style>
 
         <!-- Segmented Radio Button Style -->
         <Style x:Key="SegmentBtn" TargetType="RadioButton">
@@ -587,29 +541,12 @@
                 </DataGrid>
 
                 <!-- Pagination footer -->
-                <Border Grid.Row="1" Background="#FAFBFC"
-                        BorderBrush="#E5E7EB" BorderThickness="0,1,0,0" Padding="12,8">
-                    <DockPanel>
-                        <TextBlock x:Name="PageInfoText" DockPanel.Dock="Left"
-                                   FontFamily="Segoe UI" FontSize="14" Foreground="#9CA3AF"
-                                   VerticalAlignment="Center" Text="{Binding PageInfo}"/>
-                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right">
-                            <Button Content="&#171;" Style="{StaticResource PageBtn}"
-                                    Command="{Binding PrimeraPaginaCommand}" Padding="6,0" Margin="0,0,2,0"/>
-                            <Button Content="&#8249;" Style="{StaticResource PageBtn}"
-                                    Command="{Binding PaginaAnteriorCommand}" Padding="6,0" Margin="0,0,2,0"/>
-                            <ItemsControl x:Name="PaginacionPanel">
-                                <ItemsControl.ItemsPanel>
-                                    <ItemsPanelTemplate><StackPanel Orientation="Horizontal"/></ItemsPanelTemplate>
-                                </ItemsControl.ItemsPanel>
-                            </ItemsControl>
-                            <Button Content="&#8250;" Style="{StaticResource PageBtn}"
-                                    Command="{Binding PaginaSiguienteCommand}" Padding="6,0" Margin="2,0,0,0"/>
-                            <Button Content="&#187;" Style="{StaticResource PageBtn}"
-                                    Command="{Binding UltimaPaginaCommand}" Padding="6,0" Margin="2,0,0,0"/>
-                        </StackPanel>
-                    </DockPanel>
-                </Border>
+                <!-- Pagination footer (P-037) -->
+                <controls:PaginadorControl Grid.Row="1"
+                                           Page="{Binding Page, Mode=TwoWay}"
+                                           TotalPages="{Binding TotalPages}"
+                                           PageInfo="{Binding PageInfo}"
+                                           IsLoading="{Binding IsLoading}"/>
             </Grid>
         </Border>
 

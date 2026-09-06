@@ -111,13 +111,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
             {
                 case nameof(ProductosViewModel.PageRows):
                     DgProductos.ItemsSource = _vm.PageRows;   // único punto donde hay filas nuevas
-                    RefrescarPaginacion();
                     break;
-                // Realtime puede crecer TotalPages sin tocar PageRows (INSERT con el
-                // usuario parado en la vieja última página, a propósito no le saca las
-                // filas de abajo) — sin este case los botones numerados quedan con el
-                // árbol viejo hasta recargar el módulo, aunque TotalPages ya esté bien.
-                case nameof(ProductosViewModel.TotalPages):      RefrescarPaginacion();   break;
                 case nameof(ProductosViewModel.IsLoading):       ActualizarCarga();       break;
                 case nameof(ProductosViewModel.NoResults):
                     EmptyState.Visibility = _vm.NoResults ? Visibility.Visible : Visibility.Collapsed;
@@ -245,71 +239,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
                 AbrirModalEditar(_vm.Seleccionado);
         }
 
-        // ── Pagination ────────────────────────────────────────────────
 
-        /// <summary>
-        /// Reconstruye SOLO el árbol de botones de página. No rebindea la grilla:
-        /// las filas se asignan en el case de PageRows, que es el único momento en
-        /// que hay filas nuevas. Mezclar ambas cosas acá hacía que un aviso de
-        /// TotalPages (que llega antes de pedir los datos) repintara la grilla con
-        /// las filas de la página anterior.
-        /// </summary>
-        private void RefrescarPaginacion()
-        {
-            if (_vm == null) return;
-
-            PaginacionPanel.Items.Clear();
-            int total   = _vm.TotalPages;
-            int current = _vm.Page;
-
-            foreach (var p in CalcularPaginas(current, total))
-            {
-                if (p == -1)
-                {
-                    PaginacionPanel.Items.Add(new TextBlock
-                    {
-                        Text = "\u2026",
-                        FontFamily = new System.Windows.Media.FontFamily("Segoe UI"),
-                        FontSize = 13, VerticalAlignment = VerticalAlignment.Center,
-                        Margin = new Thickness(2, 0, 2, 0),
-                        Foreground = new SolidColorBrush(
-                            (Color)ColorConverter.ConvertFromString("#6B7280"))
-                    });
-                }
-                else
-                {
-                    var btn = new System.Windows.Controls.Button
-                    {
-                        Content = p.ToString(),
-                        Margin  = new Thickness(2, 0, 2, 0),
-                        Style   = (Style)(p == current
-                            ? FindResource("ActivePageBtn")
-                            : FindResource("PageBtn")),
-                        Tag = p
-                    };
-                    btn.Click += (s, ev) =>
-                    {
-                        if (_vm.IsLoading) return;
-                        if (s is System.Windows.Controls.Button b && b.Tag is int pg) _vm.Page = pg;
-                    };
-                    PaginacionPanel.Items.Add(btn);
-                }
-            }
-        }
-
-        private static IEnumerable<int> CalcularPaginas(int current, int total)
-        {
-            if (total <= 7)
-                return Enumerable.Range(1, total);
-
-            var pages = new List<int> { 1 };
-            if (current > 3) pages.Add(-1);
-            for (int i = Math.Max(2, current - 1); i <= Math.Min(total - 1, current + 1); i++)
-                pages.Add(i);
-            if (current < total - 2) pages.Add(-1);
-            pages.Add(total);
-            return pages;
-        }
 
         // ── Modal ─────────────────────────────────────────────────────
 
