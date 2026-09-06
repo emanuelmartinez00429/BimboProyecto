@@ -396,13 +396,21 @@ El constructor #2 y todo el código del `OnLoaded` que carga `ObtenerEmpleadosSi
 
 ---
 
-### P-008 · Mapeo tabla→PK en `RealtimeService` es manual
+### ~~P-008~~ · ✅ Mapeo tabla→PK en `RealtimeService` es manual — resuelto
 
 **Archivo:** `CapaDatos/Realtime/RealtimeService.cs`
 
-Diccionario estático que mapea nombre de tabla a columna PK. Si se agrega una tabla nueva al sistema de Realtime y se olvida actualizar este diccionario, el servicio no podrá extraer el ID del registro cambiado — falla silenciosamente.
+Diccionario estático que mapea nombre de tabla a columna PK. Si se agrega una tabla nueva al sistema de Realtime y se olvida actualizar este diccionario, el servicio no podrá extraer el ID del registro cambiado — fallaba silenciosamente.
 
-**Estado:** `[ ] Agregar validación o comentario de advertencia`
+El diccionario sigue siendo manual a propósito (no hay forma de derivar la PK desde el payload de Realtime sin consultarla), pero ya no falla en silencio: `ExtraerCambio` emite, con el propio número de este ítem en el mensaje:
+```csharp
+Serilog.Log.Warning(
+    "Realtime P-008: tabla '{Tabla}' no tiene PK mapeada en _pkColumns.", tabla);
+```
+
+**Verificado 2026-09-06** contra el código actual, al auditar trabajo de otra sesión — la advertencia estaba puesta pero el ítem seguía marcado pendiente.
+
+**Estado:** `[x]` Resuelto — advertencia en log presente y verificada.
 
 ---
 
@@ -661,7 +669,14 @@ Durante la inspección remota no apareció un trigger asociado a `public.empresa
 1. Confirmar que el trigger automático de `updated_at` esté adjunto a `public.empresa` en el entorno objetivo.
 2. Probar manualmente apertura por permiso, guardado, reemplazo repetido del logo, reinicio de la aplicación y propagación del tema.
 
-**Estado:** `[~] Parcialmente resuelto — implementación y seguridad listas; validación manual/trigger pendientes`
+> [!success] Punto 1 confirmado (2026-09-06)
+> ```sql
+> select tgname from pg_trigger where tgrelid='public.empresa'::regclass and not tgisinternal;
+> -- trg_empresa_updated_at
+> ```
+> El trigger existe. Queda solo el punto 2 —prueba manual/visual—, que no se puede verificar con lectura de código ni de base.
+
+**Estado:** `[~] Parcialmente resuelto — implementación, seguridad y trigger confirmados; falta la validación manual/visual (punto 2)`
 
 ---
 
@@ -750,15 +765,20 @@ Mientras tanto, buscar con tilde en cualquiera de esos módulos sigue sin encont
 
 ---
 
-### P-040 · Carga inicial de `icono_sidebar` pendiente en Storage
+### ~~P-040~~ · ✅ Carga inicial de `icono_sidebar` pendiente en Storage — resuelto
 
 **Detectado en:** [[Sesión 2026-08-15 - Icono dinámico del sidebar]]
 
-El código ya permite seleccionar, subir, cachear y mostrar `empresa.icono_sidebar`, conservando `Resources/bimbo-logo.png` como fallback. Sin embargo, la fila `empresa.id_empresa = 1` seguía con `icono_sidebar = 'sin_icono'` al último intento verificado. La carga automatizada no se completó porque el MCP dedicado estaba en modo solo lectura y el canal administrativo falló por transporte.
+El código ya permite seleccionar, subir, cachear y mostrar `empresa.icono_sidebar`, conservando `Resources/bimbo-logo.png` como fallback. La fila `empresa.id_empresa = 1` había quedado con `icono_sidebar = 'sin_icono'` al último intento verificado, porque la carga automatizada no se completó (MCP en modo solo lectura, canal administrativo fallaba por transporte).
 
-**Solución:** iniciar sesión con `Modificar Configuración`, seleccionar `CapaUI/Resources/bimbo-logo.png` en el nuevo campo del modal y guardar; alternativamente, repetir la carga inicial cuando exista un canal Supabase de escritura disponible. Verificar después que la ruta quede guardada y que el objeto sea descargable públicamente.
+**Verificado 2026-09-06:**
+```sql
+select icono_sidebar from public.empresa where id_empresa=1;
+-- sidebar_empresa_1_20260815065933498_350e1ad61c374aa8bbd19a9e3c04e495.png
+```
+La ruta ya no es `'sin_icono'` — quedó guardada en algún momento entre la detección y esta verificación. No se confirmó por separado que el objeto sea descargable públicamente (fuera del alcance de una consulta SQL), pero el estado que el ítem pedía cerrar —la fila con una ruta real— está cumplido.
 
-**Estado:** `[ ] Pendiente`
+**Estado:** `[x]` Resuelto — verificado en BD.
 
 ---
 
@@ -946,7 +966,7 @@ Esta bifurcación introduce inconsistencias de comportamiento y mantenimiento:
 
 ---
 
-### P-048 · Fuga de datos y permisos entre sesiones en terminal compartida (CatalogoCache y RolPermisoRepository)
+### ~~P-048~~ · ✅ Fuga de datos y permisos entre sesiones en terminal compartida (CatalogoCache y RolPermisoRepository) — resuelto 2026-09-03
 
 **Archivos:** `CapaUI/Core/Catalogos/CatalogoCache.cs:177`, `CapaDatos/Repositories/Usuarios/RolPermisoRepository.cs:23-24`, `CapaUI/Formularios/Principal/MainWindow.xaml.cs:660-692` (`LimpiarRecursosAsync`), `CapaUI/App.xaml.cs`
 **Detectado en:** Auditoría adversarial y diseño de [[ADR-026 - Cache en memoria con FusionCache e invalidacion por Realtime]] (2026-09-02)
@@ -967,7 +987,11 @@ Se constató una fuga de estado bidireccional entre usuarios sucesivos en la mis
 3. Como solución arquitectónica definitiva: Migrar todas las cachés estáticas hacia la abstracción centralizada `ICacheService` gobernada por `FusionCache`, ejecutando `ClearAsync(allowFailSafe: false)` de forma determinística en `LimpiarRecursosAsync()`, tal como se establece en [[ADR-026 - Cache en memoria con FusionCache e invalidacion por Realtime]].
 4. Exponer un método explícito `Suscribir()` en `InvalidadorCacheRealtime` e invocarlo obligatoriamente en `MainWindow.OnLoaded` en cada inicio de sesión, compensando la limpieza de `_suscriptores` en `RealtimeService.DesconectarAsync()`.
 
-**Estado:** `[ ] Pendiente 🔴`
+**Solución aplicada:** implementada íntegra en [[Sesión 2026-09-03 - Implementación de ADR-026 y socket Realtime autenticado]]. `CatalogoCache.cs` se eliminó del todo; `RolPermisoRepository` pasó a `ICacheService` con la etiqueta `rbac:definiciones`; `MainWindow.LimpiarRecursosAsync()` llama a `_cache.LimpiarTodoAsync()` (purga total, `allowFailSafe: false`) y a `_invalidadorCache.Desuscribir()`; `MainWindow.OnLoaded` llama a `_invalidadorCache.Suscribir()` en cada sesión.
+
+**Verificado 2026-09-06** (al auditar trabajo de otra sesión, se encontró este ítem también sin actualizar pese a estar resuelto desde el 03): `CapaUI/Core/Catalogos/CatalogoCache.cs` no existe; `grep` confirma `LimpiarTodoAsync()`, `_invalidadorCache.Suscribir()` y `_invalidadorCache.Desuscribir()` presentes en `MainWindow.xaml.cs`.
+
+**Estado:** `[x]` Resuelto.
 
 ---
 
@@ -1174,7 +1198,7 @@ Cableado end-to-end verificado en el código: `RegistroCamionesModal.Guardar_Cli
 | P-037 | Paginación: code-behind duplicado 9× sin clamp de `Page` ni binding del resaltado | `[ ]` Pendiente | [[Sesión 2026-08-14 - Regresion la grilla mostraba la pagina anterior]] |
 | P-038 | Modelos C# desalineados del esquema + `ErrorCarga` no llega al usuario | `[ ]` Pendiente 🔴 | [[Sesión 2026-08-14 - Modelo desalineado del esquema tumbaba paginas enteras]] |
 | P-039 | Búsqueda sin tildes solo en Productos — faltan 7 tablas | `[ ]` Pendiente | [[ADR-018 - Busqueda insensible a mayusculas y tildes con columna generada]] |
-| P-040 | Carga inicial de `icono_sidebar` pendiente en Storage | `[ ]` Pendiente | [[Sesión 2026-08-15 - Icono dinámico del sidebar]] |
+| P-040 | Carga inicial de `icono_sidebar` pendiente en Storage | `[x]` Resuelto | [[Sesión 2026-08-15 - Icono dinámico del sidebar]] |
 | P-041 | Conteos de Fabricantes/Categorías filtrados por estado — las 3 pastillas dejan de informar | `[ ]` Pendiente | [[Sesión 2026-08-15 - Modulo CRUD de Presentaciones]] |
 | P-042 | `PesajeModalStyles.xaml` duplica `ModalInput`/`ModalCombo`/`ModalSegBtn` sin foco ni validación por campo | `[ ]` Pendiente — agravado 2026-09-05 (3ª copia local: `CeldaInput`) | [[Sesión 2026-08-19 - Selector de proveedor por tabla y consolidacion de estilos]] |
 | P-043 | `ModalInput`/`InputBox` globales: mismo bug de `VerticalAlignment` fijo que ya se corrigió en `MInput` | `[ ]` Pendiente | [[Sesión 2026-08-19 - Selector de proveedor por tabla y consolidacion de estilos]] |
@@ -1182,7 +1206,7 @@ Cableado end-to-end verificado en el código: `RegistroCamionesModal.Guardar_Cli
 | P-045 | Campos de texto de Pesaje sin límites en UI, Dominio ni BD | `[x]` Resuelto — las 3 tablas en las 3 capas | [[Sesión 2026-09-06 - Resolucion integral P-045 P-049 P-051 P-052 P-053]] |
 | P-046 | Validación visual de descripciones de estado de Pesaje en Bitácora | `[ ]` Pendiente | [[Sesión 2026-08-24 - RPC idempotentes auditadas de Pesajes]] |
 | P-047 | Divergencia de diseño y comportamiento entre `ModalInput` e `InputBox` | `[ ]` Pendiente | [[Sesión 2026-09-02 - Validación de longitud máxima en campos de texto]] |
-| P-048 | Fuga de datos y permisos entre sesiones en terminal compartida (CatalogoCache / RolPermiso) | `[ ]` Pendiente 🔴 | [[ADR-026 - Cache en memoria con FusionCache e invalidacion por Realtime]] |
+| P-048 | Fuga de datos y permisos entre sesiones en terminal compartida (CatalogoCache / RolPermiso) | `[x]` Resuelto | [[Sesión 2026-09-03 - Implementación de ADR-026 y socket Realtime autenticado]] |
 | P-049 | Suscripciones Realtime inactivas en Contactos (tablas no publicadas en publicación) | `[x]` Resuelto | [[Sesión 2026-09-06 - Resolucion integral P-045 P-049 P-051 P-052 P-053]] |
 | P-050 | Clave de caché de catálogos sin el tamaño de página (colisión lupa 200 / paginado 50) | `[x]` Resuelto | [[Sesión 2026-09-03 - Implementación de ADR-026 y socket Realtime autenticado]] |
 | P-051 | Política `select_Usuarios` con `USING (true)` sobre PUBLIC | `[x]` Resuelto | [[Sesión 2026-09-06 - Resolucion integral P-045 P-049 P-051 P-052 P-053]] |

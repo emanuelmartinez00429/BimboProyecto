@@ -24,6 +24,8 @@ Si el usuario pregunta algo tipo **"Yo soy a los animales como...?"** (o similar
 **Regla de Documentación Automática vs. Aprobación Previa (Ineludible):**
 - **Si el cambio requiere prueba/aprobación del usuario** (feature visual, pantalla o interacción humana): el agente debe avisar explícitamente: *"No se ha documentado aún porque debes probar la feature y aprobarla; una vez aprobada, documentamos."*
 - **Si el cambio no requiere prueba interactiva** (técnico, backend, refactor, fixes): el agente debe documentar en automático todo lo que haga antes de responder.
+- **Cierre obligatorio de Deuda Técnica:** Si resuelves o mitigas un ítem `P-NNN`, debes actualizarlo de inmediato a `[x] Resuelto` en `Deuda Técnica - Pendientes.md`, tachar el título y adjuntar la fecha, enlace a la nota de sesión y la evidencia concreta de verificación (consulta SQL en base viva o test unitario). Nunca dejarlo `[ ] Pendiente` si fue resuelto.
+- **Verificación en Base Viva:** Para migraciones en Supabase, verificar con `list_migrations`, inspección del catálogo (`pg_publication_tables`, `pg_policy`, `pg_trigger`), `get_advisors` de seguridad y cableado end-to-end en C#.
 
 ---
 

@@ -35,6 +35,8 @@ Estado y arquitectura vigentes (fuente de verdad viva): **[`contexto/40 - Proyec
 6. Repositorios nuevos: heredar `RepositorioBase` + usar `TryAsync` + devolver `Result`/`Result<T>`.
 7. La sesión y los permisos se leen vía `IUsuarioSesionService` (no hay estado estático de sesión).
 8. **Traducción conceptual a la tecnología activa (WPF / .NET 8 / XAML):** Si el usuario describe un requisito de diseño, comportamiento o dimensionamiento usando conceptos coloquiales, genéricos o de otros entornos (ej. Windows Forms como `DisplayedCells`, HTML/CSS como `flex`/`div`, o Android), **nunca** trasladar el término de forma literal como atributo XAML o identificador en C#. Siempre interpretarlo conceptualmente y traducirlo al equivalente nativo, idiomático y validado de WPF (ej. en `DataGrid`, usar `Width="Auto"` con `MinWidth`, nunca inventar literales como `SizeToDisplayedCells` que rompen el parser de XAML). Si un enum o propiedad no existe en WPF, verificar la API oficial antes de generar código.
+9. **Inyección de Dependencias pura (Sin Service Locator en UI):** Todas las ventanas (`Window`), páginas y modales deben recibir sus dependencias por constructor. Queda prohibido usar parámetros opcionales con fallback a `App.Services.GetRequiredService<T>()` en clases que se resuelven por el contenedor.
+10. **Caché centralizada e higiene de dependencias:** Antes de inyectar dependencias para purgar cachés en el cierre de sesión (`LimpiarRecursosAsync`), verificar si la entidad ya usa `ICacheService` (ADR-026). Si la purga global (`_cache.LimpiarTodoAsync()`) ya cubre las etiquetas, no inyectar dependencias redundantes ni introducir código muerto.
 
 Detalle completo de convenciones de código: [`contexto/CLAUDE.md`](contexto/CLAUDE.md) y [`contexto/50 - Referencia/Convenciones C#.md`](contexto/50%20-%20Referencia/Convenciones%20C%23.md).
 
@@ -69,6 +71,13 @@ No es opcional — es lo que permite que el siguiente agente entre sin perderse.
    - **Debes avisar explícitamente**: *"No se ha documentado aún porque debes probar la feature y aprobarla; una vez aprobada, documentamos."*
 2. **Si el cambio es técnico / refactor / fix probado con tests**:
    - **Debes documentar en automático todo lo que hagas** en `contexto/70/` y notas correspondientes **antes** de responder. No esperes a que te lo pidan.
+3. **Cierre obligatorio de Deuda Técnica:**
+   - Si tu trabajo resuelve o mitiga un ítem `P-NNN` de `Deuda Técnica - Pendientes.md`, es **obligatorio** actualizarlo inmediatamente en ese mismo archivo a `[x] Resuelto`, tachar el título y registrar:
+     * La fecha de resolución y enlace a la nota de sesión en `contexto/70/`.
+     * La consulta SQL de verificación en base viva (`pg_policy`, `pg_trigger`, `information_schema.columns`) o la prueba unitaria xUnit que certifica el estado.
+   - **Nunca** des por finalizada una tarea dejando ítems resueltos marcados como `[ ] Pendiente`.
+4. **Verificación rigurosa en Base de Datos Viva:**
+   - Para migraciones en Supabase, no alcanza con compilar el código o generar el `.sql`: es mandatorio verificar su aplicación con `list_migrations`, validar el catálogo físico de Postgres, revisar advisors de seguridad (`get_advisors`) y auditar el cableado C# end-to-end (modal → view → viewmodel → repo → RPC).
 
 ➡ **[`contexto/AGENTS.md`](contexto/AGENTS.md)** — protocolo de la bóveda.
 
