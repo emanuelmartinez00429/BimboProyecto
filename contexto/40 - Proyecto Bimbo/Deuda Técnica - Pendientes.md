@@ -883,18 +883,19 @@ El `ControlTemplate` de `MInput` (Pesaje) tenía `VerticalAlignment="Center"` **
 
 ---
 
-### P-044 · Multiselección de `SelectorCatalogoModal` no responde a teclado
+### ~~P-044~~ · ✅ Multiselección de `SelectorCatalogoModal` no respondía a teclado — resuelto 2026-09-06
 
-**Archivo:** `CapaUI/Core/Controls/SelectorCatalogoModal.xaml`
+**Archivo:** `CapaUI/Core/Controls/SelectorCatalogoModal.xaml.cs`
 **Detectado en:** [[Sesión 2026-08-19 - Selector de proveedor por tabla y consolidacion de estilos]]
 
-Con `CatalogoConfig.PermiteMultiple` (hoy solo el selector de Productos de `ProcesoDescargaModal`), cada fila tiene un `CheckBox` independiente. Marcar varias funciona con mouse; por teclado no — llegar a una fila con `↓`/`Tab` y apretar `Space` no tilda el checkbox, porque el foco de teclado que ya maneja `OnPreviewKeyDown` (navegación `↓`/`↑`/`Enter` entre buscador y tabla, ver [[Selector de Catálogo - Selector genérico y multiselección]]) no llega hasta el `CheckBox` de la celda.
+**Solución aplicada (2026-09-06):**
+- En `OnPreviewKeyDown`:
+  - Se agregó soporte para `Key.Space`: si el foco está en la tabla (`Dg.IsKeyboardFocusWithin`), en modo múltiple conmuta el `Marcado` de la fila seleccionada (`ToggleMarcado`), manteniendo la fila activa para navegación ágil. En modo simple confirma la fila de inmediato. No interfiere con `SearchBox` ni con activación nativa de botones.
+  - Se mejoró `Key.Enter`: en modo múltiple, si no hay marcas previas acumuladas (`_marcados.Count == 0`), presionar Enter sobre una fila la confirma directamente como atajo rápido de 1 solo ítem.
+  - Detección defensiva de botones con `EsBoton` recorriendo el árbol visual/lógico para no secuestrar eventos nativos.
+  - Centralización de marcado en `ToggleMarcado(fila)` reutilizado por doble clic y teclado.
 
-**Riesgo:** bajo — accesibilidad/comodidad, no bloquea el flujo (con mouse funciona completo).
-
-**Solución:** no diseñada todavía. Probablemente un `PreviewKeyDown` adicional que, con foco en una fila y `PermiteMultiple` activo, `Space` togglee el `Marcado` de la fila resaltada (mismo patrón que ya usa `Enter` para confirmar selección simple).
-
-**Estado:** `[ ] Pendiente`
+**Estado:** `[x]` Resuelto — build 0/0, 270/270 tests.
 
 ---
 
@@ -1232,7 +1233,7 @@ Cableado end-to-end verificado en el código: `RegistroCamionesModal.Guardar_Cli
 | P-041 | Conteos de Fabricantes/Categorías filtrados por estado — las 3 pastillas dejan de informar | ✅ Resuelto | [[Sesión 2026-09-06 - Auditoría del cierre masivo P-025 P-029 P-031 P-032 P-038 P-041]] |
 | P-042 | `PesajeModalStyles.xaml` duplica `ModalInput`/`ModalCombo`/`ModalSegBtn` sin foco ni validación por campo | `[ ]` Pendiente — agravado 2026-09-05 (3ª copia local: `CeldaInput`) | [[Sesión 2026-08-19 - Selector de proveedor por tabla y consolidacion de estilos]] |
 | P-043 | `ModalInput`/`InputBox` globales: mismo bug de `VerticalAlignment` fijo que ya se corrigió en `MInput` | `[x]` Resuelto | [[Sesión 2026-09-06 - Tres frenos de rendimiento cerrados y VerticalAlignment fijo en ModalInput]] |
-| P-044 | Multiselección de `SelectorCatalogoModal` no responde a teclado (Space no tilda el checkbox) | `[ ]` Pendiente | [[Sesión 2026-08-19 - Selector de proveedor por tabla y consolidacion de estilos]] |
+| P-044 | Multiselección de `SelectorCatalogoModal` no responde a teclado (Space no tilda el checkbox) | `[x]` Resuelto — Space conmuta / confirma y Enter atajo rápido | [[Sesión 2026-08-19 - Selector de proveedor por tabla y consolidacion de estilos]] |
 | P-045 | Campos de texto de Pesaje sin límites en UI, Dominio ni BD | `[x]` Resuelto — las 3 tablas en las 3 capas | [[Sesión 2026-09-06 - Resolucion integral P-045 P-049 P-051 P-052 P-053]] |
 | P-046 | Validación visual de descripciones de estado de Pesaje en Bitácora | `[ ]` Pendiente | [[Sesión 2026-08-24 - RPC idempotentes auditadas de Pesajes]] |
 | P-047 | Divergencia de diseño y comportamiento entre `ModalInput` e `InputBox` | `[ ]` Pendiente | [[Sesión 2026-09-02 - Validación de longitud máxima en campos de texto]] |

@@ -347,6 +347,27 @@ public partial class SelectorCatalogoModal : UserControl, IDisposable
                 e.Handled = true;
                 break;
 
+            // P-044: Soporte para barra espaciadora en la tabla.
+            // Si el foco está en la búsqueda, Espacio escribe en el texto normalmente.
+            // Si el foco está en un botón, activa el botón por el camino nativo de WPF.
+            // Si el foco está en la tabla:
+            // - En modo múltiple: conmuta el estado de marcado de la fila (checkbox).
+            // - En modo simple: confirma y emite la fila seleccionada.
+            case Key.Space when !SearchBox.IsKeyboardFocusWithin && !EsBoton(Keyboard.FocusedElement):
+                if (Dg.IsKeyboardFocusWithin && Dg.SelectedItem is FilaCatalogo filaEspacio && !filaEspacio.YaElegido)
+                {
+                    if (_cfg.PermiteMultiple)
+                    {
+                        ToggleMarcado(filaEspacio);
+                    }
+                    else
+                    {
+                        Confirmar();
+                    }
+                    e.Handled = true;
+                }
+                break;
+
             // Ojo con el alcance: esto es PreviewKeyDown en el UserControl, así que
             // ve el Enter de CUALQUIER hijo, botones incluidos. Antes marcaba
             // Handled siempre, y eso se tragaba el Enter cuando el foco estaba
@@ -354,7 +375,7 @@ public partial class SelectorCatalogoModal : UserControl, IDisposable
             // respondía a Espacio. Ahora solo se marca Handled cuando el selector
             // realmente hizo algo; si el foco está en un botón, Enter sigue de
             // largo y lo activa por el camino normal de WPF.
-            case Key.Enter when !EsBotonDelPie(Keyboard.FocusedElement):
+            case Key.Enter when !EsBoton(Keyboard.FocusedElement):
                 if (Dg.SelectedItem is FilaCatalogo)
                 {
                     Confirmar();
@@ -370,11 +391,29 @@ public partial class SelectorCatalogoModal : UserControl, IDisposable
     }
 
     /// <summary>
-    /// ¿El foco está sobre un botón del pie del selector? Si lo está, Enter le
-    /// pertenece al botón y el manejo global de Enter no debe interceptarlo.
+    /// ¿El foco actual está sobre algún botón del selector (pie o paginación)?
+    /// Si lo está, teclas como Enter o Espacio le pertenecen al botón nativo.
     /// </summary>
-    private bool EsBotonDelPie(IInputElement? foco) =>
-        foco is Button b && (b == BtnElegir || b == BtnCerrar);
+    private static bool EsBoton(IInputElement? foco)
+    {
+        if (foco is DependencyObject dep)
+        {
+            DependencyObject? actual = dep;
+            while (actual != null)
+            {
+                if (actual is Button) return true;
+                if (actual is Visual or System.Windows.Media.Media3D.Visual3D)
+                {
+                    actual = VisualTreeHelper.GetParent(actual) ?? LogicalTreeHelper.GetParent(actual);
+                }
+                else
+                {
+                    actual = LogicalTreeHelper.GetParent(actual);
+                }
+            }
+        }
+        return false;
+    }
 
     /// <summary>Marca la primera fila (o la ya marcada) y le pasa el foco a la celda.</summary>
     private void BajarALaTabla()
@@ -467,6 +506,24 @@ public partial class SelectorCatalogoModal : UserControl, IDisposable
         RefrescarEstadoMarcas();
     }
 
+    /// <summary>
+    /// Conmuta el estado de marcado de una fila en modo selección múltiple,
+    /// actualizando el acumulador interno y refrescando la UI.
+    /// </summary>
+    private void ToggleMarcado(FilaCatalogo fila)
+    {
+        if (fila.YaElegido) return;
+
+        fila.Marcado = !fila.Marcado;
+        if (fila.Item.Id is int id)
+        {
+            if (fila.Marcado) _marcados[id] = fila.Item;
+            else           _marcados.Remove(id);
+        }
+
+        RefrescarEstadoMarcas();
+    }
+
     private void Dg_DoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
     {
         if (Dg.SelectedItem is not FilaCatalogo fila || fila.YaElegido) return;
@@ -475,9 +532,8 @@ public partial class SelectorCatalogoModal : UserControl, IDisposable
         {
             // En modo múltiple el doble clic no confirma nada — solo tilda o
             // destilda el checkbox de esa fila, como si el usuario le hubiera
-            // clickeado directo. El binding TwoWay dispara Checked/Unchecked
-            // (Marcado_Changed), que mantiene _marcados sincronizado.
-            fila.Marcado = !fila.Marcado;
+            // clickeado directo.
+            ToggleMarcado(fila);
             return;
         }
 
@@ -496,12 +552,20 @@ public partial class SelectorCatalogoModal : UserControl, IDisposable
                 .Where(i => !(_cfg.EstaYaElegido?.Invoke(i.Id) ?? false))
                 .ToList();
 
-            if (elegidos.Count > 0) Emitir(elegidos);
+            if (elegidos.Count > 0)
+            {
+                Emitir(elegidos);
+                return;
+            }
 
-            // Sin marcas no se emite nada: en modo multiple la fila resaltada
-            // NO cuenta como elegida (clickear un checkbox tambien selecciona
-            // su fila, asi que caer al camino simple agregaria justo la ultima
-            // que se toco). Mismo criterio que el doble clic.
+            // P-044 atajo rápido por teclado: si el operador presiona Enter sobre una fila
+            // y aún no ha marcado ninguna casilla, se emite esa fila directamente.
+            if (Dg.SelectedItem is FilaCatalogo filaActual && !filaActual.YaElegido)
+            {
+                Emitir(new[] { filaActual.Item });
+                return;
+            }
+
             return;
         }
 
