@@ -1,4 +1,4 @@
----
+﻿---
 title: "Anatomía compartida de los modales"
 tags:
   - patron
@@ -31,7 +31,11 @@ lifecycle: verified
 | `ModalTitulo` / `ModalContexto` | Título y cinta del encabezado | — |
 | `LupaBtnCompartido` | Botón lupa de campo de catálogo, **fondo claro** | Usado en `ReporteriaView` |
 | `LupaBtnOscuro` | Igual, **fondo oscuro** (modales con marco degradado) | `ProductoModal`, `ProcesoDescargaModal` |
-| `TablaCatalogoFila` / `Celda` / `Header` | Tabla blanca (fila/celda/header) sobre modal oscuro — alternas, hover, selección | `SelectorCatalogoModal`, tabla de productos de `ProcesoDescargaModal` |
+| `TablaCatalogoFila` / `Celda` / `Header` | Tabla blanca (fila/celda/header) sobre modal oscuro — alternas, hover, selección | `SelectorCatalogoModal` |
+| `CeldaInput` | `TextBox` **dentro de una fila** de tabla editable (34px, compacto) | `RegistroCamionesModal`, `ProductosCargaModal` |
+| `BasureroCelda` | Botón de quitar la fila. Tiene estado deshabilitado: hay filas que no se pueden quitar | ídem |
+| `CabeceraColTabla` | Rótulo de columna sobre la banda del color de empresa | ídem |
+| `BtnAgregarFilaTabla` | Botón de agregar fila al pie de la tarjeta | ídem |
 
 ---
 
@@ -88,6 +92,26 @@ En un `DataGrid` virtualizado el contenedor se recicla y el texto cambia sin dis
 ## Hint del atajo de guardado
 
 El pie lleva `Ctrl+Enter para guardar`. El atajo ya funcionaba en casi todos los modales vía `controls:AtajoGuardar.Boton`, pero solo uno lo anunciaba — es decir, la función existía sin que el usuario pudiera enterarse.
+
+---
+
+## El marcador («placeholder») lo dibuja la plantilla, no la pantalla
+
+**No superpongas un `TextBlock` gris sobre un `TextBox` para el texto de ayuda.** `ModalInput`, `CeldaInput` y `MInput` ya lo traen; la pantalla solo declara el texto:
+
+```xml
+<TextBox Style="{StaticResource CeldaInput}"
+         controls:Placeholder.Texto="Sin observaciones"/>
+```
+
+El motivo es concreto (sesión 2026-09-07): cuando cada pantalla se superponía su propio `TextBlock`, tenía que **adivinar el margen** para que cayera donde arranca el texto real — que es `BorderThickness + Padding` del estilo, y encima cambia 1px al enfocar porque el borde pasa de 1 a 2. Los siete que había estaban en `24px` (`CamionModal`) y `12px` (modales de tabla) contra un origen real de 11px: todos corridos, y cada uno distinto. Dentro de la plantilla el marcador usa el **mismo** `{TemplateBinding Padding}` que el `PART_ContentHost`, así que cae alineado por construcción y hereda `FontFamily`/`FontSize` del input.
+
+Se **oculta al enfocar** (vacío *y* sin foco), no solo al escribir: así el cursor nunca queda encima del texto gris.
+
+> [!tip] Si querés correr el marcador, movés el `Padding` del estilo
+> Ese `Padding` posiciona el texto real **y** el marcador a la vez, así que siguen alineados. Ojo con el alcance: `CeldaInput` lo comparten las tablas de `RegistroCamionesModal` y `ProductosCargaModal`.
+
+Si el campo además lleva una capa de recorte con «…» al perder el foco, acordate de ocultarla cuando el texto está vacío — si no, tapa el marcador.
 
 ---
 

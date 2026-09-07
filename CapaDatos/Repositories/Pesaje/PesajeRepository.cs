@@ -1,4 +1,4 @@
-using CapaAplicacion.Common;
+﻿using CapaAplicacion.Common;
 using CapaAplicacion.Conexion;
 using CapaAplicacion.Pesaje.Dtos;
 using CapaAplicacion.Pesaje.Interfaces;
@@ -275,37 +275,87 @@ public class PesajeRepository : RepositorioBase, IPesajeRepository
             return lista;
         }, "Cargar productos del camión");
 
-    public Task<Result<int>> AgregarProductoAsync(int idMovimiento, int idProducto, double pesoManifestado, int bultosDeclarados, string observaciones, CancellationToken ct = default) =>
-        TryAsync(async () =>
+    // AgregarProductoAsync, ActualizarProductoAsync y AnularProductoAsync se
+    // eliminaron: eran Insert/Update crudos de PostgREST —sin RPC, sin bitácora,
+    // sin p_id_solicitud y sin validación en servidor—, el último camino de
+    // escritura del módulo en esas condiciones. Los reemplaza por completo
+    // GuardarProductosLoteAsync, que hace altas, cambios y bajas en una sola
+    // transacción auditada.
+
+    /// <summary>
+    /// Toda la carga en un solo viaje y una sola transacción — ver el contrato en
+    /// <see cref="IPesajeRepository.GuardarProductosLoteAsync"/>.
+    /// <para/>
+    /// Las bajas viajan como arreglo plano de <c>id_mov_producto</c>; altas y cambios
+    /// como arreglos de objetos. El RPC valida todo del lado del servidor (pesos,
+    /// pertenencia del producto al proveedor, pesajes vivos), así que acá no se
+    /// duplica ninguna de esas reglas: duplicarlas es lo que las deja divergir.
+    /// </summary>
+    public Task<Result<ResultadoLoteProductos>> GuardarProductosLoteAsync(
+        int idMovimiento,
+        IReadOnlyList<ProductoCargaAlta> altas,
+        IReadOnlyList<ProductoCargaCambio> cambios,
+        IReadOnlyList<int> bajas,
+        Guid idSolicitud,
+        CancellationToken ct = default)
+    {
+        var altasLista   = altas   ?? Array.Empty<ProductoCargaAlta>();
+        var cambiosLista = cambios ?? Array.Empty<ProductoCargaCambio>();
+        var bajasLista   = bajas   ?? Array.Empty<int>();
+
+        if (altasLista.Count == 0 && cambiosLista.Count == 0 && bajasLista.Count == 0)
+            return Task.FromResult(Result<ResultadoLoteProductos>.Ok(
+                new ResultadoLoteProductos(0, 0, 0, Array.Empty<int>())));
+
+        var solicitudEfectiva = idSolicitud == Guid.Empty ? Guid.NewGuid() : idSolicitud;
+
+        return TryAsync(async () =>
         {
+            ct.ThrowIfCancellationRequested();
             var client = await ConexionSupabase.GetClientAsync();
-            var nuevo = new MovimientoProducto
+
+            var altasJson = altasLista.Select(a => new Dictionary<string, object?>
             {
-                idMovimiento    = idMovimiento,
-                idProducto      = idProducto,
-                pesoManifestado = (decimal)pesoManifestado,
-                bultosTeóricos  = bultosDeclarados,   // columna BD conserva el nombre viejo
-                idEstado        = EstadosPesaje.Abierto,
-                observaciones   = string.IsNullOrWhiteSpace(observaciones) ? null : observaciones,
+                ["id_producto"]      = a.IdProducto,
+                ["peso_manifestado"] = (decimal)a.PesoManifestado,
+                ["bultos_teoricos"]  = a.BultosDeclarados,
+                ["observaciones"]    = string.IsNullOrWhiteSpace(a.Observaciones) ? null : a.Observaciones.Trim(),
+            }).ToArray();
+
+            var cambiosJson = cambiosLista.Select(c => new Dictionary<string, object?>
+            {
+                ["id_mov_producto"]  = c.IdMovProducto,
+                ["peso_manifestado"] = (decimal)c.PesoManifestado,
+                ["bultos_teoricos"]  = c.BultosDeclarados,
+                ["observaciones"]    = string.IsNullOrWhiteSpace(c.Observaciones) ? null : c.Observaciones.Trim(),
+            }).ToArray();
+
+            var parametros = new Dictionary<string, object?>
+            {
+                ["p_id_movimiento"] = idMovimiento,
+                ["p_altas"]         = altasJson,
+                ["p_cambios"]       = cambiosJson,
+                ["p_bajas"]         = bajasLista.ToArray(),
+                ["p_id_solicitud"]  = solicitudEfectiva,
             };
-            var r = await client.From<MovimientoProducto>().Insert(nuevo);
-            return r.Models.First().idMovProducto;
-        }, "Agregar producto al camión");
 
-    public Task<Result> ActualizarProductoAsync(int idMovProducto, double pesoManifestado, int bultosDeclarados, string observaciones, CancellationToken ct = default) =>
-        TryAsync(async () =>
-        {
-            var client = await ConexionSupabase.GetClientAsync();
-            await client.From<MovimientoProducto>()
-                .Where(mp => mp.idMovProducto == idMovProducto)
-                .Set(mp => mp.pesoManifestado, (decimal)pesoManifestado)
-                .Set(mp => mp.bultosTeóricos,  bultosDeclarados)
-                .Set(mp => mp.observaciones!,  string.IsNullOrWhiteSpace(observaciones) ? null : observaciones)
-                .Update();
-        }, "Actualizar producto");
+            var response = await client.Rpc("registrar_productos_lote_seguro", parametros);
+            ct.ThrowIfCancellationRequested();
 
-    public Task<Result> AnularProductoAsync(int idMovProducto, CancellationToken ct = default) =>
-        SetEstadoProductoInterno(idMovProducto, EstadosPesaje.Anulado, "Anular producto");
+            var res = ObtenerResultadoRpc(response?.Content, "guardar los productos de la carga");
+
+            int creados      = res["creados"]?.Value<int>()      ?? 0;
+            int actualizados = res["actualizados"]?.Value<int>() ?? 0;
+            int anulados     = res["anulados"]?.Value<int>()     ?? 0;
+
+            var idsToken = res["ids_creados"] as JArray;
+            IReadOnlyList<int> idsCreados = idsToken != null
+                ? idsToken.Select(t => t.Value<int>()).ToList()
+                : Array.Empty<int>();
+
+            return new ResultadoLoteProductos(creados, actualizados, anulados, idsCreados);
+        }, "Guardar los productos de la carga");
+    }
 
     public Task<Result> SetEstadoProductoAsync(int idMovProducto, bool cerrado, CancellationToken ct = default) =>
         SetEstadoProductoInterno(idMovProducto, cerrado ? EstadosPesaje.Cerrado : EstadosPesaje.Abierto, "Cambiar estado producto");

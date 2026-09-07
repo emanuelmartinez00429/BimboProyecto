@@ -1,4 +1,4 @@
----
+﻿---
 title: Dashboard — Bimbo Knowledge Base
 tags:
   - moc
@@ -141,7 +141,8 @@ Regla: `CapaAplicacion` **nunca** referencia `CapaDatos`.
 ## Bitácora
 
 Las sesiones están en `70 - Bitácora de Cambios/`.  
-Sesiones más recientes (2026-09-06):
+Sesiones más recientes (2026-09-07):
+- [[Sesión 2026-09-07 - Productos de la carga en tabla, guardado en lote y marcadores centralizados]]
 - [[Sesión 2026-09-06 - Cierre integral de Deuda Tecnica P-031 y P-042]]
 - [[Sesión 2026-09-06 - Enter abre el modal de edición en las grillas CRUD]]
 - [[Sesión 2026-09-06 - Cierre de Freno de Rendimiento G3 en Animación de Sidebar]]

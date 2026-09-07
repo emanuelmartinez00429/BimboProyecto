@@ -53,10 +53,32 @@
                              arriba lo sigue dejando en Center para el resto de los
                              campos de una sola línea, así que no cambia nada para
                              ellos. -->
-                        <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}"
-                                      VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                        <Grid>
+                            <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}"
+                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                            <!-- El marcador comparte el MISMO Margin/VerticalAlignment que el
+                                 PART_ContentHost, así que cae exactamente donde arranca el
+                                 texto y donde se para el cursor. Ver controls:Placeholder. -->
+                            <TextBlock x:Name="Marcador" Visibility="Collapsed"
+                                       Text="{Binding Path=(controls:Placeholder.Texto), RelativeSource={RelativeSource TemplatedParent}}"
+                                       Margin="{TemplateBinding Padding}"
+                                       VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                       FontFamily="{TemplateBinding FontFamily}"
+                                       FontSize="{TemplateBinding FontSize}"
+                                       Foreground="#9CA3AF" IsHitTestVisible="False"
+                                       TextTrimming="CharacterEllipsis"/>
+                        </Grid>
                     </Border>
                     <ControlTemplate.Triggers>
+                        <!-- Vacío Y sin foco: apenas entra el cursor el marcador se va, así
+                             no queda texto gris debajo del cursor. -->
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="Text" Value=""/>
+                                <Condition Property="IsKeyboardFocusWithin" Value="False"/>
+                            </MultiTrigger.Conditions>
+                            <Setter TargetName="Marcador" Property="Visibility" Value="Visible"/>
+                        </MultiTrigger>
                         <!-- P-042: Aro de foco verde #34D399 de 2px, consistente con ModalInput y CeldaInput -->
                         <Trigger Property="IsFocused" Value="True">
                             <Setter TargetName="Bd" Property="BorderBrush" Value="#34D399"/>

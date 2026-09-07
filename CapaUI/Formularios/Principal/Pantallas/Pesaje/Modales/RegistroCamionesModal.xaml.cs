@@ -46,6 +46,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
     public partial class RegistroCamionesModal : UserControl
     {
         private readonly ICatalogoRepository _catalogos;
+        private System.Windows.Media.Animation.Storyboard? _spinnerGuardar;
 
         /// <summary>
         /// Recepciones abiertas. Sirven para dos cosas: avisar que una placa ya está
@@ -397,6 +398,53 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
             .ToList();
 
         // ── Guardado ────────────────────────────────────────────────────────────
+
+        /// <summary>
+        /// El registro llama a una RPC transaccional (P-053) — quien escucha
+        /// <see cref="Confirmado"/> hace el viaje de red real y es quien sabe cuándo
+        /// arranca y cuándo termina, así que expone este método para avisarle al modal.
+        /// Sin esto, los ~200-500ms de la llamada se ven como que el modal se congeló:
+        /// nada cambia en pantalla hasta que la respuesta vuelve.
+        /// </summary>
+        public void MostrarGuardando(bool activo)
+        {
+            BtnGuardar.IsEnabled  = !activo;
+            BtnCancelar.IsEnabled = !activo;
+            // "Agregar fila" también se bloquea mientras se guarda: agregar una fila a
+            // medio guardado no tiene sentido y el próximo "Guardar" la incluiría con
+            // datos que nunca pasaron por el validador de este envío. Al reactivar, se
+            // delega a ActualizarContadores() en vez de fijar `true` a mano: es la única
+            // fuente de verdad de si sigue habiendo cupo para otra fila.
+            if (activo) BtnAgregarFila.IsEnabled = false;
+            else        ActualizarContadores();
+
+            TxtBtnGuardar.Text = activo ? "Guardando..." : "Guardar camiones";
+            IconoGuardar.Visibility   = activo ? Visibility.Collapsed : Visibility.Visible;
+            SpinnerGuardar.Visibility = activo ? Visibility.Visible : Visibility.Collapsed;
+            if (activo) IniciarSpinnerGuardar(); else DetenerSpinnerGuardar();
+        }
+
+        private void IniciarSpinnerGuardar()
+        {
+            if (_spinnerGuardar != null) return;
+            var anim = new System.Windows.Media.Animation.DoubleAnimation(0, 360, TimeSpan.FromSeconds(0.8))
+            { RepeatBehavior = System.Windows.Media.Animation.RepeatBehavior.Forever };
+            System.Windows.Media.Animation.Storyboard.SetTarget(anim, SpinnerGuardar);
+            System.Windows.Media.Animation.Storyboard.SetTargetProperty(anim,
+                new PropertyPath("(UIElement.RenderTransform).(RotateTransform.Angle)"));
+            _spinnerGuardar = new System.Windows.Media.Animation.Storyboard();
+            _spinnerGuardar.Children.Add(anim);
+            _spinnerGuardar.Begin();
+        }
+
+        private void DetenerSpinnerGuardar()
+        {
+            if (_spinnerGuardar is null) return;
+            _spinnerGuardar.Stop();
+            _spinnerGuardar.Remove();
+            _spinnerGuardar.Children.Clear();
+            _spinnerGuardar = null;
+        }
 
         private void Guardar_Click(object sender, RoutedEventArgs e)
         {

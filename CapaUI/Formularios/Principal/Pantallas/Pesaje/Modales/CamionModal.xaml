@@ -1,6 +1,7 @@
-<UserControl x:Class="CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales.CamionModal"
+﻿<UserControl x:Class="CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales.CamionModal"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:CapaUI.Core.Controls"
              Width="480"
              Height="480"
              MaxWidth="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Border}, Converter={StaticResource RestarMargen}, ConverterParameter=48}"
@@ -120,22 +121,16 @@
                         </Grid.ColumnDefinitions>
                         <TextBox Grid.Column="0" x:Name="TxtProveedor" Style="{StaticResource MInput}" IsReadOnly="True"
                                  Cursor="Hand" PreviewMouseDoubleClick="TxtCatalogo_PreviewMouseDoubleClick"
-                                 KeyDown="TxtCatalogo_KeyDown" Tag="{Binding ElementName=BtnBuscarProveedor}"/>
-                        <TextBlock Grid.Column="0" Text="Seleccioná un proveedor…" FontFamily="Segoe UI"
-                                   FontSize="13.5" Foreground="#9CA3AF" Margin="24,0,0,0"
-                                   VerticalAlignment="Center" IsHitTestVisible="False"
-                                   Visibility="{Binding Text, ElementName=TxtProveedor, Converter={StaticResource VacioAVisibilidad}}"/>
+                                 KeyDown="TxtCatalogo_KeyDown" Tag="{Binding ElementName=BtnBuscarProveedor}"
+                                 controls:Placeholder.Texto="Seleccioná un proveedor…"/>
                         <Button Grid.Column="1" x:Name="BtnBuscarProveedor" Style="{StaticResource LupaBtnOscuro}"
                                 Click="BuscarProveedor_Click" ToolTip="Seleccionar proveedor"/>
                     </Grid>
 
                     <TextBlock Text="Placa del vehículo" Style="{StaticResource MLabel}"/>
                     <Grid Margin="0,0,0,16">
-                        <TextBox x:Name="TxtPlaca" Style="{StaticResource MInput}" TextChanged="Placa_Changed"/>
-                        <TextBlock Text="Ingresá la placa del vehículo…" FontFamily="Segoe UI"
-                                   FontSize="13.5" Foreground="#9CA3AF" Margin="24,0,0,0"
-                                   VerticalAlignment="Center" IsHitTestVisible="False"
-                                   Visibility="{Binding Text, ElementName=TxtPlaca, Converter={StaticResource VacioAVisibilidad}}"/>
+                        <TextBox x:Name="TxtPlaca" Style="{StaticResource MInput}" TextChanged="Placa_Changed"
+                                 controls:Placeholder.Texto="Ingresá la placa del vehículo…"/>
                     </Grid>
 
                     <TextBlock Text="Observaciones (opcional)" Style="{StaticResource MLabel}"/>
@@ -143,11 +138,8 @@
                         <TextBox x:Name="TxtObs" Style="{StaticResource MInput}" Height="96"
                                  AcceptsReturn="True" TextWrapping="Wrap"
                                  VerticalContentAlignment="Top" VerticalScrollBarVisibility="Auto"
-                                 TextChanged="Obs_Changed"/>
-                        <TextBlock Text="Sin observaciones adicionales" FontFamily="Segoe UI"
-                                   FontSize="13.5" Foreground="#9CA3AF" Margin="24,2,0,0"
-                                   VerticalAlignment="Top" IsHitTestVisible="False"
-                                   Visibility="{Binding Text, ElementName=TxtObs, Converter={StaticResource VacioAVisibilidad}}"/>
+                                 TextChanged="Obs_Changed"
+                                 controls:Placeholder.Texto="Sin observaciones adicionales"/>
                     </Grid>
                 </StackPanel>
             </DockPanel>

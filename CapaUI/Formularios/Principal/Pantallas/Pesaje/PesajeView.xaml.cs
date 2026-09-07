@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -61,6 +61,16 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             var vista = CollectionViewSource.GetDefaultView(_vm.Camiones);
             if (vista.GroupDescriptions.Count == 0)
                 vista.GroupDescriptions.Add(new PropertyGroupDescription(nameof(CamionPesaje.Placa)));
+
+            // Mostrar el overlay de carga ACÁ, sincrónico y antes del await — no alcanza
+            // con dejar que ActualizarUI() lo resuelva: PedirActualizarUI() difiere el
+            // barrido a DispatcherPriority.Background (ver su comentario), que corre
+            // DESPUÉS de que WPF ya pintó el primer frame del control recién cargado.
+            // Ese frame de más es justo el parpadeo: toda la grilla (camiones, productos,
+            // pesajes) se ve un instante con sus Visibility por defecto de la primera
+            // carga, antes de que la pantalla decida si corresponde el estado vacío.
+            CargandoInicial.Visibility = Visibility.Visible;
+            IniciarSpinnerCarga();
 
             try
             {
@@ -171,7 +181,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             BtnProdPesar.IsEnabled = hayProducto && prodAbierto && !cerrado;
 
             // Agregar/editar (y, adentro del modal de editar, quitar) un producto del
-            // camión seleccionado — cada uno abre ProductoCamionModal.
+            // camión seleccionado — los dos abren ProductosCargaModal (la carga entera).
             BtnProdAgregar.IsEnabled = hayCamion && !cerrado;
             BtnProdEditar.IsEnabled  = hayProducto && !cerrado;
 
@@ -570,13 +580,13 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
         private void BtnProdAgregar_Click(object sender, RoutedEventArgs e)
         {
             if (SesionPermisos.Tiene(Permiso.ModificarPesaje) && _vm.SelectedCamion != null && !_vm.CamionCerrado)
-                AbrirProductoModal(null);
+                AbrirProductosCargaModal(null);
         }
 
         private void BtnProdEditar_Click(object sender, RoutedEventArgs e)
         {
             if (SesionPermisos.Tiene(Permiso.ModificarPesaje) && _vm.SelectedProducto != null && !_vm.CamionCerrado)
-                AbrirProductoModal(_vm.SelectedProducto);
+                AbrirProductosCargaModal(_vm.SelectedProducto);
         }
 
         /// <summary>
@@ -671,7 +681,18 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
                     .Select(c => (c.Placa, c.IdProveedor, c.Descripcion))
                     .ToList();
 
-                int creados = await _vm.RegistrarCamionesAsync(lote);
+                // El RPC de alta en lote (P-053) es un viaje de red real — sin este
+                // aviso el modal se ve congelado durante esa espera.
+                modal.MostrarGuardando(true);
+                int creados;
+                try
+                {
+                    creados = await _vm.RegistrarCamionesAsync(lote);
+                }
+                finally
+                {
+                    modal.MostrarGuardando(false);
+                }
 
                 // Si entraron todos, se cierra. Si el lote se cortó a mitad el modal queda
                 // abierto con lo que falta —el VM ya dijo por Toast cuántos entraron— pero
@@ -693,7 +714,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
         /// <summary>
         /// Edición de UN camión — solo sus datos. El alta ya no pasa por acá: es
         /// <see cref="AbrirRegistroCamionesModal"/>. Los productos no viajan en este
-        /// modal, ver <see cref="AbrirProductoModal"/>.
+        /// modal, ver <see cref="AbrirProductosCargaModal"/>.
         /// </summary>
         private void AbrirCamionModal(CamionPesaje? camion)
         {
@@ -718,59 +739,45 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
         }
 
         /// <summary>
-        /// Agrega o edita UN producto del camión seleccionado
-        /// (<paramref name="producto"/> null = agregar). "Quitar producto" vive dentro
-        /// del propio modal (evento <c>QuitarSolicitado</c>) — se confirma acá con el
-        /// mismo <see cref="MessageBox"/> nativo que usa <see cref="QuitarCamion_Click"/>.
+        /// Abre la gestión de TODA la carga de la recepción seleccionada: los productos
+        /// que ya tiene, los que se agreguen y los que se quiten, en una sola tabla que se
+        /// guarda de un saque.
+        /// <para/>
+        /// <paramref name="enfocar"/> solo decide en qué fila arranca el cursor — lo usa
+        /// «Editar producto», que abre el mismo modal parado en el producto seleccionado.
+        /// Quitar ya no pide confirmación por <see cref="MessageBox"/>: nada se escribe
+        /// hasta «Finalizar», así que cerrar el modal ya es el "deshacer".
         /// </summary>
-        private void AbrirProductoModal(ProductoCamion? producto)
+        private void AbrirProductosCargaModal(ProductoCamion? enfocar)
         {
             if (_vm.SelectedCamion is not { } camion) return;
-            string placa = camion.Placa;
 
-            var modal = new ProductoCamionModal(camion, _vm.RecepcionesDePlaca(placa), producto);
+            var modal = new ProductosCargaModal(camion, enfocar);
 
             modal.Cerrado += CerrarModal;
-            // El modal NO se cierra al guardar: eso es lo que significa "Guardar y agregar
-            // otro". Cerrarlo lo decide el propio modal según qué botón se tocó.
-            modal.Guardar += async r =>
+            modal.Confirmado += async cambios =>
             {
-                bool ok = producto is null
-                    ? await _vm.AgregarProductoAsync(
-                        placa, r.IdProveedor, r.Proveedor,
-                        r.IdProducto, r.PesoManifestado, r.BultosDeclarados, r.Observaciones)
-                    : await _vm.ActualizarProductoAsync(
-                        producto, r.PesoManifestado, r.BultosDeclarados, r.Observaciones);
+                // Guardar la carga es un viaje de red (RPC transaccional): sin este aviso
+                // el modal se ve congelado durante la espera.
+                modal.MostrarGuardando(true);
+                try
+                {
+                    bool ok = await _vm.GuardarProductosCargaAsync(
+                        camion, cambios.Altas, cambios.Cambios, cambios.Bajas);
 
-                if (!ok) return false;   // el VM ya avisó por Toast; el modal queda abierto
+                    if (!ok) return false;   // el VM ya avisó por Toast; el modal queda abierto
+                }
+                finally
+                {
+                    modal.MostrarGuardando(false);
+                }
 
-                // Recepciones frescas: el guardado pudo haber creado la del otro proveedor,
-                // y el producto recién agregado no debe volver a ofrecerse en el catálogo.
-                modal.ActualizarRecepciones(_vm.RecepcionesDePlaca(placa));
                 SincronizarSeleccion();
                 ActualizarUI();
                 return true;
             };
-            modal.QuitarSolicitado += p =>
-            {
-                var confirmar = MessageBox.Show(
-                    $"¿Quitar «{p.ProductoNombre}» de la carga? Esta acción no se puede deshacer.",
-                    "Quitar producto",
-                    MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No);
-                if (confirmar != MessageBoxResult.Yes) return;
-
-                _ = QuitarProductoFlujo(p);
-            };
 
             MostrarModal(modal);
-        }
-
-        private async Task QuitarProductoFlujo(ProductoCamion producto)
-        {
-            await _vm.QuitarProductoAsync(producto);
-            CerrarModal();
-            SincronizarSeleccion();
-            ActualizarUI();
         }
 
         /// <summary>

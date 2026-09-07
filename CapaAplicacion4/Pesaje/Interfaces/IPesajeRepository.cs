@@ -1,4 +1,4 @@
-using CapaAplicacion.Common;
+﻿using CapaAplicacion.Common;
 using CapaAplicacion.Pesaje.Dtos;
 
 namespace CapaAplicacion.Pesaje.Interfaces;
@@ -12,6 +12,19 @@ public record ResultadoAltaLoteCamiones(int Creados, int PrimerIdMovimiento, IRe
 /// Resultado del reparto atómico de tara extra entre varias pesadas (P-032).
 /// </summary>
 public record ResultadoRepartoTaraExtra(int CantidadActualizada, IReadOnlyList<int> IdsPesaje, double PesoTaraExtraTotal);
+
+/// <summary>Producto nuevo que se suma a la carga de una recepción.</summary>
+public record ProductoCargaAlta(int IdProducto, double PesoManifestado, int BultosDeclarados, string Observaciones);
+
+/// <summary>
+/// Producto que ya estaba en la carga y al que se le corrigió el manifiesto.
+/// Se identifica por <c>id_mov_producto</c>, no por producto: la misma recepción
+/// no repite producto, pero la clave real de la fila es esa.
+/// </summary>
+public record ProductoCargaCambio(int IdMovProducto, double PesoManifestado, int BultosDeclarados, string Observaciones);
+
+/// <summary>Resultado del guardado atómico de la carga completa de una recepción.</summary>
+public record ResultadoLoteProductos(int Creados, int Actualizados, int Anulados, IReadOnlyList<int> IdsCreados);
 
 /// <summary>
 /// Persistencia del módulo de Recepción de Materia Prima (Fase 2).
@@ -38,10 +51,26 @@ public interface IPesajeRepository
 
     // ── Productos del camión (movimiento_productos) ─────────────────────────
     Task<Result<IReadOnlyList<MovProductoDto>>> GetProductosAsync(int idMovimiento, CancellationToken ct = default);
-    Task<Result<int>> AgregarProductoAsync(int idMovimiento, int idProducto, double pesoManifestado, int bultosDeclarados, string observaciones, CancellationToken ct = default);
-    Task<Result>      ActualizarProductoAsync(int idMovProducto, double pesoManifestado, int bultosDeclarados, string observaciones, CancellationToken ct = default);
-    Task<Result>      AnularProductoAsync(int idMovProducto, CancellationToken ct = default);
     Task<Result>      SetEstadoProductoAsync(int idMovProducto, bool cerrado, CancellationToken ct = default);
+
+    /// <summary>
+    /// Guarda de una sola vez toda la carga de una recepción — altas, correcciones
+    /// de manifiesto y bajas — en UNA transacción del servidor
+    /// (RPC <c>registrar_productos_lote_seguro</c>).
+    /// <para/>
+    /// Si cualquier fila viola una restricción (peso o bultos no positivos, producto
+    /// ajeno al proveedor de la recepción, producto con pesajes activos que se intenta
+    /// quitar), la transacción se aborta entera y no persiste NADA — ni siquiera las
+    /// filas que sí eran válidas. Es el mismo criterio de P-032 y P-053: el manifiesto
+    /// a medio guardar es peor que el manifiesto sin guardar.
+    /// </summary>
+    Task<Result<ResultadoLoteProductos>> GuardarProductosLoteAsync(
+        int idMovimiento,
+        IReadOnlyList<ProductoCargaAlta> altas,
+        IReadOnlyList<ProductoCargaCambio> cambios,
+        IReadOnlyList<int> bajas,
+        Guid idSolicitud,
+        CancellationToken ct = default);
 
     // ── Pesajes (entradas_producto) ─────────────────────────────────────────
 

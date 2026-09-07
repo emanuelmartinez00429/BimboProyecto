@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
@@ -18,7 +18,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
     /// <summary>
     /// Alta o edición de UN camión — solo sus datos (proveedor, placa,
     /// observaciones). Los productos ya no viven acá: se agregan/editan desde
-    /// la pantalla principal con <see cref="ProductoCamionModal"/>, uno a la
+    /// la pantalla principal con <c>ProductosCargaModal</c>, uno a la
     /// vez. Revive el split que existía antes de que ambos pasos se
     /// unificaran en <c>ProcesoDescargaModal</c> (ver commit bf1117f).
     /// </summary>

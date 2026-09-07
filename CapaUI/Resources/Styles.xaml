@@ -194,7 +194,7 @@
     <!-- ── Input de Celda (P-042 / P-047) ──────────────────────────────── -->
     <Style x:Key="CeldaInput" TargetType="TextBox">
         <Setter Property="Height" Value="34"/>
-        <Setter Property="Padding" Value="10,0"/>
+        <Setter Property="Padding" Value="6,0"/>
         <Setter Property="FontFamily" Value="Segoe UI"/>
         <Setter Property="FontSize" Value="13.5"/>
         <Setter Property="Foreground" Value="#1A1F2E"/>
@@ -209,10 +209,32 @@
                     <Border x:Name="Bd" Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6">
-                        <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}"
-                                      VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                        <Grid>
+                            <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}"
+                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                            <!-- El marcador comparte el MISMO Margin/VerticalAlignment que el
+                                 PART_ContentHost, así que cae exactamente donde arranca el
+                                 texto y donde se para el cursor. Ver controls:Placeholder. -->
+                            <TextBlock x:Name="Marcador" Visibility="Collapsed"
+                                       Text="{Binding Path=(controls:Placeholder.Texto), RelativeSource={RelativeSource TemplatedParent}}"
+                                       Margin="{TemplateBinding Padding}"
+                                       VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                       FontFamily="{TemplateBinding FontFamily}"
+                                       FontSize="{TemplateBinding FontSize}"
+                                       Foreground="#9CA3AF" IsHitTestVisible="False"
+                                       TextTrimming="CharacterEllipsis"/>
+                        </Grid>
                     </Border>
                     <ControlTemplate.Triggers>
+                        <!-- Vacío Y sin foco: apenas entra el cursor el marcador se va, así
+                             no queda texto gris debajo del cursor. -->
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="Text" Value=""/>
+                                <Condition Property="IsKeyboardFocusWithin" Value="False"/>
+                            </MultiTrigger.Conditions>
+                            <Setter TargetName="Marcador" Property="Visibility" Value="Visible"/>
+                        </MultiTrigger>
                         <Trigger Property="IsKeyboardFocusWithin" Value="True">
                             <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource EmpresaPrimaryBrush}"/>
                             <Setter TargetName="Bd" Property="BorderThickness" Value="2"/>
@@ -221,6 +243,98 @@
                         <Trigger Property="validacion:Validacion.TieneError" Value="True">
                             <Setter TargetName="Bd" Property="BorderBrush" Value="#EF4444"/>
                             <Setter TargetName="Bd" Property="BorderThickness" Value="2"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ══ Tabla editable dentro de un modal oscuro ═══════════════════════════
+         La familia que acompaña a CeldaInput: el basurero de fila, el encabezado
+         de columna y el botón de agregar fila. Nacieron locales en
+         RegistroCamionesModal; se centralizan acá al aparecer el segundo consumidor
+         (ProductosCargaModal) en vez de copiarlos — misma regla que cerró P-031 G11
+         y que pide [[Anatomia compartida de los modales]]. -->
+
+    <PathGeometry x:Key="IcoTrashFila" po:Freeze="True"
+                  Figures="M3,6 h18 M8,6 V4 a1,1 0 0 1,1,-1 h6 a1,1 0 0 1,1,1 v2 m2,0 v14 a2,2 0 0 1,-2,2 H7 a2,2 0 0 1,-2,-2 V6"/>
+    <PathGeometry x:Key="IcoMasFila" po:Freeze="True" Figures="M12,5 v14 M5,12 h14"/>
+
+    <!-- Basurero de fila: el cuadradito rojo pálido que ya usa BotonQuitarFila en
+         PesajeView.xaml — el patrón de "quitar una fila de una lista" del módulo.
+         El trigger de IsEnabled=False existe porque hay filas que NO se pueden
+         quitar (un producto con pesajes registrados) y el botón tiene que decirlo
+         sin desaparecer. -->
+    <Style x:Key="BasureroCelda" TargetType="Button">
+        <Setter Property="Width" Value="30"/>
+        <Setter Property="Height" Value="30"/>
+        <Setter Property="Background" Value="#FEF2F2"/>
+        <Setter Property="Foreground" Value="#DC2626"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="VerticalAlignment" Value="Top"/>
+        <Setter Property="Margin" Value="0,2,0,0"/>
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Bd" Background="{TemplateBinding Background}"
+                            BorderBrush="#FECACA" BorderThickness="1" CornerRadius="6">
+                        <Path x:Name="Ico" Data="{StaticResource IcoTrashFila}" Stroke="#DC2626" StrokeThickness="1.8"
+                              StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                              Width="14" Height="14" Stretch="Uniform"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="#FEE2E2"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="Bd" Property="Background"  Value="#F3F4F6"/>
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="#E5E7EB"/>
+                            <Setter TargetName="Ico" Property="Stroke"     Value="#9CA3AF"/>
+                            <Setter Property="Cursor" Value="Arrow"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Encabezado de columna de la tabla (sobre la banda del color de empresa) -->
+    <Style x:Key="CabeceraColTabla" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+
+    <!-- Botón de agregar fila al pie de la tarjeta: sólido en el azul de la
+         empresa, para no competir con el verde del botón de guardar. -->
+    <Style x:Key="BtnAgregarFilaTabla" TargetType="Button">
+        <Setter Property="Background" Value="{DynamicResource EmpresaPrimaryBrush}"/>
+        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontSize" Value="13.5"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Padding" Value="16,9"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Bd" Background="{TemplateBinding Background}"
+                            CornerRadius="7" Padding="{TemplateBinding Padding}">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="Opacity" Value="0.88"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="Bd" Property="Background" Value="#CBD5E1"/>
+                            <Setter Property="Foreground" Value="#94A3B8"/>
+                            <Setter Property="Cursor" Value="Arrow"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
