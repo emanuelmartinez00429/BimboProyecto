@@ -56,6 +56,7 @@ Las rosas son rojas.
 
 ### Proyecto
 - [[Arquitectura Actual]] — estado de capas, dependencias, módulos vigentes
+- [[Plan de CI-CD y Actualizaciones Remotas]] — instalador por máquina y actualizaciones dentro de WPF; planificado, no implementado
 - [[Deuda Técnica - Pendientes]] — ítems abiertos
 - [[Plan Offline-First de Pesaje]] — propuesta local-first con SQLCipher, outbox, multiusuario y sincronización; no implementada
 - [[Plan de Migración de Mutaciones Directas a RPC]] — preparación de las 27 rutas activas para compatibilidad offline-first; no implementada
@@ -63,6 +64,7 @@ Las rosas son rojas.
 - [[CLAUDE]] — contexto completo para Claude Code
 
 ### Decisiones arquitecturales
+- [[ADR-027 - Codigo privado y distribucion publica de actualizaciones]] — fuente privada, binarios públicos y actualización dentro de la app; decisión aceptada, implementación pendiente
 - [[ADR-024 - Rol Administrador inmutable con acceso total]] — decisión vigente; todas las acciones actuales y futuras son obligatorias
 - [[ADR-023 - Rol Administrador de sistema con nucleo de permisos protegido]] — reemplazado por ADR-024
 - [[ADR-022 - Persistencia local-first con SQLCipher y sincronización por outbox]] — propuesta pendiente de aprobación
@@ -123,6 +125,8 @@ Regla: `CapaAplicacion` **nunca** referencia `CapaDatos`.
 
 ## Referencia rápida
 
+- [[Velopack y GitHub Actions - Referencias para actualizaciones WPF]] — fuentes oficiales y verificaciones pendientes para distribución
+
 | Necesito... | Ir a... |
 |---|---|
 | Convenciones de código | [[Convenciones C#]] |
@@ -142,6 +146,7 @@ Regla: `CapaAplicacion` **nunca** referencia `CapaDatos`.
 
 Las sesiones están en `70 - Bitácora de Cambios/`.  
 Sesiones más recientes (2026-09-08):
+- [[Sesión 2026-09-08 - Plan de CI-CD y actualizaciones remotas]]
 - [[Sesión 2026-09-08 - Cierre de P-054 y P-055]]
 - [[Sesión 2026-09-08 - Fuga de memoria por contenedor DI y scope de sesión]]
 - [[Sesión 2026-09-07 - Borrados auditados por fila y estados honestos en Pesaje]]

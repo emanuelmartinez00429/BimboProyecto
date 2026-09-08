@@ -1316,6 +1316,7 @@ Hay **dos** clases `ConexionSupabase` en el **mismo namespace** (`ServicioConexi
 
 ## Relaciones
 
+- [[Plan de CI-CD y Actualizaciones Remotas]] — backlog de entrega futura y decisiones pendientes; no implementado, no cierra deudas P-NNN
 - [[Módulo Productos]] — módulo auditado
 - [[Sesión 2026-05-28 - Fix Búsqueda Multi-Campo Productos]] — sesión donde se realizó la auditoría
 - [[Paginación y Búsqueda - Arquitectura Detallada]] — arquitectura de referencia

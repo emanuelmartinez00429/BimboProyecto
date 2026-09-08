@@ -10,6 +10,9 @@ aliases:
 
 # Arquitectura Actual — Bimbo
 
+> [!info] Plan de distribución registrado 2026-09-08 — no implementado
+> Se acordó mantener el código privado y distribuir instalador/paquetes mediante un repositorio público separado, con actualizaciones descargadas dentro de WPF. La primera instalación será por máquina en Windows 11 x64 y conservará la arquitectura online. Velopack, CI/CD, firma, canales y barrera de cierre siguen pendientes de implementación y de las autorizaciones indicadas en [[Plan de CI-CD y Actualizaciones Remotas]] y [[ADR-027 - Codigo privado y distribucion publica de actualizaciones]]. Esta anotación no cambia el estado ejecutable del sistema.
+
 > [!success] Actualizado 2026-09-03 — Presentaciones migrado a RPC segura
 > Presentaciones deja de ser el único catálogo con creación por función `SECURITY INVOKER` y con `UPDATE`/baja lógica por DML directo. Ahora usa `crear_presentacion_seguro`, `actualizar_presentacion_seguro` y `cambiar_estado_presentacion_seguro` (idempotentes, RBAC por código `PRESENTACIONES_*`, auditoría y notificación en una transacción). Se retiró el trigger `trg_upd_presentacion` y se revocó el DML directo sobre `presentacion_producto` a `authenticated`/`anon`. BD + capa de datos aplicadas y verificadas (243/243 tests); `PresentacionModal` y el `DROP` de la función legacy quedan pendientes de build/prueba. Ver [[Sesión 2026-09-03 - Presentaciones migrado a RPC segura]] y [[Plan de Migración de Presentaciones a RPC segura]].
 
@@ -226,6 +229,9 @@ _Ninguna advertencia activa._ W-001 (CS0067 `SalirSolicitado`) eliminada — eve
 
 ## Relaciones
 
+- [[Plan de CI-CD y Actualizaciones Remotas]] — diseño de entrega; implementación no iniciada
+- [[ADR-027 - Codigo privado y distribucion publica de actualizaciones]] — decisión de distribución aceptada
+- [[Sesión 2026-09-08 - Plan de CI-CD y actualizaciones remotas]] — registro exclusivamente documental
 - [[Sesión 2026-09-03 - Corrección visual y acción masiva de Notificaciones]] — rediseño aprobado y cambio atómico de estado
 - [[Módulo Notificaciones]] — campana, bandeja, detalle y persistencia de notificaciones internas
 - [[ADR-026 - Cache en memoria con FusionCache e invalidacion por Realtime]] — propuesta arquitectónica de caché L1 e invalidación reactiva
