@@ -142,6 +142,7 @@ Regla: `CapaAplicacion` **nunca** referencia `CapaDatos`.
 
 Las sesiones están en `70 - Bitácora de Cambios/`.  
 Sesiones más recientes (2026-09-07):
+- [[Sesión 2026-09-07 - Borrados auditados por fila y estados honestos en Pesaje]]
 - [[Sesión 2026-09-07 - Productos de la carga en tabla, guardado en lote y marcadores centralizados]]
 - [[Sesión 2026-09-06 - Cierre integral de Deuda Tecnica P-031 y P-042]]
 - [[Sesión 2026-09-06 - Enter abre el modal de edición en las grillas CRUD]]

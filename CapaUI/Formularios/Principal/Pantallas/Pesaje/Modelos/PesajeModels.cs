@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
@@ -150,6 +150,17 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modelos
         /// <summary>True si ya tiene pesajes: no se puede quitar del camión.</summary>
         public bool TienePesajes => Entradas.Count > 0;
 
+        /// <summary>
+        /// Regla del basurero de la fila. El servidor la vuelve a exigir
+        /// (<c>cambiar_estado_producto_pesaje_tabla_bitacora</c>): acá solo se anticipa
+        /// para que el botón se vea gris en vez de fallar al tocarlo.
+        /// </summary>
+        public bool PuedeQuitar => !TienePesajes;
+
+        public string MotivoQuitar => TienePesajes
+            ? "No se puede quitar: el producto ya tiene pesajes registrados"
+            : "Quitar este producto de la carga";
+
         [ObservableProperty] private string _estado = "Abierto";
 
         public ObservableCollection<EntradaPesaje> Entradas { get; } = new();
@@ -244,6 +255,28 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modelos
 
         /// <summary>La placa la comparten dos o más recepciones: es un solo camión físico.</summary>
         public bool PlacaCompartida => RecepcionesEnPlaca > 1;
+
+        /// <summary>
+        /// Productos vivos de la recepción SEGÚN LA BASE. No se puede usar
+        /// <c>Productos.Count</c> para esto: esa colección solo se llena para el camión
+        /// seleccionado, así que en los demás daría 0 y el basurero se vería habilitado
+        /// para recepciones que sí tienen carga.
+        /// </summary>
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(PuedeQuitar))]
+        [NotifyPropertyChangedFor(nameof(MotivoQuitar))]
+        private int _productosEnBase;
+
+        /// <summary>
+        /// Regla del basurero del camión: solo se quita una recepción vacía. A diferencia
+        /// del producto, esta NO la exige el servidor —la RPC de anular recepción no mira
+        /// los productos—, así que por ahora el cerrojo es solo de pantalla.
+        /// </summary>
+        public bool PuedeQuitar => ProductosEnBase == 0;
+
+        public string MotivoQuitar => ProductosEnBase == 0
+            ? "Quitar este camión"
+            : "No se puede quitar: el camión ya tiene productos agregados";
 
         /// <summary>
         /// LEGADO — <c>movimientos.peso_tara_extra</c> del flujo anterior, donde la tara extra

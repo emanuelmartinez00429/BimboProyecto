@@ -1,10 +1,26 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 
 namespace CapaUI.Core.Controls
 {
     public partial class EmptyStateOverlay : UserControl
     {
+        /// <summary>
+        /// Icono del estado vacío. Tiene default (una hoja) para que las pantallas que no
+        /// lo pasan sigan viéndose igual, pero cada tabla puede dar el suyo: en Pesaje el
+        /// vacío invita a pesar, y una balanza lo dice mejor que un documento.
+        /// </summary>
+        public static readonly DependencyProperty IconoProperty =
+            DependencyProperty.Register(nameof(Icono), typeof(Geometry), typeof(EmptyStateOverlay),
+                new PropertyMetadata(null, OnIconoChanged));
+
+        public Geometry? Icono
+        {
+            get => (Geometry?)GetValue(IconoProperty);
+            set => SetValue(IconoProperty, value);
+        }
+
         public static readonly DependencyProperty MensajeProperty =
             DependencyProperty.Register(nameof(Mensaje), typeof(string), typeof(EmptyStateOverlay),
                 new PropertyMetadata("No hay registros"));
@@ -49,6 +65,12 @@ namespace CapaUI.Core.Controls
         {
             InitializeComponent();
             ActualizarOffset();
+        }
+
+        private static void OnIconoChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if (d is not EmptyStateOverlay c || e.NewValue is not Geometry g) return;
+            c.IconoEstado.Data = g;
         }
 
         private static void OnEstaVacioChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)

@@ -1,4 +1,4 @@
-<Window x:Class="CapaUI.Formularios.InicioSesion.LoginWindow"
+﻿<Window x:Class="CapaUI.Formularios.InicioSesion.LoginWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:controls="clr-namespace:CapaUI.Core.Controls"
@@ -104,10 +104,17 @@
                 </Border>
 
                 <!-- ══ LOGIN PANEL ══ -->
+                <!-- Sin barra vertical: en una ventana de tamaño fijo la barra solo
+                     aparecía al mostrarse el error, pegada al borde y sin recorrido útil.
+                     El espacio del mensaje se reserva desde el arranque (ver ErrorContainer),
+                     así que el contenido entra siempre y no hay nada que scrollear. -->
                 <ScrollViewer x:Name="LoginPanel" Grid.Row="1"
-                              VerticalScrollBarVisibility="Auto"
+                              VerticalScrollBarVisibility="Disabled"
                               HorizontalScrollBarVisibility="Disabled">
-                    <StackPanel Margin="56,44,56,24" VerticalAlignment="Center">
+                    <!-- Márgenes verticales 44/24 → 28/16: los 24px que se liberan son los
+                         que le hacen lugar al error sin tocar el tamaño de la ventana ni el
+                         ritmo entre campos. -->
+                    <StackPanel Margin="56,28,56,16" VerticalAlignment="Center">
 
                         <TextBlock Text="Bienvenido" FontFamily="Segoe UI" FontSize="14"
                                    Foreground="{StaticResource TextMuted}" Margin="0,0,0,4"/>
@@ -194,8 +201,10 @@
                         </Grid>
 
                         <!-- Error -->
+                        <!-- Hidden y no Collapsed: ocupa su lugar aunque no se vea, así el
+                             formulario no salta ni empuja al botón cuando aparece el mensaje. -->
                         <Border x:Name="ErrorContainer" CornerRadius="6" Background="#FEE2E2"
-                                Padding="12,8" Margin="0,0,0,10" Visibility="Collapsed">
+                                Padding="12,8" Margin="0,0,0,10" MinHeight="34" Visibility="Hidden">
                             <TextBlock x:Name="LblError" FontFamily="Segoe UI" FontSize="13"
                                        Foreground="#B91C1C" TextWrapping="Wrap"/>
                         </Border>

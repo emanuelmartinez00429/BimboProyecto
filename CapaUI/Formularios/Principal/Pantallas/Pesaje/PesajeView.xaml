@@ -2,6 +2,7 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:CapaUI.Formularios.Principal.Pantallas.Pesaje"
+             xmlns:controls="clr-namespace:CapaUI.Core.Controls"
              xmlns:permisos="clr-namespace:CapaUI.Core.Permisos"
              Background="#EAF1F8"
              Loaded="UserControl_Loaded"
@@ -501,7 +502,8 @@
                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                                  ScrollViewer.VerticalScrollBarVisibility="Auto"
                                  SelectionChanged="LstCamiones_SelectionChanged"
-                                 MouseDoubleClick="LstCamiones_DoubleClick">
+                                 MouseDoubleClick="LstCamiones_DoubleClick"
+                                 PreviewKeyDown="LstCamiones_PreviewKeyDown">
                             <ListBox.Resources>
                                 <Style TargetType="ScrollBar" BasedOn="{StaticResource ModernScrollBarAny}"/>
                             </ListBox.Resources>
@@ -735,7 +737,10 @@
                                              vivía aparte en la toolbar de abajo. Tag="{Binding}" lleva el
                                              camión de ESTA fila al handler, sin depender de la selección. -->
                                         <Button Grid.Column="3" Style="{StaticResource BotonQuitarFila}" Margin="8,0,0,0"
-                                                Tag="{Binding}" Click="QuitarCamion_Click" ToolTip="Quitar camión"
+                                                Tag="{Binding}" Click="QuitarCamion_Click"
+                                                IsEnabled="{Binding PuedeQuitar}"
+                                                ToolTip="{Binding MotivoQuitar}"
+                                                ToolTipService.ShowOnDisabled="True"
                                                 permisos:PermisoBehavior.Requiere="Cancelar Pesaje">
                                             <Path Data="{StaticResource IcoTrash}" Stroke="{Binding RelativeSource={RelativeSource AncestorType=Button}, Path=Foreground}"
                                                   StrokeThickness="1.8" Width="14" Height="14" Stretch="Uniform"
@@ -822,6 +827,7 @@
                                       ColumnHeaderStyle="{StaticResource PgHeader}" RowHeight="46"
                                       ItemsSource="{Binding SelectedCamion.Productos}"
                                       SelectionChanged="DgProductos_SelectionChanged" MouseDoubleClick="DgProductos_DoubleClick"
+                                      PreviewKeyDown="DgProductos_PreviewKeyDown"
                                       ScrollViewer.CanContentScroll="True"
                                       ScrollViewer.VerticalScrollBarVisibility="Auto"
                                       ScrollViewer.HorizontalScrollBarVisibility="Auto"
@@ -920,6 +926,24 @@
                                             </DataTemplate>
                                         </DataGridTemplateColumn.CellTemplate>
                                     </DataGridTemplateColumn>
+                                    <!-- Basurero al final de la fila: la acción de quitar vive donde
+                                         está la fila, no en la barra. Se deshabilita solo (gris, con
+                                         el motivo en el ToolTip) cuando la regla no lo permite. -->
+                                    <DataGridTemplateColumn Header="" Width="52" CanUserResize="False" CanUserReorder="False">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <Button Style="{StaticResource BotonQuitarFila}" Tag="{Binding}"
+                                                        IsEnabled="{Binding PuedeQuitar}"
+                                                        ToolTip="{Binding MotivoQuitar}"
+                                                        ToolTipService.ShowOnDisabled="True"
+                                                        Click="QuitarProducto_Click">
+                                                    <Path Data="{StaticResource IcoTrash}" Stroke="{Binding RelativeSource={RelativeSource AncestorType=Button}, Path=Foreground}"
+                                                          StrokeThickness="1.7" Width="14" Height="14" Stretch="Uniform"
+                                                          StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                                                </Button>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
                                 </DataGrid.Columns>
                             </DataGrid>
 
@@ -993,10 +1017,18 @@
                                 <Border Background="#EFF6FF" CornerRadius="999" Padding="7,1" Margin="8,0,0,0" VerticalAlignment="Center">
                                     <TextBlock Text="{Binding FilasEntradas.Count}" FontFamily="Segoe UI" FontSize="12.5" FontWeight="Bold" Foreground="{DynamicResource EmpresaPrimaryBrush}"/>
                                 </Border>
+                                <!-- Qué producto se está viendo. Solo en modo "Producto actual":
+                                     en "Todo el camión" la tabla ya trae su columna PRODUCTO y el
+                                     rótulo mentiría al nombrar uno solo. Lo muestra ActualizarUI. -->
+                                <TextBlock x:Name="TxtProductoEnVista" Visibility="Collapsed"
+                                           FontFamily="Segoe UI" FontSize="13" Foreground="#6B7280"
+                                           VerticalAlignment="Center" Margin="12,0,0,0"
+                                           TextTrimming="CharacterEllipsis" MaxWidth="260"/>
                             </StackPanel>
                             <Border HorizontalAlignment="Right" Background="#F7F9FC" BorderBrush="#D8E1EC" BorderThickness="1" CornerRadius="7" Padding="2">
                                 <StackPanel Orientation="Horizontal">
-                                    <RadioButton x:Name="RbVistaProducto" GroupName="VistaEntradas" Style="{StaticResource SegBtn}" Content="Producto actual" IsChecked="True" Checked="RbVista_Changed"/>
+                                    <RadioButton x:Name="RbVistaProducto" GroupName="VistaEntradas" Style="{StaticResource SegBtn}" Content="Producto actual" IsChecked="True" Checked="RbVista_Changed"
+                                                 ToolTipService.ShowOnDisabled="True"/>
                                     <RadioButton x:Name="RbVistaCamion" GroupName="VistaEntradas" Style="{StaticResource SegBtn}" Content="Todo el camión" Checked="RbVista_Changed"/>
                                 </StackPanel>
                             </Border>
@@ -1004,9 +1036,14 @@
                     </Border>
 
                     <Grid Grid.Row="1">
-                        <TextBlock x:Name="EntEmpty" Text="Aún no hay pesajes registrados"
-                                   FontFamily="Segoe UI" FontSize="14.5" Foreground="#9CA3AF"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <!-- Mismo componente que las grillas CRUD (EmptyStateOverlay), con el
+                             icono de balanza en vez del de documento: acá el vacío no es "no
+                             hay datos", es "todavía no empezaste a pesar". Va por encima de la
+                             grilla y no la reemplaza, así los encabezados siguen a la vista. -->
+                        <controls:EmptyStateOverlay x:Name="EntEmpty" Panel.ZIndex="5"
+                                                    HeaderOffset="44"
+                                                    Icono="{StaticResource IcoScale}"
+                                                    Mensaje="Aún no hay pesajes registrados"/>
                         <DataGrid x:Name="DgEntradas" AutoGenerateColumns="False" CanUserAddRows="False"
                                   IsReadOnly="True"
                                   CanUserSortColumns="False" HeadersVisibility="Column" GridLinesVisibility="None"
@@ -1015,6 +1052,8 @@
                                   ColumnHeaderStyle="{StaticResource PgHeader}" RowHeight="40"
                                   ItemsSource="{Binding FilasEntradas}"
                                   SelectionChanged="DgEntradas_SelectionChanged"
+                                  MouseDoubleClick="DgEntradas_DoubleClick"
+                                  PreviewKeyDown="DgEntradas_PreviewKeyDown"
                                   ScrollViewer.CanContentScroll="True"
                                   ScrollViewer.VerticalScrollBarVisibility="Auto"
                                   ScrollViewer.HorizontalScrollBarVisibility="Disabled"
@@ -1028,17 +1067,15 @@
                                 <Style TargetType="ScrollBar" BasedOn="{StaticResource ModernScrollBarAny}"/>
                             </DataGrid.Resources>
                             <DataGrid.Columns>
-                                <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="65" MinWidth="60">
-                                    <DataGridTextColumn.ElementStyle>
-                                        <Style TargetType="TextBlock">
-                                            <Setter Property="FontFamily" Value="Consolas"/>
-                                            <Setter Property="FontSize" Value="13.5"/>
-                                            <Setter Property="Foreground" Value="#9CA3AF"/>
-                                            <Setter Property="Margin" Value="10,0"/>
-                                            <Setter Property="VerticalAlignment" Value="Center"/>
-                                        </Style>
-                                    </DataGridTextColumn.ElementStyle>
-                                </DataGridTextColumn>
+                                <!-- Posición visual, no el id_pesaje: al operario le sirve para
+                                     contar pesadas ("van 12"), no para identificar la fila en la
+                                     base. El id sigue estando en la bitácora y en el reporte, que
+                                     es donde hace falta. Misma plantilla que las grillas CRUD;
+                                     el converter cae a página 1 cuando la tabla no pagina. -->
+                                <DataGridTemplateColumn Header="#" Width="52" MinWidth="48"
+                                                        CanUserResize="False" CanUserReorder="False"
+                                                        CellStyle="{StaticResource CeldaCentrada}"
+                                                        CellTemplate="{StaticResource PlantillaCeldaNumeroFila}"/>
                                 <!-- Siempre visible, aunque se repita fila tras fila en "Producto
                                      actual" — es más fácil detectar de qué producto es cada entrada
                                      que confiar en recordar cuál está seleccionado arriba. -->
@@ -1122,6 +1159,24 @@
                                                 <TextBlock Text="{Binding Fecha}" FontFamily="Segoe UI" FontSize="13.5" Foreground="#1A1F2E"/>
                                                 <TextBlock Text="{Binding Hora}" FontFamily="Segoe UI" FontSize="12.5" Foreground="#9CA3AF"/>
                                             </StackPanel>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                <!-- Basurero al final de la fila: la acción de quitar vive donde
+                                     está la fila, no en la barra. Se deshabilita solo (gris, con
+                                     el motivo en el ToolTip) cuando la regla no lo permite. -->
+                                <DataGridTemplateColumn Header="" Width="52" CanUserResize="False" CanUserReorder="False">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Button Style="{StaticResource BotonQuitarFila}" Tag="{Binding}"
+                                                    IsEnabled="{Binding PuedeQuitar}"
+                                                    ToolTip="{Binding MotivoQuitar}"
+                                                    ToolTipService.ShowOnDisabled="True"
+                                                    Click="QuitarEntrada_Click">
+                                                <Path Data="{StaticResource IcoTrash}" Stroke="{Binding RelativeSource={RelativeSource AncestorType=Button}, Path=Foreground}"
+                                                      StrokeThickness="1.7" Width="14" Height="14" Stretch="Uniform"
+                                                      StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                                            </Button>
                                         </DataTemplate>
                                     </DataGridTemplateColumn.CellTemplate>
                                 </DataGridTemplateColumn>
@@ -1229,12 +1284,6 @@
                             <StackPanel Orientation="Horizontal">
                                 <Path Data="{StaticResource IcoPencil}" Stroke="White" StrokeThickness="2" Width="13" Height="13" Stretch="Uniform" Margin="0,0,7,0" VerticalAlignment="Center" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
                                 <TextBlock Text="Editar" VerticalAlignment="Center"/>
-                            </StackPanel>
-                        </Button>
-                        <Button x:Name="BtnEntQuitar" Style="{StaticResource ToolDanger}" Click="BtnEntQuitar_Click">
-                            <StackPanel Orientation="Horizontal">
-                                <Path Data="{StaticResource IcoTrash}" Stroke="White" StrokeThickness="2" Width="13" Height="13" Stretch="Uniform" Margin="0,0,7,0" VerticalAlignment="Center" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
-                                <TextBlock Text="Quitar" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
                     </WrapPanel>

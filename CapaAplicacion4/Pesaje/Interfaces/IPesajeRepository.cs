@@ -51,7 +51,17 @@ public interface IPesajeRepository
 
     // ── Productos del camión (movimiento_productos) ─────────────────────────
     Task<Result<IReadOnlyList<MovProductoDto>>> GetProductosAsync(int idMovimiento, CancellationToken ct = default);
+
+    /// <summary>Productos vivos por recepción, en una sola consulta para toda la lista.</summary>
+    Task<Result<IReadOnlyDictionary<int, int>>> ContarProductosPorCamionAsync(
+        IReadOnlyList<int> idsMovimiento, CancellationToken ct = default);
     Task<Result>      SetEstadoProductoAsync(int idMovProducto, bool cerrado, CancellationToken ct = default);
+
+    /// <summary>
+    /// Quita un producto de la carga (anular por estado, no DELETE). El servidor rechaza
+    /// hacerlo si el producto tiene pesajes activos.
+    /// </summary>
+    Task<Result>      AnularProductoAsync(int idMovProducto, CancellationToken ct = default);
 
     /// <summary>
     /// Guarda de una sola vez toda la carga de una recepción — altas, correcciones

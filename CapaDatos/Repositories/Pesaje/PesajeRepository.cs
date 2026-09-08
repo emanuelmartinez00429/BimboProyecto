@@ -211,6 +211,37 @@ public class PesajeRepository : RepositorioBase, IPesajeRepository
     // ══════════════════════════════════════════════════════════════════════
     //  Productos del camión
     // ══════════════════════════════════════════════════════════════════════
+    /// <summary>
+    /// Cuántos productos vivos tiene cada recepción, en UNA sola consulta para toda la
+    /// lista. Existe porque la pantalla solo carga los productos del camión seleccionado:
+    /// sin esto, el basurero de los demás camiones no sabría si la recepción está vacía.
+    /// </summary>
+    public Task<Result<IReadOnlyDictionary<int, int>>> ContarProductosPorCamionAsync(
+        IReadOnlyList<int> idsMovimiento, CancellationToken ct = default)
+    {
+        if (idsMovimiento is null || idsMovimiento.Count == 0)
+            return Task.FromResult(Result<IReadOnlyDictionary<int, int>>.Ok(
+                new Dictionary<int, int>()));
+
+        return TryAsync(async () =>
+        {
+            ct.ThrowIfCancellationRequested();
+            var client = await ConexionSupabase.GetClientAsync();
+
+            var res = await client.From<MovimientoProducto>()
+                .Select("id_mov_producto,id_movimiento")
+                .Filter("id_movimiento", Op.In, idsMovimiento.Cast<object>().ToList())
+                .Filter("id_estado", Op.In, new List<object> { EstadosPesaje.Abierto, EstadosPesaje.Cerrado })
+                .Get();
+
+            IReadOnlyDictionary<int, int> conteo = (res?.Models ?? new())
+                .GroupBy(mp => mp.idMovimiento)
+                .ToDictionary(g => g.Key, g => g.Count());
+
+            return conteo;
+        }, "Contar productos por camión");
+    }
+
     public Task<Result<IReadOnlyList<MovProductoDto>>> GetProductosAsync(int idMovimiento, CancellationToken ct = default) =>
         TryAsync(async () =>
         {
@@ -358,17 +389,46 @@ public class PesajeRepository : RepositorioBase, IPesajeRepository
     }
 
     public Task<Result> SetEstadoProductoAsync(int idMovProducto, bool cerrado, CancellationToken ct = default) =>
-        SetEstadoProductoInterno(idMovProducto, cerrado ? EstadosPesaje.Cerrado : EstadosPesaje.Abierto, "Cambiar estado producto");
+        CambiarEstadoProducto(idMovProducto, cerrado ? EstadosPesaje.Cerrado : EstadosPesaje.Abierto,
+                              "Cambiar estado del producto", ct);
 
-    private Task<Result> SetEstadoProductoInterno(int idMovProducto, int estado, string ctx) =>
-        TryAsync(async () =>
+    /// <summary>
+    /// Quita el producto de la carga — anular por estado (9), no DELETE: la fila queda
+    /// en la base con su historial.
+    /// </summary>
+    /// <remarks>
+    /// La RPC rechaza quitar un producto que tenga pesajes activos. Ese guard vive en el
+    /// servidor a propósito: la UI también deshabilita el botón, pero es la base la que
+    /// no puede dejar pasar una carga sin sus pesadas.
+    /// </remarks>
+    public Task<Result> AnularProductoAsync(int idMovProducto, CancellationToken ct = default) =>
+        CambiarEstadoProducto(idMovProducto, EstadosPesaje.Anulado, "Quitar el producto de la carga", ct);
+
+    /// <summary>
+    /// Antes era un <c>Update</c> crudo de PostgREST: cambiaba el estado sin bitácora, sin
+    /// validar la transición y sin el guard de los pesajes. La RPC
+    /// <c>cambiar_estado_producto_pesaje_tabla_bitacora</c> ya hacía las tres cosas y
+    /// estaba desplegada sin que nadie la llamara desde C#.
+    /// </summary>
+    private Task<Result> CambiarEstadoProducto(int idMovProducto, int estado, string ctx, CancellationToken ct)
+    {
+        var idSolicitud = Guid.NewGuid();
+
+        return TryAsync(async () =>
         {
+            ct.ThrowIfCancellationRequested();
             var client = await ConexionSupabase.GetClientAsync();
-            await client.From<MovimientoProducto>()
-                .Where(mp => mp.idMovProducto == idMovProducto)
-                .Set(mp => mp.idEstado, estado)
-                .Update();
+            var response = await client.Rpc("cambiar_estado_producto_pesaje_tabla_bitacora",
+                new Dictionary<string, object?>
+                {
+                    ["p_id_mov_producto"] = idMovProducto,
+                    ["p_id_estado"]       = estado,
+                    ["p_id_solicitud"]    = idSolicitud,
+                });
+            ct.ThrowIfCancellationRequested();
+            ObtenerResultadoRpc(response?.Content, ctx);
         }, ctx);
+    }
 
     // ══════════════════════════════════════════════════════════════════════
     //  Pesajes (entradas)
@@ -493,15 +553,34 @@ public class PesajeRepository : RepositorioBase, IPesajeRepository
         }, "Repartir tara extra en lote");
     }
 
-    public Task<Result> AnularEntradaAsync(int idPesaje, CancellationToken ct = default) =>
-        TryAsync(async () =>
+    /// <summary>
+    /// Cancela un pesaje — anular por estado (9), no DELETE: la pesada queda en la base
+    /// con su fecha, su hora y su usuario.
+    /// </summary>
+    /// <remarks>
+    /// Vía RPC (antes era un <c>Update</c> crudo sin bitácora). El renglón que escribe usa
+    /// el campo «Estado del pesaje», que <c>private.bitacora_pesaje</c> NO convierte en
+    /// notificación — solo notifica «Registro de pesaje». Es justo lo que se quiere: los
+    /// borrados quedan auditados sin inundar la campana.
+    /// </remarks>
+    public Task<Result> AnularEntradaAsync(int idPesaje, CancellationToken ct = default)
+    {
+        var idSolicitud = Guid.NewGuid();
+
+        return TryAsync(async () =>
         {
+            ct.ThrowIfCancellationRequested();
             var client = await ConexionSupabase.GetClientAsync();
-            await client.From<EntradaProducto>()
-                .Where(e => e.idPesaje == idPesaje)
-                .Set(e => e.idEstado, EstadosPesaje.Anulado)
-                .Update();
-        }, "Anular pesaje");
+            var response = await client.Rpc("cancelar_entrada_producto_pesaje_tabla_bitacora",
+                new Dictionary<string, object?>
+                {
+                    ["p_id_pesaje"]    = idPesaje,
+                    ["p_id_solicitud"] = idSolicitud,
+                });
+            ct.ThrowIfCancellationRequested();
+            ObtenerResultadoRpc(response?.Content, "cancelar el pesaje");
+        }, "Cancelar pesaje");
+    }
 
     // ── Mapeo ────────────────────────────────────────────────────────────────
     private static EntradaDto MapEntrada(EntradaProducto e) => new()

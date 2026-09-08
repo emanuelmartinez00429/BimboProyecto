@@ -156,12 +156,16 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
                 ? "Selecciona un camión para ver sus productos"
                 : "Este camión no tiene productos agregados todavía";
 
+            // La grilla NO se oculta: el estado vacío es un overlay por encima, así los
+            // encabezados quedan a la vista (ver "Empty State en DataGrid" en la bóveda).
             bool sinEntradas = _vm.FilasEntradas.Count == 0;
-            EntEmpty.Visibility   = sinEntradas ? Visibility.Visible : Visibility.Collapsed;
-            DgEntradas.Visibility = sinEntradas ? Visibility.Collapsed : Visibility.Visible;
-            EntEmpty.Text = !hayCamion
+            EntEmpty.EstaVacio = sinEntradas;
+            EntEmpty.Mensaje = !hayCamion
                 ? "Selecciona un camión para ver sus pesajes"
                 : "Aún no hay pesajes registrados";
+            EntEmpty.Submensaje = hayCamion && _vm.HayProducto && !cerrado
+                ? "Usá «Pesar» para registrar la primera pesada"
+                : string.Empty;
 
             BtnCamionAgregar.IsEnabled   = _vm.PuedeAgregarCamion;
             BtnCamionEditar.IsEnabled    = hayCamion && !cerrado;
@@ -203,7 +207,36 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
                 : $"{sinTara} pesadas sin tara extra — bultos aproximados";
 
             BtnEntEditar.IsEnabled = hayEntrada && !cerrado;
-            BtnEntQuitar.IsEnabled = hayEntrada && !cerrado;
+            // Quitar ya no está en la barra: es el basurero de cada fila, que se
+            // habilita solo (ver la columna en DgEntradas).
+
+            // Qué se está viendo, dicho siempre y sin mentir.
+            //
+            // Sin producto seleccionado el VM cae a "camion" (ver ModoEfectivo) y la tabla
+            // muestra las pesadas de TODO el camión — pero el toggle seguía marcando
+            // "Producto actual". Con un solo producto las dos vistas se ven igual, así que
+            // la contradicción pasaba desapercibida hasta que el rótulo no aparecía.
+            // Ahora el rótulo nombra el producto cuando hay uno, dice "Todo el camión"
+            // cuando no, y el toggle se sincroniza con lo que de verdad está en pantalla.
+            bool porProducto = _vm.ModoEfectivo == "producto" && _vm.SelectedProducto is not null;
+
+            TxtProductoEnVista.Visibility = hayCamion ? Visibility.Visible : Visibility.Collapsed;
+            TxtProductoEnVista.Text = porProducto
+                ? $"· {_vm.SelectedProducto!.ProductoNombre}"
+                : "· Todo el camión";
+
+            _sync = true;
+            if (porProducto) RbVistaProducto.IsChecked = true;
+            else             RbVistaCamion.IsChecked   = true;
+            _sync = false;
+
+            // Elegir "Producto actual" sin un producto seleccionado no tiene a qué
+            // filtrar: se deshabilita y se dice por qué, en vez de aceptarlo y mostrar
+            // otra cosa.
+            RbVistaProducto.IsEnabled = _vm.SelectedProducto is not null;
+            RbVistaProducto.ToolTip = _vm.SelectedProducto is not null
+                ? "Ver solo las pesadas del producto seleccionado"
+                : "Seleccioná un producto de la tabla para filtrar sus pesadas";
 
             AjustarLayoutEntradas();
             AjustarLayoutProductos();
@@ -325,10 +358,54 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             _vm.SeleccionarProducto(DgProductos.SelectedItem as ProductoCamion);
         }
 
+        /// <summary>
+        /// Doble clic sobre un producto abre la gestión de la carga parada en esa fila
+        /// —el mismo modal que «Editar producto»—, no el de pesar. Editar es la acción
+        /// natural del doble clic en una tabla; pesar tiene su propio botón.
+        /// </summary>
         private void DgProductos_DoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
-            if (_vm?.SelectedProducto is { } p && p.Estado == "Abierto" && !_vm.CamionCerrado)
-                AbrirPesajeModal(p, null);
+            if (_vm?.SelectedProducto is { } p && !_vm.CamionCerrado)
+                AbrirProductosCargaModal(p);
+        }
+
+        // ── Teclado en las tablas ───────────────────────────────────────────────
+        // Enter abre el mismo modal que el doble clic, igual que en las grillas CRUD.
+        // Las flechas ya las mueve el propio DataGrid/ListBox; acá solo se intercepta
+        // Enter, con PreviewKeyDown para llegar antes de que el control lo consuma.
+
+        private void LstCamiones_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (e.Key != System.Windows.Input.Key.Enter) return;
+            if (_vm?.SelectedCamion == null || _vm.CamionCerrado) return;
+            e.Handled = true;
+            AbrirCamionModal(_vm.SelectedCamion);
+        }
+
+        private void DgProductos_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (e.Key != System.Windows.Input.Key.Enter) return;
+            if (_vm?.SelectedProducto is not { } p || _vm.CamionCerrado) return;
+            e.Handled = true;
+            AbrirProductosCargaModal(p);
+        }
+
+        private void DgEntradas_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (e.Key != System.Windows.Input.Key.Enter) return;
+            if (_vm?.SelectedEntrada is not { } ent || _vm.CamionCerrado) return;
+            var prod = _vm.SelectedCamion?.Productos.FirstOrDefault(x => x.Id == ent.ProdId);
+            if (prod == null) return;
+            e.Handled = true;
+            AbrirPesajeModal(prod, ent);
+        }
+
+        /// <summary>Doble clic sobre un pesaje: abre su modal de edición.</summary>
+        private void DgEntradas_DoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (_vm?.SelectedEntrada is not { } ent || _vm.CamionCerrado) return;
+            var prod = _vm.SelectedCamion?.Productos.FirstOrDefault(p => p.Id == ent.ProdId);
+            if (prod != null) AbrirPesajeModal(prod, ent);
         }
 
         private void DgEntradas_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -463,7 +540,10 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
 
         private void RbVista_Changed(object sender, RoutedEventArgs e)
         {
-            if (_vm == null) return;
+            // _sync: ActualizarUI sincroniza el toggle con el modo efectivo, y ese
+            // IsChecked programático vuelve a entrar acá. Sin la guarda, sincronizar
+            // pisaría la preferencia del usuario.
+            if (_vm == null || _sync) return;
             string modo = RbVistaCamion.IsChecked == true ? "camion" : "producto";
 
             // La columna PRODUCTO (y su celda espejo en la fila TOTAL, TotalColProducto)
@@ -525,8 +605,13 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             if (!SesionPermisos.Tiene(Permiso.CancelarPesaje)) return;
             if (sender is not Button b || b.Tag is not CamionPesaje camion) return;
 
+            // Segundo cerrojo: el botón ya viene deshabilitado si la recepción tiene
+            // productos, pero esta regla no la exige el servidor —la RPC de anular
+            // recepción no los mira—, así que acá es donde de verdad se corta.
+            if (!camion.PuedeQuitar) return;
+
             var confirmar = MessageBox.Show(
-                $"¿Quitar el camión {camion.Placa}? Se perderán sus productos y pesajes.",
+                $"¿Quitar el camión {camion.Placa}?",
                 "Quitar camión",
                 MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No);
             if (confirmar != MessageBoxResult.Yes) return;
@@ -637,13 +722,56 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             if (prod != null) AbrirPesajeModal(prod, ent);
         }
 
-        private void BtnEntQuitar_Click(object sender, RoutedEventArgs e)
+        /// <summary>
+        /// Basurero de la fila de un pesaje. Reemplaza al botón «Quitar» de la barra: la
+        /// acción vive en la fila sobre la que actúa, así no hace falta seleccionar primero
+        /// y después buscar el botón.
+        /// </summary>
+        private void QuitarEntrada_Click(object sender, RoutedEventArgs e)
         {
-            var ent = _vm.SelectedEntrada;
-            if (ent == null) return;
-            PedirConfirmacion(BtnEntQuitar,
+            if (sender is not Button b || b.Tag is not EntradaPesaje ent) return;
+            if (!SesionPermisos.Tiene(Permiso.CancelarPesaje)) return;
+            if (_vm == null || _vm.CamionCerrado) return;
+
+            // MessageBox nativo, igual que QuitarCamion_Click: el Popup anclado al botón
+            // quedaba flotando sobre el panel de al lado.
+            var confirmar = MessageBox.Show(
                 "¿Quitar esta entrada de pesaje? Se recalculará lo recibido.",
-                () => _ = QuitarEntradaFlujo(ent));
+                "Quitar pesaje",
+                MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No);
+            if (confirmar != MessageBoxResult.Yes) return;
+
+            _ = QuitarEntradaFlujo(ent);
+        }
+
+        /// <summary>
+        /// Basurero de la fila de un producto. El botón ya viene deshabilitado si el
+        /// producto tiene pesajes (<see cref="ProductoCamion.PuedeQuitar"/>); el servidor
+        /// vuelve a exigirlo igual.
+        /// </summary>
+        private void QuitarProducto_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is not Button b || b.Tag is not ProductoCamion prod) return;
+            if (!SesionPermisos.Tiene(Permiso.CancelarPesaje)) return;
+            if (_vm == null || _vm.CamionCerrado || !prod.PuedeQuitar) return;
+
+            var confirmar = MessageBox.Show(
+                $"¿Quitar «{prod.ProductoNombre}» de la carga?",
+                "Quitar producto",
+                MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No);
+            if (confirmar != MessageBoxResult.Yes) return;
+
+            _ = QuitarProductoFlujo(prod);
+        }
+
+        private async Task QuitarProductoFlujo(ProductoCamion prod)
+        {
+            var vm = _vm;
+            if (vm == null) return;
+            await vm.QuitarProductoAsync(prod);
+            if (!ReferenceEquals(_vm, vm)) return;
+            SincronizarSeleccion();
+            ActualizarUI();
         }
 
         private async Task QuitarEntradaFlujo(EntradaPesaje ent)

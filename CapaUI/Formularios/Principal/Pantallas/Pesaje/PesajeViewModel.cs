@@ -427,6 +427,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             Camiones.Clear();
             foreach (var c in r.Value!) Camiones.Add(MapCamion(c));
             RecalcularRecepcionesPorPlaca();
+            await ActualizarConteoDeProductosAsync();
             NotificarStats();
 
             SelectedCamion   = Camiones.FirstOrDefault();
@@ -435,6 +436,23 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             if (SelectedCamion != null) await CargarProductosAsync(SelectedCamion);
             RecalcularFilas();
             IsLoading = false;
+        }
+
+        /// <summary>
+        /// Cuántos productos vivos tiene cada recepción de la lista. Lo necesita el
+        /// basurero de cada camión: <c>Productos</c> solo se llena para el seleccionado.
+        /// Es UNA consulta para toda la lista, no una por camión.
+        /// </summary>
+        private async Task ActualizarConteoDeProductosAsync()
+        {
+            if (Camiones.Count == 0) return;
+
+            var ids = Camiones.Select(c => c.Id).ToList();
+            var r = await _repo.ContarProductosPorCamionAsync(ids);
+            if (!r.Success) return;   // sin el dato el basurero queda bloqueado, que es el lado seguro
+
+            foreach (var camion in Camiones)
+                camion.ProductosEnBase = r.Value!.TryGetValue(camion.Id, out var n) ? n : 0;
         }
 
         private async Task CargarProductosAsync(CamionPesaje camion)
@@ -449,6 +467,10 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
                 return;
             }
             foreach (var p in r.Value!) camion.Productos.Add(MapProducto(p, camion.Proveedor));
+
+            // Para ESTE camión el dato exacto ya está en memoria: se sincroniza el conteo
+            // que gobierna su basurero, sin volver a consultarlo.
+            camion.ProductosEnBase = camion.Productos.Count;
 
             // Los totales de tara extra del camión son la suma de la de sus productos,
             // que recién se conoce con los productos ya cargados.
@@ -687,10 +709,35 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             HayPlacaCompartida = porPlaca.Values.Any(n => n > 1);
         }
 
-        // RecepcionesDePlaca, ActualizarProductoAsync y QuitarProductoAsync se
-        // eliminaron con ProductoCamionModal: eran sus tres únicos llamadores.
-        // Editar y quitar productos ahora viajan dentro del lote de
-        // GuardarProductosCargaAsync, en una sola transacción y con bitácora.
+        // RecepcionesDePlaca y ActualizarProductoAsync se eliminaron con
+        // ProductoCamionModal: eran sus únicos llamadores. Editar productos viaja
+        // dentro del lote de GuardarProductosCargaAsync.
+
+        /// <summary>
+        /// Quita un producto de la carga desde el basurero de su fila en la tabla.
+        /// </summary>
+        /// <remarks>
+        /// El servidor rechaza quitar un producto con pesajes activos; la tabla además
+        /// deshabilita el botón en ese caso, así que este camino es el segundo cerrojo,
+        /// no el único. Recarga solo la recepción tocada.
+        /// </remarks>
+        public async Task<bool> QuitarProductoAsync(ProductoCamion producto)
+        {
+            if (SelectedCamion is null) return false;
+            if (!HaySesionActiva("quitar el producto")) return false;
+
+            var camion = SelectedCamion;
+            var r = await _repo.AnularProductoAsync(producto.Id);
+            if (!r.Success) { Toast?.Invoke(r.Error ?? "No se pudo quitar el producto"); return false; }
+
+            await CargarProductosAsync(camion);
+            SelectedProducto = camion.Productos.FirstOrDefault();
+            SelectedEntrada  = null;
+            RecalcularFilas();
+            NotificarStats();
+            Toast?.Invoke($"«{producto.ProductoNombre}» quitado de la carga");
+            return true;
+        }
 
         public async Task ToggleEstadoProductoAsync(ProductoCamion p)
         {
@@ -944,6 +991,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             Camiones.Clear();
             foreach (var c in r.Value!) Camiones.Add(MapCamion(c));
             RecalcularRecepcionesPorPlaca();
+            await ActualizarConteoDeProductosAsync();
             NotificarStats();
 
             SelectedCamion = seleccionarId.HasValue

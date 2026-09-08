@@ -370,7 +370,9 @@ namespace CapaUI.Formularios.InicioSesion
             ErrorContainer.Visibility = Visibility.Visible;
         }
 
-        private void OcultarError() => ErrorContainer.Visibility = Visibility.Collapsed;
+        // Hidden y no Collapsed: el hueco del mensaje se reserva desde que abre la
+        // ventana, así mostrarlo u ocultarlo no mueve el botón ni obliga a scrollear.
+        private void OcultarError() => ErrorContainer.Visibility = Visibility.Hidden;
 
         private void BtnForgot_Click(object sender, RoutedEventArgs e)
         {
