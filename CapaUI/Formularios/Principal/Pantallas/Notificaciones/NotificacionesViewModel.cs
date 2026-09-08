@@ -3,6 +3,7 @@ using CapaAplicacion.Conexion;
 using CapaAplicacion.Notificaciones.Dtos;
 using CapaAplicacion.Notificaciones.Interfaces;
 using CapaAplicacion.Common.Interfaces;
+using CapaUI.Core.Controls;
 using CapaUI.Navigation;
 using CapaAplicacion.Realtime;
 using CapaAplicacion.Usuarios.Interfaces;
@@ -23,9 +24,14 @@ public partial class NotificacionesViewModel : ObservableObject, IDisposable
     private readonly IUsuarioSesionService _sesion;
     private IDisposable? _suscripcion;
     private CancellationTokenSource? _cts;
-    private readonly object _debounceLock = new();
-    private CancellationTokenSource? _debounceCts;
     private const int DebounceMs = 300;
+
+    /// <summary>
+    /// Un cambio en la tabla dispara 3 RPC y un repintado completo de la lista.
+    /// Sin esto, una tanda de 128 notificaciones seguidas (pasó) los ejecuta 128
+    /// veces. Ver [[Sesión 2026-09-08 - Fuga de memoria por contenedor DI y scope de sesión]].
+    /// </summary>
+    private readonly Debouncer _debounce = new(DebounceMs);
     private bool _inicializado;
     private bool _disposed;
 
@@ -276,44 +282,33 @@ public partial class NotificacionesViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(MensajeRecientes));
     }
 
+    // Llega desde el hilo de Realtime, no del UI: el marshaling al Dispatcher lo
+    // hace la acción del debounce, no este handler.
     private void OnCambioRealtime(CambioRealtime cambio)
     {
         if (_disposed || cambio.Operacion is not ("Insert" or "Update" or "INSERT" or "UPDATE")) return;
 
-        lock (_debounceLock)
-        {
-            if (_disposed) return;
-            _debounceCts?.Cancel();
-            _debounceCts = new CancellationTokenSource();
-            var token = _debounceCts.Token;
-
-            _ = DispararRefrescoDebouncedAsync(token);
-        }
+        _ = RefrescarDebouncedAsync();
     }
 
-    private async Task DispararRefrescoDebouncedAsync(CancellationToken token)
+    private async Task RefrescarDebouncedAsync()
     {
         try
         {
-            await Task.Delay(DebounceMs, token);
-            if (token.IsCancellationRequested || _disposed) return;
-
-            if (System.Windows.Application.Current?.Dispatcher != null)
+            await _debounce.EjecutarAsync(async token =>
             {
-                await System.Windows.Application.Current.Dispatcher.InvokeAsync(async () =>
+                if (_disposed) return;
+
+                var dispatcher = System.Windows.Application.Current?.Dispatcher;
+                if (dispatcher is null) { await RefrescarAsync(); return; }
+
+                await dispatcher.InvokeAsync(async () =>
                 {
                     if (!token.IsCancellationRequested && !_disposed)
-                    {
                         await RefrescarAsync();
-                    }
                 });
-            }
-            else
-            {
-                await RefrescarAsync();
-            }
+            });
         }
-        catch (OperationCanceledException) { }
         catch (Exception ex)
         {
             Serilog.Log.Error(ex, "Error durante refresco debounced de notificaciones");
@@ -347,11 +342,6 @@ public partial class NotificacionesViewModel : ObservableObject, IDisposable
         _suscripcion?.Dispose();
         _cts?.Cancel();
         _cts?.Dispose();
-        lock (_debounceLock)
-        {
-            _debounceCts?.Cancel();
-            _debounceCts?.Dispose();
-            _debounceCts = null;
-        }
+        _debounce.Dispose();
     }
 }

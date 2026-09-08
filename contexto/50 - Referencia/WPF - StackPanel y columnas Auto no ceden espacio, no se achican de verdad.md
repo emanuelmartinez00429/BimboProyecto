@@ -83,6 +83,27 @@ En un `Grid`, todas las columnas `Auto` son igual de rígidas sin importar en qu
 
 ---
 
+## Variante en `DataGrid`: columnas `Auto` que saltan al scrollear
+
+Una columna de `DataGridTemplateColumn`/`DataGridTextColumn` con `Width="Auto"`
+(`DataGridLength.Auto`) se mide contra **ancho infinito** y toma el `DesiredSize` de
+las celdas **realizadas** en ese momento. Con virtualización de UI
+(`VirtualizingPanel.IsVirtualizing="True"`), al scrollear se realizan filas nuevas: si
+una trae texto más largo que todo lo visto hasta ahí, la columna se **ensancha en
+vivo** y empuja a la derecha a las columnas siguientes. `TextTrimming` no salva nada
+porque la medición fue con ancho infinito.
+
+**Síntoma:** "se corren todas las columnas de la nada" mientras se hace scroll
+vertical — no al redimensionar la ventana.
+
+**Fix:** ninguna columna de datos en `Auto`. Cada una a `Width="N*"` con su `MinWidth`
+(las estrella se reparten el ancho de forma proporcional, sin mirar el contenido); las
+de longitud constante (fechas) a px fijos. Cuando la suma de mínimos supera el
+viewport aparece la barra horizontal — estable, sin salto. Aplicado a las 9 grillas en
+[[Sesión 2026-09-08 - Salto de columnas al scrollear y sombras sobre listas virtualizadas]].
+
+---
+
 ## Cómo diagnosticar rápido cuál de los tres es
 
 1. ¿El texto se corta a mitad de palabra, sin ellipsis? → mecanismo 1 (`StackPanel` horizontal).
@@ -96,3 +117,4 @@ En un `Grid`, todas las columnas `Auto` son igual de rígidas sin importar en qu
 - [[Panel de Filtros Fluido - Barra responsive con prioridad y equilibrado]] — panel custom escrito porque ni `WrapPanel` ni `UniformGrid` resuelven esto solos para una barra de filtros
 - [[WPF - Bucle de Layout por Medir en ArrangeOverride]] — otro gotcha de measure/arrange de WPF, mecanismo distinto
 - [[Módulo Productos]] — header y barra de filtros donde se encontraron los casos 1 y 3
+- [[Sesión 2026-09-08 - Salto de columnas al scrollear y sombras sobre listas virtualizadas]] — la variante `DataGrid` + virtualización

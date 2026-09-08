@@ -182,38 +182,9 @@
             </Setter>
         </Style>
 
-        <!-- Basurero de fila (lista de Camiones de Entrega): mismo cuadradito rojo
-             pálido que el basurero de fila de ProductosCargaModal — mismo patrón en
-             toda la pantalla para "eliminar una fila de una lista". -->
-        <Style x:Key="BotonQuitarFila" TargetType="Button">
-            <Setter Property="Width" Value="30"/>
-            <Setter Property="Height" Value="30"/>
-            <Setter Property="Background" Value="#FEF2F2"/>
-            <Setter Property="Foreground" Value="#DC2626"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border x:Name="Bd" Background="{TemplateBinding Background}"
-                                BorderBrush="#FECACA" BorderThickness="1" CornerRadius="6">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="#FEE2E2"/>
-                            </Trigger>
-                            <Trigger Property="IsEnabled" Value="False">
-                                <Setter TargetName="Bd" Property="Background" Value="#F3F4F6"/>
-                                <Setter TargetName="Bd" Property="BorderBrush" Value="#E5E7EB"/>
-                                <Setter Property="Foreground" Value="#9CA3AF"/>
-                                <Setter Property="Cursor" Value="Arrow"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
+        <!-- El basurero de fila de esta pantalla es el estilo global BasureroCelda
+             (Resources/Styles.xaml). El BotonQuitarFila local se eliminó al migrar
+             sus dos usos (quitar camión / quitar producto) a ese estilo. -->
         <!-- Ámbar, no rojo: "cerrar/terminar" (BtnCamionCerrar y
              BtnCerrarTodos) es una acción de riesgo (no se deshace con un
              clic), pero semánticamente distinta de "eliminar" (ToolDanger,
@@ -472,9 +443,12 @@
                     </Grid.RowDefinitions>
 
                 <!-- Panel Camiones -->
-                <Border Grid.Row="0" Background="White" CornerRadius="10" BorderBrush="#D8E1EC" BorderThickness="1" ClipToBounds="True">
+                <!-- Fondo estático con sombra: se rasteriza una sola vez en GPU y no se invalida al scrollear -->
+                <Border Grid.Row="0" Background="White" CornerRadius="10" BorderBrush="#D8E1EC" BorderThickness="1">
                     <Border.Effect><DropShadowEffect Color="#0F172A" BlurRadius="12" ShadowDepth="3" Opacity="0.07"/></Border.Effect>
-                    <Grid>
+                </Border>
+                <!-- Contenido interactivo limpio (renderizado directo a pantalla sin shader intermedio) -->
+                <Grid Grid.Row="0" ClipToBounds="True">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
@@ -736,16 +710,13 @@
                                         <!-- Basurero de la fila: reemplaza al botón "Quitar" que antes
                                              vivía aparte en la toolbar de abajo. Tag="{Binding}" lleva el
                                              camión de ESTA fila al handler, sin depender de la selección. -->
-                                        <Button Grid.Column="3" Style="{StaticResource BotonQuitarFila}" Margin="8,0,0,0"
+                                        <Button Grid.Column="3" Style="{StaticResource BasureroCelda}" Margin="8,0,0,0"
+                                                VerticalAlignment="Center"
                                                 Tag="{Binding}" Click="QuitarCamion_Click"
                                                 IsEnabled="{Binding PuedeQuitar}"
                                                 ToolTip="{Binding MotivoQuitar}"
                                                 ToolTipService.ShowOnDisabled="True"
-                                                permisos:PermisoBehavior.Requiere="Cancelar Pesaje">
-                                            <Path Data="{StaticResource IcoTrash}" Stroke="{Binding RelativeSource={RelativeSource AncestorType=Button}, Path=Foreground}"
-                                                  StrokeThickness="1.8" Width="14" Height="14" Stretch="Uniform"
-                                                  StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
-                                        </Button>
+                                                permisos:PermisoBehavior.Requiere="Cancelar Pesaje"/>
                                     </Grid>
                                 </DataTemplate>
                             </ListBox.ItemTemplate>
@@ -782,12 +753,14 @@
                             </Button>
                         </WrapPanel>
                     </Grid>
-                </Border>
 
                 <!-- Panel Movimiento -->
-                <Border Grid.Row="2" Background="White" CornerRadius="10" BorderBrush="#D8E1EC" BorderThickness="1" ClipToBounds="True">
+                <!-- Fondo estático con sombra: se rasteriza una sola vez en GPU y no se invalida al scrollear -->
+                <Border Grid.Row="2" Background="White" CornerRadius="10" BorderBrush="#D8E1EC" BorderThickness="1">
                     <Border.Effect><DropShadowEffect Color="#0F172A" BlurRadius="12" ShadowDepth="3" Opacity="0.07"/></Border.Effect>
-                    <Grid>
+                </Border>
+                <!-- Contenido interactivo limpio (renderizado directo a pantalla sin shader intermedio) -->
+                <Grid Grid.Row="2" ClipToBounds="True">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
@@ -835,7 +808,7 @@
                                       PreviewMouseWheel="DgProductos_PreviewMouseWheel"
                                       SizeChanged="DgProductos_SizeChanged"
                                       VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling"
-                                      VirtualizingPanel.ScrollUnit="Pixel">
+                                      VirtualizingPanel.ScrollUnit="Item">
                                 <DataGrid.Resources>
                                     <Style TargetType="ScrollBar" BasedOn="{StaticResource ModernScrollBarAny}"/>
                                 </DataGrid.Resources>
@@ -932,15 +905,12 @@
                                     <DataGridTemplateColumn Header="" Width="52" CanUserResize="False" CanUserReorder="False">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
-                                                <Button Style="{StaticResource BotonQuitarFila}" Tag="{Binding}"
+                                                <Button Style="{StaticResource BasureroCelda}" Tag="{Binding}"
+                                                        VerticalAlignment="Center" HorizontalAlignment="Center"
                                                         IsEnabled="{Binding PuedeQuitar}"
                                                         ToolTip="{Binding MotivoQuitar}"
                                                         ToolTipService.ShowOnDisabled="True"
-                                                        Click="QuitarProducto_Click">
-                                                    <Path Data="{StaticResource IcoTrash}" Stroke="{Binding RelativeSource={RelativeSource AncestorType=Button}, Path=Foreground}"
-                                                          StrokeThickness="1.7" Width="14" Height="14" Stretch="Uniform"
-                                                          StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
-                                                </Button>
+                                                        Click="QuitarProducto_Click"/>
                                             </DataTemplate>
                                         </DataGridTemplateColumn.CellTemplate>
                                     </DataGridTemplateColumn>
@@ -996,7 +966,6 @@
                             </Button>
                         </WrapPanel>
                     </Grid>
-                </Border>
                 </Grid>
 
                 <!-- ── Columna derecha: Entradas, a altura completa ── -->
@@ -1088,7 +1057,7 @@
                                 <!-- Siempre visible, aunque se repita fila tras fila en "Producto
                                      actual" — es más fácil detectar de qué producto es cada entrada
                                      que confiar en recordar cuál está seleccionado arriba. -->
-                                <DataGridTextColumn x:Name="ColEntProducto" Header="PRODUCTO" Binding="{Binding ProdNombre}" Width="2.8*" MinWidth="180">
+                                <DataGridTextColumn x:Name="ColEntProducto" Header="PRODUCTO" Binding="{Binding ProdNombre}" Width="3.5*" MinWidth="180">
                                     <DataGridTextColumn.ElementStyle>
                                         <Style TargetType="TextBlock">
                                             <Setter Property="FontFamily" Value="Segoe UI"/>
@@ -1161,7 +1130,7 @@
                                 <!-- Fecha y hora en una sola celda a dos líneas: se leen siempre
                                      juntas y así el ancho que ocupaban dos columnas queda libre
                                      para los pesos, que son el dato que importa. -->
-                                <DataGridTemplateColumn Header="FECHA / HORA" Width="1.4*" MinWidth="135">
+                                <DataGridTemplateColumn Header="FECHA / HORA" Width="140" MinWidth="135" CanUserResize="False">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
                                             <StackPanel VerticalAlignment="Center" Margin="10,0">
@@ -1216,22 +1185,33 @@
                              vive fuera del ScrollViewer de la grilla, así que sin esto se
                              quedaría quieta al scrollear en horizontal y los totales
                              dejarían de caer bajo su columna. -->
-                        <Grid x:Name="TotalGrid">
+                        <Grid x:Name="TotalGrid" HorizontalAlignment="Left">
                             <Grid.RenderTransform>
                                 <TranslateTransform x:Name="TotalScrollTransform"/>
                             </Grid.RenderTransform>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="52" MinWidth="48"/>
-                                <ColumnDefinition x:Name="TotalColProducto" Width="2.8*" MinWidth="180"/>
-                                <ColumnDefinition Width="1.1*" MinWidth="96"/>
-                                <ColumnDefinition Width="1*" MinWidth="90"/>
-                                <ColumnDefinition Width="1.1*" MinWidth="100"/>
-                                <ColumnDefinition Width="1.1*" MinWidth="96"/>
-                                <ColumnDefinition Width="0.9*" MinWidth="85"/>
-                                <ColumnDefinition Width="1.4*" MinWidth="135"/>
+                                <!-- Col 0: #  — mismo Width fijo que DgEntradas Col 0 -->
+                                <ColumnDefinition x:Name="TcCol0" Width="52" MinWidth="48"/>
+                                <!-- Col 1: PRODUCTO — sincronizado por código -->
+                                <ColumnDefinition x:Name="TcCol1" Width="3.5*" MinWidth="180"/>
+                                <!-- Col 2: BRUTO (KG) -->
+                                <ColumnDefinition x:Name="TcCol2" Width="1.1*" MinWidth="96"/>
+                                <!-- Col 3: TARA (KG) -->
+                                <ColumnDefinition x:Name="TcCol3" Width="1*" MinWidth="90"/>
+                                <!-- Col 4: TARA EXTRA -->
+                                <ColumnDefinition x:Name="TcCol4" Width="1.1*" MinWidth="100"/>
+                                <!-- Col 5: NETO (KG) -->
+                                <ColumnDefinition x:Name="TcCol5" Width="1.1*" MinWidth="96"/>
+                                <!-- Col 6: BULTOS -->
+                                <ColumnDefinition x:Name="TcCol6" Width="0.9*" MinWidth="85"/>
+                                <!-- Col 7: FECHA / HORA — mismo Width fijo que DgEntradas Col 7 -->
+                                <ColumnDefinition x:Name="TcCol7" Width="140" MinWidth="135"/>
+                                <!-- Col 8: espaciador del botón basurero — mismo Width que DgEntradas Col 8 -->
+                                <ColumnDefinition x:Name="TcCol8" Width="52"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="TOTAL" FontFamily="Segoe UI" FontSize="12.5" FontWeight="Bold"
-                                        Foreground="#6B7280" VerticalAlignment="Center" Margin="10,0"/>
+                                        Foreground="#6B7280" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                            <!-- Col 1 vacía: reserva el espacio del nombre de producto -->
                             <TextBlock Grid.Column="2" Text="{Binding TotalBruto, StringFormat=N2}" FontFamily="Segoe UI" FontSize="14"
                                         FontWeight="Bold" Foreground="#1A1F2E" VerticalAlignment="Center" Margin="10,0"/>
                             <TextBlock Grid.Column="3" Text="{Binding TotalTara, StringFormat=N2}" FontFamily="Segoe UI" FontSize="14"
@@ -1244,6 +1224,7 @@
                                         FontWeight="Bold" Foreground="#1A1F2E" VerticalAlignment="Center" Margin="10,0"/>
                             <TextBlock Grid.Column="7" Text="{Binding TotalPesajesTexto}" FontFamily="Segoe UI" FontSize="13"
                                         Foreground="#9CA3AF" VerticalAlignment="Center" Margin="10,0"/>
+                            <!-- Col 8: espaciadora del basurero, no se muestra ningún texto -->
                         </Grid>
                     </Border>
 

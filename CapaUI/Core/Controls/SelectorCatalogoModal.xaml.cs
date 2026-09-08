@@ -47,7 +47,7 @@ public partial class SelectorCatalogoModal : UserControl, IDisposable
     // Modo servidor.
     private int _page  = 1;
     private int _total = 0;
-    private CancellationTokenSource? _cts;
+    private readonly Debouncer _debounce = new(DebounceMs);
     private int _generacion;
 
     private string _query = string.Empty;
@@ -80,9 +80,10 @@ public partial class SelectorCatalogoModal : UserControl, IDisposable
     private readonly HashSet<int> _idsTocados = new();
 
     /// <summary>
-    /// Vive lo que vive el modal. Aparte de <c>_cts</c>, que se recrea en cada
-    /// tecla del buscador: acá cuelga la revalidación de fondo, que tiene que
-    /// abortarse al cerrar la lupa y no cuando el usuario sigue escribiendo.
+    /// Vive lo que vive el modal. Aparte del token de <c>_debounce</c>, que se
+    /// recrea en cada tecla del buscador: acá cuelga la revalidación de fondo,
+    /// que tiene que abortarse al cerrar la lupa y no cuando el usuario sigue
+    /// escribiendo.
     /// </summary>
     private readonly CancellationTokenSource _ctsVida = new();
 
@@ -322,19 +323,13 @@ public partial class SelectorCatalogoModal : UserControl, IDisposable
         }
 
         // Servidor: debounce para no disparar una consulta por tecla.
-        _cts?.Cancel();
-        _cts = new CancellationTokenSource();
-        var token = _cts.Token;
-
-        try
+        await _debounce.EjecutarAsync(async _ =>
         {
-            await Task.Delay(DebounceMs, token);
-            if (token.IsCancellationRequested || _dispuesto) return;
+            if (_dispuesto) return;
 
             _page = 1;
             await CargarPaginaAsync();
-        }
-        catch (OperationCanceledException) { /* siguió escribiendo */ }
+        });
     }
 
     // ── Interacción ───────────────────────────────────────────────────────────
@@ -674,9 +669,7 @@ public partial class SelectorCatalogoModal : UserControl, IDisposable
             .FromProperty(SuggestionSearchBox.QueryProperty, typeof(SuggestionSearchBox))
             .RemoveValueChanged(SearchBox, OnQueryChanged);
 
-        _cts?.Cancel();
-        _cts?.Dispose();
-        _cts = null;
+        _debounce.Dispose();
 
         _ctsVida.Cancel();
         _ctsVida.Dispose();

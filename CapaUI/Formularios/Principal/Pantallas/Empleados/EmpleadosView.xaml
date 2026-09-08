@@ -260,11 +260,18 @@
         </Border>
 
         <!-- ROW 4: TABLE -->
-        <Border Grid.Row="4" Background="White" CornerRadius="10"
-                BorderBrush="#D8E1EC" BorderThickness="1" ClipToBounds="True">
-            <Border.Effect>
-                <DropShadowEffect Color="#0F172A" BlurRadius="14" ShadowDepth="4" Opacity="0.08"/>
-            </Border.Effect>
+        <Grid Grid.Row="4">
+            <!-- Sombra estática desacoplada: Border hermano detrás del contenido,
+                 así el scroll del DataGrid no la re-renderiza por frame.
+                 Ver [[WPF - Rendimiento de Efectos y Niveles de Renderizado]]. -->
+            <Border Background="White" CornerRadius="10">
+                <Border.Effect>
+                    <DropShadowEffect Color="#0F172A" BlurRadius="14" ShadowDepth="4" Opacity="0.08"/>
+                </Border.Effect>
+            </Border>
+
+            <Border Background="White" CornerRadius="10"
+                    BorderBrush="#D8E1EC" BorderThickness="1" ClipToBounds="True">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*"/>
@@ -309,7 +316,7 @@
                           ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                           VirtualizingPanel.IsVirtualizing="True"
                           VirtualizingPanel.VirtualizationMode="Recycling"
-                          VirtualizingPanel.ScrollUnit="Pixel">
+                          VirtualizingPanel.ScrollUnit="Item">
                     <DataGrid.Resources>
                         <Style TargetType="ScrollBar" BasedOn="{StaticResource ModernScrollBar}"/>
                     </DataGrid.Resources>
@@ -372,9 +379,6 @@
                                                 </Style.Triggers>
                                             </Style>
                                             </Border.Style>
-                                            <Border.Effect>
-                                                <DropShadowEffect Color="{DynamicResource EmpresaPrimaryColor}" BlurRadius="4" ShadowDepth="1" Opacity="0.3"/>
-                                            </Border.Effect>
                                             <Path Data="{StaticResource IconCheck}"
                                                   Stroke="White" StrokeThickness="2.8"
                                                   StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
@@ -409,7 +413,8 @@
                                            PageInfo="{Binding PageInfo}"
                                            IsLoading="{Binding IsLoading}"/>
             </Grid>
-        </Border>
+            </Border>
+        </Grid>
 
         <!-- ROW 5: ACTION BUTTONS -->
         <DockPanel Grid.Row="5" Margin="0,4,0,14" LastChildFill="False">

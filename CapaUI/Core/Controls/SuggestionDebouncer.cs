@@ -21,20 +21,27 @@ namespace CapaUI.Core.Controls;
 /// al repositorio. Esa duplicación es la que produjo dos defectos replicados
 /// (2026-07-26 y 2026-07-28) y estaba registrada como P-026.
 /// </para>
+/// <para>
+/// El debounce en sí vive en <see cref="Debouncer"/> desde P-054: esta clase
+/// tenía su propia copia y era una de las tres que dejaban sin disponer el
+/// <c>CancellationTokenSource</c> anterior. Lo que queda acá es lo propio del
+/// buscador — el <c>Trim()</c>, el mínimo de 2 caracteres y el mapeo a
+/// <see cref="SuggestionItemData"/>.
+/// </para>
 /// </remarks>
 public sealed class SuggestionDebouncer : IDisposable
 {
     /// <summary>Tiempo de espera antes de disparar la búsqueda, en ms.</summary>
     public const int DebounceMs = 200;
 
-    private CancellationTokenSource? _cts;
+    private readonly Debouncer _debouncer = new(DebounceMs);
 
     /// <summary>
     /// Cancela la búsqueda en vuelo, si hay alguna.
     /// Obligatorio al seleccionar una sugerencia: si no, la búsqueda en curso
     /// termina después de la selección y reabre el popup con la caja ya vacía.
     /// </summary>
-    public void Cancelar() => _cts?.Cancel();
+    public void Cancelar() => _debouncer.Cancelar();
 
     /// <summary>
     /// Espera el debounce y ejecuta <paramref name="buscar"/>. Si durante la
@@ -50,38 +57,32 @@ public sealed class SuggestionDebouncer : IDisposable
     /// Solo se invoca si la búsqueda no fue cancelada, así que puede escribir
     /// en la UI sin más guardas.
     /// </param>
-    public async Task EjecutarAsync(
+    public Task EjecutarAsync(
         string query,
         Func<string, CancellationToken, Task<IReadOnlyList<SuggestionItemData>?>> buscar,
         Action<IReadOnlyList<SuggestionItemData>?> aplicar)
     {
-        _cts?.Cancel();
-        _cts = new CancellationTokenSource();
-        var token = _cts.Token;
-
         var q = query.Trim();
+
         // Menos de 2 caracteres no se busca: cierra el popup y evita peticiones
         // innecesarias de una sola letra a la base de datos mientras se teclea.
-        if (q.Length < 2) { aplicar(null); return; }
-
-        try
+        // Igual hay que cancelar lo que estuviera en vuelo — si no, un borrado
+        // rápido deja llegar la búsqueda del texto anterior sobre la caja vacía.
+        if (q.Length < 2)
         {
-            await Task.Delay(DebounceMs, token);
-            if (token.IsCancellationRequested) return;
+            _debouncer.Cancelar();
+            aplicar(null);
+            return Task.CompletedTask;
+        }
 
+        return _debouncer.EjecutarAsync(async token =>
+        {
             var items = await buscar(q, token);
             if (token.IsCancellationRequested) return;
 
             aplicar(items);
-        }
-        // Cancelación intencional (el usuario siguió escribiendo): no es un error.
-        catch (OperationCanceledException) { }
+        });
     }
 
-    public void Dispose()
-    {
-        _cts?.Cancel();
-        _cts?.Dispose();
-        _cts = null;
-    }
+    public void Dispose() => _debouncer.Dispose();
 }

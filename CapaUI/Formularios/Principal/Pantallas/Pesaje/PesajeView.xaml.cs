@@ -241,6 +241,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
 
             AjustarLayoutEntradas();
             AjustarLayoutProductos();
+            SincronizarColumnasTotales();
 
             ActualizarEstadoVacio();
             ActualizarCargaProductos();
@@ -449,6 +450,10 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             // NaN = "medí solo": cuando no hay scroll horizontal la fila se estira
             // con el panel, igual que la grilla.
             TotalGrid.Width = e.ExtentWidth > e.ViewportWidth ? e.ExtentWidth : double.NaN;
+
+            // Mantener la sincronización de anchos también al scrollear horizontalmente
+            // (el extent puede variar si se activa/desactiva el scrollbar horizontal).
+            SincronizarColumnasTotales();
         }
 
         /// <summary>
@@ -481,11 +486,52 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
         private void DgEntradas_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             AjustarLayoutEntradas();
+            SincronizarColumnasTotales();
         }
 
         private void DgProductos_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             AjustarLayoutProductos();
+        }
+
+        /// <summary>
+        /// Copia el <c>ActualWidth</c> exacto (en píxeles) de cada columna de
+        /// <see cref="DgEntradas"/> al <c>Width</c> absoluto de la columna
+        /// equivalente en <see cref="TotalGrid"/>, garantizando alineación perfecta
+        /// sin importar proporciones estrella, DPI, zoom o tamaño de ventana.<br/>
+        /// Solo actualiza las columnas de ancho variable (estrella); las columnas
+        /// fijas (#, FECHA/HORA, Basurero) ya coinciden por definición de XAML.
+        /// La comparación de ε = 0.25 px evita invalidaciones de layout innecesarias
+        /// cuando el valor no cambia o la variación es sub-píxel.
+        /// </summary>
+        private void SincronizarColumnasTotales()
+        {
+            if (DgEntradas is null || DgEntradas.Columns.Count < 9) return;
+            if (TotalGrid is null) return;
+
+            // Mapeo: índice columna DataGrid → ColumnDefinition de TotalGrid
+            // Solo las columnas de ancho variable (estrella); las fijas (#, FECHA/HORA,
+            // Basurero) ya coinciden por definición de XAML y no se tocan.
+            (int dgCol, ColumnDefinition tcCol)[] mapa =
+            [
+                (1, TcCol1),   // PRODUCTO
+                (2, TcCol2),   // BRUTO (KG)
+                (3, TcCol3),   // TARA (KG)
+                (4, TcCol4),   // TARA EXTRA
+                (5, TcCol5),   // NETO (KG)
+                (6, TcCol6),   // BULTOS
+            ];
+
+            // ε = 0.25 px: evita invalidaciones de layout sub-píxel que no se perciben
+            // visualmente pero sí dispararían una pasada de medición.
+            const double epsilon = 0.25;
+            foreach (var (dgCol, tcCol) in mapa)
+            {
+                double w = DgEntradas.Columns[dgCol].ActualWidth;
+                if (w <= 0) continue;
+                if (Math.Abs(tcCol.Width.Value - w) > epsilon)
+                    tcCol.Width = new GridLength(w, GridUnitType.Pixel);
+            }
         }
 
         /// <summary>
@@ -500,9 +546,9 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
         {
             if (DgEntradas == null) return;
 
-            // Suma de anchos mínimos de las columnas (PRODUCTO ya es fija, no condicional):
-            // #(52) + PRODUCTO(180) + BRUTO(96) + TARA(90) + TARA_EXTRA(100) + NETO(96) + BULTOS(85) + FECHA/HORA(135) + margen scrollbar(~16)
-            double minAncho = 52 + 180 + 96 + 90 + 100 + 96 + 85 + 135 + 16;
+            // Suma de anchos mínimos de las columnas con la nueva distribución:
+            // #(52) + PRODUCTO(180) + BRUTO(96) + TARA(90) + TARA_EXTRA(100) + NETO(96) + BULTOS(85) + FECHA/HORA(135, fija) + BASURERO(52) + margen scrollbar(~16)
+            double minAncho = 52 + 180 + 96 + 90 + 100 + 96 + 85 + 135 + 52 + 16;
 
             double anchoActual = DgEntradas.ActualWidth;
             if (anchoActual <= 0) return;
@@ -547,7 +593,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             if (_vm == null || _sync) return;
             string modo = RbVistaCamion.IsChecked == true ? "camion" : "producto";
 
-            // La columna PRODUCTO (y su celda espejo en la fila TOTAL, TotalColProducto)
+            // La columna PRODUCTO (y su celda espejo TcCol1 en la fila TOTAL)
             // ya no se prende/apaga con el modo: queda visible siempre, incluso en
             // "Producto actual" con una sola fila repitiendo el mismo nombre — es más
             // fácil detectar de qué producto es cada entrada que confiar en recordar

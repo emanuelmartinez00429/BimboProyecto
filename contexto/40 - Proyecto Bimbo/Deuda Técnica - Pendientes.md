@@ -1176,44 +1176,81 @@ Cableado end-to-end verificado en el código: `RegistroCamionesModal.Guardar_Cli
 
 ---
 
-### P-054 · El debounce de Notificaciones abandona un `CancellationTokenSource` por evento
+### ~~P-054~~ · ✅ El debounce estaba copiado a mano en 4 lugares y 3 no disponían el `CancellationTokenSource` — resuelto 2026-09-08
 
-**Archivo:** `CapaUI/Formularios/Principal/Pantallas/Notificaciones/NotificacionesViewModel.cs`
+**Archivos:** `CapaUI/Core/Controls/SuggestionDebouncer.cs`, `CapaUI/Core/Controls/SelectorCatalogoModal.xaml.cs`, `CapaUI/Formularios/Principal/Pantallas/Notificaciones/NotificacionesViewModel.cs`
 **Detectado en:** [[Sesión 2026-09-08 - Fuga de memoria por contenedor DI y scope de sesión]]
 
-```csharp
-_debounceCts?.Cancel();
-_debounceCts = new CancellationTokenSource();   // el anterior nunca se dispone
-```
+> [!warning] El enunciado original de esta deuda era incorrecto
+> Se registró como una fuga de memoria («abandona un CTS por evento»). **No lo es.** Un `CancellationTokenSource` al que nunca se le llama `CancelAfter` ni se le pide el `WaitHandle` no reserva timer ni handle del sistema: es basura recolectable como cualquier objeto. Lo que sí había era **higiene** (`Dispose()` faltante) y, sobre todo, **duplicación**.
 
-Un `CancellationTokenSource` cancelado sigue teniendo su timer interno y sus registros de callback hasta que se lo dispone. Con 128 notificaciones seguidas quedan 128 CTS abandonados — pequeños, pero es exactamente el anti-patrón que el propio análisis de rendimiento del proyecto ya tenía marcado para `SuggestionDebouncer` y `SelectorCatalogoModal`.
+El problema real: la misma mecánica de debounce estaba escrita a mano **cuatro veces**, y `SuggestionDebouncer` —la clase que existe justamente para no repetirla, resultado de P-026— **tenía el defecto adentro**.
 
-Agravante de diseño: el debounce está **hecho a mano** existiendo `CapaUI/Core/Controls/SuggestionDebouncer.cs`, que encapsula justo esta mecánica y ya resolvió el problema una vez.
+| Sitio | ¿Disponía el CTS anterior? |
+|---|---|
+| `GhostTextBox.xaml.cs:164` | ✅ Sí — era la única implementación correcta |
+| `SuggestionDebouncer.cs:59` | ❌ No |
+| `SelectorCatalogoModal.xaml.cs:326` | ❌ No |
+| `NotificacionesViewModel.cs:287` | ❌ No |
 
-**Solución propuesta:** usar `SuggestionDebouncer`, o —si se prefiere mantenerlo local— disponer el CTS viejo tras cancelarlo, con el cuidado de no disponerlo mientras la continuación anterior todavía lo observa.
+**Solución aplicada:** se extrajo `CapaUI/Core/Controls/Debouncer.cs` —la implementación de `GhostTextBox`, que ya era la correcta— y los otros tres pasaron a usarla. El orden `Cancel()` → `Dispose()` es el que exige la documentación de `CancellationTokenSource`: `Cancel` corre las registraciones (completa el `Task.Delay` en vuelo como cancelado) y recién entonces se libera. El reemplazo del token va por `Interlocked.Exchange` porque `NotificacionesViewModel` lo dispara desde el hilo de Realtime.
 
-**Riesgo:** bajo. Fuga acotada y proporcional al tráfico de Realtime, no acumulativa entre sesiones desde que existe el scope.
+`SuggestionDebouncer` **conservó su API pública** (`DebounceMs`, `Cancelar()`, `EjecutarAsync(query, buscar, aplicar)`), así que los 9 ViewModels que lo consumen no se tocaron. `GhostTextBox` quedó sin migrar a propósito: ya era correcto y su cancelación se invoca desde varios puntos con semántica propia.
+
+> [!note] Sin cobertura automatizada
+> `BimboProyecto.Tests` no referencia `CapaUI` (solo Aplicación/Datos/Dominio), así que `Debouncer` no tiene pruebas. Su verificación es manual: buscadores, lupa de catálogo y campana.
+
+**Estado:** `[x]` Resuelto — build 0/0, 286/286.
+
+---
+
+### ~~P-055~~ · ✅ El apagado del auto-refresh de Gotrue dependía de una llamada de red — resuelto 2026-09-08
+
+**Archivos:** `CapaDatos/Conexion.cs` (el vivo), `ServicioConexión/Conexion/ConexionSupabase.cs` (gemelo), `CapaUI/Formularios/Principal/MainWindow.xaml.cs`
+**Detectado en:** [[Sesión 2026-09-08 - Fuga de memoria por contenedor DI y scope de sesión]]
+
+> [!warning] El enunciado original también era impreciso
+> Se registró como «`ResetAsync` no libera el `Auth`, el timer enraiza el cliente viejo», como si el timer sobreviviera siempre. **No sobrevive siempre**: `SignOut()` emite `AuthState.SignedOut` y `TokenRefresh` detiene el timer. El defecto está en **de qué depende** ese apagado.
+
+`SignOut()` es una **llamada de red** envuelta en `try/catch` dentro de `MainWindow.LimpiarRecursosAsync`. Logout sin conexión, endpoint lento o token ya inválido ⇒ no hay evento `SignedOut` ⇒ el timer sobrevive al cierre de sesión y **sigue pidiendo tokens de una sesión que ya no existe**. No había ningún apagado local determinista.
+
+**Dos defectos concretos encontrados de paso:**
+
+1. **El timeout del logout era decorativo.** Había un `using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5))` que **no se le pasaba a nada**: `IGotrueClient.SignOut(SignOutScope)` no acepta `CancellationToken` (verificado en la interfaz de `supabase.gotrue 6.0.3`). El `catch (OperationCanceledException)` con el mensaje «SignOut timeout — continuando» era inalcanzable por timeout, y con la red colgada el cierre se iba hasta el timeout por defecto de `HttpClient` (100 s) con la UI congelada detrás de un `await` en un `async void`.
+2. **El comentario de `ResetAsync` prometía de más.** Decía que liberaba «el cliente Supabase completo». `Supabase.Client` **no implementa `IDisposable`** — la lista de miembros de `M:Supabase.Client.*` en el XML de `Supabase 1.1.1` es `#ctor`, `AdminAuth`, `From`, `GetAuthHeaders`, `InitializeAsync` y `Rpc`. No existe tal liberación.
+
+**Solución aplicada:**
+
+- `ResetAsync()` llama `old.Auth.Shutdown()` en su propio `try` antes de tocar el socket. Su documentación dice literalmente que detiene el hilo de fondo que refresca el token, y **no toca la red**: es el único apagado que no depende de que algo remoto funcione. Va en su propio `try` para que un fallo ahí no impida disponer el socket. Aplicado en las **dos** copias del archivo (ver P-056).
+- `LimpiarRecursosAsync` impone el tope por fuera con `Task.WhenAny(signOut, Task.Delay(5s))`, observa la excepción del `SignOut` abandonado para que no quede sin manejar, y pasó de `Debug.WriteLine` a Serilog como el resto del cierre. Se mantiene el `SignOut` porque invalida el refresh token en el servidor, que importa en terminal compartida — pero ya no puede bloquear el cierre.
+- Se corrigió el comentario de `ResetAsync` para que diga lo que realmente apaga.
+
+**Verificación pendiente (manual):** cerrar sesión **con la red cortada**. Esperado: el logout no se cuelga, avisa por log que `SignOut` no respondió y vuelve al login.
+
+**Estado:** `[x]` Resuelto — build 0/0, 286/286.
+
+---
+
+### P-056 · `ServicioConexión` es un proyecto huérfano que duplica el singleton de conexión con el mismo namespace
+
+**Archivos:** `ServicioConexión/ServicioConexión.csproj`, `ServicioConexión/Conexion/ConexionSupabase.cs`
+**Detectado en:** [[Sesión 2026-09-08 - Cierre de P-054 y P-055]]
+
+Hay **dos** clases `ConexionSupabase` en el **mismo namespace** (`ServicioConexión.Conexion`), en ensamblados distintos:
+
+- `CapaDatos/Conexion.cs` — **el vivo**. `CapaUI` referencia solo `CapaDominio`, `CapaAplicacion` y `CapaDatos`, así que este es el que se compila y el que usan los repositorios, `RealtimeService` y `MainWindow`.
+- `ServicioConexión/Conexion/ConexionSupabase.cs` — **huérfano**: está en la solución y compila, pero **ningún `.csproj` lo referencia**.
+
+**Riesgo:** es una trampa activa, no código inerte. El nombre del proyecto y el namespace hacen que parezca el archivo correcto; alguien (persona o agente) puede arreglar ahí un bug y ver que no cambia nada en ejecución — estuvo a punto de pasar al cerrar P-055.
+
+**Mitigación aplicada:** el fix de P-055 se aplicó en **ambas** copias para que no divergan, como pide el comentario del propio archivo vivo.
+
+**Solución propuesta:** sacar `ServicioConexión` de la solución y borrarlo, dejando una sola copia. Es un cambio estructural, así que se pospuso a conciencia (decisión de Fernando, 2026-09-08) para no chocar con otros agentes trabajando sobre el mismo árbol.
 
 **Estado:** `[ ]` Pendiente
 
 ---
 
-### P-055 · `ConexionSupabase.ResetAsync` no libera el `Auth` de Gotrue
-
-**Archivo:** `CapaInfraestructura/.../ConexionSupabase.cs`
-**Detectado en:** [[Sesión 2026-09-08 - Fuga de memoria por contenedor DI y scope de sesión]]
-
-Al cerrar sesión se descarta el `Supabase.Client`, pero **no se detiene el `AutoRefreshToken` de Gotrue**. Ese timer mantiene una referencia viva al cliente de autenticación, y por él a todo el `Supabase.Client` de la sesión anterior — el mismo patrón de raíz-que-sobrevive-al-logout que causó la fuga principal, en otra capa.
-
-Se dejó **fuera de alcance a propósito** al cerrar la fuga del contenedor DI: tocar el ciclo de vida de la autenticación puede romper el refresco de token en caliente, y conviene medir cuánto pesa realmente antes de intervenir.
-
-**Solución propuesta:** medir primero (perfilar dos ciclos de login/logout y ver si el cliente viejo sigue enraizado). Si se confirma, apagar el auto-refresh explícitamente en `ResetAsync` antes de soltar el cliente.
-
-**Riesgo:** medio en impacto (una sesión completa de Supabase retenida por login), bajo en frecuencia (solo acumula al cerrar y volver a abrir sesión sin reiniciar la app).
-
-**Estado:** `[ ]` Pendiente
-
----
 
 ## Historial de resolución
 
@@ -1271,8 +1308,9 @@ Se dejó **fuera de alcance a propósito** al cerrar la fuga del contenedor DI: 
 | P-051 | Política `select_Usuarios` con `USING (true)` sobre PUBLIC | `[x]` Resuelto | [[Sesión 2026-09-06 - Resolucion integral P-045 P-049 P-051 P-052 P-053]] |
 | P-052 | Trigger de auditoría legacy duplicaba bitácora y chocaba con el RBAC de las RPC `_seguro` (categoría/fabricante/proveedor) | `[x]` Resuelto | [[Sesión 2026-09-05 - Alta múltiple de camiones y topes de texto en movimientos]] |
 | P-053 | Alta múltiple de camiones: N INSERT sueltos sin transacción (misma familia que P-032) | `[x]` Resuelto | [[Sesión 2026-09-06 - Resolucion integral P-045 P-049 P-051 P-052 P-053]] |
-| P-054 | Debounce de Notificaciones abandona un `CancellationTokenSource` por evento (y duplica `SuggestionDebouncer`) | `[ ]` Pendiente | [[Sesión 2026-09-08 - Fuga de memoria por contenedor DI y scope de sesión]] |
-| P-055 | `ConexionSupabase.ResetAsync` no libera el `Auth` de Gotrue — el timer de auto-refresh enraiza el cliente viejo | `[ ]` Pendiente | [[Sesión 2026-09-08 - Fuga de memoria por contenedor DI y scope de sesión]] |
+| P-054 | Debounce copiado a mano en 4 lugares; 3 sin `Dispose()` del CTS (no era fuga: duplicación) | `[x]` Resuelto | [[Sesión 2026-09-08 - Cierre de P-054 y P-055]] |
+| P-055 | El apagado del auto-refresh de Gotrue dependía de `SignOut()` (llamada de red) + timeout decorativo en el logout | `[x]` Resuelto | [[Sesión 2026-09-08 - Cierre de P-054 y P-055]] |
+| P-056 | `ServicioConexión` huérfano duplica `ConexionSupabase` con el mismo namespace | `[ ]` Pendiente | [[Sesión 2026-09-08 - Cierre de P-054 y P-055]] |
 
 ---
 
@@ -1306,4 +1344,5 @@ Se dejó **fuera de alcance a propósito** al cerrar la fuga del contenedor DI: 
 - [[Sesión 2026-09-05 - Alta múltiple de camiones y topes de texto en movimientos]] — origen de P-053; resolución parcial de P-045 y agravamiento de P-042
 - [[Sesión 2026-09-06 - Resolucion integral P-045 P-049 P-051 P-052 P-053]] — resolución de P-045 (RPC), P-049, P-051, P-052 y P-053
 - [[Sesión 2026-09-08 - Fuga de memoria por contenedor DI y scope de sesión]] — origen de P-054 y P-055
+- [[Sesión 2026-09-08 - Cierre de P-054 y P-055]] — resolución de P-054 y P-055; origen de P-056
 - [[Sesión 2026-09-06 - Tres frenos de rendimiento cerrados y VerticalAlignment fijo en ModalInput]] — cierra G7/G8/G9 de P-031 y resuelve P-043

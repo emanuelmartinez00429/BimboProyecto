@@ -714,17 +714,30 @@ namespace CapaUI.Formularios.Principal
         {
             try
             {
-                using var cts = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(5));
                 var client = await ServicioConexión.Conexion.ConexionSupabase.GetClientAsync();
-                await client.Auth.SignOut();
-            }
-            catch (OperationCanceledException)
-            {
-                Debug.WriteLine("[Cierre] SignOut timeout — continuando de todas formas");
+
+                // SignOut() no acepta CancellationToken, así que el tope se impone por fuera.
+                // Antes había un CancellationTokenSource(5s) que no se le pasaba a nada: el
+                // "timeout" era decorativo y con la red colgada el cierre se iba hasta el
+                // timeout por defecto de HttpClient (100 s) con la UI congelada.
+                //
+                // Es best-effort: invalida el refresh token en el servidor —importante en
+                // terminal compartida— pero no puede bloquear el cierre de sesión. El timer
+                // de refresco lo corta igual Auth.Shutdown() dentro de ConexionSupabase.ResetAsync().
+                var signOut = client.Auth.SignOut();
+                if (await Task.WhenAny(signOut, Task.Delay(TimeSpan.FromSeconds(5))) != signOut)
+                {
+                    Serilog.Log.Warning("[Cierre] SignOut no respondió en 5s — se continúa con el cierre local");
+                    // El SignOut abandonado sigue vivo: si falla más tarde nadie estaría
+                    // mirando su excepción. Se observa acá para que no quede sin manejar.
+                    _ = signOut.ContinueWith(
+                        t => Serilog.Log.Debug(t.Exception, "[Cierre] SignOut tardío falló"),
+                        TaskContinuationOptions.OnlyOnFaulted);
+                }
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"[Cierre] Error en SignOut: {ex.Message}");
+                Serilog.Log.Warning(ex, "[Cierre] Error en SignOut — se continúa con el cierre local");
             }
 
             CapaUI.Core.Permisos.SesionPermisos.Limpiar();

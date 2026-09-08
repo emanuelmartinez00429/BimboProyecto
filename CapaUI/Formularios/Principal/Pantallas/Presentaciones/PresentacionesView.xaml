@@ -162,8 +162,14 @@
         </Border>
 
         <!-- TABLE -->
-        <Border Grid.Row="4" Background="White" CornerRadius="10" BorderBrush="#D8E1EC" BorderThickness="1" ClipToBounds="True">
-            <Border.Effect><DropShadowEffect Color="#0F172A" BlurRadius="14" ShadowDepth="4" Opacity="0.08"/></Border.Effect>
+        <Grid Grid.Row="4">
+            <!-- Sombra estática desacoplada: Border hermano detrás del contenido,
+                 así el scroll del DataGrid no la re-renderiza por frame.
+                 Ver [[WPF - Rendimiento de Efectos y Niveles de Renderizado]]. -->
+            <Border Background="White" CornerRadius="10">
+                <Border.Effect><DropShadowEffect Color="#0F172A" BlurRadius="14" ShadowDepth="4" Opacity="0.08"/></Border.Effect>
+            </Border>
+            <Border Background="White" CornerRadius="10" BorderBrush="#D8E1EC" BorderThickness="1" ClipToBounds="True">
             <Grid>
                 <Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
                 <StackPanel Grid.Row="0" x:Name="EmptyState" Visibility="Collapsed" VerticalAlignment="Center" HorizontalAlignment="Center">
@@ -189,7 +195,7 @@
                           ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.HorizontalScrollBarVisibility="Auto"
                           VirtualizingPanel.IsVirtualizing="True"
                           VirtualizingPanel.VirtualizationMode="Recycling"
-                          VirtualizingPanel.ScrollUnit="Pixel">
+                          VirtualizingPanel.ScrollUnit="Item">
                     <DataGrid.Resources>
                         <Style TargetType="ScrollBar" BasedOn="{StaticResource ModernScrollBar}"/>
                     </DataGrid.Resources>
@@ -226,8 +232,7 @@
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
                         <DataGridTemplateColumn Header="CREADO"
-                                                Width="Auto"
-                                                MinWidth="130"
+                                                Width="150"
                                                 HeaderStyle="{StaticResource HeaderDerecho}"
                                                 CellStyle="{StaticResource CeldaDerecha}">
                             <DataGridTemplateColumn.CellTemplate>
@@ -240,8 +245,7 @@
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
                         <DataGridTemplateColumn Header="ACTUALIZADO"
-                                                Width="Auto"
-                                                MinWidth="130"
+                                                Width="150"
                                                 HeaderStyle="{StaticResource HeaderDerecho}"
                                                 CellStyle="{StaticResource CeldaDerecha}">
                             <DataGridTemplateColumn.CellTemplate>
@@ -268,7 +272,6 @@
                                                     </Style.Triggers>
                                                 </Style>
                                             </Border.Style>
-                                            <Border.Effect><DropShadowEffect Color="{DynamicResource EmpresaPrimaryColor}" BlurRadius="4" ShadowDepth="1" Opacity="0.3"/></Border.Effect>
                                             <Path Data="{StaticResource IconCheck}" Stroke="White" StrokeThickness="2.8"
                                                   StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
                                                   Width="11" Height="11" Stretch="Uniform"/>
@@ -298,7 +301,8 @@
                                            PageInfo="{Binding PageInfo}"
                                            IsLoading="{Binding IsLoading}"/>
             </Grid>
-        </Border>
+            </Border>
+        </Grid>
 
         <!-- ACTION BUTTONS -->
         <DockPanel Grid.Row="5" Margin="0,4,0,14" LastChildFill="False">

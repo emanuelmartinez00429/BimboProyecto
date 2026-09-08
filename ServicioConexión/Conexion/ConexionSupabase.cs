@@ -50,14 +50,17 @@ namespace ServicioConexión.Conexion
         }
 
         /// <summary>
-        /// Libera por completo el cliente Supabase actual (socket Realtime, su WebsocketClient
-        /// interno y todos los <c>System.Timers.Timer</c>/<c>System.Threading.Timer</c> asociados)
-        /// y deja el singleton en null. El próximo <see cref="GetClientAsync"/> construye un cliente
-        /// limpio.
+        /// Apaga el cliente Supabase actual —el timer de auto-refresh de Gotrue, el socket Realtime
+        /// y el WebsocketClient interno con sus <c>System.Threading.Timer</c>— y deja el singleton
+        /// en null. El próximo <see cref="GetClientAsync"/> construye un cliente limpio.
         ///
-        /// Se invoca al cerrar sesión: evita que canales, handlers y timers de Realtime se acumulen
-        /// entre sesiones de login (la librería deduplica canales por topic y nunca los libera por
-        /// su cuenta, por lo que reutilizar el mismo cliente arrastra todo lo acumulado).
+        /// Se invoca al cerrar sesión: evita que canales, handlers y timers se acumulen entre
+        /// sesiones de login (la librería deduplica canales por topic y nunca los libera por su
+        /// cuenta, por lo que reutilizar el mismo cliente arrastra todo lo acumulado).
+        ///
+        /// Ojo con el nombre: <c>Supabase.Client</c> <b>no</b> implementa <c>IDisposable</c> — no hay
+        /// un "liberar todo". Lo que se puede apagar es exactamente lo de arriba; el resto queda
+        /// para el GC cuando se suelta la última referencia, que es lo que hace el <c>_client = null</c>.
         /// </summary>
         public static async Task ResetAsync()
         {
@@ -67,6 +70,22 @@ namespace ServicioConexión.Conexion
                 var old = _client;
                 _client = null;            // publica el null primero: nuevas llamadas reconstruyen
                 if (old is null) return;
+
+                // Apagado local del auto-refresh de Gotrue. SignOut() también lo apaga (emite
+                // AuthState.SignedOut y TokenRefresh detiene el timer), pero SignOut() es una
+                // llamada de RED envuelta en try/catch: si el logout ocurre sin conexión o el
+                // endpoint no responde, el timer sobrevive a la sesión y se queda pidiendo
+                // tokens de una sesión que ya no existe. Shutdown() no toca la red, así que es
+                // el único apagado que no depende de que algo remoto funcione.
+                // Va en su propio try para que un fallo acá no impida disponer el socket.
+                try
+                {
+                    old.Auth.Shutdown();
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[ConexionSupabase] Auth.Shutdown() falló: {ex.Message}");
+                }
 
                 try
                 {
