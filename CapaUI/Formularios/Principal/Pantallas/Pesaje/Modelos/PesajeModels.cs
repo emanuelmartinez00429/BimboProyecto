@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
@@ -98,8 +98,9 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modelos
 
     public class EntradaPesaje
     {
-        public int    Id        { get; set; }
-        public double Bruto     { get; set; }
+        public int    Id         { get; set; }
+        public int    NumeroFila { get; set; }
+        public double Bruto      { get; set; }
         public double TaraInd   { get; set; }
         public double TaraExtra { get; set; }
         public double TaraTotal { get; set; }

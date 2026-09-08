@@ -29,7 +29,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.ContactosFabricantes
         {
             if (_vm != null) return;
 
-            _vm = App.Services.GetRequiredService<ContactosFabricantesViewModel>();
+            _vm = App.CrearVm<ContactosFabricantesViewModel>();
             _vm.SolicitarNuevoContacto  += AbrirModalNuevo;
             _vm.SolicitarEditarContacto += AbrirModalEditar;
             _vm.PropertyChanged         += OnVmPropertyChanged;

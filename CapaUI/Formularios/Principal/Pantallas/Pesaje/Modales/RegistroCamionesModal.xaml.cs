@@ -43,7 +43,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
     /// siquiera escribir de más.
     /// </para>
     /// </remarks>
-    public partial class RegistroCamionesModal : UserControl
+    public partial class RegistroCamionesModal : UserControl, IDisposable
     {
         private readonly ICatalogoRepository _catalogos;
         private System.Windows.Media.Animation.Storyboard? _spinnerGuardar;
@@ -517,6 +517,11 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
         {
             if (_selectorCatalogo is not null) { CerrarSelectorCatalogo(); return; }
             Cerrado?.Invoke();
+        }
+
+        public void Dispose()
+        {
+            CerrarSelectorCatalogo();
         }
 
         // ── Fila de la tabla ────────────────────────────────────────────────────

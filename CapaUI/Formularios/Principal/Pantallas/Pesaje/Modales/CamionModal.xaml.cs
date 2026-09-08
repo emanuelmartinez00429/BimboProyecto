@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
@@ -22,7 +22,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
     /// vez. Revive el split que existía antes de que ambos pasos se
     /// unificaran en <c>ProcesoDescargaModal</c> (ver commit bf1117f).
     /// </summary>
-    public partial class CamionModal : UserControl
+    public partial class CamionModal : UserControl, IDisposable
     {
         private readonly CamionPesaje? _camion;   // null = alta
         private readonly ICatalogoRepository _catalogos;
@@ -223,6 +223,11 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
         {
             if (_selectorCatalogo is not null) { CerrarSelectorCatalogo(); return; }
             Cerrado?.Invoke();
+        }
+
+        public void Dispose()
+        {
+            CerrarSelectorCatalogo();
         }
     }
 }

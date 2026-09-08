@@ -28,7 +28,7 @@ public partial class RolesView : System.Windows.Controls.UserControl
     {
         if (_vm is not null) return;
 
-        _vm = App.Services.GetRequiredService<RolesViewModel>();
+        _vm = App.CrearVm<RolesViewModel>();
         _vm.Toast += MostrarAviso;
         _vm.SolicitarEdicionRol += AbrirModalRol;
         _vm.ConfirmarCambioEstado += ConfirmarCambioEstado;

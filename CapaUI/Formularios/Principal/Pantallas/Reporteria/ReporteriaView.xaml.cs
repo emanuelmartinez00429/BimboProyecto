@@ -26,7 +26,7 @@ public partial class ReporteriaView : UserControl
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
         if (_vm is not null) return;
-        _vm = App.Services.GetRequiredService<ReporteriaViewModel>();
+        _vm = App.CrearVm<ReporteriaViewModel>();
         DataContext = _vm;
         _vm.SelectorSolicitado += AbrirSelector;
         _vm.FormatoSolicitado += AbrirFormato;

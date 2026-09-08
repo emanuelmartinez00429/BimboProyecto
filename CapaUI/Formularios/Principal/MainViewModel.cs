@@ -270,6 +270,7 @@ namespace CapaUI.Formularios.Principal
             // contenedor DI que vive para todo el proceso. Disponerlo aquí causaba
             // ObjectDisposedException en la siguiente búsqueda.
             _searchVm.ResultSelected -= OnResultadoBusquedaSeleccionado;
+            Notificaciones.NavegacionService = null;
             Notificaciones.Dispose();
         }
     }

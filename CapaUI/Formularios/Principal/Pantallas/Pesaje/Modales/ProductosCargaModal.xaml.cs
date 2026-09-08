@@ -49,7 +49,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
     /// no se persiste ninguna.
     /// </para>
     /// </remarks>
-    public partial class ProductosCargaModal : UserControl
+    public partial class ProductosCargaModal : UserControl, IDisposable
     {
         private readonly ICatalogoRepository _catalogos;
         private readonly CamionPesaje _camion;
@@ -390,6 +390,11 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
             if (_selectorCatalogo is not null) { CerrarSelectorCatalogo(); return; }
             if (_guardando) return;
             Cerrado?.Invoke();
+        }
+
+        public void Dispose()
+        {
+            CerrarSelectorCatalogo();
         }
 
         // ── Fila ────────────────────────────────────────────────────────────────

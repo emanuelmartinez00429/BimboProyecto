@@ -35,7 +35,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Bitacora
         {
             if (_vm != null) return;
 
-            _vm = App.Services.GetRequiredService<BitacoraViewModel>();
+            _vm = App.CrearVm<BitacoraViewModel>();
             _vm.FiltrosLimpiados   += OnFiltrosLimpiados;
             _vm.AccionesRecargadas += PoblarAcciones;
             _vm.SolicitarCrearReporte += AbrirModalFormatoReporte;

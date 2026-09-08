@@ -30,7 +30,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Empleados
         {
             if (_vm != null) return;
 
-            _vm = App.Services.GetRequiredService<EmpleadosViewModel>();
+            _vm = App.CrearVm<EmpleadosViewModel>();
             _vm.SolicitarNuevo       += AbrirModalNuevo;
             _vm.SolicitarEditar      += AbrirModalEditar;
             _vm.SolicitarCrearUsuario += AbrirModalCrearUsuario;

@@ -28,7 +28,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Usuarios
         {
             if (_vm != null) return;
 
-            _vm = App.Services.GetRequiredService<UsuariosViewModel>();
+            _vm = App.CrearVm<UsuariosViewModel>();
             _vm.SolicitarEditar  += AbrirModalEditar;
             _vm.FiltrosLimpiados += OnFiltrosLimpiados;
             _vm.PropertyChanged  += OnVmPropertyChanged;

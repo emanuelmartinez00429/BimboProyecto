@@ -31,7 +31,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Presentaciones
             // las suscripciones de Realtime.
             if (_vm != null) return;
 
-            _vm = App.Services.GetRequiredService<PresentacionesViewModel>();
+            _vm = App.CrearVm<PresentacionesViewModel>();
             _vm.SolicitarNuevo   += AbrirModalNuevo;
             _vm.SolicitarEditar  += AbrirModalEditar;
             _vm.FiltrosLimpiados += OnFiltrosLimpiados;

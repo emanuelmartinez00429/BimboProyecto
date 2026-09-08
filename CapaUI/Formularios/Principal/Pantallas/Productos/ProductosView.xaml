@@ -402,14 +402,24 @@
         </Border>
 
         <!-- ROW 4: TABLE -->
-        <Border Grid.Row="4"
-                Background="White"
-                CornerRadius="10"
-                BorderBrush="#D8E1EC" BorderThickness="1"
-                ClipToBounds="True">
-            <Border.Effect>
-                <DropShadowEffect Color="#0F172A" BlurRadius="14" ShadowDepth="4" Opacity="0.08"/>
-            </Border.Effect>
+        <Grid Grid.Row="4">
+            <!-- Sombra estática desacoplada: Border hermano detrás del contenido.
+                 La GPU la rasteriza una vez y el scroll de la tabla ya no la
+                 vuelve a renderizar por frame. Antes el DropShadowEffect vivía en
+                 el mismo Border que envuelve al DataGrid, así que cada micro-
+                 movimiento del scroll invalidaba la textura y re-corría el shader
+                 de desenfoque de toda la tarjeta.
+                 Ver [[WPF - Rendimiento de Efectos y Niveles de Renderizado]]. -->
+            <Border Background="White" CornerRadius="10">
+                <Border.Effect>
+                    <DropShadowEffect Color="#0F172A" BlurRadius="14" ShadowDepth="4" Opacity="0.08"/>
+                </Border.Effect>
+            </Border>
+
+            <Border Background="White"
+                    CornerRadius="10"
+                    BorderBrush="#D8E1EC" BorderThickness="1"
+                    ClipToBounds="True">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*"/>
@@ -465,7 +475,7 @@
                           ScrollViewer.HorizontalScrollBarVisibility="Auto"
                           VirtualizingPanel.IsVirtualizing="True"
                           VirtualizingPanel.VirtualizationMode="Recycling"
-                          VirtualizingPanel.ScrollUnit="Pixel">
+                          VirtualizingPanel.ScrollUnit="Item">
                     <DataGrid.Resources>
                         <Style TargetType="ScrollBar" BasedOn="{StaticResource ModernScrollBarAny}"/>
                     </DataGrid.Resources>
@@ -473,7 +483,7 @@
                         <DataGridTemplateColumn Header="#" Width="40" CanUserResize="False" CanUserReorder="False"
                                                 CellStyle="{StaticResource CeldaCentrada}"
                                                 CellTemplate="{StaticResource PlantillaCeldaNumeroFila}"/>
-                        <DataGridTemplateColumn Header="C&#211;DIGO" Width="Auto" MinWidth="90" CellStyle="{StaticResource CeldaIzquierda}">
+                        <DataGridTemplateColumn Header="C&#211;DIGO" Width="0.7*" MinWidth="90" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <Border Background="#EFF6FF" CornerRadius="4" Padding="8,2" HorizontalAlignment="Left" Margin="8,0">
@@ -484,7 +494,7 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="PRODUCTO" Width="Auto" MinWidth="160" CellStyle="{StaticResource CeldaIzquierda}">
+                        <DataGridTemplateColumn Header="PRODUCTO" Width="2.4*" MinWidth="170" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding Nombre}"
@@ -497,7 +507,7 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="PESO TEÓRICO" Width="Auto" MinWidth="110" CellStyle="{StaticResource CeldaIzquierda}">
+                        <DataGridTemplateColumn Header="PESO TEÓRICO" Width="0.85*" MinWidth="100" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding PesoTeorico, StringFormat={}{0:N2}, TargetNullValue='—'}"
@@ -508,7 +518,7 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="TARA" Width="Auto" MinWidth="110" CellStyle="{StaticResource CeldaIzquierda}">
+                        <DataGridTemplateColumn Header="TARA" Width="0.8*" MinWidth="90" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding Tara, Converter={StaticResource TextoVacioConverter}, ConverterParameter='Sin tara'}"
@@ -519,7 +529,7 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="FABRICANTE" Width="Auto" MinWidth="110" CellStyle="{StaticResource CeldaIzquierda}">
+                        <DataGridTemplateColumn Header="FABRICANTE" Width="1.3*" MinWidth="110" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding Fabricante, Converter={StaticResource TextoVacioConverter}, ConverterParameter='Sin fabricante'}"
@@ -528,7 +538,7 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="PROVEEDOR" Width="Auto" MinWidth="110" CellStyle="{StaticResource CeldaIzquierda}">
+                        <DataGridTemplateColumn Header="PROVEEDOR" Width="1.3*" MinWidth="110" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding Proveedor, Converter={StaticResource TextoVacioConverter}, ConverterParameter='Sin proveedor'}"
@@ -537,7 +547,7 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="PA&#205;S" Width="Auto" MinWidth="150" CellStyle="{StaticResource CeldaIzquierda}">
+                        <DataGridTemplateColumn Header="PA&#205;S" Width="0.85*" MinWidth="90" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding Pais, Converter={StaticResource TextoVacioConverter}, ConverterParameter='Sin país'}"
@@ -546,7 +556,7 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="CONTENIDO" Width="Auto" MinWidth="100" CellStyle="{StaticResource CeldaIzquierda}">
+                        <DataGridTemplateColumn Header="CONTENIDO" Width="0.8*" MinWidth="90" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding Contenido, Converter={StaticResource TextoVacioConverter}, ConverterParameter='Sin contenido'}"
@@ -556,7 +566,7 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="PRESENTACI&#211;N" Width="Auto" CellStyle="{StaticResource CeldaIzquierda}">
+                        <DataGridTemplateColumn Header="PRESENTACI&#211;N" Width="1.1*" MinWidth="105" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding Presentacion, Converter={StaticResource TextoVacioConverter}, ConverterParameter='Sin presentación'}"
@@ -565,7 +575,7 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="CATEGOR&#205;A" Width="Auto" CellStyle="{StaticResource CeldaIzquierda}">
+                        <DataGridTemplateColumn Header="CATEGOR&#205;A" Width="1*" MinWidth="105" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <Border Background="#F0F5FB" CornerRadius="999" Padding="10,2" HorizontalAlignment="Left" Margin="8,0">
@@ -576,7 +586,7 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="PRECIO / KG" Width="Auto" MinWidth="110" CellStyle="{StaticResource CeldaIzquierda}">
+                        <DataGridTemplateColumn Header="PRECIO / KG" Width="0.9*" MinWidth="100" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding PrecioPorKg, StringFormat={}{0:N2}, TargetNullValue='—'}"
@@ -588,8 +598,8 @@
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
                         <DataGridTemplateColumn Header="CREADO"
-                                                Width="Auto"
-                                                MinWidth="130"
+                                                Width="1.1*"
+                                                MinWidth="125"
                                                 HeaderStyle="{StaticResource HeaderDerecho}"
                                                 CellStyle="{StaticResource CeldaDerecha}">
                             <DataGridTemplateColumn.CellTemplate>
@@ -602,8 +612,8 @@
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
                         <DataGridTemplateColumn Header="ACTUALIZADO"
-                                                Width="Auto"
-                                                MinWidth="130"
+                                                Width="1.1*"
+                                                MinWidth="125"
                                                 HeaderStyle="{StaticResource HeaderDerecho}"
                                                 CellStyle="{StaticResource CeldaDerecha}">
                             <DataGridTemplateColumn.CellTemplate>
@@ -615,7 +625,7 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="ESTADO" Width="Auto" MinWidth="70" HeaderStyle="{StaticResource HeaderCentrado}" CellStyle="{StaticResource CeldaCentrada}">
+                        <DataGridTemplateColumn Header="ESTADO" Width="0.55*" MinWidth="70" HeaderStyle="{StaticResource HeaderCentrado}" CellStyle="{StaticResource CeldaCentrada}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <Grid HorizontalAlignment="Center">
@@ -632,9 +642,6 @@
                                                     </Style.Triggers>
                                                 </Style>
                                             </Border.Style>
-                                            <Border.Effect>
-                                                <DropShadowEffect Color="{DynamicResource EmpresaPrimaryColor}" BlurRadius="4" ShadowDepth="1" Opacity="0.3"/>
-                                            </Border.Effect>
                                             <Path Data="{StaticResource IconCheck}"
                                                   Stroke="White" StrokeThickness="2.8"
                                                   StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
@@ -677,7 +684,8 @@
                                            PageInfo="{Binding PageInfo}"
                                            IsLoading="{Binding IsLoading}"/>
             </Grid>
-        </Border>
+            </Border>
+        </Grid>
 
         <!-- ROW 5: ACTION BUTTONS -->
         <DockPanel Grid.Row="5" Margin="0,4,0,14" LastChildFill="False">

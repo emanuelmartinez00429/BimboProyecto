@@ -1176,6 +1176,45 @@ Cableado end-to-end verificado en el código: `RegistroCamionesModal.Guardar_Cli
 
 ---
 
+### P-054 · El debounce de Notificaciones abandona un `CancellationTokenSource` por evento
+
+**Archivo:** `CapaUI/Formularios/Principal/Pantallas/Notificaciones/NotificacionesViewModel.cs`
+**Detectado en:** [[Sesión 2026-09-08 - Fuga de memoria por contenedor DI y scope de sesión]]
+
+```csharp
+_debounceCts?.Cancel();
+_debounceCts = new CancellationTokenSource();   // el anterior nunca se dispone
+```
+
+Un `CancellationTokenSource` cancelado sigue teniendo su timer interno y sus registros de callback hasta que se lo dispone. Con 128 notificaciones seguidas quedan 128 CTS abandonados — pequeños, pero es exactamente el anti-patrón que el propio análisis de rendimiento del proyecto ya tenía marcado para `SuggestionDebouncer` y `SelectorCatalogoModal`.
+
+Agravante de diseño: el debounce está **hecho a mano** existiendo `CapaUI/Core/Controls/SuggestionDebouncer.cs`, que encapsula justo esta mecánica y ya resolvió el problema una vez.
+
+**Solución propuesta:** usar `SuggestionDebouncer`, o —si se prefiere mantenerlo local— disponer el CTS viejo tras cancelarlo, con el cuidado de no disponerlo mientras la continuación anterior todavía lo observa.
+
+**Riesgo:** bajo. Fuga acotada y proporcional al tráfico de Realtime, no acumulativa entre sesiones desde que existe el scope.
+
+**Estado:** `[ ]` Pendiente
+
+---
+
+### P-055 · `ConexionSupabase.ResetAsync` no libera el `Auth` de Gotrue
+
+**Archivo:** `CapaInfraestructura/.../ConexionSupabase.cs`
+**Detectado en:** [[Sesión 2026-09-08 - Fuga de memoria por contenedor DI y scope de sesión]]
+
+Al cerrar sesión se descarta el `Supabase.Client`, pero **no se detiene el `AutoRefreshToken` de Gotrue**. Ese timer mantiene una referencia viva al cliente de autenticación, y por él a todo el `Supabase.Client` de la sesión anterior — el mismo patrón de raíz-que-sobrevive-al-logout que causó la fuga principal, en otra capa.
+
+Se dejó **fuera de alcance a propósito** al cerrar la fuga del contenedor DI: tocar el ciclo de vida de la autenticación puede romper el refresco de token en caliente, y conviene medir cuánto pesa realmente antes de intervenir.
+
+**Solución propuesta:** medir primero (perfilar dos ciclos de login/logout y ver si el cliente viejo sigue enraizado). Si se confirma, apagar el auto-refresh explícitamente en `ResetAsync` antes de soltar el cliente.
+
+**Riesgo:** medio en impacto (una sesión completa de Supabase retenida por login), bajo en frecuencia (solo acumula al cerrar y volver a abrir sesión sin reiniciar la app).
+
+**Estado:** `[ ]` Pendiente
+
+---
+
 ## Historial de resolución
 
 | ID | Descripción | Estado | Sesión |
@@ -1232,6 +1271,8 @@ Cableado end-to-end verificado en el código: `RegistroCamionesModal.Guardar_Cli
 | P-051 | Política `select_Usuarios` con `USING (true)` sobre PUBLIC | `[x]` Resuelto | [[Sesión 2026-09-06 - Resolucion integral P-045 P-049 P-051 P-052 P-053]] |
 | P-052 | Trigger de auditoría legacy duplicaba bitácora y chocaba con el RBAC de las RPC `_seguro` (categoría/fabricante/proveedor) | `[x]` Resuelto | [[Sesión 2026-09-05 - Alta múltiple de camiones y topes de texto en movimientos]] |
 | P-053 | Alta múltiple de camiones: N INSERT sueltos sin transacción (misma familia que P-032) | `[x]` Resuelto | [[Sesión 2026-09-06 - Resolucion integral P-045 P-049 P-051 P-052 P-053]] |
+| P-054 | Debounce de Notificaciones abandona un `CancellationTokenSource` por evento (y duplica `SuggestionDebouncer`) | `[ ]` Pendiente | [[Sesión 2026-09-08 - Fuga de memoria por contenedor DI y scope de sesión]] |
+| P-055 | `ConexionSupabase.ResetAsync` no libera el `Auth` de Gotrue — el timer de auto-refresh enraiza el cliente viejo | `[ ]` Pendiente | [[Sesión 2026-09-08 - Fuga de memoria por contenedor DI y scope de sesión]] |
 
 ---
 
@@ -1264,4 +1305,5 @@ Cableado end-to-end verificado en el código: `RegistroCamionesModal.Guardar_Cli
 - [[Sesión 2026-09-03 - Implementación de ADR-026 y socket Realtime autenticado]] — origen de P-050 y P-051
 - [[Sesión 2026-09-05 - Alta múltiple de camiones y topes de texto en movimientos]] — origen de P-053; resolución parcial de P-045 y agravamiento de P-042
 - [[Sesión 2026-09-06 - Resolucion integral P-045 P-049 P-051 P-052 P-053]] — resolución de P-045 (RPC), P-049, P-051, P-052 y P-053
+- [[Sesión 2026-09-08 - Fuga de memoria por contenedor DI y scope de sesión]] — origen de P-054 y P-055
 - [[Sesión 2026-09-06 - Tres frenos de rendimiento cerrados y VerticalAlignment fijo en ModalInput]] — cierra G7/G8/G9 de P-031 y resuelve P-043

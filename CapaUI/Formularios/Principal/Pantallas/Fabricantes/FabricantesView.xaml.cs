@@ -38,7 +38,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Fabricantes
         {
             if (_vm != null) return;
 
-            _vm = App.Services.GetRequiredService<FabricantesViewModel>();
+            _vm = App.CrearVm<FabricantesViewModel>();
             _vm.SolicitarNuevo   += AbrirModalNuevo;
             _vm.SolicitarEditar  += AbrirModalEditar;
             _vm.FiltrosLimpiados += OnFiltrosLimpiados;

@@ -56,7 +56,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
             // queda retenido para siempre en RealtimeService._suscriptores.
             if (_vm != null) return;
 
-            _vm = App.Services.GetRequiredService<ProductosViewModel>();
+            _vm = App.CrearVm<ProductosViewModel>();
             _vm.SolicitarNuevo   += AbrirModalNuevo;
             _vm.SolicitarEditar  += AbrirModalEditar;
             _vm.FiltrosLimpiados += OnFiltrosLimpiados;

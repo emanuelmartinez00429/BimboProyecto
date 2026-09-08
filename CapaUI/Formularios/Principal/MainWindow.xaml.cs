@@ -588,7 +588,7 @@ namespace CapaUI.Formularios.Principal
                 return;
 
             NotifPopup.IsOpen = false;
-            var vm = App.Services.GetRequiredService<ConfiguracionEmpresaViewModel>();
+            var vm = App.CrearVm<ConfiguracionEmpresaViewModel>();
             var modal = new ConfiguracionEmpresaModal(vm);
             vm.SolicitarCierre += CerrarConfiguracion;
             vm.Guardado += OnConfiguracionGuardada;

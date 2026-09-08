@@ -38,6 +38,14 @@ namespace CapaUI
         private static IServiceProvider? _services;
         public static IServiceProvider Services => _services ??= ConfigureServices();
 
+        private static IServiceScope? _scopeSesion;
+
+        public static T CrearVm<T>() where T : class =>
+            ActivatorUtilities.CreateInstance<T>(_scopeSesion?.ServiceProvider ?? Services);
+
+        public static T CrearVm<T>(params object[] parameters) where T : class =>
+            ActivatorUtilities.CreateInstance<T>(_scopeSesion?.ServiceProvider ?? Services, parameters);
+
         private static LoginWindow? _loginActual;
         private static MainWindow?  _mainActual;
 
@@ -147,7 +155,8 @@ namespace CapaUI
 
         private static void MostrarPrincipal()
         {
-            _mainActual = Services.GetRequiredService<MainWindow>();
+            _scopeSesion = Services.CreateScope();
+            _mainActual = _scopeSesion.ServiceProvider.GetRequiredService<MainWindow>();
             _mainActual.SesionCerrada += OnSesionCerrada;
             _mainActual.Show();
         }
@@ -156,12 +165,16 @@ namespace CapaUI
         {
             _mainActual!.SesionCerrada -= OnSesionCerrada;
             _mainActual = null;
+            _scopeSesion?.Dispose();
+            _scopeSesion = null;
             // La limpieza de sesión ya se hizo en MainWindow.LimpiarRecursosAsync() via IUsuarioSesionService
             MostrarLogin();
         }
 
         protected override void OnExit(ExitEventArgs e)
         {
+            _scopeSesion?.Dispose();
+            _scopeSesion = null;
             Log.CloseAndFlush();
             base.OnExit(e);
         }

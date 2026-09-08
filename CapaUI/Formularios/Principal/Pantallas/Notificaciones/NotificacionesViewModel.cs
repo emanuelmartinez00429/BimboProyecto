@@ -23,6 +23,9 @@ public partial class NotificacionesViewModel : ObservableObject, IDisposable
     private readonly IUsuarioSesionService _sesion;
     private IDisposable? _suscripcion;
     private CancellationTokenSource? _cts;
+    private readonly object _debounceLock = new();
+    private CancellationTokenSource? _debounceCts;
+    private const int DebounceMs = 300;
     private bool _inicializado;
     private bool _disposed;
 
@@ -273,20 +276,47 @@ public partial class NotificacionesViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(MensajeRecientes));
     }
 
-    private async void OnCambioRealtime(CambioRealtime cambio)
+    private void OnCambioRealtime(CambioRealtime cambio)
     {
         if (_disposed || cambio.Operacion is not ("Insert" or "Update" or "INSERT" or "UPDATE")) return;
-        
-        if (System.Windows.Application.Current?.Dispatcher != null)
+
+        lock (_debounceLock)
         {
-            await System.Windows.Application.Current.Dispatcher.InvokeAsync(async () => 
+            if (_disposed) return;
+            _debounceCts?.Cancel();
+            _debounceCts = new CancellationTokenSource();
+            var token = _debounceCts.Token;
+
+            _ = DispararRefrescoDebouncedAsync(token);
+        }
+    }
+
+    private async Task DispararRefrescoDebouncedAsync(CancellationToken token)
+    {
+        try
+        {
+            await Task.Delay(DebounceMs, token);
+            if (token.IsCancellationRequested || _disposed) return;
+
+            if (System.Windows.Application.Current?.Dispatcher != null)
+            {
+                await System.Windows.Application.Current.Dispatcher.InvokeAsync(async () =>
+                {
+                    if (!token.IsCancellationRequested && !_disposed)
+                    {
+                        await RefrescarAsync();
+                    }
+                });
+            }
+            else
             {
                 await RefrescarAsync();
-            });
+            }
         }
-        else
+        catch (OperationCanceledException) { }
+        catch (Exception ex)
         {
-            await RefrescarAsync();
+            Serilog.Log.Error(ex, "Error durante refresco debounced de notificaciones");
         }
     }
 
@@ -317,5 +347,11 @@ public partial class NotificacionesViewModel : ObservableObject, IDisposable
         _suscripcion?.Dispose();
         _cts?.Cancel();
         _cts?.Dispose();
+        lock (_debounceLock)
+        {
+            _debounceCts?.Cancel();
+            _debounceCts?.Dispose();
+            _debounceCts = null;
+        }
     }
 }

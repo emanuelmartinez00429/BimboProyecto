@@ -131,13 +131,21 @@ public partial class SelectorCatalogoModal : UserControl, IDisposable
 
         RefrescarEstadoMarcas();
         Loaded += OnLoaded;
+        Unloaded += OnUnloaded;
     }
 
     // ── Ciclo de vida ─────────────────────────────────────────────────────────
 
+    private void OnUnloaded(object sender, RoutedEventArgs e)
+    {
+        Unloaded -= OnUnloaded;
+        Dispose();
+    }
+
     private async void OnLoaded(object sender, RoutedEventArgs e)
     {
         Loaded -= OnLoaded;
+        if (_dispuesto) return;
 
         DependencyPropertyDescriptor
             .FromProperty(SuggestionSearchBox.QueryProperty, typeof(SuggestionSearchBox))
@@ -658,6 +666,9 @@ public partial class SelectorCatalogoModal : UserControl, IDisposable
     {
         if (_dispuesto) return;
         _dispuesto = true;
+
+        Loaded -= OnLoaded;
+        Unloaded -= OnUnloaded;
 
         DependencyPropertyDescriptor
             .FromProperty(SuggestionSearchBox.QueryProperty, typeof(SuggestionSearchBox))

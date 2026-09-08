@@ -1227,7 +1227,13 @@
                                    CanUserReorder="False"
                                    CellStyle="{StaticResource CeldaCentrada}"
                                    CellTemplate="{StaticResource PlantillaCeldaNumeroFila}"/> -->
-    <Style x:Key="TextoNumeroFila" TargetType="TextBlock" BasedOn="{StaticResource TextoCeldaConFallback}">
+    <!-- Standalone a propósito: NO hereda de TextoCeldaConFallback. El número de
+         fila es "1", "2", "3"… — nunca va a ser "Sin proveedor", "Sin RTN", etc.,
+         así que los 18 Trigger de igualdad de Text de aquel estilo eran todos
+         código muerto colgado de cada celda de número. Lo único que se usaba de
+         la herencia era FontFamily, que acá va explícito. -->
+    <Style x:Key="TextoNumeroFila" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="Segoe UI"/>
         <Setter Property="Foreground" Value="#9CA3AF"/>
         <Setter Property="FontSize" Value="13"/>
         <Setter Property="HorizontalAlignment" Value="Center"/>

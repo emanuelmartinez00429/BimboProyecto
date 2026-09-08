@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -958,6 +958,12 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
                         filas.Add(e);
                     }
             }
+
+            for (int i = 0; i < filas.Count; i++)
+            {
+                filas[i].NumeroFila = i + 1;
+            }
+
             FilasEntradas.ReplaceAll(filas);
             OnPropertyChanged(nameof(ModoEfectivo));
             NotificarTotales();

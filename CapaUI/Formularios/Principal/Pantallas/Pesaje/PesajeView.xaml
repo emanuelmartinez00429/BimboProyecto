@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="CapaUI.Formularios.Principal.Pantallas.Pesaje.PesajeView"
+<UserControl x:Class="CapaUI.Formularios.Principal.Pantallas.Pesaje.PesajeView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:CapaUI.Formularios.Principal.Pantallas.Pesaje"
@@ -1000,9 +1000,12 @@
                 </Grid>
 
                 <!-- ── Columna derecha: Entradas, a altura completa ── -->
-                <Border Grid.Column="2" Background="White" CornerRadius="10" BorderBrush="#D8E1EC" BorderThickness="1" ClipToBounds="True">
-                <Border.Effect><DropShadowEffect Color="#0F172A" BlurRadius="12" ShadowDepth="3" Opacity="0.07"/></Border.Effect>
-                <Grid>
+                <!-- Fondo estático con sombra: se rasteriza una sola vez en GPU y no se invalida al scrollear -->
+                <Border Grid.Column="2" Background="White" CornerRadius="10" BorderBrush="#D8E1EC" BorderThickness="1">
+                    <Border.Effect><DropShadowEffect Color="#0F172A" BlurRadius="12" ShadowDepth="3" Opacity="0.07"/></Border.Effect>
+                </Border>
+                <!-- Contenido interactivo limpio (renderizado directo a pantalla sin shader intermedio) -->
+                <Grid Grid.Column="2" ClipToBounds="True">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
@@ -1061,21 +1064,27 @@
                                   PreviewMouseWheel="DgEntradas_PreviewMouseWheel"
                                   SizeChanged="DgEntradas_SizeChanged"
                                   VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling"
-                                  VirtualizingPanel.ScrollUnit="Pixel">
+                                  VirtualizingPanel.ScrollUnit="Item">
                             <!-- Misma barra fina de ProductosView (ahora en Styles.xaml global). -->
                             <DataGrid.Resources>
                                 <Style TargetType="ScrollBar" BasedOn="{StaticResource ModernScrollBarAny}"/>
                             </DataGrid.Resources>
                             <DataGrid.Columns>
-                                <!-- Posición visual, no el id_pesaje: al operario le sirve para
-                                     contar pesadas ("van 12"), no para identificar la fila en la
-                                     base. El id sigue estando en la bitácora y en el reporte, que
-                                     es donde hace falta. Misma plantilla que las grillas CRUD;
-                                     el converter cae a página 1 cuando la tabla no pagina. -->
-                                <DataGridTemplateColumn Header="#" Width="52" MinWidth="48"
-                                                        CanUserResize="False" CanUserReorder="False"
-                                                        CellStyle="{StaticResource CeldaCentrada}"
-                                                        CellTemplate="{StaticResource PlantillaCeldaNumeroFila}"/>
+                                <!-- Posición visual directa ligada a NumeroFila en memoria, sin
+                                     sobrecarga de ItemContainerGenerator ni triggers de string. -->
+                                <DataGridTextColumn Header="#" Binding="{Binding NumeroFila}" Width="52" MinWidth="48"
+                                                    CanUserResize="False" CanUserReorder="False"
+                                                    CellStyle="{StaticResource CeldaCentrada}">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="FontFamily" Value="Segoe UI"/>
+                                            <Setter Property="FontSize" Value="13"/>
+                                            <Setter Property="Foreground" Value="#9CA3AF"/>
+                                            <Setter Property="HorizontalAlignment" Value="Center"/>
+                                            <Setter Property="VerticalAlignment" Value="Center"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
                                 <!-- Siempre visible, aunque se repita fila tras fila en "Producto
                                      actual" — es más fácil detectar de qué producto es cada entrada
                                      que confiar en recordar cuál está seleccionado arriba. -->
@@ -1162,21 +1171,16 @@
                                         </DataTemplate>
                                     </DataGridTemplateColumn.CellTemplate>
                                 </DataGridTemplateColumn>
-                                <!-- Basurero al final de la fila: la acción de quitar vive donde
-                                     está la fila, no en la barra. Se deshabilita solo (gris, con
-                                     el motivo en el ToolTip) cuando la regla no lo permite. -->
+                                <!-- Basurero al final de la fila: usa el estilo prefabricado
+                                     global BasureroCelda (con IcoTrashFila congelado en GPU) y
+                                     sin bindings rotos a propiedades inexistentes. -->
                                 <DataGridTemplateColumn Header="" Width="52" CanUserResize="False" CanUserReorder="False">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
-                                            <Button Style="{StaticResource BotonQuitarFila}" Tag="{Binding}"
-                                                    IsEnabled="{Binding PuedeQuitar}"
-                                                    ToolTip="{Binding MotivoQuitar}"
-                                                    ToolTipService.ShowOnDisabled="True"
-                                                    Click="QuitarEntrada_Click">
-                                                <Path Data="{StaticResource IcoTrash}" Stroke="{Binding RelativeSource={RelativeSource AncestorType=Button}, Path=Foreground}"
-                                                      StrokeThickness="1.7" Width="14" Height="14" Stretch="Uniform"
-                                                      StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
-                                            </Button>
+                                            <Button Style="{StaticResource BasureroCelda}" Tag="{Binding}"
+                                                    ToolTip="Quitar este pesaje"
+                                                    VerticalAlignment="Center" HorizontalAlignment="Center"
+                                                    Click="QuitarEntrada_Click"/>
                                         </DataTemplate>
                                     </DataGridTemplateColumn.CellTemplate>
                                 </DataGridTemplateColumn>
@@ -1217,7 +1221,7 @@
                                 <TranslateTransform x:Name="TotalScrollTransform"/>
                             </Grid.RenderTransform>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="65" MinWidth="60"/>
+                                <ColumnDefinition Width="52" MinWidth="48"/>
                                 <ColumnDefinition x:Name="TotalColProducto" Width="2.8*" MinWidth="180"/>
                                 <ColumnDefinition Width="1.1*" MinWidth="96"/>
                                 <ColumnDefinition Width="1*" MinWidth="90"/>
@@ -1288,7 +1292,6 @@
                         </Button>
                     </WrapPanel>
                 </Grid>
-                </Border>
             </Grid>
 
             <!-- ══ FOOTER: reporte + cierre masivo ══

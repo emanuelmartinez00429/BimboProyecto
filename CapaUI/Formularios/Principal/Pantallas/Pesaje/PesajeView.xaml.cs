@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -48,7 +48,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
         private async void UserControl_Loaded(object sender, RoutedEventArgs e)
         {
             if (_vm != null) return;
-            _vm = App.Services.GetRequiredService<PesajeViewModel>();
+            _vm = App.CrearVm<PesajeViewModel>();
             _vm.Toast           += MostrarToast;
             _vm.PropertyChanged += OnVmPropertyChanged;
             DataContext = _vm;
@@ -107,6 +107,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
         {
             DetenerSpinnerCarga();   // si se sale mientras cargaba, no dejar la animación viva
             DetenerSpinnerProductos();
+            CerrarModalActivo();
             if (_vm == null) return;
             _vm.Toast -= MostrarToast;
             _vm.PropertyChanged -= OnVmPropertyChanged;
@@ -500,8 +501,8 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             if (DgEntradas == null) return;
 
             // Suma de anchos mínimos de las columnas (PRODUCTO ya es fija, no condicional):
-            // ID(65) + PRODUCTO(180) + BRUTO(96) + TARA(90) + TARA_EXTRA(100) + NETO(96) + BULTOS(85) + FECHA/HORA(135) + margen scrollbar(~16)
-            double minAncho = 65 + 180 + 96 + 90 + 100 + 96 + 85 + 135 + 16;
+            // #(52) + PRODUCTO(180) + BRUTO(96) + TARA(90) + TARA_EXTRA(100) + NETO(96) + BULTOS(85) + FECHA/HORA(135) + margen scrollbar(~16)
+            double minAncho = 52 + 180 + 96 + 90 + 100 + 96 + 85 + 135 + 16;
 
             double anchoActual = DgEntradas.ActualWidth;
             if (anchoActual <= 0) return;
@@ -1042,9 +1043,25 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             {
                 if (gen != _modalGen) return;
                 ModalOverlay.Visibility = Visibility.Collapsed;
+                if (ModalContent.Content is IDisposable disp)
+                {
+                    disp.Dispose();
+                }
                 ModalContent.Content = null;
             };
             ModalOverlay.BeginAnimation(OpacityProperty, fade);
+        }
+
+        private void CerrarModalActivo()
+        {
+            _modalGen++;
+            ModalOverlay.BeginAnimation(OpacityProperty, null);
+            ModalOverlay.Visibility = Visibility.Collapsed;
+            if (ModalContent.Content is IDisposable disp)
+            {
+                disp.Dispose();
+            }
+            ModalContent.Content = null;
         }
 
         // ── Toast ──────────────────────────────────────────────────────────────

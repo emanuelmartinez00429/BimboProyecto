@@ -48,10 +48,38 @@
         </Border>
 
         <Grid Grid.Row="2">
-            <ScrollViewer VerticalScrollBarVisibility="Auto">
-                <ItemsControl ItemsSource="{Binding Notificaciones}"
-                              ItemTemplate="{StaticResource NotifTarjetaCompleta}"/>
-            </ScrollViewer>
+            <ListBox ItemsSource="{Binding Notificaciones}"
+                     ItemTemplate="{StaticResource NotifTarjetaCompleta}"
+                     BorderThickness="0"
+                     Background="Transparent"
+                     HorizontalContentAlignment="Stretch"
+                     ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                     ScrollViewer.VerticalScrollBarVisibility="Auto"
+                     ScrollViewer.CanContentScroll="True"
+                     VirtualizingPanel.IsVirtualizing="True"
+                     VirtualizingPanel.VirtualizationMode="Recycling"
+                     VirtualizingPanel.ScrollUnit="Pixel">
+                <ListBox.Resources>
+                    <Style TargetType="ScrollBar" BasedOn="{StaticResource ModernScrollBarAny}"/>
+                </ListBox.Resources>
+                <ListBox.ItemContainerStyle>
+                    <Style TargetType="ListBoxItem">
+                        <Setter Property="Padding" Value="0"/>
+                        <Setter Property="Margin" Value="0"/>
+                        <Setter Property="BorderThickness" Value="0"/>
+                        <Setter Property="Background" Value="Transparent"/>
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="ListBoxItem">
+                                    <ContentPresenter HorizontalAlignment="Stretch"/>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </ListBox.ItemContainerStyle>
+            </ListBox>
             <TextBlock Text="{Binding MensajeEstado}" Foreground="#64748B" TextWrapping="Wrap"
                        HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="14"
                        IsHitTestVisible="False"/>

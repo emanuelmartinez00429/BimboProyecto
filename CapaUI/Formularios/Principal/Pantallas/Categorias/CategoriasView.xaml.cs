@@ -28,7 +28,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Categorias
         {
             if (_vm != null) return;
 
-            _vm = App.Services.GetRequiredService<CategoriasViewModel>();
+            _vm = App.CrearVm<CategoriasViewModel>();
             _vm.SolicitarNuevo   += AbrirModalNuevo;
             _vm.SolicitarEditar  += AbrirModalEditar;
             _vm.FiltrosLimpiados += OnFiltrosLimpiados;

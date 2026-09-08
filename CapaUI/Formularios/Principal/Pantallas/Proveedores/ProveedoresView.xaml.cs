@@ -32,7 +32,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Proveedores
         {
             if (_vm != null) return;
 
-            _vm = App.Services.GetRequiredService<ProveedoresViewModel>();
+            _vm = App.CrearVm<ProveedoresViewModel>();
             _vm.SolicitarNuevo   += AbrirModalNuevo;
             _vm.SolicitarEditar  += AbrirModalEditar;
             _vm.FiltrosLimpiados += OnFiltrosLimpiados;
