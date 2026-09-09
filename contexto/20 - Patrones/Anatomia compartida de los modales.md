@@ -135,8 +135,66 @@ Dos casos reales, sesión 2026-08-19:
 
 ---
 
+## Que el modal se vea en el diseñador de Visual Studio
+
+**Estado: `ProductosCargaModal` es el piloto (2026-09-09). Los otros 15 modales siguen sin previsualizarse** → [[Deuda Técnica - Pendientes|P-057]].
+
+El porqué está en [[WPF - StaticResource en atributos del elemento raiz y el disenador de Visual Studio]] y la decisión en [[ADR-028 - Previsualizacion de UserControls en el disenador de VS]]. Acá va solo la receta.
+
+Un modal se previsualiza cuando cumple las cuatro:
+
+1. **Tiene un constructor público sin parámetros.** Es el único que el diseñador sabe llamar.
+2. **Ese constructor no toca DI ni la base.** Si el modal necesita un repositorio, lo recibe **por constructor** desde la vista que lo abre — no lo va a buscar a `App.Services` (AGENTS.md, regla 9). Así el camino de diseño queda limpio solo, sin un `DesignerProperties.GetIsInDesignMode` que lo tape.
+3. **Mergea los diccionarios que usa** en su `UserControl.Resources`:
+
+   ```xml
+   <ResourceDictionary.MergedDictionaries>
+       <ResourceDictionary Source="pack://application:,,,/CapaUI;component/Resources/Styles.xaml"/>
+       <ResourceDictionary Source="pack://application:,,,/CapaUI;component/Formularios/.../PesajeModalStyles.xaml"/>
+   </ResourceDictionary.MergedDictionaries>
+   ```
+
+   > [!warning] Esto **no** contradice la regla del final de esta nota
+   > Mergear el diccionario compartido ≠ redefinir estilos. Sigue prohibido escribir un `<Style x:Key="CeldaInput">` propio. Lo que se agrega es la línea que *carga* `Styles.xaml`, para que el control no dependa de que `App.xaml` ya lo haya hecho.
+
+4. **Ningún `{StaticResource}` en un atributo del elemento raíz.** Es el que rompía todo. En los modales aparece una sola vez, en el converter de `MaxWidth`/`MaxHeight`:
+
+   ```diff
+   - Converter={StaticResource RestarMargen}, ConverterParameter=48
+   + Converter={x:Static conv:RestarMargenConverter.Instancia}, ConverterParameter=48, FallbackValue=880
+   ```
+
+   con `xmlns:conv="clr-namespace:CapaUI.Converters"`. El `FallbackValue` es lo que le da tamaño real al lienzo: en el diseñador no hay `Border` ancestro y el `Binding` no produce valor.
+
+Opcional, pero es lo que hace útil la vista previa: **sembrar datos de muestra en el constructor de diseño**, para ver la tabla con sus filas, el zigzag y los contadores en vez de una tarjeta vacía. No hay atajo `d:` para esto: las filas se pueblan desde código y `FilaProducto` es una clase anidada, así que `d:DesignInstance` no la alcanza cómodamente.
+
+### Plan de réplica
+
+Los 15 que faltan tienen **exactamente** el mismo `MaxWidth`/`MaxHeight` en el raíz, así que el paso 4 es idéntico en todos (una búsqueda y reemplazo de `{StaticResource RestarMargen}` por `{x:Static conv:RestarMargenConverter.Instancia}` más el `xmlns:conv`, y agregar `FallbackValue` con el `Width`/`Height` propio de cada uno):
+
+| Archivo | Falta paso 3 (merge) | Falta paso 2 (DI en el `.ctor`) |
+|---|---|---|
+| `RegistroCamionesModal` | sí | sí — `ICatalogoRepository` |
+| `CamionModal` | sí | sí — `ICatalogoRepository` |
+| `PesajeModal`, `TaraExtraTotalModal`, `ReporteModal` | sí | no |
+| `ProductoModal` | sí | sí — `ICatalogoRepository` |
+| `FabricanteModal` | sí | sí — `ICatalogoRepository` |
+| `CategoriaModal`, `PresentacionModal`, `ProveedorModal`, `UsuarioModal`, `EmpleadoModal`, `ContactoFabricanteModal`, `ContactoProveedorModal` | sí | no |
+
+Las `*View.xaml` no llevan el converter en el raíz (`ReporteriaView` lo usa, pero en un hijo, donde el merge local sí alcanza): para ellas basta con los pasos 1–3.
+
+Cuando estén los 16, `RestarMargen` se puede sacar de `App.xaml`.
+
+### Cómo verificar sin abrir Visual Studio
+
+Instanciar el control con una `Application` de `Resources` vacío reproduce la condición exacta del diseñador y devuelve la `XamlParseException` con número de línea — que es más de lo que muestra la ventana Salida, donde solo aparece el `TaskCanceledException` del subrogado.
+
+---
+
 ## Relaciones
 
+- [[WPF - StaticResource en atributos del elemento raiz y el disenador de Visual Studio]] — por qué el lienzo quedaba en blanco
+- [[ADR-028 - Previsualizacion de UserControls en el disenador de VS]] — la decisión y las alternativas descartadas
 - [[TextoResponsivo]] — el helper de recorte y ToolTip
 - [[Dialogo de confirmacion reusable]] — la advertencia al inactivar, que usa estos mismos estilos
 - [[Módulo Productos]] — `ProductoModal` es la referencia de layout multi-columna

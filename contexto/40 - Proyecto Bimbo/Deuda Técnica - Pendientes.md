@@ -1251,6 +1251,25 @@ Hay **dos** clases `ConexionSupabase` en el **mismo namespace** (`ServicioConexi
 
 ---
 
+### P-057 · 15 modales siguen sin previsualizarse en el diseñador de Visual Studio
+
+**Archivos:** los `*Modal.xaml` de `CapaUI/Formularios/Principal/Pantallas/**` menos `ProductosCargaModal` (ya migrado)
+**Detectado en:** [[ADR-028 - Previsualizacion de UserControls en el disenador de VS]] (2026-09-09)
+
+Los 16 modales del proyecto llevan en su elemento raíz `MaxWidth`/`MaxHeight` con `Converter={StaticResource RestarMargen}`, y `RestarMargen` vive en `App.xaml`. Como los atributos del elemento raíz se aplican **antes** de que se pueble su propio `<UserControl.Resources>`, ese `{StaticResource}` no se puede resolver localmente y el diseñador —que no ejecuta `App.xaml`— revienta al parsear: lienzo en blanco y `TaskCanceledException` en Salida. El detalle está en [[WPF - StaticResource en atributos del elemento raiz y el disenador de Visual Studio]].
+
+`ProductosCargaModal` se migró como piloto el 2026-09-09 (commit `11f0366`). Faltan los otros 15, más las `*View.xaml`, que necesitan los pasos 1–3 de la receta pero no el 4.
+
+**Riesgo:** bajo y acotado a productividad — no afecta runtime ni datos. Pero es persistente: cada vez que alguien abre uno de esos `.xaml` en el diseñador pierde el rato hasta acordarse de que "eso no anda", y ya se gastaron dos intentos fallidos de arreglarlo apuntando a la causa equivocada.
+
+**Solución:** aplicar la receta y la tabla de réplica de [[Anatomia compartida de los modales]] (sección *Que el modal se vea en el diseñador de Visual Studio*). Dos de los pendientes (`RegistroCamionesModal`, `CamionModal`) además tienen `App.Services.GetRequiredService<ICatalogoRepository>()` en el constructor, contra la regla 9 de `AGENTS.md`: conviene migrarlos en el mismo pase, ya que `PesajeView` ya resuelve y cachea ese repositorio.
+
+Al cerrar el último, sacar `RestarMargen` de `App.xaml`.
+
+**Estado:** `[ ]` Pendiente
+
+---
+
 
 ## Historial de resolución
 
@@ -1311,6 +1330,7 @@ Hay **dos** clases `ConexionSupabase` en el **mismo namespace** (`ServicioConexi
 | P-054 | Debounce copiado a mano en 4 lugares; 3 sin `Dispose()` del CTS (no era fuga: duplicación) | `[x]` Resuelto | [[Sesión 2026-09-08 - Cierre de P-054 y P-055]] |
 | P-055 | El apagado del auto-refresh de Gotrue dependía de `SignOut()` (llamada de red) + timeout decorativo en el logout | `[x]` Resuelto | [[Sesión 2026-09-08 - Cierre de P-054 y P-055]] |
 | P-056 | `ServicioConexión` huérfano duplica `ConexionSupabase` con el mismo namespace | `[ ]` Pendiente | [[Sesión 2026-09-08 - Cierre de P-054 y P-055]] |
+| P-057 | 15 modales sin previsualización en el diseñador de VS (`{StaticResource}` en atributo del raíz) | `[ ]` Pendiente | [[ADR-028 - Previsualizacion de UserControls en el disenador de VS]] |
 
 ---
 
