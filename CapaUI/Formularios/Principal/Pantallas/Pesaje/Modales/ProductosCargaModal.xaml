@@ -25,9 +25,17 @@
                      por App.xaml y el re-merge no tiene efecto colateral; lo que gana es
                      que el control se puede instanciar fuera de la app — el diseñador de
                      Visual Studio, que no ejecuta App.xaml, es el caso concreto.
-                     Costo medido: 0,4 ms de parseo. -->
-                <ResourceDictionary Source="pack://application:,,,/CapaUI;component/Resources/Styles.xaml"/>
-                <ResourceDictionary Source="pack://application:,,,/CapaUI;component/Formularios/Principal/Pantallas/Pesaje/Modales/PesajeModalStyles.xaml"/>
+                     Costo medido: 0,4 ms de parseo.
+
+                     Source va en la forma CORTA (/CapaUI;component/...) y no en
+                     pack://application:,,,/CapaUI;component/...  Las dos son
+                     equivalentes en runtime, pero la corta es la que la documentación
+                     de WPF recomienda para que el diseñador resuelva el diccionario.
+                     No es cosmético: si el diseñador no resuelve el merge, no avisa —
+                     se queda sin las claves y dibuja el control vacío, sin banda de
+                     error. -->
+                <ResourceDictionary Source="/CapaUI;component/Resources/Styles.xaml"/>
+                <ResourceDictionary Source="/CapaUI;component/Formularios/Principal/Pantallas/Pesaje/Modales/PesajeModalStyles.xaml"/>
             </ResourceDictionary.MergedDictionaries>
 
             <!-- Sin estilos propios de tabla: BasureroCelda, CabeceraColTabla,
