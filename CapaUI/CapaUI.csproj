@@ -27,6 +27,35 @@
     <Resource Include="Resources\bimbo-logo.png" />
   </ItemGroup>
 
+  <!--
+    Recursos para el diseñador de Visual Studio / Blend.
+
+    ContainsDesignTimeResources es la marca que hace que SOLO el diseñador mergee
+    este diccionario en su Application.Resources. En runtime el BAML queda dentro
+    del ensamblado (~1 KB) pero es inerte: App.xaml no lo referencia y nadie lo
+    carga, así que no puede pisar el tema por empresa.
+
+    Va sin Condition a propósito. La receta clásica lo condiciona a
+    '$(BuildingProject)'!='true' para que no entre en el build normal, pero acá eso
+    no sirve por dos motivos, ambos verificados el 2026-09-09:
+      1. BuildingProject todavía no está definido cuando MSBuild evalúa el cuerpo
+         del .csproj (lo define Microsoft.Common.CurrentVersion.targets, que se
+         importa después), así que la condición daba verdadera igual.
+      2. Más de fondo: el diseñador de VS no usa el build de diseño para esto —
+         copia a su caché el CapaUI.dll del build NORMAL. Si el diccionario no
+         está en ese ensamblado, el lienzo no lo ve.
+
+    Ver CapaUI\Properties\DesignTimeResources.xaml para qué resuelve y por qué
+    estas claves no pueden vivir en Styles.xaml.
+  -->
+  <ItemGroup>
+    <Page Update="Properties\DesignTimeResources.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+      <ContainsDesignTimeResources>true</ContainsDesignTimeResources>
+    </Page>
+  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\CapaDominio\CapaDominio.csproj" />
     <ProjectReference Include="..\CapaAplicacion4\CapaAplicacion.csproj" />

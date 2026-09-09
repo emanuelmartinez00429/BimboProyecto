@@ -137,7 +137,7 @@ Dos casos reales, sesión 2026-08-19:
 
 ## Que el modal se vea en el diseñador de Visual Studio
 
-**Estado: `ProductosCargaModal` es el piloto (2026-09-09). Los otros 15 modales siguen sin previsualizarse** → [[Deuda Técnica - Pendientes|P-057]].
+**Estado: `ProductosCargaModal` es el piloto (2026-09-09). Quedan 16 modales y 12 vistas sin previsualizarse** → [[Deuda Técnica - Pendientes|P-057]].
 
 El porqué está en [[WPF - StaticResource en atributos del elemento raiz y el disenador de Visual Studio]] y la decisión en [[ADR-028 - Previsualizacion de UserControls en el disenador de VS]]. Acá va solo la receta.
 
@@ -175,20 +175,37 @@ Opcional, pero es lo que hace útil la vista previa: **sembrar datos de muestra 
 
 ### Plan de réplica
 
-Los 15 que faltan tienen **exactamente** el mismo `MaxWidth`/`MaxHeight` en el raíz, así que el paso 4 es idéntico en todos (una búsqueda y reemplazo de `{StaticResource RestarMargen}` por `{x:Static conv:RestarMargenConverter.Instancia}` más el `xmlns:conv`, y agregar `FallbackValue` con el `Width`/`Height` propio de cada uno):
+Barrido completo del ensamblado (2026-09-09): instanciar cada `UserControl` con `Application.Resources` vacío y ver qué pasa. **Modales y vistas son dos problemas distintos** — no se replican igual.
 
-| Archivo | Falta paso 3 (merge) | Falta paso 2 (DI en el `.ctor`) |
+**Los modales: el bloqueo es el paso 1, no el 4.**
+
+De los 18 modales, **17 no tienen constructor sin parámetros**, así que el diseñador ni siquiera llega a instanciarlos: el paso 4 no importa hasta que exista ese ctor. Los únicos que se previsualizan hoy son `ProductosCargaModal` (el piloto) y `FormatoReporteModal` (que ya se previsualizaba: no usa `MaxWidth` con converter).
+
+Todos comparten el mismo `MaxWidth`/`MaxHeight` en el raíz, así que el paso 4 es idéntico en todos: reemplazar `{StaticResource RestarMargen}` por `{x:Static conv:RestarMargenConverter.Instancia}`, sumar el `xmlns:conv` y un `FallbackValue` con el `Width`/`Height` propio de cada uno.
+
+| Modal | Falta paso 1 (ctor) | Falta paso 2 (DI en el `.ctor`) | Falta 3 y 4 |
+|---|---|---|---|
+| `RegistroCamionesModal`, `CamionModal` | sí | sí — `ICatalogoRepository` | sí |
+| `ProductoModal`, `FabricanteModal` | sí | sí — `ICatalogoRepository` | sí |
+| `PesajeModal`, `TaraExtraTotalModal`, `ReporteModal` | sí | no | sí |
+| `CategoriaModal`, `PresentacionModal`, `ProveedorModal`, `UsuarioModal`, `EmpleadoModal`, `ContactoFabricanteModal`, `ContactoProveedorModal` | sí | no | sí |
+| `SelectorCatalogoModal`, `ConfiguracionEmpresaModal` | sí | no | sí |
+
+**Las vistas: solo les falta el paso 3.**
+
+Las `*View.xaml` ya tienen ctor sin parámetros y **no** usan el converter en el raíz, así que el paso 4 no aplica. Fallan todas en contenido interno, por falta del merge:
+
+| Vista | Falla en | Alcanza con mergear `Styles.xaml` |
 |---|---|---|
-| `RegistroCamionesModal` | sí | sí — `ICatalogoRepository` |
-| `CamionModal` | sí | sí — `ICatalogoRepository` |
-| `PesajeModal`, `TaraExtraTotalModal`, `ReporteModal` | sí | no |
-| `ProductoModal` | sí | sí — `ICatalogoRepository` |
-| `FabricanteModal` | sí | sí — `ICatalogoRepository` |
-| `CategoriaModal`, `PresentacionModal`, `ProveedorModal`, `UsuarioModal`, `EmpleadoModal`, `ContactoFabricanteModal`, `ContactoProveedorModal` | sí | no |
+| `CategoriasView`, `FabricantesView`, `PresentacionesView`, `ProductosView`, `ProveedoresView`, `UsuariosView`, `EmpleadosView`, `ContactosFabricantesView`, `ContactosProveedoresView`, `BitacoraView` | `IconTag`, `IconBox`, `IconTruck`, `IconFactory`, `IconUser`, `IconHistorial` | ✅ sí |
+| `PesajeView` | `CeldaCentrada` | ✅ sí |
+| `ReporteriaView`, `UniversalSearchView` | `BoolToVisibility` | ❌ **no** — ese converter está en `App.xaml`, no en `Styles.xaml` |
 
-Las `*View.xaml` no llevan el converter en el raíz (`ReporteriaView` lo usa, pero en un hijo, donde el merge local sí alcanza): para ellas basta con los pasos 1–3.
+Ya se previsualizan sin tocar nada: `DashboardView`, `NotificacionesView`, `RolesView`.
 
-Cuando estén los 16, `RestarMargen` se puede sacar de `App.xaml`.
+Los dos casos con ❌ son el argumento a favor de mover los **converters** (no los colores) de `App.xaml` a `Styles.xaml` — ahí sí, porque nadie los reescribe en runtime. La alternativa es `{x:Static}` también en esos dos usos.
+
+Cuando estén los 18 modales, `RestarMargen` se puede sacar de `App.xaml`.
 
 ### Cómo verificar sin abrir Visual Studio
 

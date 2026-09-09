@@ -78,10 +78,22 @@ Complementos que van en el mismo paquete:
 **Se sacrifica y queda pendiente**
 
 - La regla de [[Anatomia compartida de los modales]] — *un modal nuevo no debe declarar ninguno de estos estilos en su `UserControl.Resources`* — sigue vigente y **no cambia**: prohíbe **redefinir** estilos, no mergear el diccionario compartido. Conviene leerlas juntas para que nadie interprete el merge como permiso para copiar estilos.
-- Quedan **15 modales y las `*View.xaml`** con el patrón viejo → [[Deuda Técnica - Pendientes|P-057]].
+- Quedan **16 modales y 12 `*View.xaml`** sin previsualizarse → [[Deuda Técnica - Pendientes|P-057]]. El barrido del 2026-09-09 mostró que son dos problemas distintos: a los modales les falta antes que nada el **constructor sin parámetros** (ninguno lo tiene), mientras que las vistas ya lo tienen y solo les falta el merge. Detalle en [[Anatomia compartida de los modales]].
 - Cuando los 16 estén migrados, `RestarMargen` sale de `App.xaml`. Ahí conviene revisar los otros cinco converters y aplicar la idea de la opción D **solo a converters**, nunca a los colores `Empresa*`.
-- **El lienzo se dibuja sin los colores de empresa.** El fondo degradado y los acentos usan `{DynamicResource EmpresaPrimaryColor}` y familia, que viven en `Application.Resources` porque el tema los reescribe ahí. Como el diseñador no instancia `App`, esos `DynamicResource` no resuelven — pero **degradan sin excepción**, que es justo para lo que sirve `DynamicResource`: la estructura, los estilos compartidos, el layout y los datos de muestra se ven bien; el marco sale sin color. Es aceptable: el lienzo sirve para maquetar, no para aprobar colores.
-  Si algún día se quiere el color fiel en el lienzo, el mecanismo correcto es un `DesignTimeResources.xaml` que contenga **únicamente** los seis colores `Empresa*` por defecto. Ahí la opción A sí encaja y no es una muleta: esas claves *pertenecen* al ámbito `Application`, y un archivo que solo carga el diseñador es el único lugar donde se pueden definir sin eclipsar el tema en runtime. Nótese que es lo contrario de meterlas en `Styles.xaml`.
+## Addendum 2026-09-09 — la opción A vuelve, acotada a los colores
+
+Quitar la excepción **no alcanzó** para que el lienzo sirviera. El control cargaba bien, pero se veía un rectángulo vacío, y un lienzo que parece vacío es indistinguible de uno roto.
+
+El motivo: el marco degradado y los acentos usan `{DynamicResource EmpresaPrimaryColor}` y familia, que viven en `Application.Resources` porque el tema los reescribe ahí. Sin `App`, esos `DynamicResource` no resuelven — **degradan sin excepción**, que es lo correcto — y el marco sale transparente. Y como este modal está diseñado sobre ese marco azul, **casi todo su texto es blanco**: sin el azul, queda blanco sobre blanco.
+
+Se agregó entonces `CapaUI/Properties/DesignTimeResources.xaml` con los seis colores `Empresa*`, sus brushes y los seis converters de `App.xaml`, marcado en el `.csproj` con `ContainsDesignTimeResources`. **Esta es la opción A, y acá sí corresponde**, por lo mismo que la hacía mala como solución general: esas claves *pertenecen* al ámbito `Application`. Es el único lugar donde se pueden definir sin eclipsar el tema en runtime — exactamente lo contrario de meterlas en `Styles.xaml`.
+
+Dos cosas verificadas que contradicen la receta clásica y conviene no re-descubrir:
+
+1. **La `Condition="'$(BuildingProject)'!='true'"` no sirve en un proyecto SDK-style.** `BuildingProject` todavía no está definido cuando MSBuild evalúa el cuerpo del `.csproj` (lo define `Microsoft.Common.CurrentVersion.targets`, que se importa después), así que da verdadera igual y el archivo entra en el build normal.
+2. **Tampoco haría falta condicionarlo.** El diseñador de VS no usa el build de diseño para esto: copia a su caché el `CapaUI.dll` del build **normal**. Si el diccionario no está en ese ensamblado, el lienzo no lo ve. Queda entonces sin `Condition`, y el BAML (~1 KB) vive en el ensamblado de forma **inerte**: `App.xaml` no lo referencia y nadie lo carga en runtime.
+
+Con esto el lienzo muestra el modal entero: marco azul, cabecera, tarjeta blanca y las tres filas de muestra.
 - Sigue abierta una pregunta de diseño más de fondo, que este ADR **no** resuelve: que el modal se ate a `RelativeSource AncestorType=Border` para calcular su propio tamaño invierte el contrato de layout (lo natural en WPF es que el contenedor limite al hijo, con `Padding` en el overlay y `MaxWidth` en el modal). Se dejó como está a propósito: cambiarlo toca el `ModalOverlay` que comparten todos los modales de la pantalla y `AplicarMarcoSelector`, que asigna `Width`/`Height` a mano. Es un refactor con su propia validación visual, no un efecto colateral de este fix.
 
 ---
