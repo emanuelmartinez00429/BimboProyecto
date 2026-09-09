@@ -13,7 +13,6 @@ using CapaUI.Core.Controls;
 using CapaUI.Core.Validacion;
 using CapaUI.Formularios.Principal.Pantallas.Pesaje.Modelos;
 using CommunityToolkit.Mvvm.ComponentModel;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
 {
@@ -78,12 +77,60 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
         /// </summary>
         public event Func<CambiosCarga, System.Threading.Tasks.Task<bool>>? Confirmado;
 
-        public ProductosCargaModal(CamionPesaje camion, ProductoCamion? enfocar = null)
+        /// <summary>
+        /// Constructor de diseño. El diseñador de Visual Studio solo sabe instanciar
+        /// controles por su constructor sin parámetros, así que este existe para él: la app
+        /// siempre entra por el que recibe el repositorio y el camión.
+        /// <para/>
+        /// Siembra tres filas de muestra para que el lienzo muestre la tabla como se ve de
+        /// verdad — con el zigzag, una fila cerrada y el contador — en vez de una tarjeta
+        /// vacía. No toca la base ni el contenedor de DI: son objetos en memoria.
+        /// </summary>
+        public ProductosCargaModal()
+        {
+            // Solo se usan al OPERAR el modal (agregar producto, guardar), y en el lienzo
+            // del diseñador nadie hace clic. Van explícitos en null! en vez de inventarles
+            // dobles, para dejar dicho que este camino no opera nada.
+            _catalogos = null!;
+            _camion    = null!;
+
+            InitializeComponent();
+
+            TxtTitulo.Text    = "Camión HAB-1234";
+            TxtPlaca.Text     = "HAB-1234";
+            TxtProveedor.Text = "Distribuidora del Norte";
+
+            AgregarFilaDeMuestra("PAN-001", "Pan Blanco Grande 680 g",           420.5, 30, "Abierto",  "");
+            AgregarFilaDeMuestra("PAN-014", "Pan Integral Multicereal 600 g",    180,   12, "Abierto",  "Caja rota en el tránsito");
+            AgregarFilaDeMuestra("BOL-207", "Bollos para hamburguesa x8",        95.25,  8, "Cerrado",  "");
+
+            FilasHost.ItemsSource = _filas;
+            ActualizarContadores();
+        }
+
+        /// <summary>Fila de muestra del constructor de diseño. Solo corre en el lienzo.</summary>
+        private void AgregarFilaDeMuestra(
+            string codigo, string nombre, double peso, int bultos, string estado, string observaciones)
+            => _filas.Add(FilaProducto.Existente(
+                new ProductoCamion
+                {
+                    Id               = _filas.Count + 1,
+                    IdProducto       = _filas.Count + 1,
+                    ProductoCodigo   = codigo,
+                    ProductoNombre   = nombre,
+                    PesoManifestado  = peso,
+                    BultosDeclarados = bultos,
+                    Observaciones    = observaciones,
+                    Estado           = estado,
+                },
+                _filas.Count));
+
+        public ProductosCargaModal(ICatalogoRepository catalogos, CamionPesaje camion, ProductoCamion? enfocar = null)
         {
             InitializeComponent();
 
+            _catalogos   = catalogos;
             _camion      = camion;
-            _catalogos   = App.Services.GetRequiredService<ICatalogoRepository>();
             _anchoPropio = Width;
             _altoPropio  = Height;
 

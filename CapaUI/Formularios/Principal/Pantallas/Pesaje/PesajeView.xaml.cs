@@ -9,6 +9,7 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
+using CapaAplicacion.Common.Catalogos;
 using CapaDominio.Reportes;
 using CapaUI.Core.Permisos;
 using CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales;
@@ -20,6 +21,15 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
     public partial class PesajeView : UserControl
     {
         private PesajeViewModel _vm = null!;
+
+        /// <summary>
+        /// Lectura de catálogos que consumen los modales que abre esta pantalla. Se
+        /// resuelve una vez en <c>Loaded</c> — el punto de composición que esta vista ya
+        /// tenía para el ViewModel — y viaja a los modales por constructor, en vez de que
+        /// cada modal se lo pida al contenedor (AGENTS.md, regla 9).
+        /// </summary>
+        private ICatalogoRepository _catalogos = null!;
+
         private bool _sync;
         private Action? _pendingConfirm;
         private int _modalGen;
@@ -49,6 +59,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
         {
             if (_vm != null) return;
             _vm = App.CrearVm<PesajeViewModel>();
+            _catalogos = App.Services.GetRequiredService<ICatalogoRepository>();
             _vm.Toast           += MostrarToast;
             _vm.PropertyChanged += OnVmPropertyChanged;
             DataContext = _vm;
@@ -927,7 +938,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
         {
             if (_vm.SelectedCamion is not { } camion) return;
 
-            var modal = new ProductosCargaModal(camion, enfocar);
+            var modal = new ProductosCargaModal(_catalogos, camion, enfocar);
 
             modal.Cerrado += CerrarModal;
             modal.Confirmado += async cambios =>
