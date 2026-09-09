@@ -11,6 +11,7 @@ using System.Windows.Shapes;
 using System.Windows.Threading;
 using CapaAplicacion.Common.Catalogos;
 using CapaDominio.Reportes;
+using CapaUI.Converters;
 using CapaUI.Core.Permisos;
 using CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales;
 using CapaUI.Formularios.Principal.Pantallas.Pesaje.Modelos;
@@ -1075,9 +1076,41 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
         }
 
         // ── Overlay + animación fade/pop ───────────────────────────────────────
+        /// <summary>
+        /// Deja «aire» entre el modal y los bordes de la pantalla: lo limita a la medida
+        /// del <c>ModalOverlay</c> menos 48 px (24 por lado).
+        /// <para/>
+        /// Va acá y no en el XAML del modal a propósito. Cada modal se lo ataba solo con
+        /// <c>MaxWidth="{Binding ActualWidth, RelativeSource={RelativeSource
+        /// AncestorType=Border}, ...}"</c>, y esa búsqueda de ancestro se escapa del
+        /// control: en el diseñador de Visual Studio el modal cuelga del árbol visual del
+        /// propio VS, que también tiene <c>Border</c>. El binding enganchaba uno de esos
+        /// —así que <c>FallbackValue</c> nunca entraba—, en el primer measure ese Border
+        /// mide 0, el converter devolvía <c>max(0, 0-48) = 0</c>, y con <c>MaxWidth=0</c>
+        /// el modal colapsaba a 0×0: el lienzo mostraba el recuadro del artboard vacío.
+        /// <para/>
+        /// Atado acá contra <c>ModalOverlay</c> por referencia directa no hay ancestro que
+        /// buscar, y además el tamaño lo decide quien hospeda, que es el contrato de
+        /// layout natural de WPF. Ver ADR-028.
+        /// </summary>
+        private void LimitarAlOverlay(UserControl modal)
+        {
+            Atar(FrameworkElement.MaxWidthProperty,  nameof(ActualWidth));
+            Atar(FrameworkElement.MaxHeightProperty, nameof(ActualHeight));
+
+            void Atar(DependencyProperty destino, string propiedadDelOverlay) =>
+                modal.SetBinding(destino, new Binding(propiedadDelOverlay)
+                {
+                    Source             = ModalOverlay,
+                    Converter          = RestarMargenConverter.Instancia,
+                    ConverterParameter = 48,
+                });
+        }
+
         private void MostrarModal(UserControl modal)
         {
             _modalGen++;
+            LimitarAlOverlay(modal);
             ModalContent.Content = modal;
             ModalContent.RenderTransformOrigin = new Point(0.5, 0.5);
             var scale = new ScaleTransform(0.94, 0.94);

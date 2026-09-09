@@ -5,14 +5,11 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:controls="clr-namespace:CapaUI.Core.Controls"
              xmlns:validacion="clr-namespace:CapaUI.Core.Validacion"
-             xmlns:conv="clr-namespace:CapaUI.Converters"
              mc:Ignorable="d"
              Width="880"
              Height="620"
              d:DesignWidth="880"
              d:DesignHeight="620"
-             MaxWidth="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Border}, Converter={x:Static conv:RestarMargenConverter.Instancia}, ConverterParameter=48, FallbackValue=880}"
-             MaxHeight="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=Border}, Converter={x:Static conv:RestarMargenConverter.Instancia}, ConverterParameter=48, FallbackValue=620}"
              UseLayoutRounding="True"
              TextOptions.TextRenderingMode="Grayscale"
              TextOptions.TextFormattingMode="Display">
@@ -40,12 +37,7 @@
 
             <!-- Sin estilos propios de tabla: BasureroCelda, CabeceraColTabla,
                  BtnAgregarFilaTabla, CeldaInput y las geometrías viven en
-                 Styles.xaml, compartidos con RegistroCamionesModal.
-
-                 El converter de MaxWidth/MaxHeight NO va acá: se referencia con
-                 {x:Static} arriba. Un recurso declarado en este bloque NO alcanza a
-                 los atributos del propio elemento raíz — esos se aplican antes, así
-                 que sería una referencia hacia adelante. -->
+                 Styles.xaml, compartidos con RegistroCamionesModal. -->
         </ResourceDictionary>
     </UserControl.Resources>
 
