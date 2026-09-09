@@ -63,6 +63,17 @@ Cuando se evalúa `(1)`, el diccionario de `(2)` **todavía está vacío**. Decl
 
 Dónde `{DynamicResource}` **sí** es la herramienta correcta: `Style`, `Background`, `Foreground`, `Fill` y demás propiedades de dependencia — es lo que hace `PaginadorControl.xaml`, que por eso siempre se previsualizó bien.
 
+## Corolario: un merge local eclipsa `Application.Resources`
+
+`{DynamicResource}` busca hacia arriba: **recursos del elemento → ancestros → `Application` → tema del sistema**. El diccionario que el control mergea en su propio `UserControl.Resources` está al principio de esa cadena, así que **le gana a `Application.Resources`**.
+
+Verificado el 2026-09-09: con `Application.Resources["EmpresaPrimaryBrush"]` en `#B1002E` y un diccionario mergeado en el control con `#1E3A8A`, el `DynamicResource` resuelve a **`#1E3A8A`**.
+
+> [!danger] Nunca mover los colores `Empresa*` a `Styles.xaml`
+> `EmpresaThemeService.Aplicar()` escribe el tema por empresa directamente en `Application.Current.Resources`. Si `Styles.xaml` definiera esas claves, cualquier control que lo mergee localmente quedaría pintado con el color por defecto **ignorando el de la empresa, en silencio y sin error**. Los `Style` y las `Geometry` de `Styles.xaml` no tienen este problema porque nadie los reescribe en runtime.
+
+**Consecuencia para el lienzo:** un control que se previsualiza bien igual se dibuja **sin los colores de empresa**, porque esas claves solo existen en `Application.Resources` y el diseñador no instancia `App`. Pero degrada sin excepción — la estructura, los estilos compartidos y el layout se ven correctos; solo falta el color. Si se quisiera el color fiel, el único lugar sano para esas seis claves es un `DesignTimeResources.xaml` (ámbito `Application`, solo en diseño), nunca `Styles.xaml`.
+
 ## Por qué importa aquí
 
 Los 16 modales del proyecto llevan en su elemento raíz:

@@ -157,6 +157,9 @@ Un modal se previsualiza cuando cumple las cuatro:
    > [!warning] Esto **no** contradice la regla del final de esta nota
    > Mergear el diccionario compartido ≠ redefinir estilos. Sigue prohibido escribir un `<Style x:Key="CeldaInput">` propio. Lo que se agrega es la línea que *carga* `Styles.xaml`, para que el control no dependa de que `App.xaml` ya lo haya hecho.
 
+   > [!danger] No "completar" el merge con los colores `Empresa*`
+   > Va a dar la tentación, porque en el lienzo el marco sale sin color. **No lo hagas.** Un diccionario mergeado en el control le gana a `Application.Resources`, que es donde `EmpresaThemeService` escribe el tema — el modal quedaría con el azul por defecto ignorando el color de la empresa, en runtime y sin error. Ver [[ADR-028 - Previsualizacion de UserControls en el disenador de VS]].
+
 4. **Ningún `{StaticResource}` en un atributo del elemento raíz.** Es el que rompía todo. En los modales aparece una sola vez, en el converter de `MaxWidth`/`MaxHeight`:
 
    ```diff
@@ -165,6 +168,8 @@ Un modal se previsualiza cuando cumple las cuatro:
    ```
 
    con `xmlns:conv="clr-namespace:CapaUI.Converters"`. El `FallbackValue` es lo que le da tamaño real al lienzo: en el diseñador no hay `Border` ancestro y el `Binding` no produce valor.
+
+**Qué esperar del lienzo:** estructura, estilos compartidos, layout y datos de muestra, **pero sin los colores de empresa** — el marco degradado sale gris. Es correcto y no hay que arreglarlo (ver el aviso de arriba): esas claves viven en `Application.Resources` porque el tema las reescribe ahí, y `{DynamicResource}` degrada sin excepción justamente para esto. El lienzo sirve para maquetar, no para aprobar colores.
 
 Opcional, pero es lo que hace útil la vista previa: **sembrar datos de muestra en el constructor de diseño**, para ver la tabla con sus filas, el zigzag y los contadores en vez de una tarjeta vacía. No hay atajo `d:` para esto: las filas se pueblan desde código y `FilaProducto` es una clase anidada, así que `d:DesignInstance` no la alcanza cómodamente.
 
