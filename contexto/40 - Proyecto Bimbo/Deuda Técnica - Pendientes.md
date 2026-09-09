@@ -1273,6 +1273,28 @@ Al cerrar el último, sacar `RestarMargen` de `App.xaml`.
 
 ---
 
+### P-058 · El módulo de Login no tiene ViewModel: 858 líneas de lógica en code-behind
+
+**Archivos:** `CapaUI/Formularios/InicioSesion/` — `LoginWindow.xaml.cs` (400), `ForgotCodePanel.xaml.cs` (194), `ForgotNewPanel.xaml.cs` (188), `ForgotEmailPanel.xaml.cs` (76)
+**Detectado en:** auditoría de módulos del 2026-09-09, contrastando el checklist de WPF contra el código real (hallazgo H-2.1: *acoplamiento de vista mediante code-behind y bypass de MVVM*)
+
+`InicioSesion` es el sexto módulo más grande del proyecto (1866 líneas) y **el único, junto con `Dashboard`, que no tiene una sola línea de ViewModel**. Toda la máquina de estados del login —validación de campos, pasos de progreso, mensajes de error, transiciones entre paneles de recuperación de contraseña— vive en el code-behind y se ejecuta manipulando el árbol visual por `x:Name`: solo en `LoginWindow.xaml.cs` hay **26 asignaciones directas** del tipo `TxtError.Text = …`, `LoadingPanel.Visibility = …`, `BtnIngresar.IsEnabled = …`.
+
+Es la violación de MVVM más grande que queda en `CapaUI`, y choca de frente con la regla 5 de `AGENTS.md` (MVVM con CommunityToolkit, `[ObservableProperty]` / `[RelayCommand]`).
+
+> [!note] La inyección de dependencias **sí** está bien
+> `LoginWindow` recibe sus cinco servicios (`IAuthService`, `IUsuarioSesionService`, `IEmpresaRepository`, `LogoEmpresaCache`, `EmpresaThemeService`) por constructor. No hay Service Locator acá. El problema es exclusivamente la ausencia de ViewModel.
+
+**Riesgo:** el flujo de autenticación —lo más crítico de la app en seguridad— **no se puede probar sin levantar la ventana** y toda su infraestructura gráfica. No hay forma de escribir un test de "credenciales vacías", "usuario inactivo" o "sesión que falla al iniciar" sin un `Window` real. Además, cada estado nuevo obliga a tocar código imperativo en vez de agregar una propiedad observable.
+
+**Solución:** extraer `LoginViewModel : ObservableValidator` con `[ObservableProperty]` para email, contraseña, `IsBusy`, `ErrorMessage` y el paso actual; `[RelayCommand(CanExecute = …)]` para ingresar; y bindear la vista contra eso. Los tres paneles de recuperación siguen el mismo camino. **No es un ajuste: es un refactor del flujo de autenticación con su propia validación manual**, y por eso se registró en vez de hacerse en el pase de limpieza del 2026-09-09 (donde solo se convirtieron las dos geometrías del spinner).
+
+`Dashboard` tiene el mismo problema en un tercio del tamaño (818 líneas, 202 de code-behind, 0 de VM) — conviene usarlo de ensayo antes de encarar éste.
+
+**Estado:** `[ ]` Pendiente
+
+---
+
 
 ## Historial de resolución
 
@@ -1334,6 +1356,7 @@ Al cerrar el último, sacar `RestarMargen` de `App.xaml`.
 | P-055 | El apagado del auto-refresh de Gotrue dependía de `SignOut()` (llamada de red) + timeout decorativo en el logout | `[x]` Resuelto | [[Sesión 2026-09-08 - Cierre de P-054 y P-055]] |
 | P-056 | `ServicioConexión` huérfano duplica `ConexionSupabase` con el mismo namespace | `[ ]` Pendiente | [[Sesión 2026-09-08 - Cierre de P-054 y P-055]] |
 | P-057 | 16 modales y 12 vistas sin previsualización en el diseñador de VS | `[ ]` Pendiente | [[ADR-028 - Previsualizacion de UserControls en el disenador de VS]] |
+| P-058 | Login sin ViewModel: 858 líneas de lógica de autenticación en code-behind | `[ ]` Pendiente | [[Anatomia compartida de los modales]] |
 
 ---
 

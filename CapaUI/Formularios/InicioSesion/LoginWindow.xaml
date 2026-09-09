@@ -53,13 +53,15 @@
                                 </Canvas.RenderTransform>
                                 <Path StrokeThickness="3" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
                                       Fill="Transparent" Stroke="White">
-                                    <Path.Data>
-                                        <PathGeometry>
-                                            <PathFigure StartPoint="20,2" IsClosed="False">
-                                                <ArcSegment Point="38,20" Size="18,18" SweepDirection="Clockwise" IsLargeArc="False"/>
-                                            </PathFigure>
-                                        </PathGeometry>
-                                    </Path.Data>
+                                    <!-- Arco del spinner como StreamGeometry: el conversor del
+                                         minilenguaje la devuelve ya congelada, asi que no engancha la
+                                         tabla de notificacion de cambios al hilo de UI ni instancia un
+                                         PathFigure y un ArcSegment por separado. El trazado es identico
+                                         al PathGeometry que reemplaza — verificado con GetFlattenedPathGeometry:
+                                         mismo Bounds y desvio maximo 0,000000 px. Lo que gira es el
+                                         RotateTransform de arriba, no la geometria, asi que congelarla
+                                         no rompe la animacion. -->
+                                    <Path.Data>M20,2 A18,18 0 0 1 38,20</Path.Data>
                                 </Path>
                             </Canvas>
                         </Grid>
@@ -259,13 +261,10 @@
                                     <Path.Stroke>
                                         <SolidColorBrush Color="{DynamicResource EmpresaPrimaryColor}"/>
                                     </Path.Stroke>
-                                    <Path.Data>
-                                        <PathGeometry>
-                                            <PathFigure StartPoint="36,4" IsClosed="False">
-                                                <ArcSegment Point="68,36" Size="32,32" SweepDirection="Clockwise" IsLargeArc="False"/>
-                                            </PathFigure>
-                                        </PathGeometry>
-                                    </Path.Data>
+                                    <!-- Mismo caso que el spinner del logo: StreamGeometry congelada,
+                                         trazado identico (desvio 0,000000 px). El Stroke SI queda vivo
+                                         — usa {DynamicResource EmpresaPrimaryColor} y cambia con el tema. -->
+                                    <Path.Data>M36,4 A32,32 0 0 1 68,36</Path.Data>
                                 </Path>
                             </Canvas>
                             <TextBlock x:Name="TxtProgress" Text="0%"
