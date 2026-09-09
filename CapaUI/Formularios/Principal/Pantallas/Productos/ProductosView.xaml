@@ -137,7 +137,7 @@
                  último recurso, pero con esto rara vez llega a activarse. -->
             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Right">
                 <Border Background="#EEF2F8"
-                        CornerRadius="999"
+                        CornerRadius="8"
                         BorderBrush="#D8E1EC" BorderThickness="1"
                         Padding="12,6" Margin="0,0,8,0"
                         ToolTip="Total de productos">
@@ -154,7 +154,7 @@
                     </StackPanel>
                 </Border>
                 <Border Background="#ECFDF5"
-                        CornerRadius="999"
+                        CornerRadius="8"
                         BorderBrush="#D1FAE5" BorderThickness="1"
                         Padding="12,6" Margin="0,0,8,0"
                         ToolTip="Productos activos">
@@ -171,7 +171,7 @@
                     </StackPanel>
                 </Border>
                 <Border Background="#F3F4F6"
-                        CornerRadius="999"
+                        CornerRadius="8"
                         BorderBrush="#E5E7EB" BorderThickness="1"
                         Padding="12,6"
                         ToolTip="Productos inactivos">

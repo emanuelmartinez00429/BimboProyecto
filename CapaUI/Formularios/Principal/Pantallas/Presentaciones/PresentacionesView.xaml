@@ -49,7 +49,7 @@
             <!-- Los rótulos de las pastillas se ocultan en ventana angosta: el número
                  es lo que importa y el color ya distingue cuál es cuál. -->
             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Right">
-                <Border Background="#EEF2F8" CornerRadius="999" BorderBrush="#D8E1EC" BorderThickness="1" Padding="12,6" Margin="0,0,8,0">
+                <Border Background="#EEF2F8" CornerRadius="8" BorderBrush="#D8E1EC" BorderThickness="1" Padding="12,6" Margin="0,0,8,0">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                         <Border Width="6" Height="6" CornerRadius="3" Background="#1E3A8A" Margin="0,0,6,0" VerticalAlignment="Center"/>
                         <TextBlock Text="TOTAL" FontFamily="Segoe UI" FontSize="13" FontWeight="SemiBold" Foreground="#1E3A8A" VerticalAlignment="Center" Margin="0,0,6,0"
@@ -57,7 +57,7 @@
                         <TextBlock Text="{Binding TotalCount}" FontFamily="Segoe UI" FontSize="15" FontWeight="Bold" Foreground="#1E3A8A" VerticalAlignment="Center"/>
                     </StackPanel>
                 </Border>
-                <Border Background="#ECFDF5" CornerRadius="999" BorderBrush="#D1FAE5" BorderThickness="1" Padding="12,6" Margin="0,0,8,0">
+                <Border Background="#ECFDF5" CornerRadius="8" BorderBrush="#D1FAE5" BorderThickness="1" Padding="12,6" Margin="0,0,8,0">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                         <Border Width="6" Height="6" CornerRadius="3" Background="#10B981" Margin="0,0,6,0" VerticalAlignment="Center"/>
                         <TextBlock Text="ACTIVOS" FontFamily="Segoe UI" FontSize="13" FontWeight="SemiBold" Foreground="#047857" VerticalAlignment="Center" Margin="0,0,6,0"
@@ -65,7 +65,7 @@
                         <TextBlock Text="{Binding ActivosCount}" FontFamily="Segoe UI" FontSize="15" FontWeight="Bold" Foreground="#047857" VerticalAlignment="Center"/>
                     </StackPanel>
                 </Border>
-                <Border Background="#F3F4F6" CornerRadius="999" BorderBrush="#E5E7EB" BorderThickness="1" Padding="12,6">
+                <Border Background="#F3F4F6" CornerRadius="8" BorderBrush="#E5E7EB" BorderThickness="1" Padding="12,6">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                         <Border Width="6" Height="6" CornerRadius="3" Background="#9CA3AF" Margin="0,0,6,0" VerticalAlignment="Center"/>
                         <TextBlock Text="INACTIVOS" FontFamily="Segoe UI" FontSize="13" FontWeight="SemiBold" Foreground="#6B7280" VerticalAlignment="Center" Margin="0,0,6,0"
@@ -215,7 +215,7 @@
                         <DataGridTemplateColumn Header="NOMBRE" Width="220" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <Border Background="#F0F5FB" CornerRadius="999" Padding="10,2" HorizontalAlignment="Left" Margin="8,0">
+                                    <Border Background="#F0F5FB" CornerRadius="5" Padding="10,2" HorizontalAlignment="Left" Margin="8,0">
                                         <TextBlock Text="{Binding Nombre}" FontFamily="Segoe UI" FontSize="14" FontWeight="SemiBold"
                                                    Foreground="{DynamicResource EmpresaPrimaryBrush}" TextTrimming="CharacterEllipsis"/>
                                     </Border>
