@@ -1,0 +1,71 @@
+<UserControl x:Class="CapaUI.Core.Controls.DiagnosticoDisenador"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
+             Width="620" Height="330"
+             d:DesignWidth="620" d:DesignHeight="330">
+
+    <!--
+        ARCHIVO TEMPORAL DE DIAGNÓSTICO — borrar cuando se cierre el tema.
+
+        Dice de una sola mirada cuál de las tres capas falla en el lienzo del diseñador.
+
+        Usa {DynamicResource} a propósito y NUNCA {StaticResource}: DynamicResource
+        degrada sin excepción, así que una clave que no resuelve deja la barra sin
+        color pero NO mata el árbol — que es lo que permite ver las tres por separado
+        en vez de un lienzo vacío.
+
+        Las tres claves están elegidas para que no se pisen entre sí:
+          · la 1 no usa ningún recurso;
+          · AccentBrush existe SOLO en Styles.xaml, con color literal;
+          · EmpresaPrimaryBrush existe SOLO en App.xaml y en DesignTimeResources.xaml.
+
+        CÓMO LEERLO
+          1 morada  ausente  -> el diseñador no dibuja. El problema no es de este
+                               proyecto: es la sesión del diseñador.
+          2 verde   ausente  -> el merge de Styles.xaml NO resuelve en el subrogado.
+                               Esa es la causa del modal vacío.
+          3 azul    ausente  -> ContainsDesignTimeResources no se está honrando.
+    -->
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/CapaUI;component/Resources/Styles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <StackPanel Background="#FF2B2B2B">
+
+        <Border Padding="16,12">
+            <TextBlock Text="DIAGNÓSTICO DEL DISEÑADOR — cada barra que falta señala una capa rota"
+                       Foreground="#FFB0B0B0" FontFamily="Segoe UI" FontSize="12" FontWeight="Bold"/>
+        </Border>
+
+        <!-- 1 · Color literal. Sin un solo recurso de por medio. -->
+        <Border Height="56" CornerRadius="6" Margin="16,0,16,10" Background="#FF6D28D9">
+            <TextBlock Text="1 · LITERAL  ·  si esta barra es MORADA, el diseñador dibuja"
+                       Foreground="White" FontFamily="Segoe UI" FontSize="13" FontWeight="SemiBold"
+                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        </Border>
+
+        <!-- 2 · AccentBrush: color literal que vive SOLO en Styles.xaml. -->
+        <Border Height="56" CornerRadius="6" Margin="16,0,16,10"
+                Background="{DynamicResource AccentBrush}">
+            <TextBlock Text="2 · Styles.xaml  ·  si es VERDE, el merge funciona en el subrogado"
+                       Foreground="White" FontFamily="Segoe UI" FontSize="13" FontWeight="SemiBold"
+                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        </Border>
+
+        <!-- 3 · EmpresaPrimaryBrush: solo puede venir de DesignTimeResources.xaml. -->
+        <Border Height="56" CornerRadius="6" Margin="16,0,16,10"
+                Background="{DynamicResource EmpresaPrimaryBrush}">
+            <TextBlock Text="3 · DesignTimeResources.xaml  ·  si es AZUL, se está mergeando"
+                       Foreground="White" FontFamily="Segoe UI" FontSize="13" FontWeight="SemiBold"
+                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        </Border>
+
+    </StackPanel>
+</UserControl>
