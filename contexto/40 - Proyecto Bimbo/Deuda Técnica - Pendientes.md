@@ -1,4 +1,4 @@
----
+﻿---
 title: Deuda Técnica — Pendientes
 tags:
   - pendiente
@@ -1256,7 +1256,7 @@ Hay **dos** clases `ConexionSupabase` en el **mismo namespace** (`ServicioConexi
 **Archivos:** los `*Modal.xaml` de `CapaUI/Formularios/Principal/Pantallas/**` menos `ProductosCargaModal` (ya migrado)
 **Detectado en:** [[ADR-028 - Previsualizacion de UserControls en el disenador de VS]] (2026-09-09)
 
-Los 16 modales del proyecto llevan en su elemento raíz `MaxWidth`/`MaxHeight` con `Converter={StaticResource RestarMargen}`, y `RestarMargen` vive en `App.xaml`. Como los atributos del elemento raíz se aplican **antes** de que se pueble su propio `<UserControl.Resources>`, ese `{StaticResource}` no se puede resolver localmente y el diseñador —que no ejecuta `App.xaml`— revienta al parsear: lienzo en blanco y `TaskCanceledException` en Salida. El detalle está en [[WPF - StaticResource en atributos del elemento raiz y el disenador de Visual Studio]].
+Los 16 modales del proyecto llevan en su elemento raíz `MaxWidth`/`MaxHeight` con `Converter={StaticResource RestarMargen}` y `RelativeSource AncestorType=Border`. **Eso son dos problemas encimados**: el `{StaticResource}` revienta el parseo, y una vez arreglado eso el binding engancha un `Border` del propio Visual Studio, mide 0 y colapsa el modal a 0×0 — en silencio, porque `FallbackValue` nunca entra. `RestarMargen` vive en `App.xaml`. Como los atributos del elemento raíz se aplican **antes** de que se pueble su propio `<UserControl.Resources>`, ese `{StaticResource}` no se puede resolver localmente y el diseñador —que no ejecuta `App.xaml`— revienta al parsear: lienzo en blanco y `TaskCanceledException` en Salida. El detalle está en [[WPF - StaticResource en atributos del elemento raiz y el disenador de Visual Studio]].
 
 `ProductosCargaModal` se migró como piloto el 2026-09-09 (commit `11f0366`). Un barrido del ensamblado ese mismo día mostró que son **dos problemas distintos**:
 

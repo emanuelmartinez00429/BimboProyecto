@@ -26,11 +26,14 @@ Esto se arregla haciendo que el control **declare los diccionarios que usa** en 
 
 ```xml
 <ResourceDictionary.MergedDictionaries>
-    <ResourceDictionary Source="pack://application:,,,/CapaUI;component/Resources/Styles.xaml"/>
+    <ResourceDictionary Source="/CapaUI;component/Resources/Styles.xaml"/>
 </ResourceDictionary.MergedDictionaries>
 ```
 
-Las URIs `pack://` **sí** resuelven en el subrogado — verificado. Y el costo es despreciable: **0,4 ms** parsear `Styles.xaml` (1454 líneas, 86 claves de primer nivel) y 0,1 ms `PesajeModalStyles.xaml`. Instanciar `ProductosCargaModal` entero cuesta 4–5 ms. No hace falta ningún `SharedResourceDictionary` con caché.
+> [!note] Sobre la forma de la URI, honestamente
+> Se usó la forma corta (`/CapaUI;component/...`) porque es la que recomienda la documentación para el diseñador. Pero **no está probado que la larga (`pack://application:,,,/...`) fuera un problema**: se cambió en el mismo tramo en que se quitó el binding del raíz, y lo que arregló el lienzo fue el binding — eso sí está medido. La forma corta queda como convención, no como fix demostrado. Si alguien quiere zanjarlo, es un experimento de un minuto: volver a la larga y ver si el lienzo sigue bien.
+
+Fuera del subrogado, las dos formas resuelven igual — verificado. Y el costo es despreciable: **0,4 ms** parsear `Styles.xaml` (1454 líneas, 86 claves de primer nivel) y 0,1 ms `PesajeModalStyles.xaml`. Instanciar `ProductosCargaModal` entero cuesta 4–5 ms. No hace falta ningún `SharedResourceDictionary` con caché.
 
 ### 2. Ese merge NO alcanza a los atributos del propio elemento raíz
 
@@ -84,6 +87,39 @@ MaxWidth="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Bord
 ```
 
 `RestarMargen` vive en `App.xaml`. Por eso **ninguno** se previsualizaba, y por eso el intento de arreglarlo redeclarando la clave en el `UserControl.Resources` del modal no podía funcionar nunca.
+
+## Corolario 2: `RelativeSource AncestorType` también se escapa del control
+
+Más peligroso que el anterior, porque **no lanza nada**.
+
+En el diseñador, el `UserControl` no es la raíz de nada: cuelga del árbol visual **de Visual Studio**, que tiene sus propios `Border`, `Grid` y demás. Un `RelativeSource={RelativeSource AncestorType=Border}` atraviesa la frontera del control y engancha un elemento de la infraestructura del IDE.
+
+Las consecuencias, en orden:
+
+1. El binding **resuelve**. No falla. Por lo tanto **`FallbackValue` nunca se activa** — que es justo lo contrario de lo que uno asume al ponerlo «por las dudas».
+2. En el primer `MeasurePass` ese elemento del IDE todavía tiene `ActualWidth = 0`.
+3. Si hay un converter que resta (`0 - 48`, acotado a 0 con `Math.Max`), el resultado es `0`.
+4. `MaxWidth = 0` → la regla de layout `min(max(MinWidth, Width), MaxWidth)` fuerza el ancho a 0. **El control colapsa a 0×0 y no se recupera.**
+
+Verificado el 2026-09-09 con el mismo binario y una `Application` vacía:
+
+```
+sin ancestro Border  -> MaxWidth=880   880x620
+con ancestro Border  -> MaxWidth=0       0x0
+idem, 5 ciclos       -> MaxWidth=0       0x0
+```
+
+> [!tip] Regla
+> Un `UserControl` no debe calcular su propio tamaño mirando hacia arriba. El tamaño lo decide **quien lo hospeda**, por referencia directa (`Source = MiOverlay`, o `ElementName` si están en el mismo XAML). Además de arreglar el diseñador, es el contrato de layout natural de WPF.
+
+> [!warning] Al reproducirlo, cuidado con el arnés
+> La condición a reproducir **no** es «sin ancestro `Border`» — eso da falso verde, porque ahí sí entra el `FallbackValue`. Es «**con** ancestro todavía sin medir».
+
+## El diseñador no ejecuta el code-behind del documento raíz
+
+Comprobado el 2026-09-09: con el control ya renderizando en el lienzo, todo lo que asigna el constructor (textos, `ItemsSource`) sale **vacío**. El diseñador arma el árbol parseando el XAML y no corre el code-behind del documento que se está editando.
+
+Corolario práctico: **sembrar datos de muestra en el constructor no sirve** para la vista previa. Para que una tabla muestre filas en el lienzo hay que hacerlo declarativo (`ItemsSource` bindeado más datos de diseño), no imperativo.
 
 ## La excepción real (para reconocerla la próxima vez)
 

@@ -1,4 +1,4 @@
-﻿---
+---
 title: "Anatomía compartida de los modales"
 tags:
   - patron
@@ -141,16 +141,38 @@ Dos casos reales, sesión 2026-08-19:
 
 El porqué está en [[WPF - StaticResource en atributos del elemento raiz y el disenador de Visual Studio]] y la decisión en [[ADR-028 - Previsualizacion de UserControls en el disenador de VS]]. Acá va solo la receta.
 
-Un modal se previsualiza cuando cumple las cuatro:
+Un modal se previsualiza cuando cumple las cuatro. **La 1 es la que de verdad rompía**; las otras tres son necesarias pero no eran el misterio.
 
-1. **Tiene un constructor público sin parámetros.** Es el único que el diseñador sabe llamar.
-2. **Ese constructor no toca DI ni la base.** Si el modal necesita un repositorio, lo recibe **por constructor** desde la vista que lo abre — no lo va a buscar a `App.Services` (AGENTS.md, regla 9). Así el camino de diseño queda limpio solo, sin un `DesignerProperties.GetIsInDesignMode` que lo tape.
-3. **Mergea los diccionarios que usa** en su `UserControl.Resources`:
+1. **Ningún binding del elemento raíz que busque un ancestro.** Es la causa del lienzo vacío.
+
+   ```diff
+   - MaxWidth="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Border},
+   -                    Converter={StaticResource RestarMargen}, ConverterParameter=48}"
+   - MaxHeight="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=Border}, ... }"
+   ```
+
+   En el diseñador el control cuelga del árbol visual **de Visual Studio**, que también tiene `Border`. El binding engancha uno de esos y **resuelve** —así que `FallbackValue` nunca entra—, ese `Border` mide 0 en el primer measure, el converter devuelve `max(0, 0-48) = 0`, y con `MaxWidth=0` el modal colapsa a 0×0. Lo que se ve es el artboard de `d:DesignWidth` con un control de cero adentro.
+
+   El «aire» contra los bordes lo pone **quien hospeda**, por referencia directa:
+
+   ```csharp
+   // En la vista que abre el modal, al mostrarlo:
+   modal.SetBinding(FrameworkElement.MaxWidthProperty, new Binding(nameof(ActualWidth))
+   {
+       Source = ModalOverlay, Converter = RestarMargenConverter.Instancia, ConverterParameter = 48,
+   });
+   ```
+
+   Ver `PesajeView.LimitarAlOverlay`. **No alcanza con `Margin="24"` en el overlay**: con `Width="880"` fijo, un margen no encoge el modal en ventana angosta, lo recorta.
+
+2. **Ningún `{StaticResource}` en un atributo del elemento raíz.** Los atributos del raíz se aplican antes de que se pueble su propio `<UserControl.Resources>`, así que declarar la clave ahí es una referencia hacia adelante y revienta el parseo. Si hace falta un converter en esa posición, va con `{x:Static conv:MiConverter.Instancia}`, que resuelve contra el tipo CLR sin diccionario de por medio.
+
+3. **Mergea los diccionarios que usa** en su `UserControl.Resources`, en la forma **corta** de la URI:
 
    ```xml
    <ResourceDictionary.MergedDictionaries>
-       <ResourceDictionary Source="pack://application:,,,/CapaUI;component/Resources/Styles.xaml"/>
-       <ResourceDictionary Source="pack://application:,,,/CapaUI;component/Formularios/.../PesajeModalStyles.xaml"/>
+       <ResourceDictionary Source="/CapaUI;component/Resources/Styles.xaml"/>
+       <ResourceDictionary Source="/CapaUI;component/Formularios/.../PesajeModalStyles.xaml"/>
    </ResourceDictionary.MergedDictionaries>
    ```
 
@@ -158,20 +180,16 @@ Un modal se previsualiza cuando cumple las cuatro:
    > Mergear el diccionario compartido ≠ redefinir estilos. Sigue prohibido escribir un `<Style x:Key="CeldaInput">` propio. Lo que se agrega es la línea que *carga* `Styles.xaml`, para que el control no dependa de que `App.xaml` ya lo haya hecho.
 
    > [!danger] No "completar" el merge con los colores `Empresa*`
-   > Va a dar la tentación, porque en el lienzo el marco sale sin color. **No lo hagas.** Un diccionario mergeado en el control le gana a `Application.Resources`, que es donde `EmpresaThemeService` escribe el tema — el modal quedaría con el azul por defecto ignorando el color de la empresa, en runtime y sin error. Ver [[ADR-028 - Previsualizacion de UserControls en el disenador de VS]].
+   > Va a dar la tentación. **No lo hagas.** Un diccionario mergeado en el control le gana a `Application.Resources`, que es donde `EmpresaThemeService` escribe el tema — el modal quedaría con el azul por defecto ignorando el color de la empresa, en runtime y sin error. Esas claves van en `Properties/DesignTimeResources.xaml`, que es de ámbito `Application` y solo lo carga el diseñador.
 
-4. **Ningún `{StaticResource}` en un atributo del elemento raíz.** Es el que rompía todo. En los modales aparece una sola vez, en el converter de `MaxWidth`/`MaxHeight`:
+4. **Nada de DI en el constructor.** Si el modal necesita un repositorio, lo recibe **por constructor** desde la vista que lo abre — no lo va a buscar a `App.Services` (AGENTS.md, regla 9).
 
-   ```diff
-   - Converter={StaticResource RestarMargen}, ConverterParameter=48
-   + Converter={x:Static conv:RestarMargenConverter.Instancia}, ConverterParameter=48, FallbackValue=880
-   ```
+> [!important] El diseñador NO ejecuta el code-behind del documento raíz
+> Comprobado el 2026-09-09: con el modal ya renderizando, el título, la placa, el proveedor y las filas salen **vacíos** — y todo eso lo asigna el constructor. El diseñador arma el árbol parseando el XAML y nada más.
+>
+> Por eso **no tiene sentido sembrar datos de muestra en el constructor**: es código muerto disfrazado de ayuda al diseño. Se probó y se quitó. Si se quiere una tabla con filas en el lienzo, hay que hacerlo declarativo (`ItemsSource` bindeado + datos de diseño), no imperativo.
 
-   con `xmlns:conv="clr-namespace:CapaUI.Converters"`. El `FallbackValue` es lo que le da tamaño real al lienzo: en el diseñador no hay `Border` ancestro y el `Binding` no produce valor.
-
-**Qué esperar del lienzo:** estructura, estilos compartidos, layout y datos de muestra, **pero sin los colores de empresa** — el marco degradado sale gris. Es correcto y no hay que arreglarlo (ver el aviso de arriba): esas claves viven en `Application.Resources` porque el tema las reescribe ahí, y `{DynamicResource}` degrada sin excepción justamente para esto. El lienzo sirve para maquetar, no para aprobar colores.
-
-Opcional, pero es lo que hace útil la vista previa: **sembrar datos de muestra en el constructor de diseño**, para ver la tabla con sus filas, el zigzag y los contadores en vez de una tarjeta vacía. No hay atajo `d:` para esto: las filas se pueblan desde código y `FilaProducto` es una clase anidada, así que `d:DesignInstance` no la alcanza cómodamente.
+**Qué esperar del lienzo:** el modal completo —marco azul, cabecera, tarjeta blanca, columnas y botones— pero con **la tabla vacía y los campos de contexto en blanco**, por lo de arriba.
 
 ### Plan de réplica
 

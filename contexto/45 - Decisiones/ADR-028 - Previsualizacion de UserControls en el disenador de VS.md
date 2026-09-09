@@ -94,7 +94,43 @@ Dos cosas verificadas que contradicen la receta clásica y conviene no re-descub
 2. **Tampoco haría falta condicionarlo.** El diseñador de VS no usa el build de diseño para esto: copia a su caché el `CapaUI.dll` del build **normal**. Si el diccionario no está en ese ensamblado, el lienzo no lo ve. Queda entonces sin `Condition`, y el BAML (~1 KB) vive en el ensamblado de forma **inerte**: `App.xaml` no lo referencia y nadie lo carga en runtime.
 
 Con esto el lienzo muestra el modal entero: marco azul, cabecera, tarjeta blanca y las tres filas de muestra.
-- Sigue abierta una pregunta de diseño más de fondo, que este ADR **no** resuelve: que el modal se ate a `RelativeSource AncestorType=Border` para calcular su propio tamaño invierte el contrato de layout (lo natural en WPF es que el contenedor limite al hijo, con `Padding` en el overlay y `MaxWidth` en el modal). Se dejó como está a propósito: cambiarlo toca el `ModalOverlay` que comparten todos los modales de la pantalla y `AplicarMarcoSelector`, que asigna `Width`/`Height` a mano. Es un refactor con su propia validación visual, no un efecto colateral de este fix.
+- ~~Sigue abierta una pregunta de diseño más de fondo, que este ADR **no** resuelve: que el modal se ate a `RelativeSource AncestorType=Border` para calcular su propio tamaño invierte el contrato de layout.~~ **Eso no era una pregunta de diseño: era el bug.** Ver el Addendum 2.
+
+## Addendum 2 · 2026-09-09 — la causa real: fuga del árbol visual y colapso a 0×0
+
+**El bug tenía dos capas y el cuerpo de este ADR solo resolvió la primera.** Vale dejarlo escrito porque la primera capa es la vistosa —tira excepción, se ve en el log— y la segunda es la que de verdad dejaba el lienzo vacío, en silencio.
+
+| | Capa 1 | Capa 2 |
+|---|---|---|
+| **Qué pasa** | `Converter={StaticResource RestarMargen}` en un atributo del raíz | El binding ya parsea, se evalúa… **y resuelve** |
+| **Por qué** | Referencia hacia adelante; en el diseñador no hay `App` | El diseñador aloja el control dentro del árbol visual **del propio Visual Studio**, que también tiene `Border`. `RelativeSource AncestorType=Border` se escapa del control y engancha uno de esos |
+| **Síntoma** | `XamlParseException` → el subrogado se cae → `TaskCanceledException` en Salida | Ninguno. `FallbackValue` **nunca entra**, porque el binding no falla |
+| **El daño** | No se instancia | Primer measure: ese `Border` mide 0 → `Math.Max(0, 0-48) = 0` → `MaxWidth=0` → **el modal colapsa a 0×0 y no se recupera** |
+
+El recuadro de 880×620 que se veía en el lienzo era el artboard de `d:DesignWidth`. Adentro había un control de cero por cero.
+
+Medido (mismo binario, misma `Application` vacía):
+
+```
+sin ancestro Border  -> MaxWidth=880   880x620     <- lo que reproducía el arnés
+con ancestro Border  -> MaxWidth=0       0x0       <- lo que pasa en el diseñador
+idem, 5 ciclos       -> MaxWidth=0       0x0       <- no se recupera
+```
+
+> [!warning] Lección de método, no de WPF
+> El arnés que reproducía «la condición del diseñador» siempre armaba el `Border` **ya dimensionado**, y por eso daba verde mientras el lienzo seguía vacío. La condición a reproducir no era *«sin ancestro»* sino *«con ancestro todavía sin medir»*. Un arnés que confirma la hipótesis que uno ya tiene no es evidencia.
+
+**Decisión:** el raíz del modal no lleva `MaxWidth`/`MaxHeight`. La restricción la aplica **quien hospeda**, por referencia directa y sin búsqueda de ancestro — `PesajeView.LimitarAlOverlay(modal)` ata el modal contra `ModalOverlay` al mostrarlo. Sin ancestro que buscar no hay nada que se escape del control, y el tamaño lo decide el contenedor, que es el contrato de layout natural de WPF.
+
+No alcanza con `Margin="24"` en el overlay, que es lo primero que uno propone: con `Width="880"` fijo, un margen no encoge el modal en ventana angosta — lo recorta. El binding contra el overlay conserva el encogido exacto (900×700 → 852×620, 600×400 → 552×352).
+
+### Y otra cosa que quedó comprobada: el diseñador no ejecuta el code-behind
+
+Con el modal ya renderizando, el título, la placa, el proveedor y las filas salen **vacíos** — y todo eso lo asigna el constructor. O sea: **el diseñador arma el árbol parseando el XAML y no corre el code-behind del documento raíz.**
+
+Consecuencia práctica: **sembrar datos de muestra en el constructor no sirve** para la vista previa. Se quitó de `ProductosCargaModal` por eso — era código muerto disfrazado de ayuda al diseño. Si alguna vez se quiere una tabla con filas en el lienzo, hay que hacerlo declarativo (`ItemsSource` bindeado + datos de diseño), no imperativo.
+
+Queda una pregunta abierta que el próximo modal que se migre responde gratis: **si el diseñador no instancia la clase, ¿hace falta el constructor sin parámetros?** Se dejó porque es barato y porque WPF pide que un tipo con `x:Class` sea instanciable sin argumentos, pero no está comprobado que el lienzo lo necesite.
 
 ---
 
