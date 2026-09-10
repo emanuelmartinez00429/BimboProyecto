@@ -24,6 +24,7 @@ namespace CapaUI.Core
         {
             Atar(FrameworkElement.MaxWidthProperty,  nameof(FrameworkElement.ActualWidth));
             Atar(FrameworkElement.MaxHeightProperty, nameof(FrameworkElement.ActualHeight));
+            ReevaluarAlAparecer();
 
             void Atar(DependencyProperty destino, string propiedadDelOverlay) =>
                 modal.SetBinding(destino, new Binding(propiedadDelOverlay)
@@ -32,6 +33,27 @@ namespace CapaUI.Core
                     Converter          = RestarMargenConverter.Instancia,
                     ConverterParameter = margen,
                 });
+
+            // Las vistas llaman a este helper ANTES de poner el overlay en Visible.
+            // Un elemento Collapsed reporta ActualWidth = 0, el converter devuelve
+            // max(0, 0 - margen) = 0 y el modal queda con MaxWidth = 0. Al reaparecer,
+            // ActualWidth recupera su valor sin "cambiar" desde la perspectiva de WPF,
+            // asi que el binding nunca se entera y el modal se dibuja en 0x0.
+            // Solo la primera apertura se salva: ahi el overlay aun no habia sido
+            // medido y si hubo un cambio real de 0 al ancho final.
+            // Reevaluar al aparecer deja al helper indiferente al orden de llamada.
+            void ReevaluarAlAparecer()
+            {
+                overlay.IsVisibleChanged += AlAparecer;
+
+                void AlAparecer(object remitente, DependencyPropertyChangedEventArgs e)
+                {
+                    if (!overlay.IsVisible) return;
+                    overlay.IsVisibleChanged -= AlAparecer;   // una sola vez: no deja suscripcion viva
+                    BindingOperations.GetBindingExpression(modal, FrameworkElement.MaxWidthProperty)?.UpdateTarget();
+                    BindingOperations.GetBindingExpression(modal, FrameworkElement.MaxHeightProperty)?.UpdateTarget();
+                }
+            }
         }
     }
 }

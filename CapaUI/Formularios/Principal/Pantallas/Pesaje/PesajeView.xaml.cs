@@ -1094,18 +1094,10 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
         /// layout natural de WPF. Ver ADR-028.
         /// </summary>
         private void LimitarAlOverlay(UserControl modal)
-        {
-            Atar(FrameworkElement.MaxWidthProperty,  nameof(ActualWidth));
-            Atar(FrameworkElement.MaxHeightProperty, nameof(ActualHeight));
-
-            void Atar(DependencyProperty destino, string propiedadDelOverlay) =>
-                modal.SetBinding(destino, new Binding(propiedadDelOverlay)
-                {
-                    Source             = ModalOverlay,
-                    Converter          = RestarMargenConverter.Instancia,
-                    ConverterParameter = 48,
-                });
-        }
+            // Delega en el helper compartido en vez de duplicarlo: asi Pesaje tambien
+            // recibe la reevaluacion del binding cuando el overlay se hace visible.
+            // Sin eso, la segunda apertura de cualquier modal quedaba en 0x0.
+            => CapaUI.Core.ModalLayout.LimitarAlOverlay(modal, ModalOverlay);
 
         private void MostrarModal(UserControl modal)
         {
