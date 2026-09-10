@@ -48,6 +48,10 @@ public static class DependencyInjection
         // Autenticación
         services.AddTransient<IAuthService, AuthService>();
 
+        // Recuperacion de contrasena por OTP. Antes los tres paneles de la UI le
+        // hablaban directo a client.Auth (P-058); ahora pasan por este contrato.
+        services.AddTransient<IRecuperacionPasswordService, RecuperacionPasswordService>();
+
         // Perfil del usuario — singleton porque mantiene estado entre login y logout
         services.AddSingleton<IPerfilUsuarioService, PerfilUsuarioService>();
 

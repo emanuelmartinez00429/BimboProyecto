@@ -13,6 +13,7 @@ namespace CapaUI.Formularios.InicioSesion
     public partial class ForgotNewPanel : UserControl
     {
         private readonly LoginWindow _win;
+        private readonly NuevaPasswordViewModel _vm;
         private readonly string _email;
         private bool _show1 = false, _show2 = false;
 
@@ -27,6 +28,7 @@ namespace CapaUI.Formularios.InicioSesion
         {
             _win   = win;
             _email = email;
+            _vm    = new NuevaPasswordViewModel(win.Recuperacion);
             InitializeComponent();
             int maxLen = ReglasUsuario.Password.LargoMaximo ?? 72;
             TxtNew.MaxLength = maxLen;
@@ -136,18 +138,15 @@ namespace CapaUI.Formularios.InicioSesion
         // ── Validation ──
         private void Validate()
         {
-            string pwd     = NewPassword;
-            string confirm = ConfirmPassword;
+            // Las cajas son PasswordBox y no se pueden bindear: la vista las empuja al
+            // ViewModel y despues le pregunta el estado, en vez de recalcularlo acá.
+            _vm.NuevaPassword = NewPassword;
+            _vm.Confirmacion  = ConfirmPassword;
 
-            UpdateRules(pwd);
+            UpdateRules(_vm.NuevaPassword);
 
-            bool allRules = ReglasContrasena.CumpleTodasLasReglas(pwd);
-
-            bool match = pwd == confirm;
-            LblMismatch.Visibility = (!match && confirm.Length > 0)
-                ? Visibility.Visible : Visibility.Collapsed;
-
-            BtnSubmit.IsEnabled = allRules && match && pwd.Length > 0;
+            LblMismatch.Visibility = _vm.MostrarNoCoinciden ? Visibility.Visible : Visibility.Collapsed;
+            BtnSubmit.IsEnabled    = _vm.PuedeGuardar;
         }
 
         private void BtnBack_Click(object sender, RoutedEventArgs e)
@@ -159,20 +158,19 @@ namespace CapaUI.Formularios.InicioSesion
             BtnSubmit.Content   = "Actualizando…";
             ErrorContainer.Visibility = Visibility.Collapsed;
 
-            try
+            _vm.NuevaPassword = NewPassword;
+            _vm.Confirmacion  = ConfirmPassword;
+
+            if (await _vm.GuardarAsync())
             {
-                var client = await ServicioConexión.Conexion.ConexionSupabase.GetClientAsync();
-                await client.Auth.Update(new Supabase.Gotrue.UserAttributes { Password = NewPassword });
-                await client.Auth.SignOut();
                 ShowSuccess();
+                return;
             }
-            catch (Exception)
-            {
-                LblError.Text = "No se pudo actualizar la contraseña. Inténtalo de nuevo.";
-                ErrorContainer.Visibility = Visibility.Visible;
-                BtnSubmit.IsEnabled = true;
-                BtnSubmit.Content   = "Actualizar contraseña";
-            }
+
+            LblError.Text = _vm.Error;
+            ErrorContainer.Visibility = Visibility.Visible;
+            BtnSubmit.IsEnabled = true;
+            BtnSubmit.Content   = "Actualizar contraseña";
         }
 
         private void ShowSuccess()

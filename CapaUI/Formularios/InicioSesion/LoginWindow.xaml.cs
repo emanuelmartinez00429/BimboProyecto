@@ -27,6 +27,13 @@ namespace CapaUI.Formularios.InicioSesion
         /// </summary>
         private readonly LoginViewModel _vm;
 
+        /// <summary>
+        /// Se inyecta acá y viaja a los tres paneles de recuperación por constructor.
+        /// Ellos no lo piden al contenedor (AGENTS.md, regla 9) ni le hablan a Supabase
+        /// por su cuenta, que es lo que hacían antes (P-058).
+        /// </summary>
+        public IRecuperacionPasswordService Recuperacion { get; }
+
         private readonly IEmpresaRepository _empresaRepository;
         private readonly LogoEmpresaCache _logoCache;
         private readonly EmpresaThemeService _themeService;
@@ -39,6 +46,7 @@ namespace CapaUI.Formularios.InicioSesion
         public LoginWindow(
             IAuthService authService,
             IUsuarioSesionService sesionService,
+            IRecuperacionPasswordService recuperacion,
             IEmpresaRepository empresaRepository,
             LogoEmpresaCache logoCache,
             EmpresaThemeService themeService)
@@ -46,6 +54,7 @@ namespace CapaUI.Formularios.InicioSesion
             _empresaRepository = empresaRepository;
             _logoCache = logoCache;
             _themeService = themeService;
+            Recuperacion  = recuperacion;
             _vm = new LoginViewModel(authService, sesionService);
             InitializeComponent();
             TxtEmail.MaxLength = ReglasUsuario.Correo.LargoMaximo ?? 50;

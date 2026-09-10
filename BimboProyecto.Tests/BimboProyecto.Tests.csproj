@@ -35,5 +35,7 @@
     -->
     <Compile Include="..\CapaUI\Formularios\InicioSesion\LoginViewModel.cs"
              Link="Auth\LoginViewModel.cs" />
+    <Compile Include="..\CapaUI\Formularios\InicioSesion\RecuperacionPasswordViewModels.cs"
+             Link="Auth\RecuperacionPasswordViewModels.cs" />
   </ItemGroup>
 </Project>

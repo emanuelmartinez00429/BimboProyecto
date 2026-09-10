@@ -11,12 +11,14 @@ namespace CapaUI.Formularios.InicioSesion
     public partial class ForgotEmailPanel : UserControl
     {
         private readonly LoginWindow _win;
+        private readonly SolicitarCodigoViewModel _vm;
 
         private static readonly WpfBrush _borderBrush = new(WpfColor.FromRgb(0xD8, 0xDC, 0xE4));
 
         public ForgotEmailPanel(LoginWindow win)
         {
             _win = win;
+            _vm  = new SolicitarCodigoViewModel(win.Recuperacion);
             InitializeComponent();
             TxtEmail.MaxLength = ReglasUsuario.Correo.LargoMaximo ?? 50;
         }
@@ -29,8 +31,8 @@ namespace CapaUI.Formularios.InicioSesion
             // ReglasFormato.EsCorreo trata el vacío como válido (es la convención de
             // los campos opcionales), así que acá hace falta exigir contenido
             // aparte: con la caja vacía el botón tiene que quedar deshabilitado.
-            BtnSend.IsEnabled = ReglasFormato.TieneContenido(TxtEmail.Text)
-                             && ReglasFormato.EsCorreo(TxtEmail.Text);
+            _vm.Email = TxtEmail.Text;
+            BtnSend.IsEnabled = _vm.PuedeEnviar;
             ErrorContainer.Visibility = Visibility.Collapsed;
         }
 
@@ -52,25 +54,23 @@ namespace CapaUI.Formularios.InicioSesion
 
         private async void BtnSend_Click(object sender, RoutedEventArgs e)
         {
-            string email = TxtEmail.Text.Trim();
+            _vm.Email = TxtEmail.Text;
             BtnSend.IsEnabled = false;
             BtnSend.Content = "Enviando…";
 
-            try
+            if (await _vm.EnviarAsync())
             {
-                var client = await ServicioConexión.Conexion.ConexionSupabase.GetClientAsync();
-                await client.Auth.ResetPasswordForEmail(email);
+                // La pausa no es cosmética: el correo tarda, y saltar al paso siguiente
+                // al instante hace que el usuario mire una caja vacía pensando que falló.
                 await Task.Delay(600);
+                _win.NavigateTo(new ForgotCodePanel(_win, _vm.Email.Trim()), "Verificar código");
+                return;
+            }
 
-                _win.NavigateTo(new ForgotCodePanel(_win, email), "Verificar código");
-            }
-            catch (Exception ex)
-            {
-                LblError.Text = ex.Message;
-                ErrorContainer.Visibility = Visibility.Visible;
-                BtnSend.IsEnabled = true;
-                BtnSend.Content = "Enviar código";
-            }
+            LblError.Text = _vm.Error;
+            ErrorContainer.Visibility = Visibility.Visible;
+            BtnSend.IsEnabled = true;
+            BtnSend.Content = "Enviar código";
         }
     }
 }

@@ -1273,28 +1273,48 @@ Al cerrar el último, sacar `RestarMargen` de `App.xaml`.
 
 ---
 
-### P-058 · Los paneles de recuperación de contraseña le hablan directo a Supabase desde la UI
+### ~~P-058 · El módulo de Login sin ViewModel y con llamadas directas a Supabase desde la UI~~ ✅ Resuelto 2026-09-09
 
-**Archivos:** `CapaUI/Formularios/InicioSesion/` — `ForgotCodePanel.xaml.cs` (194), `ForgotNewPanel.xaml.cs` (188), `ForgotEmailPanel.xaml.cs` (76)
+**Archivos:** `CapaUI/Formularios/InicioSesion/` (los cuatro code-behind), `CapaAplicacion4/Auth/Interfaces/`, `CapaDatos/Auth/`
 **Detectado en:** auditoría de módulos del 2026-09-09
 
-> [!success] La parte de `LoginWindow` de este ítem se resolvió el 2026-09-09
-> El orquestado de autenticación salió a `LoginViewModel`, libre de tipos de WPF, con **26 pruebas** que cubren camino feliz, credenciales rechazadas, sesión fallida, excepción inesperada, la regla del botón y los tramos de progreso. El resto de `LoginWindow.xaml.cs` es legítimamente vista (chrome, foco, spinners, logo y el intercambio `PasswordBox`/`TextBox`, que no se puede bindear por diseño de WPF).
+Eran **dos problemas encimados**, y el segundo era el grave:
 
-Lo que queda es **un problema distinto y más de fondo que MVVM**. Los tres paneles de recuperación no solo tienen la lógica en el code-behind: **hablan directo con Supabase desde la capa de UI**, salteando `CapaAplicacion` y `CapaDatos`:
+1. `LoginWindow` no tenía ViewModel: 858 líneas de lógica de autenticación en code-behind, manipulando el árbol visual por `x:Name`. El flujo no se podía probar sin levantar una `Window`.
+2. Los tres paneles de recuperación **le hablaban directo a Supabase desde la capa de UI** (`ConexionSupabase.GetClientAsync()` → `client.Auth.ResetPasswordForEmail` / `VerifyOTP` / `Update`), salteando `CapaAplicacion` y `CapaDatos` — y además a través del proyecto huérfano de P-056.
 
-```csharp
-var client = await ServicioConexión.Conexion.ConexionSupabase.GetClientAsync();
-await client.Auth.ResetPasswordForEmail(email);          // ForgotEmailPanel, ForgotCodePanel
-await client.Auth.VerifyOTP(...);                        // ForgotCodePanel
-await client.Auth.Update(new UserAttributes { ... });    // ForgotNewPanel
-```
+**Resolución**
 
-Eso viola las reglas de oro de [[AGENTS]] sobre capas, y encima lo hace **a través de `ServicioConexión`, que es el proyecto huérfano de P-056**: los tres paneles dependen de la copia duplicada de `ConexionSupabase`.
+- **Capa de aplicación:** contrato nuevo `IRecuperacionPasswordService` (`EnviarCodigoAsync`, `VerificarCodigoAsync`, `CambiarPasswordAsync`), devolviendo `Result` como `IAuthService`.
+- **Capa de datos:** `RecuperacionPasswordService` contra Gotrue, con la misma convención de log interno y mensaje corto al usuario. Registrado en DI.
+- **UI:** `LoginViewModel` para el ingreso y `SolicitarCodigoViewModel` / `VerificarCodigoViewModel` / `NuevaPasswordViewModel` para los tres pasos. Todos **sin un solo tipo de WPF**. `LoginWindow` recibe el servicio por constructor y se lo presta a los paneles (regla 9).
 
-**Riesgo:** el flujo de recuperación de contraseña —que permite tomar control de una cuenta— no tiene ninguna capa de aplicación adelante: no hay `Result`, no hay política de dominio, no hay punto único donde auditar o limitar intentos, y no se puede probar sin red real. Y como pasa por el proyecto huérfano, arreglar algo en la copia viva de `ConexionSupabase` puede no afectarlo.
+> [!check] Evidencia de verificación
+> - **58 pruebas nuevas** en `BimboProyecto.Tests/Auth/` (26 de ingreso + 32 de recuperación). Suite completa: **344/344**.
+> - `grep -rn "ConexionSupabase\|client.Auth" CapaUI/` sobre `InicioSesion/`: **cero coincidencias**.
+> - Build: 0 errores, 0 advertencias.
+> - **La separación se verifica sola:** los ViewModels se enlazan al proyecto de pruebas, que apunta a `net8.0` y no a `net8.0-windows`. Si alguien les mete un `Visibility` o un `Brush`, las pruebas dejan de compilar — no depende de que alguien lo revise.
 
-**Solución:** no alcanza con extraer tres ViewModels. Primero hay que **crear el contrato en `CapaAplicacion`** (`IRecuperacionPasswordService` con `EnviarCodigoAsync`, `VerificarCodigoAsync`, `CambiarPasswordAsync`, devolviendo `Result`), implementarlo en `CapaDatos` y recién ahí apoyar los ViewModels encima. Es un cambio que cruza tres capas y toca un flujo de seguridad, así que se registró en vez de arrastrarlo dentro del pase de `LoginWindow`. Al hacerlo se cierra también la dependencia de estos tres archivos con P-056.
+**Lo que se dejó en el code-behind a propósito:** chrome de la ventana, efectos de foco, spinners, bitmap del logo y el intercambio `PasswordBox`/`TextBox`. `PasswordBox` no se puede bindear — es una decisión de seguridad de WPF —, así que la vista empuja la contraseña al ViewModel.
+
+**Queda fuera de este ítem:** `MainWindow.xaml.cs:717` sigue llamando a `ConexionSupabase` directo para el cierre de sesión. Es otro módulo y otro flujo; se anota acá para que no se pierda.
+
+**Estado:** `[x]` Resuelto — **pendiente de prueba manual de Fernando**: login real, login con credenciales malas, y el flujo completo de recuperación con un correo de verdad.
+
+---
+
+### P-059 · La recuperación de contraseña no verifica que la cuenta esté habilitada
+
+**Archivos:** `CapaDatos/Auth/RecuperacionPasswordService.cs`
+**Detectado en:** al poner el flujo detrás de un contrato (P-058), 2026-09-09
+
+`AuthService.LoginAsync` rechaza a los usuarios deshabilitados (`usuario.idEstado != 1` → `SignOut` y error). **El flujo de recuperación no hace esa verificación**: una cuenta deshabilitada puede pedir un código, verificarlo y cambiarse la contraseña.
+
+**Riesgo: acotado, no es una brecha activa.** Aunque cambie su contraseña, el usuario deshabilitado **sigue sin poder entrar** — `LoginAsync` lo frena igual. Lo que sí permite es que una cuenta dada de baja consuma envíos de correo y OTP, y deja el flujo sin defensa en profundidad: si alguien alguna vez relaja el chequeo del login, este camino ya estaría abierto.
+
+**Solución:** verificar el estado de la cuenta en `VerificarCodigoAsync` (o antes, en `EnviarCodigoAsync`), reusando `RepositorioUsuario`. Ojo con no romper la no-enumeración de cuentas: el mensaje al usuario tiene que seguir siendo el mismo exista o no la cuenta.
+
+**No se cerró en el mismo pase porque cambia el comportamiento** (alguien deshabilitado dejaría de poder resetear) y eso es decisión del dueño del producto, no un efecto colateral de un refactor. Se dejó planteado explícitamente a Fernando el 2026-09-09.
 
 **Estado:** `[ ]` Pendiente
 
@@ -1361,7 +1381,8 @@ Eso viola las reglas de oro de [[AGENTS]] sobre capas, y encima lo hace **a trav
 | P-055 | El apagado del auto-refresh de Gotrue dependía de `SignOut()` (llamada de red) + timeout decorativo en el logout | `[x]` Resuelto | [[Sesión 2026-09-08 - Cierre de P-054 y P-055]] |
 | P-056 | `ServicioConexión` huérfano duplica `ConexionSupabase` con el mismo namespace | `[ ]` Pendiente | [[Sesión 2026-09-08 - Cierre de P-054 y P-055]] |
 | P-057 | 16 modales y 12 vistas sin previsualización en el diseñador de VS | `[ ]` Pendiente | [[ADR-028 - Previsualizacion de UserControls en el disenador de VS]] |
-| P-058 | Paneles de recuperación de contraseña llaman a Supabase desde la UI (la parte de `LoginWindow` ✅ resuelta 2026-09-09) | `[ ]` Pendiente | [[Anatomia compartida de los modales]] |
+| P-058 | Login sin ViewModel y paneles de recuperación llamando a Supabase desde la UI | ✅ Resuelto | 58 pruebas nuevas; suite 344/344 |
+| P-059 | La recuperación de contraseña no verifica que la cuenta esté habilitada | `[ ]` Pendiente | Detectado al resolver P-058 |
 
 ---
 

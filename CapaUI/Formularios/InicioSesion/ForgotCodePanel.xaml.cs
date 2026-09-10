@@ -14,6 +14,7 @@ namespace CapaUI.Formularios.InicioSesion
     public partial class ForgotCodePanel : UserControl
     {
         private readonly LoginWindow _win;
+        private readonly VerificarCodigoViewModel _vm;
         private readonly string _email;
         private TextBox[] _digits = null!;
         private DispatcherTimer _timer = null!;
@@ -23,6 +24,7 @@ namespace CapaUI.Formularios.InicioSesion
         {
             _win   = win;
             _email = email;
+            _vm    = new VerificarCodigoViewModel(win.Recuperacion, email);
             InitializeComponent();
 
             SubtitleBlock.Inlines.Clear();
@@ -143,20 +145,17 @@ namespace CapaUI.Formularios.InicioSesion
             BtnResend.Visibility    = Visibility.Collapsed;
             TxtCountdown.Visibility = Visibility.Visible;
             ErrorContainer.Visibility = Visibility.Collapsed;
-            try
+            if (await _vm.ReenviarAsync())
             {
-                var client = await ServicioConexión.Conexion.ConexionSupabase.GetClientAsync();
-                await client.Auth.ResetPasswordForEmail(_email);
                 StartCountdown();
+                return;
             }
-            catch
-            {
-                // #9: Informar al usuario si el reenvío falló
-                TxtCountdown.Visibility = Visibility.Collapsed;
-                BtnResend.Visibility    = Visibility.Visible;
-                LblError.Text = "No se pudo reenviar el código. Verifica tu conexión.";
-                ErrorContainer.Visibility = Visibility.Visible;
-            }
+
+            // #9: Informar al usuario si el reenvío falló
+            TxtCountdown.Visibility = Visibility.Collapsed;
+            BtnResend.Visibility    = Visibility.Visible;
+            LblError.Text = _vm.Error;
+            ErrorContainer.Visibility = Visibility.Visible;
         }
 
         private void BtnVerify_Click(object sender, RoutedEventArgs e) => _ = VerifyAsync();
@@ -167,28 +166,21 @@ namespace CapaUI.Formularios.InicioSesion
             BtnVerify.Content   = "Verificando…";
             ErrorContainer.Visibility = Visibility.Collapsed;
 
-            try
+            _vm.Codigo = GetCode();
+
+            if (await _vm.VerificarAsync())
             {
-                string otp    = GetCode();
-                var client    = await ServicioConexión.Conexion.ConexionSupabase.GetClientAsync();
-                var session   = await client.Auth.VerifyOTP(
-                    _email, otp, Supabase.Gotrue.Constants.EmailOtpType.Recovery);
-
-                if (session?.User == null)
-                    throw new Exception("Código inválido o expirado.");
-
                 _timer?.Stop();
                 _win.NavigateTo(new ForgotNewPanel(_win, _email), "Nueva contraseña");
+                return;
             }
-            catch (Exception)
-            {
-                LblError.Text = "Código incorrecto o expirado. Inténtalo de nuevo.";
-                ErrorContainer.Visibility = Visibility.Visible;
-                BtnVerify.IsEnabled = true;
-                BtnVerify.Content   = "Verificar código";
-                foreach (var d in _digits) d.Text = "";
-                D1.Focus();
-            }
+
+            LblError.Text = _vm.Error;
+            ErrorContainer.Visibility = Visibility.Visible;
+            BtnVerify.IsEnabled = true;
+            BtnVerify.Content   = "Verificar código";
+            foreach (var d in _digits) d.Text = "";
+            D1.Focus();
         }
     }
 }
