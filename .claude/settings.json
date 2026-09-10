@@ -24,6 +24,11 @@
             "type": "command",
             "command": "node .claude/hooks/diagram-auto-suggest.js 2>/dev/null || true",
             "statusMessage": "Detectando solicitudes de diagramas..."
+          },
+          {
+            "type": "command",
+            "command": "node .claude/hooks/ui-conventions-suggest.js 2>/dev/null || true",
+            "statusMessage": "Detectando trabajo en XAML/WPF..."
           }
         ]
       }

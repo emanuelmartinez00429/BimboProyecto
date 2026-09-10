@@ -177,13 +177,14 @@ Proyecto Bimbo usa **3 niveles de inyección de contexto** para cualquier agente
 |---|---|---|
 | `vault-trigger.js` | SessionStart + UserPromptSubmit | Lee bóveda Obsidian (test de conexión "pregunta clave") |
 | `diagram-auto-suggest.js` | UserPromptSubmit | Detecta solicitudes de diagrama, sugiere `/diagram-design` |
+| `ui-conventions-suggest.js` | UserPromptSubmit | Detecta trabajo en XAML/WPF (palabra "xaml", `UserControl`, `converter`, "diseñador de VS", etc.), recuerda leer `20 - Patrones/Convenciones de UI (WPF)…` y sugiere la skill `ui-conventions`. Umbral: 1 señal fuerte o 2 coincidencias — "wpf"/"modal" solos no disparan |
 
 ### Skills disponibles
 
 | Skill | Cuándo se usa | Activación |
 |---|---|---|
 | `diagram-design` | Cualquier solicitud de diagrama | Automática (hook `diagram-auto-suggest.js`) u manual `/diagram-design` |
-| `ui-conventions` | Antes de crear/editar cualquier `.xaml` o su code-behind | Manual `/ui-conventions`; el checklist resume `20 - Patrones/Convenciones de UI (WPF)…` y el arné de verificación |
+| `ui-conventions` | Antes de crear/editar cualquier `.xaml` o su code-behind | Automática (hook `ui-conventions-suggest.js`) o manual `/ui-conventions`; el checklist resume `20 - Patrones/Convenciones de UI (WPF)…` y el arné de verificación |
 
 **Ventaja:** El usuario no tiene que recordar qué skill usar — el hook lo detecta y lo sugiere automáticamente.
 
