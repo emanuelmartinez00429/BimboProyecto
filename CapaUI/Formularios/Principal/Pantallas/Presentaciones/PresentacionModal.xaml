@@ -12,7 +12,7 @@
              UseLayoutRounding="True"
              TextOptions.TextRenderingMode="Grayscale"
              TextOptions.TextFormattingMode="Display"
-             controls:AtajoGuardar.Boton="{Binding ElementName=BtnGuardar}">
+             controls:AtajoGuardar.Boton="{x:Reference BtnGuardar}">
 
     <UserControl.Resources>
         <ResourceDictionary>

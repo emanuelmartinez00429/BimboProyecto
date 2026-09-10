@@ -11,7 +11,7 @@
              d:DesignHeight="650"
              UseLayoutRounding="True"
              TextOptions.TextRenderingMode="Grayscale"
-             TextOptions.TextFormattingMode="Display" controls:AtajoGuardar.Boton="{Binding ElementName=BtnGuardar}">
+             TextOptions.TextFormattingMode="Display" controls:AtajoGuardar.Boton="{x:Reference BtnGuardar}">
 
     <UserControl.Resources>
         <ResourceDictionary>
