@@ -14,6 +14,8 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Npgsql" Version="8.0.3" />
+    <!-- Lo necesita LoginViewModel, enlazado abajo desde CapaUI. -->
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CapaAplicacion4\CapaAplicacion.csproj" />
@@ -25,5 +27,13 @@
     <Compile Include="..\CapaUI\Core\Controls\Paginacion.cs" Link="Core\Controls\Paginacion.cs" />
     <Compile Include="..\CapaUI\Formularios\Principal\Pantallas\Notificaciones\NotificacionMetadataRenderer.cs"
              Link="Notificaciones\NotificacionMetadataRenderer.cs" />
+    <!--
+      LoginViewModel se enlaza en vez de referenciar CapaUI porque este proyecto apunta
+      a net8.0 y CapaUI a net8.0-windows. Que compile acá es justamente la prueba de que
+      el ViewModel no arrastra tipos de WPF: si alguien le mete un Visibility o un Brush,
+      esta línea deja de compilar y el test falla antes que la revisión humana.
+    -->
+    <Compile Include="..\CapaUI\Formularios\InicioSesion\LoginViewModel.cs"
+             Link="Auth\LoginViewModel.cs" />
   </ItemGroup>
 </Project>

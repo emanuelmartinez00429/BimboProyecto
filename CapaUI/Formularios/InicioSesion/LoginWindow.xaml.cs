@@ -21,8 +21,12 @@ namespace CapaUI.Formularios.InicioSesion
     {
         public event EventHandler? LoginExitoso;
 
-        private readonly IAuthService _authService;
-        private readonly IUsuarioSesionService _sesionService;
+        /// <summary>
+        /// La máquina de estados del login. Acá queda solo la vista: chrome, foco,
+        /// spinners, el logo y el intercambio PasswordBox/TextBox del ojito. Ver P-058.
+        /// </summary>
+        private readonly LoginViewModel _vm;
+
         private readonly IEmpresaRepository _empresaRepository;
         private readonly LogoEmpresaCache _logoCache;
         private readonly EmpresaThemeService _themeService;
@@ -39,11 +43,10 @@ namespace CapaUI.Formularios.InicioSesion
             LogoEmpresaCache logoCache,
             EmpresaThemeService themeService)
         {
-            _authService    = authService;
-            _sesionService  = sesionService;
             _empresaRepository = empresaRepository;
             _logoCache = logoCache;
             _themeService = themeService;
+            _vm = new LoginViewModel(authService, sesionService);
             InitializeComponent();
             TxtEmail.MaxLength = ReglasUsuario.Correo.LargoMaximo ?? 50;
             TxtPassword.MaxLength = ReglasUsuario.Password.LargoMaximo ?? 72;
@@ -192,9 +195,11 @@ namespace CapaUI.Formularios.InicioSesion
         // ── Campos ───────────────────────────────────────────────────────────
         private void Fields_Changed(object sender, RoutedEventArgs e)
         {
-            BtnIngresar.IsEnabled = ReglasLogin.CredencialesCompletas(
-                TxtEmail.Text,
-                _pwdVisible ? TxtPasswordVisible.Text : TxtPassword.Password);
+            // El PasswordBox no se puede bindear (decisión de seguridad de WPF), así que
+            // la vista empuja los dos campos al ViewModel y le pregunta la regla.
+            _vm.Email    = TxtEmail.Text;
+            _vm.Password = _pwdVisible ? TxtPasswordVisible.Text : TxtPassword.Password;
+            BtnIngresar.IsEnabled = _vm.PuedeIngresar;
         }
 
         private void Field_KeyDown(object sender, KeyEventArgs e)
@@ -229,8 +234,10 @@ namespace CapaUI.Formularios.InicioSesion
 
         private async System.Threading.Tasks.Task IngresarAsync()
         {
-            string email    = TxtEmail.GetFullText();
-            string password = _pwdVisible ? TxtPasswordVisible.Text : TxtPassword.Password;
+            // El correo real lleva el sufijo de dominio que pinta el GhostTextBox, y eso
+            // Fields_Changed no lo ve: se vuelve a empujar acá, antes de autenticar.
+            _vm.Email    = TxtEmail.GetFullText();
+            _vm.Password = _pwdVisible ? TxtPasswordVisible.Text : TxtPassword.Password;
 
             BtnIngresar.IsEnabled = false;
             OcultarError();
@@ -257,31 +264,34 @@ namespace CapaUI.Formularios.InicioSesion
 
             try
             {
-                // Step 1: Verificar credenciales.
-                // La animación corre en paralelo con la llamada real (no en serie),
-                // así el tiempo del paso es max(animación, red), no la suma de ambos.
-                var animStep1 = AnimarStep(S1Dot, S1Text, 0, 25);
-                var loginTask = _authService.LoginAsync(email, password);
-                await System.Threading.Tasks.Task.WhenAll(animStep1, loginTask);
-                var result = loginTask.Result;
-                if (!result.Success)
+                // Pasos 1 y 2 (credenciales y sesión) los orquesta el ViewModel. Acá solo
+                // queda la animación, que sigue corriendo EN PARALELO con la llamada de red
+                // — el paso dura max(animación, red) y no la suma. Ese entrelazado no cambió:
+                // se lo pasamos al ViewModel como callback.
+                int tramo = 0;
+                System.Threading.Tasks.Task AnimarTramo(int desde, int hasta)
                 {
-                    VolverAlLogin(result.Error);
-                    return;
+                    tramo++;
+                    var (punto, rotulo) = tramo == 1 ? (S1Dot, S1Text) : (S2Dot, S2Text);
+                    return AnimarStep(punto, rotulo, desde, hasta);
                 }
-                CompletarStep(S1Dot, S1Text);
 
-                // Step 2: Establecer sesión + permisos + perfil (una sola llamada)
-                var animStep2  = AnimarStep(S2Dot, S2Text, 25, 70);
-                var sesionTask = _sesionService.IniciarSesionAsync(result.Value!.IdUsuario);
-                await System.Threading.Tasks.Task.WhenAll(animStep2, sesionTask);
-                var sesion = sesionTask.Result;
-                if (!sesion.Success)
+                void MarcarPaso(int paso)
                 {
-                    VolverAlLogin(sesion.Error);
+                    if (paso == 1) CompletarStep(S1Dot, S1Text);
+                    else           CompletarStep(S2Dot, S2Text);
+                }
+
+                _vm.PasoCompletado += MarcarPaso;
+                ResultadoIngreso resultado;
+                try     { resultado = await _vm.IngresarAsync(AnimarTramo); }
+                finally { _vm.PasoCompletado -= MarcarPaso; }
+
+                if (resultado != ResultadoIngreso.Exitoso)
+                {
+                    VolverAlLogin(_vm.Error);
                     return;
                 }
-                CompletarStep(S2Dot, S2Text);
 
                 // Diagnóstico del contrato Permiso(enum) ↔ acciones.nombre_accion (P-018)
                 CapaUI.Core.Permisos.SesionPermisos.ValidarContraBD();
