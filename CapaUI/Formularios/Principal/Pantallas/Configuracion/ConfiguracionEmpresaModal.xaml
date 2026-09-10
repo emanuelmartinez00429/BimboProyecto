@@ -1,7 +1,13 @@
 <UserControl x:Class="CapaUI.Formularios.Principal.Pantallas.Configuracion.ConfiguracionEmpresaModal"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:conv="clr-namespace:CapaUI.Converters"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
              MinWidth="720" MaxWidth="940" MaxHeight="720"
+             d:DesignWidth="940"
+             d:DesignHeight="720"
              UseLayoutRounding="True"
              TextOptions.TextRenderingMode="Grayscale"
              TextOptions.TextFormattingMode="Display">
@@ -153,7 +159,7 @@
 
                     <Border Grid.Row="1" Grid.ColumnSpan="3" Background="#FEF2F2" BorderBrush="#FECACA" BorderThickness="1"
                             CornerRadius="7" Padding="10" Margin="0,18,0,0"
-                            Visibility="{Binding HayError, Converter={StaticResource BoolToVisibility}}">
+                            Visibility="{Binding HayError, Converter={x:Static conv:BoolToVisibilityConverter.Instancia}}">
                         <TextBlock Text="{Binding Error}" Foreground="#B91C1C" TextWrapping="Wrap"/>
                     </Border>
                 </Grid>
@@ -162,7 +168,7 @@
             <Border Grid.Row="2" Background="#F8FAFC" BorderBrush="#E5E7EB" BorderThickness="0,1,0,0" CornerRadius="0,0,14,14">
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="20,0">
                     <TextBlock Text="Cargando configuración..." VerticalAlignment="Center" Foreground="#64748B" Margin="0,0,16,0"
-                               Visibility="{Binding Cargando, Converter={StaticResource BoolToVisibility}}"/>
+                               Visibility="{Binding Cargando, Converter={x:Static conv:BoolToVisibilityConverter.Instancia}}"/>
                     <Button Content="Cancelar" Command="{Binding CancelarCommand}" Style="{StaticResource SecondaryButton}" Margin="0,0,10,0"/>
                     <Button Command="{Binding GuardarCommand}" Height="38" Padding="22,0" BorderThickness="0" Cursor="Hand"
                             Background="{DynamicResource EmpresaPrimaryBrush}" Foreground="White" FontWeight="SemiBold">

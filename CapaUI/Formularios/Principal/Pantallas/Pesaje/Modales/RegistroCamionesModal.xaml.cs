@@ -45,7 +45,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
     /// </remarks>
     public partial class RegistroCamionesModal : UserControl, IDisposable
     {
-        private readonly ICatalogoRepository _catalogos;
+        private readonly ICatalogoRepository _catalogos = null!;
         private System.Windows.Media.Animation.Storyboard? _spinnerGuardar;
 
         /// <summary>
@@ -55,10 +55,10 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
         /// corta a mitad deja recepciones nuevas que este modal tiene que ver — ver
         /// <see cref="AplicarGuardadoParcial"/>.
         /// </summary>
-        private IReadOnlyList<CamionPesaje> _camionesAbiertos;
+        private IReadOnlyList<CamionPesaje> _camionesAbiertos = null!;
 
         /// <summary>Placas distintas ya abiertas — lo que consume cupo (ver <c>PesajeViewModel.PlacasAbiertas</c>).</summary>
-        private IReadOnlyCollection<string> _placasAbiertas;
+        private IReadOnlyCollection<string> _placasAbiertas = null!;
 
         private readonly ObservableCollection<FilaCamion> _filas = new();
 
@@ -75,6 +75,19 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
 
         public event Action? Cerrado;
         public event Action<IReadOnlyList<CamionRegistrado>>? Confirmado;
+
+        /// <summary>
+        /// Constructor sin parámetros solo para el diseñador de Visual Studio, que
+        /// instancia el control por acá. Deja los servicios en <c>null!</c> porque este
+        /// camino no opera el modal. Ver <c>ProductosCargaModal</c> y ADR-028.
+        /// </summary>
+        public RegistroCamionesModal()
+        {
+            _catalogos        = null!;
+            _camionesAbiertos = null!;
+            _placasAbiertas   = null!;
+            InitializeComponent();
+        }
 
         public RegistroCamionesModal(IReadOnlyList<CamionPesaje> camionesAbiertos)
         {

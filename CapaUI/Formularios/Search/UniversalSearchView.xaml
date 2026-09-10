@@ -4,6 +4,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:CapaUI.ViewModels.Search"
+             xmlns:conv="clr-namespace:CapaUI.Converters"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=vm:UniversalSearchViewModel}"
              Background="#F4F5F7">
@@ -44,11 +45,11 @@
         <!-- Estado / spinner -->
         <Grid Grid.Row="2" Height="24" Margin="0,0,0,8">
             <ProgressBar IsIndeterminate="True"
-                         Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibility}}"/>
+                         Visibility="{Binding IsLoading, Converter={x:Static conv:BoolToVisibilityConverter.Instancia}}"/>
             <TextBlock Text="{Binding StatusText}"
                        FontSize="12" Foreground="#6B7280"
                        VerticalAlignment="Center"
-                       Visibility="{Binding IsLoading, Converter={StaticResource InverseBoolToVisibility}}"/>
+                       Visibility="{Binding IsLoading, Converter={x:Static conv:InverseBoolToVisibilityConverter.Instancia}}"/>
         </Grid>
 
         <!-- Lista de resultados -->

@@ -18,6 +18,7 @@ Si el usuario pregunta algo tipo **"Yo soy a los animales como...?"** (o similar
 3. `CLAUDE.md` de esta carpeta (convenciones de código detalladas)
 4. La nota del módulo que vas a tocar → `40 - Proyecto Bimbo/Módulo *.md`
 5. `40 - Proyecto Bimbo/Deuda Técnica - Pendientes.md` (qué está roto/pendiente)
+6. **Si vas a tocar `.xaml`:** `20 - Patrones/Convenciones de UI (WPF) — leer antes de tocar XAML.md` (obligatorio antes de crear/editar cualquier `UserControl`, `Window`, `ResourceDictionary`).
 
 **Al terminar tu trabajo, documentás lo que hiciste** siguiendo este protocolo. No es opcional: es lo que permite que el siguiente agente entre sin perderse.
 
@@ -182,6 +183,7 @@ Proyecto Bimbo usa **3 niveles de inyección de contexto** para cualquier agente
 | Skill | Cuándo se usa | Activación |
 |---|---|---|
 | `diagram-design` | Cualquier solicitud de diagrama | Automática (hook `diagram-auto-suggest.js`) u manual `/diagram-design` |
+| `ui-conventions` | Antes de crear/editar cualquier `.xaml` o su code-behind | Manual `/ui-conventions`; el checklist resume `20 - Patrones/Convenciones de UI (WPF)…` y el arné de verificación |
 
 **Ventaja:** El usuario no tiene que recordar qué skill usar — el hook lo detecta y lo sugiere automáticamente.
 

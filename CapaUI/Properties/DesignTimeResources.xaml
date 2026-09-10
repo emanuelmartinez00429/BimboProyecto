@@ -4,10 +4,14 @@
     Por qué hace falta y por qué acá y no en Styles.xaml
     ────────────────────────────────────────────────────
     El diseñador no ejecuta App.xaml, así que en el lienzo no existen las claves
-    que App.xaml define directamente: los colores Empresa* y los converters.
-    Sin los colores, el marco degradado de los modales sale transparente y todo
-    su texto —que es blanco, porque está diseñado sobre ese marco— queda blanco
-    sobre blanco: el lienzo se ve vacío aunque el control haya cargado bien.
+    que App.xaml define directamente: los colores Empresa*. Sin ellos, el marco
+    degradado de los modales sale transparente y todo su texto —que es blanco,
+    porque está diseñado sobre ese marco— queda blanco sobre blanco: el lienzo
+    se ve vacío aunque el control haya cargado bien.
+
+    (Los converters ya no hacen falta acá: desde el cierre de P-057 cada XAML los
+    referencia por `{x:Static conv:XConverter.Instancia}`, que resuelve contra el
+    tipo CLR sin diccionario. Ver ADR-028, Addendum 4.)
 
     Estas claves NO pueden ir en Styles.xaml. EmpresaThemeService.Aplicar()
     escribe el tema de cada empresa directamente en Application.Current.Resources,
@@ -27,8 +31,7 @@
     allá, actualizalos acá — son la vista previa, no la fuente de verdad.
 -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:conv="clr-namespace:CapaUI.Converters">
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <!-- Paleta de empresa por defecto (misma que App.xaml). -->
     <Color x:Key="EmpresaPrimaryColor">#1E3A8A</Color>
@@ -49,13 +52,5 @@
         <GradientStop Color="#3B82F6" Offset="1"/>
     </LinearGradientBrush>
 
-    <!-- Converters de App.xaml. Las vistas que los usan en contenido interno
-         (ReporteriaView, UniversalSearchView) fallan sin esto. -->
-    <conv:BoolToVisibilityConverter x:Key="BoolToVisibility"/>
-    <conv:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibility"/>
-    <conv:RestarMargenConverter x:Key="RestarMargen"/>
-    <conv:AnchoMinimoAVisibilidadConverter x:Key="AnchoMinimoAVisibilidad"/>
-    <conv:VacioAVisibilidadConverter x:Key="VacioAVisibilidad"/>
-    <conv:TextoVacioConverter x:Key="TextoVacioConverter"/>
 
 </ResourceDictionary>

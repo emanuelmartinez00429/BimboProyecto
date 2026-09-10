@@ -240,6 +240,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Empleados
 
         private void MostrarModal(UserControl modal)
         {
+            CapaUI.Core.ModalLayout.LimitarAlOverlay(modal, ModalOverlay); // ADR-028: el limite lo pone el overlay, no un ancestro
             ModalContent.Content    = modal;
             ModalOverlay.Opacity    = 1;
             ModalOverlay.Visibility = Visibility.Visible;

@@ -1,13 +1,26 @@
 <UserControl x:Class="CapaUI.Core.Controls.SelectorCatalogoModal"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:controls="clr-namespace:CapaUI.Core.Controls"
+             mc:Ignorable="d"
+             d:DesignWidth="800"
+             d:DesignHeight="500"
              UseLayoutRounding="True"
              PreviewKeyDown="OnPreviewKeyDown"
              TextOptions.TextRenderingMode="Grayscale"
              TextOptions.TextFormattingMode="Display">
 
     <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <!-- TablaCatalogoFila/Celda/Header viven en Styles.xaml. El control
+                     declara el diccionario que usa para poder instanciarse fuera de la
+                     app (el diseñador de VS no ejecuta App.xaml). Ver ADR-028. -->
+                <ResourceDictionary Source="/CapaUI;component/Resources/Styles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+
         <Geometry x:Key="IcoClose">M6,6 l12,12 M18,6 l-12,12</Geometry>
         <Geometry x:Key="IcoBox">M21,16 V8 a2,2 0 0 0,-1,-1.73 l-7,-4 a2,2 0 0 0,-2,0 l-7,4 A2,2 0 0 0,3,8 v8 a2,2 0 0 0,1,1.73 l7,4 a2,2 0 0 0,2,0 l7,-4 A2,2 0 0 0,21,16 z</Geometry>
         <Geometry x:Key="IcoCheck">M20,6 L9,17 l-5,-5</Geometry>
@@ -123,6 +136,7 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        </ResourceDictionary>
     </UserControl.Resources>
 
     <!-- Sin chrome propio: llena el contenedor y hereda su marco y su gradiente. -->

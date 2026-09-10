@@ -87,6 +87,13 @@ public partial class SelectorCatalogoModal : UserControl, IDisposable
     /// </summary>
     private readonly CancellationTokenSource _ctsVida = new();
 
+    /// <summary>Constructor de diseño (el diseñador de VS instancia por acá). Ver ADR-028.</summary>
+    public SelectorCatalogoModal()
+    {
+        _cfg = null!;
+        InitializeComponent();
+    }
+
     public SelectorCatalogoModal(CatalogoConfig cfg)
     {
         _cfg = cfg ?? throw new ArgumentNullException(nameof(cfg));

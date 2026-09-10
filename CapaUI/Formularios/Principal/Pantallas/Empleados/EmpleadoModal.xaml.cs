@@ -23,6 +23,13 @@ namespace CapaUI.Formularios.Principal.Pantallas.Empleados
         public event Action? Cerrado;
         public event Action? Guardado;
 
+        /// <summary>Constructor de diseño (el diseñador de VS instancia por acá). Ver ADR-028.</summary>
+        public EmpleadoModal()
+        {
+            _repo = null!;
+            InitializeComponent();
+        }
+
         public EmpleadoModal(IEmpleadoRepository repo, EmpleadoDto? empleado)
         {
             _repo     = repo;

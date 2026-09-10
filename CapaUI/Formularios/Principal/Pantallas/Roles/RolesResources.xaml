@@ -420,7 +420,7 @@
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemContainerStyle>
                         <Style TargetType="ContentPresenter">
-                            <Setter Property="Visibility" Value="{Binding Visible, Converter={StaticResource BoolToVisibility}}"/>
+                            <Setter Property="Visibility" Value="{Binding Visible, Converter={x:Static conv:BoolToVisibilityConverter.Instancia}}"/>
                         </Style>
                     </ItemsControl.ItemContainerStyle>
                     <ItemsControl.ItemTemplate>

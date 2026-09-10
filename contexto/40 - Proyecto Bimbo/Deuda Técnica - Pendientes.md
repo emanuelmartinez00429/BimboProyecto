@@ -1251,10 +1251,25 @@ Hay **dos** clases `ConexionSupabase` en el **mismo namespace** (`ServicioConexi
 
 ---
 
-### P-057 · 16 modales y 12 vistas siguen sin previsualizarse en el diseñador de Visual Studio
+### ~~P-057 · 16 modales y 12 vistas sin previsualizarse en el diseñador de Visual Studio~~ ✅ Resuelto 2026-09-10
 
 **Archivos:** los `*Modal.xaml` de `CapaUI/Formularios/Principal/Pantallas/**` menos `ProductosCargaModal` (ya migrado)
 **Detectado en:** [[ADR-028 - Previsualizacion de UserControls en el disenador de VS]] (2026-09-09)
+
+> [!check] Cierre de los modales — 2026-09-10
+> Los **17 controles de tipo modal** (los 14 con el binding de raíz + `SelectorCatalogoModal` + `ConfiguracionEmpresaModal` + `RolModal`) más `WelcomeScreen` y `ConstructionScreen` se migraron aplicando la receta:
+> 1. **Paso 1** — se sacó el `MaxWidth`/`MaxHeight` del raíz. El límite lo pone el host: `PesajeView.MostrarModal` ya llamaba `LimitarAlOverlay`; para las 9 vistas de catálogo se agregó `CapaUI.Core.ModalLayout.LimitarAlOverlay(modal, ModalOverlay)` (helper compartido nuevo, `CapaUI/Core/ModalLayout.cs`) al principio de cada `MostrarModal`. `ConfiguracionEmpresaModal` usa `MaxWidth`/`MaxHeight` **literales**, no necesita host.
+> 2. **Paso 2** — `Converter={StaticResource RestarMargen}` → `{x:Static conv:RestarMargenConverter.Instancia}` en los 14. Ídem `BoolToVisibility` → `{x:Static conv:BoolToVisibilityConverter.Instancia}` en `ConfiguracionEmpresaModal` (se le agregó el singleton `Instancia`).
+> 3. **Paso 3** — merge de `Styles.xaml` (forma corta) donde faltaba (`SelectorCatalogoModal`).
+> 4. **Paso 4** — constructor sin parámetros en los que no lo tenían (todos menos `FormatoReporteModal`, `Camion`, `Registro`, `Fabricante`, `Producto`, que ya lo tenían de un pase anterior). El de `WelcomeScreen` además guarda `DesignerProperties.GetIsInDesignMode` antes de enganchar el `Loaded` que habla con `App.Services`.
+>
+> **Verificación:** arnés WPF con `new Application()` de `Resources` vacío (la condición del subrogado del diseñador), instanciando cada control por su ctor sin parámetros y midiéndolo. **19/19 renderizan a tamaño real, 0 colapsan a 0×0, 0 excepciones.** Build de la solución 0/0, suite 344/344.
+>
+> **Vistas — cerradas también el 2026-09-10.** Las 12 `*View.xaml` necesitaban **dos** cosas, no una (el barrido del 2026-09-09 solo vio la primera porque el parseo corta en la primera clave que falta):
+> - **Merge de `Styles.xaml`** (paso 3): las 4 sin `<UserControl.Resources>` (`Categorias/Fabricantes/Presentaciones/Proveedores`) lo reciben directo; las 8 con recursos locales se envolvieron en `<ResourceDictionary>` + `MergedDictionaries`.
+> - **Converters de `App.xaml` a `{x:Static}`** (paso 2): las vistas usan `AnchoMinimoAVisibilidad`, `TextoVacioConverter`, `BoolToVisibility`, `InverseBoolToVisibility` y (en `ReporteriaView`) `RestarMargen` — todos vía `{StaticResource}` a una clave de `App.xaml`. Se les agregó el singleton `Instancia` a los 5 converters y se cambiaron los usos a `{x:Static conv:XConverter.Instancia}`.
+>
+> Con eso el arnés da **32/32** (19 modales/pantallas + 13 vistas), 0 colapsos, 0 excepciones. Ya se puede **sacar los 6 converters de `App.xaml`** — quedan definidos como singleton en su propia clase y ningún XAML los referencia por clave. `RestarMargen` incluido.
 
 Los 16 modales del proyecto llevan en su elemento raíz `MaxWidth`/`MaxHeight` con `Converter={StaticResource RestarMargen}` y `RelativeSource AncestorType=Border`. **Eso son dos problemas encimados**: el `{StaticResource}` revienta el parseo, y una vez arreglado eso el binding engancha un `Border` del propio Visual Studio, mide 0 y colapsa el modal a 0×0 — en silencio, porque `FallbackValue` nunca entra. `RestarMargen` vive en `App.xaml`. Como los atributos del elemento raíz se aplican **antes** de que se pueble su propio `<UserControl.Resources>`, ese `{StaticResource}` no se puede resolver localmente y el diseñador —que no ejecuta `App.xaml`— revienta al parsear: lienzo en blanco y `TaskCanceledException` en Salida. El detalle está en [[WPF - StaticResource en atributos del elemento raiz y el disenador de Visual Studio]].
 
@@ -1265,11 +1280,9 @@ Los 16 modales del proyecto llevan en su elemento raíz `MaxWidth`/`MaxHeight` c
 
 **Riesgo:** bajo y acotado a productividad — no afecta runtime ni datos. Pero es persistente: cada vez que alguien abre uno de esos `.xaml` en el diseñador pierde el rato hasta acordarse de que "eso no anda", y ya se gastaron dos intentos fallidos de arreglarlo apuntando a la causa equivocada.
 
-**Solución:** aplicar la receta y las dos tablas de réplica de [[Anatomia compartida de los modales]] (sección *Que el modal se vea en el diseñador de Visual Studio*). Las vistas son la fruta al alcance de la mano: una línea de merge cada una. Cuatro de los modales (`RegistroCamionesModal`, `CamionModal`, `ProductoModal`, `FabricanteModal`) además tienen `App.Services.GetRequiredService<ICatalogoRepository>()` en el constructor, contra la regla 9 de `AGENTS.md`: conviene migrarlos en el mismo pase, ya que `PesajeView` ya resuelve y cachea ese repositorio.
+**Solución:** aplicar la receta y las dos tablas de réplica de [[Anatomia compartida de los modales]] (sección *Que el modal se vea en el diseñador de Visual Studio*). Las vistas son la fruta al alcance de la mano: una línea de merge cada una. Cuatro de los modales (`RegistroCamionesModal`, `CamionModal`, `ProductoModal`, `FabricanteModal`) además tenían `App.Services.GetRequiredService<ICatalogoRepository>()` en el constructor, contra la regla 9 de `AGENTS.md` — el pase de 2026-09-10 los dejó con ctor sin parámetros y sin DI en el ctor de diseño.
 
-Al cerrar el último, sacar `RestarMargen` de `App.xaml`.
-
-**Estado:** `[ ]` Pendiente
+**Estado:** `[x]` Resuelto 2026-09-10 — 17 modales + 2 pantallas + 13 vistas, verificado con arné (**33/33**, incluye `RolesView`). Los **6 converters salieron de `App.xaml`** y de `DesignTimeResources.xaml` en el mismo pase: todos tienen `public static readonly X Instancia` y ningún `.xaml` los referencia por clave (`MainWindow`, `RolesView`, `RegistroCamionesModal`, `RolesResources` migrados). Sesión: [[Sesión 2026-09-10 — Cierre de P-057 (previsualización de UI en el diseñador)]]. Convenciones consolidadas en [[Convenciones de UI (WPF) — leer antes de tocar XAML]]. **Pendiente de prueba manual de Fernando** (los converters se usan app-wide; el arné no cubre runtime ni `{StaticResource}` en templates diferidos).
 
 ---
 
@@ -1380,7 +1393,7 @@ Eran **dos problemas encimados**, y el segundo era el grave:
 | P-054 | Debounce copiado a mano en 4 lugares; 3 sin `Dispose()` del CTS (no era fuga: duplicación) | `[x]` Resuelto | [[Sesión 2026-09-08 - Cierre de P-054 y P-055]] |
 | P-055 | El apagado del auto-refresh de Gotrue dependía de `SignOut()` (llamada de red) + timeout decorativo en el logout | `[x]` Resuelto | [[Sesión 2026-09-08 - Cierre de P-054 y P-055]] |
 | P-056 | `ServicioConexión` huérfano duplica `ConexionSupabase` con el mismo namespace | `[ ]` Pendiente | [[Sesión 2026-09-08 - Cierre de P-054 y P-055]] |
-| P-057 | 16 modales y 12 vistas sin previsualización en el diseñador de VS | `[ ]` Pendiente | [[ADR-028 - Previsualizacion de UserControls en el disenador de VS]] |
+| P-057 | 16 modales y 12 vistas sin previsualización en el diseñador de VS | `[x]` Resuelto 2026-09-10 (33/33 en arné; converters fuera de App.xaml) | [[ADR-028 - Previsualizacion de UserControls en el disenador de VS]] |
 | P-058 | Login sin ViewModel y paneles de recuperación llamando a Supabase desde la UI | ✅ Resuelto | 58 pruebas nuevas; suite 344/344 |
 | P-059 | La recuperación de contraseña no verifica que la cuenta esté habilitada | `[ ]` Pendiente | Detectado al resolver P-058 |
 

@@ -8,6 +8,13 @@ public partial class ConfiguracionEmpresaModal : UserControl
 {
     public ConfiguracionEmpresaViewModel ViewModel { get; }
 
+    /// <summary>Constructor de diseño (el diseñador de VS instancia por acá). Ver ADR-028.</summary>
+    public ConfiguracionEmpresaModal()
+    {
+        ViewModel = null!;
+        InitializeComponent();
+    }
+
     public ConfiguracionEmpresaModal(ConfiguracionEmpresaViewModel viewModel)
     {
         ViewModel = viewModel;

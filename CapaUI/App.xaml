@@ -26,12 +26,6 @@
                 <GradientStop Color="{DynamicResource EmpresaPrimaryLightColor}" Offset="1"/>
             </LinearGradientBrush>
 
-            <conv:BoolToVisibilityConverter x:Key="BoolToVisibility"/>
-            <conv:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibility"/>
-            <conv:RestarMargenConverter x:Key="RestarMargen"/>
-            <conv:AnchoMinimoAVisibilidadConverter x:Key="AnchoMinimoAVisibilidad"/>
-            <conv:VacioAVisibilidadConverter x:Key="VacioAVisibilidad"/>
-            <conv:TextoVacioConverter x:Key="TextoVacioConverter"/>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

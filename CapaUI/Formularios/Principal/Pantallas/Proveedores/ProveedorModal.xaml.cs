@@ -22,6 +22,13 @@ namespace CapaUI.Formularios.Principal.Pantallas.Proveedores
         public event Action? Cerrado;
         public event Action? Guardado;
 
+        /// <summary>Constructor de diseño (el diseñador de VS instancia por acá). Ver ADR-028.</summary>
+        public ProveedorModal()
+        {
+            _repo = null!;
+            InitializeComponent();
+        }
+
         public ProveedorModal(IProveedorRepository repo, ProveedorDto? proveedor)
         {
             _repo      = repo;

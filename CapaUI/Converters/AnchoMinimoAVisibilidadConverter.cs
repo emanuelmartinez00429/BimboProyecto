@@ -12,6 +12,13 @@ namespace CapaUI.Converters
     /// value = ancho real del contenedor; ConverterParameter = umbral en píxeles.
     public sealed class AnchoMinimoAVisibilidadConverter : IValueConverter
     {
+        /// <summary>
+        /// Instancia compartida para <c>{x:Static conv:AnchoMinimoAVisibilidadConverter.Instancia}</c>.
+        /// Resuelve contra el tipo CLR sin diccionario, así que sirve también en el diseñador
+        /// de VS, que no ejecuta <c>App.xaml</c> (donde vive la clave). Ver ADR-028.
+        /// </summary>
+        public static readonly AnchoMinimoAVisibilidadConverter Instancia = new();
+
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             if (value is not double ancho || double.IsNaN(ancho))

@@ -38,6 +38,13 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
         private readonly ObservableCollection<Parcial> _parciales = new();
         private bool _cargando = true;
 
+        /// <summary>Constructor de diseño (el diseñador de VS instancia por acá). Ver ADR-028.</summary>
+        public TaraExtraTotalModal()
+        {
+            _camion = null!;
+            InitializeComponent();
+        }
+
         public TaraExtraTotalModal(CamionPesaje camion, ProductoCamion? producto)
         {
             InitializeComponent();

@@ -12,6 +12,13 @@ namespace CapaUI.Converters;
 [ValueConversion(typeof(object), typeof(string))]
 public class TextoVacioConverter : IValueConverter
 {
+    /// <summary>
+    /// Instancia compartida para <c>{x:Static conv:TextoVacioConverter.Instancia}</c>.
+    /// Resuelve contra el tipo CLR sin diccionario, así que sirve también en el diseñador
+    /// de VS, que no ejecuta <c>App.xaml</c> (donde vive la clave). Ver ADR-028.
+    /// </summary>
+    public static readonly TextoVacioConverter Instancia = new();
+
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         if (value == null)

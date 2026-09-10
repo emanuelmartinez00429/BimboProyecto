@@ -29,6 +29,14 @@ namespace CapaUI.Formularios.Principal.Pantallas.Usuarios
         public event Action? Cerrado;
         public event Action? Guardado;
 
+        /// <summary>Constructor de diseño (el diseñador de VS instancia por acá). Ver ADR-028.</summary>
+        public UsuarioModal()
+        {
+            _usuarioRepo = null!;
+            _rolRepo     = null!;
+            InitializeComponent();
+        }
+
         public UsuarioModal(
             IUsuarioRepository    usuarioRepo,
             IRolRepository        rolRepo,

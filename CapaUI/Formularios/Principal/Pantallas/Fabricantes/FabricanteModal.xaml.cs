@@ -19,8 +19,8 @@ namespace CapaUI.Formularios.Principal.Pantallas.Fabricantes
 {
     public partial class FabricanteModal : System.Windows.Controls.UserControl
     {
-        private readonly IFabricanteRepository _repo;
-        private readonly ICatalogoRepository   _catalogos;
+        private readonly IFabricanteRepository _repo = null!;
+        private readonly ICatalogoRepository   _catalogos = null!;
         private readonly FabricanteDto?        _fabricante;
         private readonly bool                  _esNuevo;
         private ValidadorFormulario            _validador = null!;
@@ -42,13 +42,26 @@ namespace CapaUI.Formularios.Principal.Pantallas.Fabricantes
         public event Action? Cerrado;
         public event Action? Guardado;
 
+        /// <summary>
+        /// Constructor sin parámetros solo para el diseñador de Visual Studio, que
+        /// instancia el control por acá. Deja los servicios en <c>null!</c> porque este
+        /// camino no opera el modal. Ver <c>ProductosCargaModal</c> y ADR-028.
+        /// </summary>
+        public FabricanteModal()
+        {
+            _repo      = null!;
+            _catalogos = null!;
+            InitializeComponent();
+        }
+
         public FabricanteModal(IFabricanteRepository repo, FabricanteDto? fabricante)
         {
+            InitializeComponent();
+
             _repo       = repo;
             _catalogos  = App.Services.GetRequiredService<ICatalogoRepository>();
             _fabricante = fabricante;
             _esNuevo    = fabricante == null;
-            InitializeComponent();
             Loaded += OnLoaded;
         }
 

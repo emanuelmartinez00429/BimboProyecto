@@ -132,6 +132,32 @@ Consecuencia práctica: **sembrar datos de muestra en el constructor no sirve** 
 
 Queda una pregunta abierta que el próximo modal que se migre responde gratis: **si el diseñador no instancia la clase, ¿hace falta el constructor sin parámetros?** Se dejó porque es barato y porque WPF pide que un tipo con `x:Class` sea instanciable sin argumentos, pero no está comprobado que el lienzo lo necesite.
 
+## Addendum 3 · 2026-09-10 — cierre de los modales
+
+Se aplicó la receta a los 17 modales restantes (`ProductosCargaModal` era el piloto):
+
+- **Paso 1** — fuera el `MaxWidth`/`MaxHeight` del raíz. El límite lo pone el host. `PesajeView.MostrarModal` ya llamaba `LimitarAlOverlay`; para las 9 vistas de catálogo se extrajo el mismo binding a un helper compartido, `CapaUI/Core/ModalLayout.cs`, y se llama al principio de cada `MostrarModal`. Es la misma mecánica que ya corría en producción para los modales de pesaje, así que no hubo cambio de runtime: `SetBinding` reemplaza el binding que traía el XAML.
+- **Paso 2** — `{StaticResource RestarMargen}` → `{x:Static conv:RestarMargenConverter.Instancia}` en los 14. Mismo tratamiento para `BoolToVisibility` en `ConfiguracionEmpresaModal` (se le agregó el singleton `Instancia` al converter).
+- **Paso 3** — merge de `Styles.xaml` en `SelectorCatalogoModal` (usaba `TablaCatalogoFila`, que vive ahí).
+- **Paso 4** — ctor sin parámetros en los que no lo tenían. En los cuatro que resolvían `ICatalogoRepository` en el `.ctor` se reemplazó el parche `DesignerProperties.GetIsInDesignMode` (que ya había metido un intento anterior) por un ctor sin parámetros real que deja los servicios en `null!` — el mismo patrón de `ProductosCargaModal`.
+
+`WelcomeScreen` y `ConstructionScreen` también entraron: les faltaba `d:DesignWidth`/`d:DesignHeight` (contenido centrado ⇒ alto natural 0) y, en `WelcomeScreen`, un guard de modo diseño antes del `Loaded` que habla con `App.Services`.
+
+**Verificación:** arnés WPF (`new Application()` de `Resources` vacío + ctor sin parámetros + `Measure`/`Arrange`) sobre los 19 controles. **19/19 a tamaño real, 0 colapsados, 0 excepciones.** Solución 0/0, suite 344/344.
+
+## Addendum 4 · 2026-09-10 — cierre de las vistas (P-057 completo)
+
+Las 12 `*View.xaml` resultaron necesitar **dos** pasos, no uno. El barrido del 2026-09-09 solo vio el primero porque el parseo corta en la primera clave que falta:
+
+- **Paso 3 (merge de `Styles.xaml`)** — 4 vistas no tenían `<UserControl.Resources>` y lo reciben directo; a las 8 con recursos locales se les envolvió el bloque en `<ResourceDictionary>` + `MergedDictionaries`.
+- **Paso 2 (converters de `App.xaml` → `{x:Static}`)** — las vistas usan `AnchoMinimoAVisibilidad`, `TextoVacioConverter`, `BoolToVisibility`, `InverseBoolToVisibility` y (en `ReporteriaView`) `RestarMargen` por `{StaticResource}`. Se agregó el singleton `Instancia` a los cinco converters y se cambiaron los usos.
+
+Arné (los 32 controles): **32/32 a tamaño real, 0 colapsados, 0 excepciones.**
+
+**Los 6 converters salieron de `App.xaml` en el mismo pase.** Cada uno tiene `public static readonly X Instancia = new();` y todos los usos por `{StaticResource}` (repo entero: `MainWindow`, `RolesView`, `RolesResources`, `RegistroCamionesModal`) pasaron a `{x:Static conv:XConverter.Instancia}`. También salieron de `DesignTimeResources.xaml` (ya no hacen falta ahí). Arné con `RolesView` incluido: **33/33**. La causa raíz de todo P-057 —converters que solo existen si `App.xaml` corrió— queda estructuralmente eliminada, no parcheada.
+
+Convenciones consolidadas: [[Convenciones de UI (WPF) — leer antes de tocar XAML]] (nodo obligatorio antes de tocar XAML). Sesión: [[Sesión 2026-09-10 — Cierre de P-057 (previsualización de UI en el diseñador)]].
+
 ---
 
 ## Relaciones

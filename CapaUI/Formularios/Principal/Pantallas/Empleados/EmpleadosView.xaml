@@ -1,6 +1,7 @@
 <UserControl x:Class="CapaUI.Formularios.Principal.Pantallas.Empleados.EmpleadosView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:conv="clr-namespace:CapaUI.Converters"
              xmlns:local="clr-namespace:CapaUI.Formularios.Principal.Pantallas.Empleados"
              xmlns:controls="clr-namespace:CapaUI.Core.Controls"
              xmlns:permisos="clr-namespace:CapaUI.Core.Permisos"
@@ -12,6 +13,12 @@
              TextOptions.TextFormattingMode="Display">
 
     <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <!-- Estilos/geometrias compartidos viven en Styles.xaml; el disenador
+                     de VS no ejecuta App.xaml y no los ve sin este merge. Ver ADR-028 / P-057. -->
+                <ResourceDictionary Source="/CapaUI;component/Resources/Styles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
 
         <!-- DataGrid Row Style -->
         <Style x:Key="EmpleadoRowStyle" TargetType="DataGridRow">
@@ -95,6 +102,7 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        </ResourceDictionary>
     </UserControl.Resources>
 
     <Grid>
@@ -211,7 +219,7 @@
                                   Width="16" Height="16" Stretch="Uniform" VerticalAlignment="Center"/>
                             <TextBlock Text="Limpiar Filtros" FontFamily="Segoe UI" FontSize="15.5" FontWeight="SemiBold"
                                        Foreground="White" VerticalAlignment="Center" Margin="6,0,0,0"
-                                       Visibility="{Binding ActualWidth, ElementName=TarjetaToolbar, Converter={StaticResource AnchoMinimoAVisibilidad}, ConverterParameter=760}"/>
+                                       Visibility="{Binding ActualWidth, ElementName=TarjetaToolbar, Converter={x:Static conv:AnchoMinimoAVisibilidadConverter.Instancia}, ConverterParameter=760}"/>
                         </StackPanel>
                     </Button>
                 </Grid>
@@ -342,7 +350,7 @@
                         <DataGridTemplateColumn Header="IDENTIDAD" Width="150" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding NumeroIdentidad, Converter={StaticResource TextoVacioConverter}, ConverterParameter='Sin identidad'}"
+                                    <TextBlock Text="{Binding NumeroIdentidad, Converter={x:Static conv:TextoVacioConverter.Instancia}, ConverterParameter='Sin identidad'}"
                                                Style="{StaticResource TextoCeldaConFallback}" Padding="8,0"/>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
@@ -350,7 +358,7 @@
                         <DataGridTemplateColumn Header="TELÉFONO" Width="140" CellStyle="{StaticResource CeldaCentrada}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding TelefonoEmpleado, Converter={StaticResource TextoVacioConverter}, ConverterParameter='Sin teléfono'}"
+                                    <TextBlock Text="{Binding TelefonoEmpleado, Converter={x:Static conv:TextoVacioConverter.Instancia}, ConverterParameter='Sin teléfono'}"
                                                Style="{StaticResource TextoCeldaConFallback}" HorizontalAlignment="Center"/>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
@@ -358,7 +366,7 @@
                         <DataGridTemplateColumn Header="CORREO" Width="220" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding CorreoEmpleado, Converter={StaticResource TextoVacioConverter}, ConverterParameter='Sin correo'}"
+                                    <TextBlock Text="{Binding CorreoEmpleado, Converter={x:Static conv:TextoVacioConverter.Instancia}, ConverterParameter='Sin correo'}"
                                                Style="{StaticResource TextoCeldaConFallback}" Padding="8,0"/>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>

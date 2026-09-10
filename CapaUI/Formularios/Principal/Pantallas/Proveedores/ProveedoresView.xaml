@@ -4,12 +4,19 @@
              xmlns:local="clr-namespace:CapaUI.Formularios.Principal.Pantallas.Proveedores"
              xmlns:controls="clr-namespace:CapaUI.Core.Controls"
              xmlns:permisos="clr-namespace:CapaUI.Core.Permisos"
+             xmlns:conv="clr-namespace:CapaUI.Converters"
              Background="#EAF1F8"
              Loaded="UserControl_Loaded"
              Unloaded="UserControl_Unloaded"
              UseLayoutRounding="True"
              TextOptions.TextRenderingMode="Grayscale"
              TextOptions.TextFormattingMode="Display">
+
+    <UserControl.Resources>
+        <!-- Icon*, CeldaCentrada, HeaderCentrado... viven en Styles.xaml; el disenador
+             de VS no ejecuta App.xaml y no los ve sin este merge. Ver ADR-028 / P-057. -->
+        <ResourceDictionary Source="/CapaUI;component/Resources/Styles.xaml"/>
+    </UserControl.Resources>
 
 
 
@@ -101,7 +108,7 @@
                                   Width="16" Height="16" Stretch="Uniform" VerticalAlignment="Center"/>
                             <TextBlock Text="Limpiar Filtros" FontFamily="Segoe UI" FontSize="15.5" FontWeight="SemiBold"
                                        Foreground="White" VerticalAlignment="Center" Margin="6,0,0,0"
-                                       Visibility="{Binding ActualWidth, ElementName=TarjetaToolbar, Converter={StaticResource AnchoMinimoAVisibilidad}, ConverterParameter=760}"/>
+                                       Visibility="{Binding ActualWidth, ElementName=TarjetaToolbar, Converter={x:Static conv:AnchoMinimoAVisibilidadConverter.Instancia}, ConverterParameter=760}"/>
                         </StackPanel>
                     </Button>
                 </Grid>
@@ -219,7 +226,7 @@
                         <DataGridTemplateColumn Header="TELÉFONO" Width="0.9*" MinWidth="110" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding Telefono, Converter={StaticResource TextoVacioConverter}, ConverterParameter='Sin teléfono'}"
+                                    <TextBlock Text="{Binding Telefono, Converter={x:Static conv:TextoVacioConverter.Instancia}, ConverterParameter='Sin teléfono'}"
                                                Style="{StaticResource TextoCeldaConFallback}" HorizontalAlignment="Left" Padding="10,0"/>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
@@ -227,7 +234,7 @@
                         <DataGridTemplateColumn Header="CORREO" Width="1.4*" MinWidth="170" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding Correo, Converter={StaticResource TextoVacioConverter}, ConverterParameter='Sin correo'}"
+                                    <TextBlock Text="{Binding Correo, Converter={x:Static conv:TextoVacioConverter.Instancia}, ConverterParameter='Sin correo'}"
                                                Style="{StaticResource TextoCeldaConFallback}" Padding="10,0"/>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
@@ -235,7 +242,7 @@
                         <DataGridTemplateColumn Header="DIRECCIÓN" Width="1.8*" MinWidth="220" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding Direccion, Converter={StaticResource TextoVacioConverter}, ConverterParameter='Sin dirección'}"
+                                    <TextBlock Text="{Binding Direccion, Converter={x:Static conv:TextoVacioConverter.Instancia}, ConverterParameter='Sin dirección'}"
                                                Style="{StaticResource TextoCeldaConFallback}" Padding="10,0"/>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>

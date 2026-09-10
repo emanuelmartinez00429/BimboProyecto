@@ -25,13 +25,13 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
     public partial class CamionModal : UserControl, IDisposable
     {
         private readonly CamionPesaje? _camion;   // null = alta
-        private readonly ICatalogoRepository _catalogos;
+        private readonly ICatalogoRepository _catalogos = null!;
 
         /// <summary>
         /// Recepciones abiertas al momento de abrir el modal. Solo se usan para avisar
         /// que la placa que se está escribiendo ya está abierta con otro proveedor.
         /// </summary>
-        private readonly IReadOnlyList<CamionPesaje> _camionesAbiertos;
+        private readonly IReadOnlyList<CamionPesaje> _camionesAbiertos = null!;
 
         private SelectorCatalogoModal? _selectorCatalogo;
         private ProveedorItem? _proveedorSeleccionado;
@@ -48,6 +48,18 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
 
         public event Action? Cerrado;
         public event Action<ResultadoCamion>? Confirmado;
+
+        /// <summary>
+        /// Constructor sin parámetros solo para el diseñador de Visual Studio, que
+        /// instancia el control por acá. Deja los servicios en <c>null!</c> porque este
+        /// camino no opera el modal. Ver <c>ProductosCargaModal</c> y ADR-028.
+        /// </summary>
+        public CamionModal()
+        {
+            _catalogos        = null!;
+            _camionesAbiertos = null!;
+            InitializeComponent();
+        }
 
         public CamionModal(CamionPesaje? camion, IReadOnlyList<CamionPesaje> camionesAbiertos)
         {

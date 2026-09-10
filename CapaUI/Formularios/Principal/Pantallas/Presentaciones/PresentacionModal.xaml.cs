@@ -21,6 +21,13 @@ namespace CapaUI.Formularios.Principal.Pantallas.Presentaciones
         public event Action? Cerrado;
         public event Action? Guardado;
 
+        /// <summary>Constructor de diseño (el diseñador de VS instancia por acá). Ver ADR-028.</summary>
+        public PresentacionModal()
+        {
+            _repo = null!;
+            InitializeComponent();
+        }
+
         public PresentacionModal(IPresentacionRepository repo, PresentacionDto? presentacion)
         {
             _repo         = repo;

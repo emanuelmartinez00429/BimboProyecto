@@ -8,6 +8,13 @@ public partial class RolModal : Window
     private readonly RolesViewModel _vm;
     private readonly RolItemVm? _rol;
 
+    /// <summary>Constructor de diseño (el diseñador de VS instancia por acá). Ver ADR-028.</summary>
+    public RolModal()
+    {
+        _vm = null!;
+        InitializeComponent();
+    }
+
     public RolModal(RolesViewModel vm, RolItemVm? rol)
     {
         InitializeComponent();

@@ -16,6 +16,14 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
         private readonly List<CamionPesaje> _camionesSeleccionados;
         private readonly List<CamionPesaje> _todosLosCamiones;
 
+        /// <summary>Constructor de diseño (el diseñador de VS instancia por acá). Ver ADR-028.</summary>
+        public ReporteModal()
+        {
+            _camionesSeleccionados = null!;
+            _todosLosCamiones      = null!;
+            InitializeComponent();
+        }
+
         public ReporteModal(List<CamionPesaje> camionesSeleccionados, List<CamionPesaje>? todosLosCamiones = null)
         {
             InitializeComponent();

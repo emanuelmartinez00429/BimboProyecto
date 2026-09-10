@@ -1,8 +1,15 @@
 <UserControl x:Class="CapaUI.Formularios.Principal.Pantallas.Reporteria.ReporteriaView"
  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
  xmlns:local="clr-namespace:CapaUI.Formularios.Principal.Pantallas.Reporteria"
+             xmlns:conv="clr-namespace:CapaUI.Converters"
  Loaded="OnLoaded" Unloaded="OnUnloaded" Background="#F4F6F9" UseLayoutRounding="True">
  <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <!-- Estilos/geometrias compartidos viven en Styles.xaml; el disenador
+                     de VS no ejecuta App.xaml y no los ve sin este merge. Ver ADR-028 / P-057. -->
+                <ResourceDictionary Source="/CapaUI;component/Resources/Styles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
   <Style x:Key="ReportCard" TargetType="Button">
    <Setter Property="Background" Value="White"/><Setter Property="BorderBrush" Value="#D8E1EC"/><Setter Property="BorderThickness" Value="1"/><Setter Property="Cursor" Value="Hand"/><Setter Property="Padding" Value="24"/><Setter Property="MinHeight" Value="150"/><Setter Property="FocusVisualStyle" Value="{x:Null}"/>
    <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button"><Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="10" Padding="{TemplateBinding Padding}"><ContentPresenter/></Border><ControlTemplate.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Bd" Property="Background" Value="#EFF6FF"/><Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource EmpresaPrimaryBrush}"/></Trigger><Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="Bd" Property="BorderBrush" Value="#34D399"/><Setter TargetName="Bd" Property="BorderThickness" Value="3"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter>
@@ -155,9 +162,10 @@
    <Setter Property="FontWeight" Value="Bold"/>
    <Setter Property="BorderBrush" Value="{DynamicResource EmpresaPrimaryBrush}"/>
   </Style>
- </UserControl.Resources>
+     </ResourceDictionary>
+    </UserControl.Resources>
  <Grid>
-  <Grid Margin="28" Visibility="{Binding EnMenu,Converter={StaticResource BoolToVisibility}}">
+  <Grid Margin="28" Visibility="{Binding EnMenu,Converter={x:Static conv:BoolToVisibilityConverter.Instancia}}">
    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
    <StackPanel Margin="0,0,0,22"><TextBlock Text="Reportería" FontFamily="Segoe UI" FontSize="28" FontWeight="Bold" Foreground="#0F172A"/><TextBlock Text="Seleccione el reporte que desea consultar y exportar." FontFamily="Segoe UI" FontSize="15" Foreground="#64748B" Margin="0,5,0,0"/></StackPanel>
    <Grid Grid.Row="1" MaxWidth="980" MaxHeight="520" HorizontalAlignment="Stretch" VerticalAlignment="Top">
@@ -169,15 +177,15 @@
    </Grid>
   </Grid>
 
-  <Grid Margin="28" Visibility="{Binding EnMenu,Converter={StaticResource InverseBoolToVisibility}}">
+  <Grid Margin="28" Visibility="{Binding EnMenu,Converter={x:Static conv:InverseBoolToVisibilityConverter.Instancia}}">
    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
    <Grid><Button Content="← Volver" Command="{Binding VolverCommand}" HorizontalAlignment="Left" Padding="14,7" Background="#F1F5F9" BorderBrush="#CBD5E1"/><StackPanel HorizontalAlignment="Center"><TextBlock Text="{Binding TituloActual}" FontSize="25" FontWeight="Bold" Foreground="#0F172A" HorizontalAlignment="Center"/><TextBlock Text="Configure los filtros y consulte antes de exportar." FontSize="14" Foreground="#64748B" HorizontalAlignment="Center"/></StackPanel></Grid>
    <Border Grid.Row="1" Background="White" CornerRadius="10" BorderBrush="#D8E1EC" BorderThickness="1" Padding="18" Margin="0,18,0,14"><WrapPanel VerticalAlignment="Center">
-    <StackPanel Width="310" Margin="0,0,18,10" Visibility="{Binding RequiereProveedor,Converter={StaticResource BoolToVisibility}}"><TextBlock Text="Proveedor *" Style="{StaticResource FieldLabel}"/><DockPanel><Button DockPanel.Dock="Right" Style="{StaticResource LupaBtnCompartido}" Command="{Binding AbrirProveedorCommand}"/><TextBox Style="{StaticResource InputBox}" IsReadOnly="True" Text="{Binding ProveedorSeleccionado.Nombre}" ToolTip="{Binding ProveedorSeleccionado.Descripcion}"/></DockPanel></StackPanel>
-    <StackPanel Width="310" Margin="0,0,18,10" Visibility="{Binding RequiereProducto,Converter={StaticResource BoolToVisibility}}"><TextBlock Text="Producto *" Style="{StaticResource FieldLabel}"/><DockPanel><Button DockPanel.Dock="Right" Style="{StaticResource LupaBtnCompartido}" Command="{Binding AbrirProductoCommand}" ToolTip="Seleccionar producto del proveedor"/><TextBox Style="{StaticResource InputBox}" IsReadOnly="True" Text="{Binding ProductoSeleccionado.Nombre}" ToolTip="{Binding ProductoSeleccionado.Descripcion}"/></DockPanel></StackPanel>
-    <StackPanel Width="145" Margin="0,0,18,10" Visibility="{Binding RequiereFechas,Converter={StaticResource BoolToVisibility}}"><TextBlock Text="Desde *" Style="{StaticResource FieldLabel}"/><DatePicker Height="44" DisplayDateEnd="{Binding FechaMaxima,Mode=OneWay}" SelectedDate="{Binding FechaDesde}"/></StackPanel>
-    <StackPanel Width="145" Margin="0,0,18,10" Visibility="{Binding RequiereFechas,Converter={StaticResource BoolToVisibility}}"><TextBlock Text="Hasta *" Style="{StaticResource FieldLabel}"/><DatePicker Height="44" DisplayDateEnd="{Binding FechaMaxima,Mode=OneWay}" SelectedDate="{Binding FechaHasta}"/></StackPanel>
-    <StackPanel Width="310" Margin="0,0,18,10" Visibility="{Binding PermiteCategoria,Converter={StaticResource BoolToVisibility}}"><TextBlock Text="Categoría (opcional)" Style="{StaticResource FieldLabel}"/><DockPanel><Button DockPanel.Dock="Right" Style="{StaticResource LupaBtnCompartido}" Command="{Binding AbrirCategoriaCommand}"/><TextBox Style="{StaticResource InputBox}" IsReadOnly="True" Text="{Binding CategoriaSeleccionada.Nombre,TargetNullValue=Todas las categorías}"/></DockPanel></StackPanel>
+    <StackPanel Width="310" Margin="0,0,18,10" Visibility="{Binding RequiereProveedor,Converter={x:Static conv:BoolToVisibilityConverter.Instancia}}"><TextBlock Text="Proveedor *" Style="{StaticResource FieldLabel}"/><DockPanel><Button DockPanel.Dock="Right" Style="{StaticResource LupaBtnCompartido}" Command="{Binding AbrirProveedorCommand}"/><TextBox Style="{StaticResource InputBox}" IsReadOnly="True" Text="{Binding ProveedorSeleccionado.Nombre}" ToolTip="{Binding ProveedorSeleccionado.Descripcion}"/></DockPanel></StackPanel>
+    <StackPanel Width="310" Margin="0,0,18,10" Visibility="{Binding RequiereProducto,Converter={x:Static conv:BoolToVisibilityConverter.Instancia}}"><TextBlock Text="Producto *" Style="{StaticResource FieldLabel}"/><DockPanel><Button DockPanel.Dock="Right" Style="{StaticResource LupaBtnCompartido}" Command="{Binding AbrirProductoCommand}" ToolTip="Seleccionar producto del proveedor"/><TextBox Style="{StaticResource InputBox}" IsReadOnly="True" Text="{Binding ProductoSeleccionado.Nombre}" ToolTip="{Binding ProductoSeleccionado.Descripcion}"/></DockPanel></StackPanel>
+    <StackPanel Width="145" Margin="0,0,18,10" Visibility="{Binding RequiereFechas,Converter={x:Static conv:BoolToVisibilityConverter.Instancia}}"><TextBlock Text="Desde *" Style="{StaticResource FieldLabel}"/><DatePicker Height="44" DisplayDateEnd="{Binding FechaMaxima,Mode=OneWay}" SelectedDate="{Binding FechaDesde}"/></StackPanel>
+    <StackPanel Width="145" Margin="0,0,18,10" Visibility="{Binding RequiereFechas,Converter={x:Static conv:BoolToVisibilityConverter.Instancia}}"><TextBlock Text="Hasta *" Style="{StaticResource FieldLabel}"/><DatePicker Height="44" DisplayDateEnd="{Binding FechaMaxima,Mode=OneWay}" SelectedDate="{Binding FechaHasta}"/></StackPanel>
+    <StackPanel Width="310" Margin="0,0,18,10" Visibility="{Binding PermiteCategoria,Converter={x:Static conv:BoolToVisibilityConverter.Instancia}}"><TextBlock Text="Categoría (opcional)" Style="{StaticResource FieldLabel}"/><DockPanel><Button DockPanel.Dock="Right" Style="{StaticResource LupaBtnCompartido}" Command="{Binding AbrirCategoriaCommand}"/><TextBox Style="{StaticResource InputBox}" IsReadOnly="True" Text="{Binding CategoriaSeleccionada.Nombre,TargetNullValue=Todas las categorías}"/></DockPanel></StackPanel>
     <Button Content="Consultar" Command="{Binding ConsultarCommand}" Style="{StaticResource BtnPrimary}" Width="135" VerticalAlignment="Bottom" Margin="0,0,0,10"/>
    </WrapPanel></Border>
 
@@ -200,7 +208,7 @@
 
      <ItemsControl Grid.Row="0"
                    ItemsSource="{Binding MetadatosVistaPrevia}"
-                   Visibility="{Binding HayResultados,Converter={StaticResource BoolToVisibility}}"
+                   Visibility="{Binding HayResultados,Converter={x:Static conv:BoolToVisibilityConverter.Instancia}}"
                    Margin="16,12,16,8">
       <ItemsControl.ItemsPanel>
        <ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate>
@@ -295,7 +303,7 @@
              Padding="12,8">
       <StackPanel>
        <ItemsControl ItemsSource="{Binding MetadatosPieVistaPrevia}"
-                     Visibility="{Binding HayMetadatosPie,Converter={StaticResource BoolToVisibility}}"
+                     Visibility="{Binding HayMetadatosPie,Converter={x:Static conv:BoolToVisibilityConverter.Instancia}}"
                      HorizontalAlignment="Center" Margin="0,0,0,8">
         <ItemsControl.ItemsPanel>
          <ItemsPanelTemplate><StackPanel Orientation="Horizontal"/></ItemsPanelTemplate>
@@ -374,8 +382,8 @@
          degradado que ProductoModal, sin permitir que ocupe toda la vista. -->
     <Border x:Name="SelectorFrame"
             Width="820" Height="650"
-            MaxWidth="{Binding ActualWidth, ElementName=ModalOverlay, Converter={StaticResource RestarMargen}, ConverterParameter=48}"
-            MaxHeight="{Binding ActualHeight, ElementName=ModalOverlay, Converter={StaticResource RestarMargen}, ConverterParameter=48}"
+            MaxWidth="{Binding ActualWidth, ElementName=ModalOverlay, Converter={x:Static conv:RestarMargenConverter.Instancia}, ConverterParameter=48}"
+            MaxHeight="{Binding ActualHeight, ElementName=ModalOverlay, Converter={x:Static conv:RestarMargenConverter.Instancia}, ConverterParameter=48}"
             HorizontalAlignment="Center"
             VerticalAlignment="Center"
             CornerRadius="10"

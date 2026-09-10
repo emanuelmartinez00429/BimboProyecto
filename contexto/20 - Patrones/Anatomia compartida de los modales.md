@@ -137,7 +137,7 @@ Dos casos reales, sesión 2026-08-19:
 
 ## Que el modal se vea en el diseñador de Visual Studio
 
-**Estado: `ProductosCargaModal` es el piloto (2026-09-09). Quedan 16 modales y 12 vistas sin previsualizarse** → [[Deuda Técnica - Pendientes|P-057]].
+**Estado: P-057 cerrado (2026-09-10).** 17 modales + 2 pantallas + 13 vistas. Verificado con un arnés (`new Application()` vacío + ctor sin parámetros + `Measure`/`Arrange`): **32/32 renderizan a tamaño real, 0 colapsan, 0 excepciones**. Las vistas necesitaban además del merge de `Styles.xaml` el paso 2: sus `{StaticResource AnchoMinimoAVisibilidad / TextoVacioConverter / BoolToVisibility / InverseBoolToVisibility / RestarMargen}` (todos claves de `App.xaml`) pasaron a `{x:Static conv:XConverter.Instancia}`.
 
 El porqué está en [[WPF - StaticResource en atributos del elemento raiz y el disenador de Visual Studio]] y la decisión en [[ADR-028 - Previsualizacion de UserControls en el disenador de VS]]. Acá va solo la receta.
 
@@ -195,9 +195,9 @@ Un modal se previsualiza cuando cumple las cuatro. **La 1 es la que de verdad ro
 
 Barrido completo del ensamblado (2026-09-09): instanciar cada `UserControl` con `Application.Resources` vacío y ver qué pasa. **Modales y vistas son dos problemas distintos** — no se replican igual.
 
-**Los modales: el bloqueo es el paso 1, no el 4.**
+**Los modales: hecho el 2026-09-10.** Lo de abajo queda como registro de por dónde iba el bloqueo.
 
-De los 18 modales, **17 no tienen constructor sin parámetros**, así que el diseñador ni siquiera llega a instanciarlos: el paso 4 no importa hasta que exista ese ctor. Los únicos que se previsualizan hoy son `ProductosCargaModal` (el piloto) y `FormatoReporteModal` (que ya se previsualizaba: no usa `MaxWidth` con converter).
+De los 18 modales, **17 no tenían constructor sin parámetros**, así que el diseñador ni siquiera llegaba a instanciarlos: el paso 4 no importaba hasta que existiera ese ctor. Los únicos que se previsualizaban eran `ProductosCargaModal` (el piloto) y `FormatoReporteModal` (que ya se previsualizaba: no usa `MaxWidth` con converter). El pase de cierre: sacó el `MaxWidth`/`MaxHeight` del raíz de los 14, movió el límite al host (`ModalLayout.LimitarAlOverlay` en las 9 vistas de catálogo; `PesajeView` ya lo hacía), agregó ctor sin parámetros a los que faltaban, mergeó `Styles.xaml` en `SelectorCatalogoModal` y pasó `BoolToVisibility` a `{x:Static}` en `ConfiguracionEmpresaModal`.
 
 Todos comparten el mismo `MaxWidth`/`MaxHeight` en el raíz, así que el paso 4 es idéntico en todos: reemplazar `{StaticResource RestarMargen}` por `{x:Static conv:RestarMargenConverter.Instancia}`, sumar el `xmlns:conv` y un `FallbackValue` con el `Width`/`Height` propio de cada uno.
 
@@ -233,6 +233,7 @@ Instanciar el control con una `Application` de `Resources` vacío reproduce la c
 
 ## Relaciones
 
+- [[Convenciones de UI (WPF) — leer antes de tocar XAML]] — nodo raíz de convenciones de UI (esta receta es una sección de ahí)
 - [[WPF - StaticResource en atributos del elemento raiz y el disenador de Visual Studio]] — por qué el lienzo quedaba en blanco
 - [[ADR-028 - Previsualizacion de UserControls en el disenador de VS]] — la decisión y las alternativas descartadas
 - [[TextoResponsivo]] — el helper de recorte y ToolTip

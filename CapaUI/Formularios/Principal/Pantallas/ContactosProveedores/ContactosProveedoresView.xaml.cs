@@ -276,6 +276,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.ContactosProveedores
 
         private void MostrarModal(System.Windows.Controls.UserControl modal)
         {
+            CapaUI.Core.ModalLayout.LimitarAlOverlay(modal, ModalOverlay); // ADR-028: el limite lo pone el overlay, no un ancestro
             ModalContent.Content    = modal;
             ModalOverlay.Visibility = Visibility.Visible;
         }

@@ -21,6 +21,14 @@ public partial class ContactoProveedorModal : UserControl
     public event Action? Cerrado;
     public event Action? Guardado;
 
+    /// <summary>Constructor de diseño (el diseñador de VS instancia por acá). Ver ADR-028.</summary>
+    public ContactoProveedorModal()
+    {
+        _repo      = null!;
+        _proveedor = null!;
+        InitializeComponent();
+    }
+
     public ContactoProveedorModal(
         IContactoProveedorRepository repo,
         ProveedorDto                 proveedor,

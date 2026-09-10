@@ -1,19 +1,29 @@
 <UserControl x:Class="CapaUI.Formularios.Principal.Pantallas.Usuarios.UsuarioModal"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:conv="clr-namespace:CapaUI.Converters"
+             xmlns:controls="clr-namespace:CapaUI.Core.Controls"
+             mc:Ignorable="d"
              Width="560"
-             MaxWidth="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Border}, Converter={StaticResource RestarMargen}, ConverterParameter=48}"
-             MaxHeight="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=Border}, Converter={StaticResource RestarMargen}, ConverterParameter=48}"
+             d:DesignWidth="560"
+             d:DesignHeight="650"
              UseLayoutRounding="True"
              TextOptions.TextRenderingMode="Grayscale"
-             xmlns:controls="clr-namespace:CapaUI.Core.Controls"
              TextOptions.TextFormattingMode="Display" controls:AtajoGuardar.Boton="{Binding ElementName=BtnGuardar}">
 
     <UserControl.Resources>
-        <Geometry x:Key="IconUserM">M20,21 v-2 a4,4 0 0 0,-4,-4 H8 a4,4 0 0 0,-4,4 v2 M12,3 a4,4 0 1 1 0,8 a4,4 0 0 1 0,-8 z</Geometry>
-        <Geometry x:Key="IconCloseM">M6,6 l12,12 M18,6 l-12,12</Geometry>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/CapaUI;component/Resources/Styles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
 
-        <!-- ModalSegBtn, EtiquetaCampo, CampoModal y ModalPassword vienen de Styles.xaml. -->
+            <Geometry x:Key="IconUserM">M20,21 v-2 a4,4 0 0 0,-4,-4 H8 a4,4 0 0 0,-4,4 v2 M12,3 a4,4 0 1 1 0,8 a4,4 0 0 1 0,-8 z</Geometry>
+            <Geometry x:Key="IconCloseM">M6,6 l12,12 M18,6 l-12,12</Geometry>
+
+            <!-- ModalSegBtn, EtiquetaCampo, CampoModal y ModalPassword vienen de Styles.xaml. -->
+        </ResourceDictionary>
     </UserControl.Resources>
 
     <Border CornerRadius="10" ClipToBounds="True">

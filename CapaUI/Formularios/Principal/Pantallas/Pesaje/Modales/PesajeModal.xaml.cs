@@ -50,6 +50,15 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
         private static readonly Brush _blanco = Brushes.White;
         private static readonly Brush _rojo   = (Brush)new BrushConverter().ConvertFromString("#FCA5A5")!;
 
+        /// <summary>Constructor de diseño (el diseñador de VS instancia por acá). Ver ADR-028.</summary>
+        public PesajeModal()
+        {
+            _producto = null!;
+            _fecha    = null!;
+            _hora     = null!;
+            InitializeComponent();
+        }
+
         public PesajeModal(CamionPesaje camion, ProductoCamion producto, EntradaPesaje? editInitial)
         {
             InitializeComponent();

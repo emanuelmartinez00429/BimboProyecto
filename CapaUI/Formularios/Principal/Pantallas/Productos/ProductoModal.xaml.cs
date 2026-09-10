@@ -20,8 +20,8 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
 {
     public partial class ProductoModal : System.Windows.Controls.UserControl
     {
-        private readonly IProductoRepository _repo;
-        private readonly ICatalogoRepository _catalogos;
+        private readonly IProductoRepository _repo = null!;
+        private readonly ICatalogoRepository _catalogos = null!;
         private readonly ProductoDto?        _producto;
         private readonly bool                _esNuevo;
         private ValidadorFormulario          _validador = null!;
@@ -63,13 +63,26 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
         public event Action? Cerrado;
         public event Action? Guardado;
 
+        /// <summary>
+        /// Constructor sin parámetros solo para el diseñador de Visual Studio, que
+        /// instancia el control por acá. Deja los servicios en <c>null!</c> porque este
+        /// camino no opera el modal. Ver <c>ProductosCargaModal</c> y ADR-028.
+        /// </summary>
+        public ProductoModal()
+        {
+            _repo      = null!;
+            _catalogos = null!;
+            InitializeComponent();
+        }
+
         public ProductoModal(IProductoRepository repo, ProductoDto? producto)
         {
+            InitializeComponent();
+
             _repo      = repo;
             _catalogos = App.Services.GetRequiredService<ICatalogoRepository>();
             _producto  = producto;
             _esNuevo   = producto == null;
-            InitializeComponent();
             Loaded   += OnLoaded;
             Unloaded += OnUnloaded;
         }

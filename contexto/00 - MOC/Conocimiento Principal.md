@@ -101,6 +101,8 @@ Las rosas son rojas.
 - [[Buscador Universal Bimbo]] — Strategy + Mediator en acción
 
 ### Diseño Bimbo-específico
+- ⭐ [[Convenciones de UI (WPF) — leer antes de tocar XAML]] — **nodo obligatorio antes de crear/editar cualquier `.xaml`**
+- [[Anatomia compartida de los modales]] — receta de previsualización en el diseñador + estilos compartidos
 - [[Empty State en DataGrid - Overlay centrado con encabezados visibles]]
 - [[Columnas de Auditoria Temporal en DataGrid - Estandarizacion Creado y Actualizado]]
 - [[Gestor Realtime - Diseño Arquitectónico]]
@@ -130,6 +132,7 @@ Regla: `CapaAplicacion` **nunca** referencia `CapaDatos`.
 | Necesito... | Ir a... |
 |---|---|
 | Convenciones de código | [[Convenciones C#]] |
+| Tocar XAML / UI | [[Convenciones de UI (WPF) — leer antes de tocar XAML]] |
 | Filtros / paginación Supabase | [[Supabase .NET]] |
 | ObservableObject / RelayCommand | [[CommunityToolkit.Mvvm]] |
 | Bugs conocidos de la SDK | [[Bug - Filter OR con Op.Equals en postgrest-csharp]] |

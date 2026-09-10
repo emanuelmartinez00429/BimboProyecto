@@ -1,6 +1,7 @@
 <UserControl x:Class="CapaUI.Formularios.Principal.Pantallas.Productos.ProductosView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:conv="clr-namespace:CapaUI.Converters"
              xmlns:local="clr-namespace:CapaUI.Formularios.Principal.Pantallas.Productos"
              xmlns:controls="clr-namespace:CapaUI.Core.Controls"
              xmlns:permisos="clr-namespace:CapaUI.Core.Permisos"
@@ -12,6 +13,12 @@
              TextOptions.TextFormattingMode="Display">
 
     <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <!-- Estilos/geometrias compartidos viven en Styles.xaml; el disenador
+                     de VS no ejecuta App.xaml y no los ve sin este merge. Ver ADR-028 / P-057. -->
+                <ResourceDictionary Source="/CapaUI;component/Resources/Styles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
 
 
         <!-- ── Celda de filtro de catálogo (Proveedor · Fabricante · Categoría · País) ──
@@ -61,6 +68,7 @@
             <Setter Property="VerticalAlignment" Value="Center"/>
             <Setter Property="Padding" Value="8,0"/>
         </Style>
+        </ResourceDictionary>
     </UserControl.Resources>
 
     <Grid>
@@ -146,7 +154,7 @@
                         <TextBlock Text="TOTAL" FontFamily="Segoe UI" FontSize="13" FontWeight="SemiBold"
                                    Foreground="{DynamicResource EmpresaPrimaryBrush}" VerticalAlignment="Center" Margin="0,0,6,0"
                                    Visibility="{Binding ActualWidth, ElementName=EncabezadoPagina,
-                                                Converter={StaticResource AnchoMinimoAVisibilidad},
+                                                Converter={x:Static conv:AnchoMinimoAVisibilidadConverter.Instancia},
                                                 ConverterParameter=690}"/>
                         <TextBlock Text="{Binding TotalCount}"
                                    FontFamily="Segoe UI" FontSize="15" FontWeight="Bold"
@@ -163,7 +171,7 @@
                         <TextBlock Text="ACTIVOS" FontFamily="Segoe UI" FontSize="13" FontWeight="SemiBold"
                                    Foreground="#047857" VerticalAlignment="Center" Margin="0,0,6,0"
                                    Visibility="{Binding ActualWidth, ElementName=EncabezadoPagina,
-                                                Converter={StaticResource AnchoMinimoAVisibilidad},
+                                                Converter={x:Static conv:AnchoMinimoAVisibilidadConverter.Instancia},
                                                 ConverterParameter=690}"/>
                         <TextBlock Text="{Binding ActivosCount}"
                                    FontFamily="Segoe UI" FontSize="15" FontWeight="Bold"
@@ -180,7 +188,7 @@
                         <TextBlock Text="INACTIVOS" FontFamily="Segoe UI" FontSize="13" FontWeight="SemiBold"
                                    Foreground="#6B7280" VerticalAlignment="Center" Margin="0,0,6,0"
                                    Visibility="{Binding ActualWidth, ElementName=EncabezadoPagina,
-                                                Converter={StaticResource AnchoMinimoAVisibilidad},
+                                                Converter={x:Static conv:AnchoMinimoAVisibilidadConverter.Instancia},
                                                 ConverterParameter=690}"/>
                         <TextBlock Text="{Binding InactivosCount}"
                                    FontFamily="Segoe UI" FontSize="15" FontWeight="Bold"
@@ -245,7 +253,7 @@
                                        Margin="6,0,0,0"
                                        Visibility="{Binding ActualWidth,
                                                     ElementName=TarjetaToolbar,
-                                                    Converter={StaticResource AnchoMinimoAVisibilidad},
+                                                    Converter={x:Static conv:AnchoMinimoAVisibilidadConverter.Instancia},
                                                     ConverterParameter=760}"/>
                         </StackPanel>
                     </Button>
@@ -521,7 +529,7 @@
                         <DataGridTemplateColumn Header="TARA" Width="0.8*" MinWidth="90" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding Tara, Converter={StaticResource TextoVacioConverter}, ConverterParameter='Sin tara'}"
+                                    <TextBlock Text="{Binding Tara, Converter={x:Static conv:TextoVacioConverter.Instancia}, ConverterParameter='Sin tara'}"
                                                Style="{StaticResource TextoCeldaConFallback}"
                                                TextWrapping="NoWrap"
                                                HorizontalAlignment="Left" VerticalAlignment="Center"
@@ -532,7 +540,7 @@
                         <DataGridTemplateColumn Header="FABRICANTE" Width="1.3*" MinWidth="110" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding Fabricante, Converter={StaticResource TextoVacioConverter}, ConverterParameter='Sin fabricante'}"
+                                    <TextBlock Text="{Binding Fabricante, Converter={x:Static conv:TextoVacioConverter.Instancia}, ConverterParameter='Sin fabricante'}"
                                                Style="{StaticResource TextoCeldaConFallback}"
                                                HorizontalAlignment="Left" Padding="8,0"/>
                                 </DataTemplate>
@@ -541,7 +549,7 @@
                         <DataGridTemplateColumn Header="PROVEEDOR" Width="1.3*" MinWidth="110" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding Proveedor, Converter={StaticResource TextoVacioConverter}, ConverterParameter='Sin proveedor'}"
+                                    <TextBlock Text="{Binding Proveedor, Converter={x:Static conv:TextoVacioConverter.Instancia}, ConverterParameter='Sin proveedor'}"
                                                Style="{StaticResource TextoCeldaConFallback}"
                                                HorizontalAlignment="Left" Padding="8,0"/>
                                 </DataTemplate>
@@ -550,7 +558,7 @@
                         <DataGridTemplateColumn Header="PA&#205;S" Width="0.85*" MinWidth="90" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding Pais, Converter={StaticResource TextoVacioConverter}, ConverterParameter='Sin país'}"
+                                    <TextBlock Text="{Binding Pais, Converter={x:Static conv:TextoVacioConverter.Instancia}, ConverterParameter='Sin país'}"
                                                Style="{StaticResource TextoCeldaConFallback}"
                                                HorizontalAlignment="Left" Padding="10,0"/>
                                 </DataTemplate>
@@ -559,7 +567,7 @@
                         <DataGridTemplateColumn Header="CONTENIDO" Width="0.8*" MinWidth="90" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding Contenido, Converter={StaticResource TextoVacioConverter}, ConverterParameter='Sin contenido'}"
+                                    <TextBlock Text="{Binding Contenido, Converter={x:Static conv:TextoVacioConverter.Instancia}, ConverterParameter='Sin contenido'}"
                                                Style="{StaticResource TextoCeldaConFallback}"
                                                HorizontalAlignment="Left"
                                                Padding="8,0"/>
@@ -569,7 +577,7 @@
                         <DataGridTemplateColumn Header="PRESENTACI&#211;N" Width="1.1*" MinWidth="105" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding Presentacion, Converter={StaticResource TextoVacioConverter}, ConverterParameter='Sin presentación'}"
+                                    <TextBlock Text="{Binding Presentacion, Converter={x:Static conv:TextoVacioConverter.Instancia}, ConverterParameter='Sin presentación'}"
                                                Style="{StaticResource TextoCeldaConFallback}"
                                                HorizontalAlignment="Left" Padding="8,0"/>
                                 </DataTemplate>

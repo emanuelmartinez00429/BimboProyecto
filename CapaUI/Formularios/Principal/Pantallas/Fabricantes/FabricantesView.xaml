@@ -4,12 +4,19 @@
              xmlns:local="clr-namespace:CapaUI.Formularios.Principal.Pantallas.Fabricantes"
              xmlns:controls="clr-namespace:CapaUI.Core.Controls"
              xmlns:permisos="clr-namespace:CapaUI.Core.Permisos"
+             xmlns:conv="clr-namespace:CapaUI.Converters"
              Background="#EAF1F8"
              Loaded="UserControl_Loaded"
              Unloaded="UserControl_Unloaded"
              UseLayoutRounding="True"
              TextOptions.TextRenderingMode="Grayscale"
              TextOptions.TextFormattingMode="Display">
+
+    <UserControl.Resources>
+        <!-- Icon*, CeldaCentrada, HeaderCentrado... viven en Styles.xaml; el disenador
+             de VS no ejecuta App.xaml y no los ve sin este merge. Ver ADR-028 / P-057. -->
+        <ResourceDictionary Source="/CapaUI;component/Resources/Styles.xaml"/>
+    </UserControl.Resources>
 
 
 
@@ -100,7 +107,7 @@
                                   Width="16" Height="16" Stretch="Uniform" VerticalAlignment="Center"/>
                             <TextBlock Text="Limpiar Filtros" FontFamily="Segoe UI" FontSize="15.5" FontWeight="SemiBold"
                                        Foreground="White" VerticalAlignment="Center" Margin="6,0,0,0"
-                                       Visibility="{Binding ActualWidth, ElementName=TarjetaToolbar, Converter={StaticResource AnchoMinimoAVisibilidad}, ConverterParameter=760}"/>
+                                       Visibility="{Binding ActualWidth, ElementName=TarjetaToolbar, Converter={x:Static conv:AnchoMinimoAVisibilidadConverter.Instancia}, ConverterParameter=760}"/>
                         </StackPanel>
                     </Button>
                 </Grid>
@@ -204,7 +211,7 @@
                         <DataGridTemplateColumn Header="DESCRIPCIÓN" Width="2*" MinWidth="220" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding Descripcion, Converter={StaticResource TextoVacioConverter}, ConverterParameter='Sin descripción'}"
+                                    <TextBlock Text="{Binding Descripcion, Converter={x:Static conv:TextoVacioConverter.Instancia}, ConverterParameter='Sin descripción'}"
                                                Style="{StaticResource TextoCeldaConFallback}" Padding="10,0"/>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
@@ -212,7 +219,7 @@
                         <DataGridTemplateColumn Header="PROVEEDOR" Width="1.5*" MinWidth="150" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding NombreProveedor, Converter={StaticResource TextoVacioConverter}, ConverterParameter='Sin proveedor'}"
+                                    <TextBlock Text="{Binding NombreProveedor, Converter={x:Static conv:TextoVacioConverter.Instancia}, ConverterParameter='Sin proveedor'}"
                                                Style="{StaticResource TextoCeldaConFallback}" HorizontalAlignment="Left" Padding="10,0"/>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
@@ -220,7 +227,7 @@
                         <DataGridTemplateColumn Header="PA&#205;S" Width="0.9*" MinWidth="100" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding NombrePais, Converter={StaticResource TextoVacioConverter}, ConverterParameter='Sin país'}"
+                                    <TextBlock Text="{Binding NombrePais, Converter={x:Static conv:TextoVacioConverter.Instancia}, ConverterParameter='Sin país'}"
                                                Style="{StaticResource TextoCeldaConFallback}" HorizontalAlignment="Left" Padding="10,0"/>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
