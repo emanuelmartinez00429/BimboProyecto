@@ -13,7 +13,7 @@ autor_cambios: Claude Fernando (agente)
 # Sesión 2026-09-10 — Cierre de P-057 (previsualización de UI en el diseñador)
 
 > [!success] Resultado
-> Los 17 controles de tipo modal + 2 pantallas + 13 vistas se previsualizan en el diseñador de Visual Studio. Arné de instanciación: **33/33 a tamaño real, 0 colapsos, 0 excepciones**. Los 6 converters salieron de `App.xaml`. Nodo nuevo de convenciones de UI + skill `ui-conventions`. Solución 0/0, suite 344/344.
+> Los 17 controles de tipo modal + 2 pantallas + 13 vistas se previsualizan en el diseñador de Visual Studio — **verificado por Fernando en el diseñador el 2026-09-10**. Arné de instanciación: **33/33 a tamaño real, 0 colapsos, 0 excepciones**. Los 6 converters salieron de `App.xaml`. Nodo nuevo de convenciones de UI + skill `ui-conventions`. Solución 0/0, suite 344/344. **P-057 cerrado.**
 
 ---
 
@@ -56,7 +56,7 @@ P-057: solo `ProductosCargaModal` y `FormatoReporteModal` se previsualizaban. El
 - **Arné de instanciación** (`new Application()` de `Resources` vacío + ctor sin parámetros + `Measure`/`Arrange`): 33/33 OK, 0 colapsos, 0 excepciones. Incluye `RolesView` (regresión por el swap de converters).
 - `dotnet build BimboProyecto.sln` → 0/0. (Durante la sesión el `bin` estuvo bloqueado por la app y VS 2022 abiertos; se compiló con `-p:UseAppHost=false` y se corrió el arné contra `obj/.../CapaUI.dll` — el `MarkupCompilePass` no reportó ningún error `MC`/`CS`.)
 - Suite: **344/344**.
-- **Pendiente de prueba manual de Fernando:** abrir `MainWindow` y la pantalla de Roles + un par de modales — los 6 converters se usan en toda la app y el arné no cubre runtime real ni `{StaticResource}` dentro de templates diferidos.
+- **Prueba manual de Fernando (2026-09-10): OK.** Probó todos los controles en el diseñador de Visual Studio y renderizan. P-057 cerrado.
 
 ## Errores y caminos equivocados (para no repetirlos)
 
