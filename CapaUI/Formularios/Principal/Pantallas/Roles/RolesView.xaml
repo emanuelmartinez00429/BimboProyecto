@@ -5,6 +5,7 @@
              xmlns:ctrl="clr-namespace:CapaUI.Core.Controls"
              xmlns:permisos="clr-namespace:CapaUI.Core.Permisos"
              FontFamily="Segoe UI"
+             DataContext="{x:Null}"
              Loaded="UserControl_Loaded"
              Unloaded="UserControl_Unloaded">
 

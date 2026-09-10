@@ -6,6 +6,7 @@
              xmlns:controls="clr-namespace:CapaUI.Core.Controls"
              xmlns:permisos="clr-namespace:CapaUI.Core.Permisos"
              Background="#EAF1F8"
+             DataContext="{x:Null}"
              Loaded="UserControl_Loaded"
              Unloaded="UserControl_Unloaded"
              UseLayoutRounding="True"

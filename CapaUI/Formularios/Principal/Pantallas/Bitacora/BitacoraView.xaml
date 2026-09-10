@@ -5,6 +5,7 @@
              xmlns:local="clr-namespace:CapaUI.Formularios.Principal.Pantallas.Bitacora"
              xmlns:controls="clr-namespace:CapaUI.Core.Controls"
              Background="#EAF1F8"
+             DataContext="{x:Null}"
              Loaded="UserControl_Loaded"
              Unloaded="UserControl_Unloaded"
              UseLayoutRounding="True"
