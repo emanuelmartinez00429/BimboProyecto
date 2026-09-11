@@ -8,7 +8,9 @@
              mc:Ignorable="d"
              Width="560"
              d:DesignWidth="560"
-             d:DesignHeight="600"
+             d:DesignHeight="600"
+
+
              UseLayoutRounding="True"
              TextOptions.TextRenderingMode="Grayscale"
              TextOptions.TextFormattingMode="Display" controls:AtajoGuardar.Boton="{x:Reference BtnGuardar}">
@@ -26,7 +28,8 @@
         </ResourceDictionary>
     </UserControl.Resources>
 
-    <Border CornerRadius="10" ClipToBounds="True">
+    <Border CornerRadius="10" ClipToBounds="True"
+>
         <Border.Effect><DropShadowEffect Color="Black" BlurRadius="24" ShadowDepth="8" Opacity="0.55"/></Border.Effect>
         <Grid>
             <Border CornerRadius="10">
