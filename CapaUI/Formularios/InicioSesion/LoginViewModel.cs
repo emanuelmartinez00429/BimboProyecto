@@ -38,7 +38,7 @@ namespace CapaUI.Formularios.InicioSesion
     /// </para>
     /// <para>
     /// <b>Deliberadamente sin tipos de WPF.</b> El proyecto de pruebas apunta a
-    /// <c>net8.0</c> (no <c>net8.0-windows</c>) y enlaza este archivo por
+    /// <c>net10.0</c> (no <c>net10.0-windows</c>) y enlaza este archivo por
     /// <c>&lt;Compile Include="..\CapaUI\..."&gt;</c>: si acá entrara un
     /// <c>Visibility</c>, un <c>Brush</c> o un <c>Dispatcher</c>, el archivo dejaría
     /// de compilar en las pruebas. Esa restricción es la que mantiene honesta la
@@ -56,12 +56,30 @@ namespace CapaUI.Formularios.InicioSesion
     {
         private readonly IAuthService _autenticacion;
         private readonly IUsuarioSesionService _sesion;
+        private readonly IPreferenciasInicioSesionService? _preferencias;
 
-        public LoginViewModel(IAuthService autenticacion, IUsuarioSesionService sesion)
+        public LoginViewModel(
+            IAuthService autenticacion,
+            IUsuarioSesionService sesion,
+            IPreferenciasInicioSesionService? preferencias = null)
         {
             _autenticacion = autenticacion;
             _sesion        = sesion;
+            _preferencias  = preferencias;
+
+            var guardado = _preferencias?.ObtenerUltimoUsuario();
+            if (!string.IsNullOrEmpty(guardado))
+            {
+                Email = guardado;
+                RecordarUsuario = true;
+            }
         }
+
+        /// <summary>
+        /// Indica si se debe persistir localmente el correo del usuario al ingresar exitosamente.
+        /// </summary>
+        [ObservableProperty]
+        private bool _recordarUsuario;
 
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(PuedeIngresar))]
@@ -151,6 +169,8 @@ namespace CapaUI.Formularios.InicioSesion
                     return ResultadoIngreso.SesionFallida;
                 }
                 PasoCompletado?.Invoke(2);
+
+                _preferencias?.GuardarUltimoUsuario(RecordarUsuario ? Email : null);
 
                 return ResultadoIngreso.Exitoso;
             }

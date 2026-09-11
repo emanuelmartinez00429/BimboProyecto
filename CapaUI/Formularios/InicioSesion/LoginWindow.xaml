@@ -1,4 +1,4 @@
-﻿<Window x:Class="CapaUI.Formularios.InicioSesion.LoginWindow"
+<Window x:Class="CapaUI.Formularios.InicioSesion.LoginWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:controls="clr-namespace:CapaUI.Core.Controls"
@@ -195,7 +195,8 @@
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <CheckBox Grid.Column="0" Content="Recordar usuario"
+                            <CheckBox Grid.Column="0" Content="Recordar mi usuario"
+                                      IsChecked="{Binding RecordarUsuario, Mode=TwoWay}"
                                       Style="{StaticResource CustomCheckBox}"/>
                             <Button Grid.Column="1" Content="¿Olvidaste tu contraseña?"
                                     Style="{StaticResource LinkButton}"

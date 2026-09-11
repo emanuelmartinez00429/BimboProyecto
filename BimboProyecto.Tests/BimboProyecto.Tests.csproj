@@ -31,7 +31,7 @@
              Link="Notificaciones\NotificacionMetadataRenderer.cs" />
     <!--
       LoginViewModel se enlaza en vez de referenciar CapaUI porque este proyecto apunta
-      a net8.0 y CapaUI a net8.0-windows. Que compile acá es justamente la prueba de que
+      a net10.0 y CapaUI a net10.0-windows. Que compile acá es justamente la prueba de que
       el ViewModel no arrastra tipos de WPF: si alguien le mete un Visibility o un Brush,
       esta línea deja de compilar y el test falla antes que la revisión humana.
     -->

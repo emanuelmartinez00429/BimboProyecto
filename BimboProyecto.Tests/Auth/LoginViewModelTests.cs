@@ -66,11 +66,36 @@ internal sealed class SesionFalsa : IUsuarioSesionService
     public bool TienePermiso(string nombreAccion)  => false;
 }
 
+internal sealed class PreferenciasFalsas : IPreferenciasInicioSesionService
+{
+    public string? UltimoUsuario { get; set; }
+    public int GuardarLlamadas { get; private set; }
+    public string? UltimoGuardado { get; private set; }
+
+    public PreferenciasFalsas(string? usuarioInicial = null) => UltimoUsuario = usuarioInicial;
+
+    public string? ObtenerUltimoUsuario() => UltimoUsuario;
+
+    public void GuardarUltimoUsuario(string? email)
+    {
+        GuardarLlamadas++;
+        UltimoGuardado = email;
+        UltimoUsuario = email;
+    }
+}
+
 internal static class Dado
 {
     /// <summary>ViewModel con credenciales cargadas y los dobles que se le pasen.</summary>
-    public static LoginViewModel UnLogin(IAuthService auth, IUsuarioSesionService sesion) =>
-        new(auth, sesion) { Email = "usuario@bimbo.hn", Password = "MiPass123!" };
+    public static LoginViewModel UnLogin(
+        IAuthService auth,
+        IUsuarioSesionService sesion,
+        IPreferenciasInicioSesionService? preferencias = null) =>
+        new(auth, sesion, preferencias ?? new PreferenciasFalsas())
+        {
+            Email = "usuario@bimbo.hn",
+            Password = "MiPass123!"
+        };
 }
 
 // ── [P0] El camino feliz ─────────────────────────────────────────────────────
@@ -340,3 +365,59 @@ public sealed class P2_CredencialesQueViajan
         Assert.Equal("", vm2.Error);
     }
 }
+
+// ── [P1] Persistencia de preferencias del login ──────────────────────────────
+
+public sealed class P1_PreferenciasRecordarUsuario
+{
+    [Fact]
+    public async Task Login_exitoso_con_RecordarUsuario_activo_guarda_el_correo()
+    {
+        var prefs = new PreferenciasFalsas();
+        var vm = Dado.UnLogin(new AutenticacionFalsa(), new SesionFalsa(), prefs);
+        vm.Email = "operario@bimbo.hn";
+        vm.RecordarUsuario = true;
+
+        var resultado = await vm.IngresarAsync();
+
+        Assert.Equal(ResultadoIngreso.Exitoso, resultado);
+        Assert.Equal(1, prefs.GuardarLlamadas);
+        Assert.Equal("operario@bimbo.hn", prefs.UltimoGuardado);
+    }
+
+    [Fact]
+    public async Task Login_exitoso_con_RecordarUsuario_destildado_limpia_el_correo_guardado()
+    {
+        var prefs = new PreferenciasFalsas("anterior@bimbo.hn");
+        var vm = Dado.UnLogin(new AutenticacionFalsa(), new SesionFalsa(), prefs);
+        vm.Email = "operario@bimbo.hn";
+        vm.RecordarUsuario = false;
+
+        var resultado = await vm.IngresarAsync();
+
+        Assert.Equal(ResultadoIngreso.Exitoso, resultado);
+        Assert.Equal(1, prefs.GuardarLlamadas);
+        Assert.Null(prefs.UltimoGuardado);
+    }
+
+    [Fact]
+    public void Constructor_con_usuario_previo_precarga_email_y_activa_checkbox()
+    {
+        var prefs = new PreferenciasFalsas("recordado@bimbo.hn");
+        var vm = new LoginViewModel(new AutenticacionFalsa(), new SesionFalsa(), prefs);
+
+        Assert.Equal("recordado@bimbo.hn", vm.Email);
+        Assert.True(vm.RecordarUsuario);
+    }
+
+    [Fact]
+    public void Constructor_sin_usuario_previo_inicia_vacio_y_con_checkbox_destildado()
+    {
+        var prefs = new PreferenciasFalsas(null);
+        var vm = new LoginViewModel(new AutenticacionFalsa(), new SesionFalsa(), prefs);
+
+        Assert.Equal("", vm.Email);
+        Assert.False(vm.RecordarUsuario);
+    }
+}
+

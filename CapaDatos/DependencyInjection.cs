@@ -17,6 +17,7 @@ using CapaAplicacion.Usuarios.Interfaces;
 using CapaDatos.Auth;
 using CapaDatos.Conexion;
 using CapaDatos.Perfil;
+using CapaDatos.Preferencias;
 using CapaDatos.Realtime;
 using CapaAplicacion.Empleados.Interfaces;
 using CapaAplicacion.Empresa.Interfaces;
@@ -51,6 +52,9 @@ public static class DependencyInjection
         // Recuperacion de contrasena por OTP. Antes los tres paneles de la UI le
         // hablaban directo a client.Auth (P-058); ahora pasan por este contrato.
         services.AddTransient<IRecuperacionPasswordService, RecuperacionPasswordService>();
+
+        // Preferencias locales del inicio de sesión (recordar usuario)
+        services.AddSingleton<IPreferenciasInicioSesionService, PreferenciasInicioSesionService>();
 
         // Perfil del usuario — singleton porque mantiene estado entre login y logout
         services.AddSingleton<IPerfilUsuarioService, PerfilUsuarioService>();

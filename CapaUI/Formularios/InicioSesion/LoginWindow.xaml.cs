@@ -49,14 +49,20 @@ namespace CapaUI.Formularios.InicioSesion
             IRecuperacionPasswordService recuperacion,
             IEmpresaRepository empresaRepository,
             LogoEmpresaCache logoCache,
-            EmpresaThemeService themeService)
+            EmpresaThemeService themeService,
+            IPreferenciasInicioSesionService preferencias)
         {
             _empresaRepository = empresaRepository;
             _logoCache = logoCache;
             _themeService = themeService;
             Recuperacion  = recuperacion;
-            _vm = new LoginViewModel(authService, sesionService);
+            _vm = new LoginViewModel(authService, sesionService, preferencias);
             InitializeComponent();
+            DataContext = _vm;
+            if (!string.IsNullOrEmpty(_vm.Email))
+            {
+                TxtEmail.Text = _vm.Email;
+            }
             TxtEmail.MaxLength = ReglasUsuario.Correo.LargoMaximo ?? 50;
             TxtPassword.MaxLength = ReglasUsuario.Password.LargoMaximo ?? 72;
             TxtPasswordVisible.MaxLength = ReglasUsuario.Password.LargoMaximo ?? 72;
@@ -65,6 +71,11 @@ namespace CapaUI.Formularios.InicioSesion
 
         private async void LoginWindow_Loaded(object sender, RoutedEventArgs e)
         {
+            if (!string.IsNullOrEmpty(_vm.Email))
+            {
+                TxtPassword.Focus();
+            }
+
             // Lo primero, antes de cualquier await: si ya hay un logo cacheado de una
             // corrida anterior, se pinta al instante. Así el usuario nunca ve el salto
             // "logo empacado → logo real" en el caso normal (que es casi siempre) —
