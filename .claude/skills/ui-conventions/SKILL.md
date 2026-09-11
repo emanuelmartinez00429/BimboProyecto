@@ -57,7 +57,7 @@ Palabras clave: *modal, XAML, UserControl, diseñador, designer, previsualizaci�
 2. **Arné de instanciación** — reproduce la condición del diseñador sin abrir VS:
    - Crear un proyecto `net8.0-windows` + `<UseWPF>true</UseWPF>` en el scratchpad, referencia a `CapaUI` (o `HintPath` a `CapaUI/obj/Debug/net8.0-windows/CapaUI.dll` si hay lock).
    - `new Application();` (Resources vacío) → por cada control: `Activator.CreateInstance` por el ctor sin parámetros → `Measure(new Size(1400,900))` → `Arrange(...)` → comprobar `ActualWidth/Height >= 5` y que no tiró excepción.
-   - Plantilla completa en el nodo de convenciones, §7.
+   - Plantilla completa en el nodo de convenciones, §8.
    - Correr, leer el reporte (`OK` / `COLAPSA` / `EXCEPCION`), **borrar el proyecto del scratchpad**.
    - **Punto ciego:** `{StaticResource}` dentro de `ControlTemplate`/`DataTemplate`/`DataTrigger` diferido no se evalúa. Complementar con `grep -rn "StaticResource <clave>" --include=*.xaml`.
 3. **Prueba visual manual** del flujo tocado — el arné no cubre bindings con datos reales ni comportamiento.
@@ -76,6 +76,7 @@ Palabras clave: *modal, XAML, UserControl, diseñador, designer, previsualizaci�
 | `<Style>` copiado de `Styles.xaml` | mergear y usar el global |
 | `Empresa*` en `Styles.xaml` | solo `App.xaml` + `DesignTimeResources.xaml` |
 | literal de otro framework en XAML | equivalente WPF verificado |
+| "el estilo compartido no reacciona" → tocar el `Style` o dibujar por fila | revisar la **notificación**: getter calculado sin `PropertyChanged`; un "recalcular todo lo derivado" lleva `OnPropertyChanged(string.Empty)`, no lista a mano (§7 del nodo) |
 
 ---
 

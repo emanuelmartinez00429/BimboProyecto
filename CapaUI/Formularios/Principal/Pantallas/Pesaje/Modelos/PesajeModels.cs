@@ -216,22 +216,17 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modelos
                 ? (Brush)CapaUI.Services.Empresa.EmpresaThemeService.ObtenerBrushPrincipalActual()
                 : (Brush)new SolidColorBrush((Color)ColorConverter.ConvertFromString("#D97706"));
 
-        /// <summary>Recalcula los agregados tras cambios en Entradas.</summary>
-        public void NotificarAgregados()
-        {
-            OnPropertyChanged(nameof(PesoRecibido));
-            OnPropertyChanged(nameof(TaraExtraRegistrada));
-            OnPropertyChanged(nameof(PesadasSinTaraExtra));
-            OnPropertyChanged(nameof(FaltaTaraExtra));
-            OnPropertyChanged(nameof(BultosEstimados));
-            OnPropertyChanged(nameof(BultosRecibidos));
-            OnPropertyChanged(nameof(BultosRestantes));
-            OnPropertyChanged(nameof(PctRestante));
-            OnPropertyChanged(nameof(PctRecibido));
-            OnPropertyChanged(nameof(EscalaRecibido));
-            OnPropertyChanged(nameof(ProgresoTexto));
-            OnPropertyChanged(nameof(ProgresoColor));
-        }
+        /// <summary>
+        /// Recalcula TODO lo que deriva de <see cref="Entradas"/> tras un alta/baja de pesada.
+        /// <para/>
+        /// Notifica con <see cref="string.Empty"/> (= "todas las propiedades cambiaron") a
+        /// propósito: la lista enumerada a mano se desincronizó una vez —faltaban
+        /// <see cref="PuedeQuitar"/>/<see cref="TienePesajes"/>/<see cref="MotivoQuitar"/>,
+        /// así que el basurero de la fila no se ponía gris al pesar un producto—. Una fila
+        /// tiene ~15 bindings y esto corre en un clic humano, no en un bucle: el costo de
+        /// refrescar de más es nulo y ninguna propiedad derivada se puede volver a olvidar.
+        /// </summary>
+        public void NotificarAgregados() => OnPropertyChanged(string.Empty);
     }
 
     public partial class CamionPesaje : ObservableObject

@@ -18,7 +18,7 @@ lifecycle: verified
 ## Cómo usar este nodo
 
 1. Antes de tocar XAML: leé las reglas de abajo que apliquen a tu cambio.
-2. Al terminar: **build limpio (0/0)** + **arné de instanciación** (§7) + prueba visual manual del flujo tocado.
+2. Al terminar: **build limpio (0/0)** + **arné de instanciación** (§8) + prueba visual manual del flujo tocado.
 3. Si descubrís una regla nueva o un gotcha, agregalo acá con su evidencia (link a sesión/ADR/referencia).
 
 ---
@@ -115,7 +115,18 @@ Ver [[ADR-028 - Previsualizacion de UserControls en el disenador de VS]] y ADR-0
 
 Si el requisito viene en términos de WinForms (`DisplayedCells`), HTML/CSS (`flex`, `div`) o Android, **nunca** trasladar el término como atributo XAML o identificador C#. Interpretarlo y traducirlo al equivalente nativo y validado de WPF (ej. `DataGrid` → `Width="Auto"` + `MinWidth`, no `SizeToDisplayedCells`). Si un enum/propiedad no existe en WPF, verificar la API oficial antes de generar código. (Regla 8 de `AGENTS.md`.)
 
-## 7. Verificación — el arné de instanciación
+## 7. Un botón/estilo que "no reacciona" casi nunca es el estilo
+
+Cuando un control con estilo compartido no cambia de aspecto al cambiar de estado (un basurero que no se pone gris al deshabilitarse, un badge que no se recolorea), **el sospechoso es la notificación, no el `Style`**. Antes de tocar el estilo o dibujar el control por fila:
+
+1. Verificá que el `Style`/`ControlTemplate` **ya tiene el trigger** (`<Trigger Property="IsEnabled" Value="False">`, etc.). Casi siempre lo tiene.
+2. Verificá que la propiedad del binding (`IsEnabled="{Binding PuedeQuitar}"`) **se está re-evaluando**. Si es un getter calculado (`PuedeQuitar => !TienePesajes`) sobre una colección, WPF no se entera de que cambió salvo que alguien dispare `PropertyChanged` para esa propiedad.
+
+**Gotcha real (basurero de fila en pesaje, 2026-09-10):** `ProductoCamion.NotificarAgregados()` era una lista a mano de `OnPropertyChanged(nameof(...))` para las 12 props derivadas de `Entradas`. Faltaban `PuedeQuitar`/`TienePesajes`/`MotivoQuitar`, así que al pesar un producto la columna "% restante" se actualizaba pero el basurero seguía rojo. La clase hermana `CamionPesaje` lo hacía bien con `[NotifyPropertyChangedFor(nameof(PuedeQuitar))]`.
+
+**Regla:** un método "recalcular todo lo derivado de X" **no lleva lista a mano** — usá `OnPropertyChanged(string.Empty)` (= *todas las propiedades cambiaron*). Una fila tiene ~15 bindings y esto corre en un clic humano: el costo de refrescar de más es nulo y ninguna propiedad derivada se puede volver a olvidar. La lista enumerada solo se justifica en un bucle caliente, que en UI no existe.
+
+## 8. Verificación — el arné de instanciación
 
 No hay tests de UI automatizados. La verificación de que un control **carga y hace layout** sin la app es un arné WPF de ~40 líneas:
 
