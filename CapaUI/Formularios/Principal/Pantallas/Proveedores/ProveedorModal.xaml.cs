@@ -112,10 +112,31 @@ namespace CapaUI.Formularios.Principal.Pantallas.Proveedores
                 }
                 else
                 {
-                    var r = await _repo.UpdateAsync(dto, _solicitud.Obtener("actualizar_proveedor", dto), CancellationToken.None);
-                    (exito, error) = (r.Success, r.Error);
+                    bool datosCambiaron = _proveedor == null ||
+                        !string.Equals(dto.Nombre, _proveedor.Nombre, StringComparison.Ordinal) ||
+                        !string.Equals(dto.Rtn, _proveedor.Rtn, StringComparison.Ordinal) ||
+                        !string.Equals(dto.Telefono, _proveedor.Telefono, StringComparison.Ordinal) ||
+                        !string.Equals(dto.Correo, _proveedor.Correo, StringComparison.Ordinal) ||
+                        !string.Equals(dto.Direccion, _proveedor.Direccion, StringComparison.Ordinal);
 
-                    if (exito && _proveedor != null && dto.IdEstado != _proveedor.IdEstado)
+                    bool estadoCambio = _proveedor != null && dto.IdEstado != _proveedor.IdEstado;
+
+                    if (!datosCambiaron && !estadoCambio)
+                    {
+                        Cerrado?.Invoke();
+                        return;
+                    }
+
+                    exito = true;
+                    error = string.Empty;
+
+                    if (datosCambiaron)
+                    {
+                        var r = await _repo.UpdateAsync(dto, _solicitud.Obtener("actualizar_proveedor", dto), CancellationToken.None);
+                        (exito, error) = (r.Success, r.Error);
+                    }
+
+                    if (exito && estadoCambio)
                     {
                         var rEstado = await _repo.CambiarEstadoAsync(
                             dto.Id,

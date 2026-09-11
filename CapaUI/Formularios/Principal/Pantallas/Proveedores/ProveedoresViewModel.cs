@@ -33,8 +33,8 @@ public partial class ProveedoresViewModel : RealtimeAwareViewModel
     private int          _filteredCount;
     private int?         _pendingSelectionId;
     private int          _loadGeneration;
-    // P-029: CTS para cancelar peticiones en vuelo al desmontar la vista.
-    private readonly CancellationTokenSource _cts = new();
+    // P-029: CTS para cancelar peticiones de página en vuelo y timeout.
+    private CancellationTokenSource? _ctsPagina;
 
     public const int PageSize = 50;
 
@@ -152,27 +152,33 @@ public partial class ProveedoresViewModel : RealtimeAwareViewModel
 
     private const int TimeoutMs = 10_000;
 
+    /// <summary>
+    /// El timeout cancela la petición de verdad en vez de solo dejar de esperarla.
+    /// La generación nueva cancela la petición anterior si seguía en vuelo.
+    /// </summary>
     private async Task CargarPaginaAsync()
     {
         int myGen  = ++_loadGeneration;
         IsLoading  = true;
         ErrorCarga = string.Empty;
 
+        // La generación nueva cancela la petición anterior si seguía en vuelo.
+        try { _ctsPagina?.Cancel(); } catch (ObjectDisposedException) { }
+
+        using var cts = new CancellationTokenSource(TimeoutMs);
+        _ctsPagina = cts;
+
         var filtros = BuildFiltros();
 
-        var task = _repo.GetPagedAsync(_page, PageSize, filtros, _cts.Token);
-
-        // P-029: el Task.Delay del timeout usa un token enlazado que se cancela
-        // apenas gana la consulta. Sin esto, CADA carga dejaba un timer de 10 s
-        // vivo en el TimerQueue aunque la consulta tardara solo 200 ms.
-        using var ctsTimeout = CancellationTokenSource.CreateLinkedTokenSource(_cts.Token);
-        var demora   = Task.Delay(TimeoutMs, ctsTimeout.Token);
-        var ganador  = await Task.WhenAny(task, demora);
-        ctsTimeout.Cancel();
-
-        if (Disposed) return;
-        if (ganador != task)
+        Result<PagedResult<ProveedorDto>> r;
+        try
         {
+            r = await _repo.GetPagedAsync(_page, PageSize, filtros, cts.Token);
+        }
+        catch (OperationCanceledException)
+        {
+            // Si la canceló una carga más nueva, esa se encarga de la UI y acá no hay nada que decir;
+            // si venció el timeout, hay que avisar.
             if (myGen != _loadGeneration) return;
             ErrorCarga = "La carga tardó demasiado. Intente de nuevo.";
             PageRows = new ObservableCollection<ProveedorDto>();
@@ -180,9 +186,13 @@ public partial class ProveedoresViewModel : RealtimeAwareViewModel
             IsLoading  = false;
             return;
         }
+        finally
+        {
+            if (ReferenceEquals(_ctsPagina, cts))
+                _ctsPagina = null;
+        }
 
-        var r = await task;
-        if (Disposed || myGen != _loadGeneration) return;
+        if (myGen != _loadGeneration) return;
 
         if (!r.Success)
         {
@@ -302,6 +312,7 @@ public partial class ProveedoresViewModel : RealtimeAwareViewModel
     private void LimpiarFiltros()
     {
         _estadoFiltro = EstadoFilter.Activos;
+        OnPropertyChanged(nameof(EstadoFiltro));
         FiltrosLimpiados?.Invoke();
         AplicarCambioDeFiltro();
     }
@@ -460,8 +471,9 @@ public partial class ProveedoresViewModel : RealtimeAwareViewModel
 
     protected override void OnDispose()
     {
-        _cts.Cancel();
-        _cts.Dispose();
+        try { _ctsPagina?.Cancel(); } catch (ObjectDisposedException) { }
+        _ctsPagina?.Dispose();
+        _ctsPagina = null;
         _buscador.Dispose();
     }
 }

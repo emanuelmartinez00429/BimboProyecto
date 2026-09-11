@@ -124,22 +124,25 @@
                                Foreground="#6B7280" VerticalAlignment="Center" Margin="0,0,10,0"/>
                     <Border Grid.Column="1" Background="#F3F4F6" CornerRadius="8" BorderBrush="#E5E7EB" BorderThickness="1" Padding="3" VerticalAlignment="Center">
                         <StackPanel Orientation="Horizontal">
-                            <RadioButton x:Name="RbActivos" GroupName="EstadoFiltro" IsChecked="True"
-                                         Style="{StaticResource SegmentBtn}" Checked="EstadoFiltro_Changed">
+                            <RadioButton x:Name="RbActivos" GroupName="EstadoFiltro"
+                                         IsChecked="{Binding EstadoFiltro, Converter={x:Static conv:EnumToBooleanConverter.Instancia}, ConverterParameter=Activos, Mode=TwoWay}"
+                                         Style="{StaticResource SegmentBtn}">
                                 <StackPanel Orientation="Horizontal">
                                     <Border Width="6" Height="6" CornerRadius="3" Background="#10B981" Margin="0,0,5,0" VerticalAlignment="Center"/>
                                     <TextBlock Text="Activos" FontFamily="Segoe UI" FontSize="15"/>
                                 </StackPanel>
                             </RadioButton>
                             <RadioButton x:Name="RbInactivos" GroupName="EstadoFiltro"
-                                         Style="{StaticResource SegmentBtn}" Checked="EstadoFiltro_Changed">
+                                         IsChecked="{Binding EstadoFiltro, Converter={x:Static conv:EnumToBooleanConverter.Instancia}, ConverterParameter=Inactivos, Mode=TwoWay}"
+                                         Style="{StaticResource SegmentBtn}">
                                 <StackPanel Orientation="Horizontal">
                                     <Border Width="6" Height="6" CornerRadius="3" Background="#94A3B8" Margin="0,0,5,0" VerticalAlignment="Center"/>
                                     <TextBlock Text="Inactivos" FontFamily="Segoe UI" FontSize="15"/>
                                 </StackPanel>
                             </RadioButton>
                             <RadioButton x:Name="RbTodos" GroupName="EstadoFiltro"
-                                         Style="{StaticResource SegmentBtn}" Checked="EstadoFiltro_Changed">
+                                         IsChecked="{Binding EstadoFiltro, Converter={x:Static conv:EnumToBooleanConverter.Instancia}, ConverterParameter=Todos, Mode=TwoWay}"
+                                         Style="{StaticResource SegmentBtn}">
                                 <TextBlock Text="Todos" FontFamily="Segoe UI" FontSize="15"/>
                             </RadioButton>
                         </StackPanel>
@@ -162,26 +165,28 @@
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
-                <StackPanel Grid.Row="0" x:Name="EmptyState" Visibility="Collapsed" VerticalAlignment="Center" HorizontalAlignment="Center">
+                <!-- Loading overlay reutilizable (AP-04) -->
+                <controls:LoadingOverlay Grid.Row="0"
+                                         Panel.ZIndex="10"
+                                         HeaderOffset="40"
+                                         IsLoading="{Binding IsLoading}"
+                                         Mensaje="Cargando proveedores..."/>
+
+                <StackPanel Grid.Row="0" x:Name="EmptyState"
+                            Visibility="{Binding NoResults, Converter={x:Static conv:BoolToVisibilityConverter.Instancia}}"
+                            VerticalAlignment="Center" HorizontalAlignment="Center">
                     <TextBlock FontFamily="Segoe UI" FontSize="16" Foreground="#6B7280" HorizontalAlignment="Center">
                         Sin resultados. Ajusta los filtros o pulsa <Bold>Limpiar Filtros</Bold>.
                     </TextBlock>
                 </StackPanel>
-                <StackPanel Grid.Row="0" x:Name="LoadingPanel" Visibility="Collapsed" VerticalAlignment="Center"
-                            HorizontalAlignment="Center" Orientation="Horizontal">
-                    <Path x:Name="SpinnerPath" Data="M 12 2 A 10 10 0 1 1 2 12"
-                          Stroke="{DynamicResource EmpresaPrimaryBrush}" StrokeThickness="2.5" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                          Width="22" Height="22" Stretch="Uniform" RenderTransformOrigin="0.5,0.5" Margin="0,0,10,0">
-                        <Path.RenderTransform><RotateTransform/></Path.RenderTransform>
-                    </Path>
-                    <TextBlock Text="Cargando proveedores..." FontFamily="Segoe UI" FontSize="16" Foreground="#6B7280" VerticalAlignment="Center"/>
-                </StackPanel>
                 <DataGrid Grid.Row="0" x:Name="DgProveedores" AutoGenerateColumns="False" CanUserAddRows="False"
+                          ItemsSource="{Binding PageRows, Mode=OneWay}"
+                          SelectedItem="{Binding Seleccionado, Mode=TwoWay}"
                           IsReadOnly="True"
                           CanUserSortColumns="False" HeadersVisibility="Column" GridLinesVisibility="None"
                           SelectionMode="Single" SelectionUnit="FullRow" Background="White" BorderThickness="0"
                           AlternationCount="2" RowStyle="{StaticResource ProductRowStyle}" CellStyle="{StaticResource CeldaIzquierda}"
-                          SelectionChanged="DgProveedores_SelectionChanged" MouseDoubleClick="DgProveedores_MouseDoubleClick"
+                          MouseDoubleClick="DgProveedores_MouseDoubleClick"
                           PreviewKeyDown="DgProveedores_PreviewKeyDown"
                           ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.HorizontalScrollBarVisibility="Auto"
                           VirtualizingPanel.IsVirtualizing="True"
@@ -342,7 +347,8 @@
                     </StackPanel>
                 </Button>
             </StackPanel>
-            <StackPanel DockPanel.Dock="Left" x:Name="SelectedInfo" Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0" Visibility="Collapsed">
+            <StackPanel DockPanel.Dock="Left" x:Name="SelectedInfo" Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0"
+                        Visibility="{Binding HaySeleccionado, Converter={x:Static conv:BoolToVisibilityConverter.Instancia}}">
                 <Border Width="6" Height="6" CornerRadius="3" Background="{DynamicResource EmpresaPrimaryBrush}" Margin="0,0,6,0" VerticalAlignment="Center"/>
                 <TextBlock FontFamily="Segoe UI" FontSize="14" Foreground="#6B7280" VerticalAlignment="Center" Text="{Binding TextoSeleccionado}"/>
             </StackPanel>
