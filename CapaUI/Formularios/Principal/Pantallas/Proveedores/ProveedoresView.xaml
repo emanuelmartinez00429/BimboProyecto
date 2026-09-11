@@ -262,26 +262,24 @@
                         </DataGridTemplateColumn>
                         <DataGridTemplateColumn Header="CREADO"
                                                 Width="150"
-                                                HeaderStyle="{StaticResource HeaderDerecho}"
-                                                CellStyle="{StaticResource CeldaDerecha}">
+                                                CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding CreatedAt, StringFormat={}{0:dd/MM/yyyy HH:mm}, TargetNullValue='—'}"
                                                FontFamily="Segoe UI" FontSize="14" Foreground="#64748B"
-                                               HorizontalAlignment="Right" VerticalAlignment="Center"
+                                               HorizontalAlignment="Left" VerticalAlignment="Center"
                                                Padding="10,0"/>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
                         <DataGridTemplateColumn Header="ACTUALIZADO"
                                                 Width="150"
-                                                HeaderStyle="{StaticResource HeaderDerecho}"
-                                                CellStyle="{StaticResource CeldaDerecha}">
+                                                CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding UpdatedAt, StringFormat={}{0:dd/MM/yyyy HH:mm}, TargetNullValue='—'}"
                                                FontFamily="Segoe UI" FontSize="14" Foreground="#64748B"
-                                               HorizontalAlignment="Right" VerticalAlignment="Center"
+                                               HorizontalAlignment="Left" VerticalAlignment="Center"
                                                Padding="10,0"/>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>

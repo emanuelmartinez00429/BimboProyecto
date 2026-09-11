@@ -364,4 +364,21 @@ public sealed class ProveedoresWhiteBoxTests
         // 2. Confirmación del token idempotente del paso exitoso
         Assert.Contains("_solicitud.Confirmar();", codigoCs);
     }
+
+    [Fact(DisplayName = "ProveedoresView alinea columnas CREADO y ACTUALIZADO a la izquierda")]
+    public void ProveedoresView_ColumnasFechasAlineadasALaIzquierda()
+    {
+        var archivoXaml = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "CapaUI", "Formularios", "Principal", "Pantallas", "Proveedores", "ProveedoresView.xaml");
+        if (!File.Exists(archivoXaml)) return;
+
+        var xaml = File.ReadAllText(archivoXaml);
+
+        // Columnas CREADO y ACTUALIZADO con CeldaIzquierda
+        Assert.Matches(@"Header=""CREADO""[^>]*CellStyle=""{StaticResource CeldaIzquierda}""", xaml);
+        Assert.Matches(@"Header=""ACTUALIZADO""[^>]*CellStyle=""{StaticResource CeldaIzquierda}""", xaml);
+
+        // No deben tener HeaderDerecho ni CeldaDerecha
+        Assert.DoesNotMatch(@"Header=""CREADO""[^>]*HeaderDerecho", xaml);
+        Assert.DoesNotMatch(@"Header=""ACTUALIZADO""[^>]*HeaderDerecho", xaml);
+    }
 }
