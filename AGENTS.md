@@ -42,8 +42,12 @@ Estado y arquitectura vigentes (fuente de verdad viva): **[`contexto/40 - Proyec
 13. **RadioButtons con Enums y CTS Concurrente en .NET 10:** En RadioButtons ligados a enums con ViewModel, omitir `GroupName` (elimina escaneo $O(N)$ del árbol visual) y usar `{x:Static ...}` en `ConverterParameter`. Para peticiones de red cancelables, usar reemplazo atómico lock-free `Interlocked.Exchange(ref _cts, cts)` con `_ = oldCts.CancelAsync()`.
 14. **Dirty Tracking Tipado con `ChangeTracker<T>` y Records:** En todos los modales de edición (`*Modal.xaml.cs`), queda prohibido comparar campos a mano con cadenas `OR` (`!string.Equals(...)`). Usar siempre `ChangeTracker<TSnapshot>` (`CapaUI.Core.Validacion`) con un `record` posicional privado que contenga los campos editables. Esto garantiza igualdad por valor nativa y validación exhaustiva en tiempo de compilación.
 15. **Comunicación Bilateral entre Agentes (Antigravity ↔ Claude):** Para sincronizar tareas, auditorías o deudas técnicas con Claude Code, usar siempre ambos canales en tándem: (1) **Engram** con `project: "bimboproyecto"` y formato What/Why/Where/Learned, y (2) **Bóveda (`contexto/`)** documentando en `contexto/60` (auditorías), `contexto/40` (deuda técnica `P-NNN`) o `contexto/70` (bitácora de sesión), usando bloques `> [!note] Claude, si leés esto:` con archivo y línea exactos para avisos directos.
+16. **Hábitos de Proceso, Controles Compartidos y Cierre:**
+    - **Controles Compartidos (`CapaUI/Core/Controls/`):** Prohibido modificarlos probando solo la pantalla activa. Grepear todos los usos en XAML/C# y garantizar retrocompatibilidad. Comportamientos no estándar deben ser opt-in (default `false`).
+    - **Bitácora (`contexto/70`):** Bloques de código multilínea siempre con triple comilla invertida (```` ``` ````) y lenguaje tipado. Verificar que no haya palabras truncadas o mutiladas por reemplazos.
+    - **Arquitectura Actual (`contexto/40`):** Al cerrar sesión con trabajo real, agregar siempre el callout `> [!success] Actualizado AAAA-MM-DD — Título` al inicio de `Arquitectura Actual.md` (orden más nuevo primero) enlazando a la nota de sesión en `70/`.
 
-Detalle completo de convenciones de código: [`contexto/CLAUDE.md`](contexto/CLAUDE.md) y [`contexto/50 - Referencia/Convenciones C#.md`](contexto/50%20-%20Referencia/Convenciones%20C%23.md).
+Detalle completo de convenciones de código: [`contexto/CLAUDE.md`](contexto/CLAUDE.md) y [`contexto/50 - Referencia/Convenciones C#.md`](contexto/50%20-%20Referencia/Convenciones%20C%23.md). Reglas de proceso en [`.agents/rules/process_and_quality_habits.md`](../.agents/rules/process_and_quality_habits.md).
 
 ---
 

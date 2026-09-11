@@ -10,6 +10,15 @@ aliases:
 
 # Arquitectura Actual — Bimbo
 
+> [!success] Actualizado 2026-09-11 — Rediseño del ícono de Pesajes y fix de `EmptyStateOverlay` (P-062)
+> El ícono de balanza se centralizó como `IcoScale` (`PathGeometry`, `FillRule="Nonzero"`, `po:Freeze="True"`) en `Styles.xaml`, reemplazando el glifo de fuente del sidebar y las copias locales de `DashboardView`/`PesajeView`. De paso se encontró y cerró [[Deuda Técnica - Pendientes#P-062|P-062]]: `EmptyStateOverlay.OnIconoChanged` forzaba `Fill = Stroke` para cualquier ícono asignado, no solo los de relleno sólido — nueva propiedad `IconoEsRelleno` (default `false`) lo hace opcional y protege por default a todos los íconos de línea del proyecto. Ver [[Sesión 2026-09-11 - Rediseño e integración del icono de Pesajes]].
+
+> [!success] Actualizado 2026-09-11 — "Recordar mi usuario" en el login, 100% local
+> Checkbox opcional (destildado por default) que guarda solo el correo — nunca la contraseña — en `%APPDATA%\BimboPesaje\Preferencias\ultimo_usuario.txt`, aislado por máquina y sin tocar Supabase. Nuevo contrato `IPreferenciasInicioSesionService` (`CapaAplicacion4`) implementado en `CapaDatos.Preferencias`. Ver [[Sesión 2026-09-11 - Recordar mi usuario en Login]].
+
+> [!success] Actualizado 2026-09-11 — `ChangeTracker<T>` erradica el dirty tracking manual en los 5 modales de catálogo
+> `ChangeTracker<T>` (`CapaUI/Core/Validacion/`), genérico y sellado, reemplazó las cadenas de `!string.Equals` en `ProveedorModal`, `ProductoModal`, `FabricanteModal`, `CategoriaModal` y `PresentacionModal` por comparación de valor sobre un `record` privado por modal. De paso se cerró la auditoría externa de las optimizaciones WPF de Antigravity contra las investigaciones de QA: `EnumToBooleanConverter` quedó `sealed` con comparación bit a bit, y el swap atómico de `CancellationTokenSource` dejó de llamar `Dispose()` sobre el token reemplazado (P-060), evitando el riesgo de `ObjectDisposedException` documentado en la investigación de concurrencia. Ver [[Auditoría Externa — Optimizaciones WPF de Antigravity vs. Investigaciones QA]] y [[Sesión 2026-09-11 - Dirty Tracking tipado con ChangeTracker y optimizaciones finales]].
+
 > [!success] Actualizado 2026-09-10 — Solución migrada a .NET 10 (LTS)
 > Se completó la migración de los proyectos de la solución (`CapaUI`, `CapaAplicacion`, `CapaDatos`, `CapaDominio`, `BimboProyecto.Tests` y `ServicioConexión`) a target framework `net10.0-windows` y `net10.0` con suite de tests limpia (344/344). Esto previene la obsolescencia técnica ante el fin de soporte de .NET 8 en noviembre de 2026.
 

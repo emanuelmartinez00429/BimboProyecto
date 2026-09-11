@@ -178,6 +178,23 @@ El código actual hace lo contrario: en el `finally` de `CargarPaginaAsync`, tra
 
 ---
 
+### ~~P-063 · RLS de `proveedores` en `USING (true)` para `public` — cualquiera, sin login, leía RTN/teléfono/correo/dirección de todos los proveedores~~ ✅ Resuelto 2026-09-11
+
+**Archivo:** Base viva Supabase (proyecto `bzmmrifjgzlvsphctais`), política `select_Proveedores` sobre `public.proveedores`. Código relacionado: `CapaDatos/Repositories/Productos/ProductoCrudRepository.cs:41-48` (`SelectPara`), migración `supabase/migrations/20260911094715_fix_select_proveedores_rls_publico.sql`.
+**Introducido en:** la política en sí es preexistente (no se pudo determinar cuándo se creó — no está en ninguna migración trackeada del repo). Lo que la hizo explotable fue el cambio en `SelectPara()` de esta sesión (branch `feat/fase8-MaquetadodeRoles`, commit del rediseño del módulo Productos): pasó de `fabricante(*)` a `fabricante(*, proveedores(*))`, embebiendo el proveedor completo en cada consulta de Productos (listado, paginación y sugerencias de búsqueda).
+
+Encontrado mediante `/security-review` (metodología de 3 fases: subagente de identificación → subagente de verificación de falsos positivos con acceso a Supabase para consultar `pg_policies` en vivo → solo se reportan hallazgos con confianza ≥8). Verificado con consulta directa a la base: `select_Proveedores` tenía `roles={public}`, `qual=true` — sin requerir sesión iniciada ni ningún permiso. Como `PRODUCTOS_CONSULTAR` y `PROVEEDORES_CONSULTAR` son permisos distintos y otorgables por separado en el RBAC de la app, cualquier usuario con acceso de solo lectura a Productos (o directamente cualquiera con la clave `anon` del proyecto, sin pasar por la app) recibía el RTN, teléfono, correo y dirección de todos los proveedores con cada apertura de la pantalla o cada letra tecleada en el buscador.
+
+**Riesgo:** Alto — exposición de datos de negocio (RTN es el equivalente hondureño del RUC/tax ID) sin ninguna condición especial, alcanzaba con usar la pantalla de Productos normalmente.
+
+**Solución aplicada:** se reemplazó la política por una que exige al menos uno de estos permisos (`OR`, no `AND` — con cualquiera de los cinco alcanza): `PROVEEDORES_CONSULTAR`, `PRODUCTOS_CREAR`, `PRODUCTOS_MODIFICAR`, `FABRICANTES_CREAR`, `FABRICANTES_MODIFICAR`. Los últimos cuatro (no solo `PROVEEDORES_CONSULTAR`) son necesarios porque el selector de catálogo de `ProductoModal` y `FabricanteModal` (`GetProveedoresAsync` en `CatalogoRepository.cs:126-136`) lee esta misma tabla —incluyendo `rtn_proveedor`— para que cualquiera con permiso de crear/modificar productos o fabricantes pueda elegir un proveedor; restringir solo a `PROVEEDORES_CONSULTAR` le habría roto ese selector a la mitad del equipo.
+
+**Verificación:** migración `fix_select_proveedores_rls_publico` aplicada y confirmada en `list_migrations` (versión `20260911094715`, última de la lista). Releído `pg_policies` tras aplicar: el `qual` quedó exactamente como se diseñó. `get_advisors` (security) corrido después, sin ninguna advertencia nueva relacionada a `proveedores`.
+
+**Estado:** `[x] Resuelto 2026-09-11`
+
+---
+
 ## 🟡 Importantes — no bloquean pero generan deuda en cascada
 
 ---
@@ -1462,6 +1479,7 @@ Eran **dos problemas encimados**, y el segundo era el grave:
 | P-060 | `cts.Dispose()` en swap atómico contradice la investigación de CTS (riesgo `ObjectDisposedException`) | `[x]` Resuelto 2026-09-11 | [[Auditoría Externa — Optimizaciones WPF de Antigravity vs. Investigaciones QA]] |
 | P-061 | "Transacción compensatoria" en AGENTS.md no revierte nada (mal nombrada) | `[x]` Resuelto 2026-09-11 | [[Auditoría Externa — Optimizaciones WPF de Antigravity vs. Investigaciones QA]] |
 | P-062 | `EmptyStateOverlay.OnIconoChanged` fuerza Fill=Stroke en cualquier ícono, no solo íconos de relleno | `[x]` Resuelto 2026-09-11 — `IconoEsRelleno` DP (default false); `PesajeView` declara `True` | [[Sesión 2026-09-11 - Rediseño e integración del icono de Pesajes]] |
+| P-063 | RLS `select_Proveedores` en `USING (true)` para `public` — cualquiera sin login leía RTN/teléfono/correo/dirección de proveedores | `[x]` Resuelto 2026-09-11 — política re-escrita con 5 permisos (`OR`); migración `fix_select_proveedores_rls_publico` | [[Sesión 2026-09-11 - RLS de proveedores abierta al público (P-063)]] |
 
 ---
 
