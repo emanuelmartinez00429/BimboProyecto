@@ -1396,7 +1396,7 @@ Eran **dos problemas encimados**, y el segundo era el grave:
 
 ---
 
-### P-059 · La recuperación de contraseña no verifica que la cuenta esté habilitada
+### ~~P-059 · La recuperación de contraseña no verifica que la cuenta esté habilitada~~ ✅ Resuelto 2026-09-11 (traído a esta rama)
 
 **Archivos:** `CapaDatos/Auth/RecuperacionPasswordService.cs`
 **Detectado en:** al poner el flujo detrás de un contrato (P-058), 2026-09-09
@@ -1406,6 +1406,10 @@ Eran **dos problemas encimados**, y el segundo era el grave:
 **Riesgo: acotado, no es una brecha activa.** Aunque cambie su contraseña, el usuario deshabilitado **sigue sin poder entrar** — `LoginAsync` lo frena igual. Lo que sí permite es que una cuenta dada de baja consuma envíos de correo y OTP, y deja el flujo sin defensa en profundidad: si alguien alguna vez relaja el chequeo del login, este camino ya estaría abierto.
 
 **Solución:** verificar el estado de la cuenta en `VerificarCodigoAsync` (o antes, en `EnviarCodigoAsync`), reusando `RepositorioUsuario`. Ojo con no romper la no-enumeración de cuentas: el mensaje al usuario tiene que seguir siendo el mismo exista o no la cuenta.
+
+**Nota de proceso — por qué "seguía pasando" en la práctica:** el fix se hizo bien el 2026-09-10 (commit `9eccf00`, autor Antigravity, 345/345 tests) pero quedó en la rama `fix/deuda-p022-p056-p059`, que **nunca se fusionó** con `feat/fase8-MaquetadodeRoles` — la rama en la que se sigue trabajando desde entonces. Engram y la bóveda de esa otra rama decían "resuelto"; esta rama, que es la que corre Fernando, seguía con el bug. No fue una regresión de código, fue una rama huérfana. Traído acá el 2026-09-11 con `git cherry-pick 9eccf00` (commit `028afcc`). Verificado de nuevo tras el cherry-pick: build 0/0, **424/424** tests.
+
+**Pendiente relacionado, no traído todavía:** esa misma rama tiene P-022 (constructor muerto en `UsuarioModal`) y P-056 (borrar el proyecto huérfano `ServicioConexión`) sin fusionar tampoco. Fusionar la rama completa tiene conflictos reales (no es fast-forward): `ServicioConexión.csproj` fue borrado ahí pero modificado acá por la migración a .NET 10, y `Arquitectura Actual.md`/esta misma nota divergieron en las dos ramas. Quedan pendientes de traer con cuidado, no en automático.
 
 **No se cerró en el mismo pase porque cambia el comportamiento** (alguien deshabilitado dejaría de poder resetear) y eso es decisión del dueño del producto, no un efecto colateral de un refactor. Se dejó planteado explícitamente a Fernando el 2026-09-09.
 
@@ -1475,7 +1479,7 @@ Eran **dos problemas encimados**, y el segundo era el grave:
 | P-056 | `ServicioConexión` huérfano duplica `ConexionSupabase` con el mismo namespace | `[ ]` Pendiente | [[Sesión 2026-09-08 - Cierre de P-054 y P-055]] |
 | P-057 | 16 modales y 12 vistas sin previsualización en el diseñador de VS | `[x]` Resuelto 2026-09-10 (33/33 en arné; converters fuera de App.xaml) | [[ADR-028 - Previsualizacion de UserControls en el disenador de VS]] |
 | P-058 | Login sin ViewModel y paneles de recuperación llamando a Supabase desde la UI | ✅ Resuelto | 58 pruebas nuevas; suite 344/344 |
-| P-059 | La recuperación de contraseña no verifica que la cuenta esté habilitada | `[ ]` Pendiente | Detectado al resolver P-058 |
+| P-059 | La recuperación de contraseña no verifica que la cuenta esté habilitada | `[x]` Resuelto 2026-09-11 — fix de 09-10 traído con `cherry-pick` desde rama huérfana | Detectado al resolver P-058 |
 | P-060 | `cts.Dispose()` en swap atómico contradice la investigación de CTS (riesgo `ObjectDisposedException`) | `[x]` Resuelto 2026-09-11 | [[Auditoría Externa — Optimizaciones WPF de Antigravity vs. Investigaciones QA]] |
 | P-061 | "Transacción compensatoria" en AGENTS.md no revierte nada (mal nombrada) | `[x]` Resuelto 2026-09-11 | [[Auditoría Externa — Optimizaciones WPF de Antigravity vs. Investigaciones QA]] |
 | P-062 | `EmptyStateOverlay.OnIconoChanged` fuerza Fill=Stroke en cualquier ícono, no solo íconos de relleno | `[x]` Resuelto 2026-09-11 — `IconoEsRelleno` DP (default false); `PesajeView` declara `True` | [[Sesión 2026-09-11 - Rediseño e integración del icono de Pesajes]] |
