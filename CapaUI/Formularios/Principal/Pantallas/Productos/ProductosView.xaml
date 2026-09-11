@@ -298,9 +298,8 @@
                             <StackPanel Orientation="Horizontal">
                                 <RadioButton x:Name="RbActivos"
                                              GroupName="EstadoFiltro"
-                                             IsChecked="True"
-                                             Style="{StaticResource SegmentBtn}"
-                                             Checked="EstadoFiltro_Changed">
+                                             IsChecked="{Binding EstadoFiltro, Converter={x:Static conv:EnumToBooleanConverter.Instancia}, ConverterParameter=Activos, Mode=TwoWay}"
+                                             Style="{StaticResource SegmentBtn}">
                                     <StackPanel Orientation="Horizontal">
                                         <Border Width="6" Height="6" CornerRadius="3" Background="#10B981" Margin="0,0,5,0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Activos" FontFamily="Segoe UI" FontSize="15"/>
@@ -308,8 +307,8 @@
                                 </RadioButton>
                                 <RadioButton x:Name="RbInactivos"
                                              GroupName="EstadoFiltro"
-                                             Style="{StaticResource SegmentBtn}"
-                                             Checked="EstadoFiltro_Changed">
+                                             IsChecked="{Binding EstadoFiltro, Converter={x:Static conv:EnumToBooleanConverter.Instancia}, ConverterParameter=Inactivos, Mode=TwoWay}"
+                                             Style="{StaticResource SegmentBtn}">
                                     <StackPanel Orientation="Horizontal">
                                         <Border Width="6" Height="6" CornerRadius="3" Background="#94A3B8" Margin="0,0,5,0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Inactivos" FontFamily="Segoe UI" FontSize="15"/>
@@ -317,8 +316,8 @@
                                 </RadioButton>
                                 <RadioButton x:Name="RbTodos"
                                              GroupName="EstadoFiltro"
-                                             Style="{StaticResource SegmentBtn}"
-                                             Checked="EstadoFiltro_Changed">
+                                             IsChecked="{Binding EstadoFiltro, Converter={x:Static conv:EnumToBooleanConverter.Instancia}, ConverterParameter=Todos, Mode=TwoWay}"
+                                             Style="{StaticResource SegmentBtn}">
                                     <TextBlock Text="Todos" FontFamily="Segoe UI" FontSize="15"/>
                                 </RadioButton>
                             </StackPanel>
@@ -340,23 +339,22 @@
                             <StackPanel Orientation="Horizontal">
                                 <RadioButton x:Name="RbOrdenId"
                                              GroupName="OrdenProductos"
-                                             IsChecked="True"
+                                             IsChecked="{Binding Orden, Converter={x:Static conv:EnumToBooleanConverter.Instancia}, ConverterParameter=IdAsc, Mode=TwoWay}"
                                              Style="{StaticResource SegmentBtn}"
-                                             Checked="Orden_Changed"
                                              ToolTip="Orden natural por código de registro">
                                     <TextBlock Text="Por defecto" FontFamily="Segoe UI" FontSize="15"/>
                                 </RadioButton>
                                 <RadioButton x:Name="RbOrdenAZ"
                                              GroupName="OrdenProductos"
+                                             IsChecked="{Binding Orden, Converter={x:Static conv:EnumToBooleanConverter.Instancia}, ConverterParameter=NombreAsc, Mode=TwoWay}"
                                              Style="{StaticResource SegmentBtn}"
-                                             Checked="Orden_Changed"
                                              ToolTip="Nombre ascendente">
                                     <TextBlock Text="A-Z" FontFamily="Segoe UI" FontSize="15"/>
                                 </RadioButton>
                                 <RadioButton x:Name="RbOrdenZA"
                                              GroupName="OrdenProductos"
+                                             IsChecked="{Binding Orden, Converter={x:Static conv:EnumToBooleanConverter.Instancia}, ConverterParameter=NombreDesc, Mode=TwoWay}"
                                              Style="{StaticResource SegmentBtn}"
-                                             Checked="Orden_Changed"
                                              ToolTip="Nombre descendente">
                                     <TextBlock Text="Z-A" FontFamily="Segoe UI" FontSize="15"/>
                                 </RadioButton>
@@ -435,32 +433,18 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <!-- Loading spinner -->
-                <StackPanel Grid.Row="0"
-                            x:Name="LoadingPanel"
-                            Visibility="Collapsed"
-                            VerticalAlignment="Center"
-                            HorizontalAlignment="Center"
-                            Orientation="Horizontal">
-                    <Path x:Name="SpinnerPath"
-                          Data="M 12 2 A 10 10 0 1 1 2 12"
-                          Stroke="{DynamicResource EmpresaPrimaryBrush}" StrokeThickness="2.5"
-                          StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                          Width="22" Height="22" Stretch="Uniform"
-                          RenderTransformOrigin="0.5,0.5"
-                          Margin="0,0,10,0">
-                        <Path.RenderTransform>
-                            <RotateTransform/>
-                        </Path.RenderTransform>
-                    </Path>
-                    <TextBlock Text="Cargando productos..."
-                               FontFamily="Segoe UI" FontSize="16" Foreground="#6B7280"
-                               VerticalAlignment="Center"/>
-                </StackPanel>
+                <!-- Loading overlay reutilizable (AP-04) -->
+                <controls:LoadingOverlay Grid.Row="0"
+                                         Panel.ZIndex="10"
+                                         HeaderOffset="40"
+                                         IsLoading="{Binding IsLoading}"
+                                         Mensaje="Cargando productos..."/>
 
                 <!-- DataGrid -->
                 <DataGrid Grid.Row="0"
                           x:Name="DgProductos"
+                          ItemsSource="{Binding PageRows, Mode=OneWay}"
+                          SelectedItem="{Binding Seleccionado, Mode=TwoWay}"
                           AutoGenerateColumns="False"
                           CanUserAddRows="False"
                           CanUserSortColumns="False"
@@ -476,7 +460,6 @@
                           FontSize="15.5"
                           RowStyle="{StaticResource ProductRowStyle}"
                           CellStyle="{StaticResource CeldaCentrada}"
-                          SelectionChanged="DgProductos_SelectionChanged"
                           MouseDoubleClick="DgProductos_MouseDoubleClick"
                           PreviewKeyDown="DgProductos_PreviewKeyDown"
                           ScrollViewer.CanContentScroll="True"
@@ -737,7 +720,7 @@
                         Orientation="Horizontal"
                         VerticalAlignment="Center"
                         Margin="16,0"
-                        Visibility="Collapsed">
+                        Visibility="{Binding HaySeleccionado, Converter={x:Static conv:BoolToVisibilityConverter.Instancia}}">
                 <Border Width="6" Height="6" CornerRadius="3" Background="{DynamicResource EmpresaPrimaryBrush}" Margin="0,0,6,0" VerticalAlignment="Center"/>
                 <TextBlock x:Name="SelectedText"
                            FontFamily="Segoe UI" FontSize="14"

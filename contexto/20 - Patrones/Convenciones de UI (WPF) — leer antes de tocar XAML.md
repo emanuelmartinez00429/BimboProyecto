@@ -146,10 +146,53 @@ No hay tests de UI automatizados. La verificación de que un control **carga y h
 }
 ```
 
-- Proyecto `net8.0-windows` + `<UseWPF>true</UseWPF>`, referencia a `CapaUI`. Se arma en el scratchpad, se corre, se borra.
-- Si la app o VS tienen el DLL bloqueado: `dotnet build -p:UseAppHost=false` y referenciar `CapaUI/obj/Debug/net8.0-windows/CapaUI.dll`.
+- Proyecto `net10.0-windows` + `<UseWPF>true</UseWPF>`, referencia a `CapaUI`. Se arma en el scratchpad, se corre, se borra.
+- Si la app o VS tienen el DLL bloqueado: `dotnet build -p:UseAppHost=false` y referenciar `CapaUI/obj/Debug/net10.0-windows/CapaUI.dll`.
 - **Punto ciego conocido:** un `{StaticResource}` dentro de un `ControlTemplate`/`DataTemplate`/`DataTrigger` diferido **no se evalúa** en un `Measure`/`Arrange` sin datos. El arné da falso verde ahí. Mitigación: `grep -rn "StaticResource <clave>"` en todo el repo, no confiar solo en el arné.
 - El arné verifica *carga y layout*, no comportamiento ni bindings con datos reales → **sigue haciendo falta la prueba visual manual**.
+
+## 9. Prohibido `{DynamicResource}` dentro de `TargetNullValue` o `FallbackValue` de un `Binding`
+
+En WPF, `TargetNullValue` y `FallbackValue` en una expresión `{Binding}` son propiedades CLR de tipo `object`, **no son `DependencyProperty` de un `DependencyObject`**. 
+
+Escribir:
+```xml
+<!-- ❌ NUNCA: Compila limpio pero detona XamlParseException fatal al abrir la vista -->
+Stroke="{Binding MiBrocha, ElementName=Root, TargetNullValue={DynamicResource EmpresaPrimaryBrush}}"
+```
+arroja en runtime:
+`System.Windows.Markup.XamlParseException: "DynamicResourceExtension" no se puede establecer en la propiedad "TargetNullValue" de tipo "Binding". "DynamicResourceExtension" solo se puede establecer en una DependencyProperty de un DependencyObject.`
+
+**Cómo se hace correctamente:**
+1. Asignar el recurso dinámico directamente en la propiedad del elemento visual en XAML:
+   ```xml
+   Stroke="{DynamicResource EmpresaPrimaryBrush}"
+   ```
+2. La `DependencyProperty` del control (`MiBrocha`) actúa como canal de personalización opcional: en su callback `PropertyChangedCallback` (`OnMiBrochaChanged`), si el valor no es nulo, se sobreescribe la brocha del elemento visual en C#.
+3. En code-behind de controles reutilizables, usar siempre resolución defensiva con `FindName` al acceder a elementos por nombre en callbacks de inicialización o márgenes para tolerar cualquier orden del ciclo de vida del árbol visual y desincronizaciones de diseño en Visual Studio.
+
+## 10. Desacoplamiento de campos XAML (`x:Name`) en code-behind de UserControls
+
+Para evitar errores `CS0103: El nombre 'X' no existe en el contexto actual` provocados por desincronización de la caché de compilación de diseño de Visual Studio (`.g.i.cs`), no accedas directamente a campos de marcado en lógica de layout o callbacks:
+```csharp
+// ❌ Evitar depender de campos autogenerados en UserControls:
+ContenedorPanel.Margin = new Thickness(0, HeaderOffset, 0, 0);
+
+// ✅ Resolver con FindName y pattern matching:
+if (FindName("ContenedorPanel") is FrameworkElement panel)
+    panel.Margin = new Thickness(0, HeaderOffset, 0, 0);
+```
+
+## 11. Animaciones en `Freezable` / Transformaciones (Spinners e Indicadores)
+
+`RotateTransform`, `ScaleTransform` y `TranslateTransform` son `Freezable`, no `FrameworkElement`.
+1. **No usar `Storyboard` sin host explícito:** Llamar a `_storyboard.Begin()` sobre un `RotateTransform` descarta silenciosamente la animación porque el motor no puede anclar el reloj de despacho sin un elemento visual raíz.
+2. **Usar `IAnimatable.BeginAnimation`:** Es directo, hardware-accelerated, consume menos recursos y no tiene dependencias de nombres:
+   ```csharp
+   rotate.BeginAnimation(RotateTransform.AngleProperty, anim); // Iniciar
+   rotate.BeginAnimation(RotateTransform.AngleProperty, null); // Detener
+   ```
+3. **Enganchar en `Loaded` y `Unloaded`:** Asegurarse de que si el estado de carga cambia antes del montaje del control, el evento `Loaded` inicie la animación, y `Unloaded` la libere para evitar fugas de memoria.
 
 ## Anti-patrones — lista negra rápida
 
@@ -162,6 +205,9 @@ No hay tests de UI automatizados. La verificación de que un control **carga y h
 | `Converter={StaticResource X}` (X de `App.xaml`) | `Converter={x:Static conv:XConverter.Instancia}` |
 | `<Style x:Key="...">` copiado de `Styles.xaml` | mergear `Styles.xaml` y usar el global |
 | `EmpresaPrimaryBrush` en `Styles.xaml` | solo `App.xaml` + `DesignTimeResources.xaml` |
+| `{DynamicResource}` en `TargetNullValue`/`FallbackValue` | Asignar `{DynamicResource}` directo en la propiedad del elemento visual y sobreescribir por callback de DP si no es nulo |
+| Campos `x:Name` acoplados en C# de UserControls | Resolver con `FindName(...) is FrameworkElement` |
+| `Storyboard.Begin()` huérfano sobre `Freezable` | `rotate.BeginAnimation(RotateTransform.AngleProperty, anim)` directo |
 | Literal de otro framework como atributo XAML | equivalente WPF verificado en la API |
 
 ---

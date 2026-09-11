@@ -1,7 +1,7 @@
 # Proyecto Bimbo Honduras — Contexto para Claude
 
 ## ¿Qué es este proyecto?
-Portal interno de gestión para **Bimbo Honduras**. Maneja catálogo de productos, operaciones de pesaje, usuarios y empleados. App de escritorio **.NET 8** con arquitectura híbrida **WPF + WinForms**.
+Portal interno de gestión para **Bimbo Honduras**. Maneja catálogo de productos, operaciones de pesaje, usuarios y empleados. App de escritorio **.NET 10** en **WPF** (ejecutable único `CapaUI`).
 
 ## Ubicación
 `C:\Users\fbara\OneDrive\Desktop\Proyecto de BIMBO\BimboProyecto\`  

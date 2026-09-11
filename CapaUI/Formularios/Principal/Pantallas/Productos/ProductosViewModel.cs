@@ -265,20 +265,20 @@ public partial class ProductosViewModel : RealtimeAwareViewModel
         var catTask  = ComboAsync(Catalogos.Categorias(_catalogos));
         await Task.WhenAll(fabTask, paisTask, provTask, catTask);
 
-        var rFab = fabTask.Result;
+        var rFab = await fabTask;
         if (!rFab.Success) { ErrorCarga = rFab.Error; IsLoading = false; return; }
         _todosFabricantes = rFab.Value!.ToList();
         Fabricantes = _todosFabricantes;
 
-        var rPaises = paisTask.Result;
+        var rPaises = await paisTask;
         if (!rPaises.Success) { ErrorCarga = rPaises.Error; IsLoading = false; return; }
         Paises = rPaises.Value!.ToList();
 
-        var rProv = provTask.Result;
+        var rProv = await provTask;
         if (!rProv.Success) { ErrorCarga = rProv.Error; IsLoading = false; return; }
         Proveedores = rProv.Value!.ToList();
 
-        var rCat = catTask.Result;
+        var rCat = await catTask;
         if (!rCat.Success) { ErrorCarga = rCat.Error; IsLoading = false; return; }
         Categorias = rCat.Value!.ToList();
 
@@ -394,12 +394,11 @@ public partial class ProductosViewModel : RealtimeAwareViewModel
         IsLoading  = true;
         ErrorCarga = string.Empty;
 
-        // La generación nueva mata a la anterior de verdad, no solo la ignora.
-        var ctsAnterior = _ctsPagina;
-        var cts = new CancellationTokenSource(TimeoutMs);
+        // La generación nueva cancela la petición anterior si seguía en vuelo.
+        try { _ctsPagina?.Cancel(); } catch (ObjectDisposedException) { }
+
+        using var cts = new CancellationTokenSource(TimeoutMs);
         _ctsPagina = cts;
-        ctsAnterior?.Cancel();
-        ctsAnterior?.Dispose();
 
         var filtros = BuildFiltros();
 
@@ -420,6 +419,11 @@ public partial class ProductosViewModel : RealtimeAwareViewModel
             OnPropertyChanged(nameof(MensajeSinResultados));
             IsLoading  = false;
             return;
+        }
+        finally
+        {
+            if (ReferenceEquals(_ctsPagina, cts))
+                _ctsPagina = null;
         }
 
         if (myGen != _loadGeneration) return;
@@ -555,6 +559,13 @@ public partial class ProductosViewModel : RealtimeAwareViewModel
         _proveedorIdFiltro  = null;
         _categoriaIdFiltro  = null;
         _orden              = OrdenProducto.IdAsc;
+
+        OnPropertyChanged(nameof(EstadoFiltro));
+        OnPropertyChanged(nameof(FabricanteIdFiltro));
+        OnPropertyChanged(nameof(PaisIdFiltro));
+        OnPropertyChanged(nameof(ProveedorIdFiltro));
+        OnPropertyChanged(nameof(CategoriaIdFiltro));
+        OnPropertyChanged(nameof(Orden));
 
         // Los campos se pisan directo arriba, sin pasar por el setter de
         // ProveedorIdFiltro — así que ReacotarFabricantes() nunca corre solo.
@@ -728,8 +739,11 @@ public partial class ProductosViewModel : RealtimeAwareViewModel
 
         // Si se sale de la pantalla con una página cargando, se cancela: la
         // respuesta ya no tiene a dónde llegar.
-        _ctsPagina?.Cancel();
-        _ctsPagina?.Dispose();
+        try
+        {
+            _ctsPagina?.Cancel();
+        }
+        catch (ObjectDisposedException) { }
         _ctsPagina = null;
     }
 }

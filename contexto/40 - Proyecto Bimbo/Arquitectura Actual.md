@@ -10,6 +10,9 @@ aliases:
 
 # Arquitectura Actual — Bimbo
 
+> [!success] Actualizado 2026-09-10 — Solución migrada a .NET 10 (LTS)
+> Se completó la migración de los proyectos de la solución (`CapaUI`, `CapaAplicacion`, `CapaDatos`, `CapaDominio`, `BimboProyecto.Tests` y `ServicioConexión`) a target framework `net10.0-windows` y `net10.0` con suite de tests limpia (344/344). Esto previene la obsolescencia técnica ante el fin de soporte de .NET 8 en noviembre de 2026.
+
 > [!info] Plan de distribución registrado 2026-09-08 — no implementado
 > Se acordó mantener el código privado y distribuir instalador/paquetes mediante un repositorio público separado, con actualizaciones descargadas dentro de WPF. La primera instalación será por máquina en Windows 11 x64 y conservará la arquitectura online. Velopack, CI/CD, firma, canales y barrera de cierre siguen pendientes de implementación y de las autorizaciones indicadas en [[Plan de CI-CD y Actualizaciones Remotas]] y [[ADR-027 - Codigo privado y distribucion publica de actualizaciones]]. Esta anotación no cambia el estado ejecutable del sistema.
 
@@ -84,13 +87,14 @@ graph TD
 
 ## Proyectos en la solución
 
-| Proyecto | Rol | Ejecutable |
-|---|---|---|
-| `CapaUI` | Vistas WPF + ViewModels | ✅ Único ejecutable |
-| `CapaAplicacion` | Interfaces, DTOs, estrategias de búsqueda | No |
-| `CapaDatos` | Implementaciones Supabase, repositorios | No |
-| `CapaDominio` | Entidades de dominio, sesión, cálculos, estado | No |
-| `ServicioConexión` | Singleton del cliente Supabase | No |
+| Proyecto | Rol | TargetFramework | Ejecutable |
+|---|---|---|---|
+| `CapaUI` | Vistas WPF + ViewModels | `net10.0-windows` | ✅ Único ejecutable |
+| `CapaAplicacion` | Interfaces, DTOs, estrategias de búsqueda | `net10.0` | No |
+| `CapaDatos` | Implementaciones Supabase, repositorios | `net10.0` | No |
+| `CapaDominio` | Entidades de dominio, sesión, cálculos, estado | `net10.0` | No |
+| `BimboProyecto.Tests` | Pruebas unitarias de la solución | `net10.0` | No |
+| `ServicioConexión` | Singleton cliente Supabase (huérfano en P-056) | `net10.0-windows` | No |
 
 **Eliminados 2026-05-29:**
 - ~~`BimboPesaje`~~ — proyecto WinForms host, eliminado (C13/C14)

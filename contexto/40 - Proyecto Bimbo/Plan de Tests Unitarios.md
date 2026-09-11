@@ -24,12 +24,12 @@ Cubrir con tests unitarios la lógica de negocio, los contratos de aplicación y
 | Validadores de entrada viven en **code-behinds de modales** (acoplados a `MessageBox`/controles WPF) | Requieren refactor para extraer la lógica pura |
 | Cachés estáticas + `SemaphoreSlim` (`CatalogoCache`, `RolRepository`, `RolPermisoRepository`) | Tests no paralelos contra ese estado; usar `[Collection]`/fixture por clase |
 | `UsuarioSesionServiceHelper.ConstruirPermisosPorModulo` es `internal` | Se necesita `InternalsVisibleTo` en CapaDatos |
-| `CapaUI` es `net8.0-windows` | El proyecto de test de VMs debe ser `net8.0-windows` |
+| `CapaUI` es `net10.0-windows` | El proyecto de test de VMs debe ser `net10.0-windows` (o `net10.0` para VMs desacoplados de tipos WPF) |
 
 ## 3. Proyecto de test a crear
 
 ```
-BimboProyecto.Tests/            (xunit, net8.0-windows)
+BimboProyecto.Tests/            (xunit, net10.0)
 ├── BimboProyecto.Tests.csproj
 ├── Dominio/
 ├── Aplicacion/

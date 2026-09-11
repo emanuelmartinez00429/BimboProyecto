@@ -45,7 +45,7 @@ La revisión del 2026-08-30 reemplaza el diseño preliminar y fija estos requisi
 
 ## Hechos confirmados
 
-- `CapaUI` es el ejecutable WPF activo sobre .NET 8.
+- `CapaUI` es el ejecutable WPF activo sobre .NET 10.
 - `CapaUI` consume repositorios definidos en `CapaAplicacion4`; la lógica empresarial principal no está dispersa como llamadas directas a Supabase desde las vistas.
 - `CapaDatos` implementa repositorios, Auth, Realtime y acceso a RPC.
 - El flujo principal de Pesaje usa `movimientos`, `movimiento_productos` y `entradas_producto`.

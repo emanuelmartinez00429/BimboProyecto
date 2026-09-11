@@ -5,12 +5,13 @@ using CapaAplicacion.Productos.Interfaces;
 using CapaUI.Core.Catalogos;
 using CapaUI.Core.Controls;
 using CapaDominio.Reglas;
+using CapaUI.Core.Permisos;
 using CapaUI.Core.Validacion;
 using CapaUI.Core.Seguridad;
-using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Globalization;
 using System.Linq;
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -75,12 +76,12 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
             InitializeComponent();
         }
 
-        public ProductoModal(IProductoRepository repo, ProductoDto? producto)
+        public ProductoModal(IProductoRepository repo, ICatalogoRepository catalogos, ProductoDto? producto)
         {
             InitializeComponent();
 
             _repo      = repo;
-            _catalogos = App.Services.GetRequiredService<ICatalogoRepository>();
+            _catalogos = catalogos;
             _producto  = producto;
             _esNuevo   = producto == null;
             Loaded   += OnLoaded;
@@ -147,6 +148,17 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
 
                 RbActivo.IsChecked   = _producto.IdEstado == 1;
                 RbInactivo.IsChecked = _producto.IdEstado != 1;
+            }
+
+            // Proteger cambio de estado según permiso RBAC (PRODUCTOS_ELIMINAR).
+            bool puedeCambiarEstado = SesionPermisos.Tiene(Permiso.EliminarProducto);
+            RbActivo.IsEnabled = puedeCambiarEstado;
+            RbInactivo.IsEnabled = puedeCambiarEstado;
+            if (!puedeCambiarEstado)
+            {
+                const string tipSinPermiso = "No tienes permiso para cambiar el estado (activar/desactivar) de productos.";
+                RbActivo.ToolTip = tipSinPermiso;
+                RbInactivo.ToolTip = tipSinPermiso;
             }
 
             // El formulario NO se congela al cargar: así los renglones de error
@@ -430,38 +442,79 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
                     PrecioPorKg    = precioPorKg,
                 };
 
-                bool exito;
-                string error;
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
 
                 if (_esNuevo)
                 {
-                    var r = await _repo.CreateAsync(dto, _solicitud.Obtener("crear_producto", dto), CancellationToken.None);
-                    (exito, error) = (r.Success, r.Error);
+                    var r = await _repo.CreateAsync(dto, _solicitud.Obtener("crear_producto", dto), cts.Token);
+                    if (!r.Success)
+                    {
+                        ErroresRepositorio.Mostrar(r.Error,
+                            "Ya existe un producto con ese código interno.", TxtCodigo);
+                        return;
+                    }
                 }
                 else
                 {
-                    var r = await _repo.UpdateAsync(dto, _solicitud.Obtener("actualizar_producto", dto), CancellationToken.None);
-                    (exito, error) = (r.Success, r.Error);
+                    bool cambioDatos = dto.CodigoInterno != _producto!.CodigoInterno
+                        || dto.Nombre != _producto.Nombre
+                        || dto.Contenido != _producto.Contenido
+                        || dto.IdPresentacion != _producto.IdPresentacion
+                        || dto.IdFabricante != _producto.IdFabricante
+                        || dto.IdCategoria != _producto.IdCategoria
+                        || dto.IdPais != _producto.IdPais
+                        || dto.PesoTeorico != _producto.PesoTeorico
+                        || dto.IdTara != _producto.IdTara
+                        || dto.IdUnidad != _producto.IdUnidad
+                        || dto.PrecioPorKg != _producto.PrecioPorKg;
 
-                    if (exito && _producto != null && dto.IdEstado != _producto.IdEstado)
+                    bool cambioEstado = dto.IdEstado != _producto.IdEstado;
+
+                    if (!cambioDatos && !cambioEstado)
+                    {
+                        Cerrado?.Invoke();
+                        return;
+                    }
+
+                    if (cambioDatos)
+                    {
+                        var r = await _repo.UpdateAsync(dto, _solicitud.Obtener("actualizar_producto", dto), cts.Token);
+                        if (!r.Success)
+                        {
+                            ErroresRepositorio.Mostrar(r.Error,
+                                "Ya existe un producto con ese código interno.", TxtCodigo);
+                            return;
+                        }
+                    }
+
+                    if (cambioEstado)
                     {
                         var rEstado = await _repo.CambiarEstadoAsync(
                             dto.Id,
                             dto.IdEstado,
                             _solicitud.Obtener("cambiar_estado_producto", new { dto.Id, dto.IdEstado }),
-                            CancellationToken.None);
-                        (exito, error) = (rEstado.Success, rEstado.Error);
+                            cts.Token);
+
+                        if (!rEstado.Success)
+                        {
+                            if (cambioDatos)
+                            {
+                                // Los datos generales se consolidaron exitosamente en la llamada previa.
+                                _solicitud.Confirmar();
+                                MessageBox.Show(
+                                    $"Los datos del producto se actualizaron correctamente, pero no se pudo cambiar el estado:\n{rEstado.Error}",
+                                    "Aviso de Estado", MessageBoxButton.OK, MessageBoxImage.Warning);
+                                Guardado?.Invoke();
+                                return;
+                            }
+
+                            ErroresRepositorio.Mostrar(rEstado.Error, null, null);
+                            return;
+                        }
                     }
                 }
 
-                if (!exito)
-                {
-                    ErroresRepositorio.Mostrar(error,
-                        "Ya existe un producto con ese código interno.", TxtCodigo);
-                    return;
-                }
                 _solicitud.Confirmar();
-
                 Guardado?.Invoke();
             }
             catch (Exception ex)

@@ -245,8 +245,9 @@ public class ProductoCrudRepository : RepositorioBase, IProductoRepository
         var conteosTask = GetConteosRpcAsync(filtrosConteo, client);
         await Task.WhenAll(pageTask, conteosTask);
 
-        var items   = pageTask.Result?.Models.Select(Map).ToList() ?? [];
-        var conteos = conteosTask.Result;
+        var pageResult = await pageTask;
+        var conteos    = await conteosTask;
+        var items      = pageResult?.Models.Select(Map).ToList() ?? [];
 
         return new PagedResult<ProductoDto>
         {

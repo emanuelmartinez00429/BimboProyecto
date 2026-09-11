@@ -50,7 +50,7 @@ Inspección de la sesión: rama `feat/fase8-MaquetadodeRoles`, SHA `162818d4237e
 | Área | Evidencia local y consecuencia para el plan |
 |---|---|
 | Solución | `BimboProyecto.sln`: CapaUI, CapaAplicacion, CapaDatos, CapaDominio, ServicioConexión y BimboProyecto.Tests. Publicar exclusivamente `CapaUI/CapaUI.csproj`. |
-| UI y capas | CapaUI es WPF `net8.0-windows`; CapaAplicacion reside en `CapaAplicacion4/`. Mantener contratos y DI, sin invertir la dependencia Aplicación/Datos ni tocar BimboPesaje. |
+| UI y capas | CapaUI es WPF `net10.0-windows` (migrado desde `net8.0-windows`); CapaAplicacion reside en `CapaAplicacion4/`. Mantener contratos y DI, sin invertir la dependencia Aplicación/Datos ni tocar BimboPesaje. |
 | Inicio | `CapaUI/App.xaml` usa el punto de entrada generado; `App.xaml.cs` inicializa recursos, DI y login. No existe integración Velopack. |
 | Cierre | `MainWindow.OnClosing` advierte, limpia sesión/recursos y cierra. No constituye una barrera global que coordine todas las operaciones y procesos para actualizar. |
 | Estado operativo | Guardados y estado editable están distribuidos en vistas/viewmodels. Las recepciones activas consultadas por Pesaje no equivalen a trabajo local de una estación. |
@@ -58,7 +58,7 @@ Inspección de la sesión: rama `feat/fase8-MaquetadodeRoles`, SHA `162818d4237e
 | Archivos del usuario | `%APPDATA%\BimboPesaje\LogoEmpresa`, `IconoSidebar`, `TemaEmpresa\color.txt` y `Logs\app-.log`; las exportaciones se guardan en la ubicación elegida. Preservar cada perfil Windows. |
 | Offline | No se encontró SQLCipher, outbox ni migración de base local implementados. [[Plan Offline-First de Pesaje]] sigue separado. |
 | CI y versiones | `.github/workflows/` vacío; sin pipeline, perfiles de publicación, instalador, `global.json` ni lockfiles encontrados. No hay fuente de versión de producto consolidada. |
-| SDK | SDK seleccionado localmente 10.0.400; también instalado 8.0.100. El TFM de la app sigue siendo .NET 8. Fijar y probar un SDK antes de implantar CI. |
+| SDK | SDK seleccionado localmente 10.0.401; la app y tests han sido migrados a TargetFramework `net10.0-windows` / `net10.0` para solventar el fin de soporte de .NET 8 (noviembre 2026). |
 | Configuración | `CapaUI/App.config` y `SearchTest/App.config` siguen versionados pese a reglas de ignore. Hay valores no-placeholder; no se copiaron ni se clasificó el privilegio de la clave. La configuración admite variables `SUPABASE_URL`/`SUPABASE_KEY`. |
 | Conexión | La implementación compilada está en `CapaDatos/Conexion.cs`; ServicioConexión duplica el concepto y está huérfano respecto a la app. P-056 ya registra esa deuda. |
 | Tests | Proyecto xUnit; hay pruebas que retornan sin verificar BD si falta `BIMBO_POSTGRES_CONNECTION_STRING`. Un resultado verde no garantiza integración ejercitada. No se ejecutaron pruebas en esta planificación. |

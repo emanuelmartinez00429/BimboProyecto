@@ -1018,7 +1018,7 @@
                                         <TextBlock Text="{Binding NombreUsuario}"
                                                    Foreground="White" FontFamily="Segoe UI"
                                                    FontSize="16" FontWeight="SemiBold"
-                                                   TextTrimming="CharacterEllipsis" MaxWidth="130"/>
+                                                   TextTrimming="CharacterEllipsis" MaxWidth="180"/>
                                         <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
                                             <Border Width="5" Height="5" CornerRadius="3"
                                                     Background="{StaticResource AccentGreen}"

@@ -22,8 +22,6 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
     public partial class ProductosView : System.Windows.Controls.UserControl
     {
         private ProductosViewModel _vm = null!;
-        private bool _suppressFilterChange = false;
-        private Storyboard? _spinnerStory;
 
         // Combos de filtro: toda la mecánica (sentinela "(Todos)", autocompletado
         // en memoria, limpieza) vive en ComboFiltro, no replicada por combo.
@@ -63,7 +61,6 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
             _vm.PropertyChanged  += OnVmPropertyChanged;
 
             DataContext = _vm;
-            DgProductos.ItemsSource = _vm.PageRows;
 
             try
             {
@@ -90,36 +87,21 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
             _vm.Dispose();
             DataContext = null;
             _vm = null!;          // permite recrear limpio si el control vuelve al árbol
-            DetenerSpinner();     // cierra el Storyboard para liberar SpinnerPath
         }
 
         private void OnFiltrosLimpiados()
         {
-            _suppressFilterChange = true;
-            RbActivos.IsChecked = true;
-            RbOrdenId.IsChecked     = true;
             _filtroFabricante.Reiniciar();
             _filtroPais.Reiniciar();
             _filtroProveedor.Reiniciar();
             _filtroCategoria.Reiniciar();
-            _suppressFilterChange = false;
         }
 
         private void OnVmPropertyChanged(object? s, System.ComponentModel.PropertyChangedEventArgs ev)
         {
             switch (ev.PropertyName)
             {
-                case nameof(ProductosViewModel.PageRows):
-                    DgProductos.ItemsSource = _vm.PageRows;   // único punto donde hay filas nuevas
-                    break;
-                case nameof(ProductosViewModel.IsLoading):       ActualizarCarga();       break;
-                case nameof(ProductosViewModel.NoResults):
-                    EmptyState.Visibility = _vm.NoResults ? Visibility.Visible : Visibility.Collapsed;
-                    break;
-                case nameof(ProductosViewModel.HaySeleccionado):
-                    SelectedInfo.Visibility = _vm.HaySeleccionado ? Visibility.Visible : Visibility.Collapsed;
-                    break;
-                case nameof(ProductosViewModel.Seleccionado):    SeleccionarEnTabla();    break;
+                case nameof(ProductosViewModel.Seleccionado): SeleccionarEnTabla(); break;
                 // Fabricantes se repuebla también cuando cambia el proveedor:
                 // el ViewModel reacota la lista y dispara este mismo aviso.
                 case nameof(ProductosViewModel.Fabricantes):  _filtroFabricante.Poblar(_vm.Fabricantes); break;
@@ -127,77 +109,6 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
                 case nameof(ProductosViewModel.Proveedores):  _filtroProveedor.Poblar(_vm.Proveedores);  break;
                 case nameof(ProductosViewModel.Categorias):   _filtroCategoria.Poblar(_vm.Categorias);   break;
             }
-        }
-
-        // ── Loading state ─────────────────────────────────────────────
-
-        private void ActualizarCarga()
-        {
-            if (_vm == null) return;
-            if (_vm.IsLoading)
-            {
-                DgProductos.Visibility  = Visibility.Collapsed;
-                EmptyState.Visibility   = Visibility.Collapsed;
-                LoadingPanel.Visibility = Visibility.Visible;
-                IniciarSpinner();
-            }
-            else
-            {
-                LoadingPanel.Visibility = Visibility.Collapsed;
-                DetenerSpinner();
-                DgProductos.Visibility  = Visibility.Visible;
-                EmptyState.Visibility   = _vm.NoResults ? Visibility.Visible : Visibility.Collapsed;
-            }
-        }
-
-        // ── Spinner ───────────────────────────────────────────────────
-
-        private void IniciarSpinner()
-        {
-            if (_spinnerStory != null) return;
-            _spinnerStory = new Storyboard();
-            var anim = new DoubleAnimation(0, 360, TimeSpan.FromSeconds(0.8))
-            { RepeatBehavior = RepeatBehavior.Forever };
-            Storyboard.SetTarget(anim, SpinnerPath);
-            Storyboard.SetTargetProperty(anim,
-                new PropertyPath("(UIElement.RenderTransform).(RotateTransform.Angle)"));
-            _spinnerStory.Children.Add(anim);
-            _spinnerStory.Begin();
-        }
-
-        private void DetenerSpinner()
-        {
-            if (_spinnerStory is null) return;
-            _spinnerStory.Stop();
-            _spinnerStory.Remove();        // desasocia el clock del elemento destino
-            _spinnerStory.Children.Clear(); // corta la referencia a SpinnerPath
-            _spinnerStory = null;
-        }
-
-        // ── Filters ───────────────────────────────────────────────────
-
-        private void EstadoFiltro_Changed(object sender, RoutedEventArgs e)
-        {
-            if (_vm == null || _suppressFilterChange) return;
-            if (RbActivos.IsChecked == true)
-                _vm.EstadoFiltro = EstadoFilter.Activos;
-            else if (RbInactivos.IsChecked == true)
-                _vm.EstadoFiltro = EstadoFilter.Inactivos;
-            else
-                _vm.EstadoFiltro = EstadoFilter.Todos;
-        }
-
-        /// <summary>
-        /// Orden alfabético. El listado y el salto de página del buscador leen
-        /// el mismo valor desde el ViewModel, así que no pueden divergir.
-        /// </summary>
-        private void Orden_Changed(object sender, RoutedEventArgs e)
-        {
-            if (_vm == null || _suppressFilterChange) return;
-
-            _vm.Orden = RbOrdenAZ.IsChecked == true  ? OrdenProducto.NombreAsc
-                      : RbOrdenZA.IsChecked == true  ? OrdenProducto.NombreDesc
-                      : OrdenProducto.IdAsc;
         }
 
         // ── Search ────────────────────────────────────────────────────
@@ -219,18 +130,8 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
 
         private void SeleccionarEnTabla()
         {
-            if (_vm.Seleccionado == null) return;
-            if (DgProductos.SelectedItem == _vm.Seleccionado) return;
-            DgProductos.SelectedItem = _vm.Seleccionado;
-            DgProductos.ScrollIntoView(_vm.Seleccionado);
-        }
-
-        // ── Table ─────────────────────────────────────────────────────
-
-        private void DgProductos_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (_vm == null) return;
-            _vm.Seleccionado = DgProductos.SelectedItem as ProductoDto;
+            if (_vm?.Seleccionado != null)
+                DgProductos.ScrollIntoView(_vm.Seleccionado);
         }
 
         private void DgProductos_MouseDoubleClick(object sender, WpfMouseButton e)
@@ -256,8 +157,9 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
         private void AbrirModalNuevo()
         {
             if (!SesionPermisos.Tiene(Permiso.CrearProducto)) return;
-            var repo  = App.Services.GetRequiredService<IProductoRepository>();
-            var modal = new ProductoModal(repo, null);
+            var repo      = App.Services.GetRequiredService<IProductoRepository>();
+            var catalogos = App.Services.GetRequiredService<CapaAplicacion.Common.Catalogos.ICatalogoRepository>();
+            var modal     = new ProductoModal(repo, catalogos, null);
             modal.Cerrado  += CerrarModal;
             modal.Guardado += OnProductoGuardado;
             MostrarModal(modal);
@@ -266,8 +168,9 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
         private void AbrirModalEditar(ProductoDto p)
         {
             if (!SesionPermisos.Tiene(Permiso.ModificarProducto)) return;
-            var repo  = App.Services.GetRequiredService<IProductoRepository>();
-            var modal = new ProductoModal(repo, p);
+            var repo      = App.Services.GetRequiredService<IProductoRepository>();
+            var catalogos = App.Services.GetRequiredService<CapaAplicacion.Common.Catalogos.ICatalogoRepository>();
+            var modal     = new ProductoModal(repo, catalogos, p);
             modal.Cerrado  += CerrarModal;
             modal.Guardado += OnProductoGuardado;
             MostrarModal(modal);

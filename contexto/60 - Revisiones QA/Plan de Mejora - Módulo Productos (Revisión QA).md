@@ -151,8 +151,8 @@ estado: Triado
     `PrecioPorKg` es `new ReglaCampo(Formato: FormatoCampo.Decimal)`, y `FormatoCampo`
     documenta que `Decimal` es **solo declarativo** — el parseo (y cualquier chequeo
     de signo) vive en presentación a propósito, porque depende del `CultureInfo`.
-  - Tampoco alcanza al validador: el proyecto es `net8.0` y referencia
-    CapaAplicacion/CapaDatos/CapaDominio, **no CapaUI** (WPF `net8.0-windows`), donde
+  - Tampoco alcanza al validador: el proyecto es `net10.0` y referencia
+    CapaAplicacion/CapaDatos/CapaDominio, **no CapaUI** (WPF `net10.0-windows`), donde
     vive `ValidadorFormulario`. Y testear `ReglasProducto` directo sería testear una
     constante.
   - Se testeó la lógica pura que sí es alcanzable y sí tiene comportamiento:

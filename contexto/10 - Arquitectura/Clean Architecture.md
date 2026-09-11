@@ -57,7 +57,7 @@ Ver ejemplo concreto en [[Arquitectura Actual]].
 
 ---
 
-## Mejores prácticas en C# / .NET 8
+## Mejores prácticas en C# / .NET 10
 
 ### 1. Contratos en Application, no en Infrastructure
 ```csharp

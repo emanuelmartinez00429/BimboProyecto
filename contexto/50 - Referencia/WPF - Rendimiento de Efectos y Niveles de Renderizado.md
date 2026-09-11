@@ -85,10 +85,10 @@ Aunque se llame "i7", el de 10ª gen tiene una iGPU **~3–4× más débil**. El
 
 ## El mito de la versión de .NET
 
-- El **número de SDK** (ej. 10.0.300 vs 9.0.315) **no determina** cómo se ejecuta la app. Lo que importa es el **Desktop Runtime** que carga el proceso WPF.
-- Una app `net8.0-windows` necesita el **Runtime de .NET 8**; si está instalado, dos PCs corren el **mismo WPF** sin importar el SDK. Por defecto una app net8.0 **no** salta a .NET 10 ([roll-forward](https://learn.microsoft.com/en-us/dotnet/core/versions/selection)).
+- El **número de SDK** (ej. 10.0.401) **no determina** cómo se ejecuta la app. Lo que importa es el **Desktop Runtime** que carga el proceso WPF.
+- La app compila como `net10.0-windows` (migrada desde `net8.0-windows`) y requiere el **Runtime de .NET 10** en la máquina host.
 - Las librerías (`CommunityToolkit.Mvvm`, `Supabase`, `Serilog`, `MS.DI`) son agnósticas al runtime: **no** hay incompatibilidad por versión de .NET ni por CPU.
-- Único matiz secundario: si la app corriera sobre .NET 9/10, el GC activa **DATAS** por defecto → más colecciones Gen0/Gen1 y memoria que "sube y baja" más visible ([DATAS — Microsoft Learn](https://learn.microsoft.com/en-us/dotnet/standard/garbage-collection/datas)). Es **cosmético**; **no** causa el input lag. El lag es 100% renderizado.
+- Matiz sobre .NET 10: el GC activa **DATAS** por defecto → más colecciones Gen0/Gen1 y memoria que "sube y baja" más visible ([DATAS — Microsoft Learn](https://learn.microsoft.com/en-us/dotnet/standard/garbage-collection/datas)). Es **cosmético**; **no** causa el input lag. El lag es 100% renderizado.
 
 > [!warning] Conclusión
 > Tirones + mouse lento + memoria oscilante = **renderizado de efectos × GPU débil**, no la versión de .NET ni una librería.

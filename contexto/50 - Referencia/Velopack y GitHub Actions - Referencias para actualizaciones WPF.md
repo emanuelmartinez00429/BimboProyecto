@@ -36,7 +36,7 @@ Documentación oficial consultada durante la planificación del 2026-09-08. No h
 ## Confianza Windows, runtime y backend
 
 - [Microsoft: SmartScreen y reputación](https://learn.microsoft.com/en-us/windows/apps/package-and-deploy/smartscreen-reputation): firma, confianza y reputación son conceptos distintos; no prometer ausencia de avisos por el mero hecho de firmar.
-- [Microsoft: ciclo de vida de .NET](https://learn.microsoft.com/en-us/lifecycle/products/microsoft-net-and-net-core): .NET 8 finaliza soporte el 2026-11-10. El calendario de migración sigue pendiente y debe fijarse antes de mantener una distribución productiva más allá de esa fecha.
+- [Microsoft: ciclo de vida de .NET](https://learn.microsoft.com/en-us/lifecycle/products/microsoft-net-and-net-core): .NET 8 finaliza soporte el 2026-11-10. La solución ya migró a .NET 10 (`net10.0-windows` / `net10.0`) el 2026-09-10 para asegurar soporte extendido continuo.
 - [Supabase: gestión de entornos](https://supabase.com/docs/guides/deployment/managing-environments): separación de desarrollo/validación/producción. La decisión de no contratar staging inicialmente no elimina la necesidad de validar migraciones y compatibilidad antes de producción.
 
 ## Qué falta demostrar en este proyecto

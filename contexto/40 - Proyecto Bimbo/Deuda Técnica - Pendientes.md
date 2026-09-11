@@ -1,4 +1,4 @@
-﻿---
+---
 title: Deuda Técnica — Pendientes
 tags:
   - pendiente
@@ -1306,7 +1306,7 @@ Eran **dos problemas encimados**, y el segundo era el grave:
 > - **58 pruebas nuevas** en `BimboProyecto.Tests/Auth/` (26 de ingreso + 32 de recuperación). Suite completa: **344/344**.
 > - `grep -rn "ConexionSupabase\|client.Auth" CapaUI/` sobre `InicioSesion/`: **cero coincidencias**.
 > - Build: 0 errores, 0 advertencias.
-> - **La separación se verifica sola:** los ViewModels se enlazan al proyecto de pruebas, que apunta a `net8.0` y no a `net8.0-windows`. Si alguien les mete un `Visibility` o un `Brush`, las pruebas dejan de compilar — no depende de que alguien lo revise.
+> - **La separación se verifica sola:** los ViewModels se enlazan al proyecto de pruebas, que apunta a `net10.0` y no a `net10.0-windows`. Si alguien les mete un `Visibility` o un `Brush`, las pruebas dejan de compilar — no depende de que alguien lo revise.
 
 **Lo que se dejó en el code-behind a propósito:** chrome de la ventana, efectos de foco, spinners, bitmap del logo y el intercambio `PasswordBox`/`TextBox`. `PasswordBox` no se puede bindear — es una decisión de seguridad de WPF —, así que la vista empuja la contraseña al ViewModel.
 
