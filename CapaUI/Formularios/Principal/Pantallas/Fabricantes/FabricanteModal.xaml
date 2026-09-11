@@ -3,16 +3,15 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:po="http://schemas.microsoft.com/winfx/2006/xaml/presentation/options"
              xmlns:conv="clr-namespace:CapaUI.Converters"
              xmlns:controls="clr-namespace:CapaUI.Core.Controls"
-             mc:Ignorable="d"
+             mc:Ignorable="d po"
              Width="620"
              d:DesignWidth="620"
              d:DesignHeight="600"
-
-
              UseLayoutRounding="True"
-             TextOptions.TextRenderingMode="Grayscale"
+             TextOptions.TextRenderingMode="Auto"
              TextOptions.TextFormattingMode="Display" controls:AtajoGuardar.Boton="{x:Reference BtnGuardar}">
 
     <UserControl.Resources>
@@ -21,8 +20,9 @@
                 <ResourceDictionary Source="/CapaUI;component/Resources/Styles.xaml"/>
             </ResourceDictionary.MergedDictionaries>
 
-            <Geometry x:Key="IconFactoryM">M2,20 V8 l7,-5 v5 l7,-5 v17 z M2,11 h16 M9,11 v9 M13,15 h3 M13,19 h3</Geometry>
-            <Geometry x:Key="IconCloseM">M6,6 l12,12 M18,6 l-12,12</Geometry>
+            <PathGeometry x:Key="IconFactoryM" Figures="M2,20 V8 l7,-5 v5 l7,-5 v17 z M2,11 h16 M9,11 v9 M13,15 h3 M13,19 h3" po:Freeze="True"/>
+            <PathGeometry x:Key="IconCloseM" Figures="M6,6 l12,12 M18,6 l-12,12" po:Freeze="True"/>
+            <PathGeometry x:Key="IconCheckM" Figures="M20,6 L9,17 l-5,-5" po:Freeze="True"/>
 
             <!-- ModalSegBtn, EtiquetaCampo y CampoModal vienen de Styles.xaml. -->
         </ResourceDictionary>
@@ -174,9 +174,8 @@
                                     <ControlTemplate TargetType="Button">
                                         <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
                                                 BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6" Padding="{TemplateBinding Padding}">
-                                            <Border.Effect><DropShadowEffect Color="#16A34A" BlurRadius="8" ShadowDepth="2" Opacity="0.4"/></Border.Effect>
                                             <StackPanel Orientation="Horizontal">
-                                                <Path Data="M20,6 L9,17 l-5,-5" Stroke="White" StrokeThickness="2.6"
+                                                <Path Data="{StaticResource IconCheckM}" Stroke="White" StrokeThickness="2.6"
                                                       StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
                                                       Width="14" Height="14" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center"/>
                                                 <TextBlock Text="{Binding Content, RelativeSource={RelativeSource TemplatedParent}}" FontFamily="Segoe UI" FontSize="17" FontWeight="Bold" Foreground="White" VerticalAlignment="Center"/>

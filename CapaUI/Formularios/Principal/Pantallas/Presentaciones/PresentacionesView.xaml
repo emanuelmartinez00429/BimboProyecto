@@ -5,12 +5,13 @@
              xmlns:controls="clr-namespace:CapaUI.Core.Controls"
              xmlns:permisos="clr-namespace:CapaUI.Core.Permisos"
              xmlns:conv="clr-namespace:CapaUI.Converters"
+             xmlns:queries="clr-namespace:CapaAplicacion.Presentaciones.Queries;assembly=CapaAplicacion"
              Background="#EAF1F8"
              DataContext="{x:Null}"
              Loaded="UserControl_Loaded"
              Unloaded="UserControl_Unloaded"
              UseLayoutRounding="True"
-             TextOptions.TextRenderingMode="Grayscale"
+             TextOptions.TextRenderingMode="Auto"
              TextOptions.TextFormattingMode="Display">
 
     <UserControl.Resources>
@@ -36,8 +37,8 @@
         <Grid Grid.Row="0" x:Name="EncabezadoPagina">
             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
             <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                <Border Width="38" Height="38" Background="#1E3A8A" CornerRadius="8" Margin="0,0,12,0" VerticalAlignment="Center">
-                    <Border.Effect><DropShadowEffect Color="#1E3A8A" BlurRadius="8" ShadowDepth="2" Opacity="0.3"/></Border.Effect>
+                <Border Width="38" Height="38" Background="#1E3A8A" CornerRadius="8" Margin="0,0,12,0" VerticalAlignment="Center"
+                        BorderBrush="#1A000000" BorderThickness="1">
                     <Path Data="{StaticResource IconBox}" Stroke="White" StrokeThickness="1.5"
                           StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
                           Width="20" Height="20" Stretch="Uniform"/>
@@ -87,7 +88,7 @@
         <!-- TOOLBAR -->
         <Border Grid.Row="2" x:Name="TarjetaToolbar" Background="White" CornerRadius="10"
                 BorderBrush="#D8E1EC" BorderThickness="1" Padding="12" ClipToBounds="True">
-            <Border.Effect><DropShadowEffect Color="Black" BlurRadius="10" ShadowDepth="2" Opacity="0.06"/></Border.Effect>
+            
             <StackPanel>
                 <Grid>
                     <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
@@ -123,19 +124,25 @@
                                    Foreground="#6B7280" VerticalAlignment="Center" Margin="0,0,10,0"/>
                         <Border Background="#F3F4F6" CornerRadius="8" BorderBrush="#E5E7EB" BorderThickness="1" Padding="3" VerticalAlignment="Center">
                             <StackPanel Orientation="Horizontal">
-                                <RadioButton x:Name="RbActivos" GroupName="EstadoFiltro" IsChecked="True" Style="{StaticResource SegmentBtn}" Checked="EstadoFiltro_Changed">
+                                <RadioButton x:Name="RbActivos"
+                                             IsChecked="{Binding EstadoFiltro, Converter={x:Static conv:EnumToBooleanConverter.Instancia}, ConverterParameter={x:Static local:EstadoFilter.Activos}}"
+                                             Style="{StaticResource SegmentBtn}">
                                     <StackPanel Orientation="Horizontal">
                                         <Border Width="6" Height="6" CornerRadius="3" Background="#10B981" Margin="0,0,5,0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Activos" FontFamily="Segoe UI" FontSize="15"/>
                                     </StackPanel>
                                 </RadioButton>
-                                <RadioButton x:Name="RbInactivos" GroupName="EstadoFiltro" Style="{StaticResource SegmentBtn}" Checked="EstadoFiltro_Changed">
+                                <RadioButton x:Name="RbInactivos"
+                                             IsChecked="{Binding EstadoFiltro, Converter={x:Static conv:EnumToBooleanConverter.Instancia}, ConverterParameter={x:Static local:EstadoFilter.Inactivos}}"
+                                             Style="{StaticResource SegmentBtn}">
                                     <StackPanel Orientation="Horizontal">
                                         <Border Width="6" Height="6" CornerRadius="3" Background="#94A3B8" Margin="0,0,5,0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Inactivos" FontFamily="Segoe UI" FontSize="15"/>
                                     </StackPanel>
                                 </RadioButton>
-                                <RadioButton x:Name="RbTodos" GroupName="EstadoFiltro" Style="{StaticResource SegmentBtn}" Checked="EstadoFiltro_Changed">
+                                <RadioButton x:Name="RbTodos"
+                                             IsChecked="{Binding EstadoFiltro, Converter={x:Static conv:EnumToBooleanConverter.Instancia}, ConverterParameter={x:Static local:EstadoFilter.Todos}}"
+                                             Style="{StaticResource SegmentBtn}">
                                     <TextBlock Text="Todos" FontFamily="Segoe UI" FontSize="15"/>
                                 </RadioButton>
                             </StackPanel>
@@ -147,18 +154,21 @@
                                    Foreground="#6B7280" VerticalAlignment="Center" Margin="0,0,10,0"/>
                         <Border Background="#F3F4F6" CornerRadius="8" BorderBrush="#E5E7EB" BorderThickness="1" Padding="3" VerticalAlignment="Center">
                             <StackPanel Orientation="Horizontal">
-                                <RadioButton x:Name="RbOrdenId" GroupName="OrdenPresentaciones" IsChecked="True"
-                                             Style="{StaticResource SegmentBtn}" Checked="Orden_Changed"
+                                <RadioButton x:Name="RbOrdenId"
+                                             IsChecked="{Binding Orden, Converter={x:Static conv:EnumToBooleanConverter.Instancia}, ConverterParameter={x:Static queries:OrdenPresentacion.IdAsc}}"
+                                             Style="{StaticResource SegmentBtn}"
                                              ToolTip="Orden natural por código de registro">
                                     <TextBlock Text="Por defecto" FontFamily="Segoe UI" FontSize="15"/>
                                 </RadioButton>
-                                <RadioButton x:Name="RbOrdenAZ" GroupName="OrdenPresentaciones"
-                                             Style="{StaticResource SegmentBtn}" Checked="Orden_Changed"
+                                <RadioButton x:Name="RbOrdenAZ"
+                                             IsChecked="{Binding Orden, Converter={x:Static conv:EnumToBooleanConverter.Instancia}, ConverterParameter={x:Static queries:OrdenPresentacion.NombreAsc}}"
+                                             Style="{StaticResource SegmentBtn}"
                                              ToolTip="Nombre ascendente">
                                     <TextBlock Text="A-Z" FontFamily="Segoe UI" FontSize="15"/>
                                 </RadioButton>
-                                <RadioButton x:Name="RbOrdenZA" GroupName="OrdenPresentaciones"
-                                             Style="{StaticResource SegmentBtn}" Checked="Orden_Changed"
+                                <RadioButton x:Name="RbOrdenZA"
+                                             IsChecked="{Binding Orden, Converter={x:Static conv:EnumToBooleanConverter.Instancia}, ConverterParameter={x:Static queries:OrdenPresentacion.NombreDesc}}"
+                                             Style="{StaticResource SegmentBtn}"
                                              ToolTip="Nombre descendente">
                                     <TextBlock Text="Z-A" FontFamily="Segoe UI" FontSize="15"/>
                                 </RadioButton>
@@ -194,7 +204,8 @@
                     <TextBlock Text="Cargando presentaciones..." FontFamily="Segoe UI" FontSize="16" Foreground="#6B7280" VerticalAlignment="Center"/>
                 </StackPanel>
                 <DataGrid Grid.Row="0" x:Name="DgPresentaciones" AutoGenerateColumns="False" CanUserAddRows="False"
-                          IsReadOnly="True"
+                          IsReadOnly="True" RowBackground="White" RenderOptions.ClearTypeHint="Enabled"
+                          EnableRowVirtualization="True" EnableColumnVirtualization="True"
                           CanUserSortColumns="False" HeadersVisibility="Column" GridLinesVisibility="None"
                           SelectionMode="Single" SelectionUnit="FullRow" Background="White" BorderThickness="0"
                           AlternationCount="2" RowStyle="{StaticResource ProductRowStyle}" CellStyle="{StaticResource CeldaIzquierda}"

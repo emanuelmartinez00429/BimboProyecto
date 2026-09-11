@@ -16,7 +16,6 @@ namespace CapaUI.Formularios.Principal.Pantallas.Categorias
     public partial class CategoriasView : System.Windows.Controls.UserControl
     {
         private CategoriasViewModel _vm = null!;
-        private bool _suppressFilterChange = false;
         private Storyboard? _spinnerStory;
 
         public CategoriasView()
@@ -67,9 +66,6 @@ namespace CapaUI.Formularios.Principal.Pantallas.Categorias
 
         private void OnFiltrosLimpiados()
         {
-            _suppressFilterChange = true;
-            RbActivos.IsChecked = true;
-            _suppressFilterChange = false;
         }
 
         private void OnVmPropertyChanged(object? s, System.ComponentModel.PropertyChangedEventArgs ev)
@@ -128,17 +124,6 @@ namespace CapaUI.Formularios.Principal.Pantallas.Categorias
             _spinnerStory.Remove();
             _spinnerStory.Children.Clear();
             _spinnerStory = null;
-        }
-
-        private void EstadoFiltro_Changed(object sender, RoutedEventArgs e)
-        {
-            if (_vm == null || _suppressFilterChange) return;
-            if (RbActivos.IsChecked == true)
-                _vm.EstadoFiltro = EstadoFilter.Activos;
-            else if (RbInactivos.IsChecked == true)
-                _vm.EstadoFiltro = EstadoFilter.Inactivos;
-            else
-                _vm.EstadoFiltro = EstadoFilter.Todos;
         }
 
         private void SearchBox_ItemSelected(object? sender, SuggestionItemData e)

@@ -5,12 +5,15 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:conv="clr-namespace:CapaUI.Converters"
              xmlns:controls="clr-namespace:CapaUI.Core.Controls"
-             mc:Ignorable="d"
+             xmlns:po="http://schemas.microsoft.com/winfx/2006/xaml/presentation/options"
+             mc:Ignorable="d po"
              Width="620"
              d:DesignWidth="620"
-             d:DesignHeight="600"
+             d:DesignHeight="600"
+
+
              UseLayoutRounding="True"
-             TextOptions.TextRenderingMode="Grayscale"
+             TextOptions.TextRenderingMode="Auto"
              TextOptions.TextFormattingMode="Display"
              controls:AtajoGuardar.Boton="{x:Reference BtnGuardar}">
 
@@ -20,15 +23,17 @@
                 <ResourceDictionary Source="/CapaUI;component/Resources/Styles.xaml"/>
             </ResourceDictionary.MergedDictionaries>
 
-            <Geometry x:Key="IconBoxM">M21,16 V8 a2,2 0 0 0,-1,-1.73 l-7,-4 a2,2 0 0 0,-2,0 l-7,4 A2,2 0 0 0,3,8 v8 a2,2 0 0 0,1,1.73 l7,4 a2,2 0 0 0,2,0 l7,-4 A2,2 0 0 0,21,16 z M3.27,6.96 L12,12.01 l8.73,-5.05 M12,22.08 V12</Geometry>
-            <Geometry x:Key="IconCloseM">M6,6 l12,12 M18,6 l-12,12</Geometry>
+            <PathGeometry x:Key="IconBoxM" Figures="M21,16 V8 a2,2 0 0 0,-1,-1.73 l-7,-4 a2,2 0 0 0,-2,0 l-7,4 A2,2 0 0 0,3,8 v8 a2,2 0 0 0,1,1.73 l7,4 a2,2 0 0 0,2,0 l7,-4 A2,2 0 0 0,21,16 z M3.27,6.96 L12,12.01 l8.73,-5.05 M12,22.08 V12" po:Freeze="True"/>
+            <PathGeometry x:Key="IconCloseM" Figures="M6,6 l12,12 M18,6 l-12,12" po:Freeze="True"/>
+            <PathGeometry x:Key="IconCheckM" Figures="M20,6 L9,17 l-5,-5" po:Freeze="True"/>
 
             <!-- EtiquetaCampo, CampoModal, ModalInputAuditoria y ModalSegBtn viven en
                  CapaUI/Resources/Styles.xaml — estaban duplicados acá y en ProductoModal. -->
         </ResourceDictionary>
     </UserControl.Resources>
 
-    <Border CornerRadius="10" ClipToBounds="True">
+    <Border CornerRadius="10" ClipToBounds="True"
+>
         <Border.Effect><DropShadowEffect Color="Black" BlurRadius="24" ShadowDepth="8" Opacity="0.55"/></Border.Effect>
         <Grid>
             <Border CornerRadius="10">
@@ -177,9 +182,8 @@
                                     <ControlTemplate TargetType="Button">
                                         <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
                                                 BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6" Padding="{TemplateBinding Padding}">
-                                            <Border.Effect><DropShadowEffect Color="#16A34A" BlurRadius="8" ShadowDepth="2" Opacity="0.4"/></Border.Effect>
                                             <StackPanel Orientation="Horizontal">
-                                                <Path Data="M20,6 L9,17 l-5,-5" Stroke="White" StrokeThickness="2.6"
+                                                <Path Data="{StaticResource IconCheckM}" Stroke="White" StrokeThickness="2.6"
                                                       StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
                                                       Width="14" Height="14" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center"/>
                                                 <TextBlock Text="{Binding Content, RelativeSource={RelativeSource TemplatedParent}}" FontFamily="Segoe UI" FontSize="17" FontWeight="Bold" Foreground="White" VerticalAlignment="Center"/>

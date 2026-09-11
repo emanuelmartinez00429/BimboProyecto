@@ -17,7 +17,6 @@ namespace CapaUI.Formularios.Principal.Pantallas.Presentaciones
     public partial class PresentacionesView : System.Windows.Controls.UserControl
     {
         private PresentacionesViewModel _vm = null!;
-        private bool _suppressFilterChange = false;
         private Storyboard? _spinnerStory;
 
         public PresentacionesView()
@@ -70,10 +69,6 @@ namespace CapaUI.Formularios.Principal.Pantallas.Presentaciones
 
         private void OnFiltrosLimpiados()
         {
-            _suppressFilterChange = true;
-            RbActivos.IsChecked = true;
-            RbOrdenId.IsChecked     = true;
-            _suppressFilterChange = false;
         }
 
         private void OnVmPropertyChanged(object? s, System.ComponentModel.PropertyChangedEventArgs ev)
@@ -131,28 +126,6 @@ namespace CapaUI.Formularios.Principal.Pantallas.Presentaciones
             _spinnerStory.Remove();
             _spinnerStory.Children.Clear();
             _spinnerStory = null;
-        }
-
-        private void EstadoFiltro_Changed(object sender, RoutedEventArgs e)
-        {
-            if (_vm == null || _suppressFilterChange) return;
-            if (RbActivos.IsChecked == true)
-                _vm.EstadoFiltro = EstadoFilter.Activos;
-            else if (RbInactivos.IsChecked == true)
-                _vm.EstadoFiltro = EstadoFilter.Inactivos;
-            else
-                _vm.EstadoFiltro = EstadoFilter.Todos;
-        }
-
-        private void Orden_Changed(object sender, RoutedEventArgs e)
-        {
-            if (_vm == null || _suppressFilterChange) return;
-            if (RbOrdenAZ.IsChecked == true)
-                _vm.Orden = OrdenPresentacion.NombreAsc;
-            else if (RbOrdenZA.IsChecked == true)
-                _vm.Orden = OrdenPresentacion.NombreDesc;
-            else
-                _vm.Orden = OrdenPresentacion.IdAsc;
         }
 
         private void SearchBox_ItemSelected(object? sender, SuggestionItemData e)

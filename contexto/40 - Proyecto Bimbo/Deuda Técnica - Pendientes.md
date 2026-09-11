@@ -161,6 +161,23 @@ private int ResolverFilteredCount(PagedResult<ProductoDto> pagina, ProductoFiltr
 
 ---
 
+### P-060 · `cts.Dispose()` en el swap atómico de CTS contradice la directriz de la investigación que dice seguir (riesgo `ObjectDisposedException`) — y ya es la convención escrita para todo el proyecto
+
+**Archivos:** `CapaUI/Formularios/Principal/Pantallas/Proveedores/ProveedoresViewModel.cs:193-194`, `CapaUI/Formularios/Principal/Pantallas/Productos/ProductosViewModel.cs:427-428`
+**Introducido en:** commit `55ca2ee` (Antigravity, 2026-09-11). Codificado como convención obligatoria en `AGENTS.md` §14 y `contexto/20 - Patrones/Convenciones de UI (WPF) — leer antes de tocar XAML.md` §14. Ver [[Auditoría Externa — Optimizaciones WPF de Antigravity vs. Investigaciones QA]].
+
+El patrón de reemplazo atómico (`Interlocked.Exchange(ref _ctsPagina, cts)` + `oldCts.CancelAsync()`) está tomado de la investigación `Gestión Concurrente De CTS.md`, pero esa misma investigación es explícita: su implementación de referencia (`CancellationTokenSourceCoordinator`) **omite deliberadamente `Dispose()` sobre el CTS reemplazado**, precisamente para no correr contra el hilo de red que puede seguir usando ese token (`SocketsHttpHandler`/`HttpClient` de Supabase-postgrest). La cita textual de la investigación: *"Directriz del runtime de .NET: Omitir deliberadamente `oldCts.Dispose()`… evitando condiciones de carrera de red"*.
+
+El código actual hace lo contrario: en el `finally` de `CargarPaginaAsync`, tras el `CompareExchange`, llama `cts.Dispose()` incondicionalmente sobre el CTS de esa misma generación — que es justo el que la generación siguiente puede estar cancelando de forma asíncrona (`_ = oldCts.CancelAsync()`) mientras la petición Postgrest original todavía se está desenrollando. Es la carrera exacta que el documento describe en "Anatomía de la condición de carrera en HttpClient y SocketsHttpHandler": `Dispose()` en un hilo, callback de red tocando el token en otro → `ObjectDisposedException` sin capturar (el `catch` de esas líneas solo cubre el `.Cancel()`/`.CancelAsync()` anterior, no el `Dispose()`).
+
+**Riesgo:** Baja probabilidad por request individual, pero se dispara con paginación/filtrado rápido (varias cargas en <500ms, el escenario que la propia investigación marca como el de mayor riesgo). El resultado es una excepción no controlada que puede escapar del `try/finally` del ViewModel. Y como quedó escrito como *la* convención en `AGENTS.md` §14, el riesgo se replica en cada ViewModel nuevo que la siga al pie de la letra.
+
+**Solución:** Quitar el `cts.Dispose()` explícito del `finally` (dejar que el GC recolecte el CTS — no tiene `WaitHandle`; sí tiene temporizador por `CancelAfter`/constructor con timeout, que es el único costo real de omitir `Dispose()`, y la propia investigación lo trata como aceptable frente al riesgo de `ObjectDisposedException`), o adoptar el `CancellationTokenSourceCoordinator` de la investigación tal cual. Corregir el ejemplo en `AGENTS.md` §14 / Convenciones §14 en el mismo cambio para que no seguir propagando el patrón.
+
+**Estado:** `[x] Resuelto 2026-09-11` — Se omitió `cts.Dispose()` en `finally` y `oldCts.Dispose()` en el swap atómico a través de todos los ViewModels (`Productos`, `Proveedores`, `Fabricantes`, `Categorias`, `Presentaciones`), delegando su recolección al GC según la directriz de seguridad de `Gestión Concurrente De CTS.md`.
+
+---
+
 ## 🟡 Importantes — no bloquean pero generan deuda en cascada
 
 ---
@@ -322,6 +339,23 @@ El constructor recibe y guarda `IUsuarioSesionService _sesionService` pero nunca
 **Solución aplicada:** contrato documentado en el doc-comment de `Permiso.cs` (no renombrar sin migración) + `SesionPermisos.ValidarContraBD()` invocado tras login: loguea con Serilog los valores del enum que la sesión no reconoce. No bloquea la app — es diagnóstico.
 
 **Estado:** `[x] Resuelto (documentación + validación diagnóstica)`
+
+---
+
+### P-061 · "Transacción compensatoria" documentada en AGENTS.md hace lo opuesto a una compensación (no revierte, acepta el fallo parcial)
+
+**Archivos:** `CapaUI/Formularios/Principal/Pantallas/Proveedores/ProveedorModal.xaml.cs` (bloque `if (!rEstado.Success)`), `CapaUI/Formularios/Principal/Pantallas/Productos/ProductoModal.xaml.cs` (equivalente)
+**Introducido en:** commit `55ca2ee` (Antigravity, 2026-09-11), título del commit incluye literalmente "transacciones compensatorias". Documentado como tal en `AGENTS.md` §15 y Convenciones §15. Ver [[Auditoría Externa — Optimizaciones WPF de Antigravity vs. Investigaciones QA]].
+
+La investigación `Dirty Tracking y Orquestación RPC.md` define el "Patrón de Transacción Compensatoria" como: si la 2ª RPC (cambiar estado) falla después de que la 1ª (datos generales) tuvo éxito, el orquestador **debe revertir automáticamente la 1ª** invocándola de nuevo con los valores originales del snapshot. El código no hace eso: si `CambiarEstadoAsync` falla tras un `UpdateAsync` exitoso, confirma el token de idempotencia (`_solicitud.Confirmar()`), muestra un aviso al usuario y dispara `Guardado?.Invoke()` — es decir, **deja el cambio de datos ya aplicado y no revierte nada**. `AGENTS.md` §15 documenta este comportamiento bajo el título "Transacciones Compensatorias", lo cual es una descripción incorrecta del propio patrón que cita.
+
+**Riesgo:** No es un bug de datos corruptos — dejar los datos generales guardados y el estado sin cambiar es un estado válido, y de hecho puede ser preferible a perder la edición del usuario. El riesgo real es de **documentación**: cualquier agente (Claude, Codex, Antigravity, Copilot) que lea `AGENTS.md` §15 esperando una compensación real (rollback automático) va a asumir una garantía de consistencia que el código no ofrece, y puede propagar el mismo malentendido a otros módulos.
+
+**Solución:** Decisión de producto, no solo de código — hay dos caminos legítimos:
+1. Si "aceptar el fallo parcial y avisar" es el comportamiento deseado (parece razonable acá: no perder la edición del usuario), renombrar la sección en `AGENTS.md`/Convenciones de "Transacciones Compensatorias" a algo preciso como "Manejo de Fallo Parcial con Notificación (sin rollback)", dejando explícito que NO hay compensación real.
+2. Si se quiere compensación real, implementar el rollback: si `CambiarEstadoAsync` falla tras un `UpdateAsync` exitoso, invocar de nuevo `UpdateAsync` con los valores originales del snapshot antes de avisar al usuario.
+
+**Estado:** `[x] Resuelto 2026-09-11` — Se corrigió la nomenclatura en la documentación técnica (`Convenciones de UI §15`) a "Manejo de Fallo Parcial con Notificación (sin rollback destructivo)", aclarando de forma transparente que la edición confirmada del usuario se preserva intencionalmente y no se realiza rollback.
 
 ---
 
@@ -1396,6 +1430,8 @@ Eran **dos problemas encimados**, y el segundo era el grave:
 | P-057 | 16 modales y 12 vistas sin previsualización en el diseñador de VS | `[x]` Resuelto 2026-09-10 (33/33 en arné; converters fuera de App.xaml) | [[ADR-028 - Previsualizacion de UserControls en el disenador de VS]] |
 | P-058 | Login sin ViewModel y paneles de recuperación llamando a Supabase desde la UI | ✅ Resuelto | 58 pruebas nuevas; suite 344/344 |
 | P-059 | La recuperación de contraseña no verifica que la cuenta esté habilitada | `[ ]` Pendiente | Detectado al resolver P-058 |
+| P-060 | `cts.Dispose()` en swap atómico contradice la investigación de CTS (riesgo `ObjectDisposedException`) | `[x]` Resuelto 2026-09-11 | [[Auditoría Externa — Optimizaciones WPF de Antigravity vs. Investigaciones QA]] |
+| P-061 | "Transacción compensatoria" en AGENTS.md no revierte nada (mal nombrada) | `[x]` Resuelto 2026-09-11 | [[Auditoría Externa — Optimizaciones WPF de Antigravity vs. Investigaciones QA]] |
 
 ---
 

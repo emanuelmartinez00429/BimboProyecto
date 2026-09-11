@@ -236,21 +236,22 @@ Cuando los RadioButtons se enlazan bidireccionalmente a una propiedad `Enum` en 
    finally
    {
        Interlocked.CompareExchange(ref _ctsPagina, null, cts);
-       cts.Dispose();
+       // Omitir cts.Dispose() deliberadamente: el GC lo recolecta de forma segura evitando
+       // ObjectDisposedException en SocketsHttpHandler al haber cancelaciones asíncronas concurrentes (P-060).
    }
    ```
    Evita que una carga anterior que finaliza tarde ponga a `null` el token de una carga más nueva que ya tomó el control.
 
-## 15. Transacciones Compensatorias y Fallas Parciales en RPCs Particionadas
+## 15. Manejo de Fallo Parcial y Detección de Cambios en RPCs Particionadas
 
 Cuando un caso de uso requiere múltiples operaciones RPC secuenciales (ej. `UpdateAsync` para datos generales seguido de `CambiarEstadoAsync` para el ciclo de vida):
 
 1. **Orden Determinista:** Modificaciones comerciales en primer lugar; cambios de estado en segundo lugar.
 2. **Detección Atómica de Cambios (Dirty Tracking):** Comparar contra el snapshot inmutable original y ejecutar únicamente las RPCs de las facetas que realmente mutaron. Si nada cambió, cerrar el modal limpiamente sin tocar la red.
-3. **Manejo de Fallo Parcial:** Si el paso 1 tiene éxito en base de datos pero el paso 2 falla:
+3. **Manejo de Fallo Parcial con Notificación (sin rollback destructivo):** Si el paso 1 tiene éxito en base de datos pero el paso 2 falla:
    - Confirmar el token de idempotencia del paso 1 (`_solicitud.Confirmar()`).
-   - Notificar explícitamente al operador mediante un aviso contextual (`"Los datos se actualizaron correctamente, pero no se pudo cambiar el estado: ..."`).
-   - Invocar el evento de guardado para refrescar los datos consolidados en la grilla y evitar estados zombis en el cliente.
+   - Notificar explícitamente al operador mediante un aviso contextual (`"Los datos se actualizaron correctamente, pero no se pudo cambiar su estado: ..."`).
+   - Invocar el evento de guardado para refrescar los datos consolidados en la grilla, preservando la edición exitosa y evitando estados desincronizados en el cliente.
 
 ## Anti-patrones — lista negra rápida
 

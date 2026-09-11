@@ -191,7 +191,6 @@ public partial class ProveedoresViewModel : RealtimeAwareViewModel
         finally
         {
             Interlocked.CompareExchange(ref _ctsPagina, null, cts);
-            cts.Dispose();
         }
 
         if (myGen != _loadGeneration) return;

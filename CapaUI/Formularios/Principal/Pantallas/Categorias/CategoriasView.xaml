@@ -10,7 +10,7 @@
              Loaded="UserControl_Loaded"
              Unloaded="UserControl_Unloaded"
              UseLayoutRounding="True"
-             TextOptions.TextRenderingMode="Grayscale"
+             TextOptions.TextRenderingMode="Auto"
              TextOptions.TextFormattingMode="Display">
 
     <UserControl.Resources>
@@ -36,8 +36,8 @@
         <Grid Grid.Row="0">
             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
             <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                <Border Width="38" Height="38" Background="{DynamicResource EmpresaPrimaryBrush}" CornerRadius="8" Margin="0,0,12,0" VerticalAlignment="Center">
-                    <Border.Effect><DropShadowEffect Color="{DynamicResource EmpresaPrimaryColor}" BlurRadius="8" ShadowDepth="2" Opacity="0.3"/></Border.Effect>
+                <Border Width="38" Height="38" Background="{DynamicResource EmpresaPrimaryBrush}" CornerRadius="8" Margin="0,0,12,0" VerticalAlignment="Center"
+                        BorderBrush="#1A000000" BorderThickness="1">
                     <Path Data="{StaticResource IconTag}" Stroke="White" StrokeThickness="1.5"
                           StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
                           Width="20" Height="20" Stretch="Uniform"/>
@@ -79,7 +79,6 @@
         <!-- TOOLBAR -->
         <Border Grid.Row="2" x:Name="TarjetaToolbar" Background="White" CornerRadius="10"
                 BorderBrush="#D8E1EC" BorderThickness="1" Padding="12" ClipToBounds="True">
-            <Border.Effect><DropShadowEffect Color="Black" BlurRadius="10" ShadowDepth="2" Opacity="0.06"/></Border.Effect>
             <StackPanel>
                 <Grid>
                     <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
@@ -112,19 +111,25 @@
                     <TextBlock Grid.Column="0" Text="ESTADO" FontFamily="Segoe UI" FontSize="12.5" FontWeight="Bold" Foreground="#6B7280" VerticalAlignment="Center" Margin="0,0,10,0"/>
                     <Border Grid.Column="1" Background="#F3F4F6" CornerRadius="8" BorderBrush="#E5E7EB" BorderThickness="1" Padding="3" VerticalAlignment="Center">
                         <StackPanel Orientation="Horizontal">
-                            <RadioButton x:Name="RbActivos" GroupName="EstadoFiltro" IsChecked="True" Style="{StaticResource SegmentBtn}" Checked="EstadoFiltro_Changed">
+                            <RadioButton x:Name="RbActivos"
+                                         IsChecked="{Binding EstadoFiltro, Converter={x:Static conv:EnumToBooleanConverter.Instancia}, ConverterParameter={x:Static local:EstadoFilter.Activos}}"
+                                         Style="{StaticResource SegmentBtn}">
                                 <StackPanel Orientation="Horizontal">
                                     <Border Width="6" Height="6" CornerRadius="3" Background="#10B981" Margin="0,0,5,0" VerticalAlignment="Center"/>
                                     <TextBlock Text="Activos" FontFamily="Segoe UI" FontSize="15"/>
                                 </StackPanel>
                             </RadioButton>
-                            <RadioButton x:Name="RbInactivos" GroupName="EstadoFiltro" Style="{StaticResource SegmentBtn}" Checked="EstadoFiltro_Changed">
+                            <RadioButton x:Name="RbInactivos"
+                                         IsChecked="{Binding EstadoFiltro, Converter={x:Static conv:EnumToBooleanConverter.Instancia}, ConverterParameter={x:Static local:EstadoFilter.Inactivos}}"
+                                         Style="{StaticResource SegmentBtn}">
                                 <StackPanel Orientation="Horizontal">
                                     <Border Width="6" Height="6" CornerRadius="3" Background="#94A3B8" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                                        <TextBlock Text="Inactivos" FontFamily="Segoe UI" FontSize="15"/>
+                                    <TextBlock Text="Inactivos" FontFamily="Segoe UI" FontSize="15"/>
                                 </StackPanel>
                             </RadioButton>
-                            <RadioButton x:Name="RbTodos" GroupName="EstadoFiltro" Style="{StaticResource SegmentBtn}" Checked="EstadoFiltro_Changed">
+                            <RadioButton x:Name="RbTodos"
+                                         IsChecked="{Binding EstadoFiltro, Converter={x:Static conv:EnumToBooleanConverter.Instancia}, ConverterParameter={x:Static local:EstadoFilter.Todos}}"
+                                         Style="{StaticResource SegmentBtn}">
                                 <TextBlock Text="Todos" FontFamily="Segoe UI" FontSize="15"/>
                             </RadioButton>
                         </StackPanel>
@@ -158,7 +163,8 @@
                     <TextBlock Text="Cargando categor&#237;as..." FontFamily="Segoe UI" FontSize="16" Foreground="#6B7280" VerticalAlignment="Center"/>
                 </StackPanel>
                 <DataGrid Grid.Row="0" x:Name="DgCategorias" AutoGenerateColumns="False" CanUserAddRows="False"
-                          IsReadOnly="True"
+                          IsReadOnly="True" RowBackground="White" RenderOptions.ClearTypeHint="Enabled"
+                          EnableRowVirtualization="True" EnableColumnVirtualization="True"
                           CanUserSortColumns="False" HeadersVisibility="Column" GridLinesVisibility="None"
                           SelectionMode="Single" SelectionUnit="FullRow" Background="White" BorderThickness="0"
                           AlternationCount="2" RowStyle="{StaticResource ProductRowStyle}" CellStyle="{StaticResource CeldaIzquierda}"

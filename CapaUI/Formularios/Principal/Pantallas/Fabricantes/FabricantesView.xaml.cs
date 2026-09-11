@@ -22,7 +22,6 @@ namespace CapaUI.Formularios.Principal.Pantallas.Fabricantes
     public partial class FabricantesView : System.Windows.Controls.UserControl
     {
         private FabricantesViewModel _vm = null!;
-        private bool _suppressFilterChange = false;
         private Storyboard? _spinnerStory;
         private readonly ComboFiltro _filtroPais;
 
@@ -77,10 +76,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Fabricantes
 
         private void OnFiltrosLimpiados()
         {
-            _suppressFilterChange = true;
-            RbActivos.IsChecked = true;
             _filtroPais.Reiniciar();
-            _suppressFilterChange = false;
         }
 
         private void OnVmPropertyChanged(object? s, System.ComponentModel.PropertyChangedEventArgs ev)
@@ -139,17 +135,6 @@ namespace CapaUI.Formularios.Principal.Pantallas.Fabricantes
             _spinnerStory.Remove();
             _spinnerStory.Children.Clear();
             _spinnerStory = null;
-        }
-
-        private void EstadoFiltro_Changed(object sender, RoutedEventArgs e)
-        {
-            if (_vm == null || _suppressFilterChange) return;
-            if (RbActivos.IsChecked == true)
-                _vm.EstadoFiltro = EstadoFilter.Activos;
-            else if (RbInactivos.IsChecked == true)
-                _vm.EstadoFiltro = EstadoFilter.Inactivos;
-            else
-                _vm.EstadoFiltro = EstadoFilter.Todos;
         }
 
         private void SearchBox_ItemSelected(object? sender, SuggestionItemData e)

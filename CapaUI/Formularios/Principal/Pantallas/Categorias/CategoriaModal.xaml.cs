@@ -113,7 +113,18 @@ namespace CapaUI.Formularios.Principal.Pantallas.Categorias
                             dto.EstadoCategoria,
                             _solicitud.Obtener("cambiar_estado_categoria", new { dto.Id, dto.EstadoCategoria }),
                             CancellationToken.None);
-                        (exito, error) = (rEstado.Success, rEstado.Error);
+                        if (!rEstado.Success)
+                        {
+                            // Transacción compensatoria / fallo parcial: los datos se guardaron pero falló el cambio de estado
+                            _solicitud.Confirmar();
+                            Guardado?.Invoke();
+                            MessageBox.Show(
+                                $"Los datos de la categoría se actualizaron correctamente, pero no se pudo cambiar su estado: {rEstado.Error}\n\nPor favor, intente cambiar el estado nuevamente.",
+                                "Aviso de actualización parcial",
+                                MessageBoxButton.OK,
+                                MessageBoxImage.Warning);
+                            return;
+                        }
                     }
                 }
 

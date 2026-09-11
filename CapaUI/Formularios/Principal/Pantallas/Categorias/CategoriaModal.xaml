@@ -5,12 +5,15 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:conv="clr-namespace:CapaUI.Converters"
              xmlns:controls="clr-namespace:CapaUI.Core.Controls"
-             mc:Ignorable="d"
+             xmlns:po="http://schemas.microsoft.com/winfx/2006/xaml/presentation/options"
+             mc:Ignorable="d po"
              Width="560"
              d:DesignWidth="560"
-             d:DesignHeight="500"
+             d:DesignHeight="500"
+
+
              UseLayoutRounding="True"
-             TextOptions.TextRenderingMode="Grayscale"
+             TextOptions.TextRenderingMode="Auto"
              TextOptions.TextFormattingMode="Display" controls:AtajoGuardar.Boton="{x:Reference BtnGuardar}">
 
     <UserControl.Resources>
@@ -19,14 +22,16 @@
                 <ResourceDictionary Source="/CapaUI;component/Resources/Styles.xaml"/>
             </ResourceDictionary.MergedDictionaries>
 
-            <Geometry x:Key="IconTagM">M20.59,13.41 l-7.17,7.17 a2,2 0 0 1,-2.83,0 L2,12 V2 h10 l8.59,8.59 a2,2 0 0 1,0,2.82 z M7,7 h.01</Geometry>
-            <Geometry x:Key="IconCloseM">M6,6 l12,12 M18,6 l-12,12</Geometry>
+            <PathGeometry x:Key="IconTagM" Figures="M20.59,13.41 l-7.17,7.17 a2,2 0 0 1,-2.83,0 L2,12 V2 h10 l8.59,8.59 a2,2 0 0 1,0,2.82 z M7,7 h.01" po:Freeze="True"/>
+            <PathGeometry x:Key="IconCloseM" Figures="M6,6 l12,12 M18,6 l-12,12" po:Freeze="True"/>
+            <PathGeometry x:Key="IconCheckM" Figures="M20,6 L9,17 l-5,-5" po:Freeze="True"/>
 
             <!-- ModalSegBtn, EtiquetaCampo y CampoModal vienen de Styles.xaml. -->
         </ResourceDictionary>
     </UserControl.Resources>
 
-    <Border CornerRadius="10" ClipToBounds="True">
+    <Border CornerRadius="10" ClipToBounds="True"
+>
         <Border.Effect><DropShadowEffect Color="Black" BlurRadius="24" ShadowDepth="8" Opacity="0.55"/></Border.Effect>
         <Grid>
             <Border CornerRadius="10">
@@ -148,9 +153,8 @@
                                     <ControlTemplate TargetType="Button">
                                         <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
                                                 BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6" Padding="{TemplateBinding Padding}">
-                                            <Border.Effect><DropShadowEffect Color="#16A34A" BlurRadius="8" ShadowDepth="2" Opacity="0.4"/></Border.Effect>
                                             <StackPanel Orientation="Horizontal">
-                                                <Path Data="M20,6 L9,17 l-5,-5" Stroke="White" StrokeThickness="2.6"
+                                                <Path Data="{StaticResource IconCheckM}" Stroke="White" StrokeThickness="2.6"
                                                       StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
                                                       Width="14" Height="14" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center"/>
                                                 <TextBlock Text="{Binding Content, RelativeSource={RelativeSource TemplatedParent}}" FontFamily="Segoe UI" FontSize="17" FontWeight="Bold" Foreground="White" VerticalAlignment="Center"/>

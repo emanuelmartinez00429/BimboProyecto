@@ -32,6 +32,7 @@ public partial class FabricantesViewModel : RealtimeAwareViewModel
     private int          _loadGeneration;
     // P-029: CTS para cancelar peticiones en vuelo al desmontar la vista.
     private readonly CancellationTokenSource _cts = new();
+    private CancellationTokenSource? _ctsPagina;
 
     public const int PageSize = 50;
 
@@ -175,58 +176,76 @@ public partial class FabricantesViewModel : RealtimeAwareViewModel
 
         var filtros = BuildFiltros();
 
-        var task = _repo.GetPagedAsync(_page, PageSize, filtros, _cts.Token);
-
-        // P-029: el Task.Delay del timeout usa un token enlazado que se cancela
-        // apenas gana la consulta. Sin esto, CADA carga dejaba un timer de 10 s
-        // vivo en el TimerQueue aunque la consulta tardara solo 200 ms.
-        using var ctsTimeout = CancellationTokenSource.CreateLinkedTokenSource(_cts.Token);
-        var demora   = Task.Delay(TimeoutMs, ctsTimeout.Token);
-        var ganador  = await Task.WhenAny(task, demora);
-        ctsTimeout.Cancel();
-
-        if (Disposed) return;
-        if (ganador != task)
+        var cts = CancellationTokenSource.CreateLinkedTokenSource(_cts.Token);
+        var oldCts = Interlocked.Exchange(ref _ctsPagina, cts);
+        if (oldCts != null)
         {
-            if (myGen != _loadGeneration) return;
-            ErrorCarga = "La carga tardó demasiado. Intente de nuevo.";
-            PageRows = new ObservableCollection<FabricanteDto>();
-            OnPropertyChanged(nameof(NoResults));
-            IsLoading  = false;
-            return;
+            try { _ = oldCts.CancelAsync(); } catch (ObjectDisposedException) { }
         }
 
-        var r = await task;
-        if (Disposed || myGen != _loadGeneration) return;
-
-        if (!r.Success)
+        try
         {
-            ErrorCarga = r.Error;
-            PageRows = new ObservableCollection<FabricanteDto>();
+            var task = _repo.GetPagedAsync(_page, PageSize, filtros, cts.Token);
+
+            // P-029: el Task.Delay del timeout usa un token enlazado que se cancela
+            // apenas gana la consulta. Sin esto, CADA carga dejaba un timer de 10 s
+            // vivo en el TimerQueue aunque la consulta tardara solo 200 ms.
+            using var ctsTimeout = CancellationTokenSource.CreateLinkedTokenSource(cts.Token);
+            var demora   = Task.Delay(TimeoutMs, ctsTimeout.Token);
+            var ganador  = await Task.WhenAny(task, demora);
+            ctsTimeout.Cancel();
+
+            if (Disposed) return;
+            if (ganador != task)
+            {
+                if (myGen != _loadGeneration) return;
+                ErrorCarga = "La carga tardó demasiado. Intente de nuevo.";
+                PageRows = new ObservableCollection<FabricanteDto>();
+                OnPropertyChanged(nameof(NoResults));
+                IsLoading  = false;
+                return;
+            }
+
+            var r = await task;
+            if (Disposed || myGen != _loadGeneration) return;
+
+            if (!r.Success)
+            {
+                ErrorCarga = r.Error;
+                PageRows = new ObservableCollection<FabricanteDto>();
+                OnPropertyChanged(nameof(NoResults));
+                IsLoading  = false;
+                return;
+            }
+
+            var pagina = r.Value!;
+
+            TotalCount     = pagina.Total;
+            ActivosCount   = pagina.Activos;
+            InactivosCount = pagina.Inactivos;
+            _filteredCount = ResolverFilteredCount(pagina, filtros);
+
+            PageRows = new ObservableCollection<FabricanteDto>(pagina.Items);
+
+            OnPropertyChanged(nameof(TotalPages));
+            OnPropertyChanged(nameof(PageInfo));
             OnPropertyChanged(nameof(NoResults));
-            IsLoading  = false;
-            return;
+            NotifyPaginationCanExecuteChanged();
+            IsLoading = false;
+
+            if (_pendingSelectionId.HasValue)
+            {
+                Seleccionado        = PageRows.FirstOrDefault(x => x.Id == _pendingSelectionId.Value);
+                _pendingSelectionId = null;
+            }
         }
-
-        var pagina = r.Value!;
-
-        TotalCount     = pagina.Total;
-        ActivosCount   = pagina.Activos;
-        InactivosCount = pagina.Inactivos;
-        _filteredCount = ResolverFilteredCount(pagina, filtros);
-
-        PageRows = new ObservableCollection<FabricanteDto>(pagina.Items);
-
-        OnPropertyChanged(nameof(TotalPages));
-        OnPropertyChanged(nameof(PageInfo));
-        OnPropertyChanged(nameof(NoResults));
-        NotifyPaginationCanExecuteChanged();
-        IsLoading = false;
-
-        if (_pendingSelectionId.HasValue)
+        catch (OperationCanceledException)
         {
-            Seleccionado        = PageRows.FirstOrDefault(x => x.Id == _pendingSelectionId.Value);
-            _pendingSelectionId = null;
+            // Petición cancelada porque el usuario cambió de página o filtro rápidamente.
+        }
+        finally
+        {
+            Interlocked.CompareExchange(ref _ctsPagina, null, cts);
         }
     }
 
@@ -319,6 +338,8 @@ public partial class FabricantesViewModel : RealtimeAwareViewModel
     {
         _estadoFiltro = EstadoFilter.Activos;
         _paisIdFiltro = null;
+        OnPropertyChanged(nameof(EstadoFiltro));
+        OnPropertyChanged(nameof(PaisIdFiltro));
         FiltrosLimpiados?.Invoke();
         AplicarCambioDeFiltro();
     }
@@ -472,6 +493,12 @@ public partial class FabricantesViewModel : RealtimeAwareViewModel
 
     protected override void OnDispose()
     {
+        var ctsActual = Interlocked.Exchange(ref _ctsPagina, null);
+        if (ctsActual != null)
+        {
+            try { ctsActual.Cancel(); } catch (ObjectDisposedException) { }
+            ctsActual.Dispose();
+        }
         _cts.Cancel();
         _cts.Dispose();
         _buscador.Dispose();

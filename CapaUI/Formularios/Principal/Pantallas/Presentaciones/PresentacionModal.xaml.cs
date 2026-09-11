@@ -125,7 +125,18 @@ namespace CapaUI.Formularios.Principal.Pantallas.Presentaciones
                             dto.IdEstado,
                             _solicitud.Obtener("cambiar_estado_presentacion", new { dto.Id, dto.IdEstado }),
                             CancellationToken.None);
-                        (exito, error) = (rEstado.Success, rEstado.Error);
+                        if (!rEstado.Success)
+                        {
+                            // Transacción compensatoria / fallo parcial: los datos se guardaron pero falló el cambio de estado
+                            _solicitud.Confirmar();
+                            Guardado?.Invoke();
+                            MessageBox.Show(
+                                $"Los datos de la presentación se actualizaron correctamente, pero no se pudo cambiar su estado: {rEstado.Error}\n\nPor favor, intente cambiar el estado nuevamente.",
+                                "Aviso de actualización parcial",
+                                MessageBoxButton.OK,
+                                MessageBoxImage.Warning);
+                            return;
+                        }
                     }
                 }
 
