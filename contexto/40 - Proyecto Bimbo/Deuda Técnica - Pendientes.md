@@ -161,7 +161,7 @@ private int ResolverFilteredCount(PagedResult<ProductoDto> pagina, ProductoFiltr
 
 ---
 
-### P-060 · `cts.Dispose()` en el swap atómico de CTS contradice la directriz de la investigación que dice seguir (riesgo `ObjectDisposedException`) — y ya es la convención escrita para todo el proyecto
+### ~~P-060 · `cts.Dispose()` en el swap atómico de CTS contradice la directriz de la investigación que dice seguir (riesgo `ObjectDisposedException`) — y ya es la convención escrita para todo el proyecto~~ ✅ Resuelto 2026-09-11
 
 **Archivos:** `CapaUI/Formularios/Principal/Pantallas/Proveedores/ProveedoresViewModel.cs:193-194`, `CapaUI/Formularios/Principal/Pantallas/Productos/ProductosViewModel.cs:427-428`
 **Introducido en:** commit `55ca2ee` (Antigravity, 2026-09-11). Codificado como convención obligatoria en `AGENTS.md` §14 y `contexto/20 - Patrones/Convenciones de UI (WPF) — leer antes de tocar XAML.md` §14. Ver [[Auditoría Externa — Optimizaciones WPF de Antigravity vs. Investigaciones QA]].
@@ -342,7 +342,7 @@ El constructor recibe y guarda `IUsuarioSesionService _sesionService` pero nunca
 
 ---
 
-### P-061 · "Transacción compensatoria" documentada en AGENTS.md hace lo opuesto a una compensación (no revierte, acepta el fallo parcial)
+### ~~P-061 · "Transacción compensatoria" documentada en AGENTS.md hace lo opuesto a una compensación (no revierte, acepta el fallo parcial)~~ ✅ Resuelto 2026-09-11
 
 **Archivos:** `CapaUI/Formularios/Principal/Pantallas/Proveedores/ProveedorModal.xaml.cs` (bloque `if (!rEstado.Success)`), `CapaUI/Formularios/Principal/Pantallas/Productos/ProductoModal.xaml.cs` (equivalente)
 **Introducido en:** commit `55ca2ee` (Antigravity, 2026-09-11), título del commit incluye literalmente "transacciones compensatorias". Documentado como tal en `AGENTS.md` §15 y Convenciones §15. Ver [[Auditoría Externa — Optimizaciones WPF de Antigravity vs. Investigaciones QA]].

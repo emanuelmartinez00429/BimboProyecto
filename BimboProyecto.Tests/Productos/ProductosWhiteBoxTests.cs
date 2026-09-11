@@ -318,6 +318,18 @@ public sealed class ProductosWhiteBoxTests
         Assert.Contains("IsLoading=\"{Binding IsLoading}\"", codigoXaml);
     }
 
+    [Fact(DisplayName = "LoadingOverlay tiene fondo blanco opaco para cubrir la tabla durante la carga")]
+    public void LoadingOverlay_TieneFondoBlancoOpaco()
+    {
+        var archivoOverlay = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "CapaUI", "Core", "Controls", "LoadingOverlay.xaml");
+        if (!File.Exists(archivoOverlay)) return;
+
+        var xaml = File.ReadAllText(archivoOverlay);
+        Assert.Contains("Background=\"White\"", xaml);
+        Assert.Contains("Background=\"{Binding Background, ElementName=Root}\"", xaml);
+        Assert.Contains("IsHitTestVisible=\"True\"", xaml);
+    }
+
     [Fact(DisplayName = "ProductoModal desacopla DropShadowEffect de contenedores con ClipToBounds y congela geometrías")]
     public void ProductoModal_DesacoplaDropShadowDeClipToBounds()
     {
