@@ -243,4 +243,18 @@ public sealed class FabricantesWhiteBoxTests
         Assert.Contains("Los datos del fabricante se actualizaron correctamente, pero no se pudo cambiar su estado", codigoCs);
         Assert.Contains("_solicitud.Confirmar();", codigoCs);
     }
+
+    [Fact(DisplayName = "FabricantesView alinea columnas CREADO y ACTUALIZADO a la izquierda")]
+    public void FabricantesView_ColumnasFechasAlineadasALaIzquierda()
+    {
+        var archivoXaml = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "CapaUI", "Formularios", "Principal", "Pantallas", "Fabricantes", "FabricantesView.xaml");
+        if (!File.Exists(archivoXaml)) return;
+
+        var xaml = File.ReadAllText(archivoXaml);
+
+        Assert.Matches(@"Header=""CREADO""[^>]*CellStyle=""{StaticResource CeldaIzquierda}""", xaml);
+        Assert.Matches(@"Header=""ACTUALIZADO""[^>]*CellStyle=""{StaticResource CeldaIzquierda}""", xaml);
+        Assert.DoesNotMatch(@"Header=""CREADO""[^>]*HeaderDerecho", xaml);
+        Assert.DoesNotMatch(@"Header=""ACTUALIZADO""[^>]*HeaderDerecho", xaml);
+    }
 }

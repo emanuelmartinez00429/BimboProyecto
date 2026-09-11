@@ -239,4 +239,18 @@ public sealed class PresentacionesWhiteBoxTests
         Assert.Contains("Los datos de la presentación se actualizaron correctamente, pero no se pudo cambiar su estado", codigoCs);
         Assert.Contains("_solicitud.Confirmar();", codigoCs);
     }
+
+    [Fact(DisplayName = "PresentacionesView alinea columnas CREADO y ACTUALIZADO a la izquierda")]
+    public void PresentacionesView_ColumnasFechasAlineadasALaIzquierda()
+    {
+        var archivoXaml = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "CapaUI", "Formularios", "Principal", "Pantallas", "Presentaciones", "PresentacionesView.xaml");
+        if (!File.Exists(archivoXaml)) return;
+
+        var xaml = File.ReadAllText(archivoXaml);
+
+        Assert.Matches(@"Header=""CREADO""[^>]*CellStyle=""{StaticResource CeldaIzquierda}""", xaml);
+        Assert.Matches(@"Header=""ACTUALIZADO""[^>]*CellStyle=""{StaticResource CeldaIzquierda}""", xaml);
+        Assert.DoesNotMatch(@"Header=""CREADO""[^>]*HeaderDerecho", xaml);
+        Assert.DoesNotMatch(@"Header=""ACTUALIZADO""[^>]*HeaderDerecho", xaml);
+    }
 }

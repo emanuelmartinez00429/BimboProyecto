@@ -330,6 +330,20 @@ public sealed class ProductosWhiteBoxTests
         Assert.Contains("IsHitTestVisible=\"True\"", xaml);
     }
 
+    [Fact(DisplayName = "ProductosView alinea columnas CREADO y ACTUALIZADO a la izquierda")]
+    public void ProductosView_ColumnasFechasAlineadasALaIzquierda()
+    {
+        var archivoXaml = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "CapaUI", "Formularios", "Principal", "Pantallas", "Productos", "ProductosView.xaml");
+        if (!File.Exists(archivoXaml)) return;
+
+        var xaml = File.ReadAllText(archivoXaml);
+
+        Assert.Matches(@"Header=""CREADO""[^>]*CellStyle=""{StaticResource CeldaIzquierda}""", xaml);
+        Assert.Matches(@"Header=""ACTUALIZADO""[^>]*CellStyle=""{StaticResource CeldaIzquierda}""", xaml);
+        Assert.DoesNotMatch(@"Header=""CREADO""[^>]*HeaderDerecho", xaml);
+        Assert.DoesNotMatch(@"Header=""ACTUALIZADO""[^>]*HeaderDerecho", xaml);
+    }
+
     [Fact(DisplayName = "ProductoModal desacopla DropShadowEffect de contenedores con ClipToBounds y congela geometrías")]
     public void ProductoModal_DesacoplaDropShadowDeClipToBounds()
     {

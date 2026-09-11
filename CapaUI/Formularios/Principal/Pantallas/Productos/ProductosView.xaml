@@ -501,7 +501,7 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="PESO TEÓRICO" Width="0.85*" MinWidth="100" CellStyle="{StaticResource CeldaIzquierda}">
+                        <DataGridTemplateColumn Header="PESO TEÓRICO" Width="Auto" MinWidth="100" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding PesoTeorico, StringFormat={}{0:N2}, TargetNullValue='—'}"
@@ -550,7 +550,7 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="CONTENIDO" Width="0.8*" MinWidth="90" CellStyle="{StaticResource CeldaIzquierda}">
+                        <DataGridTemplateColumn Header="CONTENIDO" Width="Auto" MinWidth="90" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding Contenido, Converter={x:Static conv:TextoVacioConverter.Instancia}, ConverterParameter='Sin contenido'}"
@@ -560,7 +560,7 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="PRESENTACI&#211;N" Width="1.1*" MinWidth="105" CellStyle="{StaticResource CeldaIzquierda}">
+                        <DataGridTemplateColumn Header="PRESENTACI&#211;N" Width="Auto" MinWidth="105" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding Presentacion, Converter={x:Static conv:TextoVacioConverter.Instancia}, ConverterParameter='Sin presentación'}"
@@ -580,7 +580,7 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="PRECIO / KG" Width="0.9*" MinWidth="100" CellStyle="{StaticResource CeldaIzquierda}">
+                        <DataGridTemplateColumn Header="PRECIO / KG" Width="Auto" MinWidth="100" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding PrecioPorKg, StringFormat={}{0:N2}, TargetNullValue='—'}"
@@ -594,13 +594,12 @@
                         <DataGridTemplateColumn Header="CREADO"
                                                 Width="1.1*"
                                                 MinWidth="125"
-                                                HeaderStyle="{StaticResource HeaderDerecho}"
-                                                CellStyle="{StaticResource CeldaDerecha}">
+                                                CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding CreatedAt, StringFormat={}{0:dd/MM/yyyy HH:mm}, TargetNullValue='—'}"
                                                FontFamily="Segoe UI" FontSize="14" Foreground="#64748B"
-                                               HorizontalAlignment="Right" VerticalAlignment="Center"
+                                               HorizontalAlignment="Left" VerticalAlignment="Center"
                                                Padding="10,0"/>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
@@ -608,13 +607,12 @@
                         <DataGridTemplateColumn Header="ACTUALIZADO"
                                                 Width="1.1*"
                                                 MinWidth="125"
-                                                HeaderStyle="{StaticResource HeaderDerecho}"
-                                                CellStyle="{StaticResource CeldaDerecha}">
+                                                CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding UpdatedAt, StringFormat={}{0:dd/MM/yyyy HH:mm}, TargetNullValue='—'}"
                                                FontFamily="Segoe UI" FontSize="14" Foreground="#64748B"
-                                               HorizontalAlignment="Right" VerticalAlignment="Center"
+                                               HorizontalAlignment="Left" VerticalAlignment="Center"
                                                Padding="10,0"/>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
