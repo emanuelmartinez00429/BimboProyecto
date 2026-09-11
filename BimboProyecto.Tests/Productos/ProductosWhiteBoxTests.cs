@@ -247,19 +247,28 @@ public sealed class ProductosWhiteBoxTests
 
         var xaml = File.ReadAllText(archivoXaml);
 
-        // 1. Enlace declarativo a EnumToBooleanConverter para filtros de estado
+        // 1. Enlace declarativo a EnumToBooleanConverter para filtros de estado tipados con x:Static
         Assert.Contains("EnumToBooleanConverter.Instancia", xaml);
-        Assert.Contains("ConverterParameter=Activos", xaml);
-        Assert.Contains("ConverterParameter=Inactivos", xaml);
-        Assert.Contains("ConverterParameter=Todos", xaml);
+        Assert.Contains("ConverterParameter={x:Static local:EstadoFilter.Activos}", xaml);
+        Assert.Contains("ConverterParameter={x:Static local:EstadoFilter.Inactivos}", xaml);
+        Assert.Contains("ConverterParameter={x:Static local:EstadoFilter.Todos}", xaml);
 
-        // 2. Enlace declarativo para ordenamiento
-        Assert.Contains("ConverterParameter=IdAsc", xaml);
-        Assert.Contains("ConverterParameter=NombreAsc", xaml);
-        Assert.Contains("ConverterParameter=NombreDesc", xaml);
+        // 2. Enlace declarativo para ordenamiento tipado con x:Static
+        Assert.Contains("ConverterParameter={x:Static queries:OrdenProducto.IdAsc}", xaml);
+        Assert.Contains("ConverterParameter={x:Static queries:OrdenProducto.NombreAsc}", xaml);
+        Assert.Contains("ConverterParameter={x:Static queries:OrdenProducto.NombreDesc}", xaml);
 
-        // 3. DataGrid con ItemsSource enlazado a PageRows
+        // 3. Ausencia de GroupName para evitar traversals O(N) del árbol visual
+        Assert.DoesNotContain("GroupName=\"EstadoFiltro\"", xaml);
+        Assert.DoesNotContain("GroupName=\"OrdenProductos\"", xaml);
+
+        // 4. DataGrid con ItemsSource enlazado a PageRows
         Assert.Contains("ItemsSource=\"{Binding PageRows", xaml);
+
+        // 5. Optimizaciones DirectX / ClearType y Virtualización
+        Assert.Contains("RenderOptions.ClearTypeHint=\"Enabled\"", xaml);
+        Assert.Contains("RowBackground=\"White\"", xaml);
+        Assert.Contains("EnableColumnVirtualization=\"True\"", xaml);
     }
 
     // =========================================================================
@@ -278,7 +287,9 @@ public sealed class ProductosWhiteBoxTests
         Assert.Contains("OnPropertyChanged(nameof(EstadoFiltro));", codigoVm);
         Assert.Contains("OnPropertyChanged(nameof(Orden));", codigoVm);
 
-        // 2. Gestión de cancelación segura sin ObjectDisposedException
+        // 2. Gestión de cancelación lock-free con Interlocked.Exchange y CancelAsync no bloqueante (.NET 10)
+        Assert.Contains("Interlocked.Exchange(ref _ctsPagina", codigoVm);
+        Assert.Contains("CancelAsync()", codigoVm);
         Assert.Contains("catch (ObjectDisposedException)", codigoVm);
     }
 
@@ -307,7 +318,7 @@ public sealed class ProductosWhiteBoxTests
         Assert.Contains("IsLoading=\"{Binding IsLoading}\"", codigoXaml);
     }
 
-    [Fact(DisplayName = "ProductoModal desacopla DropShadowEffect de contenedores con ClipToBounds")]
+    [Fact(DisplayName = "ProductoModal desacopla DropShadowEffect de contenedores con ClipToBounds y congela geometrías")]
     public void ProductoModal_DesacoplaDropShadowDeClipToBounds()
     {
         var archivoModal = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "CapaUI", "Formularios", "Principal", "Pantallas", "Productos", "ProductoModal.xaml");
@@ -321,5 +332,23 @@ public sealed class ProductosWhiteBoxTests
 
         // 2. Comprobar que el Border con ClipToBounds no tiene el Effect directamente anidado
         Assert.DoesNotMatch(@"<Border[^>]*ClipToBounds=""True""[^>]*>\s*<Border\.Effect>", xaml);
+
+        // 3. Congelamiento determinista de recursos vectoriales Freezable
+        Assert.Contains("po:Freeze=\"True\"", xaml);
+    }
+
+    [Fact(DisplayName = "ProductoModal maneja fallas parciales con confirmación de datos y advertencia al operador")]
+    public void ProductoModal_ManejaFallasParciales_ConConfirmacionYAdvertencia()
+    {
+        var archivoModalCs = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "CapaUI", "Formularios", "Principal", "Pantallas", "Productos", "ProductoModal.xaml.cs");
+        if (!File.Exists(archivoModalCs)) return;
+
+        var codigoCs = File.ReadAllText(archivoModalCs);
+
+        // 1. Manejo de fallo parcial con notificación explicativa
+        Assert.Contains("Los datos del producto se actualizaron correctamente, pero no se pudo cambiar el estado", codigoCs);
+
+        // 2. Confirmación del token idempotente del paso exitoso
+        Assert.Contains("_solicitud.Confirmar();", codigoCs);
     }
 }

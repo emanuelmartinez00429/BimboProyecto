@@ -5,14 +5,15 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:conv="clr-namespace:CapaUI.Converters"
              xmlns:controls="clr-namespace:CapaUI.Core.Controls"
-             mc:Ignorable="d"
+             xmlns:po="http://schemas.microsoft.com/winfx/2006/xaml/presentation/options"
+             mc:Ignorable="d po"
              Width="1020"
              d:DesignWidth="1020"
              d:DesignHeight="700"
 
 
              UseLayoutRounding="True"
-             TextOptions.TextRenderingMode="Grayscale"
+             TextOptions.TextRenderingMode="Auto"
              TextOptions.TextFormattingMode="Display" controls:AtajoGuardar.Boton="{x:Reference BtnGuardar}">
 
     <UserControl.Resources>
@@ -21,9 +22,9 @@
                 <ResourceDictionary Source="/CapaUI;component/Resources/Styles.xaml"/>
             </ResourceDictionary.MergedDictionaries>
 
-            <Geometry x:Key="IconBoxM">M21,16 V8 a2,2 0 0 0,-1,-1.73 l-7,-4 a2,2 0 0 0,-2,0 l-7,4 A2,2 0 0 0,3,8 v8 a2,2 0 0 0,1,1.73 l7,4 a2,2 0 0 0,2,0 l7,-4 A2,2 0 0 0,21,16 z</Geometry>
-            <Geometry x:Key="IconCloseM">M6,6 l12,12 M18,6 l-12,12</Geometry>
-            <Geometry x:Key="IconCheckM">M20,6 L9,17 l-5,-5</Geometry>
+            <PathGeometry x:Key="IconBoxM" Figures="M21,16 V8 a2,2 0 0 0,-1,-1.73 l-7,-4 a2,2 0 0 0,-2,0 l-7,4 A2,2 0 0 0,3,8 v8 a2,2 0 0 0,1,1.73 l7,4 a2,2 0 0 0,2,0 l7,-4 A2,2 0 0 0,21,16 z" po:Freeze="True"/>
+            <PathGeometry x:Key="IconCloseM" Figures="M6,6 l12,12 M18,6 l-12,12" po:Freeze="True"/>
+            <PathGeometry x:Key="IconCheckM" Figures="M20,6 L9,17 l-5,-5" po:Freeze="True"/>
 
             <!-- EtiquetaCampo, CampoModalEnGrid, ModalInputAuditoria, ModalSegBtn y
                  LupaBtnOscuro (la lupa de los campos de catálogo) viven en

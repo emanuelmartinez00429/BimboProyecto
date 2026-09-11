@@ -10,7 +10,7 @@
              Loaded="UserControl_Loaded"
              Unloaded="UserControl_Unloaded"
              UseLayoutRounding="True"
-             TextOptions.TextRenderingMode="Grayscale"
+             TextOptions.TextRenderingMode="Auto"
              TextOptions.TextFormattingMode="Display">
 
     <UserControl.Resources>
@@ -124,24 +124,25 @@
                                Foreground="#6B7280" VerticalAlignment="Center" Margin="0,0,10,0"/>
                     <Border Grid.Column="1" Background="#F3F4F6" CornerRadius="8" BorderBrush="#E5E7EB" BorderThickness="1" Padding="3" VerticalAlignment="Center">
                         <StackPanel Orientation="Horizontal">
-                            <RadioButton x:Name="RbActivos" GroupName="EstadoFiltro"
-                                         IsChecked="{Binding EstadoFiltro, Converter={x:Static conv:EnumToBooleanConverter.Instancia}, ConverterParameter=Activos, Mode=TwoWay}"
+                            <!-- Omitir GroupName elimina el escaneo O(N) del árbol visual en UpdateRadioButtonGroup() -->
+                            <RadioButton x:Name="RbActivos"
+                                         IsChecked="{Binding EstadoFiltro, Converter={x:Static conv:EnumToBooleanConverter.Instancia}, ConverterParameter={x:Static local:EstadoFilter.Activos}, Mode=TwoWay}"
                                          Style="{StaticResource SegmentBtn}">
                                 <StackPanel Orientation="Horizontal">
                                     <Border Width="6" Height="6" CornerRadius="3" Background="#10B981" Margin="0,0,5,0" VerticalAlignment="Center"/>
                                     <TextBlock Text="Activos" FontFamily="Segoe UI" FontSize="15"/>
                                 </StackPanel>
                             </RadioButton>
-                            <RadioButton x:Name="RbInactivos" GroupName="EstadoFiltro"
-                                         IsChecked="{Binding EstadoFiltro, Converter={x:Static conv:EnumToBooleanConverter.Instancia}, ConverterParameter=Inactivos, Mode=TwoWay}"
+                            <RadioButton x:Name="RbInactivos"
+                                         IsChecked="{Binding EstadoFiltro, Converter={x:Static conv:EnumToBooleanConverter.Instancia}, ConverterParameter={x:Static local:EstadoFilter.Inactivos}, Mode=TwoWay}"
                                          Style="{StaticResource SegmentBtn}">
                                 <StackPanel Orientation="Horizontal">
                                     <Border Width="6" Height="6" CornerRadius="3" Background="#94A3B8" Margin="0,0,5,0" VerticalAlignment="Center"/>
                                     <TextBlock Text="Inactivos" FontFamily="Segoe UI" FontSize="15"/>
                                 </StackPanel>
                             </RadioButton>
-                            <RadioButton x:Name="RbTodos" GroupName="EstadoFiltro"
-                                         IsChecked="{Binding EstadoFiltro, Converter={x:Static conv:EnumToBooleanConverter.Instancia}, ConverterParameter=Todos, Mode=TwoWay}"
+                            <RadioButton x:Name="RbTodos"
+                                         IsChecked="{Binding EstadoFiltro, Converter={x:Static conv:EnumToBooleanConverter.Instancia}, ConverterParameter={x:Static local:EstadoFilter.Todos}, Mode=TwoWay}"
                                          Style="{StaticResource SegmentBtn}">
                                 <TextBlock Text="Todos" FontFamily="Segoe UI" FontSize="15"/>
                             </RadioButton>
@@ -184,7 +185,13 @@
                           SelectedItem="{Binding Seleccionado, Mode=TwoWay}"
                           IsReadOnly="True"
                           CanUserSortColumns="False" HeadersVisibility="Column" GridLinesVisibility="None"
-                          SelectionMode="Single" SelectionUnit="FullRow" Background="White" BorderThickness="0"
+                          SelectionMode="Single" SelectionUnit="FullRow"
+                          Background="White"
+                          RowBackground="White"
+                          RenderOptions.ClearTypeHint="Enabled"
+                          EnableRowVirtualization="True"
+                          EnableColumnVirtualization="True"
+                          BorderThickness="0"
                           AlternationCount="2" RowStyle="{StaticResource ProductRowStyle}" CellStyle="{StaticResource CeldaIzquierda}"
                           MouseDoubleClick="DgProveedores_MouseDoubleClick"
                           PreviewKeyDown="DgProveedores_PreviewKeyDown"

@@ -259,17 +259,25 @@ public sealed class ProveedoresWhiteBoxTests
 
         var xaml = File.ReadAllText(archivoXaml);
 
-        // 1. Enlace declarativo a EnumToBooleanConverter para filtros de estado
+        // 1. Enlace declarativo a EnumToBooleanConverter para filtros de estado tipados con x:Static
         Assert.Contains("EnumToBooleanConverter.Instancia", xaml);
-        Assert.Contains("ConverterParameter=Activos", xaml);
-        Assert.Contains("ConverterParameter=Inactivos", xaml);
-        Assert.Contains("ConverterParameter=Todos", xaml);
+        Assert.Contains("ConverterParameter={x:Static local:EstadoFilter.Activos}", xaml);
+        Assert.Contains("ConverterParameter={x:Static local:EstadoFilter.Inactivos}", xaml);
+        Assert.Contains("ConverterParameter={x:Static local:EstadoFilter.Todos}", xaml);
 
-        // 2. DataGrid con ItemsSource enlazado a PageRows y SelectedItem a Seleccionado
+        // 2. Ausencia de GroupName para evitar traversals O(N) del árbol visual
+        Assert.DoesNotContain("GroupName=\"EstadoFiltro\"", xaml);
+
+        // 3. DataGrid con ItemsSource enlazado a PageRows y SelectedItem a Seleccionado
         Assert.Contains("ItemsSource=\"{Binding PageRows", xaml);
         Assert.Contains("SelectedItem=\"{Binding Seleccionado", xaml);
 
-        // 3. LoadingOverlay declarativo
+        // 4. Optimizaciones DirectX / ClearType y Virtualización
+        Assert.Contains("RenderOptions.ClearTypeHint=\"Enabled\"", xaml);
+        Assert.Contains("RowBackground=\"White\"", xaml);
+        Assert.Contains("EnableColumnVirtualization=\"True\"", xaml);
+
+        // 5. LoadingOverlay declarativo
         Assert.Contains("controls:LoadingOverlay", xaml);
         Assert.Contains("IsLoading=\"{Binding IsLoading}\"", xaml);
     }
@@ -289,7 +297,9 @@ public sealed class ProveedoresWhiteBoxTests
         // 1. Notificación declarativa de reseteo para enlace TwoWay
         Assert.Contains("OnPropertyChanged(nameof(EstadoFiltro));", codigoVm);
 
-        // 2. Gestión de cancelación segura sin ObjectDisposedException
+        // 2. Gestión de cancelación lock-free con Interlocked.Exchange y CancelAsync no bloqueante (.NET 10)
+        Assert.Contains("Interlocked.Exchange(ref _ctsPagina", codigoVm);
+        Assert.Contains("CancelAsync()", codigoVm);
         Assert.Contains("catch (ObjectDisposedException)", codigoVm);
 
         // 3. Timeout y Token enlazado en CargarPaginaAsync
@@ -321,7 +331,7 @@ public sealed class ProveedoresWhiteBoxTests
         Assert.Contains("IsLoading=\"{Binding IsLoading}\"", codigoXaml);
     }
 
-    [Fact(DisplayName = "ProveedorModal desacopla DropShadowEffect de contenedores con ClipToBounds")]
+    [Fact(DisplayName = "ProveedorModal desacopla DropShadowEffect de contenedores con ClipToBounds y congela geometrías")]
     public void ProveedorModal_DesacoplaDropShadowDeClipToBounds()
     {
         var archivoModal = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "CapaUI", "Formularios", "Principal", "Pantallas", "Proveedores", "ProveedorModal.xaml");
@@ -335,5 +345,23 @@ public sealed class ProveedoresWhiteBoxTests
 
         // 2. Comprobar que el Border con ClipToBounds no tiene el Effect directamente anidado
         Assert.DoesNotMatch(@"<Border[^>]*ClipToBounds=""True""[^>]*>\s*<Border\.Effect>", xaml);
+
+        // 3. Congelamiento determinista de recursos vectoriales Freezable
+        Assert.Contains("po:Freeze=\"True\"", xaml);
+    }
+
+    [Fact(DisplayName = "ProveedorModal maneja fallas parciales con confirmación de datos y advertencia al operador")]
+    public void ProveedorModal_ManejaFallasParciales_ConConfirmacionYAdvertencia()
+    {
+        var archivoModalCs = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "CapaUI", "Formularios", "Principal", "Pantallas", "Proveedores", "ProveedorModal.xaml.cs");
+        if (!File.Exists(archivoModalCs)) return;
+
+        var codigoCs = File.ReadAllText(archivoModalCs);
+
+        // 1. Manejo de fallo parcial con notificación explicativa
+        Assert.Contains("Los datos del proveedor se actualizaron correctamente, pero no se pudo cambiar el estado", codigoCs);
+
+        // 2. Confirmación del token idempotente del paso exitoso
+        Assert.Contains("_solicitud.Confirmar();", codigoCs);
     }
 }

@@ -194,6 +194,64 @@ if (FindName("ContenedorPanel") is FrameworkElement panel)
    ```
 3. **Enganchar en `Loaded` y `Unloaded`:** Asegurarse de que si el estado de carga cambia antes del montaje del control, el evento `Loaded` inicie la animación, y `Unloaded` la libere para evitar fugas de memoria.
 
+## 12. Rendimiento de Renderizado: Zero-Shader Layout, ClearType y Freeze
+
+El uso indebido de `DropShadowEffect` (Pixel Shaders compilados en HLSL) genera Superficies Intermedias de Renderizado (*Intermediate Render Targets* o IRT) que colapsan la tasa de relleno de la GPU y destruyen el antialiasing subpixel *ClearType*.
+
+1. **Patrón de Borde Hermano Desacoplado (*Decoupled Sibling Pattern*):**
+   - **Prohibido** anidar `DropShadowEffect` en el mismo `Border` que contiene un `DataGrid`, `ScrollViewer` o elementos con `ClipToBounds="True"`.
+   - La sombra se ubica en un `Border` hermano en la capa inferior (Z-Index menor), mientras que el contenido vivo corre en un `Border` superior con fondo completamente opaco.
+2. **Preservación de ClearType:**
+   - Todo `DataGrid` debe tener `Background="White"`, `RowBackground="White"` y `RenderOptions.ClearTypeHint="Enabled"`.
+   - El control contenedor debe declarar `TextOptions.TextRenderingMode="Auto"` para que DirectWrite optimice fuentes según DPI.
+3. **Congelamiento de Recursos Vectoriales (`po:Freeze="True"`):**
+   - Geometrías vectoriales fijas en recursos (`PathGeometry`) y pinceles estáticos deben declararse con `xmlns:po="http://schemas.microsoft.com/winfx/2006/xaml/presentation/options"` y `po:Freeze="True"`. En el elemento raíz declarar `mc:Ignorable="d po"`.
+
+## 13. RadioButtons enlazados a Enums: Sin `GroupName` y con `{x:Static}`
+
+Cuando los RadioButtons se enlazan bidireccionalmente a una propiedad `Enum` en el ViewModel a través de `EnumToBooleanConverter`:
+
+1. **Omitir `GroupName`:** El ViewModel y el conversor ya garantizan la exclusión mutua de forma determinista. Incluir `GroupName` fuerza a WPF a ejecutar `RadioButton.UpdateRadioButtonGroup()` recorriendo todo el árbol visual $O(N)$ en cada clic y provoca condiciones de carrera entre la deselección del anterior y la selección del nuevo.
+2. **Usar `{x:Static}` en `ConverterParameter`:**
+   ```xml
+   <!-- ✅ Verificado en tiempo de compilación por Roslyn y cero asignaciones en Gen0 -->
+   IsChecked="{Binding EstadoFiltro, Converter={x:Static conv:EnumToBooleanConverter.Instancia}, ConverterParameter={x:Static local:EstadoFilter.Activos}, Mode=TwoWay}"
+   ```
+   Evita cadenas mágicas (`ConverterParameter=Activos`) y permite a `EnumToBooleanConverter` ejecutar comparación directa de valores sin parseo en runtime ni asignación de strings.
+
+## 14. Ciclo de Vida de CTS en .NET 10: Reemplazo Atómico y CancelAsync
+
+1. **`CancelAsync()` en lugar de `Cancel()` sincrónico:** En .NET 10, `Cancel()` bloquea el hilo emisor mientras `SocketsHttpHandler` drena flujos HTTP. `CancelAsync()` retorna control de inmediato.
+2. **Reemplazo Lock-Free con `Interlocked.Exchange`:**
+   ```csharp
+   var cts = new CancellationTokenSource(TimeoutMs);
+   var oldCts = Interlocked.Exchange(ref _ctsPagina, cts);
+   if (oldCts is not null)
+   {
+       try { _ = oldCts.CancelAsync(); } catch (ObjectDisposedException) { }
+   }
+   ```
+3. **Limpieza en `finally` con `Interlocked.CompareExchange`:**
+   ```csharp
+   finally
+   {
+       Interlocked.CompareExchange(ref _ctsPagina, null, cts);
+       cts.Dispose();
+   }
+   ```
+   Evita que una carga anterior que finaliza tarde ponga a `null` el token de una carga más nueva que ya tomó el control.
+
+## 15. Transacciones Compensatorias y Fallas Parciales en RPCs Particionadas
+
+Cuando un caso de uso requiere múltiples operaciones RPC secuenciales (ej. `UpdateAsync` para datos generales seguido de `CambiarEstadoAsync` para el ciclo de vida):
+
+1. **Orden Determinista:** Modificaciones comerciales en primer lugar; cambios de estado en segundo lugar.
+2. **Detección Atómica de Cambios (Dirty Tracking):** Comparar contra el snapshot inmutable original y ejecutar únicamente las RPCs de las facetas que realmente mutaron. Si nada cambió, cerrar el modal limpiamente sin tocar la red.
+3. **Manejo de Fallo Parcial:** Si el paso 1 tiene éxito en base de datos pero el paso 2 falla:
+   - Confirmar el token de idempotencia del paso 1 (`_solicitud.Confirmar()`).
+   - Notificar explícitamente al operador mediante un aviso contextual (`"Los datos se actualizaron correctamente, pero no se pudo cambiar el estado: ..."`).
+   - Invocar el evento de guardado para refrescar los datos consolidados en la grilla y evitar estados zombis en el cliente.
+
 ## Anti-patrones — lista negra rápida
 
 | ❌ No hacer | ✅ En su lugar |
@@ -208,6 +266,10 @@ if (FindName("ContenedorPanel") is FrameworkElement panel)
 | `{DynamicResource}` en `TargetNullValue`/`FallbackValue` | Asignar `{DynamicResource}` directo en la propiedad del elemento visual y sobreescribir por callback de DP si no es nulo |
 | Campos `x:Name` acoplados en C# de UserControls | Resolver con `FindName(...) is FrameworkElement` |
 | `Storyboard.Begin()` huérfano sobre `Freezable` | `rotate.BeginAnimation(RotateTransform.AngleProperty, anim)` directo |
+| `DropShadowEffect` en contenedor con `ClipToBounds` o `DataGrid` | Borde hermano desacoplado (Zero-Shader Layout) |
+| `GroupName` en RadioButtons enlazados a enums con ViewModel | Omitir `GroupName` y tipar `ConverterParameter={x:Static ...}` |
+| `_cts?.Cancel()` sincrónico o `Task.WhenAny` con Delay | `Interlocked.Exchange` + `_ = oldCts.CancelAsync()` |
+| Reintentos ciegos ignorando fallo en la 2da RPC | Manejo de fallo parcial y confirmación idempotente del 1er paso |
 | Literal de otro framework como atributo XAML | equivalente WPF verificado en la API |
 
 ---

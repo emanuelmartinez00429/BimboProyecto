@@ -5,14 +5,15 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:conv="clr-namespace:CapaUI.Converters"
              xmlns:controls="clr-namespace:CapaUI.Core.Controls"
-             mc:Ignorable="d"
+             xmlns:po="http://schemas.microsoft.com/winfx/2006/xaml/presentation/options"
+             mc:Ignorable="d po"
              Width="600"
              d:DesignWidth="600"
              d:DesignHeight="600"
 
 
              UseLayoutRounding="True"
-             TextOptions.TextRenderingMode="Grayscale"
+             TextOptions.TextRenderingMode="Auto"
              TextOptions.TextFormattingMode="Display" controls:AtajoGuardar.Boton="{x:Reference BtnGuardar}">
 
     <UserControl.Resources>
@@ -21,8 +22,8 @@
                 <ResourceDictionary Source="/CapaUI;component/Resources/Styles.xaml"/>
             </ResourceDictionary.MergedDictionaries>
 
-            <Geometry x:Key="IconTruckM">M1,3 h15 v13 H1 z M16,8 h4 l3,3 v5 h-7 z M5.5,19 a1.5,1.5 0 1 0,3,0 a1.5,1.5 0 0 0,-3,0 z M17,19 a1.5,1.5 0 1 0,3,0 a1.5,1.5 0 0 0,-3,0 z</Geometry>
-            <Geometry x:Key="IconCloseM">M6,6 l12,12 M18,6 l-12,12</Geometry>
+            <PathGeometry x:Key="IconTruckM" Figures="M1,3 h15 v13 H1 z M16,8 h4 l3,3 v5 h-7 z M5.5,19 a1.5,1.5 0 1 0,3,0 a1.5,1.5 0 0 0,-3,0 z M17,19 a1.5,1.5 0 1 0,3,0 a1.5,1.5 0 0 0,-3,0 z" po:Freeze="True"/>
+            <PathGeometry x:Key="IconCloseM" Figures="M6,6 l12,12 M18,6 l-12,12" po:Freeze="True"/>
 
             <!-- ModalSegBtn, EtiquetaCampo y CampoModal vienen de Styles.xaml. -->
         </ResourceDictionary>

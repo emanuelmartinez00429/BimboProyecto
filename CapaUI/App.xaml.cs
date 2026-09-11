@@ -84,6 +84,9 @@ namespace CapaUI
                     outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
                 .CreateLogger();
 
+            // Auditoría proactiva de aceleración de hardware DirectX y Render Capability Tiers
+            CapaUI.Core.Diagnosticos.PipelineTelemetryService.AuditarCapacidadesHardware();
+
             _ = Services; // fuerza inicialización en el hilo UI (el getter ya crea el provider)
 
             DispatcherUnhandledException += (s, args) =>
@@ -173,6 +176,7 @@ namespace CapaUI
 
         protected override void OnExit(ExitEventArgs e)
         {
+            CapaUI.Core.Diagnosticos.PipelineTelemetryService.Instance.Dispose();
             _scopeSesion?.Dispose();
             _scopeSesion = null;
             Log.CloseAndFlush();

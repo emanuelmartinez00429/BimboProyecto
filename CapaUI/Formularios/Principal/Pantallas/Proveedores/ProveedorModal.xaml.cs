@@ -143,7 +143,22 @@ namespace CapaUI.Formularios.Principal.Pantallas.Proveedores
                             dto.IdEstado,
                             _solicitud.Obtener("cambiar_estado_proveedor", new { dto.Id, dto.IdEstado }),
                             CancellationToken.None);
-                        (exito, error) = (rEstado.Success, rEstado.Error);
+
+                        if (!rEstado.Success)
+                        {
+                            if (datosCambiaron)
+                            {
+                                // Los datos generales se consolidaron exitosamente en la llamada previa.
+                                _solicitud.Confirmar();
+                                MessageBox.Show(
+                                    $"Los datos del proveedor se actualizaron correctamente, pero no se pudo cambiar el estado:\n{rEstado.Error}",
+                                    "Aviso de Estado", MessageBoxButton.OK, MessageBoxImage.Warning);
+                                Guardado?.Invoke();
+                                return;
+                            }
+
+                            (exito, error) = (rEstado.Success, rEstado.Error);
+                        }
                     }
                 }
 

@@ -25,6 +25,23 @@ public class EnumToBooleanConverter : IValueConverter
         if (value is null || parameter is null)
             return false;
 
+        // Fast-path: comparación directa de enums sin asignar cadenas en el heap (Gen0)
+        Type valueType = value.GetType();
+        Type paramType = parameter.GetType();
+
+        if (valueType.IsEnum && paramType.IsEnum)
+        {
+            if (valueType.IsDefined(typeof(FlagsAttribute), inherit: false))
+            {
+                var valEnum = (Enum)value;
+                var paramEnum = (Enum)parameter;
+                return valEnum.HasFlag(paramEnum);
+            }
+
+            return value.Equals(parameter);
+        }
+
+        // Fallback para bindings XAML con ConverterParameter como string
         string checkValue = value.ToString()!;
         string targetValue = parameter.ToString()!;
         return string.Equals(checkValue, targetValue, StringComparison.OrdinalIgnoreCase);
@@ -34,9 +51,14 @@ public class EnumToBooleanConverter : IValueConverter
     {
         if (value is bool isChecked && isChecked && parameter is not null)
         {
+            Type enumType = Nullable.GetUnderlyingType(targetType) ?? targetType;
+
+            // Fast-path: si el parámetro ya viene tipado como el Enum (x:Static), evitar Enum.Parse
+            if (parameter.GetType() == enumType)
+                return parameter;
+
             try
             {
-                Type enumType = Nullable.GetUnderlyingType(targetType) ?? targetType;
                 return Enum.Parse(enumType, parameter.ToString()!, true);
             }
             catch (ArgumentException)

@@ -162,11 +162,13 @@ public partial class ProveedoresViewModel : RealtimeAwareViewModel
         IsLoading  = true;
         ErrorCarga = string.Empty;
 
-        // La generación nueva cancela la petición anterior si seguía en vuelo.
-        try { _ctsPagina?.Cancel(); } catch (ObjectDisposedException) { }
-
-        using var cts = new CancellationTokenSource(TimeoutMs);
-        _ctsPagina = cts;
+        // La generación nueva cancela la petición anterior de forma atómica y asíncrona (.NET 10)
+        var cts = new CancellationTokenSource(TimeoutMs);
+        var oldCts = Interlocked.Exchange(ref _ctsPagina, cts);
+        if (oldCts is not null)
+        {
+            try { _ = oldCts.CancelAsync(); } catch (ObjectDisposedException) { }
+        }
 
         var filtros = BuildFiltros();
 
@@ -188,8 +190,8 @@ public partial class ProveedoresViewModel : RealtimeAwareViewModel
         }
         finally
         {
-            if (ReferenceEquals(_ctsPagina, cts))
-                _ctsPagina = null;
+            Interlocked.CompareExchange(ref _ctsPagina, null, cts);
+            cts.Dispose();
         }
 
         if (myGen != _loadGeneration) return;
@@ -471,9 +473,12 @@ public partial class ProveedoresViewModel : RealtimeAwareViewModel
 
     protected override void OnDispose()
     {
-        try { _ctsPagina?.Cancel(); } catch (ObjectDisposedException) { }
-        _ctsPagina?.Dispose();
-        _ctsPagina = null;
+        var activeCts = Interlocked.Exchange(ref _ctsPagina, null);
+        if (activeCts is not null)
+        {
+            try { activeCts.Cancel(); } catch (ObjectDisposedException) { }
+            activeCts.Dispose();
+        }
         _buscador.Dispose();
     }
 }
