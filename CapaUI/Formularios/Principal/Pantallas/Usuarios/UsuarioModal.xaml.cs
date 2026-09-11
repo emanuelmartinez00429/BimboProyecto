@@ -19,7 +19,6 @@ namespace CapaUI.Formularios.Principal.Pantallas.Usuarios
         private readonly IRolRepository        _rolRepo;
         private readonly UsuarioVistaDto?      _usuario;
         private readonly bool                  _esNuevo;
-        private readonly bool                  _esCreacionConEmpleado;
         private ValidadorFormulario            _validador = null!;
         private readonly int                   _preselectedIdEmpleado;
         private readonly string?               _preselectedNombre;
@@ -38,14 +37,14 @@ namespace CapaUI.Formularios.Principal.Pantallas.Usuarios
         }
 
         public UsuarioModal(
-            IUsuarioRepository    usuarioRepo,
-            IRolRepository        rolRepo,
-            UsuarioVistaDto?      usuario)
+            IUsuarioRepository usuarioRepo,
+            IRolRepository     rolRepo,
+            UsuarioVistaDto    usuario)
         {
-            _usuarioRepo    = usuarioRepo;
-            _rolRepo        = rolRepo;
-            _usuario        = usuario;
-            _esNuevo        = usuario == null;
+            _usuarioRepo = usuarioRepo ?? throw new ArgumentNullException(nameof(usuarioRepo));
+            _rolRepo     = rolRepo ?? throw new ArgumentNullException(nameof(rolRepo));
+            _usuario     = usuario ?? throw new ArgumentNullException(nameof(usuario));
+            _esNuevo     = false;
             InitializeComponent();
             Loaded += OnLoaded;
         }
@@ -61,7 +60,6 @@ namespace CapaUI.Formularios.Principal.Pantallas.Usuarios
             _rolRepo                 = rolRepo;
             _usuario                 = null;
             _esNuevo                 = true;
-            _esCreacionConEmpleado   = true;
             _preselectedIdEmpleado   = idEmpleado;
             _preselectedNombre       = nombreEmpleado;
             _preselectedCorreo       = correoEmpleado;
@@ -71,13 +69,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Usuarios
 
         private async void OnLoaded(object sender, RoutedEventArgs e)
         {
-            // Empleado y contraseña solo valen al crear, y el empleado ni siquiera
-            // eso cuando el modal se abrió desde una ficha de empleado (ahí viene
-            // preseleccionado y el combo está oculto). SoloSi expresa esa condición
-            // sin sacar la regla de la declaración.
             _validador = ValidadorFormulario.Nuevo()
-                .Combo(CmbEmpleado, "El empleado").Segun(ReglasUsuario.Empleado)
-                    .SoloSi(() => _esNuevo && !_esCreacionConEmpleado)
                 .Campo(TxtEmail, "El correo").Segun(ReglasUsuario.Correo)
                 .Clave(TxtPassword, "La contraseña").Segun(ReglasUsuario.Password)
                     .SoloSi(() => _esNuevo)
@@ -87,47 +79,19 @@ namespace CapaUI.Formularios.Principal.Pantallas.Usuarios
             TxtModalContext.Text = _esNuevo ? "NUEVO REGISTRO" : "EDICIÓN";
             TxtModalTitle.Text   = _esNuevo ? "Crear usuario"  : "Editar usuario";
 
-            // ── Empleados (solo al crear) ─────────────────────────────────
-            if (_esCreacionConEmpleado)
+            // ── Empleados (solo al crear con empleado preseleccionado) ────
+            if (_esNuevo)
             {
-                RowEmpleado.Visibility   = Visibility.Visible;
-                RowPassword.Visibility   = Visibility.Visible;
-                CmbEmpleado.Visibility   = Visibility.Collapsed;
-                TxtEmpleadoNombre.Visibility = Visibility.Visible;
-                TxtEmpleadoNombre.Text   = _preselectedNombre ?? "";
-                TxtEmail.Text            = _preselectedCorreo ?? "";
-                TxtEmail.IsReadOnly      = true;
-            }
-            else if (_esNuevo)
-            {
-                RowEmpleado.Visibility   = Visibility.Visible;
-                RowPassword.Visibility   = Visibility.Visible;
-                TxtEmpleadoNombre.Visibility = Visibility.Collapsed;
-                CmbEmpleado.Visibility   = Visibility.Visible;
-                var rEmp = await _usuarioRepo.ObtenerEmpleadosSinUsuarioAsync();
-                if (rEmp.Success)
-                {
-                    CmbEmpleado.Items.Clear();
-                    foreach (var emp in rEmp.Value!)
-                        CmbEmpleado.Items.Add(new ComboBoxItem
-                        {
-                            Content = $"{emp.NombreEmpleado} {emp.ApellidoEmpleado}",
-                            Tag = emp.IdEmpleado
-                        });
-                    if (CmbEmpleado.Items.Count > 0)
-                        CmbEmpleado.SelectedIndex = 0;
-                }
-                else
-                {
-                    MostrarError($"No se pudieron cargar los empleados: {rEmp.Error}");
-                    BtnGuardar.IsEnabled = false;
-                }
-
-                CmbEmpleado.SelectionChanged += CmbEmpleado_SelectionChanged;
+                RowEmpleado.Visibility       = Visibility.Visible;
+                RowPassword.Visibility       = Visibility.Visible;
+                TxtEmpleadoNombre.Text       = _preselectedNombre ?? "";
+                TxtEmail.Text                = _preselectedCorreo ?? "";
+                TxtEmail.IsReadOnly          = true;
             }
             else
             {
-                RowEmpleado.Visibility = Visibility.Collapsed;
+                RowEmpleado.Visibility       = Visibility.Collapsed;
+                RowPassword.Visibility       = Visibility.Collapsed;
             }
 
             // ── Roles ─────────────────────────────────────────────────────
@@ -169,56 +133,11 @@ namespace CapaUI.Formularios.Principal.Pantallas.Usuarios
                 RbInactivo.IsChecked = _usuario.IdEstado != 1;
             }
 
-            // Foco en el primer campo al abrir: el usuario no tiene que
-            // clickear nada para empezar a escribir.
-            CmbEmpleado.Focus();
-        }
-
-        // ── Auto-email al seleccionar empleado ───────────────────────────
-        private void CmbEmpleado_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (CmbEmpleado.SelectedItem is ComboBoxItem item && item.Tag is int)
-            {
-                var nombre = item.Content?.ToString() ?? "";
-                TxtEmail.Text = GenerarEmail(nombre);
-            }
-        }
-
-        /// <summary>
-        /// Arma el correo institucional a partir del nombre del empleado
-        /// ("José Muñoz" → "jose.munoz@empresa.com").
-        /// </summary>
-        /// <remarks>
-        /// Usa <see cref="TextoBusqueda.Normalizar"/> (quita tildes y pasa a
-        /// minúsculas). Antes había acá una copia privada de esa misma lógica;
-        /// se borró para no tener dos normalizaciones que puedan divergir — esa
-        /// función además está espejada a <c>public.sin_tildes()</c> de Postgres.
-        /// El <c>.Trim()</c> que la copia local agregaba se hace acá, porque
-        /// <c>Normalizar</c> no recorta por su cuenta.
-        /// </remarks>
-        private static string GenerarEmail(string nombreCompleto)
-        {
-            const string dominio = "@empresa.com";
-            const int maxTotal = 50;
-            int maxLocal = maxTotal - dominio.Length; // 38
-
-            var partes = nombreCompleto.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            string local;
-            if (partes.Length < 2)
-            {
-                local = TextoBusqueda.Normalizar(nombreCompleto).Trim();
-            }
+            // Foco al abrir: en la contraseña al crear, en el rol al editar.
+            if (_esNuevo)
+                TxtPassword.Focus();
             else
-            {
-                var nombre   = TextoBusqueda.Normalizar(partes[0]).Trim();
-                var apellido = TextoBusqueda.Normalizar(partes[^1]).Trim();
-                local = $"{nombre}.{apellido}";
-            }
-
-            if (local.Length > maxLocal)
-                local = local[..maxLocal];
-
-            return $"{local}{dominio}";
+                CmbRolModal.Focus();
         }
 
         // ── Acciones ─────────────────────────────────────────────────────
@@ -231,9 +150,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Usuarios
 
             if (!_validador.Validar()) return;
 
-            // Ya validados arriba; acá solo se leen.
-            var empItem = CmbEmpleado.SelectedItem as ComboBoxItem;
-            int idRol   = (int)((ComboBoxItem)CmbRolModal.SelectedItem).Tag;
+            int idRol = (int)((ComboBoxItem)CmbRolModal.SelectedItem).Tag;
 
             if (!ConfirmacionEstado.Confirmar(
                     esNuevo:        _esNuevo,
@@ -244,7 +161,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Usuarios
                 return;
 
             // Guardar es un viaje de red: sin este aviso la espera se lee como
-            // que la aplicacion se colgo.
+            // que la aplicación se colgó.
             var etiquetaGuardar  = BtnGuardar.Content;
             BtnGuardar.IsEnabled = false;
             BtnGuardar.Content   = "Guardando...";
@@ -253,9 +170,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Usuarios
             {
                 if (_esNuevo)
                 {
-                    int idEmp = _esCreacionConEmpleado
-                        ? _preselectedIdEmpleado
-                        : (int)empItem!.Tag;
+                    int idEmp    = _preselectedIdEmpleado;
                     string email = TxtEmail.Text.Trim();
 
                     var dto = new CrearUsuarioDto

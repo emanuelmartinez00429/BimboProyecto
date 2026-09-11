@@ -102,18 +102,13 @@
 
                 <!-- Form -->
                 <StackPanel Margin="40,20,40,18">
-                    <!-- Empleado (solo al crear). El combo y el nombre plano van
-                         SUPERPUESTOS en un Grid, no apilados: al editar se oculta el
-                         combo y se muestra el texto, ocupando el mismo lugar. -->
+                    <!-- Empleado (solo al crear con empleado preseleccionado). -->
                     <StackPanel x:Name="RowEmpleado" Style="{StaticResource CampoModal}">
                         <TextBlock Text="Empleado" Style="{StaticResource EtiquetaCampo}"/>
-                        <Grid>
-                            <ComboBox x:Name="CmbEmpleado" Style="{StaticResource ModalCombo}" TabIndex="10"/>
-                            <TextBlock x:Name="TxtEmpleadoNombre"
-                                       FontFamily="Segoe UI" FontSize="16.5"
-                                       Foreground="#F2FFFFFF" VerticalAlignment="Center"
-                                       Padding="10,6" Visibility="Collapsed"/>
-                        </Grid>
+                        <TextBlock x:Name="TxtEmpleadoNombre"
+                                   FontFamily="Segoe UI" FontSize="16.5"
+                                   Foreground="#F2FFFFFF" VerticalAlignment="Center"
+                                   Padding="10,6"/>
                     </StackPanel>
 
                     <StackPanel Style="{StaticResource CampoModal}">
@@ -248,3 +243,4 @@
         </Grid>
     </Border>
 </UserControl>
+
