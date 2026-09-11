@@ -475,6 +475,7 @@
                     </DataGrid.Resources>
                     <DataGrid.Columns>
                         <DataGridTemplateColumn Header="#" Width="40" CanUserResize="False" CanUserReorder="False"
+                                                HeaderStyle="{StaticResource HeaderCentrado}"
                                                 CellStyle="{StaticResource CeldaCentrada}"
                                                 CellTemplate="{StaticResource PlantillaCeldaNumeroFila}"/>
                         <DataGridTemplateColumn Header="C&#211;DIGO" Width="Auto" MinWidth="90" CellStyle="{StaticResource CeldaIzquierda}">

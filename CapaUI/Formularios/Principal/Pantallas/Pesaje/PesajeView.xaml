@@ -298,7 +298,8 @@
                         <Border Background="{DynamicResource EmpresaPrimaryBrush}" Padding="10,0">
                             <TextBlock Text="{TemplateBinding Content}" Foreground="White"
                                        FontFamily="Segoe UI" FontSize="11.5" FontWeight="Bold"
-                                       VerticalAlignment="Center"/>
+                                       VerticalAlignment="Center"
+                                       HorizontalAlignment="Center"/>
                         </Border>
                     </ControlTemplate>
                 </Setter.Value>
