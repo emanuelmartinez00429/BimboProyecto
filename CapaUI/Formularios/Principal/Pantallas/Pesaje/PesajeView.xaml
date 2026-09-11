@@ -21,7 +21,6 @@
                 <ResourceDictionary Source="/CapaUI;component/Resources/Styles.xaml"/>
             </ResourceDictionary.MergedDictionaries>
         <!-- ── Iconos ── -->
-        <Geometry x:Key="IcoScale">M12,3 v18 M5,7 h14 M5,7 L3,12 a3,3 0 0 0 6,0 L7,7 M19,7 l-2,5 a3,3 0 0 0 6,0 l-2,-5 M8,21 h8</Geometry>
         <Geometry x:Key="IcoTruck">M1,7 h15 v10 h-15 z M16,10 h3.5 l3,3.5 V17 h-6.5 z</Geometry>
         <Geometry x:Key="IcoPack">M21,8 l-9,-5 -9,5 9,5 9,-5 z M3,8 v8 l9,5 9,-5 V8 M12,13 v8</Geometry>
         <Geometry x:Key="IcoPlus">M12,5 v14 M5,12 h14</Geometry>
@@ -400,8 +399,7 @@
                         <Border.Effect>
                             <DropShadowEffect Color="{DynamicResource EmpresaPrimaryColor}" BlurRadius="12" ShadowDepth="2" Opacity="0.4"/>
                         </Border.Effect>
-                        <Path Data="{StaticResource IcoScale}" Stroke="White" StrokeThickness="1.6"
-                              StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                        <Path Data="{StaticResource IcoScale}" Fill="White"
                               Width="20" Height="20" Stretch="Uniform"/>
                     </Border>
                     <StackPanel VerticalAlignment="Center">
@@ -966,7 +964,7 @@
                             </Button>
                             <Button x:Name="BtnProdPesar" Style="{StaticResource ToolPrimary}" Margin="0,0,6,4" Click="BtnProdPesar_Click">
                                 <StackPanel Orientation="Horizontal">
-                                    <Path Data="{StaticResource IcoScale}" Stroke="White" StrokeThickness="2" Width="13" Height="13" Stretch="Uniform" Margin="0,0,7,0" VerticalAlignment="Center" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                                     <Path Data="{StaticResource IcoScale}" Fill="White" Width="13" Height="13" Stretch="Uniform" Margin="0,0,7,0" VerticalAlignment="Center"/>
                                     <TextBlock Text="Pesar" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>
@@ -1027,6 +1025,7 @@
                         <controls:EmptyStateOverlay x:Name="EntEmpty" Panel.ZIndex="5"
                                                     HeaderOffset="44"
                                                     Icono="{StaticResource IcoScale}"
+                                                    IconoEsRelleno="True"
                                                     Mensaje="Aún no hay pesajes registrados"/>
                         <DataGrid x:Name="DgEntradas" AutoGenerateColumns="False" CanUserAddRows="False"
                                   IsReadOnly="True"

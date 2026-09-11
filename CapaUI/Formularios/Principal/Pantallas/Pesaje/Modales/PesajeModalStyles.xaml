@@ -13,7 +13,8 @@
          los modales]]. -->
     <Geometry x:Key="MIcoTruck">M1,7 h15 v10 h-15 z M16,10 h3.5 l3,3.5 V17 h-6.5 z</Geometry>
     <Geometry x:Key="MIcoPack">M21,8 l-9,-5 -9,5 9,5 9,-5 z M3,8 v8 l9,5 9,-5 V8 M12,13 v8</Geometry>
-    <Geometry x:Key="MIcoScale">M12,3 v18 M5,7 h14 M5,7 L3,12 a3,3 0 0 0 6,0 L7,7 M19,7 l-2,5 a3,3 0 0 0 6,0 l-2,-5 M8,21 h8</Geometry>
+    <PathGeometry x:Key="MIcoScale" FillRule="Nonzero"
+                  Figures="M 33,37 H 251 A 7,7 0 0 1 251,51 H 33 A 7,7 0 0 1 33,37 Z M 135,51 H 149 V 217 H 135 Z M 92,217 H 192 A 7,7 0 0 1 192,231 H 92 A 7,7 0 0 1 92,217 Z M 72,44 L 119,128 A 47,48 0 0 1 25,128 L 72,44 Z M 72,70 L 37,128 H 107 Z M 212,44 L 259,128 A 47,48 0 0 1 165,128 L 212,44 Z M 212,70 L 177,128 H 247 Z"/>
 
     <!-- Etiqueta de campo -->
     <Style x:Key="MLabel" TargetType="TextBlock">

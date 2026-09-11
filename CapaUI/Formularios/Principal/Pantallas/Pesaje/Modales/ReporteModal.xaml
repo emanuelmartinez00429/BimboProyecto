@@ -48,8 +48,7 @@
                         <ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     <Border Width="40" Height="40" CornerRadius="10" Background="#24FFFFFF" Margin="0,0,14,0" VerticalAlignment="Center">
-                        <Path Data="{StaticResource MIcoScale}" Stroke="White" StrokeThickness="1.8" Width="20" Height="20" Stretch="Uniform"
-                              StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                        <Path Data="{StaticResource MIcoScale}" Fill="White" Width="20" Height="20" Stretch="Uniform"/>
                     </Border>
                     <StackPanel Grid.Column="1" VerticalAlignment="Center">
                         <TextBlock Text="PESADO DE INSUMOS BES" FontFamily="Segoe UI" FontSize="10.5" FontWeight="SemiBold" Foreground="#A6FFFFFF"/>

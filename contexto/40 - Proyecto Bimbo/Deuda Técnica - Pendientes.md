@@ -359,6 +359,35 @@ La investigación `Dirty Tracking y Orquestación RPC.md` define el "Patrón de 
 
 ---
 
+### ~~P-062 · `EmptyStateOverlay.OnIconoChanged` fuerza Fill=Stroke en CUALQUIER ícono, no solo en los de relleno~~ ✅ Resuelto 2026-09-11
+
+**Archivo:** `CapaUI/Core/Controls/EmptyStateOverlay.xaml.cs` — `OnIconoChanged`
+**Introducido en:** sesión 2026-09-11, rediseño del ícono de Pesajes (rama `feat/fase8-MaquetadodeRoles`, sin commitear al momento de registrar esto). Ver [[Sesión 2026-09-11 - Rediseño e integración del icono de Pesajes]].
+
+```csharp
+private static void OnIconoChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+{
+    if (d is not EmptyStateOverlay c || e.NewValue is not Geometry g) return;
+    c.IconoEstado.Data = g;
+    c.IconoEstado.Fill = c.IconoEstado.Stroke;
+    c.IconoEstado.Stroke = null;
+}
+```
+
+Este callback corre para **cualquier** valor que se le asigne a la propiedad `Icono` del control, no solo para el nuevo `IcoScale` (que sí es un ícono de relleno sólido, pensado para `Fill`). `EmptyStateOverlay` vive en `CapaUI/Core/Controls/` — es un control compartido, pensado para reusarse en cualquier vista del proyecto.
+
+Hoy no revienta porque solo hay 2 usos en todo el código: `PesajeView.xaml` (pasa `IcoScale`, funciona por diseño) y `ProductosView.xaml` (no setea `Icono` en absoluto, así que el callback nunca corre para ese caso). Pero el resto de los íconos del proyecto (`IconTruck`, `IconBox`, `IconUser`, etc.) son íconos de **línea**, pensados para `Stroke`, no para `Fill`. El día que alguien reuse `EmptyStateOverlay` con cualquiera de esos, va a salir sólido y sin contorno, en silencio — sin error de compilación ni de binding que lo delate.
+
+**Riesgo:** Bajo hoy (dormido, sin usos que lo disparen), pero garantizado el día que se reuse el control con un ícono de línea — que es literalmente el caso de uso más común. Sin cobertura de tests: los 423 tests del proyecto son de lógica, ninguno renderiza WPF.
+
+**Solución:** Agregar una propiedad nueva `IconoEsRelleno` (bool, default `false`) que quien llama setea explícitamente junto con `Icono`. El swap `Fill = Stroke; Stroke = null;` solo debe correr si `IconoEsRelleno == true`. `PesajeView.xaml` pasaría a declarar `Icono="{StaticResource IcoScale}" IconoEsRelleno="True"`; todo lo demás queda seguro por default.
+
+**Solución aplicada:** se agregó la propiedad `IconoEsRelleno` (bool, default `false`) a `EmptyStateOverlay` como `DependencyProperty`. El swap `Fill = Stroke; Stroke = null;` en `OnIconoChanged` ahora corre solo cuando `IconoEsRelleno == true`. El único uso que necesita el comportamiento de fill (`PesajeView.xaml:1025`) pasó a declarar `IconoEsRelleno="True"` explícitamente. Todo lo demás queda protegido por default: un ícono de línea asignado en cualquier vista futura renderizará con Stroke sin alterar Fill, exactamente igual que antes de que existiera este control. Build 0/0, 423/423.
+
+**Estado:** `[x] Resuelto 2026-09-11`
+
+---
+
 ## 🟢 Menores — aceptables por ahora
 
 ---
@@ -1432,6 +1461,7 @@ Eran **dos problemas encimados**, y el segundo era el grave:
 | P-059 | La recuperación de contraseña no verifica que la cuenta esté habilitada | `[ ]` Pendiente | Detectado al resolver P-058 |
 | P-060 | `cts.Dispose()` en swap atómico contradice la investigación de CTS (riesgo `ObjectDisposedException`) | `[x]` Resuelto 2026-09-11 | [[Auditoría Externa — Optimizaciones WPF de Antigravity vs. Investigaciones QA]] |
 | P-061 | "Transacción compensatoria" en AGENTS.md no revierte nada (mal nombrada) | `[x]` Resuelto 2026-09-11 | [[Auditoría Externa — Optimizaciones WPF de Antigravity vs. Investigaciones QA]] |
+| P-062 | `EmptyStateOverlay.OnIconoChanged` fuerza Fill=Stroke en cualquier ícono, no solo íconos de relleno | `[x]` Resuelto 2026-09-11 — `IconoEsRelleno` DP (default false); `PesajeView` declara `True` | [[Sesión 2026-09-11 - Rediseño e integración del icono de Pesajes]] |
 
 ---
 

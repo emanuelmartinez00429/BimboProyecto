@@ -47,6 +47,9 @@
     <PathGeometry x:Key="IconTrash" Figures="M3,6 h18 M8,6 V4 a1,1 0 0 1,1,-1 h6 a1,1 0 0 1,1,1 v2 M19,6 l-1,14 a2,2 0 0 1,-2,2 H8 a2,2 0 0 1,-2,-2 L5,6" po:Freeze="True"/>
     <PathGeometry x:Key="IconArrowLeft" Figures="M19,12 H5 M12,19 l-7,-7 7,-7" po:Freeze="True"/>
     <PathGeometry x:Key="IconPerson" Figures="M20,21 v-2 a4,4 0 0 0,-4,-4 H8 a4,4 0 0 0,-4,4 v2 M12,11 a4,4 0 1 0,0,-8 a4,4 0 0 0,0,8 z" po:Freeze="True"/>
+    <PathGeometry x:Key="IcoScale" FillRule="Nonzero"
+                  Figures="M 33,37 H 251 A 7,7 0 0 1 251,51 H 33 A 7,7 0 0 1 33,37 Z M 135,51 H 149 V 217 H 135 Z M 92,217 H 192 A 7,7 0 0 1 192,231 H 92 A 7,7 0 0 1 92,217 Z M 72,44 L 119,128 A 47,48 0 0 1 25,128 L 72,44 Z M 72,70 L 37,128 H 107 Z M 212,44 L 259,128 A 47,48 0 0 1 165,128 L 212,44 Z M 212,70 L 177,128 H 247 Z"
+                  po:Freeze="True"/>
     <Style x:Key="LupaBtnCompartido" TargetType="Button">
         <Setter Property="Width" Value="38"/><Setter Property="Height" Value="38"/>
         <Setter Property="Background" Value="White"/><Setter Property="BorderBrush" Value="#CBD5E1"/>
