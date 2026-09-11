@@ -1,5 +1,6 @@
 using CapaAplicacion.Auth.Interfaces;
 using CapaAplicacion.Common;
+using CapaDatos.Repositorios.Usuario;
 using ServicioConexión.Conexion;
 
 namespace CapaDatos.Auth;
@@ -40,8 +41,24 @@ public class RecuperacionPasswordService : IRecuperacionPasswordService
 
             // Gotrue devuelve una sesión sin usuario cuando el código no valida, en vez
             // de lanzar. Sin este chequeo el flujo seguiría con una sesión vacía.
-            if (session?.User is null)
+            if (session?.User is null || string.IsNullOrWhiteSpace(session.User.Id))
                 return Result.Fail("Código incorrecto o expirado. Inténtalo de nuevo.");
+
+            // P-059: la cuenta tiene que existir en el sistema y estar habilitada
+            // (id_estado = 1). Mismo chequeo y mismos mensajes que AuthService.LoginAsync.
+            // Revelar el motivo aca no rompe la no-enumeracion de cuentas: a esta altura
+            // el usuario ya demostro que es duenio del correo al validar el OTP.
+            var usuario = await RepositorioUsuario.ObtenerPorUuidAsync(session.User.Id);
+            if (usuario is null)
+            {
+                await client.Auth.SignOut();
+                return Result.Fail("Usuario no registrado en el sistema.");
+            }
+            if (usuario.idEstado != 1)
+            {
+                await client.Auth.SignOut();
+                return Result.Fail("Tu cuenta está deshabilitada. Contacta al administrador.");
+            }
 
             return Result.Ok();
         }

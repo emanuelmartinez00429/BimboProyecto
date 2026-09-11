@@ -164,6 +164,21 @@ public sealed class P0_VerificarCodigo
         Assert.Equal("usuario@bimbo.hn", Assert.Single(svc.EmailsEnviados));
         Assert.Empty(svc.Verificaciones);
     }
+
+    [Fact]
+    public async Task Cuenta_deshabilitada_muestra_mensaje_de_error_y_no_permite_avanzar()
+    {
+        var svc = new RecuperacionFalsa
+        {
+            RespuestaVerificar = Result.Fail("Tu cuenta está deshabilitada. Contacta al administrador."),
+        };
+        var vm = Nuevo(svc);
+        vm.Codigo = "12345678";
+
+        Assert.False(await vm.VerificarAsync());
+        Assert.Equal("Tu cuenta está deshabilitada. Contacta al administrador.", vm.Error);
+        Assert.False(vm.Ocupado);
+    }
 }
 
 // ── [P0] Paso 3 · fijar la contrasena nueva ──────────────────────────────────
