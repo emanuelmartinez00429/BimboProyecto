@@ -85,9 +85,10 @@ graph TD
     APP --> DOM[CapaDominio]
     DAT --> DOM
     DAT --> APP
-    UI --> CONN[ServicioConexión]
-    DAT --> CONN
 ```
+
+> [!info] Conexión a Supabase
+> El singleton `ConexionSupabase` vive en `CapaDatos/Conexion.cs` (namespace `ServicioConexión.Conexion`, conservado para no romper los `using`). Hasta el 2026-09-10 existía además un proyecto `ServicioConexión` huérfano con una copia duplicada — ver P-056.
 
 > [!warning] Regla
 > `CapaAplicacion` **nunca** referencia `CapaDatos`. La flecha va en sentido contrario.
@@ -103,7 +104,9 @@ graph TD
 | `CapaDatos` | Implementaciones Supabase, repositorios | `net10.0` | No |
 | `CapaDominio` | Entidades de dominio, sesión, cálculos, estado | `net10.0` | No |
 | `BimboProyecto.Tests` | Pruebas unitarias de la solución | `net10.0` | No |
-| `ServicioConexión` | Singleton cliente Supabase (huérfano en P-056) | `net10.0-windows` | No |
+
+**Eliminado 2026-09-11 (traído de rama huérfana, fix del 2026-09-10):**
+- ~~`ServicioConexión`~~ — proyecto huérfano que duplicaba `ConexionSupabase` con el mismo namespace; ningún `.csproj` lo referenciaba (P-056). Se borraron también `ServicioConexión.csproj` y `CapaConexión.csproj`. Ver [[Deuda Técnica - Pendientes#P-056]].
 
 **Eliminados 2026-05-29:**
 - ~~`BimboPesaje`~~ — proyecto WinForms host, eliminado (C13/C14)

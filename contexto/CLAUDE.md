@@ -19,13 +19,12 @@ CapaUI → CapaAplicacion ← CapaDatos
 
 | Proyecto | Rol | Dependencias |
 |---|---|---|
-| `BimboPesaje/` | App WinForms (host) + WPF embebido | — |
 | `CapaUI/` | Vistas WPF + ViewModels | CapaAplicacion, CapaDatos, CapaDominio |
 | `CapaAplicacion4/` | Interfaces, DTOs, estrategias de búsqueda | CapaDominio |
 | `CapaDatos/` | Implementaciones Supabase, repositorios | CapaDominio, **CapaAplicacion** |
 | `CapaDominio/` | Entidades de dominio, interfaces genéricas | — |
-| `CapaServicios/` | Sesión, notificaciones, realtime | — |
-| `ServicioConexión/` | Singleton del cliente Supabase | — |
+
+> El singleton del cliente Supabase (`ConexionSupabase`) vive en `CapaDatos/Conexion.cs`. Ya no existen `BimboPesaje`, `CapaServicios` (eliminados 2026-05-29) ni el proyecto `ServicioConexión` (eliminado 2026-09-10, P-056).
 
 > **Regla de oro:** `CapaAplicacion` nunca referencia `CapaDatos`. La dependencia va en sentido contrario — `CapaDatos` implementa contratos definidos en `CapaAplicacion`.
 
