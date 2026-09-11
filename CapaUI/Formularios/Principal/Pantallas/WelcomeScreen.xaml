@@ -20,6 +20,7 @@
 
             <!-- "Bienvenido, [Name]" -->
             <TextBlock FontFamily="Segoe UI" FontSize="56" FontWeight="ExtraBold"
+                       TextOptions.TextFormattingMode="Ideal"
                        TextWrapping="Wrap" TextAlignment="Center"
                        Margin="0,0,0,14" LineHeight="64">
                 <Run Text="Bienvenido, " Foreground="#1A1F2E"/>
