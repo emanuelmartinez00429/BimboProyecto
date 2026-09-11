@@ -18,6 +18,14 @@ namespace CapaUI.Formularios.Principal.Pantallas.Proveedores
         private readonly bool                 _esNuevo;
         private ValidadorFormulario           _validador = null!;
         private readonly SolicitudIdempotente _solicitud = new();
+        private ChangeTracker<ProveedorSnapshot> _tracker = new(null);
+
+        private sealed record ProveedorSnapshot(
+            string Nombre,
+            string Rtn,
+            string Telefono,
+            string Correo,
+            string Direccion);
 
         public event Action? Cerrado;
         public event Action? Guardado;
@@ -63,6 +71,13 @@ namespace CapaUI.Formularios.Principal.Pantallas.Proveedores
 
                 RbActivo.IsChecked   = _proveedor.IdEstado == EstadoRegistro.Activo;
                 RbInactivo.IsChecked = _proveedor.IdEstado != EstadoRegistro.Activo;
+
+                _tracker = new ChangeTracker<ProveedorSnapshot>(new ProveedorSnapshot(
+                    (_proveedor.Nombre ?? string.Empty).Trim(),
+                    (_proveedor.Rtn ?? string.Empty).Trim(),
+                    (_proveedor.Telefono ?? string.Empty).Trim(),
+                    (_proveedor.Correo ?? string.Empty).Trim(),
+                    (_proveedor.Direccion ?? string.Empty).Trim()));
             }
 
             // Foco en el primer campo al abrir: el usuario no tiene que
@@ -112,13 +127,14 @@ namespace CapaUI.Formularios.Principal.Pantallas.Proveedores
                 }
                 else
                 {
-                    bool datosCambiaron = _proveedor == null ||
-                        !string.Equals(dto.Nombre, _proveedor.Nombre, StringComparison.Ordinal) ||
-                        !string.Equals(dto.Rtn, _proveedor.Rtn, StringComparison.Ordinal) ||
-                        !string.Equals(dto.Telefono, _proveedor.Telefono, StringComparison.Ordinal) ||
-                        !string.Equals(dto.Correo, _proveedor.Correo, StringComparison.Ordinal) ||
-                        !string.Equals(dto.Direccion, _proveedor.Direccion, StringComparison.Ordinal);
+                    var snapshotActual = new ProveedorSnapshot(
+                        dto.Nombre,
+                        dto.Rtn,
+                        dto.Telefono,
+                        dto.Correo,
+                        dto.Direccion);
 
+                    bool datosCambiaron = _tracker.IsDirty(snapshotActual);
                     bool estadoCambio = _proveedor != null && dto.IdEstado != _proveedor.IdEstado;
 
                     if (!datosCambiaron && !estadoCambio)

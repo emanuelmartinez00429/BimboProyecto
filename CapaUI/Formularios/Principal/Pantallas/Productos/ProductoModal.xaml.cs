@@ -27,6 +27,20 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
         private readonly bool                _esNuevo;
         private ValidadorFormulario          _validador = null!;
         private readonly SolicitudIdempotente _solicitud = new();
+        private ChangeTracker<ProductoSnapshot> _tracker = new(null);
+
+        private sealed record ProductoSnapshot(
+            string CodigoInterno,
+            string Nombre,
+            string Contenido,
+            int? IdPresentacion,
+            int? IdFabricante,
+            int? IdCategoria,
+            int? IdPais,
+            decimal? PesoTeorico,
+            int? IdTara,
+            int? IdUnidad,
+            decimal? PrecioPorKg);
 
         // IDs de respaldo de los campos de catálogo. Los textos son solo la
         // etiqueta visible; lo que se persiste es esto.
@@ -148,6 +162,19 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
 
                 RbActivo.IsChecked   = _producto.IdEstado == 1;
                 RbInactivo.IsChecked = _producto.IdEstado != 1;
+
+                _tracker = new ChangeTracker<ProductoSnapshot>(new ProductoSnapshot(
+                    (_producto.CodigoInterno ?? string.Empty).Trim(),
+                    (_producto.Nombre ?? string.Empty).Trim(),
+                    (_producto.Contenido ?? string.Empty).Trim(),
+                    _producto.IdPresentacion,
+                    _producto.IdFabricante,
+                    _producto.IdCategoria,
+                    _producto.IdPais,
+                    _producto.PesoTeorico,
+                    _producto.IdTara,
+                    _producto.IdUnidad,
+                    _producto.PrecioPorKg));
             }
 
             // Proteger cambio de estado según permiso RBAC (PRODUCTOS_ELIMINAR).
@@ -456,19 +483,21 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
                 }
                 else
                 {
-                    bool cambioDatos = dto.CodigoInterno != _producto!.CodigoInterno
-                        || dto.Nombre != _producto.Nombre
-                        || dto.Contenido != _producto.Contenido
-                        || dto.IdPresentacion != _producto.IdPresentacion
-                        || dto.IdFabricante != _producto.IdFabricante
-                        || dto.IdCategoria != _producto.IdCategoria
-                        || dto.IdPais != _producto.IdPais
-                        || dto.PesoTeorico != _producto.PesoTeorico
-                        || dto.IdTara != _producto.IdTara
-                        || dto.IdUnidad != _producto.IdUnidad
-                        || dto.PrecioPorKg != _producto.PrecioPorKg;
+                    var snapshotActual = new ProductoSnapshot(
+                        dto.CodigoInterno,
+                        dto.Nombre,
+                        dto.Contenido,
+                        dto.IdPresentacion,
+                        dto.IdFabricante,
+                        dto.IdCategoria,
+                        dto.IdPais,
+                        dto.PesoTeorico,
+                        dto.IdTara,
+                        dto.IdUnidad,
+                        dto.PrecioPorKg);
 
-                    bool cambioEstado = dto.IdEstado != _producto.IdEstado;
+                    bool cambioDatos = _tracker.IsDirty(snapshotActual);
+                    bool cambioEstado = dto.IdEstado != _producto!.IdEstado;
 
                     if (!cambioDatos && !cambioEstado)
                     {

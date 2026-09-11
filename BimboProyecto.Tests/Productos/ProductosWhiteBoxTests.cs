@@ -377,4 +377,17 @@ public sealed class ProductosWhiteBoxTests
         // 2. Confirmación del token idempotente del paso exitoso
         Assert.Contains("_solicitud.Confirmar();", codigoCs);
     }
+
+    [Fact(DisplayName = "ProductoModal utiliza ChangeTracker para dirty tracking tipado sin cadenas manuales de igualdad")]
+    public void ProductoModal_UtilizaChangeTracker_SinCadenasManuales()
+    {
+        var archivoModalCs = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "CapaUI", "Formularios", "Principal", "Pantallas", "Productos", "ProductoModal.xaml.cs");
+        if (!File.Exists(archivoModalCs)) return;
+
+        var codigoCs = File.ReadAllText(archivoModalCs);
+
+        Assert.Contains("ChangeTracker<ProductoSnapshot>", codigoCs);
+        Assert.Contains("_tracker.IsDirty(snapshotActual)", codigoCs);
+        Assert.DoesNotContain("dto.CodigoInterno != _producto!.CodigoInterno", codigoCs);
+    }
 }

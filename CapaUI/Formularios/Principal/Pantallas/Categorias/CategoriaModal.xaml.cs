@@ -16,6 +16,11 @@ namespace CapaUI.Formularios.Principal.Pantallas.Categorias
         private readonly bool                 _esNuevo;
         private ValidadorFormulario           _validador = null!;
         private readonly SolicitudIdempotente _solicitud = new();
+        private ChangeTracker<CategoriaSnapshot> _tracker = new(null);
+
+        private sealed record CategoriaSnapshot(
+            string Nombre,
+            string Descripcion);
 
         public event Action? Cerrado;
         public event Action? Guardado;
@@ -55,6 +60,10 @@ namespace CapaUI.Formularios.Principal.Pantallas.Categorias
 
                 RbActivo.IsChecked   = _categoria.EstadoCategoria;
                 RbInactivo.IsChecked = !_categoria.EstadoCategoria;
+
+                _tracker = new ChangeTracker<CategoriaSnapshot>(new CategoriaSnapshot(
+                    (_categoria.Nombre ?? string.Empty).Trim(),
+                    (_categoria.Descripcion ?? string.Empty).Trim()));
             }
 
             // Foco en el primer campo al abrir: el usuario no tiene que
@@ -103,10 +112,29 @@ namespace CapaUI.Formularios.Principal.Pantallas.Categorias
                 }
                 else
                 {
-                    var r = await _repo.UpdateAsync(dto, _solicitud.Obtener("actualizar_categoria", dto), CancellationToken.None);
-                    (exito, error) = (r.Success, r.Error);
+                    var snapshotActual = new CategoriaSnapshot(
+                        dto.Nombre,
+                        dto.Descripcion);
 
-                    if (exito && _categoria != null && dto.EstadoCategoria != _categoria.EstadoCategoria)
+                    bool datosCambiaron = _tracker.IsDirty(snapshotActual);
+                    bool estadoCambio = _categoria != null && dto.EstadoCategoria != _categoria.EstadoCategoria;
+
+                    if (!datosCambiaron && !estadoCambio)
+                    {
+                        Cerrado?.Invoke();
+                        return;
+                    }
+
+                    exito = true;
+                    error = string.Empty;
+
+                    if (datosCambiaron)
+                    {
+                        var r = await _repo.UpdateAsync(dto, _solicitud.Obtener("actualizar_categoria", dto), CancellationToken.None);
+                        (exito, error) = (r.Success, r.Error);
+                    }
+
+                    if (exito && estadoCambio)
                     {
                         var rEstado = await _repo.CambiarEstadoAsync(
                             dto.Id,
@@ -115,15 +143,20 @@ namespace CapaUI.Formularios.Principal.Pantallas.Categorias
                             CancellationToken.None);
                         if (!rEstado.Success)
                         {
-                            // Transacción compensatoria / fallo parcial: los datos se guardaron pero falló el cambio de estado
-                            _solicitud.Confirmar();
-                            Guardado?.Invoke();
-                            MessageBox.Show(
-                                $"Los datos de la categoría se actualizaron correctamente, pero no se pudo cambiar su estado: {rEstado.Error}\n\nPor favor, intente cambiar el estado nuevamente.",
-                                "Aviso de actualización parcial",
-                                MessageBoxButton.OK,
-                                MessageBoxImage.Warning);
-                            return;
+                            if (datosCambiaron)
+                            {
+                                // Transacción compensatoria / fallo parcial: los datos se guardaron pero falló el cambio de estado
+                                _solicitud.Confirmar();
+                                Guardado?.Invoke();
+                                MessageBox.Show(
+                                    $"Los datos de la categoría se actualizaron correctamente, pero no se pudo cambiar su estado: {rEstado.Error}\n\nPor favor, intente cambiar el estado nuevamente.",
+                                    "Aviso de actualización parcial",
+                                    MessageBoxButton.OK,
+                                    MessageBoxImage.Warning);
+                                return;
+                            }
+
+                            (exito, error) = (rEstado.Success, rEstado.Error);
                         }
                     }
                 }

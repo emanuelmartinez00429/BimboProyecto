@@ -247,4 +247,16 @@ public sealed class CategoriasWhiteBoxTests
         Assert.DoesNotMatch(@"Header=""CREADO""[^>]*HeaderDerecho", xaml);
         Assert.DoesNotMatch(@"Header=""ACTUALIZADO""[^>]*HeaderDerecho", xaml);
     }
+
+    [Fact(DisplayName = "CategoriaModal utiliza ChangeTracker para dirty tracking tipado")]
+    public void CategoriaModal_UtilizaChangeTracker()
+    {
+        var archivoModalCs = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "CapaUI", "Formularios", "Principal", "Pantallas", "Categorias", "CategoriaModal.xaml.cs");
+        if (!File.Exists(archivoModalCs)) return;
+
+        var codigoCs = File.ReadAllText(archivoModalCs);
+
+        Assert.Contains("ChangeTracker<CategoriaSnapshot>", codigoCs);
+        Assert.Contains("_tracker.IsDirty(snapshotActual)", codigoCs);
+    }
 }

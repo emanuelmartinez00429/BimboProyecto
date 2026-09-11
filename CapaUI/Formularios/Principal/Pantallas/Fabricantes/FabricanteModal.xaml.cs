@@ -25,6 +25,13 @@ namespace CapaUI.Formularios.Principal.Pantallas.Fabricantes
         private readonly bool                  _esNuevo;
         private ValidadorFormulario            _validador = null!;
         private readonly SolicitudIdempotente  _solicitud = new();
+        private ChangeTracker<FabricanteSnapshot> _tracker = new(null);
+
+        private sealed record FabricanteSnapshot(
+            string Nombre,
+            string Descripcion,
+            int? IdProveedor,
+            int? IdPais);
 
         // El texto de TxtProveedor es solo la etiqueta visible; lo que se
         // persiste es este id. Nullable: proveedor es opcional por diseño.
@@ -104,6 +111,12 @@ namespace CapaUI.Formularios.Principal.Pantallas.Fabricantes
 
                 RbActivo.IsChecked   = _fabricante.IdEstado == EstadoRegistro.Activo;
                 RbInactivo.IsChecked = _fabricante.IdEstado != EstadoRegistro.Activo;
+
+                _tracker = new ChangeTracker<FabricanteSnapshot>(new FabricanteSnapshot(
+                    (_fabricante.Nombre ?? string.Empty).Trim(),
+                    (_fabricante.Descripcion ?? string.Empty).Trim(),
+                    _fabricante.IdProveedor,
+                    _fabricante.IdPais));
             }
             else
             {
@@ -232,10 +245,31 @@ namespace CapaUI.Formularios.Principal.Pantallas.Fabricantes
                 }
                 else
                 {
-                    var r = await _repo.UpdateAsync(dto, _solicitud.Obtener("actualizar_fabricante", dto), CancellationToken.None);
-                    (exito, error) = (r.Success, r.Error);
+                    var snapshotActual = new FabricanteSnapshot(
+                        dto.Nombre,
+                        dto.Descripcion,
+                        dto.IdProveedor,
+                        dto.IdPais);
 
-                    if (exito && _fabricante != null && dto.IdEstado != _fabricante.IdEstado)
+                    bool datosCambiaron = _tracker.IsDirty(snapshotActual);
+                    bool estadoCambio = _fabricante != null && dto.IdEstado != _fabricante.IdEstado;
+
+                    if (!datosCambiaron && !estadoCambio)
+                    {
+                        Cerrado?.Invoke();
+                        return;
+                    }
+
+                    exito = true;
+                    error = string.Empty;
+
+                    if (datosCambiaron)
+                    {
+                        var r = await _repo.UpdateAsync(dto, _solicitud.Obtener("actualizar_fabricante", dto), CancellationToken.None);
+                        (exito, error) = (r.Success, r.Error);
+                    }
+
+                    if (exito && estadoCambio)
                     {
                         var rEstado = await _repo.CambiarEstadoAsync(
                             dto.Id,
@@ -244,15 +278,20 @@ namespace CapaUI.Formularios.Principal.Pantallas.Fabricantes
                             CancellationToken.None);
                         if (!rEstado.Success)
                         {
-                            // Transacción compensatoria / fallo parcial: los datos se guardaron pero falló el cambio de estado
-                            _solicitud.Confirmar();
-                            Guardado?.Invoke();
-                            MessageBox.Show(
-                                $"Los datos del fabricante se actualizaron correctamente, pero no se pudo cambiar su estado: {rEstado.Error}\n\nPor favor, intente cambiar el estado nuevamente.",
-                                "Aviso de actualización parcial",
-                                MessageBoxButton.OK,
-                                MessageBoxImage.Warning);
-                            return;
+                            if (datosCambiaron)
+                            {
+                                // Transacción compensatoria / fallo parcial: los datos se guardaron pero falló el cambio de estado
+                                _solicitud.Confirmar();
+                                Guardado?.Invoke();
+                                MessageBox.Show(
+                                    $"Los datos del fabricante se actualizaron correctamente, pero no se pudo cambiar su estado: {rEstado.Error}\n\nPor favor, intente cambiar el estado nuevamente.",
+                                    "Aviso de actualización parcial",
+                                    MessageBoxButton.OK,
+                                    MessageBoxImage.Warning);
+                                return;
+                            }
+
+                            (exito, error) = (rEstado.Success, rEstado.Error);
                         }
                     }
                 }

@@ -381,4 +381,17 @@ public sealed class ProveedoresWhiteBoxTests
         Assert.DoesNotMatch(@"Header=""CREADO""[^>]*HeaderDerecho", xaml);
         Assert.DoesNotMatch(@"Header=""ACTUALIZADO""[^>]*HeaderDerecho", xaml);
     }
+
+    [Fact(DisplayName = "ProveedorModal utiliza ChangeTracker para dirty tracking tipado sin cadenas manuales de igualdad")]
+    public void ProveedorModal_UtilizaChangeTracker_SinCadenasManuales()
+    {
+        var archivoModalCs = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "CapaUI", "Formularios", "Principal", "Pantallas", "Proveedores", "ProveedorModal.xaml.cs");
+        if (!File.Exists(archivoModalCs)) return;
+
+        var codigoCs = File.ReadAllText(archivoModalCs);
+
+        Assert.Contains("ChangeTracker<ProveedorSnapshot>", codigoCs);
+        Assert.Contains("_tracker.IsDirty(snapshotActual)", codigoCs);
+        Assert.DoesNotContain("!string.Equals(dto.Nombre", codigoCs);
+    }
 }

@@ -253,4 +253,16 @@ public sealed class PresentacionesWhiteBoxTests
         Assert.DoesNotMatch(@"Header=""CREADO""[^>]*HeaderDerecho", xaml);
         Assert.DoesNotMatch(@"Header=""ACTUALIZADO""[^>]*HeaderDerecho", xaml);
     }
+
+    [Fact(DisplayName = "PresentacionModal utiliza ChangeTracker para dirty tracking tipado")]
+    public void PresentacionModal_UtilizaChangeTracker()
+    {
+        var archivoModalCs = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "CapaUI", "Formularios", "Principal", "Pantallas", "Presentaciones", "PresentacionModal.xaml.cs");
+        if (!File.Exists(archivoModalCs)) return;
+
+        var codigoCs = File.ReadAllText(archivoModalCs);
+
+        Assert.Contains("ChangeTracker<PresentacionSnapshot>", codigoCs);
+        Assert.Contains("_tracker.IsDirty(snapshotActual)", codigoCs);
+    }
 }

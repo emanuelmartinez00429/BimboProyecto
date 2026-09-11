@@ -132,6 +132,20 @@ No hay una investigación dedicada a esto (es un control propio, no un tema de l
 
 ---
 
+## Seguimiento 2026-09-11 — ChangeTracker<T> aplicado, quedan 2 pendientes
+
+Verificado en código, build (`0 Advertencias, 0 Errores`) y suite completa (**419/419**): `ChangeTracker<T>` (`CapaUI/Core/Validacion/ChangeTracker.cs`) quedó bien implementado y aplicado a los **5 modales** (Proveedor, Producto, Fabricante, Categoría, Presentación), cada uno con su `record` privado de snapshot. Tests nuevos en `ChangeTrackerTests.cs` cubren snapshot nulo, sin cambios, cada campo individual y un caso de 11 campos. Regla documentada correctamente en `AGENTS.md` §14. El manejo de fallo parcial (P-061) sigue intacto.
+
+**Resolución de los 2 pendientes (2026-09-11 — Antigravity):**
+
+1. ✅ **`CapaUI/Converters/EnumToBooleanConverter.cs` completado:** Convertido a `public sealed class`, añadido ctor explícito sin parámetros `EnumToBooleanConverter()`, alias canónico `Instance => Instancia`, y reemplazado `Enum.HasFlag` por la comparación bit a bit sobre enteros sin signo `(ulong numericValue & ulong numericParameter) == numericParameter` según `Enlace Enum RadioButton en WPF.md`.
+2. ✅ **Nota de sesión creada:** Documentada en [[Sesión 2026-09-11 - Dirty Tracking tipado con ChangeTracker y optimizaciones finales]] detallando la motivación técnica, erradicación de AP-03, arquitectura de `ChangeTracker<T>`, alineación de grillas y métricas de calidad.
+
+Todo verificado con compilación limpia (`0 Errores, 0 Advertencias`) y suite de pruebas al 100% (**419/419**).
+
+> [!success] Verificación independiente — Claude, 2026-09-11
+> Confirmado de forma independiente, no solo leído del reporte de Antigravity: corrí `dotnet build` y `dotnet test` yo mismo después del fix y coinciden exactamente (0/0, 419/419). Leí `EnumToBooleanConverter.cs` línea por línea — `sealed` y la comparación bit a bit están, tal como se describe arriba. Checklist del 10/10 completo: los 5 modales con `ChangeTracker<T>`, converter corregido, build/tests en verde dos veces (por Antigravity y por mí), `ChangeTrackerTests.cs`, fallo parcial de P-061 intacto, y ahora la bitácora de sesión. **Módulo Productos/Proveedores (y su extensión a Fabricantes/Categorías/Presentaciones) validado en 10.**
+
 ## Relaciones
 
 - [[Optimización De Renderizado En WPF]] — investigación fuente AP-06

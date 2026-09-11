@@ -17,6 +17,11 @@ namespace CapaUI.Formularios.Principal.Pantallas.Presentaciones
         private readonly bool                    _esNuevo;
         private ValidadorFormulario              _validador = null!;
         private readonly SolicitudIdempotente    _solicitud = new();
+        private ChangeTracker<PresentacionSnapshot> _tracker = new(null);
+
+        private sealed record PresentacionSnapshot(
+            string Nombre,
+            string Descripcion);
 
         public event Action? Cerrado;
         public event Action? Guardado;
@@ -60,6 +65,10 @@ namespace CapaUI.Formularios.Principal.Pantallas.Presentaciones
                 FilaAuditoria.Visibility = Visibility.Visible;
                 TxtCreado.Text     = FormatearFecha(_presentacion.CreatedAt);
                 TxtActualizado.Text = FormatearFecha(_presentacion.UpdatedAt);
+
+                _tracker = new ChangeTracker<PresentacionSnapshot>(new PresentacionSnapshot(
+                    (_presentacion.Nombre ?? string.Empty).Trim(),
+                    (_presentacion.Descripcion ?? string.Empty).Trim()));
             }
 
             // Foco en el primer campo al abrir: el usuario no tiene que
@@ -113,12 +122,31 @@ namespace CapaUI.Formularios.Principal.Pantallas.Presentaciones
                 }
                 else
                 {
-                    var r = await _repo.UpdateAsync(dto, _solicitud.Obtener("actualizar_presentacion", dto), CancellationToken.None);
-                    (exito, error) = (r.Success, r.Error);
+                    var snapshotActual = new PresentacionSnapshot(
+                        dto.Nombre,
+                        dto.Descripcion);
+
+                    bool datosCambiaron = _tracker.IsDirty(snapshotActual);
+                    bool estadoCambio = _presentacion != null && dto.IdEstado != _presentacion.IdEstado;
+
+                    if (!datosCambiaron && !estadoCambio)
+                    {
+                        Cerrado?.Invoke();
+                        return;
+                    }
+
+                    exito = true;
+                    error = string.Empty;
+
+                    if (datosCambiaron)
+                    {
+                        var r = await _repo.UpdateAsync(dto, _solicitud.Obtener("actualizar_presentacion", dto), CancellationToken.None);
+                        (exito, error) = (r.Success, r.Error);
+                    }
 
                     // El estado es un comando aparte: actualizar_presentacion_seguro
                     // no lo toca. Solo se llama si realmente cambió.
-                    if (exito && _presentacion != null && dto.IdEstado != _presentacion.IdEstado)
+                    if (exito && estadoCambio)
                     {
                         var rEstado = await _repo.CambiarEstadoAsync(
                             dto.Id,
@@ -127,15 +155,20 @@ namespace CapaUI.Formularios.Principal.Pantallas.Presentaciones
                             CancellationToken.None);
                         if (!rEstado.Success)
                         {
-                            // Transacción compensatoria / fallo parcial: los datos se guardaron pero falló el cambio de estado
-                            _solicitud.Confirmar();
-                            Guardado?.Invoke();
-                            MessageBox.Show(
-                                $"Los datos de la presentación se actualizaron correctamente, pero no se pudo cambiar su estado: {rEstado.Error}\n\nPor favor, intente cambiar el estado nuevamente.",
-                                "Aviso de actualización parcial",
-                                MessageBoxButton.OK,
-                                MessageBoxImage.Warning);
-                            return;
+                            if (datosCambiaron)
+                            {
+                                // Transacción compensatoria / fallo parcial: los datos se guardaron pero falló el cambio de estado
+                                _solicitud.Confirmar();
+                                Guardado?.Invoke();
+                                MessageBox.Show(
+                                    $"Los datos de la presentación se actualizaron correctamente, pero no se pudo cambiar su estado: {rEstado.Error}\n\nPor favor, intente cambiar el estado nuevamente.",
+                                    "Aviso de actualización parcial",
+                                    MessageBoxButton.OK,
+                                    MessageBoxImage.Warning);
+                                return;
+                            }
+
+                            (exito, error) = (rEstado.Success, rEstado.Error);
                         }
                     }
                 }

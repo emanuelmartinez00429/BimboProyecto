@@ -11,7 +11,7 @@ namespace CapaUI.Converters;
 /// que la deselección sobrescriba el nuevo valor de la enumeración seleccionado por el otro botón.
 /// </summary>
 [ValueConversion(typeof(Enum), typeof(bool))]
-public class EnumToBooleanConverter : IValueConverter
+public sealed class EnumToBooleanConverter : IValueConverter
 {
     /// <summary>
     /// Instancia compartida para <c>{x:Static conv:EnumToBooleanConverter.Instancia}</c>.
@@ -19,6 +19,18 @@ public class EnumToBooleanConverter : IValueConverter
     /// diseñador de Visual Studio conforme a ADR-028.
     /// </summary>
     public static readonly EnumToBooleanConverter Instancia = new();
+
+    /// <summary>
+    /// Alias canónico según la investigación técnica.
+    /// </summary>
+    public static EnumToBooleanConverter Instance => Instancia;
+
+    /// <summary>
+    /// Constructor explícito sin parámetros requerido por diseñadores visuales y XAML.
+    /// </summary>
+    public EnumToBooleanConverter()
+    {
+    }
 
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
@@ -33,9 +45,15 @@ public class EnumToBooleanConverter : IValueConverter
         {
             if (valueType.IsDefined(typeof(FlagsAttribute), inherit: false))
             {
-                var valEnum = (Enum)value;
-                var paramEnum = (Enum)parameter;
-                return valEnum.HasFlag(paramEnum);
+                ulong numericValue = System.Convert.ToUInt64(value, culture);
+                ulong numericParameter = System.Convert.ToUInt64(parameter, culture);
+
+                if (numericParameter == 0)
+                {
+                    return numericValue == 0;
+                }
+
+                return (numericValue & numericParameter) == numericParameter;
             }
 
             return value.Equals(parameter);

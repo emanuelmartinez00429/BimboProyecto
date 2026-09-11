@@ -257,4 +257,16 @@ public sealed class FabricantesWhiteBoxTests
         Assert.DoesNotMatch(@"Header=""CREADO""[^>]*HeaderDerecho", xaml);
         Assert.DoesNotMatch(@"Header=""ACTUALIZADO""[^>]*HeaderDerecho", xaml);
     }
+
+    [Fact(DisplayName = "FabricanteModal utiliza ChangeTracker para dirty tracking tipado")]
+    public void FabricanteModal_UtilizaChangeTracker()
+    {
+        var archivoModalCs = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "CapaUI", "Formularios", "Principal", "Pantallas", "Fabricantes", "FabricanteModal.xaml.cs");
+        if (!File.Exists(archivoModalCs)) return;
+
+        var codigoCs = File.ReadAllText(archivoModalCs);
+
+        Assert.Contains("ChangeTracker<FabricanteSnapshot>", codigoCs);
+        Assert.Contains("_tracker.IsDirty(snapshotActual)", codigoCs);
+    }
 }
