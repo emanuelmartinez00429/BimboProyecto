@@ -130,7 +130,7 @@
                  otra, sin importar el orden en que aparezcan. Si el total (marca
                  + acciones) llegaba a superar el ancho real de la ventana (una
                  ventana angosta más el sidebar expandido empujando la marca a
-                 226px), lo que se salía del borde derecho eran los botones de
+                 256px), lo que se salía del borde derecho eran los botones de
                  ventana — porque son lo último del Grid, no porque el layout
                  los priorizara para desaparecer.
 
@@ -149,7 +149,7 @@
                 <DockPanel LastChildFill="True">
 
                     <!-- ── BRAND BLOCK (mismo ancho que sidebar, anima junto) ── -->
-                    <Border x:Name="BrandBlock" DockPanel.Dock="Left" Width="226"
+                    <Border x:Name="BrandBlock" DockPanel.Dock="Left" Width="256"
                             Background="{DynamicResource EmpresaPrimaryBrush}"
                             BorderBrush="#2EFFFFFF" BorderThickness="0,0,1,0">
                         <DockPanel Margin="12,0" LastChildFill="True"
@@ -430,7 +430,7 @@
                         <!-- Visibility atada al ancho de esta zona, no al de la
                              ventana: así contempla de una sola vez los dos casos
                              que la achican — ventana chica y sidebar expandido
-                             (BrandBlock ocupa 226 px y se los quita a esta
+                             (BrandBlock ocupa 256 px y se los quita a esta
                              columna). Al colapsar el menú el buscador vuelve
                              solo. El semáforo de conexión no se oculta: es la
                              señal de que la app sigue viva.
@@ -560,7 +560,7 @@
 
                 <!-- ══ SIDEBAR ═══════════════════════════════════════════ -->
                 <Border x:Name="Sidebar" Grid.Column="0"
-                        Width="226"
+                        Width="256"
                         Background="{StaticResource SidebarGradient}"
                         ClipToBounds="True">
                     <Grid>

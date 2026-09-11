@@ -492,7 +492,7 @@
                         <DataGridTemplateColumn Header="#" Width="40" CanUserResize="False" CanUserReorder="False"
                                                 CellStyle="{StaticResource CeldaCentrada}"
                                                 CellTemplate="{StaticResource PlantillaCeldaNumeroFila}"/>
-                        <DataGridTemplateColumn Header="C&#211;DIGO" Width="0.7*" MinWidth="90" CellStyle="{StaticResource CeldaIzquierda}">
+                        <DataGridTemplateColumn Header="C&#211;DIGO" Width="Auto" MinWidth="90" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <Border Background="#EFF6FF" CornerRadius="4" Padding="8,2" HorizontalAlignment="Left" Margin="8,0">
@@ -503,7 +503,7 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="PRODUCTO" Width="2.4*" MinWidth="170" CellStyle="{StaticResource CeldaIzquierda}">
+                        <DataGridTemplateColumn Header="PRODUCTO" Width="Auto" MinWidth="170" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding Nombre}"
@@ -527,7 +527,7 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="TARA" Width="0.8*" MinWidth="90" CellStyle="{StaticResource CeldaIzquierda}">
+                        <DataGridTemplateColumn Header="TARA" Width="Auto" MinWidth="90" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding Tara, Converter={x:Static conv:TextoVacioConverter.Instancia}, ConverterParameter='Sin tara'}"
@@ -538,7 +538,7 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="FABRICANTE" Width="1.3*" MinWidth="110" CellStyle="{StaticResource CeldaIzquierda}">
+                        <DataGridTemplateColumn Header="FABRICANTE" Width="Auto" MinWidth="110" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding Fabricante, Converter={x:Static conv:TextoVacioConverter.Instancia}, ConverterParameter='Sin fabricante'}"
@@ -547,7 +547,7 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="PROVEEDOR" Width="1.3*" MinWidth="110" CellStyle="{StaticResource CeldaIzquierda}">
+                        <DataGridTemplateColumn Header="PROVEEDOR" Width="Auto" MinWidth="110" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding Proveedor, Converter={x:Static conv:TextoVacioConverter.Instancia}, ConverterParameter='Sin proveedor'}"
@@ -556,7 +556,7 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="PA&#205;S" Width="0.85*" MinWidth="90" CellStyle="{StaticResource CeldaIzquierda}">
+                        <DataGridTemplateColumn Header="PA&#205;S" Width="Auto" MinWidth="90" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding Pais, Converter={x:Static conv:TextoVacioConverter.Instancia}, ConverterParameter='Sin país'}"
@@ -584,7 +584,7 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="CATEGOR&#205;A" Width="1*" MinWidth="105" CellStyle="{StaticResource CeldaIzquierda}">
+                        <DataGridTemplateColumn Header="CATEGOR&#205;A" Width="Auto" MinWidth="105" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <Border Background="#F0F5FB" CornerRadius="999" Padding="10,2" HorizontalAlignment="Left" Margin="8,0">

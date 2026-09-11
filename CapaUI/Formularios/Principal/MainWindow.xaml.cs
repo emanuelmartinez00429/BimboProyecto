@@ -46,7 +46,7 @@ namespace CapaUI.Formularios.Principal
 
         private HwndSource? _hwndSource;
 
-        private const double SidebarExpanded  = 226;
+        private const double SidebarExpanded  = 256;
         private const double SidebarCollapsed = 72;
         private const int    SubItemHeight    = 40;
 
