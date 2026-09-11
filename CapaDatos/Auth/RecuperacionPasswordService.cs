@@ -19,6 +19,23 @@ public class RecuperacionPasswordService : IRecuperacionPasswordService
         try
         {
             var client = await ConexionSupabase.GetClientAsync();
+
+            // Antes de mandar el correo, verificar que la cuenta no esté deshabilitada.
+            // Función de solo lectura y anónima (verificar_cuenta_habilitada_por_correo):
+            // no requiere prueba de dueño, a diferencia de AuthService.LoginAsync y
+            // VerificarCodigoAsync, que solo pueden chequear id_estado DESPUÉS de que el
+            // usuario demostró ser el dueño (contraseña u OTP). Devuelve true también si
+            // el correo no existe, para no ampliar la enumeración de cuentas — por eso el
+            // mensaje de abajo es deliberadamente genérico, no "cuenta deshabilitada": así
+            // quien esté probando correos al azar no puede distinguir una cuenta
+            // deshabilitada de un error técnico cualquiera.
+            var habilitada = await client.Rpc(
+                "verificar_cuenta_habilitada_por_correo",
+                new Dictionary<string, object?> { ["p_correo"] = email });
+
+            if (bool.TryParse(habilitada?.Content, out var esHabilitada) && !esHabilitada)
+                return Result.Fail("No pudimos procesar tu solicitud. Si el problema continúa, contacta a soporte.");
+
             await client.Auth.ResetPasswordForEmail(email);
             return Result.Ok();
         }

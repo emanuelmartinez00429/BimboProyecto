@@ -459,7 +459,7 @@ Workaround documentado con comentario en el código: `Count() no aplica filtros 
 
 ---
 
-### P-022 · `UsuarioModal` tiene 3 constructores, el original con ComboBox está muerto
+### ~~P-022 · `UsuarioModal` tiene 3 constructores, el original con ComboBox está muerto~~ ✅ Resuelto 2026-09-11 (traído a esta rama)
 
 **Archivo:** `CapaUI/.../Usuarios/UsuarioModal.xaml.cs`
 
@@ -472,7 +472,7 @@ El constructor #2 y todo el código del `OnLoaded` que carga `ObtenerEmpleadosSi
 
 **Riesgo:** Confunde a quien lea el código. El ComboBox de empleados ya no se muestra desde ningún lado.
 
-**Estado:** `[ ] Limpiar constructor muerto y código de CmbEmpleado`
+**Estado:** `[x] Resuelto 2026-09-11` — commit `86ac546` (2026-09-10, traído con `cherry-pick` el 09-11, mismo caso que P-059: vivía en la rama `fix/deuda-p022-p056-p059`, nunca fusionada). Quitados el constructor `(repo, rolRepo, null)`, `CmbEmpleado` y la carga de `ObtenerEmpleadosSinUsuarioAsync()`. Los dos llamadores (`EmpleadosView`, `UsuariosView`) compilan sin cambios. Verificado tras traerlo: build 0/0, 424/424 tests. Ver [[Sesión 2026-09-10 - Cierre de P-022 P-056 P-059]].
 
 ---
 
@@ -1311,7 +1311,7 @@ El problema real: la misma mecánica de debounce estaba escrita a mano **cuatro 
 
 ---
 
-### P-056 · `ServicioConexión` es un proyecto huérfano que duplica el singleton de conexión con el mismo namespace
+### ~~P-056 · `ServicioConexión` es un proyecto huérfano que duplica el singleton de conexión con el mismo namespace~~ ✅ Resuelto 2026-09-11 (traído a esta rama)
 
 **Archivos:** `ServicioConexión/ServicioConexión.csproj`, `ServicioConexión/Conexion/ConexionSupabase.cs`
 **Detectado en:** [[Sesión 2026-09-08 - Cierre de P-054 y P-055]]
@@ -1327,7 +1327,7 @@ Hay **dos** clases `ConexionSupabase` en el **mismo namespace** (`ServicioConexi
 
 **Solución propuesta:** sacar `ServicioConexión` de la solución y borrarlo, dejando una sola copia. Es un cambio estructural, así que se pospuso a conciencia (decisión de Fernando, 2026-09-08) para no chocar con otros agentes trabajando sobre el mismo árbol.
 
-**Estado:** `[ ]` Pendiente
+**Estado:** `[x] Resuelto 2026-09-11` — commit `fd25cc5` (2026-09-10, traído con `cherry-pick` el 09-11). Se sacó `ServicioConexión` de `BimboProyecto.sln` y se borraron `ServicioConexión.csproj`, `CapaConexión.csproj` y la copia duplicada de `ConexionSupabase.cs`. El namespace `ServicioConexión.Conexion` sigue vivo en `CapaDatos/Conexion.cs`, así que ningún `using` cambió. Conflicto de merge esperado (el `.csproj` había sido tocado por la migración a .NET 10) resuelto quedándose con el borrado, tal como lo dejó documentado el propio commit original. `Arquitectura Actual.md` y `contexto/CLAUDE.md` actualizados. Verificado: build 0/0, 424/424 tests, `ServicioConexión` ya no aparece en la salida del build. Ver [[Sesión 2026-09-10 - Cierre de P-022 P-056 P-059]].
 
 ---
 
@@ -1409,7 +1409,7 @@ Eran **dos problemas encimados**, y el segundo era el grave:
 
 **Nota de proceso — por qué "seguía pasando" en la práctica:** el fix se hizo bien el 2026-09-10 (commit `9eccf00`, autor Antigravity, 345/345 tests) pero quedó en la rama `fix/deuda-p022-p056-p059`, que **nunca se fusionó** con `feat/fase8-MaquetadodeRoles` — la rama en la que se sigue trabajando desde entonces. Engram y la bóveda de esa otra rama decían "resuelto"; esta rama, que es la que corre Fernando, seguía con el bug. No fue una regresión de código, fue una rama huérfana. Traído acá el 2026-09-11 con `git cherry-pick 9eccf00` (commit `028afcc`). Verificado de nuevo tras el cherry-pick: build 0/0, **424/424** tests.
 
-**Pendiente relacionado, no traído todavía:** esa misma rama tiene P-022 (constructor muerto en `UsuarioModal`) y P-056 (borrar el proyecto huérfano `ServicioConexión`) sin fusionar tampoco. Fusionar la rama completa tiene conflictos reales (no es fast-forward): `ServicioConexión.csproj` fue borrado ahí pero modificado acá por la migración a .NET 10, y `Arquitectura Actual.md`/esta misma nota divergieron en las dos ramas. Quedan pendientes de traer con cuidado, no en automático.
+**Actualización 2026-09-11:** P-022 y P-056, que vivían en la misma rama huérfana, también se trajeron con `cherry-pick` — ver sus propias entradas más abajo. La rama `fix/deuda-p022-p056-p059` queda sin más pendientes de traer (el único commit que faltaba era de documentación, absorbido acá y en [[Sesión 2026-09-10 - Cierre de P-022 P-056 P-059]] en vez de cherry-pickeado, porque entraba en conflicto con las notas ya escritas en esta rama).
 
 **No se cerró en el mismo pase porque cambia el comportamiento** (alguien deshabilitado dejaría de poder resetear) y eso es decisión del dueño del producto, no un efecto colateral de un refactor. Se dejó planteado explícitamente a Fernando el 2026-09-09.
 
@@ -1443,6 +1443,7 @@ Eran **dos problemas encimados**, y el segundo era el grave:
 | P-019 | `correoUsuario` mapea a `alias_usuario` | ✅ Resuelto | [[Sesión 2026-07-26 - Resolución Deuda Técnica P-013 a P-021]] |
 | P-020 | Artefactos `.atl`/`.codegraph` commiteados | ✅ Resuelto | [[Sesión 2026-07-23 - Plan Preparar Bóveda Multi-Agente (AGENTS.md)]] |
 | P-021 | Búsqueda de Usuarios incompleta (solo alias) | ✅ Resuelto | [[Sesión 2026-07-26 - Resolución Deuda Técnica P-013 a P-021]] |
+| P-022 | `UsuarioModal` con constructor muerto (ComboBox de empleados sin uso) | `[x]` Resuelto 2026-09-11 (fix del 09-10, traído con `cherry-pick`) | [[Sesión 2026-09-10 - Cierre de P-022 P-056 P-059]] |
 | P-023 | Catálogo de taras con datos de prueba | `[ ]` Pendiente 🔴 | [[Sesión 2026-07-26 - Rediseño del flujo de Pesajes]] |
 | P-024 | Tara plana (trigger) vs por bulto (bultos teóricos) | `[ ]` Pendiente | [[Sesión 2026-07-26 - Rediseño del flujo de Pesajes]] |
 | P-025 | Repositorios de movimientos duplicados sin uso | ✅ Resuelto | [[Sesión 2026-09-06 - Auditoría del cierre masivo P-025 P-029 P-031 P-032 P-038 P-041]] |
@@ -1476,7 +1477,7 @@ Eran **dos problemas encimados**, y el segundo era el grave:
 | P-053 | Alta múltiple de camiones: N INSERT sueltos sin transacción (misma familia que P-032) | `[x]` Resuelto | [[Sesión 2026-09-06 - Resolucion integral P-045 P-049 P-051 P-052 P-053]] |
 | P-054 | Debounce copiado a mano en 4 lugares; 3 sin `Dispose()` del CTS (no era fuga: duplicación) | `[x]` Resuelto | [[Sesión 2026-09-08 - Cierre de P-054 y P-055]] |
 | P-055 | El apagado del auto-refresh de Gotrue dependía de `SignOut()` (llamada de red) + timeout decorativo en el logout | `[x]` Resuelto | [[Sesión 2026-09-08 - Cierre de P-054 y P-055]] |
-| P-056 | `ServicioConexión` huérfano duplica `ConexionSupabase` con el mismo namespace | `[ ]` Pendiente | [[Sesión 2026-09-08 - Cierre de P-054 y P-055]] |
+| P-056 | `ServicioConexión` huérfano duplica `ConexionSupabase` con el mismo namespace | `[x]` Resuelto 2026-09-11 (fix del 09-10, traído con `cherry-pick`) | [[Sesión 2026-09-10 - Cierre de P-022 P-056 P-059]] |
 | P-057 | 16 modales y 12 vistas sin previsualización en el diseñador de VS | `[x]` Resuelto 2026-09-10 (33/33 en arné; converters fuera de App.xaml) | [[ADR-028 - Previsualizacion de UserControls en el disenador de VS]] |
 | P-058 | Login sin ViewModel y paneles de recuperación llamando a Supabase desde la UI | ✅ Resuelto | 58 pruebas nuevas; suite 344/344 |
 | P-059 | La recuperación de contraseña no verifica que la cuenta esté habilitada | `[x]` Resuelto 2026-09-11 — fix de 09-10 traído con `cherry-pick` desde rama huérfana | Detectado al resolver P-058 |
