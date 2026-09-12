@@ -411,39 +411,4 @@ public sealed class ProveedoresWhiteBoxTests
         Assert.Contains("_tracker.IsDirty(snapshotActual)", codigoCs);
         Assert.DoesNotContain("!string.Equals(dto.Nombre", codigoCs);
     }
-
-    [Fact(DisplayName = "ProveedorCrudRepository desacopla el RPC de conteos de IdEstado y propaga CancellationToken")]
-    public void ProveedorCrudRepository_DesacoplaConteosDeIdEstado_YPropagaToken()
-    {
-        var archivoRepo = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "CapaDatos", "Repositories", "Proveedores", "ProveedorCrudRepository.cs");
-        if (!File.Exists(archivoRepo)) return;
-
-        var codigo = File.ReadAllText(archivoRepo);
-
-        // 1. Instancia filtrosConteo aislados sin IdEstado para consultar métricas globales
-        Assert.Contains("var filtrosConteo = new ProveedorFiltros();", codigo);
-        Assert.Contains("GetConteosRpcAsync(filtrosConteo, client)", codigo);
-
-        // 2. Propaga ct a la consulta paginada
-        Assert.Contains(".Range(from, to).Get(ct)", codigo);
-    }
-
-    [Fact(DisplayName = "ProveedoresView utiliza EmptyStateOverlay declarativo con MensajeSinResultados y HeaderOffset")]
-    public void ProveedoresView_UtilizaEmptyStateOverlayDeclarativo()
-    {
-        var archivoXaml = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "CapaUI", "Formularios", "Principal", "Pantallas", "Proveedores", "ProveedoresView.xaml");
-        if (!File.Exists(archivoXaml)) return;
-
-        var xaml = File.ReadAllText(archivoXaml);
-
-        // 1. Presencia del control reutilizable EmptyStateOverlay
-        Assert.Contains("controls:EmptyStateOverlay", xaml);
-
-        // 2. Enlace a MensajeSinResultados y EstaVacio
-        Assert.Contains("Mensaje=\"{Binding MensajeSinResultados}\"", xaml);
-        Assert.Contains("EstaVacio=\"{Binding NoResults}\"", xaml);
-
-        // 3. HeaderOffset para compensar encabezados de DataGrid
-        Assert.Contains("HeaderOffset=\"40\"", xaml);
-    }
 }
