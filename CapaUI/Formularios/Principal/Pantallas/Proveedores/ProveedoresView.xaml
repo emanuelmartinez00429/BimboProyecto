@@ -173,13 +173,6 @@
                                          IsLoading="{Binding IsLoading}"
                                          Mensaje="Cargando proveedores..."/>
 
-                <StackPanel Grid.Row="0" x:Name="EmptyState"
-                            Visibility="{Binding NoResults, Converter={x:Static conv:BoolToVisibilityConverter.Instancia}}"
-                            VerticalAlignment="Center" HorizontalAlignment="Center">
-                    <TextBlock FontFamily="Segoe UI" FontSize="16" Foreground="#6B7280" HorizontalAlignment="Center">
-                        Sin resultados. Ajusta los filtros o pulsa <Bold>Limpiar Filtros</Bold>.
-                    </TextBlock>
-                </StackPanel>
                 <DataGrid Grid.Row="0" x:Name="DgProveedores" AutoGenerateColumns="False" CanUserAddRows="False"
                           ItemsSource="{Binding PageRows, Mode=OneWay}"
                           SelectedItem="{Binding Seleccionado, Mode=TwoWay}"
@@ -322,6 +315,15 @@
                         </DataGridTemplateColumn>
                     </DataGrid.Columns>
                 </DataGrid>
+
+                <!-- Empty state overlay -->
+                <controls:EmptyStateOverlay Grid.Row="0"
+                                            x:Name="EmptyState"
+                                            Panel.ZIndex="5"
+                                            HeaderOffset="40"
+                                            Mensaje="{Binding MensajeSinResultados}"
+                                            EstaVacio="{Binding NoResults}"/>
+
                 <!-- Pagination footer (P-037) -->
                 <controls:PaginadorControl Grid.Row="1"
                                            Page="{Binding Page, Mode=TwoWay}"

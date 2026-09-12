@@ -1,4 +1,4 @@
-﻿using CapaAplicacion.Common;
+using CapaAplicacion.Common;
 using CapaAplicacion.Pesaje.Dtos;
 
 namespace CapaAplicacion.Pesaje.Interfaces;
@@ -52,8 +52,8 @@ public interface IPesajeRepository
     // ── Productos del camión (movimiento_productos) ─────────────────────────
     Task<Result<IReadOnlyList<MovProductoDto>>> GetProductosAsync(int idMovimiento, CancellationToken ct = default);
 
-    /// <summary>Productos vivos por recepción, en una sola consulta para toda la lista.</summary>
-    Task<Result<IReadOnlyDictionary<int, int>>> ContarProductosPorCamionAsync(
+    /// <summary>Productos vivos y total manifestado (KG) por recepción, en una sola consulta para toda la lista.</summary>
+    Task<Result<IReadOnlyDictionary<int, (int Conteo, double TotalKg)>>> ContarProductosPorCamionAsync(
         IReadOnlyList<int> idsMovimiento, CancellationToken ct = default);
     Task<Result>      SetEstadoProductoAsync(int idMovProducto, bool cerrado, CancellationToken ct = default);
 

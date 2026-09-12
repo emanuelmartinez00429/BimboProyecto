@@ -255,10 +255,10 @@
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="Foreground" Value="#6B7280"/>
             <Setter Property="FontFamily" Value="Segoe UI"/>
-            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontSize" Value="12.5"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Padding" Value="11,0"/>
-            <Setter Property="Height" Value="26"/>
+            <Setter Property="Padding" Value="10,0"/>
+            <Setter Property="Height" Value="24"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             <Setter Property="Template">
@@ -288,15 +288,15 @@
             <Setter Property="Background" Value="{DynamicResource EmpresaPrimaryBrush}"/>
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="FontFamily" Value="Segoe UI"/>
-            <Setter Property="FontSize" Value="11.5"/>
+            <Setter Property="FontSize" Value="11"/>
             <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Height" Value="32"/>
+            <Setter Property="Height" Value="28"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="DataGridColumnHeader">
-                        <Border Background="{DynamicResource EmpresaPrimaryBrush}" Padding="10,0">
+                        <Border Background="{DynamicResource EmpresaPrimaryBrush}" Padding="8,0">
                             <TextBlock Text="{TemplateBinding Content}" Foreground="White"
-                                       FontFamily="Segoe UI" FontSize="11.5" FontWeight="Bold"
+                                       FontFamily="Segoe UI" FontSize="11" FontWeight="Bold"
                                        VerticalAlignment="Center"
                                        HorizontalAlignment="Center"/>
                         </Border>
@@ -459,11 +459,12 @@
                 <Grid Grid.Row="0" ClipToBounds="True">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
-                        <Border Grid.Row="0" Padding="14,11" BorderBrush="#EEF2F8" BorderThickness="0,0,0,1">
-                            <StackPanel Orientation="Horizontal">
+                        <Border Grid.Row="0" Height="42" Padding="14,0" BorderBrush="#EEF2F8" BorderThickness="0,0,0,1">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                 <TextBlock Text="Camiones de Entrega" Style="{StaticResource PanelTitle}"/>
                                 <Border Background="#EFF6FF" CornerRadius="999" Padding="7,1" Margin="8,0,0,0" VerticalAlignment="Center">
                                     <TextBlock Text="{Binding CamionesCount}" FontFamily="Segoe UI" FontSize="12.5" FontWeight="Bold" Foreground="{DynamicResource EmpresaPrimaryBrush}"/>
@@ -471,264 +472,266 @@
                             </StackPanel>
                         </Border>
 
-                        <!-- Agrupada por placa: un camión que trae carga de dos proveedores
-                             son dos recepciones en la base (una por proveedor, cada una con
-                             su manifiesto), pero UN camión en el andén. El encabezado de
-                             grupo muestra la placa una sola vez y se colapsa cuando la placa
-                             tiene una sola recepción — el caso normal no paga ruido visual. -->
-                        <ListBox x:Name="LstCamiones" Grid.Row="1"
-                                 ItemsSource="{Binding Camiones}"
-                                 AlternationCount="2"
-                                 BorderThickness="0" Background="Transparent"
-                                 HorizontalContentAlignment="Stretch"
-                                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                                 ScrollViewer.VerticalScrollBarVisibility="Auto"
-                                 SelectionChanged="LstCamiones_SelectionChanged"
-                                 MouseDoubleClick="LstCamiones_DoubleClick"
-                                 PreviewKeyDown="LstCamiones_PreviewKeyDown">
-                            <ListBox.Resources>
+                        <!-- Encabezado de columnas de la tabla de camiones -->
+                        <Border Grid.Row="1" Background="#162F56" Padding="6,0" Height="28">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="26"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="70"/>
+                                    <ColumnDefinition Width="78"/>
+                                    <ColumnDefinition Width="34"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="#" FontFamily="Segoe UI" FontSize="11" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <TextBlock Grid.Column="1" Text="PLACA / PROVEEDOR" FontFamily="Segoe UI" FontSize="11" FontWeight="Bold" Foreground="White" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                                <TextBlock Grid.Column="2" Text="KG" FontFamily="Segoe UI" FontSize="11" FontWeight="Bold" Foreground="White" HorizontalAlignment="Right" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                                <TextBlock Grid.Column="3" Text="ESTADO" FontFamily="Segoe UI" FontSize="11" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Grid>
+                        </Border>
+
+                        <!-- Lista jerárquica de camiones y proveedores agrupados -->
+                        <ScrollViewer Grid.Row="2"
+                                      VerticalScrollBarVisibility="Auto"
+                                      HorizontalScrollBarVisibility="Disabled">
+                            <ScrollViewer.Resources>
                                 <Style TargetType="ScrollBar" BasedOn="{StaticResource ModernScrollBarAny}"/>
-                            </ListBox.Resources>
-                            <ListBox.GroupStyle>
-                                <GroupStyle>
-                                    <GroupStyle.ContainerStyle>
-                                        <Style TargetType="GroupItem">
-                                            <Setter Property="Template">
-                                                <Setter.Value>
-                                                    <ControlTemplate TargetType="GroupItem">
-                                                        <!-- "Tarjeta": envuelve encabezado + filas en un bloque con
-                                                             borde redondeado, sombra sutil y separación del próximo
-                                                             grupo — así cada camión se lee como una unidad propia y
-                                                             no como filas sueltas de una lista continua. Se desarma
-                                                             (sin borde, sin sombra, sin margen) cuando ningún camión
-                                                             de la lista comparte placa: ahí no hay nada que agrupar. -->
-                                                        <Border x:Name="Tarjeta" Margin="0,0,0,10" CornerRadius="10"
-                                                                BorderBrush="#D7E3F5" BorderThickness="1.3" ClipToBounds="True">
-                                                            <Border.Effect>
-                                                                <DropShadowEffect Color="#1A2A44" Opacity="0.07" BlurRadius="12" ShadowDepth="2" Direction="270"/>
-                                                            </Border.Effect>
-                                                            <Grid>
-                                                                <Grid.RowDefinitions>
-                                                                    <RowDefinition Height="Auto"/>
-                                                                    <RowDefinition Height="Auto"/>
-                                                                </Grid.RowDefinitions>
-                                                                <!-- Encabezado de la placa compartida: fondo claro (un bloque
-                                                                     sólido de azul repetido por cada camión pesaba demasiado
-                                                                     en una lista larga). Lo que se destaca es SOLO la placa,
-                                                                     con su propio chip sólido — no toda la franja. -->
-                                                                <Border x:Name="Cab" Grid.Row="0" Background="#EFF6FF"
-                                                                        BorderBrush="#DBE7F5" BorderThickness="0,0,0,1"
-                                                                        Padding="14,8">
-                                                                    <Grid>
-                                                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                                                            <Path Data="{StaticResource IcoTruck}" Stroke="{DynamicResource EmpresaPrimaryBrush}"
-                                                                                  StrokeThickness="1.6" Width="15" Height="15" Stretch="Uniform"
-                                                                                  Margin="0,0,8,0" VerticalAlignment="Center"
-                                                                                  StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
-                                                                            <Border Background="{DynamicResource EmpresaPrimaryBrush}" CornerRadius="6" Padding="8,3">
-                                                                                <TextBlock Text="{Binding Name}" FontFamily="Segoe UI" FontSize="14"
-                                                                                           FontWeight="Bold" Foreground="White"/>
-                                                                            </Border>
-                                                                        </StackPanel>
-                                                                        <Border Background="#DBE7F5" CornerRadius="999" Padding="8,2"
-                                                                                HorizontalAlignment="Right" VerticalAlignment="Center">
-                                                                            <TextBlock FontFamily="Segoe UI" FontSize="12" FontWeight="SemiBold"
-                                                                                       Foreground="{DynamicResource EmpresaPrimaryBrush}"
-                                                                                       Text="{Binding ItemCount, StringFormat='{}{0} recepciones'}">
-                                                                                <TextBlock.Style>
-                                                                                    <Style TargetType="TextBlock">
-                                                                                        <Style.Triggers>
-                                                                                            <DataTrigger Binding="{Binding ItemCount}" Value="1">
-                                                                                                <Setter Property="Text" Value="1 recepción"/>
-                                                                                            </DataTrigger>
-                                                                                        </Style.Triggers>
-                                                                                    </Style>
-                                                                                </TextBlock.Style>
-                                                                            </TextBlock>
-                                                                        </Border>
-                                                                    </Grid>
-                                                                </Border>
-                                                                <!-- Barra que ata las recepciones de la misma placa -->
-                                                                <Grid Grid.Row="1">
-                                                                    <Grid.ColumnDefinitions>
-                                                                        <ColumnDefinition Width="Auto"/>
-                                                                        <ColumnDefinition Width="*"/>
-                                                                    </Grid.ColumnDefinitions>
-                                                                    <Border x:Name="Barra" Grid.Column="0" Width="4"
-                                                                            Background="{DynamicResource EmpresaPrimaryBrush}"/>
-                                                                    <ItemsPresenter Grid.Column="1"/>
-                                                                </Grid>
-                                                            </Grid>
-                                                        </Border>
-                                                        <ControlTemplate.Triggers>
-                                                            <!-- Ningún camión de la lista comparte placa con otro: no
-                                                                 hay nada que agrupar, así que la tarjeta se desarma —
-                                                                 vuelve a ser una fila plana, igual que antes de tener
-                                                                 grupos. -->
-                                                            <DataTrigger Binding="{Binding DataContext.HayPlacaCompartida, ElementName=LstCamiones}" Value="False">
-                                                                <Setter TargetName="Cab" Property="Visibility" Value="Collapsed"/>
-                                                                <Setter TargetName="Tarjeta" Property="Margin" Value="0"/>
-                                                                <Setter TargetName="Tarjeta" Property="BorderThickness" Value="0"/>
-                                                                <Setter TargetName="Tarjeta" Property="CornerRadius" Value="0"/>
-                                                                <Setter TargetName="Tarjeta" Property="Effect" Value="{x:Null}"/>
-                                                            </DataTrigger>
-                                                            <!-- Una sola recepción en ESTE grupo: no hay nada que atar,
-                                                                 aunque la tarjeta y el encabezado de arriba sí se
-                                                                 muestren. -->
-                                                            <DataTrigger Binding="{Binding ItemCount}" Value="1">
-                                                                <Setter TargetName="Barra" Property="Visibility" Value="Collapsed"/>
-                                                            </DataTrigger>
-                                                        </ControlTemplate.Triggers>
-                                                    </ControlTemplate>
-                                                </Setter.Value>
-                                            </Setter>
-                                        </Style>
-                                    </GroupStyle.ContainerStyle>
-                                </GroupStyle>
-                            </ListBox.GroupStyle>
-                            <ListBox.ItemContainerStyle>
-                                <Style TargetType="ListBoxItem">
-                                    <Setter Property="Padding" Value="0"/>
-                                    <Setter Property="Margin" Value="0"/>
-                                    <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
-                                    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-                                    <Setter Property="Template">
-                                        <Setter.Value>
-                                            <ControlTemplate TargetType="ListBoxItem">
-                                                <Border x:Name="B" Background="White" BorderBrush="#EEF2F8" BorderThickness="0,0,0,1">
-                                                    <Grid>
-                                                        <!-- Verde y no el azul de marca: mismo criterio que PgRow
-                                                             (tabla de Movimiento) — selección en verde, hover se
-                                                             queda en celeste (#EAF1FB). -->
-                                                        <Border x:Name="Sel" Width="3" HorizontalAlignment="Left" Background="#16A34A" Visibility="Collapsed"/>
-                                                        <ContentPresenter/>
-                                                    </Grid>
-                                                </Border>
-                                                <ControlTemplate.Triggers>
-                                                    <Trigger Property="ItemsControl.AlternationIndex" Value="1">
-                                                        <Setter TargetName="B" Property="Background" Value="#F5F8FC"/>
-                                                    </Trigger>
-                                                    <Trigger Property="IsMouseOver" Value="True">
-                                                        <Setter TargetName="B" Property="Background" Value="#EAF1FB"/>
-                                                    </Trigger>
-                                                    <Trigger Property="IsSelected" Value="True">
-                                                        <Setter TargetName="B" Property="Background" Value="#DCFCE7"/>
-                                                        <Setter TargetName="Sel" Property="Visibility" Value="Visible"/>
-                                                    </Trigger>
-                                                </ControlTemplate.Triggers>
-                                            </ControlTemplate>
-                                        </Setter.Value>
-                                    </Setter>
-                                </Style>
-                            </ListBox.ItemContainerStyle>
-                            <ListBox.ItemTemplate>
-                                <DataTemplate>
-                                    <!-- Margin="14,0,14,0": mismo inset horizontal a los dos lados.
-                                         La scrollbar de la lista es Auto (arriba, LstCamiones) — solo
-                                         reserva su ancho cuando hace falta scrollear, así que en el
-                                         caso normal (todo entra sin scroll) los dos lados quedan
-                                         simétricos de verdad, sin compensar un ancho de scrollbar a mano. -->
-                                    <Grid Height="46" Margin="14,0,14,0">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="44"/>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="78"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                        </Grid.ColumnDefinitions>
-                                        <Border Style="{StaticResource CodeChip}" Grid.Column="0">
-                                            <TextBlock Text="{Binding Id}" FontFamily="Consolas" FontSize="13.5" FontWeight="Bold" Foreground="{DynamicResource EmpresaPrimaryBrush}"/>
-                                        </Border>
-                                        <!-- Con la placa compartida, lo que distingue a cada fila ya
-                                             NO es la placa (es la misma, y está en el encabezado del
-                                             grupo) sino el proveedor: se oculta la placa y el
-                                             proveedor toma el estilo primario que ella tenía. -->
-                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="6,0">
-                                            <!-- El header de arriba ya muestra la placa apenas hay algún
-                                                 camión agrupado en la lista (HayPlacaCompartida), así que la
-                                                 fila deja de repetirla — no solo cuando ESTE camión puntual
-                                                 comparte placa (PlacaCompartida), sino siempre que el header
-                                                 esté visible para cualquier camión de la lista. -->
-                                            <TextBlock Text="{Binding Placa}" FontFamily="Segoe UI" FontSize="15" FontWeight="Bold" Foreground="#1A1F2E">
-                                                <TextBlock.Style>
-                                                    <Style TargetType="TextBlock">
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding DataContext.HayPlacaCompartida, ElementName=LstCamiones}" Value="True">
-                                                                <Setter Property="Visibility" Value="Collapsed"/>
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </TextBlock.Style>
-                                            </TextBlock>
-                                            <TextBlock Text="{Binding Proveedor}" TextTrimming="CharacterEllipsis">
-                                                <TextBlock.Style>
-                                                    <Style TargetType="TextBlock">
-                                                        <Setter Property="FontFamily" Value="Segoe UI"/>
-                                                        <Setter Property="FontSize" Value="13"/>
-                                                        <Setter Property="Foreground" Value="#6B7280"/>
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding DataContext.HayPlacaCompartida, ElementName=LstCamiones}" Value="True">
-                                                                <Setter Property="FontSize" Value="15"/>
-                                                                <Setter Property="FontWeight" Value="Bold"/>
-                                                                <Setter Property="Foreground" Value="#1A1F2E"/>
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </TextBlock.Style>
-                                            </TextBlock>
-                                        </StackPanel>
-                                        <Border Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Center"
-                                                CornerRadius="999" Padding="8,3">
-                                            <Border.Style>
-                                                <Style TargetType="Border">
-                                                    <Setter Property="Background" Value="#F3F4F6"/>
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding Estado}" Value="Abierto">
-                                                            <Setter Property="Background" Value="#ECFDF5"/>
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </Border.Style>
-                                            <StackPanel Orientation="Horizontal">
-                                                <Border Width="6" Height="6" CornerRadius="3" Margin="0,0,5,0" VerticalAlignment="Center">
+                            </ScrollViewer.Resources>
+                            <ItemsControl ItemsSource="{Binding GruposCamiones}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Margin="0,0,0,1" BorderBrush="#E2E8F0" BorderThickness="0,0,0,1">
+                                            <Grid>
+                                                <!-- Barra vertical continua verde para camión seleccionado -->
+                                                <Border Width="3.5" HorizontalAlignment="Left" Background="#16A34A" Panel.ZIndex="10">
                                                     <Border.Style>
                                                         <Style TargetType="Border">
-                                                            <Setter Property="Background" Value="#9CA3AF"/>
+                                                            <Setter Property="Visibility" Value="Collapsed"/>
                                                             <Style.Triggers>
-                                                                <DataTrigger Binding="{Binding Estado}" Value="Abierto">
-                                                                    <Setter Property="Background" Value="#10B981"/>
+                                                                <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                                                    <Setter Property="Visibility" Value="Visible"/>
                                                                 </DataTrigger>
                                                             </Style.Triggers>
                                                         </Style>
                                                     </Border.Style>
                                                 </Border>
-                                                <TextBlock Text="{Binding Estado}" FontFamily="Segoe UI" FontSize="13.5" FontWeight="Bold" VerticalAlignment="Center">
-                                                    <TextBlock.Style>
-                                                        <Style TargetType="TextBlock">
-                                                            <Setter Property="Foreground" Value="#6B7280"/>
-                                                            <Style.Triggers>
-                                                                <DataTrigger Binding="{Binding Estado}" Value="Abierto">
-                                                                    <Setter Property="Foreground" Value="#047857"/>
-                                                                </DataTrigger>
-                                                            </Style.Triggers>
-                                                        </Style>
-                                                    </TextBlock.Style>
-                                                </TextBlock>
-                                            </StackPanel>
+
+                                                <StackPanel Margin="0">
+                                                    <!-- Fila Padre: Cabecera del Camión -->
+                                                    <Border Height="38" Padding="6,0" Cursor="Hand"
+                                                            Tag="{Binding}"
+                                                            MouseLeftButtonDown="GrupoCamion_Click">
+                                                        <Border.Style>
+                                                            <Style TargetType="Border">
+                                                                <Setter Property="Background" Value="#F8FAFC"/>
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                                                        <Setter Property="Background" Value="#EAF7EE"/>
+                                                                    </DataTrigger>
+                                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                                        <Setter Property="Background" Value="#F1F5F9"/>
+                                                                    </Trigger>
+                                                                    <MultiDataTrigger>
+                                                                        <MultiDataTrigger.Conditions>
+                                                                            <Condition Binding="{Binding IsSelected}" Value="True"/>
+                                                                            <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource Self}}" Value="True"/>
+                                                                        </MultiDataTrigger.Conditions>
+                                                                        <Setter Property="Background" Value="#DCFCE7"/>
+                                                                    </MultiDataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </Border.Style>
+                                                        <Grid>
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="26"/>
+                                                                <ColumnDefinition Width="*"/>
+                                                                <ColumnDefinition Width="70"/>
+                                                                <ColumnDefinition Width="78"/>
+                                                                <ColumnDefinition Width="34"/>
+                                                            </Grid.ColumnDefinitions>
+
+                                                            <!-- Número # -->
+                                                            <TextBlock Grid.Column="0" Text="{Binding Numero}" FontFamily="Segoe UI" FontSize="13" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                                <TextBlock.Style>
+                                                                    <Style TargetType="TextBlock">
+                                                                        <Setter Property="Foreground" Value="#64748B"/>
+                                                                        <Style.Triggers>
+                                                                            <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                                                                <Setter Property="Foreground" Value="#15803D"/>
+                                                                            </DataTrigger>
+                                                                        </Style.Triggers>
+                                                                    </Style>
+                                                                </TextBlock.Style>
+                                                            </TextBlock>
+
+                                                            <!-- Ícono de camión + Placa -->
+                                                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="6,0,0,0">
+                                                                <Path Data="{StaticResource IcoTruck}"
+                                                                      StrokeThickness="1.8" Width="14" Height="14" Stretch="Uniform"
+                                                                      Margin="0,0,6,0" VerticalAlignment="Center"
+                                                                      StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round">
+                                                                    <Path.Style>
+                                                                        <Style TargetType="Path">
+                                                                            <Setter Property="Stroke" Value="#64748B"/>
+                                                                            <Style.Triggers>
+                                                                                <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                                                                    <Setter Property="Stroke" Value="#15803D"/>
+                                                                                </DataTrigger>
+                                                                            </Style.Triggers>
+                                                                        </Style>
+                                                                    </Path.Style>
+                                                                </Path>
+                                                                <TextBlock Text="{Binding Placa}" FontFamily="Segoe UI" FontSize="13" FontWeight="Bold" VerticalAlignment="Center">
+                                                                    <TextBlock.Style>
+                                                                        <Style TargetType="TextBlock">
+                                                                            <Setter Property="Foreground" Value="#0F172A"/>
+                                                                            <Style.Triggers>
+                                                                                <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                                                                    <Setter Property="Foreground" Value="#15803D"/>
+                                                                                </DataTrigger>
+                                                                            </Style.Triggers>
+                                                                        </Style>
+                                                                    </TextBlock.Style>
+                                                                </TextBlock>
+                                                            </StackPanel>
+
+                                                            <!-- Total KG -->
+                                                            <TextBlock Grid.Column="2" Text="{Binding TotalKgTexto}" FontFamily="Segoe UI" FontSize="12.5" FontWeight="Bold"
+                                                                       HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,4,0">
+                                                                <TextBlock.Style>
+                                                                    <Style TargetType="TextBlock">
+                                                                        <Setter Property="Foreground" Value="#1E293B"/>
+                                                                        <Style.Triggers>
+                                                                            <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                                                                <Setter Property="Foreground" Value="#15803D"/>
+                                                                            </DataTrigger>
+                                                                        </Style.Triggers>
+                                                                    </Style>
+                                                                </TextBlock.Style>
+                                                            </TextBlock>
+
+                                                            <!-- Badge Estado (ej. • Abierto) -->
+                                                            <Border Grid.Column="3" CornerRadius="999" Padding="6,2" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                                    Background="#ECFDF5" BorderBrush="#A7F3D0" BorderThickness="1">
+                                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                                    <Border Width="6" Height="6" CornerRadius="3" Background="#10B981" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                                                    <TextBlock Text="{Binding Estado}" FontFamily="Segoe UI" FontSize="11.5" FontWeight="Bold" Foreground="#065F46" VerticalAlignment="Center"/>
+                                                                </StackPanel>
+                                                            </Border>
+
+                                                            <!-- Papelera del camión completo -->
+                                                            <Button Grid.Column="4" Style="{StaticResource BasureroCelda}"
+                                                                    HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                                    Tag="{Binding}" Click="BtnQuitarGrupo_Click"
+                                                                    IsEnabled="{Binding PuedeQuitar}"
+                                                                    ToolTip="{Binding MotivoQuitar}"
+                                                                    ToolTipService.ShowOnDisabled="True"
+                                                                    permisos:PermisoBehavior.Requiere="Cancelar Pesaje"/>
+                                                        </Grid>
+                                                    </Border>
+
+                                                    <!-- Filas Hijas: Recepciones / Proveedores -->
+                                                    <ItemsControl ItemsSource="{Binding Recepciones}">
+                                                        <ItemsControl.ItemTemplate>
+                                                            <DataTemplate>
+                                                                <Border Height="34" Padding="6,0" Cursor="Hand"
+                                                                        BorderBrush="#EEF2F8" BorderThickness="0,1,0,0"
+                                                                        Tag="{Binding}"
+                                                                        MouseLeftButtonDown="RecepcionProveedor_Click">
+                                                                    <Border.Style>
+                                                                        <Style TargetType="Border">
+                                                                            <Setter Property="Background" Value="White"/>
+                                                                            <Style.Triggers>
+                                                                                <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                                                                    <Setter Property="Background" Value="#F0FDF4"/>
+                                                                                </DataTrigger>
+                                                                                <Trigger Property="IsMouseOver" Value="True">
+                                                                                    <Setter Property="Background" Value="#F8FAFC"/>
+                                                                                </Trigger>
+                                                                                <MultiDataTrigger>
+                                                                                    <MultiDataTrigger.Conditions>
+                                                                                        <Condition Binding="{Binding IsSelected}" Value="True"/>
+                                                                                        <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource Self}}" Value="True"/>
+                                                                                    </MultiDataTrigger.Conditions>
+                                                                                    <Setter Property="Background" Value="#DCFCE7"/>
+                                                                                </MultiDataTrigger>
+                                                                            </Style.Triggers>
+                                                                        </Style>
+                                                                    </Border.Style>
+                                                                    <Grid>
+                                                                        <Grid.ColumnDefinitions>
+                                                                            <ColumnDefinition Width="26"/>
+                                                                            <ColumnDefinition Width="*"/>
+                                                                            <ColumnDefinition Width="70"/>
+                                                                            <ColumnDefinition Width="78"/>
+                                                                            <ColumnDefinition Width="34"/>
+                                                                        </Grid.ColumnDefinitions>
+
+                                                                        <!-- Viñeta y Proveedor -->
+                                                                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="14,0,0,0">
+                                                                            <TextBlock Text="•" FontFamily="Segoe UI" FontSize="13" FontWeight="Bold" Margin="0,0,5,0">
+                                                                                <TextBlock.Style>
+                                                                                    <Style TargetType="TextBlock">
+                                                                                        <Setter Property="Foreground" Value="#94A3B8"/>
+                                                                                        <Style.Triggers>
+                                                                                            <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                                                                                <Setter Property="Foreground" Value="#16A34A"/>
+                                                                                            </DataTrigger>
+                                                                                        </Style.Triggers>
+                                                                                    </Style>
+                                                                                </TextBlock.Style>
+                                                                            </TextBlock>
+                                                                            <TextBlock Text="{Binding Proveedor}" FontFamily="Segoe UI" FontSize="12.5" FontWeight="SemiBold"
+                                                                                       TextTrimming="CharacterEllipsis" VerticalAlignment="Center">
+                                                                                <TextBlock.Style>
+                                                                                    <Style TargetType="TextBlock">
+                                                                                        <Setter Property="Foreground" Value="#334155"/>
+                                                                                        <Style.Triggers>
+                                                                                            <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                                                                                <Setter Property="Foreground" Value="#15803D"/>
+                                                                                                <Setter Property="FontWeight" Value="Bold"/>
+                                                                                            </DataTrigger>
+                                                                                        </Style.Triggers>
+                                                                                    </Style>
+                                                                                </TextBlock.Style>
+                                                                            </TextBlock>
+                                                                        </StackPanel>
+
+                                                                        <!-- KG del Proveedor -->
+                                                                        <TextBlock Grid.Column="2" Text="{Binding TotalKgTexto}" FontFamily="Segoe UI" FontSize="12"
+                                                                                   HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,4,0">
+                                                                            <TextBlock.Style>
+                                                                                <Style TargetType="TextBlock">
+                                                                                    <Setter Property="Foreground" Value="#475569"/>
+                                                                                    <Style.Triggers>
+                                                                                        <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                                                                            <Setter Property="Foreground" Value="#15803D"/>
+                                                                                            <Setter Property="FontWeight" Value="Bold"/>
+                                                                                        </DataTrigger>
+                                                                                    </Style.Triggers>
+                                                                                </Style>
+                                                                            </TextBlock.Style>
+                                                                        </TextBlock>
+
+                                                                        <!-- Papelera de esta recepción específica -->
+                                                                        <Button Grid.Column="4" Style="{StaticResource BasureroCelda}"
+                                                                                HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                                                Tag="{Binding}" Click="BtnQuitarRecepcion_Click"
+                                                                                IsEnabled="{Binding PuedeQuitar}"
+                                                                                ToolTip="{Binding MotivoQuitar}"
+                                                                                ToolTipService.ShowOnDisabled="True"
+                                                                                permisos:PermisoBehavior.Requiere="Cancelar Pesaje"/>
+                                                                    </Grid>
+                                                                </Border>
+                                                            </DataTemplate>
+                                                        </ItemsControl.ItemTemplate>
+                                                    </ItemsControl>
+                                                </StackPanel>
+                                            </Grid>
                                         </Border>
-                                        <!-- Basurero de la fila: reemplaza al botón "Quitar" que antes
-                                             vivía aparte en la toolbar de abajo. Tag="{Binding}" lleva el
-                                             camión de ESTA fila al handler, sin depender de la selección. -->
-                                        <Button Grid.Column="3" Style="{StaticResource BasureroCelda}" Margin="8,0,0,0"
-                                                VerticalAlignment="Center"
-                                                Tag="{Binding}" Click="QuitarCamion_Click"
-                                                IsEnabled="{Binding PuedeQuitar}"
-                                                ToolTip="{Binding MotivoQuitar}"
-                                                ToolTipService.ShowOnDisabled="True"
-                                                permisos:PermisoBehavior.Requiere="Cancelar Pesaje"/>
-                                    </Grid>
-                                </DataTemplate>
-                            </ListBox.ItemTemplate>
-                        </ListBox>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
 
                         <!-- Toolbar camiones — un solo botón de edición: abre el megamodal
                              con todo el proceso (camión + productos). "Quitar" ya no vive
@@ -740,7 +743,7 @@
                              Una sola fila de tres celdas iguales: con los textos cortos
                              entran holgados en el ancho de la columna, y las acciones
                              quedan a la vista sin segunda fila. UniformGrid y no WrapPanel -->
-                        <WrapPanel Grid.Row="2" Margin="12,8">
+                        <WrapPanel Grid.Row="3" Margin="12,8">
                             <Button x:Name="BtnCamionAgregar" Style="{StaticResource ToolSuccess}" Margin="0,0,6,4" Click="BtnNuevoProceso_Click" permisos:PermisoBehavior.Requiere="Registrar Entrada" ToolTip="Iniciar un nuevo proceso de descarga">
                                 <StackPanel Orientation="Horizontal">
                                     <Path Data="{StaticResource IcoPlus}" Stroke="White" StrokeThickness="2.2" Width="13" Height="13" Stretch="Uniform" Margin="0,0,7,0" VerticalAlignment="Center" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
@@ -771,16 +774,17 @@
                 <Grid Grid.Row="2" ClipToBounds="True">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
-                        <Border Grid.Row="0" Padding="14,11" BorderBrush="#EEF2F8" BorderThickness="0,0,0,1">
-                            <Grid>
+                        <Border Grid.Row="0" Height="42" Padding="14,0" BorderBrush="#EEF2F8" BorderThickness="0,0,0,1">
+                            <Grid VerticalAlignment="Center">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                <StackPanel Grid.Column="0" Orientation="Horizontal">
+                                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
                                     <TextBlock Text="Movimiento de Materia Prima" Style="{StaticResource PanelTitle}"/>
                                     <Border Background="#EFF6FF" CornerRadius="999" Padding="7,1" Margin="8,0,0,0" VerticalAlignment="Center">
                                         <TextBlock Text="{Binding SelectedCamion.Productos.Count}" FontFamily="Segoe UI" FontSize="12.5" FontWeight="Bold" Foreground="{DynamicResource EmpresaPrimaryBrush}"/>
@@ -949,7 +953,7 @@
                             </Border>
                         </Grid>
 
-                        <WrapPanel Grid.Row="2" Margin="12,8">
+                        <WrapPanel Grid.Row="3" Margin="12,8">
                             <Button x:Name="BtnProdAgregar" Style="{StaticResource ToolSuccess}" Margin="0,0,6,4" Click="BtnProdAgregar_Click" ToolTip="Agregar un producto al camión">
                                 <StackPanel Orientation="Horizontal">
                                     <Path Data="{StaticResource IcoPlus}" Stroke="White" StrokeThickness="2.2" Width="13" Height="13" Stretch="Uniform" Margin="0,0,7,0" VerticalAlignment="Center" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
@@ -960,12 +964,6 @@
                                 <StackPanel Orientation="Horizontal">
                                     <Path Data="{StaticResource IcoPencil}" Stroke="White" StrokeThickness="2" Width="13" Height="13" Stretch="Uniform" Margin="0,0,7,0" VerticalAlignment="Center" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
                                     <TextBlock Text="Editar" VerticalAlignment="Center"/>
-                                </StackPanel>
-                            </Button>
-                            <Button x:Name="BtnProdPesar" Style="{StaticResource ToolPrimary}" Margin="0,0,6,4" Click="BtnProdPesar_Click">
-                                <StackPanel Orientation="Horizontal">
-                                     <Path Data="{StaticResource IcoScale}" Fill="White" Width="13" Height="13" Stretch="Uniform" Margin="0,0,7,0" VerticalAlignment="Center"/>
-                                    <TextBlock Text="Pesar" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>
                             <Button x:Name="BtnProdCerrar" Style="{StaticResource ToolWarn}" Margin="0,0,0,4" Click="BtnProdCerrar_Click">
@@ -992,9 +990,9 @@
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
-                    <Border Grid.Row="0" Padding="14,11" BorderBrush="#EEF2F8" BorderThickness="0,0,0,1">
-                        <Grid>
-                            <StackPanel Orientation="Horizontal">
+                    <Border Grid.Row="0" Height="42" Padding="14,0" BorderBrush="#EEF2F8" BorderThickness="0,0,0,1">
+                        <Grid VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                 <TextBlock Text="Entradas de M. Prima" Style="{StaticResource PanelTitle}"/>
                                 <Border Background="#EFF6FF" CornerRadius="999" Padding="7,1" Margin="8,0,0,0" VerticalAlignment="Center">
                                     <TextBlock Text="{Binding FilasEntradas.Count}" FontFamily="Segoe UI" FontSize="12.5" FontWeight="Bold" Foreground="{DynamicResource EmpresaPrimaryBrush}"/>
@@ -1007,7 +1005,7 @@
                                            VerticalAlignment="Center" Margin="12,0,0,0"
                                            TextTrimming="CharacterEllipsis" MaxWidth="260"/>
                             </StackPanel>
-                            <Border HorizontalAlignment="Right" Background="#F7F9FC" BorderBrush="#D8E1EC" BorderThickness="1" CornerRadius="7" Padding="2">
+                            <Border HorizontalAlignment="Right" VerticalAlignment="Center" Background="#F7F9FC" BorderBrush="#D8E1EC" BorderThickness="1" CornerRadius="6" Padding="2">
                                 <StackPanel Orientation="Horizontal">
                                     <RadioButton x:Name="RbVistaProducto" GroupName="VistaEntradas" Style="{StaticResource SegBtn}" Content="Producto actual" IsChecked="True" Checked="RbVista_Changed"
                                                  ToolTipService.ShowOnDisabled="True"/>
@@ -1023,7 +1021,7 @@
                              hay datos", es "todavía no empezaste a pesar". Va por encima de la
                              grilla y no la reemplaza, así los encabezados siguen a la vista. -->
                         <controls:EmptyStateOverlay x:Name="EntEmpty" Panel.ZIndex="5"
-                                                    HeaderOffset="44"
+                                                    HeaderOffset="28"
                                                     Icono="{StaticResource IcoScale}"
                                                     IconoEsRelleno="True"
                                                     Mensaje="Aún no hay pesajes registrados"/>
@@ -1264,6 +1262,13 @@
                     </Border>
 
                     <WrapPanel Grid.Row="4" Margin="12,9">
+                        <Button x:Name="BtnProdPesar" Style="{StaticResource ToolPrimary}" Margin="0,0,8,0"
+                                Click="BtnProdPesar_Click" ToolTipService.ShowOnDisabled="True">
+                            <StackPanel Orientation="Horizontal">
+                                <Path Data="{StaticResource IcoScale}" Fill="White" Width="13" Height="13" Stretch="Uniform" Margin="0,0,7,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Pesar" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
                         <!-- La tara extra (tarimas) se pesa aparte y se reparte entre las
                              pesadas ya registradas del producto o de todo el camión: vive
                              acá, junto a la grilla de esas pesadas. -->

@@ -52,6 +52,7 @@ public partial class ProveedoresViewModel : RealtimeAwareViewModel
     [NotifyCanExecuteChangedFor(nameof(PaginaAnteriorCommand))]
     [NotifyCanExecuteChangedFor(nameof(PaginaSiguienteCommand))]
     [NotifyCanExecuteChangedFor(nameof(UltimaPaginaCommand))]
+    [NotifyPropertyChangedFor(nameof(NoResults), nameof(MensajeSinResultados))]
     private bool _isLoading;
     [ObservableProperty] private int    _highlightIndex = -1;
     [ObservableProperty] private int    _totalCount;
@@ -65,7 +66,33 @@ public partial class ProveedoresViewModel : RealtimeAwareViewModel
         : $"{Seleccionado.Nombre} · {Seleccionado.Rtn}";
 
     public int  TotalPages => Math.Max(1, (int)Math.Ceiling(_filteredCount / (double)PageSize));
-    public bool NoResults  => !IsLoading && ((_filteredCount == 0 && TotalCount > 0) || !string.IsNullOrWhiteSpace(ErrorCarga));
+    public bool NoResults  => !IsLoading && (_filteredCount == 0 || !string.IsNullOrWhiteSpace(ErrorCarga));
+
+    public string MensajeSinResultados
+    {
+        get
+        {
+            if (IsLoading) return string.Empty;
+
+            if (!string.IsNullOrWhiteSpace(ErrorCarga))
+                return $"Error al cargar: {ErrorCarga}";
+
+            if (_estadoFiltro == EstadoFilter.Inactivos)
+                return "No hay registros inactivos";
+
+            if (_estadoFiltro == EstadoFilter.Activos && ActivosCount == 0 && TotalCount > 0)
+                return "No hay registros activos";
+
+            if (TieneFiltrosBusquedaActivos())
+                return "No se encontraron resultados con los filtros actuales";
+
+            return "No hay registros";
+        }
+    }
+
+    private bool TieneFiltrosBusquedaActivos() =>
+        !string.IsNullOrWhiteSpace(_query);
+
     public string PageInfo
     {
         get
@@ -185,6 +212,7 @@ public partial class ProveedoresViewModel : RealtimeAwareViewModel
             ErrorCarga = "La carga tardó demasiado. Intente de nuevo.";
             PageRows = new ObservableCollection<ProveedorDto>();
             OnPropertyChanged(nameof(NoResults));
+            OnPropertyChanged(nameof(MensajeSinResultados));
             IsLoading  = false;
             return;
         }
@@ -200,6 +228,7 @@ public partial class ProveedoresViewModel : RealtimeAwareViewModel
             ErrorCarga = r.Error;
             PageRows = new ObservableCollection<ProveedorDto>();
             OnPropertyChanged(nameof(NoResults));
+            OnPropertyChanged(nameof(MensajeSinResultados));
             IsLoading  = false;
             return;
         }
@@ -216,6 +245,7 @@ public partial class ProveedoresViewModel : RealtimeAwareViewModel
         OnPropertyChanged(nameof(TotalPages));
         OnPropertyChanged(nameof(PageInfo));
         OnPropertyChanged(nameof(NoResults));
+        OnPropertyChanged(nameof(MensajeSinResultados));
         NotifyPaginationCanExecuteChanged();
         IsLoading = false;
 
@@ -431,6 +461,7 @@ public partial class ProveedoresViewModel : RealtimeAwareViewModel
             OnPropertyChanged(nameof(TotalPages));
             OnPropertyChanged(nameof(PageInfo));
             OnPropertyChanged(nameof(NoResults));
+            OnPropertyChanged(nameof(MensajeSinResultados));
             NotifyPaginationCanExecuteChanged();
         }
         catch (Exception ex)
@@ -464,6 +495,7 @@ public partial class ProveedoresViewModel : RealtimeAwareViewModel
         OnPropertyChanged(nameof(TotalPages));
         OnPropertyChanged(nameof(PageInfo));
         OnPropertyChanged(nameof(NoResults));
+        OnPropertyChanged(nameof(MensajeSinResultados));
         NotifyPaginationCanExecuteChanged();
     }
 

@@ -9,7 +9,9 @@
              Width="480"
              Height="480"
              d:DesignWidth="480"
-             d:DesignHeight="480"
+             d:DesignHeight="480"
+
+
              UseLayoutRounding="True"
              TextOptions.TextRenderingMode="Grayscale"
              TextOptions.TextFormattingMode="Display">
@@ -119,19 +121,21 @@
 
                 <!-- Contenido -->
                 <StackPanel Margin="28,20,28,10">
-                    <TextBlock Text="Proveedor" Style="{StaticResource MLabel}"/>
-                    <Grid Margin="0,0,0,16">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBox Grid.Column="0" x:Name="TxtProveedor" Style="{StaticResource MInput}" IsReadOnly="True"
-                                 Cursor="Hand" PreviewMouseDoubleClick="TxtCatalogo_PreviewMouseDoubleClick"
-                                 KeyDown="TxtCatalogo_KeyDown" Tag="{Binding ElementName=BtnBuscarProveedor}"
-                                 controls:Placeholder.Texto="Seleccioná un proveedor…"/>
-                        <Button Grid.Column="1" x:Name="BtnBuscarProveedor" Style="{StaticResource LupaBtnOscuro}"
-                                Click="BuscarProveedor_Click" ToolTip="Seleccionar proveedor"/>
-                    </Grid>
+                    <StackPanel x:Name="PanelProveedor">
+                        <TextBlock Text="Proveedor" Style="{StaticResource MLabel}"/>
+                        <Grid Margin="0,0,0,16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox Grid.Column="0" x:Name="TxtProveedor" Style="{StaticResource MInput}" IsReadOnly="True"
+                                     Cursor="Hand" PreviewMouseDoubleClick="TxtCatalogo_PreviewMouseDoubleClick"
+                                     KeyDown="TxtCatalogo_KeyDown" Tag="{Binding ElementName=BtnBuscarProveedor}"
+                                     controls:Placeholder.Texto="Seleccioná un proveedor…"/>
+                            <Button Grid.Column="1" x:Name="BtnBuscarProveedor" Style="{StaticResource LupaBtnOscuro}"
+                                    Click="BuscarProveedor_Click" ToolTip="Seleccionar proveedor"/>
+                        </Grid>
+                    </StackPanel>
 
                     <TextBlock Text="Placa del vehículo" Style="{StaticResource MLabel}"/>
                     <Grid Margin="0,0,0,16">

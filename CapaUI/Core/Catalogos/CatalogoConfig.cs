@@ -109,10 +109,15 @@ public static class Catalogos
         (t, p, s, ct) => r.GetPaisesAsync(t, p, s, ct),
         MostrarEstado: false);
 
-    public static CatalogoConfig Proveedores(ICatalogoRepository r) => new(
+    public static CatalogoConfig Proveedores(
+        ICatalogoRepository r,
+        bool permiteMultiple = false,
+        Func<int?, bool>? estaYaElegido = null) => new(
         "proveedores", "Seleccionar proveedor", "Buscar proveedor...",
         (t, p, s, ct) => r.GetProveedoresAsync(t, p, s, ct),
-        MostrarDescripcion: true, TituloDescripcion: "RTN");
+        MostrarDescripcion: true, TituloDescripcion: "RTN",
+        PermiteMultiple: permiteMultiple,
+        EstaYaElegido: estaYaElegido);
 
     /// <summary>
     /// Productos, opcionalmente acotados a un proveedor — mismo patrón de

@@ -1,4 +1,4 @@
-﻿using CapaAplicacion.Common;
+using CapaAplicacion.Common;
 using CapaAplicacion.Conexion;
 using CapaAplicacion.Pesaje.Dtos;
 using CapaAplicacion.Pesaje.Interfaces;
@@ -216,12 +216,12 @@ public class PesajeRepository : RepositorioBase, IPesajeRepository
     /// lista. Existe porque la pantalla solo carga los productos del camión seleccionado:
     /// sin esto, el basurero de los demás camiones no sabría si la recepción está vacía.
     /// </summary>
-    public Task<Result<IReadOnlyDictionary<int, int>>> ContarProductosPorCamionAsync(
+    public Task<Result<IReadOnlyDictionary<int, (int Conteo, double TotalKg)>>> ContarProductosPorCamionAsync(
         IReadOnlyList<int> idsMovimiento, CancellationToken ct = default)
     {
         if (idsMovimiento is null || idsMovimiento.Count == 0)
-            return Task.FromResult(Result<IReadOnlyDictionary<int, int>>.Ok(
-                new Dictionary<int, int>()));
+            return Task.FromResult(Result<IReadOnlyDictionary<int, (int Conteo, double TotalKg)>>.Ok(
+                new Dictionary<int, (int Conteo, double TotalKg)>()));
 
         return TryAsync(async () =>
         {
@@ -229,14 +229,16 @@ public class PesajeRepository : RepositorioBase, IPesajeRepository
             var client = await ConexionSupabase.GetClientAsync();
 
             var res = await client.From<MovimientoProducto>()
-                .Select("id_mov_producto,id_movimiento")
+                .Select("id_mov_producto,id_movimiento,peso_manifestado")
                 .Filter("id_movimiento", Op.In, idsMovimiento.Cast<object>().ToList())
                 .Filter("id_estado", Op.In, new List<object> { EstadosPesaje.Abierto, EstadosPesaje.Cerrado })
                 .Get();
 
-            IReadOnlyDictionary<int, int> conteo = (res?.Models ?? new())
+            IReadOnlyDictionary<int, (int Conteo, double TotalKg)> conteo = (res?.Models ?? new())
                 .GroupBy(mp => mp.idMovimiento)
-                .ToDictionary(g => g.Key, g => g.Count());
+                .ToDictionary(
+                    g => g.Key,
+                    g => (g.Count(), (double)g.Sum(mp => mp.pesoManifestado)));
 
             return conteo;
         }, "Contar productos por camión");

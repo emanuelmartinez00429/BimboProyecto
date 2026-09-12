@@ -15,17 +15,17 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
     /// <summary>Lo que el modal devuelve al confirmarse.</summary>
     public record ResultadoCamion(string Placa, string Proveedor, int? IdProveedor, string Observaciones);
 
+    public record ResultadoEdicionPlaca(string Placa, string Observaciones);
+
     /// <summary>
     /// Alta o edición de UN camión — solo sus datos (proveedor, placa,
-    /// observaciones). Los productos ya no viven acá: se agregan/editan desde
-    /// la pantalla principal con <c>ProductosCargaModal</c>, uno a la
-    /// vez. Revive el split que existía antes de que ambos pasos se
-    /// unificaran en <c>ProcesoDescargaModal</c> (ver commit bf1117f).
+    /// observaciones). Soporta modo solo placa para modificar el vehículo físico.
     /// </summary>
     public partial class CamionModal : UserControl, IDisposable
     {
         private readonly CamionPesaje? _camion;   // null = alta
         private readonly ICatalogoRepository _catalogos = null!;
+        private readonly bool _soloPlaca;
 
         /// <summary>
         /// Recepciones abiertas al momento de abrir el modal. Solo se usan para avisar
@@ -37,23 +37,13 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
         private ProveedorItem? _proveedorSeleccionado;
         private bool _cargando = true;
 
-        /// <summary>
-        /// Tamaño propio del modal, leído del XAML al construirlo. El buscador de
-        /// catálogo necesita bastante más marco del que necesita este formulario, así
-        /// que mientras está abierto el modal crece y al cerrarlo vuelve acá. Se guarda
-        /// en vez de hardcodearse para que cambiar el tamaño en el XAML alcance.
-        /// </summary>
         private readonly double _anchoPropio;
         private readonly double _altoPropio;
 
         public event Action? Cerrado;
         public event Action<ResultadoCamion>? Confirmado;
+        public event Action<ResultadoEdicionPlaca>? ConfirmadoPlaca;
 
-        /// <summary>
-        /// Constructor sin parámetros solo para el diseñador de Visual Studio, que
-        /// instancia el control por acá. Deja los servicios en <c>null!</c> porque este
-        /// camino no opera el modal. Ver <c>ProductosCargaModal</c> y ADR-028.
-        /// </summary>
         public CamionModal()
         {
             _catalogos        = null!;
@@ -61,19 +51,32 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
             InitializeComponent();
         }
 
-        public CamionModal(CamionPesaje? camion, IReadOnlyList<CamionPesaje> camionesAbiertos)
+        public CamionModal(CamionPesaje? camion, IReadOnlyList<CamionPesaje> camionesAbiertos, bool soloPlaca = false)
         {
             InitializeComponent();
 
             _camion           = camion;
             _camionesAbiertos = camionesAbiertos;
+            _soloPlaca        = soloPlaca;
             _catalogos        = App.Services.GetRequiredService<ICatalogoRepository>();
 
             _anchoPropio = Width;
             _altoPropio  = Height;
 
-            if (_camion is null)
+            if (_soloPlaca)
             {
+                PanelProveedor.Visibility = Visibility.Collapsed;
+                TxtEyebrow.Text     = $"EDICIÓN · VEHÍCULO {_camion?.Placa}";
+                TxtTitulo.Text      = "Editar vehículo";
+                TxtBtnGuardar.Text  = "Guardar cambios";
+                TxtPie.Text         = "Modificar placa y observaciones del camión";
+
+                TxtPlaca.Text       = _camion?.Placa ?? "";
+                TxtObs.Text         = _camion?.Observaciones ?? "";
+            }
+            else if (_camion is null)
+            {
+                PanelProveedor.Visibility = Visibility.Visible;
                 TxtEyebrow.Text     = "NUEVO CAMIÓN";
                 TxtTitulo.Text      = "Registrar camión";
                 TxtBtnGuardar.Text  = "Registrar";
@@ -81,6 +84,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
             }
             else
             {
+                PanelProveedor.Visibility = Visibility.Visible;
                 TxtEyebrow.Text     = $"EDICIÓN · CAMIÓN {_camion.Placa}";
                 TxtTitulo.Text      = "Editar camión";
                 TxtBtnGuardar.Text  = "Guardar cambios";
@@ -98,25 +102,22 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
         }
 
         // ── Selector de catálogo (Proveedor) ────────────────────────────────
-        // El selector reemplaza todo el contenido del modal mientras está abierto
-        // (es "chromeless": hereda este marco, no tiene fondo ni tamaño propio), y
-        // el marco crece para que la tabla del buscador entre completa.
 
         private void BuscarProveedor_Click(object sender, RoutedEventArgs e)
         {
-            var selector = new SelectorCatalogoModal(Catalogos.Proveedores(_catalogos));
+            string placaActual = TxtPlaca.Text.Trim();
+            var config = Catalogos.Proveedores(_catalogos, estaYaElegido: id =>
+                id.HasValue && !string.IsNullOrEmpty(placaActual) && _camionesAbiertos.Any(c =>
+                    string.Equals(c.Placa?.Trim(), placaActual, StringComparison.OrdinalIgnoreCase) &&
+                    c.IdProveedor == id.Value));
+
+            var selector = new SelectorCatalogoModal(config);
             selector.Cerrado += CerrarSelectorCatalogo;
-            // NO se cierra el selector acá: lo cierra él mismo (evento Cerrado) apenas
-            // termina de emitir. Cerrar desde este handler lo dispone a mitad de su
-            // propio bucle de emisión y la excepción que sale de ahí se lleva la app
-            // puesta — no hay DispatcherUnhandledException que la ataje.
             selector.Seleccionado += item =>
             {
                 _proveedorSeleccionado = new ProveedorItem(item.Id ?? 0, item.Nombre);
                 TxtProveedor.Text      = item.Nombre;
                 Validar();
-                // El aviso depende del proveedor elegido: la misma placa con el MISMO
-                // proveedor sí sería un duplicado, con otro es una recepción aparte.
                 RevisarPlacaCompartida();
             };
 
@@ -137,19 +138,12 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
             AplicarMarcoSelector(false);
         }
 
-        /// <summary>
-        /// Marco grande mientras se ve la tabla del buscador, propio cuando se ve el
-        /// formulario. 720×780 es el tamaño con el que el buscador venía funcionando
-        /// dentro del megamodal. Los MaxWidth/MaxHeight del XAML siguen acotándolo
-        /// contra la ventana.
-        /// </summary>
         private void AplicarMarcoSelector(bool abierto)
         {
             Width  = abierto ? 720 : _anchoPropio;
             Height = abierto ? 780 : _altoPropio;
         }
 
-        /// <summary>Doble clic en el campo de solo lectura abre el selector.</summary>
         private void TxtCatalogo_PreviewMouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             if (sender is FrameworkElement campo && campo.Tag is Button lupa)
@@ -188,14 +182,10 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
             RevisarPlacaCompartida();
         }
 
-        /// <summary>
-        /// Avisa —sin bloquear— que la placa ya está abierta con OTRO proveedor. No es
-        /// un error: un camión que trae carga de dos proveedores se registra como dos
-        /// recepciones, una por proveedor, y así cada manifiesto se firma y se reporta
-        /// por separado. El aviso está para que no parezca un duplicado por error.
-        /// </summary>
         private void RevisarPlacaCompartida()
         {
+            if (_soloPlaca) { PanelAviso.Visibility = Visibility.Collapsed; return; }
+
             string placa = TxtPlaca.Text.Trim();
             if (placa.Length == 0) { PanelAviso.Visibility = Visibility.Collapsed; return; }
 
@@ -218,12 +208,27 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
 
         private void Validar()
         {
+            if (_soloPlaca)
+            {
+                bool okPlaca = !string.IsNullOrWhiteSpace(TxtPlaca.Text);
+                if (BtnGuardar != null) BtnGuardar.IsEnabled = okPlaca;
+                return;
+            }
+
             bool ok = _proveedorSeleccionado is not null && !string.IsNullOrWhiteSpace(TxtPlaca.Text);
             if (BtnGuardar != null) BtnGuardar.IsEnabled = ok;
         }
 
         private void Guardar_Click(object sender, RoutedEventArgs e)
         {
+            if (_soloPlaca)
+            {
+                if (string.IsNullOrWhiteSpace(TxtPlaca.Text)) return;
+                ConfirmadoPlaca?.Invoke(new ResultadoEdicionPlaca(
+                    TxtPlaca.Text.Trim(), TxtObs.Text?.Trim() ?? ""));
+                return;
+            }
+
             var prov = _proveedorSeleccionado;
             if (prov is null || string.IsNullOrWhiteSpace(TxtPlaca.Text)) return;
 

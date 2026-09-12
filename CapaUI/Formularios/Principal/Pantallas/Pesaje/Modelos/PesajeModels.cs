@@ -293,11 +293,48 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modelos
         /// <summary>Pesadas del camión entero (todos los productos) sin tara extra cargada.</summary>
         public int PesadasSinTaraExtra => Productos.Sum(p => p.PesadasSinTaraExtra);
 
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(TotalKgTexto))]
+        private double _totalKg;
+
+        public string TotalKgTexto => TotalKg > 0 ? $"{TotalKg:N0} kg" : "0 kg";
+
+        [ObservableProperty] private bool _isSelected;
+
         /// <summary>Recalcula los agregados que dependen de las entradas de los productos.</summary>
         public void NotificarTotales()
         {
             OnPropertyChanged(nameof(TaraExtraRegistrada));
             OnPropertyChanged(nameof(PesadasSinTaraExtra));
+            OnPropertyChanged(nameof(TotalKg));
+            OnPropertyChanged(nameof(TotalKgTexto));
+        }
+    }
+
+    public partial class GrupoCamionPesaje : ObservableObject
+    {
+        [ObservableProperty] private int _numero;
+        [ObservableProperty] private string _placa = "";
+        [ObservableProperty] private string _observaciones = "";
+        [ObservableProperty] private string _estado = "Abierto";
+        [ObservableProperty] private bool _isSelected;
+
+        public ObservableCollection<CamionPesaje> Recepciones { get; } = new();
+
+        public double TotalKg => Recepciones.Sum(r => r.TotalKg);
+        public string TotalKgTexto => TotalKg > 0 ? $"{TotalKg:N0} kg" : "0 kg";
+
+        public bool PuedeQuitar => Recepciones.Count > 0 && Recepciones.All(r => r.PuedeQuitar);
+        public string MotivoQuitar => PuedeQuitar
+            ? "Quitar camión y todas sus recepciones"
+            : "No se puede quitar: el camión tiene productos registrados";
+
+        public void NotificarTotales()
+        {
+            OnPropertyChanged(nameof(TotalKg));
+            OnPropertyChanged(nameof(TotalKgTexto));
+            OnPropertyChanged(nameof(PuedeQuitar));
+            OnPropertyChanged(nameof(MotivoQuitar));
         }
     }
 }

@@ -113,9 +113,9 @@
                                   StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
                         </Border>
                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                            <TextBlock Text="REGISTRO DE CAMIONES" FontFamily="Segoe UI" FontSize="11.5"
+                            <TextBlock x:Name="TxtEyebrow" Text="GESTIÓN DE CAMIONES" FontFamily="Segoe UI" FontSize="11.5"
                                        FontWeight="SemiBold" Foreground="#A6FFFFFF"/>
-                            <TextBlock Text="Nuevo proceso de descarga" FontFamily="Segoe UI" FontSize="21"
+                            <TextBlock x:Name="TxtTituloPrincipal" Text="Proceso de descarga · Andén" FontFamily="Segoe UI" FontSize="21"
                                        FontWeight="Bold" Foreground="White" Margin="0,2,0,0"/>
                         </StackPanel>
                         <Button Grid.Column="2" Style="{StaticResource CloseBtn}"
@@ -152,7 +152,7 @@
                                           RenderTransformOrigin="0.5,0.5" Visibility="Collapsed">
                                         <Path.RenderTransform><RotateTransform/></Path.RenderTransform>
                                     </Path>
-                                    <TextBlock x:Name="TxtBtnGuardar" Text="Guardar camiones" FontFamily="Segoe UI"
+                                    <TextBlock x:Name="TxtBtnGuardar" Text="Guardar cambios" FontFamily="Segoe UI"
                                                FontSize="14.5" FontWeight="Bold" Foreground="White"
                                                VerticalAlignment="Center"/>
                                 </StackPanel>
@@ -265,14 +265,15 @@
                                                     <StackPanel x:Name="CeldaPlaca" Grid.Column="1" Margin="0,0,10,0" Visibility="Collapsed">
                                                         <TextBox Style="{StaticResource CeldaInput}"
                                                                  Loaded="CajaPlaca_Loaded"
-                                                                 TextChanged="Placa_Changed"/>
+                                                                 TextChanged="Placa_Changed"
+                                                                 KeyDown="CajaPlaca_KeyDown"/>
                                                     </StackPanel>
 
                                                     <!-- Proveedor (solo lectura + lupa) -->
                                                     <Grid x:Name="CeldaProveedor" Grid.Column="2" Margin="0,0,10,0" Visibility="Collapsed">
                                                         <Grid.ColumnDefinitions>
-                                                            <ColumnDefinition Width="*"/>
-                                                            <ColumnDefinition Width="Auto"/>
+                                                             <ColumnDefinition Width="*"/>
+                                                             <ColumnDefinition Width="Auto"/>
                                                         </Grid.ColumnDefinitions>
                                                         <StackPanel Grid.Column="0">
                                                             <Grid>
@@ -294,7 +295,8 @@
                                                             <TextBox x:Name="CajaDescripcion" Style="{StaticResource CeldaInput}"
                                                                      Loaded="CajaDescripcion_Loaded"
                                                                      TextChanged="Descripcion_Changed"
-                                                                     LostFocus="Descripcion_LostFocus"/>
+                                                                     LostFocus="Descripcion_LostFocus"
+                                                                     KeyDown="CajaDescripcion_KeyDown"/>
                                                             <!-- Vista previa recortada: un TextBox no soporta TextTrimming, así
                                                                  que se tapa con un TextBlock idéntico mientras no tiene foco.
                                                                  Con foco se oculta y aparece el TextBox real para editar —
@@ -311,7 +313,8 @@
                                                     <!-- Basurero -->
                                                     <Button x:Name="BtnQuitarFila" Grid.Column="4" Style="{StaticResource BasureroCelda}"
                                                             Visibility="Collapsed" Click="QuitarFila_Click"
-                                                            ToolTip="Quitar este camión"/>
+                                                            IsEnabled="{Binding PuedeQuitar}"
+                                                            ToolTip="{Binding MotivoQuitar}"/>
                                                 </Grid>
                                             </Border>
 

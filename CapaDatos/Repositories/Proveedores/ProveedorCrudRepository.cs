@@ -50,7 +50,7 @@ public class ProveedorCrudRepository : RepositorioBase, IProveedorRepository
 
     public Task<Result<PagedResult<ProveedorDto>>> GetPagedAsync(
         int page, int size, ProveedorFiltros filtros, CancellationToken ct = default) =>
-        TryAsync(() => GetPagedInternal(page, size, filtros), "Cargar proveedores");
+        TryAsync(() => GetPagedInternal(page, size, filtros, ct), "Cargar proveedores");
 
     public Task<Result<IReadOnlyList<ProveedorDto>>> BuscarSugerenciasAsync(
         string termino, ProveedorFiltros filtros, CancellationToken ct = default)
@@ -158,7 +158,7 @@ public class ProveedorCrudRepository : RepositorioBase, IProveedorRepository
     // ── Lógica interna ────────────────────────────────────────────────────────
 
     private async Task<PagedResult<ProveedorDto>> GetPagedInternal(
-        int page, int size, ProveedorFiltros filtros)
+        int page, int size, ProveedorFiltros filtros, CancellationToken ct = default)
     {
         var client = await ConexionSupabase.GetClientAsync();
         var query  = AplicarFiltros(client.From<Prov>().Select("*"), filtros);
@@ -166,12 +166,17 @@ public class ProveedorCrudRepository : RepositorioBase, IProveedorRepository
         int from = (page - 1) * size;
         int to   = from + size - 1;
 
-        var pageTask    = query.Order("id_proveedor", Ord.Ascending).Range(from, to).Get();
-        var conteosTask = GetConteosRpcAsync(filtros, client);
+        // Desacopla el conteo del filtro de estado para mantener métricas globales (TOTAL/ACTIVOS/INACTIVOS)
+        // idéntico a la arquitectura del Módulo de Productos.
+        var filtrosConteo = new ProveedorFiltros();
+
+        var pageTask    = query.Order("id_proveedor", Ord.Ascending).Range(from, to).Get(ct);
+        var conteosTask = GetConteosRpcAsync(filtrosConteo, client);
         await Task.WhenAll(pageTask, conteosTask);
 
-        var items   = pageTask.Result?.Models.Select(Map).ToList() ?? [];
-        var conteos = conteosTask.Result;
+        var pageResult = await pageTask;
+        var conteos    = await conteosTask;
+        var items      = pageResult?.Models.Select(Map).ToList() ?? [];
 
         return new PagedResult<ProveedorDto>
         {
