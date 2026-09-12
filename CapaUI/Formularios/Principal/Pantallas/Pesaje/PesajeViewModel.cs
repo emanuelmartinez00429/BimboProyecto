@@ -39,6 +39,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
         private readonly LogoEmpresaCache _logoCache;
 
         public ObservableCollection<CamionPesaje> Camiones { get; } = new();
+        public ObservableCollection<GrupoCamionPesaje> GruposCamiones { get; } = new();
 
         /// <summary>
         /// RangeObservableCollection y no ObservableCollection: se reconstruye entera en
@@ -428,19 +429,21 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             foreach (var c in r.Value!) Camiones.Add(MapCamion(c));
             RecalcularRecepcionesPorPlaca();
             await ActualizarConteoDeProductosAsync();
+            SincronizarGrupos();
             NotificarStats();
 
             SelectedCamion   = Camiones.FirstOrDefault();
             SelectedProducto = null;
             SelectedEntrada  = null;
             if (SelectedCamion != null) await CargarProductosAsync(SelectedCamion);
+            ActualizarSeleccionGrupos();
             RecalcularFilas();
             IsLoading = false;
         }
 
         /// <summary>
-        /// Cuántos productos vivos tiene cada recepción de la lista. Lo necesita el
-        /// basurero de cada camión: <c>Productos</c> solo se llena para el seleccionado.
+        /// Cuántos productos vivos tiene cada recepción de la lista y su peso manifestado acumulado.
+        /// Lo necesita el basurero y el indicador de KG: <c>Productos</c> solo se llena para el seleccionado.
         /// Es UNA consulta para toda la lista, no una por camión.
         /// </summary>
         private async Task ActualizarConteoDeProductosAsync()
@@ -449,10 +452,21 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
 
             var ids = Camiones.Select(c => c.Id).ToList();
             var r = await _repo.ContarProductosPorCamionAsync(ids);
-            if (!r.Success) return;   // sin el dato el basurero queda bloqueado, que es el lado seguro
+            if (!r.Success) return;
 
             foreach (var camion in Camiones)
-                camion.ProductosEnBase = r.Value!.TryGetValue(camion.Id, out var n) ? n : 0;
+            {
+                if (r.Value!.TryGetValue(camion.Id, out var info))
+                {
+                    camion.ProductosEnBase = info.Conteo;
+                    camion.TotalKg = info.TotalKg;
+                }
+                else
+                {
+                    camion.ProductosEnBase = 0;
+                    camion.TotalKg = 0;
+                }
+            }
         }
 
         private async Task CargarProductosAsync(CamionPesaje camion)
@@ -471,10 +485,13 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             // Para ESTE camión el dato exacto ya está en memoria: se sincroniza el conteo
             // que gobierna su basurero, sin volver a consultarlo.
             camion.ProductosEnBase = camion.Productos.Count;
+            camion.TotalKg = camion.Productos.Sum(p => p.PesoManifestado);
 
             // Los totales de tara extra del camión son la suma de la de sus productos,
             // que recién se conoce con los productos ya cargados.
             camion.NotificarTotales();
+            var grupo = GruposCamiones.FirstOrDefault(g => g.Recepciones.Contains(camion));
+            grupo?.NotificarTotales();
             CargandoProductos = false;
         }
 
@@ -487,6 +504,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             SelectedProducto = null;
             SelectedEntrada  = null;
             if (c != null) await CargarProductosAsync(c);
+            ActualizarSeleccionGrupos();
             RecalcularFilas();
             NotificarStats();
         }
@@ -495,6 +513,10 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
         {
             SelectedProducto = p;
             SelectedEntrada  = null;
+            if (p is not null)
+            {
+                VistaEntradas = "producto";
+            }
             RecalcularFilas();
         }
 
@@ -998,6 +1020,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             foreach (var c in r.Value!) Camiones.Add(MapCamion(c));
             RecalcularRecepcionesPorPlaca();
             await ActualizarConteoDeProductosAsync();
+            SincronizarGrupos();
             NotificarStats();
 
             SelectedCamion = seleccionarId.HasValue
@@ -1006,7 +1029,124 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             SelectedProducto = null;
             SelectedEntrada  = null;
             if (SelectedCamion != null) await CargarProductosAsync(SelectedCamion);
+            ActualizarSeleccionGrupos();
             RecalcularFilas();
+        }
+
+        private void SincronizarGrupos()
+        {
+            var gruposDict = new Dictionary<string, GrupoCamionPesaje>(StringComparer.OrdinalIgnoreCase);
+            int num = 1;
+
+            foreach (var camion in Camiones)
+            {
+                string placa = (camion.Placa ?? "").Trim().ToUpperInvariant();
+                if (string.IsNullOrEmpty(placa)) placa = $"SIN-PLACA-{camion.Id}";
+
+                if (!gruposDict.TryGetValue(placa, out var grupo))
+                {
+                    grupo = new GrupoCamionPesaje
+                    {
+                        Numero = num++,
+                        Placa = camion.Placa ?? "",
+                        Observaciones = camion.Observaciones,
+                        Estado = camion.Estado,
+                    };
+                    gruposDict[placa] = grupo;
+                }
+
+                grupo.Recepciones.Add(camion);
+            }
+
+            GruposCamiones.Clear();
+            foreach (var g in gruposDict.Values)
+            {
+                g.NotificarTotales();
+                GruposCamiones.Add(g);
+            }
+
+            ActualizarSeleccionGrupos();
+        }
+
+        public void ActualizarSeleccionGrupos()
+        {
+            int? idSel = SelectedCamion?.Id;
+            string placaSel = (SelectedCamion?.Placa ?? "").Trim().ToUpperInvariant();
+
+            foreach (var g in GruposCamiones)
+            {
+                string gPlaca = (g.Placa ?? "").Trim().ToUpperInvariant();
+                bool esGrupoSel = !string.IsNullOrEmpty(placaSel) && gPlaca == placaSel;
+                g.IsSelected = esGrupoSel;
+
+                foreach (var r in g.Recepciones)
+                {
+                    r.IsSelected = idSel.HasValue && r.Id == idSel.Value;
+                }
+            }
+        }
+
+        public async Task<bool> ActualizarPlacaCamionAsync(int camionId, string nuevaPlaca, string observaciones)
+        {
+            if (string.IsNullOrWhiteSpace(nuevaPlaca))
+            {
+                Toast?.Invoke("La placa del vehículo no puede estar vacía");
+                return false;
+            }
+
+            if (!HaySesionActiva("actualizar el vehículo")) return false;
+
+            var origen = Camiones.FirstOrDefault(c => c.Id == camionId);
+            if (origen is null) return false;
+
+            string normOrig = (origen.Placa ?? "").Trim().ToUpperInvariant();
+            string normNueva = nuevaPlaca.Trim().ToUpperInvariant();
+
+            var recepciones = Camiones.Where(c => (c.Placa ?? "").Trim().ToUpperInvariant() == normOrig).ToList();
+            if (recepciones.Count == 0) return false;
+
+            foreach (var r in recepciones)
+            {
+                // La placa es del vehículo físico: se corrige en todas sus recepciones. Las
+                // observaciones son por recepción (por proveedor) — solo se reemplazan en la
+                // que realmente se editó; las demás conservan las suyas para no pisar la nota
+                // de un proveedor distinto con la de otro.
+                string obsParaEsta = r.Id == camionId ? observaciones : (r.Observaciones ?? "");
+                var rEdit = await _repo.ActualizarCamionAsync(r.Id, r.IdProveedor ?? 0, normNueva, obsParaEsta);
+                if (!rEdit.Success)
+                {
+                    Toast?.Invoke(rEdit.Error ?? "Error al actualizar la placa");
+                    return false;
+                }
+            }
+
+            await RecargarCamionesAsync(seleccionarId: camionId);
+            Toast?.Invoke("Vehículo actualizado");
+            return true;
+        }
+
+        public async Task<bool> QuitarCamionCompletoAsync(GrupoCamionPesaje grupo)
+        {
+            if (grupo.Recepciones.Count == 0) return false;
+            if (!grupo.PuedeQuitar)
+            {
+                Toast?.Invoke("No se puede quitar el camión porque tiene productos registrados");
+                return false;
+            }
+
+            foreach (var rec in grupo.Recepciones.ToList())
+            {
+                var r = await _repo.AnularCamionAsync(rec.Id);
+                if (!r.Success)
+                {
+                    Toast?.Invoke(r.Error ?? "Error al quitar recepción");
+                    return false;
+                }
+            }
+
+            await RecargarCamionesAsync();
+            Toast?.Invoke($"Camión {grupo.Placa} cancelado");
+            return true;
         }
 
         private void NotificarStats()

@@ -146,6 +146,24 @@ Todo verificado con compilación limpia (`0 Errores, 0 Advertencias`) y suite de
 > [!success] Verificación independiente — Claude, 2026-09-11
 > Confirmado de forma independiente, no solo leído del reporte de Antigravity: corrí `dotnet build` y `dotnet test` yo mismo después del fix y coinciden exactamente (0/0, 419/419). Leí `EnumToBooleanConverter.cs` línea por línea — `sealed` y la comparación bit a bit están, tal como se describe arriba. Checklist del 10/10 completo: los 5 modales con `ChangeTracker<T>`, converter corregido, build/tests en verde dos veces (por Antigravity y por mí), `ChangeTrackerTests.cs`, fallo parcial de P-061 intacto, y ahora la bitácora de sesión. **Módulo Productos/Proveedores (y su extensión a Fabricantes/Categorías/Presentaciones) validado en 10.**
 
+## Seguimiento 2026-09-11 — Pesaje: RegistroCamionesModal sin documentar
+
+Se auditó el trabajo de Antigravity en `CapaUI/Formularios/Principal/Pantallas/Pesaje/` (mismo día, sesión distinta a la del acordeón). Hallazgos:
+
+- ✅ `PesajeViewModel.cs`: cambio mínimo y correcto — `SeleccionarProducto` fija `VistaEntradas="producto"` al elegir un producto, coincide con [[Sesión 2026-09-11 - Traslado y activación condicional del botón Pesar en Entradas]].
+- ✅ Borrado de `CamionModal.xaml`/`.xaml.cs`: sin referencias colgantes (`grep` solo devuelve comentarios de otras clases y el `.g.i.cs` viejo del `obj/`, que se regenera). Build limpio, 424/424 tests.
+- ✅ Los 2 errores de compilación reales que se vieron a mitad de sesión (`CS0411`/`CS1643`, lambda `Func<CambiosProcesoCamiones, Task<bool>>` sin `return` en todas las rutas) ya están resueltos — las 3 ramas devuelven `bool`.
+- 🚩 **`RegistroCamionesModal` se reescribió por completo sin nota de bitácora.** Pasó de editar un camión a la vez a una gestión integral (altas + modificaciones + bajas en una sola transacción, `record CambiosProcesoCamiones`) — 406 líneas de diff en el `.xaml.cs`. Ninguna de las 2 notas que sí se dejaron ese día (acordeón del sidebar, botón Pesar) cubre esto. El código en sí está bien (validación, duplicados, tope de camiones, compactado de filas) — falta la nota de sesión en `contexto/70 - Bitácora de Cambios/2026-09/` documentando la reestructuración, como pide el protocolo propio (`contexto/AGENTS.md`). Avisado a Antigravity por Engram (proyecto `antigravity`) + esta nota.
+- ❌ **Descartado** (no es bug): se sospechó un parpadeo en `AplicarMarcoSelector` (resize de `Width`/`Height` sin animación al abrir el buscador de proveedor inline, por fila). Fernando confirmó que el modal de Productos ya usa el mismo patrón y se ve bien — no hace falta tocarlo.
+
+## Seguimiento 2026-09-11 (cont.) — Agrupación de camiones por placa: bug de observaciones y fix
+
+Antigravity siguió avanzando el mismo día: `RegistroCamionesModal` creció a 468 líneas de diff, y el feature se extendió hasta `CapaDatos`/`CapaAplicacion4` (`ContarProductosPorCamionAsync` ahora también suma `peso_manifestado`). Se agregó `GrupoCamionPesaje`: un camión físico (placa) puede tener varias recepciones (una por proveedor), agrupadas con KG totales por grupo y por recepción. `CamionModal` no quedó muerto — se le agregó un modo `soloPlaca` para editar el vehículo físico aparte de sus recepciones.
+
+🚩→✅ **Bug encontrado y corregido (Claude):** `ActualizarPlacaCamionAsync` aplicaba la observación de la recepción editada a **todas** las recepciones del mismo camión al corregir la placa — un camión con 2 proveedores terminaba con la misma nota en ambas recepciones, borrando la distinta. Fix: la firma pasó a recibir el `camionId` específico; la placa se sigue propagando a todas las recepciones del vehículo (es correcto, es el mismo camión físico), pero las observaciones solo se tocan en la recepción que realmente se editó. Verificado con build limpio y 424/424 tests. Ver [[Sesión 2026-09-11 - Fix observaciones pisadas al editar la placa de un camión con varias recepciones]].
+
+Gaps que siguen abiertos: sin nota de bitácora propia de Antigravity para todo este feature (agrupación + KG + `soloPlaca`), sin tests nuevos para la lógica de agrupación, y `QuitarCamionCompletoAsync` sin aviso de "n de m" en fallo parcial (menor, no bloqueante).
+
 ## Relaciones
 
 - [[Optimización De Renderizado En WPF]] — investigación fuente AP-06
