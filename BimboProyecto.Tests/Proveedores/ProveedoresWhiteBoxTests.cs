@@ -69,6 +69,23 @@ public sealed class ProveedoresWhiteBoxTests
         Assert.Equal(1, result.Inactivos);
     }
 
+    [Fact(DisplayName = "ProveedorCrudRepository mapea Total/Activos/Inactivos del RPC de conteos sin invertirlos")]
+    public void ProveedorCrudRepository_MapeaConteosDelRpcEnElOrdenCorrecto()
+    {
+        // GetConteosRpcAsync depende de un Rpc() real contra Supabase — no es mockeable acá
+        // sin infraestructura que este proyecto de tests no tiene para repositorios. Lo que
+        // SÍ se puede proteger sin red es que el punto donde se arma el PagedResult final no
+        // invierta por accidente Activos/Inactivos al asignar los campos del tuple del RPC.
+        var archivoRepo = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "CapaDatos", "Repositories", "Proveedores", "ProveedorCrudRepository.cs");
+        if (!File.Exists(archivoRepo)) return;
+
+        var codigo = File.ReadAllText(archivoRepo);
+
+        Assert.Contains("Total     = conteos.total,", codigo);
+        Assert.Contains("Activos   = conteos.activos,", codigo);
+        Assert.Contains("Inactivos = conteos.inactivos,", codigo);
+    }
+
     // =========================================================================
     // 2. INVARIANTES DE NEGOCIO Y DOMINIO
     // =========================================================================
@@ -393,5 +410,40 @@ public sealed class ProveedoresWhiteBoxTests
         Assert.Contains("ChangeTracker<ProveedorSnapshot>", codigoCs);
         Assert.Contains("_tracker.IsDirty(snapshotActual)", codigoCs);
         Assert.DoesNotContain("!string.Equals(dto.Nombre", codigoCs);
+    }
+
+    [Fact(DisplayName = "ProveedorCrudRepository desacopla el RPC de conteos de IdEstado y propaga CancellationToken")]
+    public void ProveedorCrudRepository_DesacoplaConteosDeIdEstado_YPropagaToken()
+    {
+        var archivoRepo = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "CapaDatos", "Repositories", "Proveedores", "ProveedorCrudRepository.cs");
+        if (!File.Exists(archivoRepo)) return;
+
+        var codigo = File.ReadAllText(archivoRepo);
+
+        // 1. Instancia filtrosConteo aislados sin IdEstado para consultar métricas globales
+        Assert.Contains("var filtrosConteo = new ProveedorFiltros();", codigo);
+        Assert.Contains("GetConteosRpcAsync(filtrosConteo, client)", codigo);
+
+        // 2. Propaga ct a la consulta paginada
+        Assert.Contains(".Range(from, to).Get(ct)", codigo);
+    }
+
+    [Fact(DisplayName = "ProveedoresView utiliza EmptyStateOverlay declarativo con MensajeSinResultados y HeaderOffset")]
+    public void ProveedoresView_UtilizaEmptyStateOverlayDeclarativo()
+    {
+        var archivoXaml = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "CapaUI", "Formularios", "Principal", "Pantallas", "Proveedores", "ProveedoresView.xaml");
+        if (!File.Exists(archivoXaml)) return;
+
+        var xaml = File.ReadAllText(archivoXaml);
+
+        // 1. Presencia del control reutilizable EmptyStateOverlay
+        Assert.Contains("controls:EmptyStateOverlay", xaml);
+
+        // 2. Enlace a MensajeSinResultados y EstaVacio
+        Assert.Contains("Mensaje=\"{Binding MensajeSinResultados}\"", xaml);
+        Assert.Contains("EstaVacio=\"{Binding NoResults}\"", xaml);
+
+        // 3. HeaderOffset para compensar encabezados de DataGrid
+        Assert.Contains("HeaderOffset=\"40\"", xaml);
     }
 }
