@@ -42,4 +42,7 @@ public sealed record ReglaCampo(
     bool         Obligatorio = false,
     int?         LargoMaximo = null,
     int?         LargoMinimo = null,
-    FormatoCampo Formato     = FormatoCampo.Ninguno);
+    FormatoCampo Formato     = FormatoCampo.Ninguno,
+    decimal?     Minimo      = null,
+    decimal?     Maximo      = null,
+    int?         Decimales   = null);

@@ -516,7 +516,7 @@
                         <DataGridTemplateColumn Header="TARA" Width="Auto" MinWidth="90" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding Tara, Converter={x:Static conv:TextoVacioConverter.Instancia}, ConverterParameter='Sin tara'}"
+                                    <TextBlock Text="{Binding PesoTara, Converter={x:Static conv:TextoVacioConverter.Instancia}, ConverterParameter='Sin tara'}"
                                                Style="{StaticResource TextoCeldaConFallback}"
                                                TextWrapping="NoWrap"
                                                HorizontalAlignment="Left" VerticalAlignment="Center"

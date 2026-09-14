@@ -31,11 +31,11 @@ public sealed record DefinicionAuditoriaRegla(
 /// <para/>
 /// <b>Test A (Deriva de Esquema contra PostgreSQL):</b> Se conecta a PostgreSQL mediante <c>Npgsql</c>
 /// leyendo <c>BIMBO_POSTGRES_CONNECTION_STRING</c>. Si no existe la variable, omite limpiamente para CI offline.
-/// Si existe, consulta <c>information_schema.columns</c> para verificar que las 43 reglas coincidan con la BD física,
+/// Si existe, consulta <c>information_schema.columns</c> para verificar que las 44 reglas coincidan con la BD física,
 /// que ningún <c>LargoMaximo</c> sea más permisivo que la columna en BD, y que las columnas <c>text</c> tengan tope de UI de 500.
 /// <para/>
 /// <b>Test B (Valores Fijados para Ejecución Offline / CI):</b> Pruebas deterministas con <see cref="TheoryAttribute"/>
-/// que validan las 43 reglas de dominio en las 13 clases de negocio sin requerir conexión a BD.
+/// que validan las 44 reglas de dominio en las 13 clases de negocio sin requerir conexión a BD.
 /// <para/>
 /// <b>Test C (Auditoría Exhaustiva por Reflexión):</b> Inspecciona por Reflection el ensamblado de <see cref="ReglasProducto"/>
 /// para asegurar que el 100% de los campos <see cref="ReglaCampo"/> declarados en <c>CapaDominio.Reglas</c> estén cubiertos
@@ -44,21 +44,26 @@ public sealed record DefinicionAuditoriaRegla(
 public sealed class ReglasEntidadesTests
 {
     /// <summary>
-    /// Catálogo autoritativo de las 43 reglas de negocio mapeadas a su columna física o servicio.
+    /// Catálogo autoritativo de las 44 reglas de negocio mapeadas a su columna física o servicio.
     /// </summary>
     public static readonly IReadOnlyList<DefinicionAuditoriaRegla> CatalogoAuditoria = new DefinicionAuditoriaRegla[]
     {
-        // ── 1. ReglasProducto (5 campos) ────────────────────────────────────
+        // ── 1. ReglasProducto (6 campos) ────────────────────────────────────
+        // Contenido/PesoTeorico/Tara/PrecioPorKg comparten rango >0..999999 y
+        // 2 decimales (ReglasProducto.Minimo/Maximo/DecimalesPorDefecto) — no
+        // cubierto por este catálogo (solo audita Obligatorio/Largo/Formato).
         new("ReglasProducto", nameof(ReglasProducto.Codigo), ReglasProducto.Codigo,
             "productos", "codigo_producto", ObligatorioEsperado: true, LargoMaximoEsperado: 50, LargoMinimoEsperado: null, FormatoEsperado: FormatoCampo.Ninguno),
         new("ReglasProducto", nameof(ReglasProducto.Nombre), ReglasProducto.Nombre,
             "productos", "nombre_producto", ObligatorioEsperado: true, LargoMaximoEsperado: 200, LargoMinimoEsperado: null, FormatoEsperado: FormatoCampo.Ninguno),
         new("ReglasProducto", nameof(ReglasProducto.Contenido), ReglasProducto.Contenido,
-            "productos", "contenido", ObligatorioEsperado: false, LargoMaximoEsperado: 100, LargoMinimoEsperado: null, FormatoEsperado: FormatoCampo.Ninguno),
+            "productos", "contenido", ObligatorioEsperado: true, LargoMaximoEsperado: null, LargoMinimoEsperado: null, FormatoEsperado: FormatoCampo.Decimal),
         new("ReglasProducto", nameof(ReglasProducto.PesoTeorico), ReglasProducto.PesoTeorico,
-            "productos", "peso_teorico", ObligatorioEsperado: false, LargoMaximoEsperado: null, LargoMinimoEsperado: null, FormatoEsperado: FormatoCampo.Decimal),
+            "productos", "peso_teorico", ObligatorioEsperado: true, LargoMaximoEsperado: null, LargoMinimoEsperado: null, FormatoEsperado: FormatoCampo.Decimal),
+        new("ReglasProducto", nameof(ReglasProducto.Tara), ReglasProducto.Tara,
+            "productos", "peso_tara", ObligatorioEsperado: true, LargoMaximoEsperado: null, LargoMinimoEsperado: null, FormatoEsperado: FormatoCampo.Decimal),
         new("ReglasProducto", nameof(ReglasProducto.PrecioPorKg), ReglasProducto.PrecioPorKg,
-            "productos", "precio_por_kg", ObligatorioEsperado: false, LargoMaximoEsperado: null, LargoMinimoEsperado: null, FormatoEsperado: FormatoCampo.Decimal),
+            "productos", "precio_por_kg", ObligatorioEsperado: true, LargoMaximoEsperado: null, LargoMinimoEsperado: null, FormatoEsperado: FormatoCampo.Decimal),
 
         // ── 2. ReglasCategoria (2 campos) ───────────────────────────────────
         new("ReglasCategoria", nameof(ReglasCategoria.Nombre), ReglasCategoria.Nombre,
@@ -275,10 +280,11 @@ public sealed class ReglasEntidadesTests
         Assert.True(ReglasProducto.Nombre.Obligatorio);
         Assert.Equal(200, ReglasProducto.Nombre.LargoMaximo);
 
-        Assert.False(ReglasProducto.Contenido.Obligatorio);
-        Assert.Equal(100, ReglasProducto.Contenido.LargoMaximo);
+        Assert.True(ReglasProducto.Contenido.Obligatorio);
+        Assert.Equal(FormatoCampo.Decimal, ReglasProducto.Contenido.Formato);
 
         Assert.Equal(FormatoCampo.Decimal, ReglasProducto.PesoTeorico.Formato);
+        Assert.Equal(FormatoCampo.Decimal, ReglasProducto.Tara.Formato);
         Assert.Equal(FormatoCampo.Decimal, ReglasProducto.PrecioPorKg.Formato);
     }
 
@@ -463,9 +469,9 @@ public sealed class ReglasEntidadesTests
             }
         }
 
-        // Exactamente 43 reglas declaradas y 43 en el catálogo
-        Assert.Equal(43, camposReflexion.Count);
-        Assert.Equal(43, CatalogoAuditoria.Count);
+        // Exactamente 44 reglas declaradas y 44 en el catálogo
+        Assert.Equal(44, camposReflexion.Count);
+        Assert.Equal(44, CatalogoAuditoria.Count);
 
         var mapeoCatalogo = CatalogoAuditoria.ToDictionary(
             d => $"{d.ClaseDominio}.{d.NombreCampo}",

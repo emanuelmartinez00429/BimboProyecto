@@ -265,7 +265,7 @@ public class PesajeRepository : RepositorioBase, IPesajeRepository
             // 2) peso teórico + tara por producto (previsualización del modal
             //    y cálculo de bultos teóricos)
             var taraRes = await client.From<ProductoTaraConsulta>()
-                .Select("id_producto, peso_teorico, tara(*)")
+                .Select("id_producto, peso_teorico, peso_tara")
                 .Filter("id_producto", Op.In, idProductos)
                 .Get();
             var datosPorProducto = (taraRes?.Models ?? new())

@@ -72,6 +72,16 @@ public static class ReglasFormato
     public static bool TieneLargoMinimo(string? texto, int largoMinimo) =>
         (texto?.Length ?? 0) >= largoMinimo;
 
+    /// <summary>
+    /// Rango numérico exclusivo por abajo (mayor a <paramref name="min"/>) e inclusivo
+    /// por arriba (hasta <paramref name="max"/>). El parseo del texto tipeado es cosa de
+    /// la capa de presentación (mismo criterio que <see cref="FormatoCampo.Decimal"/>) —
+    /// acá solo se compara el valor ya parseado. Vacío (<c>null</c>) es válido, igual que
+    /// el resto de las reglas de formato.
+    /// </summary>
+    public static bool EstaEnRango(decimal? valor, decimal min, decimal max) =>
+        valor is null || (valor > min && valor <= max);
+
     private static int ContarDigitosAscii(string texto) =>
         texto.Count(caracter => caracter is >= '0' and <= '9');
 }

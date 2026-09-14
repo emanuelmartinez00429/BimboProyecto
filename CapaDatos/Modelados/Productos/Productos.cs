@@ -39,14 +39,17 @@ namespace CapaDatos.Modelados.Productos
         [Column("peso_teorico")]
         public decimal? pesoTeorico { get; set; }
 
-        [Column("id_tara")]
-        public int? idTara { get; set; }
+        // Antes id_tara (FK a un catálogo compartido, tabla tara) — ahora es un
+        // número propio de este producto.
+        [Column("peso_tara")]
+        public decimal? pesoTara { get; set; }
 
         [Column("id_categoria")]
         public int? idCategoria { get; set; }
 
+        // Antes varchar de texto libre ("20 kg", "1 und") — ahora numérico puro.
         [Column("contenido")]
-        public string? contenidoProducto { get; set; }
+        public decimal? contenidoProducto { get; set; }
 
         [Column("id_pais")]
         public int? idPais { get; set; }
@@ -68,7 +71,6 @@ namespace CapaDatos.Modelados.Productos
         public Fabricante? Fabricante { get; set; }
         public Categoria? Categoria { get; set; }
         public Paises? Paises { get; set; }
-        public Tara? tara { get; set; }
         public UnidadMedida? unidad_medida { get; set; }
 
         public string nombre_Presentacion => presentacion_producto?.nombrePresentacion ?? "Sin presentación";
@@ -77,9 +79,6 @@ namespace CapaDatos.Modelados.Productos
         public int?   id_Proveedor     => Fabricante?.idProveedor;
         public string nombre_Categoria => Categoria?.nombreCategoria ?? "Sin categoría";
         public string nombre_Pais => Paises?.nombrePais ?? "Sin país";
-        // descripcion_tara viene de la BD con saltos de linea al final; sin Trim el
-        // TextBox lo toma como segunda linea y el texto se ve corrido hacia arriba.
-        public string descripcion_Tara => string.IsNullOrWhiteSpace(tara?.descripcionTara) ? "Sin tara" : tara!.descripcionTara!.Trim();
         public string abreviatura_Unidad => unidad_medida?.abreviatura ?? string.Empty;
 
     }

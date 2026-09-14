@@ -25,12 +25,12 @@ namespace CapaDatos.Modelados.Productos
         public int? idFabricante { get; set; }
         [Column("id_estado")]
         public int idEstado { get; set; }
-        [Column("id_tara")]
-        public int? idTara { get; set; }
+        [Column("peso_tara")]
+        public decimal? pesoTara { get; set; }
         [Column("id_categoria")]
         public int? idCategoria { get; set; }
         [Column("contenido")]
-        public string? contenidoProducto { get; set; }
+        public decimal? contenidoProducto { get; set; }
 
         [Column("id_pais")]
         public int? idPais { get; set; }

@@ -72,11 +72,46 @@ public sealed class ProductosWhiteBoxTests
         Assert.True(ReglasProducto.Nombre.Obligatorio, "Nombre de producto debe ser obligatorio.");
         Assert.Equal(200, ReglasProducto.Nombre.LargoMaximo);
 
-        Assert.False(ReglasProducto.Contenido.Obligatorio, "Contenido no debe ser obligatorio.");
-        Assert.Equal(100, ReglasProducto.Contenido.LargoMaximo);
+        Assert.True(ReglasProducto.Contenido.Obligatorio, "Contenido pasó a ser obligatorio (ahora es numérico puro).");
+        Assert.Equal(FormatoCampo.Decimal, ReglasProducto.Contenido.Formato);
 
         Assert.Equal(FormatoCampo.Decimal, ReglasProducto.PesoTeorico.Formato);
         Assert.Equal(FormatoCampo.Decimal, ReglasProducto.PrecioPorKg.Formato);
+        Assert.Equal(FormatoCampo.Decimal, ReglasProducto.Tara.Formato);
+    }
+
+    [Fact(DisplayName = "ReglasProducto: los 4 campos numéricos comparten rango >0 y <=999999, obligatorios, 2 decimales")]
+    public void ReglasProducto_CamposNumericos_RangoObligatorioYDecimalesCompartidos()
+    {
+        var campos = new[] { ReglasProducto.Contenido, ReglasProducto.PesoTeorico, ReglasProducto.Tara, ReglasProducto.PrecioPorKg };
+
+        foreach (var campo in campos)
+        {
+            Assert.True(campo.Obligatorio);
+            Assert.Equal(ReglasProducto.ValorNumericoMinimo, campo.Minimo);
+            Assert.Equal(ReglasProducto.ValorNumericoMaximo, campo.Maximo);
+            Assert.Equal(ReglasProducto.DecimalesPorDefecto, campo.Decimales);
+        }
+    }
+
+    [Fact(DisplayName = "ReglasFormato.EstaEnRango: vacío es válido — obligatoriedad se declara aparte")]
+    public void ReglasFormato_EstaEnRango_VacioEsValido()
+    {
+        Assert.True(ReglasFormato.EstaEnRango(null, ReglasProducto.ValorNumericoMinimo, ReglasProducto.ValorNumericoMaximo));
+    }
+
+    // xUnit no acepta literales decimal en [InlineData] (no son un tipo de argumento de
+    // atributo válido en C#) — se pasa double y se castea adentro del test.
+    [Theory(DisplayName = "ReglasFormato.EstaEnRango respeta los límites exclusivo/inclusivo")]
+    [InlineData(0, false)]        // límite inferior exclusivo
+    [InlineData(0.01, true)]
+    [InlineData(999999, true)]    // límite superior inclusivo
+    [InlineData(999999.01, false)]
+    [InlineData(-5, false)]
+    public void ReglasFormato_EstaEnRango_RespetaLimites(double valorDouble, bool esperado)
+    {
+        decimal valor = (decimal)valorDouble;
+        Assert.Equal(esperado, ReglasFormato.EstaEnRango(valor, ReglasProducto.ValorNumericoMinimo, ReglasProducto.ValorNumericoMaximo));
     }
 
     // =========================================================================
@@ -91,13 +126,13 @@ public sealed class ProductosWhiteBoxTests
             Id = 10,
             CodigoInterno = "PRD-01",
             Nombre = "Pan Blanco Bimbo Grande",
-            Contenido = "680 g",
+            Contenido = 680m,
             IdPresentacion = 1,
             IdFabricante = 2,
             IdCategoria = 3,
             IdPais = 1,
             PesoTeorico = 0.68m,
-            IdTara = 1,
+            PesoTara = 1m,
             IdUnidad = 2,
             PrecioPorKg = 45.50m,
             IdEstado = 1
@@ -109,13 +144,13 @@ public sealed class ProductosWhiteBoxTests
             Id = 10,
             CodigoInterno = "PRD-01",
             Nombre = "Pan Blanco Bimbo Grande",
-            Contenido = "680 g",
+            Contenido = 680m,
             IdPresentacion = 1,
             IdFabricante = 2,
             IdCategoria = 3,
             IdPais = 1,
             PesoTeorico = 0.68m,
-            IdTara = 1,
+            PesoTara = 1m,
             IdUnidad = 2,
             PrecioPorKg = 45.50m,
             IdEstado = 1
@@ -133,13 +168,13 @@ public sealed class ProductosWhiteBoxTests
             Id = 10,
             CodigoInterno = "PRD-01",
             Nombre = "Pan Blanco Bimbo Grande",
-            Contenido = "680 g",
+            Contenido = 680m,
             IdPresentacion = 1,
             IdFabricante = 2,
             IdCategoria = 3,
             IdPais = 1,
             PesoTeorico = 0.68m,
-            IdTara = 1,
+            PesoTara = 1m,
             IdUnidad = 2,
             PrecioPorKg = 45.50m,
             IdEstado = 2 // Inactivo
@@ -157,13 +192,13 @@ public sealed class ProductosWhiteBoxTests
             Id = 10,
             CodigoInterno = "PRD-01",
             Nombre = "Pan Blanco Bimbo Mediano",
-            Contenido = "500 g",
+            Contenido = 500m,
             IdPresentacion = 1,
             IdFabricante = 2,
             IdCategoria = 3,
             IdPais = 1,
             PesoTeorico = 0.50m,
-            IdTara = 1,
+            PesoTara = 1m,
             IdUnidad = 2,
             PrecioPorKg = 48.00m,
             IdEstado = 1
@@ -186,7 +221,7 @@ public sealed class ProductosWhiteBoxTests
             || a.IdCategoria != b.IdCategoria
             || a.IdPais != b.IdPais
             || a.PesoTeorico != b.PesoTeorico
-            || a.IdTara != b.IdTara
+            || a.PesoTara != b.PesoTara
             || a.IdUnidad != b.IdUnidad
             || a.PrecioPorKg != b.PrecioPorKg;
     }

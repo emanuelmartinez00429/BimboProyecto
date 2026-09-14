@@ -58,6 +58,14 @@ public sealed class ValidadorFormulario
     public ConstructorCampo Combo(Selector combo, string etiqueta) =>
         Agregar(new CampoValidado(combo, etiqueta, () => combo.SelectedItem?.ToString(), () => combo.SelectedItem is not null));
 
+    /// <summary>
+    /// Variante para combos con un ítem placeholder real (ej. "(Sin seleccionar)")
+    /// que hace que <c>SelectedItem</c> nunca sea <c>null</c> — <paramref name="tieneValor"/>
+    /// decide qué cuenta como "elegido de verdad".
+    /// </summary>
+    public ConstructorCampo Combo(Selector combo, string etiqueta, Func<bool> tieneValor) =>
+        Agregar(new CampoValidado(combo, etiqueta, () => combo.SelectedItem?.ToString(), tieneValor));
+
     public ConstructorCampo Catalogo(TextBox caja, string etiqueta, Func<int?>? obtenerId = null) =>
         Agregar(new CampoValidado(
             caja,
@@ -351,6 +359,20 @@ public sealed class ValidadorFormulario
         }
 
         /// <summary>
+        /// Rango numérico: mayor a <paramref name="min"/> y hasta <paramref name="max"/>.
+        /// Si el texto ni siquiera parsea como decimal, esta regla no se mete —
+        /// eso ya lo reporta <see cref="Decimal"/> con su propio mensaje.
+        /// </summary>
+        public ConstructorCampo Rango(decimal min, decimal max, string? mensaje = null)
+        {
+            _campo.Reglas.Add((c =>
+                    !ParseoNumerico.EsDecimalOpcional(c.LeerTexto(), out var valor)
+                    || ReglasFormato.EstaEnRango(valor, min, max),
+                mensaje ?? $"{_campo.Etiqueta} debe ser mayor a {min:0.##} y no superar {max:0.##}."));
+            return this;
+        }
+
+        /// <summary>
         /// Aplica una regla declarada por el dominio.
         /// </summary>
         /// <remarks>
@@ -377,6 +399,8 @@ public sealed class ValidadorFormulario
                 case FormatoCampo.Decimal:  Decimal();  break;
                 case FormatoCampo.Entero:   Entero();   break;
             }
+
+            if (regla.Minimo is decimal mn && regla.Maximo is decimal mx) Rango(mn, mx);
 
             return this;
         }
@@ -414,6 +438,7 @@ public sealed class ValidadorFormulario
         public ConstructorCampo Campo(TextBox caja, string etiqueta) => _validador.Campo(caja, etiqueta);
         public ConstructorCampo Clave(PasswordBox caja, string etiqueta) => _validador.Clave(caja, etiqueta);
         public ConstructorCampo Combo(Selector combo, string etiqueta) => _validador.Combo(combo, etiqueta);
+        public ConstructorCampo Combo(Selector combo, string etiqueta, Func<bool> tieneValor) => _validador.Combo(combo, etiqueta, tieneValor);
         public ConstructorCampo Catalogo(TextBox caja, string etiqueta, Func<int?>? obtenerId = null) => _validador.Catalogo(caja, etiqueta, obtenerId);
         public ConstructorCampo Catalogo(TextBox caja, string etiqueta, Func<bool> tieneValor) => _validador.Catalogo(caja, etiqueta, tieneValor);
 

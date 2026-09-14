@@ -18,20 +18,34 @@ namespace CapaDominio.Reglas;
 /// </remarks>
 public static class ReglasProducto
 {
+    // Rango compartido por todos los campos numéricos del producto (Contenido, Peso
+    // teórico, Tara, Precio por kg): sin negativos ni cero, tope 999999. Un solo lugar
+    // para subir la precisión de decimales el día que lo pidan.
+    public const decimal ValorNumericoMinimo = 0;   // exclusivo — el valor debe ser > 0
+    public const decimal ValorNumericoMaximo = 999999;
+    public const int     DecimalesPorDefecto = 2;
+
     // Columna: codigo_producto (varchar 50)
     public static readonly ReglaCampo Codigo      = new(Obligatorio: true, LargoMaximo: 50);
 
     // Columna: nombre_producto (varchar 200)
     public static readonly ReglaCampo Nombre      = new(Obligatorio: true, LargoMaximo: 200);
 
-    // Columna: contenido (varchar 100)
-    public static readonly ReglaCampo Contenido   = new(LargoMaximo: 100);
+    // Columna: contenido (numeric) — antes varchar de texto libre ("20 kg", "1 und")
+    public static readonly ReglaCampo Contenido   = new(Obligatorio: true, Formato: FormatoCampo.Decimal,
+        Minimo: ValorNumericoMinimo, Maximo: ValorNumericoMaximo, Decimales: DecimalesPorDefecto);
 
     // Columna: peso_teorico (numeric)
-    public static readonly ReglaCampo PesoTeorico = new(Formato: FormatoCampo.Decimal);
+    public static readonly ReglaCampo PesoTeorico = new(Obligatorio: true, Formato: FormatoCampo.Decimal,
+        Minimo: ValorNumericoMinimo, Maximo: ValorNumericoMaximo, Decimales: DecimalesPorDefecto);
+
+    // Columna: peso_tara (numeric) — antes id_tara, FK a un catálogo compartido
+    public static readonly ReglaCampo Tara        = new(Obligatorio: true, Formato: FormatoCampo.Decimal,
+        Minimo: ValorNumericoMinimo, Maximo: ValorNumericoMaximo, Decimales: DecimalesPorDefecto);
 
     // Columna: precio_por_kg (numeric)
-    public static readonly ReglaCampo PrecioPorKg = new(Formato: FormatoCampo.Decimal);
+    public static readonly ReglaCampo PrecioPorKg = new(Obligatorio: true, Formato: FormatoCampo.Decimal,
+        Minimo: ValorNumericoMinimo, Maximo: ValorNumericoMaximo, Decimales: DecimalesPorDefecto);
 }
 
 public static class ReglasCategoria

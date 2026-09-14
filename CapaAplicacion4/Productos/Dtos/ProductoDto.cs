@@ -5,7 +5,9 @@ public class ProductoDto
     public int    Id             { get; init; }
     public string CodigoInterno  { get; init; } = string.Empty;
     public string Nombre         { get; init; } = string.Empty;
-    public string Contenido      { get; init; } = string.Empty;
+    /// <summary>Numérico puro (antes texto libre tipo "20 kg" — la unidad ahora es
+    /// <see cref="Unidad"/>, un campo estructurado aparte).</summary>
+    public decimal? Contenido    { get; init; }
     public string Presentacion   { get; init; } = string.Empty;
     public string Fabricante     { get; init; } = string.Empty;
     public string Proveedor      { get; init; } = string.Empty;
@@ -23,12 +25,12 @@ public class ProductoDto
     public int?   IdPais         { get; init; }
     public int?   IdPresentacion { get; init; }
     public decimal? PesoTeorico  { get; init; }
-    public int?     IdTara       { get; init; }
-    public string   Tara         { get; init; } = string.Empty;
+    /// <summary>Peso de la tara en kg. Antes era <c>IdTara</c>, una FK a un catálogo
+    /// compartido (tabla <c>tara</c>) — ahora es un número propio de este producto.</summary>
+    public decimal? PesoTara     { get; init; }
     /// <summary>Unidad de <see cref="Contenido"/> (FK a unidad_medida). Antes vivía
-    /// solo como sufijo de texto dentro de Contenido; ahora es un dato estructurado
-    /// además de eso — Contenido se sigue guardando igual, por compatibilidad con
-    /// el buscador y el picker de Pesaje.</summary>
+    /// solo como sufijo de texto dentro de Contenido, mezclado con el número; ahora
+    /// Contenido es puramente numérico y esta es la unidad estructurada aparte.</summary>
     public int?     IdUnidad     { get; init; }
     public string   Unidad       { get; init; } = string.Empty;
     public decimal? PrecioPorKg  { get; init; }

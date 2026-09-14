@@ -180,7 +180,7 @@ public class PickerProductoRepository : RepositorioBase, IPickerProductoReposito
         Id             = p.idProducto,
         CodigoInterno  = p.codigoProducto    ?? string.Empty,
         Nombre         = p.nombreProducto    ?? string.Empty,
-        Contenido      = p.contenidoProducto ?? string.Empty,
+        Contenido      = p.contenidoProducto,
         Presentacion   = p.nombre_Presentacion,
         Fabricante     = p.nombre_Fabricante,
         Categoria      = p.nombre_Categoria,

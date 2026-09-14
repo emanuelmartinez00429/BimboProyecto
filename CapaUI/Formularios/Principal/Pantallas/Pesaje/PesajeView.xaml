@@ -473,7 +473,7 @@
                         </Border>
 
                         <!-- Encabezado de columnas de la tabla de camiones -->
-                        <Border Grid.Row="1" Background="#162F56" Padding="6,0" Height="28">
+                        <Border Grid.Row="1" Background="#FF1E3A8A" Padding="6,0" Height="28">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="26"/>

@@ -44,7 +44,7 @@ public class ProductoCrudRepository : RepositorioBase, IProductoRepository
             ? "fabricante!inner(*, proveedores(*))"
             : "fabricante(*, proveedores(*))";
 
-        return $"*, presentacion_producto(*), {fabricante}, categoria(*), paises(*), tara(*, unidad_medida(*)), unidad_medida(*)";
+        return $"*, presentacion_producto(*), {fabricante}, categoria(*), paises(*), unidad_medida(*)";
     }
 
     /// <summary>
@@ -65,7 +65,7 @@ public class ProductoCrudRepository : RepositorioBase, IProductoRepository
         Id             = p.idProducto,
         CodigoInterno  = p.codigoProducto    ?? string.Empty,
         Nombre         = p.nombreProducto    ?? string.Empty,
-        Contenido      = p.contenidoProducto ?? string.Empty,
+        Contenido      = p.contenidoProducto,
         Presentacion   = p.nombre_Presentacion,
         Fabricante     = p.nombre_Fabricante,
         Proveedor      = p.nombre_Proveedor,
@@ -78,8 +78,7 @@ public class ProductoCrudRepository : RepositorioBase, IProductoRepository
         IdPais         = p.idPais,
         IdPresentacion = p.idPresentacion,
         PesoTeorico    = p.pesoTeorico,
-        IdTara         = p.idTara,
-        Tara           = p.descripcion_Tara,
+        PesoTara       = p.pesoTara,
         IdUnidad       = p.idUnidad,
         Unidad         = p.abreviatura_Unidad,
         PrecioPorKg    = p.precioPorKg,
@@ -145,7 +144,7 @@ public class ProductoCrudRepository : RepositorioBase, IProductoRepository
                 ["p_id_fabricante"] = dto.IdFabricante,
                 ["p_id_unidad"] = dto.IdUnidad,
                 ["p_peso_teorico"] = dto.PesoTeorico,
-                ["p_id_tara"] = dto.IdTara,
+                ["p_peso_tara"] = dto.PesoTara,
                 ["p_id_categoria"] = dto.IdCategoria,
                 ["p_contenido"] = dto.Contenido,
                 ["p_id_pais"] = dto.IdPais,
@@ -196,7 +195,7 @@ public class ProductoCrudRepository : RepositorioBase, IProductoRepository
                 ["p_id_fabricante"] = dto.IdFabricante,
                 ["p_id_unidad"] = dto.IdUnidad,
                 ["p_peso_teorico"] = dto.PesoTeorico,
-                ["p_id_tara"] = dto.IdTara,
+                ["p_peso_tara"] = dto.PesoTara,
                 ["p_id_categoria"] = dto.IdCategoria,
                 ["p_contenido"] = dto.Contenido,
                 ["p_id_pais"] = dto.IdPais,

@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text.RegularExpressions;
 
 namespace CapaUI.Core.Validacion;
 
@@ -45,5 +46,21 @@ public static class ParseoNumerico
 
         valor = resultado;
         return true;
+    }
+
+    /// <summary>
+    /// ¿El texto es, como mucho, un decimal "en progreso" válido? No hace falta que ya
+    /// esté completo — "12", "12" + separador solo, o el signo solo, cuentan como válidos
+    /// a mitad de tecleo. Pensado para filtrar el tecleo/pegado ANTES de que la letra entre
+    /// al campo (<see cref="EsDecimalOpcional"/> valida el valor ya completo, al salir del
+    /// campo o guardar).
+    /// </summary>
+    public static bool PuedeSerDecimalEnProgreso(string texto)
+    {
+        if (texto.Length == 0) return true;
+
+        string separador = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator;
+        string patron = $@"^-?\d*{Regex.Escape(separador)}?\d*$";
+        return Regex.IsMatch(texto, patron);
     }
 }

@@ -32,13 +32,13 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
         private sealed record ProductoSnapshot(
             string CodigoInterno,
             string Nombre,
-            string Contenido,
+            decimal? Contenido,
             int? IdPresentacion,
             int? IdFabricante,
             int? IdCategoria,
             int? IdPais,
             decimal? PesoTeorico,
-            int? IdTara,
+            decimal? PesoTara,
             int? IdUnidad,
             decimal? PrecioPorKg);
 
@@ -50,9 +50,12 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
         private int? _idFabricante;
         private int? _idCategoria;
         private int? _idPais;
-        private int? _idTara;
         private int? _idProveedor;
-        private int? _idUnidadContenido;
+
+        /// <summary>Se lee directo del combo (no de un campo aparte que había que
+        /// mantener sincronizado a mano en cada handler) — evita que quede
+        /// desactualizado si el usuario cambia la unidad después de cargarla.</summary>
+        private int? IdUnidadSeleccionada => (CmbUnidad.SelectedItem as ComboBoxItem)?.Tag as int?;
 
         private SelectorCatalogoModal? _selectorAbierto;
 
@@ -118,8 +121,9 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
                 .Catalogo(TxtProveedor, "El proveedor", () => _idProveedor).Obligatorio()
                 .Catalogo(TxtFabricante, "El fabricante", () => _idFabricante).Obligatorio()
                 .Campo(TxtContenido, "El contenido").Segun(ReglasProducto.Contenido)
+                .Combo(CmbUnidad, "La unidad", () => (CmbUnidad.SelectedItem as ComboBoxItem)?.Tag is int).Obligatorio()
                 .Campo(TxtPesoTeorico, "El peso teórico").Segun(ReglasProducto.PesoTeorico)
-                .Catalogo(TxtTara, "La tara", () => _idTara).Obligatorio()
+                .Campo(TxtTara, "La tara").Segun(ReglasProducto.Tara)
                 .Campo(TxtPrecioPorKg, "El precio por kg").Segun(ReglasProducto.PrecioPorKg)
                 .Catalogo(TxtPais, "El país importado", () => _idPais).Obligatorio()
                 .ValidarAlSalirDelCampo();
@@ -141,7 +145,6 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
                 _idFabricante   = _producto.IdFabricante;
                 _idCategoria    = _producto.IdCategoria;
                 _idPais         = _producto.IdPais;
-                _idTara         = _producto.IdTara;
                 // Sin esto la lupa de fabricantes abria sin alcance y listaba
                 // todos, aunque el formulario ya mostrara un proveedor.
                 _idProveedor    = _producto.IdProveedor;
@@ -149,9 +152,10 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
                 TxtCodigo.Text       = _producto.CodigoInterno;
                 TxtNombre.Text       = _producto.Nombre;
                 TxtPresentacion.Text = _producto.Presentacion;
-                CargarContenido(_producto.Contenido, _producto.IdUnidad);
+                TxtContenido.Text    = FormatearDecimal(_producto.Contenido);
+                SeleccionarUnidad(_producto.IdUnidad);
                 TxtPesoTeorico.Text  = FormatearDecimal(_producto.PesoTeorico);
-                TxtTara.Text         = _producto.Tara;
+                TxtTara.Text         = FormatearDecimal(_producto.PesoTara);
                 TxtProveedor.Text    = _producto.Proveedor;
                 TxtFabricante.Text   = _producto.Fabricante;
                 TxtCategoria.Text    = _producto.Categoria;
@@ -166,13 +170,13 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
                 _tracker = new ChangeTracker<ProductoSnapshot>(new ProductoSnapshot(
                     (_producto.CodigoInterno ?? string.Empty).Trim(),
                     (_producto.Nombre ?? string.Empty).Trim(),
-                    (_producto.Contenido ?? string.Empty).Trim(),
+                    _producto.Contenido,
                     _producto.IdPresentacion,
                     _producto.IdFabricante,
                     _producto.IdCategoria,
                     _producto.IdPais,
                     _producto.PesoTeorico,
-                    _producto.IdTara,
+                    _producto.PesoTara,
                     _producto.IdUnidad,
                     _producto.PrecioPorKg));
             }
@@ -241,13 +245,6 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
             {
                 _idPresentacion      = item.Id;
                 TxtPresentacion.Text = item.Nombre;
-            });
-
-        private void BuscarTara_Click(object sender, RoutedEventArgs e) =>
-            AbrirSelector(Catalogos.Taras(_catalogos), item =>
-            {
-                _idTara      = item.Id;
-                TxtTara.Text = item.Nombre;
             });
 
         private void BuscarCategoria_Click(object sender, RoutedEventArgs e) =>
@@ -442,8 +439,16 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
             // Los números ya los validó el validador; acá solo se convierten. Antes
             // el parseo ocurría DENTRO del try, después de poner "Guardando…": el
             // usuario veía el spinner y recién entonces le rechazaban el número.
+            // Se redondea a ReglasProducto.DecimalesPorDefecto — un solo lugar para
+            // subir la precisión el día que lo pidan.
+            ParseoNumerico.EsDecimalOpcional(TxtContenido.Text, out var contenido);
             ParseoNumerico.EsDecimalOpcional(TxtPesoTeorico.Text, out var pesoTeorico);
+            ParseoNumerico.EsDecimalOpcional(TxtTara.Text, out var tara);
             ParseoNumerico.EsDecimalOpcional(TxtPrecioPorKg.Text, out var precioPorKg);
+            contenido    = Redondear(contenido);
+            pesoTeorico  = Redondear(pesoTeorico);
+            tara         = Redondear(tara);
+            precioPorKg  = Redondear(precioPorKg);
 
             // Guardar es un viaje de red: sin este aviso el segundo de espera se
             // lee como que la aplicacion se colgo.
@@ -456,7 +461,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
                     Id             = _esNuevo ? 0 : _producto!.Id,
                     CodigoInterno  = TxtCodigo.Text.Trim(),
                     Nombre         = TxtNombre.Text.Trim(),
-                    Contenido      = ObtenerContenido(),
+                    Contenido      = contenido,
                     Presentacion   = TxtPresentacion.Text.Trim(),
                     IdFabricante   = _idFabricante,
                     IdCategoria    = _idCategoria,
@@ -464,8 +469,8 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
                     IdPais         = _idPais,
                     IdPresentacion = _idPresentacion,
                     PesoTeorico    = pesoTeorico,
-                    IdTara         = _idTara,
-                    IdUnidad       = _idUnidadContenido,
+                    PesoTara       = tara,
+                    IdUnidad       = IdUnidadSeleccionada,
                     PrecioPorKg    = precioPorKg,
                 };
 
@@ -492,7 +497,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
                         dto.IdCategoria,
                         dto.IdPais,
                         dto.PesoTeorico,
-                        dto.IdTara,
+                        dto.PesoTara,
                         dto.IdUnidad,
                         dto.PrecioPorKg);
 
@@ -557,8 +562,17 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
             }
         }
 
+        // "0." + N '#' = hasta N decimales, sin ceros de relleno. Deriva de
+        // ReglasProducto.DecimalesPorDefecto para que subir la precisión no
+        // requiera tocar el formato de display por separado.
+        private static readonly string FormatoDecimal =
+            "0." + new string('#', ReglasProducto.DecimalesPorDefecto);
+
         private static string FormatearDecimal(decimal? valor) =>
-            valor?.ToString("0.##", CultureInfo.CurrentCulture) ?? string.Empty;
+            valor?.ToString(FormatoDecimal, CultureInfo.CurrentCulture) ?? string.Empty;
+
+        private static decimal? Redondear(decimal? valor) =>
+            valor.HasValue ? Math.Round(valor.Value, ReglasProducto.DecimalesPorDefecto) : null;
 
         /// <summary>
         /// Puebla el combo desde el catálogo real (<c>unidad_medida</c>), no de una
@@ -587,83 +601,47 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
         }
 
         /// <summary>
-        /// Selecciona la unidad por id cuando el producto ya la tiene (dato
-        /// estructurado, vía <c>productos.id_unidad</c>). Si no la tiene —dato
-        /// viejo o de prueba sin id_unidad—, cae al sufijo de texto legado dentro
-        /// de <c>contenido</c>, igual que antes de este cambio.
+        /// Selecciona la unidad por id (Contenido y Unidad son campos separados
+        /// desde que Contenido pasó a ser numérico puro — ya no hace falta separar
+        /// un sufijo de texto). Si el producto no tiene unidad cargada (dato viejo,
+        /// de antes de que Unidad fuera obligatorio) queda en "(Sin seleccionar)".
         /// </summary>
-        private void CargarContenido(string contenido, int? idUnidad)
+        private void SeleccionarUnidad(int? idUnidad)
         {
-            var texto = contenido.Trim();
+            var item = idUnidad.HasValue
+                ? CmbUnidad.Items.OfType<ComboBoxItem>().FirstOrDefault(i => i.Tag is int id && id == idUnidad.Value)
+                : null;
 
-            if (idUnidad.HasValue)
-            {
-                var directo = CmbUnidad.Items.OfType<ComboBoxItem>()
-                    .FirstOrDefault(i => i.Tag is int id && id == idUnidad.Value);
-                if (directo is not null)
-                {
-                    CmbUnidad.SelectedItem = directo;
-                    _idUnidadContenido = idUnidad;
-
-                    var sufijoDirecto = $" {directo.Content}";
-                    TxtContenido.Text = texto.EndsWith(sufijoDirecto, StringComparison.OrdinalIgnoreCase)
-                        ? texto[..^sufijoDirecto.Length].TrimEnd()
-                        : texto;
-                    return;
-                }
-            }
-
-            foreach (ComboBoxItem item in CmbUnidad.Items.OfType<ComboBoxItem>().Skip(1))
-            {
-                var unidad = item.Content?.ToString() ?? string.Empty;
-                var sufijo = $" {unidad}";
-                if (!texto.EndsWith(sufijo, StringComparison.OrdinalIgnoreCase)) continue;
-
-                TxtContenido.Text = texto[..^sufijo.Length].TrimEnd();
-                CmbUnidad.SelectedItem = item;
-                _idUnidadContenido = item.Tag as int?;
-                return;
-            }
-
-            TxtContenido.Text = texto;
-            CmbUnidad.SelectedIndex = 0;
-            _idUnidadContenido = null;
-        }
-
-        /// <summary>
-        /// Persiste contenido y unidad en la misma columna, separados por un
-        /// espacio (compatibilidad con el buscador y el picker de Pesaje, que
-        /// siguen leyendo <c>contenido</c> como texto). De paso deja
-        /// <see cref="_idUnidadContenido"/> listo para el DTO — esa es la fuente
-        /// estructurada que ahora viaja además del texto.
-        /// </summary>
-        private string ObtenerContenido()
-        {
-            var contenido = TxtContenido.Text.Trim();
-            string? unidad = null;
-
-            if (CmbUnidad.SelectedItem is ComboBoxItem item && item.Tag is int idUnidad)
-            {
-                unidad = item.Content?.ToString();
-                _idUnidadContenido = idUnidad;
-            }
-            else
-            {
-                _idUnidadContenido = null;
-            }
-
-            if (string.IsNullOrWhiteSpace(contenido) || string.IsNullOrWhiteSpace(unidad))
-                return contenido;
-
-            var sufijo = $" {unidad}";
-            if (contenido.EndsWith(sufijo, StringComparison.OrdinalIgnoreCase))
-                contenido = contenido[..^sufijo.Length].TrimEnd();
-
-            return $"{contenido} {unidad}";
+            CmbUnidad.SelectedItem = item;
+            if (item is null) CmbUnidad.SelectedIndex = 0;
         }
 
         private static string FormatearFecha(DateTime? valor) =>
             valor?.ToString("yyyy-MM-dd HH:mm", CultureInfo.CurrentCulture) ?? string.Empty;
 
+        // ── Filtro de tecleo en campos numéricos ─────────────────────────────
+        // El validador (ReglasProducto + Rango) ya rechaza letras al salir del campo o
+        // guardar, pero eso deja escribir "fvbdfgbf" entero antes de avisar. Esto corta
+        // el caracter inválido en el momento: ni siquiera llega a aparecer en el TextBox.
+
+        private void CajaDecimal_PreviewTextInput(object sender, TextCompositionEventArgs e)
+        {
+            var caja = (TextBox)sender;
+            string resultado = caja.Text.Remove(caja.SelectionStart, caja.SelectionLength)
+                                         .Insert(caja.SelectionStart, e.Text);
+            e.Handled = !ParseoNumerico.PuedeSerDecimalEnProgreso(resultado);
+        }
+
+        private void CajaDecimal_Pasting(object sender, DataObjectPastingEventArgs e)
+        {
+            if (!e.DataObject.GetDataPresent(typeof(string))) { e.CancelCommand(); return; }
+
+            var caja = (TextBox)sender;
+            var pegado = (string)e.DataObject.GetData(typeof(string));
+            string resultado = caja.Text.Remove(caja.SelectionStart, caja.SelectionLength)
+                                         .Insert(caja.SelectionStart, pegado);
+            if (!ParseoNumerico.PuedeSerDecimalEnProgreso(resultado))
+                e.CancelCommand();
+        }
     }
 }

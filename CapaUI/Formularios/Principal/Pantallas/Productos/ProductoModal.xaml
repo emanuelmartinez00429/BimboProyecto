@@ -225,42 +225,36 @@
                         </Grid>
                     </StackPanel>
 
-                    <!-- Fila 3: Contenido | Unidad | Peso teorico -->
+                    <!-- Fila 3: Contenido+Unidad (pegados, ancho de 1 sola columna) | Peso teorico -->
                     <StackPanel Grid.Row="2" Grid.Column="0" Style="{StaticResource CampoModalEnGrid}">
                         <TextBlock Text="Contenido" Style="{StaticResource EtiquetaCampo}"/>
-                        <TextBox x:Name="TxtContenido" Style="{StaticResource ModalInput}" TabIndex="70"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="80"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox Grid.Column="0" x:Name="TxtContenido" Style="{StaticResource ModalInput}" TabIndex="70" Margin="0,0,4,0"
+                                     PreviewTextInput="CajaDecimal_PreviewTextInput" DataObject.Pasting="CajaDecimal_Pasting"/>
+                            <!-- Items poblados en OnLoaded desde unidad_medida (catálogo real), no hardcodeados -->
+                            <ComboBox Grid.Column="1" x:Name="CmbUnidad" Style="{StaticResource ModalCombo}" TabIndex="80"/>
+                        </Grid>
                     </StackPanel>
                     <StackPanel Grid.Row="2" Grid.Column="1" Style="{StaticResource CampoModalEnGrid}">
-                        <TextBlock Text="Unidad" Style="{StaticResource EtiquetaCampo}"/>
-                        <!-- Items poblados en OnLoaded desde unidad_medida (catálogo real), no hardcodeados -->
-                        <ComboBox x:Name="CmbUnidad" Style="{StaticResource ModalCombo}" TabIndex="80"/>
-                    </StackPanel>
-                    <StackPanel Grid.Row="2" Grid.Column="2" Style="{StaticResource CampoModalEnGrid}">
-                        <TextBlock Text="Peso te&#243;rico" Style="{StaticResource EtiquetaCampo}"/>
-                        <TextBox x:Name="TxtPesoTeorico" Style="{StaticResource ModalInput}" TabIndex="90"/>
+                        <TextBlock Text="Peso te&#243;rico (kg)" Style="{StaticResource EtiquetaCampo}"/>
+                        <TextBox x:Name="TxtPesoTeorico" Style="{StaticResource ModalInput}" TabIndex="90"
+                                 PreviewTextInput="CajaDecimal_PreviewTextInput" DataObject.Pasting="CajaDecimal_Pasting"/>
                     </StackPanel>
 
                     <!-- Fila 4: Tara | Precio por kg | Pais importado -->
                     <StackPanel Grid.Row="3" Grid.Column="0" Style="{StaticResource CampoModalEnGrid}">
-                        <TextBlock Text="Tara" Style="{StaticResource EtiquetaCampo}"/>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="44"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBox Grid.Column="0" x:Name="TxtTara" Style="{StaticResource ModalInput}" IsReadOnly="True" TabIndex="100"
-                                     Cursor="Hand" PreviewMouseDoubleClick="TxtCatalogo_PreviewMouseDoubleClick"
-                             KeyDown="TxtCatalogo_KeyDown"
-                                     Tag="{Binding ElementName=BtnBuscarTara}"/>
-                            <Button Grid.Column="1" x:Name="BtnBuscarTara" TabIndex="101"
-                                    Style="{StaticResource LupaBtnOscuro}"
-                                    Click="BuscarTara_Click"
-                                    ToolTip="Seleccionar tara"/>
-                        </Grid>
+                        <TextBlock Text="Tara (kg)" Style="{StaticResource EtiquetaCampo}"/>
+                        <TextBox x:Name="TxtTara" Style="{StaticResource ModalInput}" TabIndex="100"
+                                 PreviewTextInput="CajaDecimal_PreviewTextInput" DataObject.Pasting="CajaDecimal_Pasting"/>
                     </StackPanel>
                     <StackPanel Grid.Row="3" Grid.Column="1" Style="{StaticResource CampoModalEnGrid}">
                         <TextBlock Text="Precio por kg" Style="{StaticResource EtiquetaCampo}"/>
-                        <TextBox x:Name="TxtPrecioPorKg" Style="{StaticResource ModalInput}" TabIndex="110"/>
+                        <TextBox x:Name="TxtPrecioPorKg" Style="{StaticResource ModalInput}" TabIndex="110"
+                                 PreviewTextInput="CajaDecimal_PreviewTextInput" DataObject.Pasting="CajaDecimal_Pasting"/>
                     </StackPanel>
                     <StackPanel Grid.Row="3" Grid.Column="2" Style="{StaticResource CampoModalEnGrid}">
                         <TextBlock Text="Pa&#237;s importado" Style="{StaticResource EtiquetaCampo}"/>
