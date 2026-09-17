@@ -516,11 +516,15 @@
              la ventana) y estos campos pueden angostarse hasta que un valor
              largo (nombre de fabricante, de proveedor…) deje de entrar.
              TextoResponsivo cubre los dos casos con un solo Setter, heredado
-             por todo lo BasedOn en esto (ModalInputAuditoria incluida):
+             por todo lo BasedOn en esto:
              - Solo lectura (campos de catálogo elegidos por lupa): recorta
                con "…" y deja el texto completo en el ToolTip.
              - Editable: no toca el texto (le comería el input), solo agrega
                el ToolTip cuando lo tipeado no entra.
+             ModalInputAuditoria (más abajo) ya NO es BasedOn de este estilo
+             — tiene su propio Template (diseño display de Pesajes) — pero
+             replica este mismo Setter de forma independiente para conservar
+             el recorte con "…" en Creado/Actualizado.
              Ver [[TextoResponsivo]] / CapaUI/Core/Controls/TextoResponsivo.cs. -->
         <Setter Property="controls:TextoResponsivo.Activo" Value="True"/>
         <Setter Property="Template">
@@ -622,11 +626,44 @@
         <Setter Property="Margin" Value="0,0,20,16"/>
     </Style>
 
-    <!-- Campo de auditoría (Creado / Actualizado): solo lectura, apagado. -->
-    <Style x:Key="ModalInputAuditoria" TargetType="TextBox" BasedOn="{StaticResource ModalInput}">
-        <Setter Property="Background" Value="#C7D2E3"/>
-        <Setter Property="Foreground" Value="#5B6B85"/>
-        <Setter Property="BorderBrush" Value="#3FFFFFFF"/>
+    <!-- Campo de auditoría (Creado / Actualizado): solo lectura estilo display
+         (fondo oscuro traslúcido #1AFFFFFF, viñeta verde #34D399 y texto menta #6EE7B7,
+         replicando el diseño MInputDisplay de Pesajes). -->
+    <Style x:Key="ModalInputAuditoria" TargetType="TextBox">
+        <Setter Property="Height" Value="38"/>
+        <Setter Property="Padding" Value="17,0,10,0"/>
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontSize" Value="15"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Foreground" Value="#6EE7B7"/>
+        <Setter Property="Background" Value="#1AFFFFFF"/>
+        <Setter Property="BorderBrush" Value="#26FFFFFF"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="Cursor" Value="Arrow"/>
+        <Setter Property="Focusable" Value="False"/>
+        <Setter Property="IsReadOnlyCaretVisible" Value="False"/>
+        <Setter Property="ToolTip" Value="Información de auditoría generada automáticamente por el sistema. No modificable."/>
+        <Setter Property="controls:TextoResponsivo.Activo" Value="True"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TextBox">
+                    <Grid>
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="6"/>
+                        <!-- Viñeta / barrita verde de acento de solo lectura -->
+                        <Border Width="3" Margin="2" HorizontalAlignment="Left"
+                                Background="#34D399" CornerRadius="2"/>
+                        <ScrollViewer x:Name="PART_ContentHost"
+                                      Margin="{TemplateBinding Padding}"
+                                      VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
     </Style>
 
     <!-- Toggle segmentado (Activo / Inactivo). -->

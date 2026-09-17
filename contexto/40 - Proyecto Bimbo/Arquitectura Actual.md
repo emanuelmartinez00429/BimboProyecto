@@ -10,6 +10,9 @@ aliases:
 
 # Arquitectura Actual — Bimbo
 
+> [!success] Actualizado 2026-09-16 — Reorganización de cuadrícula y campos de auditoría estilo Pesajes en ProductoModal
+> Se reubicó País importado a la fila 2 y Estado a la fila 3 de `ProductoModal.xaml`, eliminando el hueco libre y logrando simetría total de 3 columnas por fila. Los campos de auditoría Creado y Actualizado se estandarizaron globalmente en `Styles.xaml` (`ModalInputAuditoria`) adoptando el diseño display de Pesajes: fondo traslúcido `#1AFFFFFF`, barrita verde de acento `#34D399`, tipografía menta `#6EE7B7`, cursor flecha y sin foco, erradicando la falsa impresión de control congelado. Ver [[Sesión 2026-09-16 - Reorganización de cuadrícula y campos de auditoría estilo Pesajes en ProductoModal]].
+
 > [!success] Actualizado 2026-09-11 — Rediseño del ícono de Pesajes y fix de `EmptyStateOverlay` (P-062)
 > El ícono de balanza se centralizó como `IcoScale` (`PathGeometry`, `FillRule="Nonzero"`, `po:Freeze="True"`) en `Styles.xaml`, reemplazando el glifo de fuente del sidebar y las copias locales de `DashboardView`/`PesajeView`. De paso se encontró y cerró [[Deuda Técnica - Pendientes#P-062|P-062]]: `EmptyStateOverlay.OnIconoChanged` forzaba `Fill = Stroke` para cualquier ícono asignado, no solo los de relleno sólido — nueva propiedad `IconoEsRelleno` (default `false`) lo hace opcional y protege por default a todos los íconos de línea del proyecto. Ver [[Sesión 2026-09-11 - Rediseño e integración del icono de Pesajes]].
 
