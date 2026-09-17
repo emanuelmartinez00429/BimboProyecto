@@ -138,7 +138,6 @@ public class EmpleadoCrudRepository : RepositorioBase, IEmpleadoRepository
                 .Set(e => e.numeroIdentidad,  dto.NumeroIdentidad)
                 .Set(e => e.telefonoEmpleado, dto.TelefonoEmpleado)
                 .Set(e => e.correoEmpleado,   dto.CorreoEmpleado)
-                .Set(e => e.idEstado,         dto.IdEstado)
                 .Update();
             _cache.InvalidarEtiqueta(TagsCache.DeTabla(TagsCache.TablaEmpleados));
         }, "Actualizar empleado");

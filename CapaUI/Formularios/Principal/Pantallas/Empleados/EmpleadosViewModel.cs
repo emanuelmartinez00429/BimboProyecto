@@ -1,7 +1,9 @@
 using System.Collections.ObjectModel;
+using CapaAplicacion.Common;
 using CapaAplicacion.Empleados.Dtos;
 using CapaAplicacion.Empleados.Interfaces;
 using CapaAplicacion.Empleados.Queries;
+using CapaAplicacion.Productos.Queries;
 using CapaUI.Core.Controls;
 using CapaUI.Core.Permisos;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -21,6 +23,7 @@ public partial class EmpleadosViewModel : ObservableObject, IDisposable
     private readonly IEmpleadoRepository _repo;
     private readonly SuggestionDebouncer    _buscador = new();
     private readonly CancellationTokenSource _cts = new();
+    private CancellationTokenSource? _ctsPagina;
     private bool _disposed;
 
     private string               _query        = "";
@@ -48,14 +51,19 @@ public partial class EmpleadosViewModel : ObservableObject, IDisposable
     [NotifyCanExecuteChangedFor(nameof(PaginaAnteriorCommand))]
     [NotifyCanExecuteChangedFor(nameof(PaginaSiguienteCommand))]
     [NotifyCanExecuteChangedFor(nameof(UltimaPaginaCommand))]
+    [NotifyPropertyChangedFor(nameof(NoResults), nameof(MensajeSinResultados))]
     private bool _isLoading;
 
     [ObservableProperty] private int    _highlightIndex = -1;
     [ObservableProperty] private int    _totalCount;
     [ObservableProperty] private int    _activosCount;
     [ObservableProperty] private int    _inactivosCount;
-    [ObservableProperty] private string _errorCarga = "";
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HayErrorCarga))]
+    private string _errorCarga = "";
 
+    // ── Propiedades derivadas ──────────────────────────────────────────
+    public bool HayErrorCarga     => !string.IsNullOrWhiteSpace(ErrorCarga);
     public bool   HaySeleccionado   => Seleccionado is not null;
     public bool PuedeCrearUsuario => HaySeleccionado
         && SesionPermisos.Tiene(Permiso.CrearUsuario)
@@ -65,7 +73,32 @@ public partial class EmpleadosViewModel : ObservableObject, IDisposable
         : $"{Seleccionado.NombreEmpleado} {Seleccionado.ApellidoEmpleado} · {Seleccionado.NumeroIdentidad}";
 
     public int  TotalPages => Math.Max(1, (int)Math.Ceiling(_filteredCount / (double)PageSize));
-    public bool NoResults  => !IsLoading && _filteredCount == 0 && TotalCount > 0;
+    public bool NoResults  => !IsLoading && (_filteredCount == 0 || !string.IsNullOrWhiteSpace(ErrorCarga));
+
+    public string MensajeSinResultados
+    {
+        get
+        {
+            if (IsLoading) return string.Empty;
+
+            if (!string.IsNullOrWhiteSpace(ErrorCarga))
+                return $"Error al cargar: {ErrorCarga}";
+
+            if (_estadoFiltro == EstadoEmpleadoFilter.Inactivos)
+                return "No hay empleados inactivos";
+
+            if (_estadoFiltro == EstadoEmpleadoFilter.Activos && ActivosCount == 0 && TotalCount > 0)
+                return "No hay empleados activos";
+
+            if (!string.IsNullOrWhiteSpace(_query))
+                return "No se encontraron resultados con los filtros actuales";
+
+            return "No hay empleados registrados";
+        }
+    }
+
+    private bool TieneFiltrosBusquedaActivos() =>
+        !string.IsNullOrWhiteSpace(_query);
 
     public string PageInfo
     {
@@ -161,31 +194,44 @@ public partial class EmpleadosViewModel : ObservableObject, IDisposable
         ErrorCarga = string.Empty;
 
         var filtros = BuildFiltros();
-        var task = _repo.GetPagedAsync(_page, PageSize, filtros, _cts.Token);
 
-        // P-029: el Task.Delay del timeout usa un token enlazado que se cancela
-        // apenas gana la consulta. Sin esto, CADA carga dejaba un timer de 10 s
-        // vivo en el TimerQueue aunque la consulta tardara solo 200 ms.
-        using var ctsTimeout = CancellationTokenSource.CreateLinkedTokenSource(_cts.Token);
-        var demora   = Task.Delay(TimeoutMs, ctsTimeout.Token);
-        var ganador  = await Task.WhenAny(task, demora);
-        ctsTimeout.Cancel();
+        // La generación nueva cancela la petición anterior de forma atómica y asíncrona (.NET 10)
+        var cts = CancellationTokenSource.CreateLinkedTokenSource(_cts.Token);
+        cts.CancelAfter(TimeoutMs);
+        var oldCts = Interlocked.Exchange(ref _ctsPagina, cts);
+        if (oldCts is not null)
+        {
+            try { _ = oldCts.CancelAsync(); } catch (ObjectDisposedException) { }
+        }
 
-        if (_disposed) return;
-        if (ganador != task)
+        Result<PagedResult<EmpleadoDto>> r;
+        try
+        {
+            r = await _repo.GetPagedAsync(_page, PageSize, filtros, cts.Token);
+        }
+        catch (OperationCanceledException)
         {
             if (myGen != _loadGeneration) return;
             ErrorCarga = "La carga tardó demasiado. Intente de nuevo.";
+            PageRows = new ObservableCollection<EmpleadoDto>();
+            OnPropertyChanged(nameof(NoResults));
+            OnPropertyChanged(nameof(MensajeSinResultados));
             IsLoading  = false;
             return;
         }
+        finally
+        {
+            Interlocked.CompareExchange(ref _ctsPagina, null, cts);
+        }
 
-        var r = await task;
         if (_disposed || myGen != _loadGeneration) return;
 
         if (!r.Success)
         {
             ErrorCarga = r.Error;
+            PageRows = new ObservableCollection<EmpleadoDto>();
+            OnPropertyChanged(nameof(NoResults));
+            OnPropertyChanged(nameof(MensajeSinResultados));
             IsLoading  = false;
             return;
         }
@@ -207,6 +253,7 @@ public partial class EmpleadosViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(TotalPages));
         OnPropertyChanged(nameof(PageInfo));
         OnPropertyChanged(nameof(NoResults));
+        OnPropertyChanged(nameof(MensajeSinResultados));
         NotifyPaginationCanExecuteChanged();
         IsLoading = false;
 
@@ -318,7 +365,12 @@ public partial class EmpleadosViewModel : ObservableObject, IDisposable
     [RelayCommand]
     private void LimpiarFiltros()
     {
+        _buscador.Cancelar();
+        _query = "";
+        OnPropertyChanged(nameof(Query));
+        SuggestItems = null;
         _estadoFiltro = EstadoEmpleadoFilter.Activos;
+        OnPropertyChanged(nameof(EstadoFiltro));
         FiltrosLimpiados?.Invoke();
         AplicarCambioDeFiltro();
     }
@@ -354,6 +406,14 @@ public partial class EmpleadosViewModel : ObservableObject, IDisposable
         _disposed = true;
         _cts.Cancel();
         _cts.Dispose();
+
+        var activeCts = Interlocked.Exchange(ref _ctsPagina, null);
+        if (activeCts is not null)
+        {
+            try { activeCts.Cancel(); } catch (ObjectDisposedException) { }
+            activeCts.Dispose();
+        }
+
         _buscador.Dispose();
     }
 }
