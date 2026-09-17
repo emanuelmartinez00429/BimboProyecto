@@ -92,6 +92,7 @@ Las rosas son rojas.
 - [[ADR-025 - Notificaciones internas con Supabase como fuente de verdad]]
 
 ### Módulos documentados
+- [[Módulo Dashboard]] — KPI y Top 5 de mermas con períodos independientes, inventario actual y feed global en Realtime
 - [[Módulo Productos]] — patrón de referencia para todos los demás
 - [[Módulo Usuarios]] — CRUD + autenticación + permisos desde BD
 - [[Módulo Notificaciones]] — bandeja interna por destinatario, RPC, RLS y señal Realtime
@@ -148,7 +149,10 @@ Regla: `CapaAplicacion` **nunca** referencia `CapaDatos`.
 ## Bitácora
 
 Las sesiones están en `70 - Bitácora de Cambios/`.  
-Sesiones más recientes (2026-09-08):
+Sesiones más recientes (2026-09-17):
+- [[Sesión 2026-09-17 - Filtros independientes en Dashboard]]
+- [[Sesión 2026-09-17 - Integración de datos en vivo del Dashboard con FusionCache y Realtime]]
+- [[Sesión 2026-09-17 - Estandarización de encabezado en Dashboard con icono IcoDashboard]]
 - [[Sesión 2026-09-08 - Plan de CI-CD y actualizaciones remotas]]
 - [[Sesión 2026-09-08 - Cierre de P-054 y P-055]]
 - [[Sesión 2026-09-08 - Fuga de memoria por contenedor DI y scope de sesión]]

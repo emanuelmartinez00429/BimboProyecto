@@ -10,6 +10,9 @@ aliases:
 
 # Arquitectura Actual — Bimbo
 
+> [!success] Actualizado 2026-09-17 — Filtros independientes en el Dashboard
+> El selector del encabezado controla exclusivamente los KPI de pesajes y los RadioButtons controlan exclusivamente el Top 5 de mermas. Ambos conservan su selección en refrescos, reconexiones y eventos Realtime mediante estados y cancelaciones independientes. La opción interna `Mes` ahora representa una ventana móvil de 30 días, comparada con los 30 días inmediatamente anteriores. El inventario permanece como corte actual y el feed de últimos pesajes continúa global. Cambio validado visualmente por Fernando, con build limpio, 526 pruebas y arnés WPF aprobado. Ver [[Módulo Dashboard]] y [[Sesión 2026-09-17 - Filtros independientes en Dashboard]].
+
 > [!success] Actualizado 2026-09-17 — Integración de datos en vivo del Dashboard con FusionCache y Realtime
 > Se conectó la vista existente del Dashboard (`DashboardView.xaml`) a datos reales en vivo desde Supabase, eliminando el 100% de los datos mock de `DashboardVM.cs`. La arquitectura implementa el Approach A: repositorio dedicado `DashboardRepository` con caché L1 `FusionCache` (5 min, etiquetada con `TagsCache.CatalogosRaiz`) exclusivamente para conteos de catálogos, política zero-cache para pesajes/mermas (conforme a [[ADR-026 - Cache en memoria con FusionCache e invalidacion por Realtime]]), RPC PostgreSQL `consultar_kpis_pesajes` optimizada en una pasada con `FILTER (WHERE ...)` y suscripción reactiva Realtime para el feed de pesajes recientes. Ver [[Módulo Dashboard]] y [[Sesión 2026-09-17 - Integración de datos en vivo del Dashboard con FusionCache y Realtime]].
 
