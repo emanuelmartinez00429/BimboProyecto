@@ -4,14 +4,14 @@ using CapaUI.Core.Validacion;
 using CapaAplicacion.Common;
 using CapaAplicacion.Empleados.Dtos;
 using CapaAplicacion.Empleados.Interfaces;
+using CapaUI.Core.Permisos;
 using System;
 using System.Windows;
-using System.Windows.Media.Imaging;
 
 namespace CapaUI.Formularios.Principal.Pantallas.Empleados
 {
     /// <summary>
-    /// Modal de Empleados — crear y editar registros.
+    /// Modal de Empleados — crear y editar registros con ChangeTracker y manejo de fallos parciales.
     /// </summary>
     public partial class EmpleadoModal : System.Windows.Controls.UserControl
     {
@@ -19,6 +19,9 @@ namespace CapaUI.Formularios.Principal.Pantallas.Empleados
         private readonly EmpleadoDto?        _empleado;
         private readonly bool                _esNuevo;
         private ValidadorFormulario          _validador = null!;
+        private ChangeTracker<EmpleadoSnapshot> _tracker = new(null);
+
+        private sealed record EmpleadoSnapshot(string Nombre, string Apellido, string Identidad, string Telefono, string Correo);
 
         public event Action? Cerrado;
         public event Action? Guardado;
@@ -55,6 +58,8 @@ namespace CapaUI.Formularios.Principal.Pantallas.Empleados
             if (!_esNuevo && _empleado != null)
             {
                 RowEstado.Visibility = Visibility.Visible;
+                RbActivo.IsEnabled   = SesionPermisos.Tiene(Permiso.EliminarEmpleado);
+                RbInactivo.IsEnabled = SesionPermisos.Tiene(Permiso.EliminarEmpleado);
 
                 TxtNombre.Text    = _empleado.NombreEmpleado;
                 TxtApellido.Text  = _empleado.ApellidoEmpleado;
@@ -64,6 +69,13 @@ namespace CapaUI.Formularios.Principal.Pantallas.Empleados
 
                 RbActivo.IsChecked   = _empleado.IdEstado == 1;
                 RbInactivo.IsChecked = _empleado.IdEstado != 1;
+
+                _tracker = new ChangeTracker<EmpleadoSnapshot>(new EmpleadoSnapshot(
+                    (_empleado.NombreEmpleado ?? string.Empty).Trim(),
+                    (_empleado.ApellidoEmpleado ?? string.Empty).Trim(),
+                    (_empleado.NumeroIdentidad ?? string.Empty).Trim(),
+                    (_empleado.TelefonoEmpleado ?? string.Empty).Trim(),
+                    (_empleado.CorreoEmpleado ?? string.Empty).Trim()));
             }
             else
             {
@@ -90,7 +102,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Empleados
                 return;
 
             // Guardar es un viaje de red: sin este aviso la espera se lee como
-            // que la aplicacion se colgo.
+            // que la aplicación se colgó.
             var etiquetaGuardar  = BtnGuardar.Content;
             BtnGuardar.IsEnabled = false;
             BtnGuardar.Content   = "Guardando...";
@@ -117,8 +129,49 @@ namespace CapaUI.Formularios.Principal.Pantallas.Empleados
                 }
                 else
                 {
-                    var r = await _repo.UpdateAsync(dto);
-                    (exito, error) = (r.Success, r.Error);
+                    var snapshotActual = new EmpleadoSnapshot(
+                        dto.NombreEmpleado,
+                        dto.ApellidoEmpleado,
+                        dto.NumeroIdentidad,
+                        dto.TelefonoEmpleado,
+                        dto.CorreoEmpleado);
+
+                    bool datosCambiaron = _tracker.IsDirty(snapshotActual);
+                    bool estadoCambio   = _empleado != null && dto.IdEstado != _empleado.IdEstado;
+
+                    if (!datosCambiaron && !estadoCambio)
+                    {
+                        Cerrado?.Invoke();
+                        return;
+                    }
+
+                    exito = true;
+                    error = string.Empty;
+
+                    if (datosCambiaron)
+                    {
+                        var r = await _repo.UpdateAsync(dto);
+                        (exito, error) = (r.Success, r.Error);
+                    }
+
+                    if (exito && estadoCambio)
+                    {
+                        var rEstado = await _repo.CambiarEstadoAsync(dto.IdEmpleado, dto.IdEstado);
+                        if (!rEstado.Success)
+                        {
+                            if (datosCambiaron)
+                            {
+                                // Manejo honesto de fallo parcial sin rollback destructivo (AP-03 / P-061)
+                                MessageBox.Show(
+                                    $"Los datos del empleado se actualizaron correctamente, pero no se pudo cambiar el estado:\n{rEstado.Error}",
+                                    "Aviso de Estado", MessageBoxButton.OK, MessageBoxImage.Warning);
+                                Guardado?.Invoke();
+                                return;
+                            }
+
+                            (exito, error) = (rEstado.Success, rEstado.Error);
+                        }
+                    }
                 }
 
                 if (!exito)

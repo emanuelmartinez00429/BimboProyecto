@@ -10,7 +10,7 @@
              Loaded="UserControl_Loaded"
              Unloaded="UserControl_Unloaded"
              UseLayoutRounding="True"
-             TextOptions.TextRenderingMode="Grayscale"
+             TextOptions.TextRenderingMode="Auto"
              TextOptions.TextFormattingMode="Display">
 
     <UserControl.Resources>
@@ -130,44 +130,50 @@
 
                 <Border BorderBrush="#E5E7EB" BorderThickness="0,0,0,1" Margin="0,10,0,10" SnapsToDevicePixels="True"/>
 
-                <!-- Filters -->
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
+                <!-- Filters: PanelFiltrosFluido con binding declarativo (AP-02 / AP-04) -->
+                <controls:PanelFiltrosFluido EspacioHorizontal="16" EspacioVertical="12">
 
-                    <TextBlock Grid.Column="0" Text="ESTADO"
-                               FontFamily="Segoe UI" FontSize="12.5" FontWeight="Bold"
-                               Foreground="#6B7280" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                    <!-- ESTADO -->
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock Text="ESTADO"
+                                   FontFamily="Segoe UI" FontSize="12.5" FontWeight="Bold"
+                                   Foreground="#6B7280"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,10,0"/>
 
-                    <Border Grid.Column="1" Background="#F3F4F6" CornerRadius="8"
-                            BorderBrush="#E5E7EB" BorderThickness="1" Padding="3" VerticalAlignment="Center">
-                        <StackPanel Orientation="Horizontal">
-                            <RadioButton x:Name="RbActivos" GroupName="EstadoFiltro" IsChecked="True"
-                                         Style="{StaticResource SegmentBtn}" Checked="EstadoFiltro_Changed">
-                                <StackPanel Orientation="Horizontal">
-                                    <Border Width="6" Height="6" CornerRadius="3" Background="#10B981" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                                    <TextBlock Text="Activos" FontFamily="Segoe UI" FontSize="15"/>
-                                </StackPanel>
-                            </RadioButton>
-                            <RadioButton x:Name="RbInactivos" GroupName="EstadoFiltro"
-                                         Style="{StaticResource SegmentBtn}" Checked="EstadoFiltro_Changed">
-                                <StackPanel Orientation="Horizontal">
-                                    <Border Width="6" Height="6" CornerRadius="3" Background="#94A3B8" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                                    <TextBlock Text="Inactivos" FontFamily="Segoe UI" FontSize="15"/>
-                                </StackPanel>
-                            </RadioButton>
-                            <RadioButton x:Name="RbTodos" GroupName="EstadoFiltro"
-                                         Style="{StaticResource SegmentBtn}" Checked="EstadoFiltro_Changed">
-                                <TextBlock Text="Todos" FontFamily="Segoe UI" FontSize="15"/>
-                            </RadioButton>
-                        </StackPanel>
-                    </Border>
+                        <Border Background="#F3F4F6"
+                                CornerRadius="8"
+                                BorderBrush="#E5E7EB" BorderThickness="1"
+                                Padding="3"
+                                VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal">
+                                <!-- Omitir GroupName elimina el escaneo O(N) del árbol visual (AP-02) -->
+                                <RadioButton x:Name="RbActivos"
+                                             IsChecked="{Binding EstadoFiltro, Converter={x:Static conv:EnumToBooleanConverter.Instancia}, ConverterParameter={x:Static local:EstadoEmpleadoFilter.Activos}, Mode=TwoWay}"
+                                             Style="{StaticResource SegmentBtn}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Border Width="6" Height="6" CornerRadius="3" Background="#10B981" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Activos" FontFamily="Segoe UI" FontSize="15"/>
+                                    </StackPanel>
+                                </RadioButton>
+                                <RadioButton x:Name="RbInactivos"
+                                             IsChecked="{Binding EstadoFiltro, Converter={x:Static conv:EnumToBooleanConverter.Instancia}, ConverterParameter={x:Static local:EstadoEmpleadoFilter.Inactivos}, Mode=TwoWay}"
+                                             Style="{StaticResource SegmentBtn}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Border Width="6" Height="6" CornerRadius="3" Background="#94A3B8" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Inactivos" FontFamily="Segoe UI" FontSize="15"/>
+                                    </StackPanel>
+                                </RadioButton>
+                                <RadioButton x:Name="RbTodos"
+                                             IsChecked="{Binding EstadoFiltro, Converter={x:Static conv:EnumToBooleanConverter.Instancia}, ConverterParameter={x:Static local:EstadoEmpleadoFilter.Todos}, Mode=TwoWay}"
+                                             Style="{StaticResource SegmentBtn}">
+                                    <TextBlock Text="Todos" FontFamily="Segoe UI" FontSize="15"/>
+                                </RadioButton>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
 
-                    <Border Grid.Column="2"/>
-                </Grid>
+                </controls:PanelFiltrosFluido>
             </StackPanel>
         </Border>
 
@@ -190,31 +196,17 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <!-- Empty state -->
-                <StackPanel Grid.Row="0" x:Name="EmptyState" Visibility="Collapsed"
-                            VerticalAlignment="Center" HorizontalAlignment="Center">
-                    <TextBlock FontFamily="Segoe UI" FontSize="16" Foreground="#6B7280" HorizontalAlignment="Center">
-                        Sin resultados. Ajusta los filtros o pulsa <Bold>Limpiar Filtros</Bold>.
-                    </TextBlock>
-                </StackPanel>
-
-                <!-- Loading spinner -->
-                <StackPanel Grid.Row="0" x:Name="LoadingPanel" Visibility="Collapsed"
-                            VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Horizontal">
-                    <Path x:Name="SpinnerPath"
-                          Data="M 12 2 A 10 10 0 1 1 2 12"
-                          Stroke="{DynamicResource EmpresaPrimaryBrush}" StrokeThickness="2.5"
-                          StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                          Width="22" Height="22" Stretch="Uniform"
-                          RenderTransformOrigin="0.5,0.5" Margin="0,0,10,0">
-                        <Path.RenderTransform><RotateTransform/></Path.RenderTransform>
-                    </Path>
-                    <TextBlock Text="Cargando empleados..." FontFamily="Segoe UI" FontSize="16" Foreground="#6B7280"
-                               VerticalAlignment="Center"/>
-                </StackPanel>
+                <!-- Loading overlay reutilizable (AP-04) -->
+                <controls:LoadingOverlay Grid.Row="0"
+                                         Panel.ZIndex="10"
+                                         HeaderOffset="40"
+                                         IsLoading="{Binding IsLoading}"
+                                         Mensaje="Cargando empleados..."/>
 
                 <!-- DataGrid -->
                 <DataGrid Grid.Row="0" x:Name="DgEmpleados"
+                          ItemsSource="{Binding PageRows, Mode=OneWay}"
+                          SelectedItem="{Binding Seleccionado, Mode=TwoWay}"
                           AutoGenerateColumns="False" CanUserAddRows="False" CanUserSortColumns="False"
                           IsReadOnly="True"
                           HeadersVisibility="Column" GridLinesVisibility="None"
@@ -225,7 +217,6 @@
                           EnableRowVirtualization="True"
                           EnableColumnVirtualization="True"
                           RowStyle="{StaticResource EmpleadoRowStyle}" CellStyle="{StaticResource CeldaCentrada}"
-                          SelectionChanged="DgEmpleados_SelectionChanged"
                           MouseDoubleClick="DgEmpleados_MouseDoubleClick"
                           PreviewKeyDown="DgEmpleados_PreviewKeyDown"
                           ScrollViewer.CanContentScroll="True"
@@ -323,6 +314,14 @@
                     </DataGrid.Columns>
                 </DataGrid>
 
+                <!-- Empty state overlay -->
+                <controls:EmptyStateOverlay Grid.Row="0"
+                                            x:Name="EmptyState"
+                                            Panel.ZIndex="5"
+                                            HeaderOffset="40"
+                                            Mensaje="{Binding MensajeSinResultados}"
+                                            EstaVacio="{Binding NoResults}"/>
+
                 <!-- Pagination footer -->
                 <!-- Pagination footer (P-037) -->
                 <controls:PaginadorControl Grid.Row="1"
@@ -383,7 +382,8 @@
             </StackPanel>
 
             <StackPanel DockPanel.Dock="Left" x:Name="SelectedInfo"
-                        Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0" Visibility="Collapsed">
+                        Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0"
+                        Visibility="{Binding HaySeleccionado, Converter={x:Static conv:BoolToVisibilityConverter.Instancia}}">
                 <Border Width="6" Height="6" CornerRadius="3" Background="{DynamicResource EmpresaPrimaryBrush}" Margin="0,0,6,0" VerticalAlignment="Center"/>
                 <TextBlock x:Name="SelectedText" FontFamily="Segoe UI" FontSize="14" Foreground="#6B7280"
                            VerticalAlignment="Center" Text="{Binding TextoSeleccionado}"/>
@@ -393,8 +393,10 @@
         <!-- ROW 6: ERROR DISPLAY -->
         <Border x:Name="ErrorPanel" Grid.Row="6" Background="#FEF2F2" CornerRadius="8"
                 BorderBrush="#FECACA" BorderThickness="1"
-                Padding="14,10" Margin="0,0,0,4" Visibility="Collapsed">
+                Padding="14,10" Margin="0,0,0,4"
+                Visibility="{Binding HayErrorCarga, Converter={x:Static conv:BoolToVisibilityConverter.Instancia}}">
             <TextBlock x:Name="ErrorText"
+                       Text="{Binding ErrorCarga}"
                        FontFamily="Segoe UI" FontSize="15" FontWeight="Medium"
                        Foreground="#B91C1C" TextWrapping="Wrap"/>
         </Border>
