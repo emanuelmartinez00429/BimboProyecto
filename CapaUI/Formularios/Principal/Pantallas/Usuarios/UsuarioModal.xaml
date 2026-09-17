@@ -3,15 +3,18 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:po="http://schemas.microsoft.com/winfx/2006/xaml/presentation/options"
              xmlns:conv="clr-namespace:CapaUI.Converters"
              xmlns:controls="clr-namespace:CapaUI.Core.Controls"
-             mc:Ignorable="d"
+             mc:Ignorable="d po"
              Width="560"
              d:DesignWidth="560"
              d:DesignHeight="650"
              UseLayoutRounding="True"
-             TextOptions.TextRenderingMode="Grayscale"
-             TextOptions.TextFormattingMode="Display" controls:AtajoGuardar.Boton="{x:Reference BtnGuardar}">
+             TextOptions.TextRenderingMode="Auto"
+             TextOptions.TextFormattingMode="Display"
+             RenderOptions.ClearTypeHint="Enabled"
+             controls:AtajoGuardar.Boton="{x:Reference BtnGuardar}">
 
     <UserControl.Resources>
         <ResourceDictionary>
@@ -19,17 +22,25 @@
                 <ResourceDictionary Source="/CapaUI;component/Resources/Styles.xaml"/>
             </ResourceDictionary.MergedDictionaries>
 
-            <Geometry x:Key="IconCloseM">M6,6 l12,12 M18,6 l-12,12</Geometry>
+            <PathGeometry x:Key="IconCloseM" Figures="M6,6 l12,12 M18,6 l-12,12" po:Freeze="True"/>
 
             <!-- ModalSegBtn, EtiquetaCampo, CampoModal y ModalPassword vienen de Styles.xaml. -->
         </ResourceDictionary>
     </UserControl.Resources>
 
-    <Border CornerRadius="10" ClipToBounds="True">
-        <Border.Effect>
-            <DropShadowEffect Color="Black" BlurRadius="24" ShadowDepth="8" Opacity="0.55"/>
-        </Border.Effect>
-        <Grid>
+    <!-- Modal container with decoupled drop shadow (AP-06) -->
+    <Grid>
+        <!-- Borde hermano estático para sombra: la GPU lo rasteriza de forma independiente
+             y no sufre recorte por ClipToBounds ni conflicto de shaders. -->
+        <Border Background="#1E293B" CornerRadius="10">
+            <Border.Effect>
+                <DropShadowEffect Color="Black" BlurRadius="24" ShadowDepth="8" Opacity="0.55"/>
+            </Border.Effect>
+        </Border>
+
+        <!-- Contenedor con recorte para el gradiente y bordes redondeados limpios -->
+        <Border CornerRadius="10" ClipToBounds="True">
+            <Grid>
             <Border CornerRadius="10">
                 <Border.Background>
                     <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
@@ -240,5 +251,6 @@
             </ScrollViewer>
         </Grid>
     </Border>
+    </Grid>
 </UserControl>
 

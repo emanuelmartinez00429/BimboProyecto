@@ -408,12 +408,12 @@
                                         <Grid>
                                             <TextBlock Text="Sin vista previa" Foreground="#94A3B8" FontSize="13"
                                                        HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                       Visibility="{Binding TieneIconoSidebarVistaPrevia, Converter={x:Static conv:InverseBoolToVisibilityConverter.Instancia}}"/>
-                                            <Image Source="{Binding IconoSidebarVistaPrevia}" Stretch="Uniform" Margin="14"
-                                                   Visibility="{Binding TieneIconoSidebarVistaPrevia, Converter={x:Static conv:BoolToVisibilityConverter.Instancia}}"/>
+                                                       Visibility="{Binding TieneLogoVistaPrevia, Converter={x:Static conv:InverseBoolToVisibilityConverter.Instancia}}"/>
+                                            <Image Source="{Binding LogoVistaPrevia}" Stretch="Uniform" Margin="14"
+                                                   Visibility="{Binding TieneLogoVistaPrevia, Converter={x:Static conv:BoolToVisibilityConverter.Instancia}}"/>
                                         </Grid>
                                     </Border>
-                                    <Button Click="SeleccionarIconoSidebar_Click"
+                                    <Button Click="SeleccionarLogo_Click"
                                             Style="{StaticResource SecondaryUploadButton}" Margin="0,10,0,0">
                                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                                             <Path Data="{StaticResource IconUpload}" Fill="#475569" Width="13" Height="13"
@@ -431,12 +431,12 @@
                                         <Grid>
                                             <TextBlock Text="Sin vista previa" Foreground="#94A3B8" FontSize="13"
                                                        HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                       Visibility="{Binding TieneLogoVistaPrevia, Converter={x:Static conv:InverseBoolToVisibilityConverter.Instancia}}"/>
-                                            <Image Source="{Binding LogoVistaPrevia}" Stretch="Uniform" Margin="14"
-                                                   Visibility="{Binding TieneLogoVistaPrevia, Converter={x:Static conv:BoolToVisibilityConverter.Instancia}}"/>
+                                                       Visibility="{Binding TieneIconoSidebarVistaPrevia, Converter={x:Static conv:InverseBoolToVisibilityConverter.Instancia}}"/>
+                                            <Image Source="{Binding IconoSidebarVistaPrevia}" Stretch="Uniform" Margin="14"
+                                                   Visibility="{Binding TieneIconoSidebarVistaPrevia, Converter={x:Static conv:BoolToVisibilityConverter.Instancia}}"/>
                                         </Grid>
                                     </Border>
-                                    <Button Click="SeleccionarLogo_Click"
+                                    <Button Click="SeleccionarIconoSidebar_Click"
                                             Style="{StaticResource SecondaryUploadButton}" Margin="0,10,0,0">
                                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                                             <Path Data="{StaticResource IconUpload}" Fill="#475569" Width="13" Height="13"

@@ -1,8 +1,10 @@
 using CapaAplicacion.Common;
+using CapaAplicacion.Common.Cache;
 using CapaAplicacion.Conexion;
 using CapaAplicacion.Productos.Queries;
 using CapaAplicacion.Usuarios.Dtos;
 using CapaAplicacion.Usuarios.Interfaces;
+using CapaDatos.Cache;
 using CapaDatos.Modelados.Usuarios;
 using ServicioConexión.Conexion;
 using UsuariosModel = CapaDatos.Modelados.Usuarios.Usuarios;
@@ -14,12 +16,15 @@ namespace CapaDatos.Repositories.Usuarios;
 public class UsuarioRepository : RepositorioBase, IUsuarioRepository
 {
     private readonly IUsuarioSesionService _sesionService;
+    private readonly ICacheService         _cache;
 
     public UsuarioRepository(
         IConexionMonitor conexion,
-        IUsuarioSesionService sesionService) : base(conexion)
+        IUsuarioSesionService sesionService,
+        ICacheService cache) : base(conexion)
     {
         _sesionService = sesionService;
+        _cache         = cache;
     }
 
     // ── Lectura ──────────────────────────────────────────────────────────────
@@ -95,6 +100,46 @@ public class UsuarioRepository : RepositorioBase, IUsuarioRepository
                 Inactivos = conteos.inactivos,
             };
         }, "Cargar pagina de usuarios");
+
+    public Task<Result<IReadOnlyList<UsuarioVistaDto>>> BuscarSugerenciasAsync(
+        string termino, int? idEstado, int? idRol, CancellationToken ct = default)
+    {
+        var aguja = TextoBusqueda.Normalizar(termino).Trim();
+        if (aguja.Length < 3)
+            return TryAsync(() => BuscarSugerenciasInternal(aguja, idEstado, idRol, ct), "Buscar sugerencias usuarios");
+
+        var estado = idEstado?.ToString() ?? "todos";
+        var rol    = idRol?.ToString() ?? "todos";
+        var clave  = $"sug:{TagsCache.TablaUsuarios}:{aguja}:{estado}:{rol}";
+
+        return _cache.ObtenerOCrearAsync(
+            clave,
+            _ => TryAsync(() => BuscarSugerenciasInternal(aguja, idEstado, idRol, ct), "Buscar sugerencias usuarios"),
+            PoliticasCache.Sugerencias,
+            etiquetas: TagsCache.DeCatalogo(TagsCache.TablaUsuarios),
+            ct: ct);
+    }
+
+    private static async Task<IReadOnlyList<UsuarioVistaDto>> BuscarSugerenciasInternal(
+        string aguja, int? idEstado, int? idRol, CancellationToken ct = default)
+    {
+        var client = await ConexionSupabase.GetClientAsync();
+        var query = client.From<usuarioVista>().Select("*, roles(*), empleados(*)");
+
+        if (idEstado.HasValue)
+            query = query.Filter("id_estado", Op.Equals, idEstado.Value.ToString());
+        if (idRol.HasValue)
+            query = query.Filter("id_rol", Op.Equals, idRol.Value.ToString());
+        if (!string.IsNullOrWhiteSpace(aguja))
+            query = query.Filter("busqueda_usuario", Op.ILike, $"%{aguja}%");
+
+        var resultado = await query
+            .Order("id_usuario", Ord.Ascending)
+            .Limit(10)
+            .Get(ct);
+
+        return resultado?.Models?.Select(MapToDto).ToList() ?? [];
+    }
 
     public Task<Result<IReadOnlyList<EmpleadoDto>>> ObtenerEmpleadosSinUsuarioAsync(CancellationToken ct = default) =>
         TryAsync(async () =>
@@ -193,6 +238,8 @@ public class UsuarioRepository : RepositorioBase, IUsuarioRepository
                         throw new InvalidOperationException("El empleado ya tiene un usuario asociado.");
                 }
             }
+
+            _cache.InvalidarEtiqueta(TagsCache.DeTabla(TagsCache.TablaUsuarios));
         }, "Crear usuario");
 
     public Task<Result> ActualizarAsync(ActualizarUsuarioDto dto, Guid idSolicitud, CancellationToken ct = default) =>
@@ -208,6 +255,7 @@ public class UsuarioRepository : RepositorioBase, IUsuarioRepository
                 ["p_email"] = dto.Email,
                 ["p_id_solicitud"] = idSolicitud
             });
+            _cache.InvalidarEtiqueta(TagsCache.DeTabla(TagsCache.TablaUsuarios));
         }, "Actualizar usuario");
 
     public Task<Result> CambiarEstadoAsync(int idUsuario, int idEstado, Guid idSolicitud, CancellationToken ct = default) =>
@@ -221,6 +269,7 @@ public class UsuarioRepository : RepositorioBase, IUsuarioRepository
                 ["p_id_estado"] = idEstado,
                 ["p_id_solicitud"] = idSolicitud
             });
+            _cache.InvalidarEtiqueta(TagsCache.DeTabla(TagsCache.TablaUsuarios));
         }, "Cambiar estado de usuario");
 
     public Task<Result> AsignarRolAsync(int idUsuario, int idRol, Guid idSolicitud, CancellationToken ct = default) =>
@@ -236,6 +285,7 @@ public class UsuarioRepository : RepositorioBase, IUsuarioRepository
                 ["p_id_solicitud"] = idSolicitud,
             });
             ct.ThrowIfCancellationRequested();
+            _cache.InvalidarEtiqueta(TagsCache.DeTabla(TagsCache.TablaUsuarios));
         }, "Asignar rol a usuario");
 
     private void ExigirUsuarioObjetivoDistinto(int idUsuarioObjetivo)
