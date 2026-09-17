@@ -69,5 +69,37 @@ namespace CapaUI.Formularios.Dashboard
             _pulseStoryboard.Children.Clear();
             _pulseStoryboard = null;
         }
+
+        private DateTime _momentoCierrePopup;
+
+        private void PopupPeriodo_Closed(object? sender, EventArgs e)
+        {
+            _momentoCierrePopup = DateTime.UtcNow;
+        }
+
+        private void OnPillPeriodoClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if ((DateTime.UtcNow - _momentoCierrePopup).TotalMilliseconds < 200)
+            {
+                return;
+            }
+
+            PopupPeriodo.IsOpen = !PopupPeriodo.IsOpen;
+            e.Handled = true;
+        }
+
+        private void OnSeleccionarPeriodoOption(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            PopupPeriodo.IsOpen = false;
+            e.Handled = true;
+
+            if (sender is FrameworkElement { Tag: string periodo } && DataContext is DashboardVM vm)
+            {
+                if (vm.SelectPeriodoCommand.CanExecute(periodo))
+                {
+                    vm.SelectPeriodoCommand.Execute(periodo);
+                }
+            }
+        }
     }
 }
