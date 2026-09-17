@@ -122,6 +122,16 @@
     </WindowChrome.WindowChrome>
 
     <Border x:Name="RootBorder" Background="White">
+        <Border.Style>
+            <Style TargetType="Border">
+                <Setter Property="Margin" Value="0"/>
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding WindowState, RelativeSource={RelativeSource AncestorType=Window}}" Value="Maximized">
+                        <Setter Property="Margin" Value="6"/>
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+        </Border.Style>
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="56"/>

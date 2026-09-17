@@ -82,27 +82,6 @@
             </Style.Triggers>
         </Style>
 
-        <!-- DataGrid Column Header Style -->
-        <Style TargetType="DataGridColumnHeader">
-            <Setter Property="Background" Value="{DynamicResource EmpresaPrimaryBrush}"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="FontFamily" Value="Segoe UI"/>
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Height" Value="40"/>
-            <Setter Property="HorizontalContentAlignment" Value="Center"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="DataGridColumnHeader">
-                        <Border Background="{DynamicResource EmpresaPrimaryBrush}" BorderBrush="#1EFFFFFF" BorderThickness="0,0,1,0">
-                            <TextBlock Text="{TemplateBinding Content}"
-                                       Foreground="White" FontFamily="Segoe UI" FontSize="13" FontWeight="Bold"
-                                       HorizontalAlignment="Center" VerticalAlignment="Center" Padding="8,0"/>
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
         </ResourceDictionary>
     </UserControl.Resources>
 
@@ -252,7 +231,7 @@
                           HeadersVisibility="Column" GridLinesVisibility="None"
                           SelectionMode="Single" SelectionUnit="FullRow"
                           Background="White" BorderThickness="0" AlternationCount="2"
-                          RowStyle="{StaticResource UserRowStyle}" CellStyle="{StaticResource CeldaCentrada}"
+                          RowStyle="{StaticResource UserRowStyle}" CellStyle="{StaticResource CeldaIzquierda}"
                           SelectionChanged="DgUsuarios_SelectionChanged"
                           MouseDoubleClick="DgUsuarios_MouseDoubleClick"
                           PreviewKeyDown="DgUsuarios_PreviewKeyDown"
@@ -266,35 +245,31 @@
                     </DataGrid.Resources>
                     <DataGrid.Columns>
                         <DataGridTemplateColumn Header="#" Width="40" CanUserResize="False" CanUserReorder="False"
-                                                HeaderStyle="{StaticResource HeaderDerecho}"
-                                                CellStyle="{StaticResource CeldaDerecha}"
+                                                CellStyle="{StaticResource CeldaCentrada}"
                                                 CellTemplate="{StaticResource PlantillaCeldaNumeroFila}"/>
-                        <DataGridTemplateColumn Header="EMPLEADO" Width="*" MinWidth="220"
-                                                HeaderStyle="{StaticResource HeaderDerecho}" CellStyle="{StaticResource CeldaDerecha}">
+                        <DataGridTemplateColumn Header="EMPLEADO" Width="*" MinWidth="220" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding NombreEmpleado}"
                                                FontFamily="Segoe UI" FontSize="15.5" FontWeight="SemiBold"
                                                Foreground="#1A1F2E" TextTrimming="CharacterEllipsis"
-                                               HorizontalAlignment="Right" Padding="8,0"/>
+                                               HorizontalAlignment="Left" Padding="8,0"/>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="EMAIL" Width="200"
-                                                HeaderStyle="{StaticResource HeaderDerecho}" CellStyle="{StaticResource CeldaDerecha}">
+                        <DataGridTemplateColumn Header="EMAIL" Width="*" MinWidth="220" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding CorreoUsuario, Converter={x:Static conv:TextoVacioConverter.Instancia}, ConverterParameter='Sin correo'}"
                                                Style="{StaticResource TextoCeldaConFallback}"
-                                               HorizontalAlignment="Right" Padding="8,0"/>
+                                               HorizontalAlignment="Left" Padding="8,0"/>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="ROL" Width="130"
-                                                HeaderStyle="{StaticResource HeaderDerecho}" CellStyle="{StaticResource CeldaDerecha}">
+                        <DataGridTemplateColumn Header="ROL" Width="130" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <Border Background="#F0F5FB" CornerRadius="999" Padding="10,2" HorizontalAlignment="Right">
+                                    <Border Background="#F0F5FB" CornerRadius="999" Padding="10,2" HorizontalAlignment="Left" Margin="8,0">
                                         <TextBlock Text="{Binding NombreRol}"
                                                    FontFamily="Segoe UI" FontSize="14" FontWeight="SemiBold"
                                                    Foreground="{DynamicResource EmpresaPrimaryBrush}"/>
@@ -302,12 +277,11 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="ÚLTIMO ACCESO" Width="160"
-                                                HeaderStyle="{StaticResource HeaderDerecho}" CellStyle="{StaticResource CeldaDerecha}">
+                        <DataGridTemplateColumn Header="ÚLTIMO ACCESO" Width="160" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Style="{StaticResource TextoCeldaConFallback}"
-                                               HorizontalAlignment="Right">
+                                               HorizontalAlignment="Left" Padding="8,0">
                                         <TextBlock.Text>
                                             <Binding Path="UltimoAcceso" StringFormat="{}{0:dd/MM/yyyy HH:mm}" TargetNullValue="Sin registros"/>
                                         </TextBlock.Text>
@@ -315,29 +289,27 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="CREADO" Width="160"
-                                                HeaderStyle="{StaticResource HeaderDerecho}" CellStyle="{StaticResource CeldaDerecha}">
+                        <DataGridTemplateColumn Header="CREADO" Width="160" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding CreatedAt, StringFormat={}{0:dd/MM/yyyy HH:mm}, TargetNullValue='—'}"
                                                FontFamily="Segoe UI" FontSize="14" Foreground="#64748B"
-                                               HorizontalAlignment="Right" VerticalAlignment="Center"
+                                               HorizontalAlignment="Left" VerticalAlignment="Center"
                                                Padding="10,0"/>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="ACTUALIZADO" Width="160"
-                                                HeaderStyle="{StaticResource HeaderDerecho}" CellStyle="{StaticResource CeldaDerecha}">
+                        <DataGridTemplateColumn Header="ACTUALIZADO" Width="160" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding UpdatedAt, StringFormat={}{0:dd/MM/yyyy HH:mm}, TargetNullValue='—'}"
                                                FontFamily="Segoe UI" FontSize="14" Foreground="#64748B"
-                                               HorizontalAlignment="Right" VerticalAlignment="Center"
+                                               HorizontalAlignment="Left" VerticalAlignment="Center"
                                                Padding="10,0"/>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="ESTADO" Width="Auto" CellStyle="{StaticResource CeldaCentrada}">
+                        <DataGridTemplateColumn Header="ESTADO" Width="Auto" HeaderStyle="{StaticResource HeaderCentrado}" CellStyle="{StaticResource CeldaCentrada}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <Grid HorizontalAlignment="Center">

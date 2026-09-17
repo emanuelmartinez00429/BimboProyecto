@@ -102,16 +102,6 @@ namespace CapaUI.Formularios.Principal
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
         private static extern bool GetMonitorInfo(IntPtr hMonitor, ref MONITORINFO lpmi);
 
-        [DllImport("user32.dll")]
-        private static extern int GetSystemMetrics(int nIndex);
-
-        [DllImport("user32.dll")]
-        private static extern int GetSystemMetricsForDpi(int nIndex, uint dpi);
-
-        private const int SM_CXSIZEFRAME    = 32;
-        private const int SM_CYSIZEFRAME    = 33;
-        private const int SM_CXPADDEDBORDER = 92;
-
         private const uint MONITOR_DEFAULTTONEAREST = 2;
 
         [StructLayout(LayoutKind.Sequential)]
@@ -208,37 +198,16 @@ namespace CapaUI.Formularios.Principal
                 var work = info.rcWork;
                 var full = info.rcMonitor;
 
-                var dpi = VisualTreeHelper.GetDpi(this);
-                uint dpiX = (uint)Math.Max(96, Math.Round(dpi.PixelsPerInchX));
-                uint dpiY = (uint)Math.Max(96, Math.Round(dpi.PixelsPerInchY));
-
-                int borderX, borderY;
-                try
-                {
-                    borderX = GetSystemMetricsForDpi(SM_CXSIZEFRAME, dpiX) + GetSystemMetricsForDpi(SM_CXPADDEDBORDER, dpiX);
-                    borderY = GetSystemMetricsForDpi(SM_CYSIZEFRAME, dpiY) + GetSystemMetricsForDpi(SM_CXPADDEDBORDER, dpiY);
-                }
-                catch (EntryPointNotFoundException)
-                {
-                    borderX = GetSystemMetrics(SM_CXSIZEFRAME) + GetSystemMetrics(SM_CXPADDEDBORDER);
-                    borderY = GetSystemMetrics(SM_CYSIZEFRAME) + GetSystemMetrics(SM_CXPADDEDBORDER);
-                }
-
-                // Al maximizar con SingleBorderWindow (WS_THICKFRAME), Windows expande el
-                // rectángulo de la ventana 'borderX' y 'borderY' fuera de pantalla para ocultar
-                // el borde de redimensionamiento nativo. Como WindowChrome extiende el área
-                // cliente a todo el marco, compensar esas métricas aquí ubica la ventana maximizada
-                // con precisión subpíxel sobre el área de trabajo (rcWork), sin recortes ni
-                // márgenes artificiales en XAML, en cualquier escala DPI (100%, 125%, 150%, 200%).
-                mmi.ptMaxPosition.X  = (work.Left - full.Left) + borderX;
-                mmi.ptMaxPosition.Y  = (work.Top  - full.Top)  + borderY;
-                mmi.ptMaxSize.X      = (work.Right  - work.Left) - (2 * borderX);
-                mmi.ptMaxSize.Y      = (work.Bottom - work.Top)  - (2 * borderY);
+                mmi.ptMaxPosition.X  = Math.Abs(work.Left - full.Left);
+                mmi.ptMaxPosition.Y  = Math.Abs(work.Top  - full.Top);
+                mmi.ptMaxSize.X      = Math.Abs(work.Right  - work.Left);
+                mmi.ptMaxSize.Y      = Math.Abs(work.Bottom - work.Top);
 
                 // ptMinTrackSize es en píxeles físicos; MinWidth/MinHeight de WPF son
                 // DIPs (1/96"). Hay que escalar por el DPI real del monitor actual —
                 // sin esto, en pantallas >100% el mínimo nativo quedaría más chico
                 // que el que pide el XAML, y se podría volver a achicar de más.
+                var dpi = VisualTreeHelper.GetDpi(this);
                 mmi.ptMinTrackSize.X = (int)(MinWidth  * dpi.DpiScaleX);
                 mmi.ptMinTrackSize.Y = (int)(MinHeight * dpi.DpiScaleY);
 

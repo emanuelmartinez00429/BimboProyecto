@@ -17,6 +17,15 @@ revisor: DeepInvestigator QA
 
 # Sesión 2026-09-17 — Remediación Multi-DPI en WindowChrome, animación en Login y BitmapHelper
 
+> [!danger] PARCIALMENTE REVERTIDO 2026-09-17 — el punto 1 rompió el maximizado
+> El cambio de `MainWindow` descrito en §1.1 (retirar `Margin="6"` de `RootBorder` y compensar con `GetSystemMetricsForDpi` en `WM_GETMINMAXINFO`) **se revirtió el mismo día**: restar el marco a `ptMaxSize` achicaba la ventana maximizada ~16px y dejaba ver el escritorio alrededor; el hueco superior además disparaba la barra clásica de Win32 (`_ 🗖 X`) sobre el chrome propio.
+>
+> El `Margin="6"` no era un antipatrón prescindible: es la compensación obligatoria del overscan del marco nativo bajo `WindowStyle="SingleBorderWindow"` + `WindowChrome`, aplicada en la capa del contenido. Estado vigente: `Margin="6"` al maximizar **+** `ptMaxPosition`/`ptMaxSize` fijados a `rcWork` sin restas.
+>
+> **Sigue vigente** el resto de la sesión: migración de `LoginWindow`, extracción de `BitmapHelper` y las directrices OWASP.
+>
+> Ver [[Sesión 2026-09-17 - Reversión de regresión en maximizado de MainWindow]] y el callout en [[Auditoría Técnica — Animaciones DWM, Maximizado Multi-DPI y Seguridad OWASP]].
+
 > [!success] Resultado
 > A partir de la auditoría técnica exhaustiva de los cambios recientes, se erradicó el antipatrón de `Margin="6"` mediante cálculo dinámico Win32 en `WM_GETMINMAXINFO` adaptado a Per-Monitor V2, se conmutó el icono y tooltip de maximizar/restaurar, se migró `LoginWindow` a `WindowChrome` eliminando `AllowsTransparency="True"` y habilitando animaciones nativas DWM, se extrajo `BitmapHelper` para desacoplar el ViewModel de renderizado gráfico de bajo nivel, y se emitieron directrices de seguridad OWASP para notificaciones móviles.
 
