@@ -82,27 +82,6 @@
             </Style.Triggers>
         </Style>
 
-        <!-- DataGrid Column Header Style -->
-        <Style TargetType="DataGridColumnHeader">
-            <Setter Property="Background" Value="{DynamicResource EmpresaPrimaryBrush}"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="FontFamily" Value="Segoe UI"/>
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Height" Value="40"/>
-            <Setter Property="HorizontalContentAlignment" Value="Center"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="DataGridColumnHeader">
-                        <Border Background="{DynamicResource EmpresaPrimaryBrush}" BorderBrush="#1EFFFFFF" BorderThickness="0,0,1,0">
-                            <TextBlock Text="{TemplateBinding Content}"
-                                       Foreground="White" FontFamily="Segoe UI" FontSize="13" FontWeight="Bold"
-                                       HorizontalAlignment="Center" VerticalAlignment="Center" Padding="8,0"/>
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
         </ResourceDictionary>
     </UserControl.Resources>
 
@@ -241,23 +220,29 @@
                           HeadersVisibility="Column" GridLinesVisibility="None"
                           SelectionMode="Single" SelectionUnit="FullRow"
                           Background="White" BorderThickness="0" AlternationCount="2"
+                          RowBackground="White"
+                          RenderOptions.ClearTypeHint="Enabled"
+                          EnableRowVirtualization="True"
+                          EnableColumnVirtualization="True"
                           RowStyle="{StaticResource EmpleadoRowStyle}" CellStyle="{StaticResource CeldaCentrada}"
                           SelectionChanged="DgEmpleados_SelectionChanged"
                           MouseDoubleClick="DgEmpleados_MouseDoubleClick"
                           PreviewKeyDown="DgEmpleados_PreviewKeyDown"
+                          ScrollViewer.CanContentScroll="True"
                           ScrollViewer.VerticalScrollBarVisibility="Auto"
-                          ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                          ScrollViewer.HorizontalScrollBarVisibility="Auto"
                           VirtualizingPanel.IsVirtualizing="True"
                           VirtualizingPanel.VirtualizationMode="Recycling"
                           VirtualizingPanel.ScrollUnit="Item">
                     <DataGrid.Resources>
-                        <Style TargetType="ScrollBar" BasedOn="{StaticResource ModernScrollBar}"/>
+                        <Style TargetType="ScrollBar" BasedOn="{StaticResource ModernScrollBarAny}"/>
                     </DataGrid.Resources>
                     <DataGrid.Columns>
                         <DataGridTemplateColumn Header="#" Width="40" CanUserResize="False" CanUserReorder="False"
+                                                HeaderStyle="{StaticResource HeaderCentrado}"
                                                 CellStyle="{StaticResource CeldaCentrada}"
                                                 CellTemplate="{StaticResource PlantillaCeldaNumeroFila}"/>
-                        <DataGridTemplateColumn Header="EMPLEADO" Width="220" CellStyle="{StaticResource CeldaIzquierda}">
+                        <DataGridTemplateColumn Header="EMPLEADO" Width="*" MinWidth="220" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock FontFamily="Segoe UI" FontSize="15.5" FontWeight="SemiBold"
@@ -272,7 +257,7 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="IDENTIDAD" Width="150" CellStyle="{StaticResource CeldaIzquierda}">
+                        <DataGridTemplateColumn Header="IDENTIDAD" Width="Auto" MinWidth="150" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding NumeroIdentidad, Converter={x:Static conv:TextoVacioConverter.Instancia}, ConverterParameter='Sin identidad'}"
@@ -280,15 +265,15 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="TELÉFONO" Width="140" CellStyle="{StaticResource CeldaCentrada}">
+                        <DataGridTemplateColumn Header="TELÉFONO" Width="Auto" MinWidth="130" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding TelefonoEmpleado, Converter={x:Static conv:TextoVacioConverter.Instancia}, ConverterParameter='Sin teléfono'}"
-                                               Style="{StaticResource TextoCeldaConFallback}" HorizontalAlignment="Center"/>
+                                               Style="{StaticResource TextoCeldaConFallback}" HorizontalAlignment="Left" Padding="8,0"/>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="CORREO" Width="220" CellStyle="{StaticResource CeldaIzquierda}">
+                        <DataGridTemplateColumn Header="CORREO" Width="*" MinWidth="220" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding CorreoEmpleado, Converter={x:Static conv:TextoVacioConverter.Instancia}, ConverterParameter='Sin correo'}"
@@ -296,7 +281,7 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="ESTADO" Width="70" CellStyle="{StaticResource CeldaCentrada}">
+                        <DataGridTemplateColumn Header="ESTADO" Width="70" MinWidth="70" HeaderStyle="{StaticResource HeaderCentrado}" CellStyle="{StaticResource CeldaCentrada}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <Grid HorizontalAlignment="Center">
