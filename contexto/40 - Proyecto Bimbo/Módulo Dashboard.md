@@ -1,4 +1,4 @@
-﻿---
+---
 title: "Módulo Dashboard"
 tags: [modulo, dashboard, kpi, pesajes, fusioncache, realtime, wpf]
 date: 2026-09-17
@@ -14,10 +14,14 @@ El Dashboard (`DashboardView.xaml`, ubicado en la navegación bajo el grupo `Rep
 
 ## Estructura de la Vista (`DashboardView.xaml`)
 
-1. **Encabezado**:
-   - Título y subtítulo con fecha actual localizada en formato largo (`DateLabel`).
+1. **Encabezado Estándar de Módulo**:
+   - Tarjeta / insignia visual de 38×38 px con esquinas redondeadas (8 px), sombra de elevación del color corporativo primario (`EmpresaPrimaryColor`) e icono vectorial blanco `IcoDashboard` (extraído de `D:\Proyectos\Iconos\Dashboard.svg`).
+   - Miga de pan unificada (`Reportería / Dashboard`) y título de módulo (`Dashboard`).
+   - Pastilla de fecha actual localizada en formato largo (`DateLabel`).
    - Selector de período (`Hoy`, `Semana`, `Mes`) que filtra reactivamente los pesajes y mermas.
-   - Botón "Actualizar" (`RefreshCommand`) para forzar la recarga inmediata de métricas.
+   - Botón estandarizado "Actualizar" (`ActionBtn`) conectado a `RefreshCommand` para forzar la recarga inmediata.
+   - Barra de progreso indeterminada y banner reactivo de errores integrados en la cabecera.
+   - Fondo general homologado a `#EAF1F8` e inclusión de `Styles.xaml` como diccionario fusionado para diseñador de VS (ADR-028 / P-057).
 2. **Fila 1 — KPIs de Inventario**:
    - **Productos**: Total de productos activos en catálogo.
    - **Proveedores**: Total de proveedores activos registrados.

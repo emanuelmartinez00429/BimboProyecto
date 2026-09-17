@@ -1,4 +1,4 @@
-﻿using CapaAplicacion.Common;
+using CapaAplicacion.Common;
 using CapaAplicacion.Common.Cache;
 using CapaAplicacion.Conexion;
 using CapaAplicacion.Realtime;
@@ -89,8 +89,8 @@ public sealed class InvalidadorCacheRealtimeTests
         using var invalidador = new InvalidadorCacheRealtime(rt, cache, mon);
         invalidador.Suscribir();
 
-        // Debe haberse suscrito a las 10 tablas de catálogo
-        Assert.Equal(10, rt.Handlers.Count);
+        // Debe haberse suscrito a las 11 tablas de catálogo
+        Assert.Equal(11, rt.Handlers.Count);
         Assert.Contains("fabricante", rt.Handlers.Keys);
         Assert.Contains("proveedores", rt.Handlers.Keys);
         Assert.Contains("categoria", rt.Handlers.Keys);
@@ -98,6 +98,7 @@ public sealed class InvalidadorCacheRealtimeTests
         Assert.Contains("productos", rt.Handlers.Keys);
         Assert.Contains("empleados", rt.Handlers.Keys);
         Assert.Contains("roles", rt.Handlers.Keys);
+        Assert.Contains("usuarios", rt.Handlers.Keys);
     }
 
     [Fact]
@@ -125,11 +126,11 @@ public sealed class InvalidadorCacheRealtimeTests
 
         using var invalidador = new InvalidadorCacheRealtime(rt, cache, mon);
         invalidador.Suscribir();
-        Assert.Equal(10, rt.Handlers.Count);
+        Assert.Equal(11, rt.Handlers.Count);
 
         invalidador.Desuscribir();
         Assert.Empty(rt.Handlers);
-        Assert.Equal(10, rt.Desuscritos.Count);
+        Assert.Equal(11, rt.Desuscritos.Count);
     }
 
     [Fact]

@@ -24,6 +24,9 @@ namespace CapaUI.Formularios.Principal.Pantallas.Usuarios
         private readonly string?               _preselectedNombre;
         private readonly string?               _preselectedCorreo;
         private readonly SolicitudIdempotente  _solicitud = new();
+        private ChangeTracker<UsuarioSnapshot> _tracker = new(null);
+
+        private sealed record UsuarioSnapshot(int IdRol, int IdEstado);
 
         public event Action? Cerrado;
         public event Action? Guardado;
@@ -131,6 +134,10 @@ namespace CapaUI.Formularios.Principal.Pantallas.Usuarios
 
                 RbActivo.IsChecked   = _usuario.IdEstado == 1;
                 RbInactivo.IsChecked = _usuario.IdEstado != 1;
+
+                _tracker = new ChangeTracker<UsuarioSnapshot>(new UsuarioSnapshot(
+                    _usuario.IdRol,
+                    _usuario.IdEstado));
             }
 
             // Foco al abrir: en la contraseña al crear, en el rol al editar.
@@ -195,7 +202,18 @@ namespace CapaUI.Formularios.Principal.Pantallas.Usuarios
                 }
                 else if (_usuario != null)
                 {
-                    if (idRol != _usuario.IdRol)
+                    int idEstado = RbActivo.IsChecked == true ? 1 : 2;
+                    var snapshotActual = new UsuarioSnapshot(idRol, idEstado);
+                    bool cambioRol = idRol != _usuario.IdRol;
+                    bool cambioEstado = idEstado != _usuario.IdEstado;
+
+                    if (!_tracker.IsDirty(snapshotActual))
+                    {
+                        Cerrado?.Invoke();
+                        return;
+                    }
+
+                    if (cambioRol)
                     {
                         var rRol = await _usuarioRepo.AsignarRolAsync(_usuario.IdUsuario, idRol,
                             _solicitud.Obtener("asignar_rol_usuario", new { _usuario.IdUsuario, IdRol = idRol }));
@@ -204,21 +222,32 @@ namespace CapaUI.Formularios.Principal.Pantallas.Usuarios
                             MostrarError(ErroresRepositorio.Traducir(rRol.Error));
                             return;
                         }
-                        _solicitud.Confirmar();
                     }
 
-                    int idEstado = RbActivo.IsChecked == true ? 1 : 2;
-                    if (idEstado != _usuario.IdEstado)
+                    if (cambioEstado)
                     {
                         var rEstado = await _usuarioRepo.CambiarEstadoAsync(_usuario.IdUsuario, idEstado,
                             _solicitud.Obtener("cambiar_estado_usuario", new { _usuario.IdUsuario, IdEstado = idEstado }));
                         if (!rEstado.Success)
                         {
+                            if (cambioRol)
+                            {
+                                // El rol se consolidó exitosamente en la llamada previa.
+                                // Manejo honesto de fallo parcial sin rollback destructivo (AP-03 / P-061).
+                                _solicitud.Confirmar();
+                                MessageBox.Show(
+                                    $"El rol del usuario se actualizó correctamente, pero no se pudo cambiar el estado:\n{ErroresRepositorio.Traducir(rEstado.Error)}",
+                                    "Aviso de Estado", MessageBoxButton.OK, MessageBoxImage.Warning);
+                                Guardado?.Invoke();
+                                return;
+                            }
+
                             MostrarError(ErroresRepositorio.Traducir(rEstado.Error));
                             return;
                         }
-                        _solicitud.Confirmar();
                     }
+
+                    _solicitud.Confirmar();
                 }
 
                 Guardado?.Invoke();

@@ -123,6 +123,7 @@ public class EmpleadoCrudRepository : RepositorioBase, IEmpleadoRepository
                 throw new InvalidOperationException(
                     "La función de creación devolvió un identificador inválido.");
 
+            _cache.InvalidarEtiqueta(TagsCache.DeTabla(TagsCache.TablaEmpleados));
             return idEmpleado;
         }, "Crear empleado");
 
@@ -139,6 +140,7 @@ public class EmpleadoCrudRepository : RepositorioBase, IEmpleadoRepository
                 .Set(e => e.correoEmpleado,   dto.CorreoEmpleado)
                 .Set(e => e.idEstado,         dto.IdEstado)
                 .Update();
+            _cache.InvalidarEtiqueta(TagsCache.DeTabla(TagsCache.TablaEmpleados));
         }, "Actualizar empleado");
 
     public Task<Result> CambiarEstadoAsync(int id, int nuevoEstado, CancellationToken ct = default) =>
@@ -149,6 +151,7 @@ public class EmpleadoCrudRepository : RepositorioBase, IEmpleadoRepository
                 .Where(e => e.idEmpleado == id)
                 .Set(e => e.idEstado, nuevoEstado)
                 .Update();
+            _cache.InvalidarEtiqueta(TagsCache.DeTabla(TagsCache.TablaEmpleados));
         }, "Cambiar estado empleado");
 
     // ── Lógica interna ──────────────────────────────────────────────────────

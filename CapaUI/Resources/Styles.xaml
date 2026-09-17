@@ -59,6 +59,12 @@
     <PathGeometry x:Key="IcoReporte"
                   Figures="M120-120v-80l80-80v160h-80Zm160,0v-240l80-80v320h-80Zm160,0v-320l80,81v239h-80Zm160,0v-239l80-80v319h-80Zm160,0v-400l80-80v480h-80ZM120-327v-113l280-280,160,160,280-280v113L560-447,400-607,120-327Z"
                   po:Freeze="True"/>
+    <!-- IcoDashboard — fuente: Dashboard.svg (Material Icons "dashboard", viewBox 0 -960 960 960).
+         Path data copiado literalmente del SVG; WPF calcula el bounding box
+         automáticamente con Stretch=Uniform sin necesidad de transformar coordenadas. -->
+    <PathGeometry x:Key="IcoDashboard" FillRule="Nonzero"
+                  Figures="M540-600v-200h260v200H540ZM160-480v-320h260v320H160Zm380 320v-320h260v320H540Zm-380 0v-200h260v200H160Zm40-360h180v-240H200v240Zm380 320h180v-240H580v240Zm0-440h180v-120H580v120ZM200-200h180v-120H200v120Zm180-320Zm200-120Zm0 200ZM380-320Z"
+                  po:Freeze="True"/>
     <!-- IcoInventario — fuente: Inventario.svg (Material Icons "inventory_2", viewBox 0 -960 960 960).
          Path data copiado literalmente del SVG; WPF calcula el bounding box
          automáticamente con Stretch=Uniform sin necesidad de transformar coordenadas. -->

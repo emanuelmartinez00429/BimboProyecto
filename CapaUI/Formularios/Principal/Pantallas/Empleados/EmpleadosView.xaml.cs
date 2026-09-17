@@ -39,6 +39,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Empleados
 
             DataContext = _vm;
             DgEmpleados.ItemsSource = _vm.PageRows;
+            ScrollHorizontalConShift.Habilitar(DgEmpleados);
 
             try
             {

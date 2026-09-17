@@ -28,7 +28,7 @@ public partial class ConfiguracionEmpresaView : UserControl
     {
         var dialog = new OpenFileDialog
         {
-            Title = "Seleccionar logo de empresa",
+            Title = "Seleccionar ícono del menú lateral",
             Filter = "Imágenes compatibles (*.png;*.jpg;*.jpeg)|*.png;*.jpg;*.jpeg",
             CheckFileExists = true,
             Multiselect = false,
@@ -42,7 +42,7 @@ public partial class ConfiguracionEmpresaView : UserControl
     {
         var dialog = new OpenFileDialog
         {
-            Title = "Seleccionar ícono del menú lateral",
+            Title = "Seleccionar logo de empresa",
             Filter = "Imágenes compatibles (*.png;*.jpg;*.jpeg)|*.png;*.jpg;*.jpeg",
             CheckFileExists = true,
             Multiselect = false,

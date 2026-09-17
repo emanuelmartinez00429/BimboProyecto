@@ -14,6 +14,7 @@ public interface IUsuarioRepository
     Task<Result<UsuarioVistaDto>>                ObtenerPorIdAsync(int idUsuario, CancellationToken ct = default);
     Task<Result<UsuarioVistaDto>>                ObtenerPorUuidAsync(string uuid, CancellationToken ct = default);
     Task<Result<PagedResult<UsuarioVistaDto>>>   ObtenerPaginaAsync(int page, int pageSize, int? idEstado, int? idRol, string? busqueda, CancellationToken ct = default);
+    Task<Result<IReadOnlyList<UsuarioVistaDto>>> BuscarSugerenciasAsync(string termino, int? idEstado, int? idRol, CancellationToken ct = default);
     Task<Result<IReadOnlyList<EmpleadoDto>>>     ObtenerEmpleadosSinUsuarioAsync(CancellationToken ct = default);
 
     // ── Escritura ────────────────────────────────────────────────────────

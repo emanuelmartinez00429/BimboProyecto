@@ -48,4 +48,5 @@ public static class TagsCache
     public const string TablaProductos      = "productos";
     public const string TablaEmpleados      = "empleados";
     public const string TablaRoles          = "roles";
+    public const string TablaUsuarios       = "usuarios";
 }

@@ -2,126 +2,170 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:conv="clr-namespace:CapaUI.Converters"
-             Background="#F4F5F7">
+             Background="#EAF1F8"
+             UseLayoutRounding="True"
+             TextOptions.TextRenderingMode="Auto"
+             TextOptions.TextFormattingMode="Display">
 
     <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <!-- Estilos/geometrias compartidos viven en Styles.xaml; el disenador
+                     de VS no ejecuta App.xaml y no los ve sin este merge. Ver ADR-028 / P-057. -->
+                <ResourceDictionary Source="/CapaUI;component/Resources/Styles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
 
-        <!-- ══ Geometrías de iconos (viewBox 24×24) ══════════════════════ -->
-        <Geometry x:Key="IcoBox">M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z M3.27 6.96L12 12.01l8.73-5.05M12 22.08V12</Geometry>
-        <Geometry x:Key="IcoUsers">M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2 M12 7a4 4 0 1 1 0 8 4 4 0 0 1 0-8z</Geometry>
-        <Geometry x:Key="IcoChart">M3 3v18h18 M7 14l4-4 3 3 5-5</Geometry>
-        <Geometry x:Key="IcoBadge">M12 2a6 6 0 1 1 0 12 6 6 0 0 1 0-12z M16 13l1 8-5-3-5 3 1-8</Geometry>
-        <Geometry x:Key="IcoRefresh">M21 12a9 9 0 1 1-3-6.7M21 4v5h-5</Geometry>
-        <Geometry x:Key="IcoChevronDown">M6 9l6 6 6-6</Geometry>
+            <!-- ══ Geometrías de iconos (viewBox 24×24) ══════════════════════ -->
+            <Geometry x:Key="IcoBox">M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z M3.27 6.96L12 12.01l8.73-5.05M12 22.08V12</Geometry>
+            <Geometry x:Key="IcoUsers">M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2 M12 7a4 4 0 1 1 0 8 4 4 0 0 1 0-8z</Geometry>
+            <Geometry x:Key="IcoChart">M3 3v18h18 M7 14l4-4 3 3 5-5</Geometry>
+            <Geometry x:Key="IcoBadge">M12 2a6 6 0 1 1 0 12 6 6 0 0 1 0-12z M16 13l1 8-5-3-5 3 1-8</Geometry>
+            <Geometry x:Key="IcoRefresh">M21 12a9 9 0 1 1-3-6.7M21 4v5h-5</Geometry>
+            <Geometry x:Key="IcoChevronDown">M6 9l6 6 6-6</Geometry>
 
-        <!-- ══ ProgressBar de merma con gradiente ════════════════════════ -->
-        <Style x:Key="MermaBar" TargetType="ProgressBar">
-            <Setter Property="Height" Value="18"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Foreground">
-                <Setter.Value>
-                    <LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5">
-                        <GradientStop Color="{DynamicResource EmpresaPrimaryColor}" Offset="0"/>
-                        <GradientStop Color="{DynamicResource EmpresaPrimaryLightColor}" Offset="1"/>
-                    </LinearGradientBrush>
-                </Setter.Value>
-            </Setter>
-            <Setter Property="Background" Value="#F3F4F6"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="ProgressBar">
-                        <Grid>
-                            <Border x:Name="PART_Track"
-                                    Background="{TemplateBinding Background}"
-                                    CornerRadius="5"/>
-                            <Border x:Name="PART_Indicator"
-                                    Background="{TemplateBinding Foreground}"
-                                    CornerRadius="5"
-                                    HorizontalAlignment="Left"/>
-                        </Grid>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
+            <!-- ══ ProgressBar de merma con gradiente ════════════════════════ -->
+            <Style x:Key="MermaBar" TargetType="ProgressBar">
+                <Setter Property="Height" Value="18"/>
+                <Setter Property="BorderThickness" Value="0"/>
+                <Setter Property="Foreground">
+                    <Setter.Value>
+                        <LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5">
+                            <GradientStop Color="{DynamicResource EmpresaPrimaryColor}" Offset="0"/>
+                            <GradientStop Color="{DynamicResource EmpresaPrimaryLightColor}" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Setter.Value>
+                </Setter>
+                <Setter Property="Background" Value="#F3F4F6"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="ProgressBar">
+                            <Grid>
+                                <Border x:Name="PART_Track"
+                                        Background="{TemplateBinding Background}"
+                                        CornerRadius="5"/>
+                                <Border x:Name="PART_Indicator"
+                                        Background="{TemplateBinding Foreground}"
+                                        CornerRadius="5"
+                                        HorizontalAlignment="Left"/>
+                            </Grid>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
 
-        <!-- ══ RadioButton de período (toggle Hoy/Semana/Mes) ════════════ -->
-        <Style x:Key="PeriodBtn" TargetType="RadioButton">
-            <Setter Property="Cursor"          Value="Hand"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding"         Value="9,3"/>
-            <Setter Property="FontFamily"      Value="Segoe UI"/>
-            <Setter Property="FontSize"        Value="11"/>
-            <Setter Property="FontWeight"      Value="SemiBold"/>
-            <Setter Property="Foreground"      Value="#6B7280"/>
-            <Setter Property="Background"      Value="Transparent"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="RadioButton">
-                        <Border x:Name="Bd" Background="{TemplateBinding Background}"
-                                CornerRadius="4" Padding="{TemplateBinding Padding}">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsChecked" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="White"/>
-                                <Setter Property="Foreground" Value="#1A1F2E"/>
-                            </Trigger>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Foreground" Value="#374151"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
+            <!-- ══ RadioButton de período (toggle Hoy/Semana/Mes) ════════════ -->
+            <Style x:Key="PeriodBtn" TargetType="RadioButton">
+                <Setter Property="Cursor"          Value="Hand"/>
+                <Setter Property="BorderThickness" Value="0"/>
+                <Setter Property="Padding"         Value="9,3"/>
+                <Setter Property="FontFamily"      Value="Segoe UI"/>
+                <Setter Property="FontSize"        Value="11"/>
+                <Setter Property="FontWeight"      Value="SemiBold"/>
+                <Setter Property="Foreground"      Value="#6B7280"/>
+                <Setter Property="Background"      Value="Transparent"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="RadioButton">
+                            <Border x:Name="Bd" Background="{TemplateBinding Background}"
+                                    CornerRadius="4" Padding="{TemplateBinding Padding}">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsChecked" Value="True">
+                                    <Setter TargetName="Bd" Property="Background" Value="White"/>
+                                    <Setter Property="Foreground" Value="#1A1F2E"/>
+                                </Trigger>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Foreground" Value="#374151"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
 
+        </ResourceDictionary>
     </UserControl.Resources>
 
     <!-- ═══════════════════════════════════════════════════════════════════
-         GRID RAÍZ  (4 filas: breadcrumb, header, KPIs, chart+lista)
+         GRID RAÍZ  (4 filas: header unificado, separador, KPIs, chart+lista)
     ═══════════════════════════════════════════════════════════════════════ -->
-    <Grid Margin="22,14,22,18">
+    <Grid Margin="22,18,22,18">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>   <!-- 0: Breadcrumb  -->
-            <RowDefinition Height="Auto"/>   <!-- 1: Header      -->
-            <RowDefinition Height="Auto"/>   <!-- 2: KPIs        -->
-            <RowDefinition Height="*"/>      <!-- 3: Chart+Lista -->
+            <RowDefinition Height="Auto"/>   <!-- 0: Encabezado estándar de página -->
+            <RowDefinition Height="14"/>     <!-- 1: Separador estándar             -->
+            <RowDefinition Height="Auto"/>   <!-- 2: KPIs                          -->
+            <RowDefinition Height="*"/>      <!-- 3: Chart+Lista                   -->
         </Grid.RowDefinitions>
 
         <!-- ════════════════════════════════════════════════════════
-             ROW 0 — Breadcrumb
+             ROW 0 — Encabezado estándar de página ("tarjeta de encabezado")
         ════════════════════════════════════════════════════════ -->
-        <TextBlock Grid.Row="0" Margin="0,0,0,8"
-                   FontFamily="Segoe UI" FontSize="12" Foreground="#6B7280">
-            <Run Text="Inicio"/>
-            <Run Text="  /  " Foreground="#CBD5E1"/>
-            <Run Text="Reportería"/>
-            <Run Text="  /  " Foreground="#CBD5E1"/>
-            <Run Text="Dashboard" Foreground="#1A1F2E" FontWeight="SemiBold"/>
-        </TextBlock>
-
-        <!-- ════════════════════════════════════════════════════════
-             ROW 1 — Header (Título + Acciones + Loading / Error)
-        ════════════════════════════════════════════════════════ -->
-        <StackPanel Grid.Row="1" Margin="0,0,0,10">
+        <StackPanel Grid.Row="0" x:Name="EncabezadoPagina">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <!-- Título + Fecha -->
-                <StackPanel Grid.Column="0" VerticalAlignment="Bottom">
-                    <TextBlock Text="Dashboard"
-                               FontFamily="Segoe UI" FontSize="22" FontWeight="ExtraBold"
-                               Foreground="#1A1F2E"/>
-                    <TextBlock Text="{Binding DateLabel}"
-                               FontFamily="Segoe UI" FontSize="11.5" Foreground="#6B7280"
-                               Margin="0,2,0,0"/>
-                </StackPanel>
+                <!-- Izquierda: Badge (38×38 con sombra) + Breadcrumb + Título -->
+                <Grid Grid.Column="0" VerticalAlignment="Center" Margin="0,0,12,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
 
-                <!-- Acciones -->
-                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Bottom">
+                    <Border Grid.Column="0"
+                            Width="38" Height="38"
+                            Background="{DynamicResource EmpresaPrimaryBrush}"
+                            CornerRadius="8"
+                            Margin="0,0,12,0"
+                            VerticalAlignment="Center">
+                        <Border.Effect>
+                            <DropShadowEffect Color="{DynamicResource EmpresaPrimaryColor}" BlurRadius="8" ShadowDepth="2" Opacity="0.3"/>
+                        </Border.Effect>
+                        <Path Data="{StaticResource IcoDashboard}"
+                              Fill="White"
+                              Width="20" Height="20"
+                              Stretch="Uniform"/>
+                    </Border>
+
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <TextBlock FontFamily="Segoe UI" FontSize="14" Foreground="#6B7280"
+                                   TextTrimming="CharacterEllipsis">
+                            <Run Text="Reportería" FontWeight="Normal"/>
+                            <Run Text=" / "/>
+                            <Run Text="Dashboard" FontWeight="SemiBold" Foreground="#1A1F2E"/>
+                        </TextBlock>
+                        <TextBlock Text="Dashboard"
+                                   FontFamily="Segoe UI"
+                                   FontSize="21"
+                                   FontWeight="Bold"
+                                   Foreground="#1A1F2E"
+                                   Margin="0,2,0,0"
+                                   TextTrimming="CharacterEllipsis"/>
+                    </StackPanel>
+                </Grid>
+
+                <!-- Derecha: Fecha actual + Selector período + Botón Actualizar -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Right">
+                    <!-- Chip con fecha actual (estilo estándar de pastilla) -->
+                    <Border Background="#EEF2F8"
+                            CornerRadius="8"
+                            BorderBrush="#D8E1EC"
+                            BorderThickness="1"
+                            Padding="12,6"
+                            Margin="0,0,8,0"
+                            ToolTip="Fecha actual"
+                            VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Border Width="6" Height="6" CornerRadius="3" Background="{DynamicResource EmpresaPrimaryBrush}" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding DateLabel}"
+                                       FontFamily="Segoe UI" FontSize="13" FontWeight="SemiBold"
+                                       Foreground="{DynamicResource EmpresaPrimaryBrush}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
+
                     <!-- Pill "Hoy ▾" -->
                     <Border x:Name="PillPeriodo"
                             Background="White" BorderBrush="#E5E7EB" BorderThickness="1"
@@ -143,11 +187,12 @@
                             <TextBlock Text="{Binding Periodo, FallbackValue=Hoy}" FontFamily="Segoe UI" FontSize="12.5"
                                        FontWeight="SemiBold" Foreground="#1A1F2E" VerticalAlignment="Center"/>
                             <Path Data="{StaticResource IcoChevronDown}" Stretch="Uniform"
-                                   Stroke="#6B7280" StrokeThickness="1.8"
-                                   StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                                   Width="11" Height="11" Margin="5,1,0,0" VerticalAlignment="Center"/>
+                                  Stroke="#6B7280" StrokeThickness="1.8"
+                                  StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                  Width="11" Height="11" Margin="5,1,0,0" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Border>
+
 
                     <!-- Popup desplegable del selector de período -->
                     <Popup x:Name="PopupPeriodo"
@@ -259,23 +304,27 @@
                         </Border>
                     </Popup>
                     <!-- Botón Actualizar -->
-                    <Border CornerRadius="8" Padding="14,8" Cursor="Hand">
-                        <Border.InputBindings>
-                            <MouseBinding MouseAction="LeftClick" Command="{Binding RefreshCommand}"/>
-                        </Border.InputBindings>
-                        <Border.Background><SolidColorBrush Color="{DynamicResource EmpresaPrimaryColor}"/></Border.Background>
-                        <Border.Effect>
-                            <DropShadowEffect BlurRadius="4" ShadowDepth="1" Direction="270" Color="{DynamicResource EmpresaPrimaryColor}" Opacity="0.3"/>
-                        </Border.Effect>
+                    <Button Command="{Binding RefreshCommand}"
+                            Style="{StaticResource ActionBtn}"
+                            Background="{DynamicResource EmpresaPrimaryBrush}"
+                            Height="38"
+                            Padding="14,0"
+                            MinWidth="110"
+                            ToolTip="Actualizar métricas del dashboard"
+                            VerticalAlignment="Center">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <Path Data="{StaticResource IcoRefresh}" Stretch="Uniform"
-                                   Stroke="White" StrokeThickness="2.4"
-                                   StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                                   Width="13" Height="13" Margin="0,0,6,0" VerticalAlignment="Center"/>
-                            <TextBlock Text="Actualizar" FontFamily="Segoe UI" FontSize="12.5"
-                                        FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"/>
+                                  Stroke="White" StrokeThickness="2.4"
+                                  StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                  Width="13" Height="13" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Actualizar"
+                                       FontFamily="Segoe UI"
+                                       FontSize="13.5"
+                                       FontWeight="SemiBold"
+                                       Foreground="White"
+                                       VerticalAlignment="Center"/>
                         </StackPanel>
-                    </Border>
+                    </Button>
                 </StackPanel>
             </Grid>
 

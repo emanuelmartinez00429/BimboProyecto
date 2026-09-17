@@ -157,6 +157,7 @@ namespace CapaUI.Formularios.Principal
             Vm.CierreRequerido += OnCierreRequerido;
             Vm.Notificaciones.SolicitarDetalle += MostrarDetalleNotificacion;
             ConfiguracionEmpresaViewModel.EmpresaActualizada += OnConfiguracionGuardada;
+            Vm.PropertyChanged += OnVmPropertyChanged;
 
             Loaded            += OnLoaded;
             SourceInitialized += OnSourceInitialized;
@@ -507,15 +508,7 @@ namespace CapaUI.Formularios.Principal
             var btn = (Button)sender;
             string subId = (string)btn.Tag;
 
-            foreach (var kv in _subMap)
-            {
-                kv.Value.Dot.Visibility   = Visibility.Collapsed;
-                kv.Value.Label.FontWeight = FontWeights.Normal;
-                kv.Value.Label.Foreground = new SolidColorBrush(
-                    (WpfColor)WpfColorConverter.ConvertFromString("#D9FFFFFF"));
-            }
-            foreach (var kv in _moduleMap)
-                kv.Value.Indicator.Visibility = Visibility.Collapsed;
+            ClearActiveStates();
 
             _activeSubId = subId;
 
@@ -531,6 +524,17 @@ namespace CapaUI.Formularios.Principal
             }
 
             Vm.NavigateCommand.Execute(subId);
+        }
+
+        private void OnVmPropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(MainViewModel.VistaActual))
+            {
+                if (Vm.VistaActual is not ConfiguracionEmpresaViewModel)
+                {
+                    BtnConfiguracion.Background = System.Windows.Media.Brushes.Transparent;
+                }
+            }
         }
 
         private void ClearActiveStates()
