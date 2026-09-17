@@ -6,7 +6,7 @@
              mc:Ignorable="d"
              d:DesignWidth="1100"
              d:DesignHeight="720">
-    <Grid Background="#F4F5F7">
+    <Grid Background="#FFFFFF">
 
         <!-- Centered content -->
         <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"
