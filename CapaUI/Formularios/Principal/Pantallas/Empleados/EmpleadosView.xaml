@@ -134,9 +134,8 @@
                     <Border.Effect>
                         <DropShadowEffect Color="{DynamicResource EmpresaPrimaryColor}" BlurRadius="8" ShadowDepth="2" Opacity="0.3"/>
                     </Border.Effect>
-                    <Path Data="{StaticResource IconUser}"
-                          Stroke="White" StrokeThickness="1.5"
-                          StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                    <Path Data="{StaticResource IcoUsuarios}"
+                          Fill="White"
                           Width="20" Height="20" Stretch="Uniform"/>
                 </Border>
                 <StackPanel VerticalAlignment="Center">
@@ -206,23 +205,8 @@
                         HighlightIndex="{Binding HighlightIndex, Mode=TwoWay}"
                         Placeholder="Buscar empleado por nombre, apellido o identidad..."
                         ItemSelected="SearchBox_ItemSelected"/>
-                    <!-- En ventana angosta el rótulo le come el ancho al buscador,
-                         que es lo que sí tiene que quedar usable: bajo el umbral
-                         queda el icono solo, con el ToolTip siempre presente. -->
-                    <Button Grid.Column="1" Command="{Binding LimpiarFiltrosCommand}"
-                            Background="{DynamicResource EmpresaPrimaryDarkBrush}" Style="{StaticResource ActionBtn}"
-                            Padding="16,0" Height="38" MinWidth="0"
-                            ToolTip="Limpiar filtros">
-                        <StackPanel Orientation="Horizontal">
-                            <Path Data="{StaticResource IconFilter}"
-                                  Stroke="White" StrokeThickness="1.8"
-                                  StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                                  Width="16" Height="16" Stretch="Uniform" VerticalAlignment="Center"/>
-                            <TextBlock Text="Limpiar Filtros" FontFamily="Segoe UI" FontSize="15.5" FontWeight="SemiBold"
-                                       Foreground="White" VerticalAlignment="Center" Margin="6,0,0,0"
-                                       Visibility="{Binding ActualWidth, ElementName=TarjetaToolbar, Converter={x:Static conv:AnchoMinimoAVisibilidadConverter.Instancia}, ConverterParameter=760}"/>
-                        </StackPanel>
-                    </Button>
+                    <controls:BotonLimpiarFiltros Grid.Column="1"
+                                                  ReferenciaAncho="{Binding ElementName=TarjetaToolbar}"/>
                 </Grid>
 
                 <Border BorderBrush="#E5E7EB" BorderThickness="0,0,0,1" Margin="0,10,0,10" SnapsToDevicePixels="True"/>
@@ -464,9 +448,8 @@
                 <Button Command="{Binding CrearUsuarioCommand}" permisos:PermisoBehavior.Requiere="Crear Usuario" Background="#7C3AED"
                         Style="{StaticResource ActionBtn}" Padding="22,0" Margin="8,0,0,0">
                     <StackPanel Orientation="Horizontal">
-                        <Path Data="{StaticResource IconUser}"
-                              Stroke="White" StrokeThickness="2.2"
-                              StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                        <Path Data="{StaticResource IcoUsuarios}"
+                              Fill="White"
                               Width="15" Height="15" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center"/>
                         <TextBlock Text="Crear Usuario" FontFamily="Segoe UI" FontSize="15.5" FontWeight="SemiBold"
                                    Foreground="White" VerticalAlignment="Center"/>

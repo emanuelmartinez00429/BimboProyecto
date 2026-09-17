@@ -231,12 +231,12 @@
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="80"/>
+                                <ColumnDefinition Width="85"/>
                             </Grid.ColumnDefinitions>
                             <TextBox Grid.Column="0" x:Name="TxtContenido" Style="{StaticResource ModalInput}" TabIndex="70" Margin="0,0,4,0"
                                      PreviewTextInput="CajaDecimal_PreviewTextInput" DataObject.Pasting="CajaDecimal_Pasting"/>
                             <!-- Items poblados en OnLoaded desde unidad_medida (catálogo real), no hardcodeados -->
-                            <ComboBox Grid.Column="1" x:Name="CmbUnidad" Style="{StaticResource ModalCombo}" TabIndex="80"/>
+                            <ComboBox Grid.Column="1" x:Name="CmbUnidad" Style="{StaticResource ModalCombo}" HorizontalContentAlignment="Center" TabIndex="80"/>
                         </Grid>
                     </StackPanel>
                     <StackPanel Grid.Row="2" Grid.Column="1" Style="{StaticResource CampoModalEnGrid}">

@@ -54,9 +54,14 @@ public partial class ReporteriaViewModel : ObservableObject
     public bool HayMetadatosPie => _pie.Count > 0 && HayResultados;
     public IReadOnlyList<ReportMetadataDto> MetadatosVistaPrevia => _filtros;
     public IReadOnlyList<ReportMetadataDto> MetadatosPieVistaPrevia => _pie;
+    public string SubtituloBreadcrumb => EnMenu ? "Reportes Operativos" : TituloActual;
+    public string TituloEncabezado => EnMenu ? "Reportes del sistema" : TituloActual;
 
     [ObservableProperty] private ReporteOperativoTipo? _tipoActual;
-    [ObservableProperty] private string _tituloActual = string.Empty;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(SubtituloBreadcrumb))]
+    [NotifyPropertyChangedFor(nameof(TituloEncabezado))]
+    private string _tituloActual = string.Empty;
     [ObservableProperty] private FiltroItem? _productoSeleccionado;
     [ObservableProperty] private FiltroItem? _proveedorSeleccionado;
     [ObservableProperty] private FiltroItem? _categoriaSeleccionada;
@@ -390,5 +395,7 @@ public partial class ReporteriaViewModel : ObservableObject
         AbrirProductoCommand.NotifyCanExecuteChanged();
         OnPropertyChanged(nameof(SinResultados));
         OnPropertyChanged(nameof(HayResultados));
+        OnPropertyChanged(nameof(SubtituloBreadcrumb));
+        OnPropertyChanged(nameof(TituloEncabezado));
     }
 }

@@ -230,36 +230,8 @@
                         Placeholder="Buscar producto por código o nombre..."
                         ItemSelected="SearchBox_ItemSelected"/>
 
-                    <!-- Limpiar Filtros button.
-                         En ventana angosta el rótulo le come el ancho al
-                         buscador, que es lo que sí tiene que quedar usable: bajo
-                         el umbral el botón se queda con el icono solo. El
-                         ToolTip queda siempre, así el icono nunca es un jeroglífico. -->
-                    <Button Grid.Column="1"
-                            Command="{Binding LimpiarFiltrosCommand}"
-                            Background="{DynamicResource EmpresaPrimaryDarkBrush}"
-                            Style="{StaticResource ActionBtn}"
-                            Padding="16,0"
-                            Height="38"
-                            MinWidth="0"
-                            ToolTip="Limpiar filtros">
-                        <StackPanel Orientation="Horizontal">
-                            <Path x:Name="IconoLimpiar"
-                                  Data="{StaticResource IconFilter}"
-                                  Stroke="White" StrokeThickness="1.8"
-                                  StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                                  Width="16" Height="16" Stretch="Uniform"
-                                  VerticalAlignment="Center"/>
-                            <TextBlock Text="Limpiar Filtros"
-                                       FontFamily="Segoe UI" FontSize="15.5" FontWeight="SemiBold"
-                                       Foreground="White" VerticalAlignment="Center"
-                                       Margin="6,0,0,0"
-                                       Visibility="{Binding ActualWidth,
-                                                    ElementName=TarjetaToolbar,
-                                                    Converter={x:Static conv:AnchoMinimoAVisibilidadConverter.Instancia},
-                                                    ConverterParameter=760}"/>
-                        </StackPanel>
-                    </Button>
+                    <controls:BotonLimpiarFiltros Grid.Column="1"
+                                                  ReferenciaAncho="{Binding ElementName=TarjetaToolbar}"/>
                 </Grid>
 
                 <!-- Divider -->

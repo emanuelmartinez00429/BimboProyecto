@@ -71,6 +71,24 @@
     <PathGeometry x:Key="IcoUsuarios"
                   Figures="M40-160v-112q0-34,17.5-62.5T104-378q62-31,126-46.5T360-440q66,0,130,15.5T616-378q29,15,46.5,43.5T680-272v112H40Zm720,0v-120q0-44-24.5-84.5T666-434q51,6,96,20.5t84,35.5q36,20,55,44.5t19,53.5v120H760ZM247-527q-47-47-47-113t47-113q47-47,113-47t113,47q47,47,47,113t-47,113q-47,47-113,47t-113-47Zm466,0q-47,47-113,47-11,0-28-2.5t-28-5.5q27-32,41.5-71t14.5-81q0-42-14.5-81T544-792q14-5,28-6.5t28-1.5q66,0,113,47t47,113q0,66-47,113ZM120-240h480v-32q0-11-5.5-20T580-306q-54-27-109-40.5T360-360q-56,0-111,13.5T140-306q-9,5-14.5,14t-5.5,20v32Zm296.5-343.5Q440-607,440-640t-23.5-56.5Q393-720,360-720t-56.5,23.5Q280-673,280-640t23.5,56.5Q327-560,360-560t56.5-23.5ZM360-240Zm0-400Z"
                   po:Freeze="True"/>
+    <!-- IcoConfiguracion — fuente: Ajustes.svg (Material Icons "settings", viewBox 0 -960 960 960).
+         Path data copiado literalmente del SVG; WPF calcula el bounding box
+         automáticamente con Stretch=Uniform sin necesidad de transformar coordenadas. -->
+    <PathGeometry x:Key="IcoConfiguracion" FillRule="Nonzero"
+                  Figures="m370-80-16-128q-13-5-24.5-12T307-235l-119 50L78-375l103-78q-1-7-1-13.5v-27q0-6.5 1-13.5L78-585l110-190 119 50q11-8 23-15t24-12l16-128h220l16 128q13 5 24.5 12t22.5 15l119-50 110 190-103 78q1 7 1 13.5v27q0 6.5-2 13.5l103 78-110 190-118-50q-11 8-23 15t-24 12L590-80H370Zm70-80h79l14-106q31-8 57.5-23.5T639-327l99 41 39-68-86-65q5-14 7-29.5t2-31.5q0-16-2-31.5t-7-29.5l86-65-39-68-99 42q-22-23-48.5-38.5T533-694l-13-106h-79l-14 106q-31 8-57.5 23.5T321-633l-99-41-39 68 86 64q-5 15-7 30t-2 32q0 16 2 31t7 30l-86 65 39 68 99-42q22 23 48.5 38.5T427-266l13 106Zm42-180q58 0 99-41t41-99q0-58-41-99t-99-41q-59 0-99.5 41T342-480q0 58 40.5 99t99.5 41Zm-2-140Z"
+                  po:Freeze="True"/>
+    <!-- IcoNotificaciones — fuente: Notificaciones.svg (Material Icons "notifications", viewBox 0 -960 960 960).
+         Path data copiado literalmente del SVG; WPF calcula el bounding box
+         automáticamente con Stretch=Uniform sin necesidad de transformar coordenadas. -->
+    <PathGeometry x:Key="IcoNotificaciones" FillRule="Nonzero"
+                  Figures="M160-200v-80h80v-280q0-83 50-147.5T420-792v-28q0-25 17.5-42.5T480-880q25 0 42.5 17.5T540-820v28q80 20 130 84.5T720-560v280h80v80H160Zm320-300Zm0 420q-33 0-56.5-23.5T400-160h160q0 33-23.5 56.5T480-80ZM320-280h320v-280q0-66-47-113t-113-47q-66 0-113 47t-47 113v280Z"
+                  po:Freeze="True"/>
+    <!-- IcoFiltro — fuente: Filtros.svg (Material Icons "filter_alt", viewBox 0 -960 960 960).
+         Path data copiado literalmente del SVG; WPF calcula el bounding box
+         automáticamente con Stretch=Uniform sin necesidad de transformar coordenadas. -->
+    <PathGeometry x:Key="IcoFiltro" FillRule="Nonzero"
+                  Figures="M440-160q-17 0-28.5-11.5T400-200v-240L168-736q-15-20-4.5-42t36.5-22h560q26 0 36.5 22t-4.5 42L560-440v240q0 17-11.5 28.5T520-160h-80Zm40-308 198-252H282l198 252Zm0 0Z"
+                  po:Freeze="True"/>
 
     <Style x:Key="LupaBtnCompartido" TargetType="Button">
         <Setter Property="Width" Value="38"/><Setter Property="Height" Value="38"/>
@@ -493,24 +511,144 @@
         <Setter Property="Background" Value="White"/>
         <Setter Property="BorderBrush" Value="#7FFFFFFF"/>
         <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="10,0,4,0"/>
+        <Setter Property="HorizontalContentAlignment" Value="Left"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="MaxDropDownHeight" Value="260"/>
         <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
-        <!-- Sin template propio: el ComboBox usa el suyo por defecto, cuyo borde
-             ya está atado a BorderBrush/BorderThickness por TemplateBinding, así
-             que alcanza con un Style.Trigger — no hace falta reescribir el
-             template completo del combo solo para el foco. IsKeyboardFocusWithin
-             en vez de IsFocused: el foco real cae en una parte interna del
-             control (el ToggleButton/editor), no en el ComboBox en sí. -->
-        <Style.Triggers>
-            <Trigger Property="IsKeyboardFocusWithin" Value="True">
-                <Setter Property="BorderBrush" Value="#34D399"/>
-                <Setter Property="BorderThickness" Value="3"/>
-            </Trigger>
-            <!-- Después del foco: con error se ve rojo aunque esté enfocado. -->
-            <Trigger Property="validacion:Validacion.TieneError" Value="True">
-                <Setter Property="BorderBrush" Value="#EF4444"/>
-                <Setter Property="BorderThickness" Value="2"/>
-            </Trigger>
-        </Style.Triggers>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
+        <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>
+        <Setter Property="ItemContainerStyle">
+            <Setter.Value>
+                <Style TargetType="ComboBoxItem">
+                    <Setter Property="Padding" Value="10,6"/>
+                    <Setter Property="FontFamily" Value="Segoe UI"/>
+                    <Setter Property="FontSize" Value="15"/>
+                    <Setter Property="Foreground" Value="#1A1F2E"/>
+                    <Setter Property="Background" Value="Transparent"/>
+                    <Setter Property="BorderThickness" Value="0"/>
+                    <Setter Property="HorizontalContentAlignment" Value="{Binding HorizontalContentAlignment, RelativeSource={RelativeSource AncestorType=ItemsControl}}"/>
+                    <Setter Property="VerticalContentAlignment" Value="Center"/>
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="ComboBoxItem">
+                                <Border x:Name="Bd"
+                                        Background="{TemplateBinding Background}"
+                                        Padding="{TemplateBinding Padding}"
+                                        Margin="4,1"
+                                        CornerRadius="4"
+                                        SnapsToDevicePixels="True">
+                                    <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                      VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsHighlighted" Value="True">
+                                        <Setter TargetName="Bd" Property="Background" Value="#F1F5F9"/>
+                                    </Trigger>
+                                    <Trigger Property="IsSelected" Value="True">
+                                        <Setter TargetName="Bd" Property="Background" Value="#E2E8F0"/>
+                                        <Setter Property="Foreground" Value="#0F172A"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ComboBox">
+                    <Grid x:Name="MainGrid" SnapsToDevicePixels="True">
+                        <Border x:Name="Bd"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="6"
+                                SnapsToDevicePixels="True">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="22"/>
+                                </Grid.ColumnDefinitions>
+
+                                <ContentPresenter Grid.Column="0"
+                                                  IsHitTestVisible="False"
+                                                  Margin="{TemplateBinding Padding}"
+                                                  HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                  VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                                  Content="{TemplateBinding SelectionBoxItem}"
+                                                  ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                                  ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"/>
+
+                                <Path Grid.Column="1"
+                                      Data="M 0 0 L 4.5 4.5 L 9 0"
+                                      Stroke="#64748B"
+                                      StrokeThickness="1.5"
+                                      StrokeStartLineCap="Round"
+                                      StrokeEndLineCap="Round"
+                                      StrokeLineJoin="Round"
+                                      HorizontalAlignment="Center"
+                                      VerticalAlignment="Center"
+                                      IsHitTestVisible="False"/>
+
+                                <ToggleButton x:Name="DropDownToggle"
+                                              Grid.ColumnSpan="2"
+                                              Background="Transparent"
+                                              BorderThickness="0"
+                                              Focusable="False"
+                                              Cursor="Hand"
+                                              IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
+                                    <ToggleButton.Template>
+                                        <ControlTemplate TargetType="ToggleButton">
+                                            <Border Background="Transparent"/>
+                                        </ControlTemplate>
+                                    </ToggleButton.Template>
+                                </ToggleButton>
+                            </Grid>
+                        </Border>
+
+                        <Popup x:Name="PART_Popup"
+                               AllowsTransparency="True"
+                               Placement="Bottom"
+                               IsOpen="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}}"
+                               Focusable="False"
+                               PopupAnimation="Slide">
+                            <Border Background="White"
+                                    BorderBrush="#CBD5E1"
+                                    BorderThickness="1"
+                                    CornerRadius="6"
+                                    MinWidth="{Binding ActualWidth, ElementName=MainGrid}"
+                                    MaxHeight="{TemplateBinding MaxDropDownHeight}"
+                                    Margin="0,4,0,0">
+                                <Border.Effect>
+                                    <DropShadowEffect Color="#0F172A" BlurRadius="16" ShadowDepth="4" Opacity="0.15"/>
+                                </Border.Effect>
+                                <ScrollViewer x:Name="DropDownScrollViewer" CanContentScroll="True" Margin="0,4">
+                                    <ItemsPresenter x:Name="ItemsPresenter"
+                                                    KeyboardNavigation.DirectionalNavigation="Contained"
+                                                    SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                                </ScrollViewer>
+                            </Border>
+                        </Popup>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="#34D399"/>
+                            <Setter TargetName="Bd" Property="BorderThickness" Value="3"/>
+                        </Trigger>
+                        <Trigger Property="validacion:Validacion.TieneError" Value="True">
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="#EF4444"/>
+                            <Setter TargetName="Bd" Property="BorderThickness" Value="2"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.6"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
     </Style>
 
     <!-- ── Foco de los campos de modal ─────────────────────────────────────

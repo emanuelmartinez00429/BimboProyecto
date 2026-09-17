@@ -242,16 +242,9 @@
                                     Width="42" Height="42"
                                     ToolTip="Notificaciones"
                                     Click="BtnNotif_Click">
-                                <Viewbox Width="22" Height="22">
-                                    <Canvas Width="24" Height="24">
-                                        <Path Data="M6 8a6 6 0 0 1 12 0c0 7 2 9 2 9H4s2-2 2-9"
-                                              Stroke="White" StrokeThickness="1.9"
-                                              Fill="Transparent" StrokeLineJoin="Round"/>
-                                        <Path Data="M10 21a2 2 0 0 0 4 0"
-                                              Stroke="White" StrokeThickness="1.9"
-                                              Fill="Transparent"/>
-                                    </Canvas>
-                                </Viewbox>
+                                <Path Data="{StaticResource IcoNotificaciones}"
+                                      Fill="White" Width="22" Height="22" Stretch="Uniform"
+                                      HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Button>
                             <!-- Badge de no leídas -->
                             <Border Background="#EF4444" CornerRadius="7"
@@ -344,14 +337,9 @@
                                              RelativeSource={RelativeSource AncestorType={x:Type Window}},
                                              Converter={x:Static conv:AnchoMinimoAVisibilidadConverter.Instancia},
                                              ConverterParameter=1060}">
-                            <Viewbox Width="18" Height="18">
-                                <Canvas Width="24" Height="24">
-                                    <Path Data="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"
-                                          Stroke="White" StrokeThickness="1.7" Fill="Transparent"/>
-                                    <Path Data="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"
-                                          Stroke="White" StrokeThickness="1.7" Fill="Transparent"/>
-                                </Canvas>
-                            </Viewbox>
+                            <Path Data="{StaticResource IcoConfiguracion}"
+                                  Fill="White" Width="22" Height="22" Stretch="Uniform"
+                                  HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Button>
 
                         <Border Width="1" Height="24" Background="#26FFFFFF" Margin="8,0"/>

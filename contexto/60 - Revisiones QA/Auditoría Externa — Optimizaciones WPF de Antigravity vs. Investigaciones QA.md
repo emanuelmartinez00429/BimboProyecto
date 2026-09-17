@@ -208,6 +208,36 @@ Fernando pidió puntualmente auditar la última animación metida al colapsar/ex
 - `_moduleMap` se llena **una sola vez** (líneas 222-225, dict con 4 entradas fijas: usuarios/productos/pesajes/reportes) sobre elementos con nombre ya existentes en el árbol visual (`ExpUsuarios`, `IcoUsuarios`, etc.) — el nuevo `foreach` no crea objetos de UI nuevos en cada toggle, solo dispara animaciones sobre los mismos 4 elementos reutilizados. Costo real: 4 `DoubleAnimation` chicas extra por colapso/expansión, basura Gen0 trivial.
 - Coreografía de fases intacta y correcta: el fade-out (`ChromeFadeOutMs`=70ms) siempre termina antes del `await Task.Delay` que lo sigue (`ChromeCollapseDelayMs`=75ms) antes de forzar `Visibility.Collapsed`/`Opacity=1`, igual que el patrón ya probado para `_sidebarChromeElements` — es una extensión copiada 1:1 de código que ya funciona, no un mecanismo nuevo.
 
+## Seguimiento 2026-09-16 (cont. 3) — Barrido completo de todo lo pendiente: BotonLimpiarFiltros, ModalCombo retemplado, Reportería, iconos Ajustes/Notificaciones
+
+Fernando pidió revisar **todo** lo que quedaba sin auditar. Contexto: `140be3e` (iconos sidebar + animación, ya auditada en el seguimiento anterior) quedó commiteado y pusheado. Lo que sigue en working tree son 3 sesiones distintas de Antigravity, las 3 **sí documentadas en Engram** (obs #333-#339, #342, #345-#346) aunque todavía no en la bóveda ni commiteadas — corrijo acá mi supuesto inicial de "sin documentar": estaba mal buscando, no falta la documentación.
+
+### 1. `BotonLimpiarFiltros` (control reutilizable nuevo) + `IcoFiltro`
+✅ Sin hallazgos. Revisé `CapaUI/Core/Controls/BotonLimpiarFiltros.xaml(.cs)` entero: las 6 `DependencyProperty`, el patrón `SizeChanged +=/-=` en `OnReferenciaAnchoChanged`/`OnUnloaded` está bien pareado (sin fuga), y **verifiqué el riesgo real** de la resolución de comando por convención (reflexión sobre `LimpiarFiltrosCommand` en el `DataContext`): confirmé que los 8 módulos donde se integró (Productos, Categorías, Fabricantes, Proveedores, Presentaciones, Empleados, Usuarios, Bitácora) **sí tienen** `[RelayCommand] private void LimpiarFiltros()` en su ViewModel — el generador de CommunityToolkit.Mvvm produce `LimpiarFiltrosCommand` en los 8, así que el botón va a funcionar en los 8 sin excepción. `IcoFiltro` con subpaths cerrados y `FillRule="Nonzero"` explícito (a diferencia de rondas anteriores, acá sí lo declararon).
+- 🔹 **Nota menor, no bloqueante:** el recurso viejo `IconFilter` (Styles.xaml:35, el ícono de 3 líneas tipo "hamburguesa") quedó huérfano — nada lo referencia ya. Limpieza cosmética pendiente, no rompe nada.
+
+### 2. `ModalCombo` — `ControlTemplate` completo nuevo (Styles.xaml)
+✅ Sin hallazgos, revisado a fondo por ser el cambio de mayor riesgo estructural (retemplado completo de un `ComboBox`, compartido por `UsuarioModal`, `ProductoModal`, `FabricanteModal` y los combos de Pesaje). Puntos verificados:
+- `PART_Popup` correctamente nombrado (única parte que `ComboBox.OnApplyTemplate` exige en un combo no editable) — sin esto el control se rompe en runtime, y no es el caso.
+- Orden Z correcto: `ToggleButton` transparente va ÚLTIMO en el `Grid` (con `Grid.ColumnSpan="2"`), así que captura el clic en toda el área aunque el contenido y el chevrón de abajo tengan `IsHitTestVisible="False""`.
+- `MinWidth="{Binding ActualWidth, ElementName=MainGrid}"` en el `Popup` — `ElementName` a un elemento nombrado dentro del mismo `ControlTemplate` funciona aunque el `Popup` se renderice en una capa separada (namescope compartido); patrón estándar de WPF, no es un bug.
+- Es 100% declarativo (sin code-behind, sin `Storyboard`, sin manejo manual de `Popup`) — ningún vector de fuga de memoria.
+- Único detalle cosmético (no bug): el chevrón no rota 180° al abrir el dropdown (sí lo hacen los del sidebar) — inconsistencia menor, no estaba en el alcance pedido por Fernando.
+
+### 3. Encabezado estándar de Reportería
+🚩→✅ **Corrección a mi propio veredicto anterior.** Había dado esto por "sin hallazgos" verificando el `[NotifyPropertyChangedFor]`/`OnPropertyChanged` de `SubtituloBreadcrumb`/`TituloEncabezado` en el ViewModel — pero no compilé lo que un `dotnet build` tampoco puede ver: **el modo de binding por defecto de `Run.Text` en WPF es `TwoWay`**, a diferencia de `TextBlock.Text` que es `OneWay`. `SubtituloBreadcrumb` es de solo lectura (`=>` sin setter), así que el binding `<Run Text="{Binding SubtituloBreadcrumb}"/>` (ReporteriaView.xaml:216) tira `InvalidOperationException` en cuanto el binding intenta la escritura TwoWay — exactamente el error que Fernando vio corriendo la app: *"Un enlace TwoWay u OneWayToSource no puede funcionar en la propiedad de sólo lectura 'SubtituloBreadcrumb'"*.
+
+**Por qué el build/tests no lo agarraron:** los errores de binding de WPF son 100% en tiempo de ejecución — MSBuild no tiene forma de saber que un `Binding` va a fallar hasta que el `Visual Tree` se carga de verdad y el binding se activa. "0 errores, 0 advertencias, 435/435 tests" es compatible con este bug estando presente; solo se ve navegando a Reportería en la app corriendo.
+
+**Corregido por Claude directamente**, agregando `Mode=OneWay` explícito: `<Run Text="{Binding SubtituloBreadcrumb, Mode=OneWay}"/>`. `TituloEncabezado` (el otro campo nuevo) estaba bien porque se bindea desde un `TextBlock.Text`, no un `Run.Text`.
+
+**Barrido del mismo patrón en el resto del código** (`grep 'Run Text="{Binding'` en todo `CapaUI`): los demás `Run` sin `Mode=` explícito (Bitácora `CantidadSeleccionada`, Roles `UsuariosAsignados`/`Permisos`) apuntan a propiedades **con setter** (se les asigna valor en otros puntos del código) — no disparan esta excepción. El bug estaba aislado a `SubtituloBreadcrumb`.
+
+### 4. Iconos `IcoConfiguracion`/`IcoNotificaciones` en la barra superior
+✅ Sin hallazgos. Reemplazo limpio de los `Viewbox`+`Canvas` de trazos a mano por `Path` único con el ícono oficial de Material Symbols, mismo patrón que el resto. El badge rojo de notificaciones no leídas es un `Border` hermano independiente con `IsHitTestVisible="False"` (sin tocar en este diff) — no hay colisión visual ni de layout.
+
+**Síntesis:** revisado todo lo pendiente de este barrido — cero fugas de memoria, cero riesgos de rendimiento. Un bug real de runtime (`SubtituloBreadcrumb`/`Run.Text` TwoWay, ver §3 abajo) salió recién cuando Fernando corrió la app y lo reportó — ya corregido. El resto queda técnicamente listo para bitácora + commit en cuanto Fernando valide visualmente el resto en la app corriendo.
+
 ## Relaciones
 
 - [[Optimización De Renderizado En WPF]] — investigación fuente AP-06

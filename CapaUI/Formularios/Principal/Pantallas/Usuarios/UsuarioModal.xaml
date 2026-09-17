@@ -8,7 +8,7 @@
              mc:Ignorable="d"
              Width="560"
              d:DesignWidth="560"
-             d:DesignHeight="650"
+             d:DesignHeight="650"
              UseLayoutRounding="True"
              TextOptions.TextRenderingMode="Grayscale"
              TextOptions.TextFormattingMode="Display" controls:AtajoGuardar.Boton="{x:Reference BtnGuardar}">
@@ -19,7 +19,6 @@
                 <ResourceDictionary Source="/CapaUI;component/Resources/Styles.xaml"/>
             </ResourceDictionary.MergedDictionaries>
 
-            <Geometry x:Key="IconUserM">M20,21 v-2 a4,4 0 0 0,-4,-4 H8 a4,4 0 0 0,-4,4 v2 M12,3 a4,4 0 1 1 0,8 a4,4 0 0 1 0,-8 z</Geometry>
             <Geometry x:Key="IconCloseM">M6,6 l12,12 M18,6 l-12,12</Geometry>
 
             <!-- ModalSegBtn, EtiquetaCampo, CampoModal y ModalPassword vienen de Styles.xaml. -->
@@ -66,9 +65,8 @@
                         <Border Grid.Column="0"
                                 Width="40" Height="40" CornerRadius="10"
                                 Background="#24FFFFFF" Margin="0,0,14,0" VerticalAlignment="Center">
-                            <Path Data="{StaticResource IconUserM}"
-                                  Stroke="White" StrokeThickness="1.5"
-                                  StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                            <Path Data="{StaticResource IcoUsuarios}"
+                                  Fill="White"
                                   Width="22" Height="22" Stretch="Uniform"/>
                         </Border>
                         <StackPanel Grid.Column="1" VerticalAlignment="Center">

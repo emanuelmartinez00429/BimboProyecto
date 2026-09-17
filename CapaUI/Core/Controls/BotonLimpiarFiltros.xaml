@@ -1,0 +1,42 @@
+﻿<UserControl x:Class="CapaUI.Core.Controls.BotonLimpiarFiltros"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             x:Name="RootBotonLimpiar"
+             Focusable="False"
+             Background="Transparent">
+
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/CapaUI;component/Resources/Styles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Button x:Name="BtnAccion"
+            Command="{Binding Command, ElementName=RootBotonLimpiar}"
+            CommandParameter="{Binding CommandParameter, ElementName=RootBotonLimpiar}"
+            Background="{DynamicResource EmpresaPrimaryDarkBrush}"
+            Style="{StaticResource ActionBtn}"
+            Padding="16,0"
+            Height="38"
+            MinWidth="0"
+            ToolTip="{Binding ToolTipTexto, ElementName=RootBotonLimpiar}">
+        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+            <Path x:Name="Icono"
+                  Data="{StaticResource IcoFiltro}"
+                  Fill="White"
+                  Width="16" Height="16"
+                  Stretch="Uniform"
+                  VerticalAlignment="Center"/>
+            <TextBlock x:Name="TxtEtiqueta"
+                       Text="{Binding Texto, ElementName=RootBotonLimpiar}"
+                       FontFamily="Segoe UI" FontSize="15.5" FontWeight="SemiBold"
+                       Foreground="White" VerticalAlignment="Center"
+                       Margin="6,0,0,0"/>
+        </StackPanel>
+    </Button>
+</UserControl>

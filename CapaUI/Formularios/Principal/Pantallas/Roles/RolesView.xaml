@@ -214,9 +214,10 @@
                                     <Border x:Name="Fondo" Background="{DynamicResource EmpresaPrimaryDarkBrush}" BorderBrush="{DynamicResource EmpresaPrimaryDarkerBrush}"
                                             BorderThickness="1" CornerRadius="8" Padding="{TemplateBinding Padding}">
                                         <StackPanel Orientation="Horizontal">
-                                            <Path Style="{StaticResource RolIcono}" Data="{StaticResource GeoFiltros}"
-                                                  Width="16" Height="16" StrokeThickness="1.9"
-                                                  Stroke="{TemplateBinding Foreground}" Margin="0,0,8,0"/>
+                                            <Path Data="{StaticResource GeoFiltros}"
+                                                  Width="16" Height="16" Stretch="Uniform"
+                                                  Fill="{TemplateBinding Foreground}" Margin="0,0,8,0"
+                                                  VerticalAlignment="Center"/>
                                             <TextBlock Text="Limpiar Filtros" VerticalAlignment="Center"/>
                                         </StackPanel>
                                     </Border>

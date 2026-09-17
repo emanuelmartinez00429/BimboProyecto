@@ -586,7 +586,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
         private async Task CargarUnidadesAsync()
         {
             CmbUnidad.Items.Clear();
-            CmbUnidad.Items.Add(new ComboBoxItem { Content = "(Sin seleccionar)", Tag = null });
+            CmbUnidad.Items.Add(new ComboBoxItem { Content = "Unidad", Tag = null });
 
             // La caché vive detrás del repositorio (ADR-026): reabrir el modal no
             // vuelve a consultar la tabla de unidades.
@@ -604,7 +604,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
         /// Selecciona la unidad por id (Contenido y Unidad son campos separados
         /// desde que Contenido pasó a ser numérico puro — ya no hace falta separar
         /// un sufijo de texto). Si el producto no tiene unidad cargada (dato viejo,
-        /// de antes de que Unidad fuera obligatorio) queda en "(Sin seleccionar)".
+        /// de antes de que Unidad fuera obligatorio) queda en "Unidad".
         /// </summary>
         private void SeleccionarUnidad(int? idUnidad)
         {
