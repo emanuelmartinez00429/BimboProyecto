@@ -7,6 +7,8 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
+using System.Runtime.InteropServices;
+using System.Windows.Interop;
 using CapaAplicacion.Auth.Interfaces;
 using CapaAplicacion.Empresa.Dtos;
 using CapaAplicacion.Empresa.Interfaces;
@@ -67,6 +69,7 @@ namespace CapaUI.Formularios.InicioSesion
             TxtPassword.MaxLength = ReglasUsuario.Password.LargoMaximo ?? 72;
             TxtPasswordVisible.MaxLength = ReglasUsuario.Password.LargoMaximo ?? 72;
             Loaded += LoginWindow_Loaded;
+            SourceInitialized += OnSourceInitialized;
         }
 
         private async void LoginWindow_Loaded(object sender, RoutedEventArgs e)
@@ -173,13 +176,23 @@ namespace CapaUI.Formularios.InicioSesion
         }
 
         // ── Chrome ───────────────────────────────────────────────────────────
+        [DllImport("dwmapi.dll")]
+        private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int value, int size);
+
+        private void OnSourceInitialized(object? sender, EventArgs e)
+        {
+            var hwnd = new WindowInteropHelper(this).Handle;
+            int round = 3; // DWMWCP_ROUNDSMALL
+            DwmSetWindowAttribute(hwnd, 33 /* DWMWA_WINDOW_CORNER_PREFERENCE */, ref round, sizeof(int));
+        }
+
         private void ChromeBar_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             if (e.LeftButton == MouseButtonState.Pressed) DragMove();
         }
 
         private void BtnMinimize_Click(object sender, RoutedEventArgs e)
-            => WindowState = WindowState.Minimized;
+            => SystemCommands.MinimizeWindow(this);
 
         private void BtnClose_Click(object sender, RoutedEventArgs e)
             => Application.Current.Shutdown();

@@ -265,6 +265,8 @@ public class UsuarioRepository : RepositorioBase, IUsuarioRepository
             IdEstado      = u.idEstado,
             UuidUsuario   = u.uuidUsuario,
             UltimoAcceso  = u.ultimoAcceso,
+            CreatedAt     = u.createdAt,
+            UpdatedAt     = u.updatedAt,
             NombreRol     = rolName ?? "Sin rol",
             NombreEmpleado = u.empleados != null
                 ? $"{empName} {empLast}".Trim()

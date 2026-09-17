@@ -90,6 +90,36 @@
                   Figures="M440-160q-17 0-28.5-11.5T400-200v-240L168-736q-15-20-4.5-42t36.5-22h560q26 0 36.5 22t-4.5 42L560-440v240q0 17-11.5 28.5T520-160h-80Zm40-308 198-252H282l198 252Zm0 0Z"
                   po:Freeze="True"/>
 
+    <!-- ── EncabezadoCatalogo: pastillas de estadística (TOTAL/ACTIVOS/INACTIVOS) ──────── -->
+    <Style x:Key="EncabezadoPill" TargetType="Border">
+        <Setter Property="CornerRadius" Value="8"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="12,6"/>
+    </Style>
+
+    <Style x:Key="EncabezadoPillDot" TargetType="Border">
+        <Setter Property="Width" Value="6"/>
+        <Setter Property="Height" Value="6"/>
+        <Setter Property="CornerRadius" Value="3"/>
+        <Setter Property="Margin" Value="0,0,6,0"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+
+    <Style x:Key="EncabezadoPillLabel" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="Margin" Value="0,0,6,0"/>
+    </Style>
+
+    <Style x:Key="EncabezadoPillValor" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontSize" Value="15"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+
     <Style x:Key="LupaBtnCompartido" TargetType="Button">
         <Setter Property="Width" Value="38"/><Setter Property="Height" Value="38"/>
         <Setter Property="Background" Value="White"/><Setter Property="BorderBrush" Value="#CBD5E1"/>
@@ -1127,7 +1157,7 @@
                                    FontFamily="Segoe UI"
                                    FontSize="13"
                                    FontWeight="Bold"
-                                   HorizontalAlignment="Left"
+                                   HorizontalAlignment="Right"
                                    VerticalAlignment="Center"
                                    Padding="10,0"/>
                     </Border>

@@ -119,71 +119,11 @@
         </Grid.RowDefinitions>
 
         <!-- ROW 0: PAGE HEADER -->
-        <Grid Grid.Row="0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
-
-            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                <Border Width="38" Height="38"
-                        Background="{DynamicResource EmpresaPrimaryBrush}"
-                        CornerRadius="8"
-                        Margin="0,0,12,0"
-                        VerticalAlignment="Center">
-                    <Border.Effect>
-                        <DropShadowEffect Color="{DynamicResource EmpresaPrimaryColor}" BlurRadius="8" ShadowDepth="2" Opacity="0.3"/>
-                    </Border.Effect>
-                    <Path Data="{StaticResource IcoUsuarios}"
-                          Fill="White"
-                          Width="20" Height="20" Stretch="Uniform"/>
-                </Border>
-                <StackPanel VerticalAlignment="Center">
-                    <TextBlock FontFamily="Segoe UI" FontSize="13" Foreground="#6B7280">
-                        <Run Text="Usuarios" FontWeight="Normal"/>
-                        <Run Text=" / "/>
-                        <Run Text="Gestión de Empleados" FontWeight="SemiBold" Foreground="#1A1F2E"/>
-                    </TextBlock>
-                    <TextBlock Text="Administración de empleados de la planta"
-                               FontFamily="Segoe UI" FontSize="21" FontWeight="Bold"
-                               Foreground="#1A1F2E" Margin="0,2,0,0"/>
-                </StackPanel>
-            </StackPanel>
-
-            <!-- Stats chips -->
-            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Right">
-                <Border Background="#EEF2F8" CornerRadius="999" BorderBrush="#D8E1EC" BorderThickness="1"
-                        Padding="12,6" Margin="0,0,8,0">
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <Border Width="6" Height="6" CornerRadius="3" Background="{DynamicResource EmpresaPrimaryBrush}" Margin="0,0,6,0" VerticalAlignment="Center"/>
-                        <TextBlock Text="TOTAL" FontFamily="Segoe UI" FontSize="13" FontWeight="SemiBold"
-                                   Foreground="{DynamicResource EmpresaPrimaryBrush}" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                        <TextBlock Text="{Binding TotalCount}" FontFamily="Segoe UI" FontSize="15" FontWeight="Bold"
-                                   Foreground="{DynamicResource EmpresaPrimaryBrush}" VerticalAlignment="Center"/>
-                    </StackPanel>
-                </Border>
-                <Border Background="#ECFDF5" CornerRadius="999" BorderBrush="#D1FAE5" BorderThickness="1"
-                        Padding="12,6" Margin="0,0,8,0">
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <Border Width="6" Height="6" CornerRadius="3" Background="#10B981" Margin="0,0,6,0" VerticalAlignment="Center"/>
-                        <TextBlock Text="ACTIVOS" FontFamily="Segoe UI" FontSize="13" FontWeight="SemiBold"
-                                   Foreground="#047857" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                        <TextBlock Text="{Binding ActivosCount}" FontFamily="Segoe UI" FontSize="15" FontWeight="Bold"
-                                   Foreground="#047857" VerticalAlignment="Center"/>
-                    </StackPanel>
-                </Border>
-                <Border Background="#F3F4F6" CornerRadius="999" BorderBrush="#E5E7EB" BorderThickness="1"
-                        Padding="12,6">
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <Border Width="6" Height="6" CornerRadius="3" Background="#9CA3AF" Margin="0,0,6,0" VerticalAlignment="Center"/>
-                        <TextBlock Text="INACTIVOS" FontFamily="Segoe UI" FontSize="13" FontWeight="SemiBold"
-                                   Foreground="#6B7280" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                        <TextBlock Text="{Binding InactivosCount}" FontFamily="Segoe UI" FontSize="15" FontWeight="Bold"
-                                   Foreground="#6B7280" VerticalAlignment="Center"/>
-                    </StackPanel>
-                </Border>
-            </StackPanel>
-        </Grid>
+        <controls:EncabezadoCatalogo Grid.Row="0"
+            Icono="{StaticResource IcoUsuarios}" IconoEsRelleno="True"
+            ModuloPadre="Usuarios" Submodulo="Gestión de Empleados"
+            Titulo="Administración de empleados de la planta"
+            Total="{Binding TotalCount}" Activos="{Binding ActivosCount}" Inactivos="{Binding InactivosCount}"/>
 
         <!-- ROW 2: TOOLBAR -->
         <Border Grid.Row="2" x:Name="TarjetaToolbar" Background="White" CornerRadius="10"

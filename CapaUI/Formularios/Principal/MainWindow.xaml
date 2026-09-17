@@ -18,13 +18,14 @@
         xmlns:reportes="clr-namespace:CapaUI.Formularios.Principal.Pantallas.Reporteria"
         xmlns:roles="clr-namespace:CapaUI.Formularios.Principal.Pantallas.Roles"
         xmlns:notifs="clr-namespace:CapaUI.Formularios.Principal.Pantallas.Notificaciones"
+        xmlns:config="clr-namespace:CapaUI.Formularios.Principal.Pantallas.Configuracion"
         xmlns:permisos="clr-namespace:CapaUI.Core.Permisos"
         xmlns:dash="clr-namespace:CapaUI.Formularios.Dashboard"
         xmlns:searchVm="clr-namespace:CapaUI.ViewModels.Search"
         xmlns:searchViews="clr-namespace:CapaUI.Formularios.Search"
         xmlns:av="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="av" x:Class="CapaUI.Formularios.Principal.MainWindow"
         Title="BimboPesaje"
-        WindowStyle="None"
+        WindowStyle="SingleBorderWindow"
         ResizeMode="CanResize"
         WindowState="Maximized"
         WindowStartupLocation="CenterScreen"
@@ -92,6 +93,9 @@
             <DataTemplate DataType="{x:Type notifs:NotificacionesViewModel}">
                 <notifs:NotificacionesView/>
             </DataTemplate>
+            <DataTemplate DataType="{x:Type config:ConfiguracionEmpresaViewModel}">
+                <config:ConfiguracionEmpresaView/>
+            </DataTemplate>
             <DataTemplate DataType="{x:Type local:PlaceholderVM}">
                 <Grid Background="#F4F5F7">
                     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
@@ -110,12 +114,14 @@
 
     <WindowChrome.WindowChrome>
         <WindowChrome CaptionHeight="56"
-                      ResizeBorderThickness="5"
+                      ResizeBorderThickness="6"
                       GlassFrameThickness="0"
+                      CornerRadius="0"
+                      UseAeroCaptionButtons="False"
                       NonClientFrameEdges="None"/>
     </WindowChrome.WindowChrome>
 
-    <Border Background="White">
+    <Border x:Name="RootBorder" Background="White">
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="56"/>
@@ -200,9 +206,34 @@
                         </Button>
                         <Button Style="{StaticResource TopBarIconButton}"
                                 WindowChrome.IsHitTestVisibleInChrome="True"
-                                ToolTip="Maximizar / Restaurar" Click="BtnMaximizar_Click">
-                            <TextBlock Text="&#xE922;" FontFamily="Segoe MDL2 Assets" FontSize="10"
-                                       Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                Click="BtnMaximizar_Click">
+                            <Button.ToolTip>
+                                <ToolTip>
+                                    <ToolTip.Style>
+                                        <Style TargetType="ToolTip">
+                                            <Setter Property="Content" Value="Maximizar"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding WindowState, RelativeSource={RelativeSource AncestorType=Window}}" Value="Maximized">
+                                                    <Setter Property="Content" Value="Restaurar"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </ToolTip.Style>
+                                </ToolTip>
+                            </Button.ToolTip>
+                            <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="10"
+                                       Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Text" Value="&#xE922;"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding WindowState, RelativeSource={RelativeSource AncestorType=Window}}" Value="Maximized">
+                                                <Setter Property="Text" Value="&#xE923;"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
                         </Button>
                         <Button Style="{StaticResource TopBarIconButton}"
                                 WindowChrome.IsHitTestVisibleInChrome="True"
@@ -327,7 +358,8 @@
                         </Grid>
 
                         <!-- Configuración. Mismo umbral que Notificaciones. -->
-                        <Button Style="{StaticResource TopBarIconButton}"
+                        <Button x:Name="BtnConfiguracion"
+                                Style="{StaticResource TopBarIconButton}"
                                 WindowChrome.IsHitTestVisibleInChrome="True"
                                 Width="42" Height="42"
                                 permisos:PermisoBehavior.Requiere="Modificar Configuración"
@@ -1052,13 +1084,6 @@
                 </Border>
 
             </Grid>
-
-            <Border x:Name="ConfiguracionOverlay" Grid.RowSpan="2"
-                    Background="#990F172A" Visibility="Collapsed" Panel.ZIndex="500">
-                <ContentControl x:Name="ConfiguracionContent"
-                                HorizontalAlignment="Center" VerticalAlignment="Center"
-                                Margin="24"/>
-            </Border>
         </Grid>
     </Border>
 </Window>

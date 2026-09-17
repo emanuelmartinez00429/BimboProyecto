@@ -82,6 +82,39 @@ public static class ReglasFormato
     public static bool EstaEnRango(decimal? valor, decimal min, decimal max) =>
         valor is null || (valor > min && valor <= max);
 
+    /// <summary>
+    /// Normaliza un color hexadecimal a la forma canónica <c>#RRGGBB</c> en mayúsculas.
+    /// Acepta 6 caracteres sin <c>#</c> (se lo antepone) o 7 con <c>#</c>; no valida que
+    /// los caracteres sean hexadecimales — eso es responsabilidad de quien valida el
+    /// formato antes de guardar (ver <c>EmpresaThemeService.EsColorValido</c>). Vacío
+    /// normaliza a cadena vacía.
+    /// </summary>
+    public static string NormalizarColorHex(string? valor)
+    {
+        if (string.IsNullOrWhiteSpace(valor)) return string.Empty;
+        var texto = valor.Trim();
+        if (texto.Length == 6 && !texto.StartsWith('#'))
+            texto = "#" + texto;
+        return texto.ToUpperInvariant();
+    }
+
+    /// <summary>
+    /// Compara dos valores de texto recibidos por WAL de Realtime contra el valor
+    /// actual en memoria, ignorando mayúsculas/minúsculas y espacios al borde.
+    /// </summary>
+    public static bool ValoresRealtimeCoinciden(string? valorRecibido, string? valorActual) =>
+        string.Equals((valorRecibido ?? string.Empty).Trim(), (valorActual ?? string.Empty).Trim(),
+            StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// Igual que <see cref="ValoresRealtimeCoinciden"/> pero para colores: normaliza
+    /// ambos lados con <see cref="NormalizarColorHex"/> antes de comparar, así que
+    /// "1e3a8a" (sin '#', minúscula) y "#1E3A8A" se consideran el mismo valor.
+    /// </summary>
+    public static bool ColoresRealtimeCoinciden(string? valorRecibido, string? valorActual) =>
+        string.Equals(NormalizarColorHex(valorRecibido), NormalizarColorHex(valorActual),
+            StringComparison.OrdinalIgnoreCase);
+
     private static int ContarDigitosAscii(string texto) =>
         texto.Count(caracter => caracter is >= '0' and <= '9');
 }

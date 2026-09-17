@@ -53,6 +53,7 @@ public class RealtimeService : IRealtimeService
         ["unidad_medida"]          = "id_unidad",
         ["tarimas"]                = "id_tarima",
         ["notificaciones_usuario"] = "id_notificacion_usuario",
+        ["empresa"]                = "id_empresa",
     };
 
     public RealtimeService()

@@ -11,4 +11,6 @@ public sealed class UsuarioVistaDto
     public DateTime? UltimoAcceso  { get; init; }
     public string   NombreRol     { get; init; } = string.Empty;
     public string   NombreEmpleado { get; init; } = string.Empty;
+    public DateTime? CreatedAt    { get; init; }
+    public DateTime? UpdatedAt    { get; init; }
 }

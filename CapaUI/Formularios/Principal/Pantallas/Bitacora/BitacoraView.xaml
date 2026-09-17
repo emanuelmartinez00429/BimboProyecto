@@ -152,34 +152,15 @@
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                <Border Width="38" Height="38"
-                        Background="{DynamicResource EmpresaPrimaryBrush}"
-                        CornerRadius="8"
-                        Margin="0,0,12,0"
-                        VerticalAlignment="Center">
-                    <Border.Effect>
-                        <DropShadowEffect Color="{DynamicResource EmpresaPrimaryColor}" BlurRadius="8" ShadowDepth="2" Opacity="0.3"/>
-                    </Border.Effect>
-                    <Path Data="{StaticResource IconHistory}"
-                          Stroke="White" StrokeThickness="1.5"
-                          StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                          Width="20" Height="20" Stretch="Uniform"/>
-                </Border>
-                <StackPanel VerticalAlignment="Center">
-                    <TextBlock FontFamily="Segoe UI" FontSize="13" Foreground="#6B7280">
-                        <Run Text="Usuarios" FontWeight="Normal"/>
-                        <Run Text=" / "/>
-                        <Run Text="Bitácora" FontWeight="SemiBold" Foreground="#1A1F2E"/>
-                    </TextBlock>
-                    <TextBlock Text="Registro de auditoría del sistema"
-                               FontFamily="Segoe UI" FontSize="21" FontWeight="Bold"
-                               Foreground="#1A1F2E" Margin="0,2,0,0"/>
-                </StackPanel>
-            </StackPanel>
+            <controls:EncabezadoCatalogo Grid.Column="0"
+                Icono="{StaticResource IconHistory}" IconoEsRelleno="False"
+                ModuloPadre="Usuarios" Submodulo="Bitácora"
+                Titulo="Registro de auditoría del sistema"
+                Total="{Binding TotalCount}"/>
+                <!-- Activos/Inactivos sin bindear (quedan null): solo la pastilla Total se renderiza,
+                     la bitácora no tiene concepto de estado. -->
 
-            <!-- Stats chip — solo TOTAL (la bitácora no tiene concepto de estado) -->
-            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Right">
+            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0,0,0">
                 <Button x:Name="BtnSeleccionarPagina"
                         Content="Seleccionar página"
                         Click="BtnSeleccionarPagina_Click"
@@ -188,21 +169,11 @@
                         Padding="16,0" Height="38" MinWidth="150" Margin="0,0,10,0"/>
                 <Button Command="{Binding CrearReporteCommand}"
                         Background="{DynamicResource EmpresaPrimaryBrush}" Style="{StaticResource ActionBtn}"
-                        Padding="16,0" Height="38" MinWidth="150" Margin="0,0,10,0">
+                        Padding="16,0" Height="38" MinWidth="150">
                     <TextBlock FontFamily="Segoe UI" FontSize="15" FontWeight="SemiBold" Foreground="White">
-                        <Run Text="Crear reporte"/><Run Text=" ("/><Run Text="{Binding CantidadSeleccionada}"/><Run Text=")"/>
+                        <Run Text="Crear reporte"/><Run Text=" ("/><Run Text="{Binding CantidadSeleccionada, Mode=OneWay}"/><Run Text=")"/>
                     </TextBlock>
                 </Button>
-                <Border Background="#EEF2F8" CornerRadius="999" BorderBrush="#D8E1EC" BorderThickness="1"
-                        Padding="12,6">
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <Border Width="6" Height="6" CornerRadius="3" Background="{DynamicResource EmpresaPrimaryBrush}" Margin="0,0,6,0" VerticalAlignment="Center"/>
-                        <TextBlock Text="TOTAL" FontFamily="Segoe UI" FontSize="13" FontWeight="SemiBold"
-                                   Foreground="{DynamicResource EmpresaPrimaryBrush}" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                        <TextBlock Text="{Binding TotalCount}" FontFamily="Segoe UI" FontSize="15" FontWeight="Bold"
-                                   Foreground="{DynamicResource EmpresaPrimaryBrush}" VerticalAlignment="Center"/>
-                    </StackPanel>
-                </Border>
             </StackPanel>
         </Grid>
 

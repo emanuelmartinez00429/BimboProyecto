@@ -4,27 +4,25 @@ using Microsoft.Win32;
 
 namespace CapaUI.Formularios.Principal.Pantallas.Configuracion;
 
-public partial class ConfiguracionEmpresaModal : UserControl
+public partial class ConfiguracionEmpresaView : UserControl
 {
-    public ConfiguracionEmpresaViewModel ViewModel { get; }
+    private ConfiguracionEmpresaViewModel? Vm => DataContext as ConfiguracionEmpresaViewModel;
 
-    /// <summary>Constructor de diseño (el diseñador de VS instancia por acá). Ver ADR-028.</summary>
-    public ConfiguracionEmpresaModal()
+    public ConfiguracionEmpresaView()
     {
-        ViewModel = null!;
-        InitializeComponent();
-    }
-
-    public ConfiguracionEmpresaModal(ConfiguracionEmpresaViewModel viewModel)
-    {
-        ViewModel = viewModel;
-        DataContext = viewModel;
         InitializeComponent();
         Loaded += OnLoaded;
     }
 
-    private async void OnLoaded(object sender, RoutedEventArgs e) =>
-        await ViewModel.InicializarAsync();
+    private async void OnLoaded(object sender, RoutedEventArgs e)
+    {
+        if (System.ComponentModel.DesignerProperties.GetIsInDesignMode(this)) return;
+
+        if (Vm != null)
+        {
+            await Vm.InicializarAsync();
+        }
+    }
 
     private void SeleccionarLogo_Click(object sender, RoutedEventArgs e)
     {
@@ -37,7 +35,7 @@ public partial class ConfiguracionEmpresaModal : UserControl
         };
 
         if (dialog.ShowDialog() == true)
-            ViewModel.SeleccionarLogo(dialog.FileName);
+            Vm?.SeleccionarLogo(dialog.FileName);
     }
 
     private void SeleccionarIconoSidebar_Click(object sender, RoutedEventArgs e)
@@ -51,6 +49,6 @@ public partial class ConfiguracionEmpresaModal : UserControl
         };
 
         if (dialog.ShowDialog() == true)
-            ViewModel.SeleccionarIconoSidebar(dialog.FileName);
+            Vm?.SeleccionarIconoSidebar(dialog.FileName);
     }
 }

@@ -95,12 +95,22 @@ namespace CapaUI.Formularios.Principal
         private const int DWMWCP_ROUNDSMALL              = 3;
         private const int DWMWA_COLOR_NONE               = unchecked((int)0xFFFFFFFE);
 
-        // ── Win32: área de trabajo del monitor ───────────────────────────
+        // ── Win32: área de trabajo del monitor y métricas de marco ───────
         [DllImport("user32.dll")]
         private static extern IntPtr MonitorFromWindow(IntPtr hwnd, uint dwFlags);
 
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
         private static extern bool GetMonitorInfo(IntPtr hMonitor, ref MONITORINFO lpmi);
+
+        [DllImport("user32.dll")]
+        private static extern int GetSystemMetrics(int nIndex);
+
+        [DllImport("user32.dll")]
+        private static extern int GetSystemMetricsForDpi(int nIndex, uint dpi);
+
+        private const int SM_CXSIZEFRAME    = 32;
+        private const int SM_CYSIZEFRAME    = 33;
+        private const int SM_CXPADDEDBORDER = 92;
 
         private const uint MONITOR_DEFAULTTONEAREST = 2;
 
@@ -156,6 +166,7 @@ namespace CapaUI.Formularios.Principal
 
             Vm.CierreRequerido += OnCierreRequerido;
             Vm.Notificaciones.SolicitarDetalle += MostrarDetalleNotificacion;
+            ConfiguracionEmpresaViewModel.EmpresaActualizada += OnConfiguracionGuardada;
 
             Loaded            += OnLoaded;
             SourceInitialized += OnSourceInitialized;
@@ -197,16 +208,37 @@ namespace CapaUI.Formularios.Principal
                 var work = info.rcWork;
                 var full = info.rcMonitor;
 
-                mmi.ptMaxPosition.X  = Math.Abs(work.Left - full.Left);
-                mmi.ptMaxPosition.Y  = Math.Abs(work.Top  - full.Top);
-                mmi.ptMaxSize.X      = Math.Abs(work.Right  - work.Left);
-                mmi.ptMaxSize.Y      = Math.Abs(work.Bottom - work.Top);
+                var dpi = VisualTreeHelper.GetDpi(this);
+                uint dpiX = (uint)Math.Max(96, Math.Round(dpi.PixelsPerInchX));
+                uint dpiY = (uint)Math.Max(96, Math.Round(dpi.PixelsPerInchY));
+
+                int borderX, borderY;
+                try
+                {
+                    borderX = GetSystemMetricsForDpi(SM_CXSIZEFRAME, dpiX) + GetSystemMetricsForDpi(SM_CXPADDEDBORDER, dpiX);
+                    borderY = GetSystemMetricsForDpi(SM_CYSIZEFRAME, dpiY) + GetSystemMetricsForDpi(SM_CXPADDEDBORDER, dpiY);
+                }
+                catch (EntryPointNotFoundException)
+                {
+                    borderX = GetSystemMetrics(SM_CXSIZEFRAME) + GetSystemMetrics(SM_CXPADDEDBORDER);
+                    borderY = GetSystemMetrics(SM_CYSIZEFRAME) + GetSystemMetrics(SM_CXPADDEDBORDER);
+                }
+
+                // Al maximizar con SingleBorderWindow (WS_THICKFRAME), Windows expande el
+                // rectángulo de la ventana 'borderX' y 'borderY' fuera de pantalla para ocultar
+                // el borde de redimensionamiento nativo. Como WindowChrome extiende el área
+                // cliente a todo el marco, compensar esas métricas aquí ubica la ventana maximizada
+                // con precisión subpíxel sobre el área de trabajo (rcWork), sin recortes ni
+                // márgenes artificiales en XAML, en cualquier escala DPI (100%, 125%, 150%, 200%).
+                mmi.ptMaxPosition.X  = (work.Left - full.Left) + borderX;
+                mmi.ptMaxPosition.Y  = (work.Top  - full.Top)  + borderY;
+                mmi.ptMaxSize.X      = (work.Right  - work.Left) - (2 * borderX);
+                mmi.ptMaxSize.Y      = (work.Bottom - work.Top)  - (2 * borderY);
 
                 // ptMinTrackSize es en píxeles físicos; MinWidth/MinHeight de WPF son
                 // DIPs (1/96"). Hay que escalar por el DPI real del monitor actual —
                 // sin esto, en pantallas >100% el mínimo nativo quedaría más chico
                 // que el que pide el XAML, y se podría volver a achicar de más.
-                var dpi = VisualTreeHelper.GetDpi(this);
                 mmi.ptMinTrackSize.X = (int)(MinWidth  * dpi.DpiScaleX);
                 mmi.ptMinTrackSize.Y = (int)(MinHeight * dpi.DpiScaleY);
 
@@ -269,6 +301,14 @@ namespace CapaUI.Formularios.Principal
         {
             try
             {
+                // Carga inmediata a 0 ms desde caché local en disco para arranque sin latencia
+                if (ImgIconoSidebar.Source is null)
+                {
+                    var cacheado = _iconoSidebarCache.ObtenerRutaCacheadaSinRed();
+                    if (!string.IsNullOrWhiteSpace(cacheado))
+                        ImgIconoSidebar.Source = CapaUI.Core.Helpers.BitmapHelper.CargarBitmapCongelado(cacheado);
+                }
+
                 if (rutaStorage is null)
                 {
                     var resultado = await _empresaRepository.ObtenerAsync();
@@ -278,7 +318,7 @@ namespace CapaUI.Formularios.Principal
 
                 var rutaLocal = await _iconoSidebarCache.ObtenerRutaLocalAsync(rutaStorage);
                 if (!string.IsNullOrWhiteSpace(rutaLocal))
-                    ImgIconoSidebar.Source = new System.Windows.Media.Imaging.BitmapImage(new Uri(rutaLocal));
+                    ImgIconoSidebar.Source = CapaUI.Core.Helpers.BitmapHelper.CargarBitmapCongelado(rutaLocal);
             }
             catch (Exception ex)
             {
@@ -537,6 +577,7 @@ namespace CapaUI.Formularios.Principal
                 kv.Value.Indicator.Visibility = Visibility.Collapsed;
 
             IndReportes.Visibility = Visibility.Collapsed;
+            BtnConfiguracion.Background = System.Windows.Media.Brushes.Transparent;
             _activeSubId           = "";
         }
 
@@ -605,36 +646,19 @@ namespace CapaUI.Formularios.Principal
 
         private void BtnConfiguracion_Click(object sender, RoutedEventArgs e)
         {
-            if (!SesionPermisos.Tiene(Permiso.ModificarConfiguracion) ||
-                ConfiguracionOverlay.Visibility == Visibility.Visible)
+            if (!SesionPermisos.Tiene(Permiso.ModificarConfiguracion))
                 return;
 
             NotifPopup.IsOpen = false;
-            var vm = App.CrearVm<ConfiguracionEmpresaViewModel>();
-            var modal = new ConfiguracionEmpresaModal(vm);
-            vm.SolicitarCierre += CerrarConfiguracion;
-            vm.Guardado += OnConfiguracionGuardada;
-
-            ConfiguracionContent.Content = modal;
-            ConfiguracionOverlay.Visibility = Visibility.Visible;
-        }
-
-        private void CerrarConfiguracion()
-        {
-            if (ConfiguracionContent.Content is ConfiguracionEmpresaModal modal)
-            {
-                modal.ViewModel.SolicitarCierre -= CerrarConfiguracion;
-                modal.ViewModel.Guardado -= OnConfiguracionGuardada;
-            }
-
-            ConfiguracionOverlay.Visibility = Visibility.Collapsed;
-            ConfiguracionContent.Content = null;
+            ClearActiveStates();
+            _activeModuleId = Routes.Configuracion;
+            BtnConfiguracion.Background = new SolidColorBrush((WpfColor)WpfColorConverter.ConvertFromString("#33FFFFFF"));
+            Vm.NavigateCommand.Execute(Routes.Configuracion);
         }
 
         private async void OnConfiguracionGuardada(EmpresaGuardadaDto resultado)
         {
             await CargarIconoSidebarAsync(resultado.Empresa.IconoSidebar);
-            CerrarConfiguracion();
             if (resultado.Advertencias.Count > 0)
             {
                 MessageBox.Show(
@@ -677,12 +701,15 @@ namespace CapaUI.Formularios.Principal
         //  Chrome
         // ══════════════════════════════════════════════════════════════════
         private void BtnMinimizar_Click(object sender, RoutedEventArgs e)
-            => WindowState = WindowState.Minimized;
+            => SystemCommands.MinimizeWindow(this);
 
         private void BtnMaximizar_Click(object sender, RoutedEventArgs e)
-            => WindowState = WindowState == WindowState.Maximized
-                           ? WindowState.Normal
-                           : WindowState.Maximized;
+        {
+            if (WindowState == WindowState.Maximized)
+                SystemCommands.RestoreWindow(this);
+            else
+                SystemCommands.MaximizeWindow(this);
+        }
 
         private void BtnCerrarVentana_Click(object sender, RoutedEventArgs e) => Close();
 
@@ -770,6 +797,7 @@ namespace CapaUI.Formularios.Principal
             _hwndSource = null;
             Vm.CierreRequerido -= OnCierreRequerido;
             Vm.Notificaciones.SolicitarDetalle -= MostrarDetalleNotificacion;
+            ConfiguracionEmpresaViewModel.EmpresaActualizada -= OnConfiguracionGuardada;
             Vm.Dispose();
 
             // Purga total de la caché. NO es opcional: App.Services es un contenedor

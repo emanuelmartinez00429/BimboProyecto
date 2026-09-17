@@ -44,6 +44,12 @@ namespace CapaDatos.Modelados.Usuarios
         [Column("busqueda_usuario")]
         public string? busquedaUsuario { get; set; }
 
+        [Column("created_at", ignoreOnInsert: true, ignoreOnUpdate: true)]
+        public DateTime? createdAt { get; set; }
+
+        [Column("updated_at", ignoreOnInsert: true, ignoreOnUpdate: true)]
+        public DateTime? updatedAt { get; set; }
+
         public Roles? roles { get; set; }
 
         public Empleados? empleados { get; set; }

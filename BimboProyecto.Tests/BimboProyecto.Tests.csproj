@@ -25,6 +25,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\CapaUI\Core\Permisos\Permiso.cs" Link="Core\Permisos\Permiso.cs" />
+    <Compile Include="..\CapaUI\Navigation\Routes.cs" Link="Navigation\Routes.cs" />
     <Compile Include="..\CapaUI\Core\Controls\Paginacion.cs" Link="Core\Controls\Paginacion.cs" />
     <Compile Include="..\CapaUI\Core\Validacion\ChangeTracker.cs" Link="Core\Validacion\ChangeTracker.cs" />
     <Compile Include="..\CapaUI\Formularios\Principal\Pantallas\Notificaciones\NotificacionMetadataRenderer.cs"

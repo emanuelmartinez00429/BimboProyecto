@@ -32,4 +32,8 @@ public static class Routes
     // ── Especiales ───────────────────────────────────────────────────────
     public const string Bienvenida = "bienvenida";
     public const string MiUsuario  = "mi-usuario";
+
+    // ── Configuración ─────────────────────────────────────────────────────
+    public const string Configuracion = "configuracion";
 }
+

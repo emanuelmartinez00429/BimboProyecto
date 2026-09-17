@@ -34,56 +34,11 @@
         </Grid.RowDefinitions>
 
         <!-- HEADER -->
-        <Grid Grid.Row="0" x:Name="EncabezadoPagina">
-            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                <Border Width="38" Height="38" Background="#1E3A8A" CornerRadius="8" Margin="0,0,12,0" VerticalAlignment="Center"
-                        BorderBrush="#1A000000" BorderThickness="1">
-                    <Path Data="{StaticResource IconBox}" Stroke="White" StrokeThickness="1.5"
-                          StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                          Width="20" Height="20" Stretch="Uniform"/>
-                </Border>
-                <StackPanel VerticalAlignment="Center">
-                    <TextBlock FontFamily="Segoe UI" FontSize="13" Foreground="#6B7280"
-                               TextTrimming="CharacterEllipsis" ToolTip="Presentaciones / Gestión de Presentaciones">
-                        <Run Text="Presentaciones" FontWeight="Normal"/>
-                        <Run Text=" / "/>
-                        <Run Text="Gestión de Presentaciones" FontWeight="SemiBold" Foreground="#1A1F2E"/>
-                    </TextBlock>
-                    <TextBlock Text="Cat&#225;logo de presentaciones" FontFamily="Segoe UI" FontSize="21" FontWeight="Bold"
-                               Foreground="#1A1F2E" Margin="0,2,0,0"
-                               TextTrimming="CharacterEllipsis" ToolTip="Catálogo de presentaciones"/>
-                </StackPanel>
-            </StackPanel>
-            <!-- Los rótulos de las pastillas se ocultan en ventana angosta: el número
-                 es lo que importa y el color ya distingue cuál es cuál. -->
-            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Right">
-                <Border Background="#EEF2F8" CornerRadius="8" BorderBrush="#D8E1EC" BorderThickness="1" Padding="12,6" Margin="0,0,8,0">
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <Border Width="6" Height="6" CornerRadius="3" Background="#1E3A8A" Margin="0,0,6,0" VerticalAlignment="Center"/>
-                        <TextBlock Text="TOTAL" FontFamily="Segoe UI" FontSize="13" FontWeight="SemiBold" Foreground="#1E3A8A" VerticalAlignment="Center" Margin="0,0,6,0"
-                                   Visibility="{Binding ActualWidth, ElementName=EncabezadoPagina, Converter={x:Static conv:AnchoMinimoAVisibilidadConverter.Instancia}, ConverterParameter=690}"/>
-                        <TextBlock Text="{Binding TotalCount}" FontFamily="Segoe UI" FontSize="15" FontWeight="Bold" Foreground="#1E3A8A" VerticalAlignment="Center"/>
-                    </StackPanel>
-                </Border>
-                <Border Background="#ECFDF5" CornerRadius="8" BorderBrush="#D1FAE5" BorderThickness="1" Padding="12,6" Margin="0,0,8,0">
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <Border Width="6" Height="6" CornerRadius="3" Background="#10B981" Margin="0,0,6,0" VerticalAlignment="Center"/>
-                        <TextBlock Text="ACTIVOS" FontFamily="Segoe UI" FontSize="13" FontWeight="SemiBold" Foreground="#047857" VerticalAlignment="Center" Margin="0,0,6,0"
-                                   Visibility="{Binding ActualWidth, ElementName=EncabezadoPagina, Converter={x:Static conv:AnchoMinimoAVisibilidadConverter.Instancia}, ConverterParameter=690}"/>
-                        <TextBlock Text="{Binding ActivosCount}" FontFamily="Segoe UI" FontSize="15" FontWeight="Bold" Foreground="#047857" VerticalAlignment="Center"/>
-                    </StackPanel>
-                </Border>
-                <Border Background="#F3F4F6" CornerRadius="8" BorderBrush="#E5E7EB" BorderThickness="1" Padding="12,6">
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <Border Width="6" Height="6" CornerRadius="3" Background="#9CA3AF" Margin="0,0,6,0" VerticalAlignment="Center"/>
-                        <TextBlock Text="INACTIVOS" FontFamily="Segoe UI" FontSize="13" FontWeight="SemiBold" Foreground="#6B7280" VerticalAlignment="Center" Margin="0,0,6,0"
-                                   Visibility="{Binding ActualWidth, ElementName=EncabezadoPagina, Converter={x:Static conv:AnchoMinimoAVisibilidadConverter.Instancia}, ConverterParameter=690}"/>
-                        <TextBlock Text="{Binding InactivosCount}" FontFamily="Segoe UI" FontSize="15" FontWeight="Bold" Foreground="#6B7280" VerticalAlignment="Center"/>
-                    </StackPanel>
-                </Border>
-            </StackPanel>
-        </Grid>
+        <controls:EncabezadoCatalogo Grid.Row="0"
+            Icono="{StaticResource IconBox}" IconoEsRelleno="False"
+            ModuloPadre="Presentaciones" Submodulo="Gestión de Presentaciones"
+            Titulo="Catálogo de presentaciones"
+            Total="{Binding TotalCount}" Activos="{Binding ActivosCount}" Inactivos="{Binding InactivosCount}"/>
 
         <!-- TOOLBAR -->
         <Border Grid.Row="2" x:Name="TarjetaToolbar" Background="White" CornerRadius="10"

@@ -9,6 +9,7 @@ using CapaUI.Core.Permisos;
 using CapaUI.Navigation;
 using CapaUI.Formularios.Principal.Pantallas.Usuarios;
 using CapaUI.Formularios.Principal.Pantallas.Notificaciones;
+using CapaUI.Formularios.Principal.Pantallas.Configuracion;
 using CapaUI.ViewModels.Search;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -126,6 +127,8 @@ namespace CapaUI.Formularios.Principal
                 // Especiales
                 [Routes.Bienvenida] = () => new WelcomeVM(),
                 [Routes.MiUsuario]  = () => new ConstructionVM("Mi Usuario", ""),
+                // Configuración
+                [Routes.Configuracion] = () => App.CrearVm<ConfiguracionEmpresaViewModel>(),
             };
 
             _routePermissions = new Dictionary<string, Permiso[]>
@@ -145,6 +148,7 @@ namespace CapaUI.Formularios.Principal
                 [Routes.Pesajes] = [Permiso.ConsultarPesaje, Permiso.RegistrarEntrada, Permiso.ModificarPesaje, Permiso.CompletarPesaje, Permiso.CancelarPesaje],
                 [Routes.Dashboard] = [Permiso.ConsultarReporte],
                 [Routes.CrearReportes] = [Permiso.ConsultarReporte],
+                [Routes.Configuracion] = [Permiso.ModificarConfiguracion],
             };
 
             VistaActual = new WelcomeVM();

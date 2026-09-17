@@ -3,8 +3,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:controls="clr-namespace:CapaUI.Core.Controls"
         Title="BimboPesaje" Width="900" Height="560"
-        WindowStyle="None" AllowsTransparency="True"
-        Background="Transparent" ResizeMode="NoResize"
+        WindowStyle="SingleBorderWindow"
+        Background="#F4F5F7" ResizeMode="CanMinimize"
         WindowStartupLocation="CenterScreen"
         UseLayoutRounding="True"
         TextOptions.TextRenderingMode="Grayscale"
@@ -17,6 +17,15 @@
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Window.Resources>
+
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="32"
+                      ResizeBorderThickness="0"
+                      GlassFrameThickness="0"
+                      CornerRadius="0"
+                      UseAeroCaptionButtons="False"
+                      NonClientFrameEdges="None"/>
+    </WindowChrome.WindowChrome>
 
     <Border Background="#F4F5F7" BorderBrush="#C8CDD6" BorderThickness="1">
         <Grid>
@@ -94,11 +103,14 @@
                         <TextBlock x:Name="TitleBarText" Text="Iniciar sesión"
                                    VerticalAlignment="Center" Margin="16,0,0,0"
                                    FontFamily="Segoe UI" FontSize="15" Foreground="#6B7280"/>
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                            <Button Style="{StaticResource ChromeButton}" Click="BtnMinimize_Click">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right"
+                                    WindowChrome.IsHitTestVisibleInChrome="True">
+                            <Button Style="{StaticResource ChromeButton}" Click="BtnMinimize_Click"
+                                    ToolTip="Minimizar">
                                 <TextBlock Text="&#x2014;" FontSize="11"/>
                             </Button>
-                            <Button Style="{StaticResource ChromeCloseButton}" Click="BtnClose_Click">
+                            <Button Style="{StaticResource ChromeCloseButton}" Click="BtnClose_Click"
+                                    ToolTip="Cerrar">
                                 <TextBlock Text="&#x2715;" FontSize="11"/>
                             </Button>
                         </StackPanel>
