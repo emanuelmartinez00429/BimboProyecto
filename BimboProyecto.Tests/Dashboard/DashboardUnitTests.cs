@@ -132,7 +132,7 @@ public class DashboardUnitTests
         Assert.Contains("catalogos:productos", tags);
     }
 
-    [Fact(DisplayName = "Cálculo de fechas para períodos Hoy, Semana y Mes")]
+    [Fact(DisplayName = "Cálculo de fechas para Hoy, semana calendario y últimos 30 días")]
     public void CalculoFechas_Periodos()
     {
         var hoy = DateTime.Today;
@@ -150,11 +150,10 @@ public class DashboardUnitTests
         Assert.Equal(DayOfWeek.Sunday, domingo.DayOfWeek);
         Assert.True(domingo >= lunes);
 
-        // Mes (Primer día a último día)
-        var inicioMes = new DateTime(hoy.Year, hoy.Month, 1);
-        var finMes = inicioMes.AddMonths(1).AddDays(-1);
-        Assert.Equal(1, inicioMes.Day);
-        Assert.True(finMes >= inicioMes);
+        // Últimos 30 días, incluyendo hoy
+        var inicio30Dias = hoy.AddDays(-29);
+        var fin30Dias = hoy;
+        Assert.Equal(30, (fin30Dias - inicio30Dias).Days + 1);
     }
 
     [Fact(DisplayName = "Parsing de JSON de Supabase Postgrest con cadenas numéricas e independencia cultural (es-ES / es-MX)")]
@@ -253,32 +252,22 @@ public class DashboardUnitTests
         Assert.Equal(50.0, barPercentNormal);
     }
 
-    [Fact(DisplayName = "Cálculo de fechas para mes anterior en Enero y Febrero (Bisiesto y no bisiesto)")]
-    public void CalculoFechas_LimitesMes()
+    [Fact(DisplayName = "La comparación de últimos 30 días usa los 30 días inmediatamente anteriores")]
+    public void CalculoFechas_Ultimos30DiasYPeriodoAnterior()
     {
-        // Caso Enero: el mes anterior debe ser Diciembre del año previo
-        var enero = new DateTime(2026, 1, 15);
-        var desdeEnero = new DateTime(enero.Year, enero.Month, 1);
-        var hastaEnero = desdeEnero.AddMonths(1).AddDays(-1);
-        var desdeDicAnterior = desdeEnero.AddMonths(-1);
-        var hastaDicAnterior = desdeEnero.AddDays(-1);
+        var hoy = new DateTime(2026, 1, 15);
+        var desdeActual = hoy.AddDays(-29);
+        var hastaActual = hoy;
+        var hastaAnterior = desdeActual.AddDays(-1);
+        var desdeAnterior = hastaAnterior.AddDays(-29);
 
-        Assert.Equal(new DateTime(2026, 1, 1), desdeEnero);
-        Assert.Equal(new DateTime(2026, 1, 31), hastaEnero);
-        Assert.Equal(new DateTime(2025, 12, 1), desdeDicAnterior);
-        Assert.Equal(new DateTime(2025, 12, 31), hastaDicAnterior);
-
-        // Caso Marzo en año bisiesto 2024: el mes anterior debe terminar el 29 de Febrero
-        var marzoBisiesto = new DateTime(2024, 3, 31);
-        var desdeMarzoBis = new DateTime(marzoBisiesto.Year, marzoBisiesto.Month, 1);
-        var hastaFebBis = desdeMarzoBis.AddDays(-1);
-        Assert.Equal(new DateTime(2024, 2, 29), hastaFebBis);
-
-        // Caso Marzo en año no bisiesto 2025: el mes anterior debe terminar el 28 de Febrero
-        var marzoNoBisiesto = new DateTime(2025, 3, 31);
-        var desdeMarzoNoBis = new DateTime(marzoNoBisiesto.Year, marzoNoBisiesto.Month, 1);
-        var hastaFebNoBis = desdeMarzoNoBis.AddDays(-1);
-        Assert.Equal(new DateTime(2025, 2, 28), hastaFebNoBis);
+        Assert.Equal(new DateTime(2025, 12, 17), desdeActual);
+        Assert.Equal(new DateTime(2026, 1, 15), hastaActual);
+        Assert.Equal(new DateTime(2025, 11, 17), desdeAnterior);
+        Assert.Equal(new DateTime(2025, 12, 16), hastaAnterior);
+        Assert.Equal(30, (hastaActual - desdeActual).Days + 1);
+        Assert.Equal(30, (hastaAnterior - desdeAnterior).Days + 1);
+        Assert.Equal(desdeActual.AddDays(-1), hastaAnterior);
     }
 
     [Fact(DisplayName = "Control de concurrencia: respuesta fuera de orden es descartada al cambiar de período")]
@@ -497,7 +486,7 @@ public class DashboardUnitTests
         Assert.Null(repoConsulta.UltimoFiltroMermas);
     }
 
-    [Fact(DisplayName = "ObtenerTopMermaAsync calcula rangos de fecha correctos para Hoy, Semana y Mes")]
+    [Fact(DisplayName = "ObtenerTopMermaAsync calcula semana calendario y ventana móvil de 30 días")]
     public async Task ObtenerTopMermaAsync_CalculaRangosDeFecha()
     {
         var monitor = new FakeConexionMonitor();
@@ -512,11 +501,14 @@ public class DashboardUnitTests
         Assert.Equal(DayOfWeek.Monday, repoConsulta.UltimoFiltroMermas.FechaDesde.DayOfWeek);
         Assert.Equal(DayOfWeek.Sunday, repoConsulta.UltimoFiltroMermas.FechaHasta.DayOfWeek);
 
-        // Mes
+        // Últimos 30 días
         await repo.ObtenerTopMermaAsync(PeriodoDashboard.Mes);
         Assert.NotNull(repoConsulta.UltimoFiltroMermas);
-        Assert.Equal(1, repoConsulta.UltimoFiltroMermas.FechaDesde.Day);
-        Assert.True(repoConsulta.UltimoFiltroMermas.FechaHasta >= repoConsulta.UltimoFiltroMermas.FechaDesde);
+        Assert.Equal(DateTime.Today.AddDays(-29), repoConsulta.UltimoFiltroMermas.FechaDesde);
+        Assert.Equal(DateTime.Today, repoConsulta.UltimoFiltroMermas.FechaHasta);
+        Assert.Equal(
+            30,
+            (repoConsulta.UltimoFiltroMermas.FechaHasta - repoConsulta.UltimoFiltroMermas.FechaDesde).Days + 1);
     }
 
     private sealed class FakeConexionMonitor : IConexionMonitor

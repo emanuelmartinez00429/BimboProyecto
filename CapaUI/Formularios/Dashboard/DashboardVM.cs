@@ -25,8 +25,16 @@ namespace CapaUI.Formularios.Dashboard
     {
         private readonly IDashboardRepository _dashboardRepo;
         private readonly CancellationTokenSource _ctsLifetime = new();
-        private CancellationTokenSource? _ctsPeriodo;
-        private readonly object _periodoLock = new();
+        private CancellationTokenSource? _ctsInventario;
+        private CancellationTokenSource? _ctsKpis;
+        private CancellationTokenSource? _ctsMerma;
+        private CancellationTokenSource? _ctsUltimos;
+        private int _cargasActivas;
+        private readonly object _errorLock = new();
+        private string? _errorInventario;
+        private string? _errorKpis;
+        private string? _errorMerma;
+        private string? _errorUltimos;
 
         // ── Fecha capitalizada ────────────────────────────────────────────
         public string DateLabel { get; }
@@ -36,21 +44,21 @@ namespace CapaUI.Formularios.Dashboard
         public bool IsLoading
         {
             get => _isLoading;
-            set => SetProperty(ref _isLoading, value);
+            private set => SetProperty(ref _isLoading, value);
         }
 
         private bool _hasError;
         public bool HasError
         {
             get => _hasError;
-            set => SetProperty(ref _hasError, value);
+            private set => SetProperty(ref _hasError, value);
         }
 
         private string? _errorMessage;
         public string? ErrorMessage
         {
             get => _errorMessage;
-            set => SetProperty(ref _errorMessage, value);
+            private set => SetProperty(ref _errorMessage, value);
         }
 
         // ── KPI Inventario ────────────────────────────────────────────────
@@ -133,22 +141,29 @@ namespace CapaUI.Formularios.Dashboard
             private set => SetProperty(ref _mermaTrend, value);
         }
 
-        // ── Período del toggle Hoy / Semana / Mes ─────────────────────────
-        private string _periodo = "Hoy";
-        public string Periodo
+        // ── Períodos independientes ───────────────────────────────────────
+        private PeriodoDashboard _periodoKpis = PeriodoDashboard.Hoy;
+        public PeriodoDashboard PeriodoKpis
         {
-            get => _periodo;
-            set => SetProperty(ref _periodo, value);
+            get => _periodoKpis;
+            private set
+            {
+                if (SetProperty(ref _periodoKpis, value))
+                    OnPropertyChanged(nameof(PeriodoKpisTexto));
+            }
         }
 
-        public PeriodoDashboard PeriodoActual => Periodo switch
-        {
-            "Semana" => PeriodoDashboard.Semana,
-            "Mes"    => PeriodoDashboard.Mes,
-            _        => PeriodoDashboard.Hoy
-        };
+        public string PeriodoKpisTexto => EtiquetaPeriodo(PeriodoKpis);
 
-        public ICommand SelectPeriodoCommand { get; }
+        private PeriodoDashboard _periodoMerma = PeriodoDashboard.Hoy;
+        public PeriodoDashboard PeriodoMerma
+        {
+            get => _periodoMerma;
+            private set => SetProperty(ref _periodoMerma, value);
+        }
+
+        public ICommand SelectPeriodoKpisCommand { get; }
+        public ICommand SelectPeriodoMermaCommand { get; }
         public ICommand RefreshCommand { get; }
 
         // ── Datos de gráfica y lista ──────────────────────────────────────
@@ -170,8 +185,11 @@ namespace CapaUI.Formularios.Dashboard
             var raw     = DateTime.Now.ToString("dddd, d 'de' MMMM 'de' yyyy", cultura);
             DateLabel   = cultura.TextInfo.ToTitleCase(raw);
 
-            SelectPeriodoCommand = new RelayCommand(async p => await CambiarPeriodoAsync(p?.ToString()));
-            RefreshCommand       = new RelayCommand(async () => await InicializarAsync());
+            SelectPeriodoKpisCommand = new RelayCommand(async p =>
+                await CambiarPeriodoKpisAsync(ConvertirPeriodo(p)));
+            SelectPeriodoMermaCommand = new RelayCommand(async p =>
+                await CambiarPeriodoMermaAsync(ConvertirPeriodo(p)));
+            RefreshCommand = new RelayCommand(async () => await InicializarAsync());
 
             Observar("entradas_producto", OnCambioEntradaRealtime);
 
@@ -184,94 +202,53 @@ namespace CapaUI.Formularios.Dashboard
         public async Task InicializarAsync()
         {
             if (Disposed) return;
-            try
-            {
-                CancellationToken token;
-                lock (_periodoLock)
-                {
-                    _ctsPeriodo?.Cancel();
-                    _ctsPeriodo?.Dispose();
-                    _ctsPeriodo = CancellationTokenSource.CreateLinkedTokenSource(_ctsLifetime.Token);
-                    token = _ctsPeriodo.Token;
-                }
 
-                IsLoading    = true;
-                HasError     = false;
-                ErrorMessage = null;
+            var inventarioTask = EjecutarCargaAsync(
+                ErrorSeccion.Inventario,
+                CrearToken(ref _ctsInventario),
+                CargarInventarioAsync);
+            var kpisTask = EjecutarCargaAsync(
+                ErrorSeccion.Kpis,
+                CrearToken(ref _ctsKpis),
+                ct => CargarKpisPesajesAsync(PeriodoKpis, ct));
+            var mermaTask = EjecutarCargaAsync(
+                ErrorSeccion.Merma,
+                CrearToken(ref _ctsMerma),
+                ct => CargarTopMermaAsync(PeriodoMerma, ct));
+            var ultimosTask = EjecutarCargaAsync(
+                ErrorSeccion.Ultimos,
+                CrearToken(ref _ctsUltimos),
+                CargarUltimosPesajesAsync);
 
-                var inventarioTask   = CargarInventarioAsync(token);
-                var pesajesMermaTask = CargarPesajesYMermaAsync(PeriodoActual, token);
-                var ultimosTask      = CargarUltimosPesajesAsync(token);
-
-                await Task.WhenAll(inventarioTask, pesajesMermaTask, ultimosTask);
-            }
-            catch (OperationCanceledException)
-            {
-                // Cancelación intencional por nueva carga o cierre del ViewModel
-            }
-            catch (Exception ex)
-            {
-                HasError     = true;
-                ErrorMessage = ex.Message;
-            }
-            finally
-            {
-                lock (_periodoLock)
-                {
-                    if (_ctsPeriodo is null || !_ctsPeriodo.IsCancellationRequested)
-                    {
-                        IsLoading = false;
-                    }
-                }
-            }
+            await Task.WhenAll(inventarioTask, kpisTask, mermaTask, ultimosTask);
         }
 
         /// <summary>
-        /// Cambia el período activo y recarga pesajes y merma sin volver a consultar inventario de catálogos.
+        /// Cambia únicamente el período de los KPI de pesajes.
         /// </summary>
-        public async Task CambiarPeriodoAsync(string? nuevoPeriodo)
+        public Task CambiarPeriodoKpisAsync(PeriodoDashboard nuevoPeriodo)
         {
-            if (Disposed) return;
-            try
-            {
-                var periodoStr = string.IsNullOrWhiteSpace(nuevoPeriodo) ? "Hoy" : nuevoPeriodo;
-                Periodo = periodoStr;
-                var periodoEnum = PeriodoActual;
+            if (Disposed) return Task.CompletedTask;
 
-                CancellationToken token;
-                lock (_periodoLock)
-                {
-                    _ctsPeriodo?.Cancel();
-                    _ctsPeriodo?.Dispose();
-                    _ctsPeriodo = CancellationTokenSource.CreateLinkedTokenSource(_ctsLifetime.Token);
-                    token = _ctsPeriodo.Token;
-                }
+            PeriodoKpis = nuevoPeriodo;
+            return EjecutarCargaAsync(
+                ErrorSeccion.Kpis,
+                CrearToken(ref _ctsKpis),
+                ct => CargarKpisPesajesAsync(nuevoPeriodo, ct));
+        }
 
-                IsLoading    = true;
-                HasError     = false;
-                ErrorMessage = null;
+        /// <summary>
+        /// Cambia únicamente el período del reporte Top 5 de mermas.
+        /// </summary>
+        public Task CambiarPeriodoMermaAsync(PeriodoDashboard nuevoPeriodo)
+        {
+            if (Disposed) return Task.CompletedTask;
 
-                await CargarPesajesYMermaAsync(periodoEnum, token);
-            }
-            catch (OperationCanceledException)
-            {
-                // Cancelación intencional por cambio concurrente de período
-            }
-            catch (Exception ex)
-            {
-                HasError     = true;
-                ErrorMessage = ex.Message;
-            }
-            finally
-            {
-                lock (_periodoLock)
-                {
-                    if (_ctsPeriodo is null || !_ctsPeriodo.IsCancellationRequested)
-                    {
-                        IsLoading = false;
-                    }
-                }
-            }
+            PeriodoMerma = nuevoPeriodo;
+            return EjecutarCargaAsync(
+                ErrorSeccion.Merma,
+                CrearToken(ref _ctsMerma),
+                ct => CargarTopMermaAsync(nuevoPeriodo, ct));
         }
 
         private async Task CargarInventarioAsync(CancellationToken ct)
@@ -283,8 +260,9 @@ namespace CapaUI.Formularios.Dashboard
 
                 if (!resultado.Success || resultado.Value is null)
                 {
-                    HasError     = true;
-                    ErrorMessage = resultado.Error ?? "Error al cargar KPIs de inventario";
+                    ActualizarError(
+                        ErrorSeccion.Inventario,
+                        resultado.Error ?? "Error al cargar KPIs de inventario");
                     return;
                 }
 
@@ -301,33 +279,18 @@ namespace CapaUI.Formularios.Dashboard
                     ? $"{(dto.DeltaProveedores.Value >= 0 ? "▲ +" : "▼ ")}{Math.Abs(dto.DeltaProveedores.Value)}"
                     : "-";
             }
-            catch (OperationCanceledException)
-            {
-                // Cancelación intencional por recarga o cambio de período
-            }
-            catch (Exception ex)
-            {
-                if (!HasError)
-                {
-                    HasError     = true;
-                    ErrorMessage = ex.Message;
-                }
-            }
+            catch (OperationCanceledException) { }
         }
 
-        private async Task CargarPesajesYMermaAsync(PeriodoDashboard periodo, CancellationToken ct)
+        private async Task CargarKpisPesajesAsync(PeriodoDashboard periodo, CancellationToken ct)
         {
             try
             {
-                var kpisTask  = _dashboardRepo.ObtenerKpisPesajesAsync(periodo, ct);
-                var mermaTask = _dashboardRepo.ObtenerTopMermaAsync(periodo, 5, ct);
-
-                await Task.WhenAll(kpisTask, mermaTask);
-
-                if (ct.IsCancellationRequested || Disposed || periodo != PeriodoActual)
+                var resultado = await _dashboardRepo.ObtenerKpisPesajesAsync(periodo, ct);
+                if (ct.IsCancellationRequested || Disposed || periodo != PeriodoKpis)
                     return;
 
-                if (kpisTask.Result.Success && kpisTask.Result.Value is { } kpis)
+                if (resultado.Success && resultado.Value is { } kpis)
                 {
                     PesajeCount = kpis.PesajesActual.ToString("N0", CultureInfo.InvariantCulture);
                     TotalNeto   = kpis.NetoActual.ToString("N0", CultureInfo.InvariantCulture);
@@ -347,47 +310,48 @@ namespace CapaUI.Formularios.Dashboard
                         ? $"{(kpis.DeltaMermaPct.Value >= 0 ? "▲ +" : "▼ ")}{Math.Abs(kpis.DeltaMermaPct.Value):F1}"
                         : "-";
                 }
-                else if (!kpisTask.Result.Success)
+                else
                 {
-                    HasError     = true;
-                    ErrorMessage = kpisTask.Result.Error ?? "Error al consultar KPIs de pesajes";
+                    ActualizarError(
+                        ErrorSeccion.Kpis,
+                        resultado.Error ?? "Error al consultar KPIs de pesajes");
+                }
+            }
+            catch (OperationCanceledException) { }
+        }
+
+        private async Task CargarTopMermaAsync(PeriodoDashboard periodo, CancellationToken ct)
+        {
+            try
+            {
+                var resultado = await _dashboardRepo.ObtenerTopMermaAsync(periodo, 5, ct);
+                if (ct.IsCancellationRequested || Disposed || periodo != PeriodoMerma)
+                    return;
+
+                if (!resultado.Success || resultado.Value is null)
+                {
+                    ActualizarError(
+                        ErrorSeccion.Merma,
+                        resultado.Error ?? "Error al consultar reporte de mermas");
+                    return;
                 }
 
-                if (!mermaTask.Result.Success && !HasError)
-                {
-                    HasError     = true;
-                    ErrorMessage = mermaTask.Result.Error ?? "Error al consultar reporte de mermas";
-                }
+                var mermas = resultado.Value;
+                double maxPct = mermas.Count > 0 ? Math.Max(5.0, mermas.Max(x => x.Porcentaje)) : 5.8;
+                var nuevosItems = mermas.Select(item =>
+                    new MermaItemVM(item.Nombre, Math.Round(item.Porcentaje, 1), item.Kilos, maxPct)).ToList();
 
-                if (mermaTask.Result.Success && mermaTask.Result.Value is { } mermas)
+                EjecutarEnUI(() =>
                 {
-                    double maxPct = mermas.Count > 0 ? Math.Max(5.0, mermas.Max(x => x.Porcentaje)) : 5.8;
-                    var nuevosItems = mermas.Select(item =>
-                        new MermaItemVM(item.Nombre, Math.Round(item.Porcentaje, 1), item.Kilos, maxPct)).ToList();
-
-                    EjecutarEnUI(() =>
+                    if (ct.IsCancellationRequested || Disposed || periodo != PeriodoMerma) return;
+                    TopMerma.Clear();
+                    foreach (var item in nuevosItems)
                     {
-                        if (ct.IsCancellationRequested || Disposed || periodo != PeriodoActual) return;
-                        TopMerma.Clear();
-                        foreach (var item in nuevosItems)
-                        {
-                            TopMerma.Add(item);
-                        }
-                    });
-                }
+                        TopMerma.Add(item);
+                    }
+                });
             }
-            catch (OperationCanceledException)
-            {
-                // Cancelación intencional
-            }
-            catch (Exception ex)
-            {
-                if (!HasError)
-                {
-                    HasError     = true;
-                    ErrorMessage = ex.Message;
-                }
-            }
+            catch (OperationCanceledException) { }
         }
 
         private async Task CargarUltimosPesajesAsync(CancellationToken ct = default)
@@ -399,11 +363,9 @@ namespace CapaUI.Formularios.Dashboard
 
                 if (!resultado.Success || resultado.Value is null)
                 {
-                    if (!HasError)
-                    {
-                        HasError     = true;
-                        ErrorMessage = resultado.Error ?? "Error al obtener los últimos pesajes";
-                    }
+                    ActualizarError(
+                        ErrorSeccion.Ultimos,
+                        resultado.Error ?? "Error al obtener los últimos pesajes");
                     return;
                 }
 
@@ -420,38 +382,18 @@ namespace CapaUI.Formularios.Dashboard
                     }
                 });
             }
-            catch (OperationCanceledException)
-            {
-                // Cancelación intencional
-            }
-            catch (Exception ex)
-            {
-                if (!HasError)
-                {
-                    HasError     = true;
-                    ErrorMessage = ex.Message;
-                }
-            }
+            catch (OperationCanceledException) { }
         }
 
         private void OnCambioEntradaRealtime(CambioRealtime cambio)
         {
             if (Disposed) return;
-            try
-            {
-                CancellationToken token;
-                lock (_periodoLock)
-                {
-                    if (Disposed || _ctsLifetime.IsCancellationRequested) return;
-                    token = _ctsLifetime.Token;
-                }
-                _ = CargarUltimosPesajesAsync(token);
-                _ = CargarPesajesYMermaAsync(PeriodoActual, token);
-            }
-            catch (ObjectDisposedException)
-            {
-                // VM dispuesto durante la notificación
-            }
+            _ = EjecutarCargaAsync(
+                ErrorSeccion.Ultimos,
+                CrearToken(ref _ctsUltimos),
+                CargarUltimosPesajesAsync);
+            _ = CambiarPeriodoKpisAsync(PeriodoKpis);
+            _ = CambiarPeriodoMermaAsync(PeriodoMerma);
         }
 
         protected override async Task OnReconexionAsync()
@@ -462,17 +404,128 @@ namespace CapaUI.Formularios.Dashboard
 
         protected override void OnDispose()
         {
-            lock (_periodoLock)
-            {
-                _ctsPeriodo?.Cancel();
-                _ctsPeriodo?.Dispose();
-                _ctsPeriodo = null;
-
-                _ctsLifetime.Cancel();
-                _ctsLifetime.Dispose();
-            }
+            _ = CancelarYDisponerAsync(Interlocked.Exchange(ref _ctsInventario, null));
+            _ = CancelarYDisponerAsync(Interlocked.Exchange(ref _ctsKpis, null));
+            _ = CancelarYDisponerAsync(Interlocked.Exchange(ref _ctsMerma, null));
+            _ = CancelarYDisponerAsync(Interlocked.Exchange(ref _ctsUltimos, null));
+            _ = CancelarYDisponerAsync(_ctsLifetime);
 
             base.OnDispose();
+        }
+
+        private async Task EjecutarCargaAsync(
+            ErrorSeccion seccion,
+            CancellationToken token,
+            Func<CancellationToken, Task> carga)
+        {
+            IniciarCarga();
+            ActualizarError(seccion, null);
+            try
+            {
+                await carga(token);
+            }
+            catch (OperationCanceledException)
+            {
+                // La selección más reciente reemplazó esta carga.
+            }
+            catch (Exception ex)
+            {
+                if (!token.IsCancellationRequested && !Disposed)
+                    ActualizarError(seccion, ex.Message);
+            }
+            finally
+            {
+                FinalizarCarga();
+            }
+        }
+
+        private CancellationToken CrearToken(ref CancellationTokenSource? campo)
+        {
+            if (Disposed || _ctsLifetime.IsCancellationRequested)
+                return new CancellationToken(canceled: true);
+
+            var nuevo = CancellationTokenSource.CreateLinkedTokenSource(_ctsLifetime.Token);
+            var anterior = Interlocked.Exchange(ref campo, nuevo);
+            _ = CancelarYDisponerAsync(anterior);
+            return nuevo.Token;
+        }
+
+        private static async Task CancelarYDisponerAsync(CancellationTokenSource? cts)
+        {
+            if (cts is null) return;
+            try
+            {
+                await cts.CancelAsync();
+            }
+            catch (ObjectDisposedException)
+            {
+                return;
+            }
+            finally
+            {
+                cts.Dispose();
+            }
+        }
+
+        private void IniciarCarga()
+        {
+            if (Interlocked.Increment(ref _cargasActivas) == 1)
+                EjecutarEnUI(() => IsLoading = true);
+        }
+
+        private void FinalizarCarga()
+        {
+            if (Interlocked.Decrement(ref _cargasActivas) == 0)
+                EjecutarEnUI(() => IsLoading = false);
+        }
+
+        private void ActualizarError(ErrorSeccion seccion, string? mensaje)
+        {
+            string? errorActual;
+            lock (_errorLock)
+            {
+                switch (seccion)
+                {
+                    case ErrorSeccion.Inventario: _errorInventario = mensaje; break;
+                    case ErrorSeccion.Kpis: _errorKpis = mensaje; break;
+                    case ErrorSeccion.Merma: _errorMerma = mensaje; break;
+                    case ErrorSeccion.Ultimos: _errorUltimos = mensaje; break;
+                }
+
+                errorActual = new[] { _errorInventario, _errorKpis, _errorMerma, _errorUltimos }
+                    .FirstOrDefault(error => !string.IsNullOrWhiteSpace(error));
+            }
+
+            EjecutarEnUI(() =>
+            {
+                ErrorMessage = errorActual;
+                HasError = errorActual is not null;
+            });
+        }
+
+        private static PeriodoDashboard ConvertirPeriodo(object? valor)
+        {
+            if (valor is PeriodoDashboard periodo)
+                return periodo;
+
+            return Enum.TryParse(valor?.ToString(), ignoreCase: true, out PeriodoDashboard resultado)
+                ? resultado
+                : PeriodoDashboard.Hoy;
+        }
+
+        private static string EtiquetaPeriodo(PeriodoDashboard periodo) => periodo switch
+        {
+            PeriodoDashboard.Semana => "Semana",
+            PeriodoDashboard.Mes => "Últimos 30 días",
+            _ => "Hoy",
+        };
+
+        private enum ErrorSeccion
+        {
+            Inventario,
+            Kpis,
+            Merma,
+            Ultimos,
         }
 
         private static void EjecutarEnUI(Action action)

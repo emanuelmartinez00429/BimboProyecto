@@ -40,6 +40,8 @@ public sealed class DashboardRepository : RepositorioBase, IDashboardRepository
         EsperaEntreReintentos: TimeSpan.FromSeconds(15)
     );
 
+    private readonly record struct RangoFechas(DateTime Desde, DateTime Hasta);
+
     public DashboardRepository(
         IConexionMonitor conexion,
         ICacheService cache,
@@ -85,41 +87,16 @@ public sealed class DashboardRepository : RepositorioBase, IDashboardRepository
         {
             ct.ThrowIfCancellationRequested();
             var hoy = DateTime.Today;
-            DateTime desdeActual, hastaActual, desdeAnterior, hastaAnterior;
-
-            switch (periodo)
-            {
-                case PeriodoDashboard.Semana:
-                    int diff = (7 + (hoy.DayOfWeek - DayOfWeek.Monday)) % 7;
-                    desdeActual = hoy.AddDays(-diff);
-                    hastaActual = desdeActual.AddDays(6);
-                    desdeAnterior = desdeActual.AddDays(-7);
-                    hastaAnterior = hastaActual.AddDays(-7);
-                    break;
-
-                case PeriodoDashboard.Mes:
-                    desdeActual = new DateTime(hoy.Year, hoy.Month, 1);
-                    hastaActual = desdeActual.AddMonths(1).AddDays(-1);
-                    desdeAnterior = desdeActual.AddMonths(-1);
-                    hastaAnterior = desdeActual.AddDays(-1);
-                    break;
-
-                case PeriodoDashboard.Hoy:
-                default:
-                    desdeActual = hoy;
-                    hastaActual = hoy;
-                    desdeAnterior = hoy.AddDays(-1);
-                    hastaAnterior = hoy.AddDays(-1);
-                    break;
-            }
+            var actual = CalcularRangoActual(periodo, hoy);
+            var anterior = CalcularRangoAnterior(actual);
 
             var client = await ConexionSupabase.GetClientAsync();
             var parametros = new Dictionary<string, object?>
             {
-                ["p_fecha_desde_actual"]   = desdeActual.ToString("yyyy-MM-dd"),
-                ["p_fecha_hasta_actual"]   = hastaActual.ToString("yyyy-MM-dd"),
-                ["p_fecha_desde_anterior"] = desdeAnterior.ToString("yyyy-MM-dd"),
-                ["p_fecha_hasta_anterior"] = hastaAnterior.ToString("yyyy-MM-dd"),
+                ["p_fecha_desde_actual"]   = actual.Desde.ToString("yyyy-MM-dd"),
+                ["p_fecha_hasta_actual"]   = actual.Hasta.ToString("yyyy-MM-dd"),
+                ["p_fecha_desde_anterior"] = anterior.Desde.ToString("yyyy-MM-dd"),
+                ["p_fecha_hasta_anterior"] = anterior.Hasta.ToString("yyyy-MM-dd"),
             };
 
             var response = await client.Rpc("consultar_kpis_pesajes", parametros);
@@ -179,29 +156,11 @@ public sealed class DashboardRepository : RepositorioBase, IDashboardRepository
         {
             ct.ThrowIfCancellationRequested();
             var hoy = DateTime.Today;
-            DateTime desde, hasta;
-
-            switch (periodo)
-            {
-                case PeriodoDashboard.Semana:
-                    int diff = (7 + (hoy.DayOfWeek - DayOfWeek.Monday)) % 7;
-                    desde = hoy.AddDays(-diff);
-                    hasta = desde.AddDays(6);
-                    break;
-                case PeriodoDashboard.Mes:
-                    desde = new DateTime(hoy.Year, hoy.Month, 1);
-                    hasta = desde.AddMonths(1).AddDays(-1);
-                    break;
-                case PeriodoDashboard.Hoy:
-                default:
-                    desde = hoy;
-                    hasta = hoy;
-                    break;
-            }
+            var rango = CalcularRangoActual(periodo, hoy);
 
             int idUsuario = _sesion.SesionActual?.IdUsuario ?? 0;
             var res = await _reporteConsultaRepo.ConsultarMermasAsync(
-                new MermasReporteFiltro(desde, hasta, null, idUsuario), ct);
+                new MermasReporteFiltro(rango.Desde, rango.Hasta, null, idUsuario), ct);
             ct.ThrowIfCancellationRequested();
 
             if (!res.Success)
@@ -296,5 +255,30 @@ public sealed class DashboardRepository : RepositorioBase, IDashboardRepository
         if (token.Type == JTokenType.Integer) return token.Value<int>();
         var str = token.Value<string>();
         return int.TryParse(str, NumberStyles.Any, CultureInfo.InvariantCulture, out var val) ? val : 0;
+    }
+
+    private static RangoFechas CalcularRangoActual(PeriodoDashboard periodo, DateTime hoy)
+    {
+        hoy = hoy.Date;
+        return periodo switch
+        {
+            PeriodoDashboard.Semana => CalcularSemanaActual(hoy),
+            PeriodoDashboard.Mes => new RangoFechas(hoy.AddDays(-29), hoy),
+            _ => new RangoFechas(hoy, hoy),
+        };
+    }
+
+    private static RangoFechas CalcularSemanaActual(DateTime hoy)
+    {
+        int diasDesdeLunes = (7 + (hoy.DayOfWeek - DayOfWeek.Monday)) % 7;
+        var lunes = hoy.AddDays(-diasDesdeLunes);
+        return new RangoFechas(lunes, lunes.AddDays(6));
+    }
+
+    private static RangoFechas CalcularRangoAnterior(RangoFechas actual)
+    {
+        int cantidadDias = (actual.Hasta - actual.Desde).Days + 1;
+        var hastaAnterior = actual.Desde.AddDays(-1);
+        return new RangoFechas(hastaAnterior.AddDays(-(cantidadDias - 1)), hastaAnterior);
     }
 }

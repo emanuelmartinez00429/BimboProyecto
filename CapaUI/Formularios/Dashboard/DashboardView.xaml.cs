@@ -1,6 +1,7 @@
 using System;
 using System.Windows;
 using System.Windows.Controls;
+using CapaAplicacion.Dashboard;
 using System.Windows.Media.Animation;
 
 namespace CapaUI.Formularios.Dashboard
@@ -93,11 +94,11 @@ namespace CapaUI.Formularios.Dashboard
             PopupPeriodo.IsOpen = false;
             e.Handled = true;
 
-            if (sender is FrameworkElement { Tag: string periodo } && DataContext is DashboardVM vm)
+            if (sender is FrameworkElement { Tag: PeriodoDashboard periodo } && DataContext is DashboardVM vm)
             {
-                if (vm.SelectPeriodoCommand.CanExecute(periodo))
+                if (vm.SelectPeriodoKpisCommand.CanExecute(periodo))
                 {
-                    vm.SelectPeriodoCommand.Execute(periodo);
+                    vm.SelectPeriodoKpisCommand.Execute(periodo);
                 }
             }
         }
