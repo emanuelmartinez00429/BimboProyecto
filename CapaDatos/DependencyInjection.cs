@@ -4,6 +4,7 @@ using CapaAplicacion.Categorias.Interfaces;
 using CapaAplicacion.Conexion;
 using CapaAplicacion.Contactos.Fabricantes.Interfaces;
 using CapaAplicacion.Contactos.Proveedores.Interfaces;
+using CapaAplicacion.Dashboard.Interfaces;
 using CapaAplicacion.Fabricantes.Interfaces;
 using CapaAplicacion.Pesaje.Interfaces;
 using CapaAplicacion.Notificaciones.Interfaces;
@@ -23,6 +24,7 @@ using CapaAplicacion.Empleados.Interfaces;
 using CapaAplicacion.Empresa.Interfaces;
 using CapaDatos.Repositories.Categorias;
 using CapaDatos.Repositories.Contactos;
+using CapaDatos.Repositories.Dashboard;
 using CapaDatos.Repositories.GestionEmpleados;
 using CapaDatos.Repositories.Empresa;
 using CapaDatos.Repositories.Fabricantes;
@@ -159,6 +161,9 @@ public static class DependencyInjection
         services.AddTransient<IReportStrategy, ExcelReportStrategy>();
         services.AddTransient<IReporteRepository, ReporteRepository>();
         services.AddTransient<IReporteConsultaRepository, ReporteConsultaRepository>();
+
+        // Dashboard — métricas operativas y KPIs
+        services.AddSingleton<IDashboardRepository, DashboardRepository>();
 
         return services;
     }

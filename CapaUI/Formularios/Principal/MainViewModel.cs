@@ -122,7 +122,7 @@ namespace CapaUI.Formularios.Principal
                 // Pesajes
                 [Routes.Pesajes]       = () => new PesajesVM(),
                 // Reportería
-                [Routes.Dashboard]     = () => new Dashboard.DashboardVM(),
+                [Routes.Dashboard]     = () => App.CrearVm<Dashboard.DashboardVM>(),
                 [Routes.CrearReportes] = () => new ReporteriaVM(),
                 // Especiales
                 [Routes.Bienvenida] = () => new WelcomeVM(),

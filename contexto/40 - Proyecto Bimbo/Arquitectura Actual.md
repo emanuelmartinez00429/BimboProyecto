@@ -10,6 +10,9 @@ aliases:
 
 # Arquitectura Actual — Bimbo
 
+> [!success] Actualizado 2026-09-17 — Integración de datos en vivo del Dashboard con FusionCache y Realtime
+> Se conectó la vista existente del Dashboard (`DashboardView.xaml`) a datos reales en vivo desde Supabase, eliminando el 100% de los datos mock de `DashboardVM.cs`. La arquitectura implementa el Approach A: repositorio dedicado `DashboardRepository` con caché L1 `FusionCache` (5 min, etiquetada con `TagsCache.CatalogosRaiz`) exclusivamente para conteos de catálogos, política zero-cache para pesajes/mermas (conforme a [[ADR-026 - Cache en memoria con FusionCache e invalidacion por Realtime]]), RPC PostgreSQL `consultar_kpis_pesajes` optimizada en una pasada con `FILTER (WHERE ...)` y suscripción reactiva Realtime para el feed de pesajes recientes. Ver [[Módulo Dashboard]] y [[Sesión 2026-09-17 - Integración de datos en vivo del Dashboard con FusionCache y Realtime]].
+
 > [!success] Actualizado 2026-09-16 — Reorganización de cuadrícula y campos de auditoría estilo Pesajes en ProductoModal
 > Se reubicó País importado a la fila 2 y Estado a la fila 3 de `ProductoModal.xaml`, eliminando el hueco libre y logrando simetría total de 3 columnas por fila. Los campos de auditoría Creado y Actualizado se estandarizaron globalmente en `Styles.xaml` (`ModalInputAuditoria`) adoptando el diseño display de Pesajes: fondo traslúcido `#1AFFFFFF`, barrita verde de acento `#34D399`, tipografía menta `#6EE7B7`, cursor flecha y sin foco, erradicando la falsa impresión de control congelado. Ver [[Sesión 2026-09-16 - Reorganización de cuadrícula y campos de auditoría estilo Pesajes en ProductoModal]].
 

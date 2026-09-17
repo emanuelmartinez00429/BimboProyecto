@@ -127,6 +127,7 @@ namespace CapaUI
             services.AddTransient<BitacoraViewModel>();
             services.AddTransient<RolesViewModel>();
             services.AddTransient<ReporteriaViewModel>();
+            services.AddTransient<Formularios.Dashboard.DashboardVM>();
             services.AddTransient<ConfiguracionEmpresaViewModel>();
             services.AddTransient<NotificacionesViewModel>();
             services.AddTransient<LoginWindow>();

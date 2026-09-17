@@ -92,7 +92,7 @@ BimboProyecto.Tests/            (xunit, net10.0)
 
 ### Fase 6 — Pendientes documentados (no testear)
 - `PickerService` (stub con TODO) y `ClienteRepository` (stub vacío): no hay lógica que testear; documentar en deuda técnica.
-- `DashboardVM`: KPI hardcodeados, no hay lógica real.
+- ~~`DashboardVM`: KPI hardcodeados, no hay lógica real.~~ ✅ **Completado 2026-09-17**: Conectado a live data con DI y suite de pruebas unitarias en `BimboProyecto.Tests/Dashboard/DashboardIntegrationTests.cs` (mapeos, cálculos de merma, fallback `"—"` y lógica reactiva). Ver [[Sesión 2026-09-17 - Integración de datos en vivo del Dashboard con FusionCache y Realtime]].
 - `PermisoBehavior`: requiere STA/VisualTree → dejar para tests de UI (fuera de alcance).
 
 ## 5. Matriz de casos clave por método (resumen)
