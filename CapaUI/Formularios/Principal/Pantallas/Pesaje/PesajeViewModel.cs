@@ -610,14 +610,49 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
         /// Recibe el camión explícito (no <see cref="SelectedCamion"/>): lo dispara el
         /// ícono de basurero de su propia fila en la lista, así que borra el que se tocó
         /// sin depender de que ese clic también haya cambiado la selección.
+        /// <para/>
+        /// Si es la ÚLTIMA recepción de su placa, NO se hace un refetch completo: un
+        /// <see cref="RecargarCamionesAsync"/> inmediato haría desaparecer la placa de
+        /// golpe (la BD ya no tiene movimientos activos con esa placa). En su lugar se
+        /// vacía en memoria y la placa queda como cascarón (<see cref="GrupoCamionPesaje.EsPlacaVacia"/>)
+        /// hasta que el operario la retire con el basurero de la cabecera.
         /// </summary>
         public async Task QuitarCamionAsync(CamionPesaje camion)
         {
+            var grupo = GruposCamiones.FirstOrDefault(g => g.Recepciones.Contains(camion));
+            bool esUltimaDeLaPlaca = grupo != null && grupo.Recepciones.Count == 1;
+
             var r = await _repo.AnularCamionAsync(camion.Id);
             if (!r.Success) { Toast?.Invoke(r.Error ?? "No se pudo quitar"); return; }
 
-            await RecargarCamionesAsync();
-            Toast?.Invoke("Camión eliminado");
+            if (esUltimaDeLaPlaca)
+            {
+                // También hay que sacarlo de la lista plana Camiones: de ella dependen
+                // CamionesActivos/PlacasAbiertas y ActualizarPlacaCamionAsync/CerrarTodosAsync
+                // — si se omite, queda un registro fantasma ya anulado en BD pero
+                // "Abierto" en memoria.
+                grupo!.Recepciones.Remove(camion);
+                Camiones.Remove(camion);
+                grupo.NotificarTotales();
+
+                if (SelectedCamion == camion)
+                {
+                    await SeleccionarCamionAsync(Camiones.FirstOrDefault());
+                }
+                else
+                {
+                    ActualizarSeleccionGrupos();
+                    RecalcularFilas();
+                    NotificarStats();
+                }
+
+                Toast?.Invoke($"Proveedor eliminado; la placa {grupo.Placa} quedó sin proveedores asignados");
+            }
+            else
+            {
+                await RecargarCamionesAsync();
+                Toast?.Invoke("Camión eliminado");
+            }
         }
 
         public async Task<bool> DescargarCamionAsync()
@@ -1125,9 +1160,15 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             return true;
         }
 
+        /// <summary>
+        /// Cubre dos casos: (1) placa con proveedores, ninguno con carga — se anulan
+        /// todas sus recepciones de un saque (cancelado en bloque); (2) placa ya vacía
+        /// (<see cref="GrupoCamionPesaje.EsPlacaVacia"/>) — el <c>foreach</c> no tiene
+        /// nada que anular y cae directo al refetch, que es justo lo que hace falta
+        /// para que deje de aparecer en <see cref="GruposCamiones"/>.
+        /// </summary>
         public async Task<bool> QuitarCamionCompletoAsync(GrupoCamionPesaje grupo)
         {
-            if (grupo.Recepciones.Count == 0) return false;
             if (!grupo.PuedeQuitar)
             {
                 Toast?.Invoke("No se puede quitar el camión porque tiene productos registrados");

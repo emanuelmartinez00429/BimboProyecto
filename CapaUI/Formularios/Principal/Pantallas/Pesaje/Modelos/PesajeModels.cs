@@ -324,10 +324,27 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modelos
         public double TotalKg => Recepciones.Sum(r => r.TotalKg);
         public string TotalKgTexto => TotalKg > 0 ? $"{TotalKg:N0} kg" : "0 kg";
 
-        public bool PuedeQuitar => Recepciones.Count > 0 && Recepciones.All(r => r.PuedeQuitar);
+        /// <summary>
+        /// Sin el guard de conteo a propósito: con la lista de recepciones vacía,
+        /// <c>All</c> da vacuously true — así una placa recién vaciada (ver
+        /// <see cref="EsPlacaVacia"/>) también puede quitarse, sin duplicar la regla.
+        /// Mientras haya recepciones, sigue exigiendo que TODAS puedan quitarse (ninguna
+        /// con productos/pesajes), preservando el cancelado en bloque de una placa con
+        /// varios proveedores sin carga.
+        /// </summary>
+        public bool PuedeQuitar => Recepciones.All(r => r.PuedeQuitar);
+
         public string MotivoQuitar => PuedeQuitar
-            ? "Quitar camión y todas sus recepciones"
+            ? (Recepciones.Count == 0 ? "Quitar esta placa de la lista" : "Quitar camión y todas sus recepciones")
             : "No se puede quitar: el camión tiene productos registrados";
+
+        /// <summary>
+        /// La placa se quedó sin proveedores (se anuló el último) y queda como cascarón
+        /// hasta que el operario la retire con el basurero de la cabecera o le registre
+        /// un proveedor nuevo. Distinta de <see cref="PuedeQuitar"/>: una placa con 2
+        /// proveedores sin carga da <c>PuedeQuitar == true</c> pero sigue sin estar vacía.
+        /// </summary>
+        public bool EsPlacaVacia => Recepciones.Count == 0;
 
         public void NotificarTotales()
         {
@@ -335,6 +352,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modelos
             OnPropertyChanged(nameof(TotalKgTexto));
             OnPropertyChanged(nameof(PuedeQuitar));
             OnPropertyChanged(nameof(MotivoQuitar));
+            OnPropertyChanged(nameof(EsPlacaVacia));
         }
     }
 }

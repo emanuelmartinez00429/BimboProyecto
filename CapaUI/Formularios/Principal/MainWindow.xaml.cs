@@ -323,6 +323,9 @@ namespace CapaUI.Formularios.Principal
             foreach (var el in _sidebarChromeElements)
                 AnimateOpacity(el, 0, ChromeFadeOutMs);
 
+            foreach (var entry in _moduleMap.Values)
+                AnimateOpacity(entry.ExpandedView, 0, ChromeFadeOutMs);
+
             AnimateSidebarWidth(SidebarCollapsed);
 
             // Fase 2 — tras el fade, colapsar con Visibility (ya invisibles, sin salto)
@@ -330,6 +333,16 @@ namespace CapaUI.Formularios.Principal
 
             foreach (var el in _sidebarChromeElements)
                 el.Visibility = Visibility.Collapsed;
+
+            foreach (var entry in _moduleMap.Values)
+            {
+                entry.ExpandedView.Visibility = Visibility.Collapsed;
+                entry.ExpandedView.Opacity    = 1;
+
+                entry.CollapsedIcon.Opacity    = 0;
+                entry.CollapsedIcon.Visibility = Visibility.Visible;
+                AnimateOpacity(entry.CollapsedIcon, 1, CompactCardFadeMs);
+            }
 
             // Restituir opacidad para la próxima expansión
             foreach (var el in _sidebarChromeElements)
@@ -362,8 +375,11 @@ namespace CapaUI.Formularios.Principal
             // Fase 0 — ocultar contenido pesado antes de animar
             ContentAreaBorder.Visibility = Visibility.Collapsed;
 
-            // Fase 1 — desvanecer tarjeta compacta (60 ms)
+            // Fase 1 — desvanecer tarjeta compacta e iconos colapsados (60 ms)
             AnimateOpacity(CompactUserCard, 0, CompactCardFadeMs);
+            foreach (var entry in _moduleMap.Values)
+                AnimateOpacity(entry.CollapsedIcon, 0, CompactCardFadeMs);
+
             await Task.Delay(CompactCardHideDelayMs);
             CompactUserCard.Visibility = Visibility.Collapsed;
 
@@ -375,8 +391,11 @@ namespace CapaUI.Formularios.Principal
             }
 
             foreach (var entry in _moduleMap.Values)
+            {
                 entry.CollapsedIcon.Visibility = Visibility.Collapsed;
-            IcoReportes.Visibility = Visibility.Collapsed;
+                entry.ExpandedView.Visibility  = Visibility.Visible;
+                entry.ExpandedView.Opacity     = 0;
+            }
 
             AnimateSidebarWidth(SidebarExpanded);
 
@@ -385,6 +404,9 @@ namespace CapaUI.Formularios.Principal
 
             foreach (var el in _sidebarChromeElements)
                 AnimateOpacity(el, 1, ChromeFadeInMs);
+
+            foreach (var entry in _moduleMap.Values)
+                AnimateOpacity(entry.ExpandedView, 1, ChromeFadeInMs);
 
             // Reabrir el submenú activo tras la expansión
             if (!string.IsNullOrEmpty(_activeModuleId) &&

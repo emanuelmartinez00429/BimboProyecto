@@ -164,6 +164,50 @@ Antigravity siguió avanzando el mismo día: `RegistroCamionesModal` creció a 4
 
 Gaps que siguen abiertos: sin nota de bitácora propia de Antigravity para todo este feature (agrupación + KG + `soloPlaca`), sin tests nuevos para la lógica de agrupación, y `QuitarCamionCompletoAsync` sin aviso de "n de m" en fallo parcial (menor, no bloqueante).
 
+## Seguimiento 2026-09-16 — ProductoModal (grid + auditoría) e ícono de Reportería, aún sin aprobar/documentar/commitear
+
+Auditoría a pedido de Fernando de 3 cambios que Antigravity subió a Engram (proyecto `antigravity`, observaciones #324, #325, #326, creadas 2026-09-16 ~20:28-20:35) pero que **todavía viven solo en el working tree** — no hay commit ni nota de bitácora, y las 3 observaciones lo dicen explícitamente: "la documentación en la bitácora espera la aprobación visual del usuario". Esta nota es el visto bueno técnico previo a esa aprobación visual; no la reemplaza.
+
+**Alcance auditado (7 archivos modificados sin commitear):** `MainWindow.xaml`, `ProductoModal.xaml`, `Styles.xaml` (los 3 de #324-#326) + `PesajeModels.cs`/`PesajeView.xaml`/`PesajeView.xaml.cs`/`PesajeViewModel.cs` (ver nota aparte más abajo — **no tienen observación en Engram**, quedan fuera del alcance que Fernando pidió auditar hoy).
+
+### #325 — Ícono `IcoReporte` (Styles.xaml) + sidebar (MainWindow.xaml)
+✅ Sin hallazgos. `PathGeometry` con los 6 subpaths cerrados en `Z` (`Fill` funciona), seis coordenadas dentro del viewport 260×260 declarado, `po:Freeze="True"` consistente con `IcoScale`. Reemplaza el `TextBlock` MDL2 `&#xE9D2;` por `Path` en las 2 instancias del sidebar (colapsado y expandido) sin tocar el code-behind (`ModuleEntry.CollapsedIcon` acepta `UIElement`, no específicamente `TextBlock`).
+
+### #326 — `ModalInputAuditoria` (Styles.xaml): rediseño display verde/menta estilo Pesajes
+🚩→✅ **Hallazgo corregido:** el estilo dejó de ser `BasedOn="{StaticResource ModalInput}"` (ahora tiene su propio `ControlTemplate` completo) pero el comentario de `ModalInput` (línea ~528) seguía afirmando literalmente *"heredado por todo lo BasedOn en esto (ModalInputAuditoria incluida)"* — quedó falso. **Corregido por Claude directamente en `Styles.xaml`**: el comentario ahora aclara que `ModalInputAuditoria` ya no hereda del `Template` de `ModalInput` y replica el `Setter` de `TextoResponsivo.Activo` de forma independiente (el recorte con "…" en Creado/Actualizado sigue funcionando: `TextoResponsivo.cs` actúa sobre el `Text` de campos `IsReadOnly`, no depende del `Template`).
+- Los triggers que sí se perdieron al abandonar el `Template` de `ModalInput` (foco verde, borde rojo de validación) son irrelevantes acá a propósito: el campo tiene `Focusable="False"` (nunca gana foco) y son fechas autogeneradas por el servidor (nunca tienen error de validación). No es una regresión.
+- 🚩 **Nota de alcance para la aprobación visual:** `ModalInputAuditoria` también se usa en `PresentacionModal.xaml` (`TxtCreado`/`TxtActualizado`, línea 139/143) — el rediseño lo re-skinnea también a él, no solo a `ProductoModal`, y ninguna de las 3 observaciones de Engram menciona haber revisado `PresentacionModal`. Riesgo bajo (`PresentacionModal` ya usa el mismo lenguaje visual oscuro/translúcido `#1AFFFFFF` en otros elementos, confirmado por grep), pero Fernando debería mirar también ese modal al aprobar, no solo Productos.
+
+### #324 — Reordenamiento de grilla en `ProductoModal.xaml`
+✅ Sin hallazgos de código. `TabIndex` renumerado de forma consistente y sin colisiones (10,20,30,31,40,41,50,51,60,61,70,80,90,100,101,110,120,130,131) tras mover País importado de fila 4 a fila 2 y correr Tara/Precio/Estado de fila 3→3 (se mantienen) y Creado/Actualizado a fila 4 con la nueva tarjeta "Auditoría automática". `Grid.RowDefinitions` tiene 5 filas (`Row="0"`-`"4"`), sin fila fuera de rango. El ícono `IconHistory` que usa la tarjeta nueva ya existía en `Styles.xaml:46` (no es un recurso roto).
+
+### Build
+Corrí `dotnet build BimboProyecto.sln --no-incremental`: los únicos errores (`MSB3027`/`MSB3021`, 6 en total) son de **archivos bloqueados por el proceso `CapaUI` corriendo** (y Visual Studio), no errores de compilación de código — cero `error CS`/`error MC` en el log. Consistente con que Antigravity reportó "0 errores, 435/435 tests" en sus 3 observaciones; no pude re-verificar los tests por el mismo bloqueo del binario en ejecución.
+
+**Veredicto:** los 3 cambios están técnicamente listos para bitácora + commit una vez Fernando dé el visto bueno visual (que sigue pendiente, tal como Antigravity mismo señaló). La única corrección de código fue el comentario obsoleto en `Styles.xaml`, ya aplicada.
+
+### Aparte — gap ya conocido, sigue creciendo sin nota propia
+El working tree tiene además `PesajeModels.cs`/`PesajeView.xaml`/`PesajeView.xaml.cs`/`PesajeViewModel.cs` con una extensión de la agrupación por placa: cuando se anula la última recepción de una placa, esta queda como "cascarón" (`GrupoCamionPesaje.EsPlacaVacia`) en vez de desaparecer de golpe, con un renglón "(Sin proveedores asignados)" y confirmación adaptada. Es exactamente la continuación del gap ya registrado arriba ("Seguimiento 2026-09-11 (cont.)": *"sin nota de bitácora propia de Antigravity para todo este feature... y QuitarCamionCompletoAsync sin aviso de 'n de m' en fallo parcial"*) — y **sigue sin observación en Engram ni nota de bitácora**, a diferencia de #324-#326. Revisión rápida de código: razonable y bien comentada (justifica por qué no hace refetch inmediato), pero no se auditó a fondo porque cae fuera de lo que Fernando pidió auditar hoy ("lo que subió a Engram"). Avisado a Antigravity por Engram (proyecto `antigravity`) + esta nota para que le sume su propia observación y bitácora antes de commitear junto con lo demás.
+
+## Seguimiento 2026-09-16 (cont.) — IcoScale/IcoReporte reemplazados por SVGs oficiales de Material Symbols
+
+Segunda pasada: desde el seguimiento anterior, Antigravity reemplazó el `PathGeometry` dibujado a mano de `IcoScale` e `IcoReporte` (`Styles.xaml`) por el path literal de los íconos oficiales de Material Symbols ("balance" y "monitoring", fuente `Pesa.svg`/`Barras.svg`), y espejó el mismo cambio en `MIcoScale` (`PesajeModalStyles.xaml`, hasta ahora fuera del alcance auditado) para consistencia. Todavía **sin observación nueva en Engram** para este cambio puntual.
+
+✅ Sin hallazgos — mejora real sobre la versión anterior (paths oficiales y probados en vez de aproximaciones a mano). Confirmado `MIcoScale` idéntico carácter por carácter a `IcoScale`, sin duplicación con drift. Única nota menor (no bloqueante): las dos definiciones nuevas ya no declaran `FillRule="Nonzero"` explícito (WPF cae al default `EvenOdd`, distinto del default `nonzero` de SVG) — revisado subpath por subpath en ambos íconos y ninguno anida/superpone regiones, así que `EvenOdd` y `Nonzero` rinden idéntico acá; **si se repite el patrón de copiar paths de Material Symbols para un ícono con formas anidadas/huecos** (ej. un círculo con agujero), ahí sí conviene declarar `FillRule="Nonzero"` a mano porque WPF no lo infiere del SVG.
+
+`IcoScale` es un recurso centralizado usado en Sidebar, Header de Pesajes, Dashboard, `PesajeModal` y `ReporteModal` — el cambio de geometría se propaga solo a todos por diseño (misma razón por la que está centralizado), no hace falta tocar nada en esos consumidores.
+
+## Seguimiento 2026-09-16 (cont. 2) — Animación de fade en ExpandedView/CollapsedIcon del sidebar: sin riesgo de memoria ni rendimiento
+
+Fernando pidió puntualmente auditar la última animación metida al colapsar/expandir el sidebar. Contexto: `f7c32dc` (ProductoModal grid+auditoría, con mi corrección ya incluida) quedó commiteado — el trabajo de íconos sigue en el working tree y creció: ahora también `IcoInventario`/`IcoUsuarios` (mismo patrón Material Symbols que IcoScale/IcoReporte) reemplazan los últimos glifos Segoe MDL2 del sidebar, con los 4 íconos normalizados a 30×30.
+
+**Lo nuevo (`MainWindow.xaml.cs`, `CollapseSidebar()`/`ExpandSidebar()`):** antes solo `_sidebarChromeElements` y `CompactUserCard` se desvanecían con `AnimateOpacity`; ahora el mismo fade se extiende a `entry.ExpandedView`/`entry.CollapsedIcon` de cada módulo del sidebar (recorriendo `_moduleMap.Values`).
+
+✅ **Sin hallazgos — ni riesgo de memoria ni de rendimiento:**
+- `AnimateOpacity` (sin tocar, ya existía) es el patrón liviano y seguro de WPF: `target.BeginAnimation(UIElement.OpacityProperty, new DoubleAnimation(...))`. Sin `Storyboard`, sin registrar nada en un `ResourceDictionary`, sin `Completed` handlers (`+=`) que puedan retener referencias — el vector clásico de fugas de memoria en animaciones WPF está ausente acá.
+- `_moduleMap` se llena **una sola vez** (líneas 222-225, dict con 4 entradas fijas: usuarios/productos/pesajes/reportes) sobre elementos con nombre ya existentes en el árbol visual (`ExpUsuarios`, `IcoUsuarios`, etc.) — el nuevo `foreach` no crea objetos de UI nuevos en cada toggle, solo dispara animaciones sobre los mismos 4 elementos reutilizados. Costo real: 4 `DoubleAnimation` chicas extra por colapso/expansión, basura Gen0 trivial.
+- Coreografía de fases intacta y correcta: el fade-out (`ChromeFadeOutMs`=70ms) siempre termina antes del `await Task.Delay` que lo sigue (`ChromeCollapseDelayMs`=75ms) antes de forzar `Visibility.Collapsed`/`Opacity=1`, igual que el patrón ya probado para `_sidebarChromeElements` — es una extensión copiada 1:1 de código que ya funciona, no un mecanismo nuevo.
+
 ## Relaciones
 
 - [[Optimización De Renderizado En WPF]] — investigación fuente AP-06

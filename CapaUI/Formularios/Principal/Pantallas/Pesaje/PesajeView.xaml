@@ -618,15 +618,31 @@
                                                                 </StackPanel>
                                                             </Border>
 
-                                                            <!-- Papelera del camión completo -->
-                                                            <Button Grid.Column="4" Style="{StaticResource BasureroCelda}"
-                                                                    HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                                    Tag="{Binding}" Click="BtnQuitarGrupo_Click"
-                                                                    IsEnabled="{Binding PuedeQuitar}"
-                                                                    ToolTip="{Binding MotivoQuitar}"
-                                                                    ToolTipService.ShowOnDisabled="True"
-                                                                    permisos:PermisoBehavior.Requiere="Cancelar Pesaje"/>
+                                                            <!-- Papelera del camión completo — el Border controla la Visibility
+                                                                 por binding; PermisoBehavior sigue gobernando la Visibility del
+                                                                 Button interno de forma imperativa (SetValue), así que no puede
+                                                                 convivir con un binding de Visibility en el mismo elemento sin
+                                                                 pisárselo (ver PermisoBehavior.cs). -->
+                                                            <Border Grid.Column="4" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                                    Visibility="{Binding PuedeQuitar, Converter={x:Static conv:BoolToVisibilityConverter.Instancia}}">
+                                                                <Button Style="{StaticResource BasureroCelda}"
+                                                                        Tag="{Binding}" Click="BtnQuitarGrupo_Click"
+                                                                        ToolTip="{Binding MotivoQuitar}"
+                                                                        ToolTipService.ShowOnDisabled="True"
+                                                                        permisos:PermisoBehavior.Requiere="Cancelar Pesaje"/>
+                                                            </Border>
                                                         </Grid>
+                                                    </Border>
+
+                                                    <!-- Renglón informativo cuando la placa quedó sin proveedores asignados -->
+                                                    <Border Height="34" Padding="6,0" Background="#F8FAFC"
+                                                            BorderBrush="#EEF2F8" BorderThickness="0,1,0,0"
+                                                            Visibility="{Binding EsPlacaVacia, Converter={x:Static conv:BoolToVisibilityConverter.Instancia}}">
+                                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="14,0,0,0">
+                                                            <TextBlock Text="↳ (Sin proveedores asignados)"
+                                                                       FontFamily="Segoe UI" FontSize="12" FontStyle="Italic"
+                                                                       Foreground="#94A3B8"/>
+                                                        </StackPanel>
                                                     </Border>
 
                                                     <!-- Filas Hijas: Recepciones / Proveedores -->

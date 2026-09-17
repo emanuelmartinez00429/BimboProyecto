@@ -524,7 +524,7 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="FABRICANTE" Width="Auto" MinWidth="110" CellStyle="{StaticResource CeldaIzquierda}">
+                        <DataGridTemplateColumn Header="FABRICANTE" Width="Auto" MinWidth="140" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding Fabricante, Converter={x:Static conv:TextoVacioConverter.Instancia}, ConverterParameter='Sin fabricante'}"
@@ -533,7 +533,7 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="PROVEEDOR" Width="Auto" MinWidth="110" CellStyle="{StaticResource CeldaIzquierda}">
+                        <DataGridTemplateColumn Header="PROVEEDOR" Width="Auto" MinWidth="140" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding Proveedor, Converter={x:Static conv:TextoVacioConverter.Instancia}, ConverterParameter='Sin proveedor'}"
@@ -570,7 +570,7 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="CATEGOR&#205;A" Width="Auto" MinWidth="105" CellStyle="{StaticResource CeldaIzquierda}">
+                        <DataGridTemplateColumn Header="CATEGOR&#205;A" Width="Auto" MinWidth="135" CellStyle="{StaticResource CeldaIzquierda}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <Border Background="#F0F5FB" CornerRadius="999" Padding="10,2" HorizontalAlignment="Left" Margin="8,0">

@@ -637,9 +637,9 @@
                                                     Background="{StaticResource AccentGreen}"
                                                     CornerRadius="0,2,2,0" Visibility="Collapsed"/>
                                             <DockPanel x:Name="ExpUsuarios" HorizontalAlignment="Stretch">
-                                                <TextBlock DockPanel.Dock="Left"
-                                                           Text="&#xE716;" FontFamily="Segoe MDL2 Assets" FontSize="30"
-                                                           Foreground="White" VerticalAlignment="Center"/>
+                                                <Path DockPanel.Dock="Left" Data="{StaticResource IcoUsuarios}"
+                                                      Fill="White" Width="30" Height="30" Stretch="Uniform"
+                                                      VerticalAlignment="Center"/>
                                                 <TextBlock x:Name="ChevUsuarios" DockPanel.Dock="Right"
                                                            Text="&#xE70D;" FontFamily="Segoe MDL2 Assets" FontSize="10"
                                                            Foreground="#B3FFFFFF" VerticalAlignment="Center"
@@ -654,11 +654,10 @@
                                                            FontFamily="Segoe UI" FontSize="20" FontWeight="Medium"
                                                            VerticalAlignment="Center" Margin="12,0,0,0"/>
                                             </DockPanel>
-                                            <TextBlock x:Name="IcoUsuarios"
-                                                       Text="&#xE716;" FontFamily="Segoe MDL2 Assets" FontSize="20"
-                                                       Foreground="White"
-                                                       HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                       Visibility="Collapsed"/>
+                                            <Path x:Name="IcoUsuarios" Data="{StaticResource IcoUsuarios}"
+                                                  Fill="White" Width="30" Height="30" Stretch="Uniform"
+                                                  HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                  Visibility="Collapsed"/>
                                         </Grid>
                                     </Button>
                                     <Border x:Name="SubUsuarios" MaxHeight="0" ClipToBounds="True"
@@ -727,9 +726,9 @@
                                                     Background="{StaticResource AccentGreen}"
                                                     CornerRadius="0,2,2,0" Visibility="Collapsed"/>
                                             <DockPanel x:Name="ExpProductos" HorizontalAlignment="Stretch">
-                                                <TextBlock DockPanel.Dock="Left"
-                                                           Text="&#xE7B8;" FontFamily="Segoe MDL2 Assets" FontSize="30"
-                                                           Foreground="White" VerticalAlignment="Center"/>
+                                                <Path DockPanel.Dock="Left" Data="{StaticResource IcoInventario}"
+                                                      Fill="White" Width="30" Height="30" Stretch="Uniform"
+                                                      VerticalAlignment="Center"/>
                                                 <TextBlock x:Name="ChevProductos" DockPanel.Dock="Right"
                                                            Text="&#xE70D;" FontFamily="Segoe MDL2 Assets" FontSize="10"
                                                            Foreground="#B3FFFFFF" VerticalAlignment="Center"
@@ -744,11 +743,10 @@
                                                            FontFamily="Segoe UI" FontSize="20" FontWeight="Medium"
                                                            VerticalAlignment="Center" Margin="12,0,0,0"/>
                                             </DockPanel>
-                                            <TextBlock x:Name="IcoProductos"
-                                                       Text="&#xE7B8;" FontFamily="Segoe MDL2 Assets" FontSize="20"
-                                                       Foreground="White"
-                                                       HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                       Visibility="Collapsed"/>
+                                            <Path x:Name="IcoProductos" Data="{StaticResource IcoInventario}"
+                                                  Fill="White" Width="30" Height="30" Stretch="Uniform"
+                                                  HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                  Visibility="Collapsed"/>
                                         </Grid>
                                     </Button>
                                     <Border x:Name="SubProductos" MaxHeight="0" ClipToBounds="True"
@@ -854,7 +852,7 @@
                                                     CornerRadius="0,2,2,0" Visibility="Collapsed"/>
                                             <DockPanel x:Name="ExpPesajes" HorizontalAlignment="Stretch">
                                                 <Path DockPanel.Dock="Left" Data="{StaticResource IcoScale}"
-                                                      Fill="White" Width="26" Height="26" Stretch="Uniform"
+                                                      Fill="White" Width="30" Height="30" Stretch="Uniform"
                                                       VerticalAlignment="Center"/>
                                                 <TextBlock x:Name="ChevPesajes" DockPanel.Dock="Right"
                                                            Text="&#xE70D;" FontFamily="Segoe MDL2 Assets" FontSize="10"
@@ -871,7 +869,7 @@
                                                            VerticalAlignment="Center" Margin="12,0,0,0"/>
                                             </DockPanel>
                                             <Path x:Name="IcoPesajes" Data="{StaticResource IcoScale}"
-                                                  Fill="White" Width="22" Height="22" Stretch="Uniform"
+                                                  Fill="White" Width="30" Height="30" Stretch="Uniform"
                                                   HorizontalAlignment="Center" VerticalAlignment="Center"
                                                   Visibility="Collapsed"/>
                                         </Grid>
@@ -906,9 +904,9 @@
                                                     Background="{StaticResource AccentGreen}"
                                                     CornerRadius="0,2,2,0" Visibility="Collapsed"/>
                                             <DockPanel x:Name="ExpReportes" HorizontalAlignment="Stretch">
-                                                <TextBlock DockPanel.Dock="Left"
-                                                           Text="&#xE9D2;" FontFamily="Segoe MDL2 Assets" FontSize="30"
-                                                           Foreground="White" VerticalAlignment="Center"/>
+                                                <Path DockPanel.Dock="Left" Data="{StaticResource IcoReporte}"
+                                                      Fill="White" Width="30" Height="30" Stretch="Uniform"
+                                                      VerticalAlignment="Center"/>
                                                 <TextBlock x:Name="ChevReportes" DockPanel.Dock="Right"
                                                            Text="&#xE70D;" FontFamily="Segoe MDL2 Assets" FontSize="10"
                                                            Foreground="#B3FFFFFF" VerticalAlignment="Center"
@@ -923,11 +921,10 @@
                                                            FontFamily="Segoe UI" FontSize="20" FontWeight="Medium"
                                                            VerticalAlignment="Center" Margin="12,0,0,0"/>
                                             </DockPanel>
-                                            <TextBlock x:Name="IcoReportes"
-                                                       Text="&#xE9D2;" FontFamily="Segoe MDL2 Assets" FontSize="20"
-                                                       Foreground="White"
-                                                       HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                       Visibility="Collapsed"/>
+                                            <Path x:Name="IcoReportes" Data="{StaticResource IcoReporte}"
+                                                  Fill="White" Width="30" Height="30" Stretch="Uniform"
+                                                  HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                  Visibility="Collapsed"/>
                                         </Grid>
                                     </Button>
                                     <Border x:Name="SubReportes" MaxHeight="0" ClipToBounds="True"

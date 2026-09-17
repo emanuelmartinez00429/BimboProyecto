@@ -172,9 +172,8 @@
                             <DockPanel LastChildFill="True" Margin="0,0,0,5">
                                 <Border DockPanel.Dock="Left" Width="28" Height="28" CornerRadius="7"
                                         Background="#141E3A8A" Margin="0,0,8,0" VerticalAlignment="Center">
-                                    <Path Data="{StaticResource IcoBox}" Stretch="Uniform"
-                                          Stroke="{DynamicResource EmpresaPrimaryBrush}" StrokeThickness="1.8"
-                                          StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                    <Path Data="{StaticResource IcoInventario}" Stretch="Uniform"
+                                          Fill="{DynamicResource EmpresaPrimaryBrush}"
                                           Width="15" Height="15"/>
                                 </Border>
                                 <Border DockPanel.Dock="Right" Background="#ECFDF5" CornerRadius="999"

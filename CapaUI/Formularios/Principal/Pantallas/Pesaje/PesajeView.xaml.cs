@@ -417,8 +417,12 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             if (sender is not Button b || b.Tag is not GrupoCamionPesaje grupo) return;
             if (!grupo.PuedeQuitar) return;
 
+            string mensaje = grupo.EsPlacaVacia
+                ? $"¿Retirar la placa {grupo.Placa} de la lista?"
+                : $"¿Quitar el camión {grupo.Placa} y todas sus recepciones asociadas?";
+
             var confirmar = MessageBox.Show(
-                $"¿Quitar el camión {grupo.Placa} y todas sus recepciones asociadas?",
+                mensaje,
                 "Quitar camión",
                 MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No);
             if (confirmar != MessageBoxResult.Yes) return;
