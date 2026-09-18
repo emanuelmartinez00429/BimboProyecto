@@ -530,11 +530,14 @@ namespace CapaUI.Formularios.Principal
         {
             if (e.PropertyName == nameof(MainViewModel.VistaActual))
             {
-                if (Vm.VistaActual is not ConfiguracionEmpresaViewModel)
-                {
-                    BtnConfiguracion.Background = System.Windows.Media.Brushes.Transparent;
-                }
+                ActualizarIndicadorConfiguracion(Vm.VistaActual is ConfiguracionEmpresaViewModel);
             }
+        }
+
+        private void ActualizarIndicadorConfiguracion(bool activo)
+        {
+            if (IndConfiguracion == null) return;
+            AnimateOpacity(IndConfiguracion, activo ? 1 : 0, 120);
         }
 
         private void ClearActiveStates()
@@ -550,7 +553,7 @@ namespace CapaUI.Formularios.Principal
                 kv.Value.Indicator.Visibility = Visibility.Collapsed;
 
             IndReportes.Visibility = Visibility.Collapsed;
-            BtnConfiguracion.Background = System.Windows.Media.Brushes.Transparent;
+            ActualizarIndicadorConfiguracion(false);
             _activeSubId           = "";
         }
 
@@ -625,7 +628,7 @@ namespace CapaUI.Formularios.Principal
             NotifPopup.IsOpen = false;
             ClearActiveStates();
             _activeModuleId = Routes.Configuracion;
-            BtnConfiguracion.Background = new SolidColorBrush((WpfColor)WpfColorConverter.ConvertFromString("#33FFFFFF"));
+            ActualizarIndicadorConfiguracion(true);
             Vm.NavigateCommand.Execute(Routes.Configuracion);
         }
 
