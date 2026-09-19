@@ -241,18 +241,6 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modelos
         [ObservableProperty] private string _estado = "Abierto";
 
         /// <summary>
-        /// Cuántas recepciones abiertas comparten esta placa. Un camión que trae carga de
-        /// dos proveedores son dos <c>movimientos</c> con la misma placa — uno por
-        /// proveedor, cada uno con su manifiesto. Lo calcula el ViewModel al recargar.
-        /// </summary>
-        [ObservableProperty]
-        [NotifyPropertyChangedFor(nameof(PlacaCompartida))]
-        private int _recepcionesEnPlaca = 1;
-
-        /// <summary>La placa la comparten dos o más recepciones: es un solo camión físico.</summary>
-        public bool PlacaCompartida => RecepcionesEnPlaca > 1;
-
-        /// <summary>
         /// Productos vivos de la recepción SEGÚN LA BASE. No se puede usar
         /// <c>Productos.Count</c> para esto: esa colección solo se llena para el camión
         /// seleccionado, así que en los demás daría 0 y el basurero se vería habilitado
@@ -264,9 +252,8 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modelos
         private int _productosEnBase;
 
         /// <summary>
-        /// Regla del basurero del camión: solo se quita una recepción vacía. A diferencia
-        /// del producto, esta NO la exige el servidor —la RPC de anular recepción no mira
-        /// los productos—, así que por ahora el cerrojo es solo de pantalla.
+        /// Regla del basurero del camión: solo se quita una recepción vacía. El servidor la
+        /// vuelve a exigir en <c>trg_validar_recepcion_movimiento</c> (2026-09-18).
         /// </summary>
         public bool PuedeQuitar => ProductosEnBase == 0;
 
@@ -299,8 +286,6 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modelos
 
         public string TotalKgTexto => TotalKg > 0 ? $"{TotalKg:N0} kg" : "0 kg";
 
-        [ObservableProperty] private bool _isSelected;
-
         /// <summary>Recalcula los agregados que dependen de las entradas de los productos.</summary>
         public void NotificarTotales()
         {
@@ -308,51 +293,6 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modelos
             OnPropertyChanged(nameof(PesadasSinTaraExtra));
             OnPropertyChanged(nameof(TotalKg));
             OnPropertyChanged(nameof(TotalKgTexto));
-        }
-    }
-
-    public partial class GrupoCamionPesaje : ObservableObject
-    {
-        [ObservableProperty] private int _numero;
-        [ObservableProperty] private string _placa = "";
-        [ObservableProperty] private string _observaciones = "";
-        [ObservableProperty] private string _estado = "Abierto";
-        [ObservableProperty] private bool _isSelected;
-
-        public ObservableCollection<CamionPesaje> Recepciones { get; } = new();
-
-        public double TotalKg => Recepciones.Sum(r => r.TotalKg);
-        public string TotalKgTexto => TotalKg > 0 ? $"{TotalKg:N0} kg" : "0 kg";
-
-        /// <summary>
-        /// Sin el guard de conteo a propósito: con la lista de recepciones vacía,
-        /// <c>All</c> da vacuously true — así una placa recién vaciada (ver
-        /// <see cref="EsPlacaVacia"/>) también puede quitarse, sin duplicar la regla.
-        /// Mientras haya recepciones, sigue exigiendo que TODAS puedan quitarse (ninguna
-        /// con productos/pesajes), preservando el cancelado en bloque de una placa con
-        /// varios proveedores sin carga.
-        /// </summary>
-        public bool PuedeQuitar => Recepciones.All(r => r.PuedeQuitar);
-
-        public string MotivoQuitar => PuedeQuitar
-            ? (Recepciones.Count == 0 ? "Quitar esta placa de la lista" : "Quitar camión y todas sus recepciones")
-            : "No se puede quitar: el camión tiene productos registrados";
-
-        /// <summary>
-        /// La placa se quedó sin proveedores (se anuló el último) y queda como cascarón
-        /// hasta que el operario la retire con el basurero de la cabecera o le registre
-        /// un proveedor nuevo. Distinta de <see cref="PuedeQuitar"/>: una placa con 2
-        /// proveedores sin carga da <c>PuedeQuitar == true</c> pero sigue sin estar vacía.
-        /// </summary>
-        public bool EsPlacaVacia => Recepciones.Count == 0;
-
-        public void NotificarTotales()
-        {
-            OnPropertyChanged(nameof(TotalKg));
-            OnPropertyChanged(nameof(TotalKgTexto));
-            OnPropertyChanged(nameof(PuedeQuitar));
-            OnPropertyChanged(nameof(MotivoQuitar));
-            OnPropertyChanged(nameof(EsPlacaVacia));
         }
     }
 }

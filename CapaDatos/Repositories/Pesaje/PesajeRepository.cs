@@ -4,8 +4,10 @@ using CapaAplicacion.Pesaje.Dtos;
 using CapaAplicacion.Pesaje.Interfaces;
 using CapaDatos.Modelados.Pesajes;
 using CapaDatos.Repositories;
+using CapaDominio.Reglas;
 using Newtonsoft.Json.Linq;
 using ServicioConexión.Conexion;
+using Supabase.Postgrest.Exceptions;
 using Op  = Supabase.Postgrest.Constants.Operator;
 using Ord = Supabase.Postgrest.Constants.Ordering;
 
@@ -50,34 +52,6 @@ public class PesajeRepository : RepositorioBase, IPesajeRepository
             return lista;
         }, "Cargar camiones");
 
-    public Task<Result<int>> CrearCamionAsync(int idProveedor, string placa, string observaciones, int idUsuario, CancellationToken ct = default)
-    {
-        // Se genera una sola vez por intención del usuario y fuera del delegado que ejecuta
-        // la llamada. Si posteriormente se agrega una política de reintentos, debe reutilizarse.
-        var idSolicitud = Guid.NewGuid();
-
-        return TryAsync(async () =>
-        {
-            ct.ThrowIfCancellationRequested();
-            var client = await ConexionSupabase.GetClientAsync();
-            var parametros = new Dictionary<string, object?>
-            {
-                ["p_id_proveedor"]    = idProveedor,
-                ["p_placa_vehiculo"] = placa,
-                ["p_observaciones"]  = string.IsNullOrWhiteSpace(observaciones) ? null : observaciones,
-                ["p_id_solicitud"]   = idSolicitud,
-            };
-
-            // La firma se conserva por compatibilidad; la RPC obtiene el usuario desde auth.uid().
-            _ = idUsuario;
-            var response = await client.Rpc("ingresar_movimiento_pesaje_tabla_bitacora", parametros);
-            ct.ThrowIfCancellationRequested();
-            return ObtenerResultadoRpc(response?.Content, "registrar la recepción")
-                ["id_movimiento"]?.Value<int>()
-                ?? throw new InvalidOperationException("La RPC no devolvió id_movimiento.");
-        }, "Registrar camión");
-    }
-
     /// <summary>
     /// Registra de forma atómica (en una sola transacción en el servidor) un lote de camiones.
     /// Si cualquier fila falla, la transacción se aborta completamente y ningún camión es persistido.
@@ -100,8 +74,8 @@ public class PesajeRepository : RepositorioBase, IPesajeRepository
             var loteJson = camiones.Select(c => new Dictionary<string, object?>
             {
                 ["id_proveedor"]   = c.IdProveedor,
-                ["placa"]          = c.Placa?.Trim().ToUpperInvariant(),
-                ["placa_vehiculo"] = c.Placa?.Trim().ToUpperInvariant(),
+                ["placa"]          = ReglasCamion.NormalizarPlaca(c.Placa),
+                ["placa_vehiculo"] = ReglasCamion.NormalizarPlaca(c.Placa),
                 ["observaciones"]  = string.IsNullOrWhiteSpace(c.Observaciones) ? null : c.Observaciones.Trim(),
             }).ToArray();
 
@@ -111,7 +85,7 @@ public class PesajeRepository : RepositorioBase, IPesajeRepository
                 ["p_id_solicitud"] = solicitudEfectiva,
             };
 
-            var response = await client.Rpc("registrar_camiones_lote_seguro", parametros);
+            var response = await ConMensajeDelServidor(() => client.Rpc("registrar_camiones_lote_seguro", parametros));
             ct.ThrowIfCancellationRequested();
 
             var res = ObtenerResultadoRpc(response?.Content, "registrar el lote de camiones");
@@ -148,15 +122,15 @@ public class PesajeRepository : RepositorioBase, IPesajeRepository
         {
             ct.ThrowIfCancellationRequested();
             var client = await ConexionSupabase.GetClientAsync();
-            var response = await client.Rpc("actualizar_movimiento_pesaje_tabla_bitacora",
+            var response = await ConMensajeDelServidor(() => client.Rpc("actualizar_movimiento_pesaje_tabla_bitacora",
                 new Dictionary<string, object?>
                 {
                     ["p_id_movimiento"]   = idMovimiento,
                     ["p_id_proveedor"]    = idProveedor,
-                    ["p_placa_vehiculo"] = placa,
+                    ["p_placa_vehiculo"] = ReglasCamion.NormalizarPlaca(placa),
                     ["p_observaciones"]  = string.IsNullOrWhiteSpace(observaciones) ? null : observaciones,
                     ["p_id_solicitud"]   = idSolicitud,
-                });
+                }));
             ct.ThrowIfCancellationRequested();
             ValidarIdResultado(response?.Content, "id_movimiento", idMovimiento, "actualizar la recepción");
         }, "Actualizar camión");
@@ -176,16 +150,51 @@ public class PesajeRepository : RepositorioBase, IPesajeRepository
         {
             ct.ThrowIfCancellationRequested();
             var client = await ConexionSupabase.GetClientAsync();
-            var response = await client.Rpc("cambiar_estado_movimiento_pesaje_tabla_bitacora",
+            var response = await ConMensajeDelServidor(() => client.Rpc("cambiar_estado_movimiento_pesaje_tabla_bitacora",
                 new Dictionary<string, object?>
                 {
                     ["p_id_movimiento"] = idMovimiento,
                     ["p_id_estado"]     = estado,
                     ["p_id_solicitud"] = idSolicitud,
-                });
+                }));
             ct.ThrowIfCancellationRequested();
             ValidarIdResultado(response?.Content, "id_movimiento", idMovimiento, ctx.ToLowerInvariant());
         }, ctx);
+    }
+
+    /// <summary>
+    /// Las reglas de recepciones (cupo de 5, placa + proveedor repetidos, quitar con productos)
+    /// las hace cumplir el trigger <c>trg_validar_recepcion_movimiento</c> y su mensaje ya está
+    /// escrito para el operador. PostgREST lo entrega envuelto en un JSON; acá se desenvuelve
+    /// para que la pantalla no muestre <c>{"code":"P0001",...}</c>.
+    /// </summary>
+    private static async Task<T> ConMensajeDelServidor<T>(Func<Task<T>> llamada)
+    {
+        try
+        {
+            return await llamada();
+        }
+        catch (PostgrestException ex)
+        {
+            throw new InvalidOperationException(MensajeDelServidor(ex.Message), ex);
+        }
+    }
+
+    private static string MensajeDelServidor(string? cuerpo)
+    {
+        try
+        {
+            var json = JObject.Parse(cuerpo ?? "{}");
+            // 23505 = el índice único ux_movimientos_abierto_placa_proveedor atajó una carrera
+            // que el trigger no vio: mismo caso de negocio, mismo mensaje.
+            if (json["code"]?.Value<string>() == "23505")
+                return "Esa placa ya tiene una recepción abierta con ese proveedor.";
+            return json["message"]?.Value<string>() ?? cuerpo ?? "Error del servidor.";
+        }
+        catch (Newtonsoft.Json.JsonException)
+        {
+            return cuerpo ?? "Error del servidor.";
+        }
     }
 
     private static JObject ObtenerResultadoRpc(string? json, string operacion)

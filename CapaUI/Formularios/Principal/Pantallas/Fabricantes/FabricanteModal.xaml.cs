@@ -149,7 +149,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Fabricantes
         /// Cambia el contenido del modal por la tabla del catálogo. No se
         /// superpone: el formulario se colapsa y el marco toma un alto fijo para
         /// la tabla; al elegir un item vuelve el formulario a su alto natural.
-        /// Mismo patrón que ProductoModal / CamionModal.
+        /// Mismo patrón que ProductoModal.
         /// </summary>
         private void AbrirSelector(CatalogoConfig cfg, Action<FiltroItem> alSeleccionar)
         {

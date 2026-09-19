@@ -17,6 +17,29 @@
                 <ResourceDictionary Source="/CapaUI;component/Resources/Styles.xaml"/>
                 <ResourceDictionary Source="/CapaUI;component/Formularios/Principal/Pantallas/Pesaje/Modales/PesajeModalStyles.xaml"/>
             </ResourceDictionary.MergedDictionaries>
+            <!-- Botón-texto sobre el fondo oscuro del modal: "Todas" / "Ninguna". -->
+            <Style x:Key="EnlaceAlcance" TargetType="Button">
+                <Setter Property="FontFamily" Value="Segoe UI"/>
+                <Setter Property="FontSize" Value="12"/>
+                <Setter Property="FontWeight" Value="SemiBold"/>
+                <Setter Property="Foreground" Value="#93C5FD"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <ContentPresenter/>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+                <Style.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="Foreground" Value="White"/>
+                    </Trigger>
+                    <Trigger Property="IsEnabled" Value="False">
+                        <Setter Property="Foreground" Value="#64748B"/>
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
         </ResourceDictionary>
     </UserControl.Resources>
 
@@ -70,7 +93,7 @@
                             <ColumnDefinition Width="14"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <Button Grid.Column="0" Height="90" Click="BtnPdf_Click" Cursor="Hand"
+                        <Button x:Name="BtnPdf" Grid.Column="0" Height="90" Click="BtnPdf_Click" Cursor="Hand"
                                 Background="#1E293B" BorderBrush="#38BDF8" BorderThickness="1.5" Padding="14">
                             <Button.Resources>
                                 <Style TargetType="Border">
@@ -83,7 +106,7 @@
                                            HorizontalAlignment="Center" Margin="0,4,0,0"/>
                             </StackPanel>
                         </Button>
-                        <Button Grid.Column="2" Height="90" Click="BtnExcel_Click" Cursor="Hand"
+                        <Button x:Name="BtnExcel" Grid.Column="2" Height="90" Click="BtnExcel_Click" Cursor="Hand"
                                 Background="#1E293B" BorderBrush="#34D399" BorderThickness="1.5" Padding="14">
                             <Button.Resources>
                                 <Style TargetType="Border">
@@ -98,18 +121,20 @@
                         </Button>
                     </Grid>
 
-                    <!-- Lista de Camiones involucrados / Selección de alcance -->
+                    <!-- Alcance: se elige por PLACA. Marcar una placa incluye todas sus
+                         recepciones (un camión con tres proveedores sale unificado); se pueden
+                         combinar varias placas en un mismo archivo. -->
                     <Border Background="#14FFFFFF" BorderBrush="#24FFFFFF" BorderThickness="1" CornerRadius="8" Padding="14,12" Margin="0,0,0,8">
                         <StackPanel>
                             <Grid Margin="0,0,0,8">
-                                <TextBlock Text="ALCANCE DEL REPORTE" FontFamily="Segoe UI" FontSize="11" FontWeight="Bold" Foreground="#A6FFFFFF"/>
-                                <CheckBox x:Name="ChkTodosCamiones" Content="Incluir todos los camiones activos" 
-                                          Foreground="#E2E8F0" FontFamily="Segoe UI" FontSize="12"
-                                          HorizontalAlignment="Right" VerticalAlignment="Center"
-                                          Checked="ChkTodosCamiones_Changed" Unchecked="ChkTodosCamiones_Changed"/>
+                                <TextBlock Text="CAMIONES A INCLUIR" FontFamily="Segoe UI" FontSize="11" FontWeight="Bold" Foreground="#A6FFFFFF" VerticalAlignment="Center"/>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                    <Button x:Name="BtnMarcarTodas" Content="Todas" Click="BtnMarcarTodas_Click" Style="{StaticResource EnlaceAlcance}" Margin="0,0,12,0"/>
+                                    <Button x:Name="BtnMarcarNinguna" Content="Ninguna" Click="BtnMarcarNinguna_Click" Style="{StaticResource EnlaceAlcance}"/>
+                                </StackPanel>
                             </Grid>
-                            
-                            <ItemsControl x:Name="LstCamiones" MaxHeight="140">
+
+                            <ItemsControl x:Name="LstPlacas" MaxHeight="180">
                                 <ItemsControl.Template>
                                     <ControlTemplate TargetType="ItemsControl">
                                         <ScrollViewer VerticalScrollBarVisibility="Auto">
@@ -120,17 +145,23 @@
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
                                         <Border Background="#14000000" BorderBrush="#1FFFFFFF" BorderThickness="1" CornerRadius="6" Padding="10,6" Margin="0,0,0,4">
-                                            <Grid>
-                                                <StackPanel Orientation="Horizontal">
-                                                    <TextBlock Text="{Binding Placa}" FontFamily="Segoe UI" FontSize="13" FontWeight="Bold" Foreground="White" Margin="0,0,10,0"/>
-                                                    <TextBlock Text="{Binding Estado}" FontFamily="Segoe UI" FontSize="11.5" Foreground="#6EE7B7" VerticalAlignment="Center"/>
-                                                </StackPanel>
-                                                <TextBlock Text="{Binding Proveedor}" HorizontalAlignment="Right" FontFamily="Segoe UI" FontSize="12" Foreground="#CBD5E1"/>
-                                            </Grid>
+                                            <CheckBox IsChecked="{Binding Incluida, Mode=TwoWay}" VerticalContentAlignment="Center" Cursor="Hand">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Text="{Binding Placa}" FontFamily="Segoe UI" FontSize="13" FontWeight="Bold" Foreground="White" Margin="4,0,12,0" VerticalAlignment="Center"/>
+                                                    <TextBlock Grid.Column="1" Text="{Binding Detalle}" ToolTip="{Binding Detalle}" FontFamily="Segoe UI" FontSize="12" Foreground="#CBD5E1"
+                                                               TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                                                </Grid>
+                                            </CheckBox>
                                         </Border>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
+
+                            <TextBlock x:Name="TxtResumenAlcance" FontFamily="Segoe UI" FontSize="12" Foreground="#A6FFFFFF" Margin="0,6,0,0" TextWrapping="Wrap"/>
                         </StackPanel>
                     </Border>
                 </StackPanel>

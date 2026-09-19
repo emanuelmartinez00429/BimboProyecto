@@ -73,7 +73,7 @@
     <Border CornerRadius="10" ClipToBounds="True">
         <Border.Effect><DropShadowEffect Color="Black" BlurRadius="24" ShadowDepth="8" Opacity="0.55"/></Border.Effect>
         <!-- Alto congelado en código (ver BuscarProveedor_Click) mientras el selector
-             de proveedor está abierto, mismo mecanismo que CamionModal. -->
+             de proveedor está abierto, mismo mecanismo que el selector de los demás modales. -->
         <Grid x:Name="RootGrid">
             <Border CornerRadius="10">
                 <Border.Background>
@@ -168,14 +168,6 @@
                                Foreground="#FECACA" TextWrapping="Wrap"/>
                 </Border>
 
-                <!-- Aviso de placa ya abierta con otro proveedor. Ámbar y no rojo: no
-                     bloquea el guardado — es el caso legítimo de un camión que trae
-                     carga de dos proveedores. Mismo par de colores que en CamionModal. -->
-                <Border DockPanel.Dock="Bottom" x:Name="PanelAviso" Background="#33D97706"
-                        CornerRadius="6" Margin="28,0,28,10" Padding="12,8" Visibility="Collapsed">
-                    <TextBlock x:Name="TxtAviso" FontFamily="Segoe UI" FontSize="12.5"
-                               Foreground="#FDE68A" TextWrapping="Wrap"/>
-                </Border>
 
                 <!-- Contenido -->
                 <DockPanel Margin="28,18,28,10">
@@ -347,7 +339,7 @@
             </DockPanel>
 
             <!-- Host del selector de catálogo (Proveedor) — reemplaza todo el
-                 contenido mientras está abierto, mismo mecanismo que CamionModal. -->
+                 contenido mientras está abierto, mismo mecanismo que el selector de los demás modales. -->
             <ContentControl x:Name="CatalogoSelectorHost" Visibility="Collapsed"/>
         </Grid>
     </Border>

@@ -31,20 +31,23 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
         IReadOnlyList<CamionPesaje> Bajas);
 
     /// <summary>
-    /// Gestión integral de los camiones del andén: muestra los camiones ya abiertos para
-    /// consultarlos o editarlos, y permite incorporar nuevos camiones al proceso de descarga.
+    /// Gestión integral de los camiones del andén: muestra las recepciones abiertas para
+    /// consultarlas o editarlas, y permite incorporar nuevas al proceso de descarga.
     /// </summary>
+    /// <remarks>
+    /// Una fila = una recepción (placa + proveedor). Un camión con carga de tres proveedores
+    /// se registra en tres filas con la misma placa. El cupo y la unicidad placa + proveedor
+    /// los decide <see cref="ReglasCamion.ValidarRecepciones"/>; la BD los vuelve a exigir.
+    /// </remarks>
     public partial class RegistroCamionesModal : UserControl, IDisposable
     {
         private readonly ICatalogoRepository _catalogos = null!;
         private System.Windows.Media.Animation.Storyboard? _spinnerGuardar;
 
         private IReadOnlyList<CamionPesaje> _camionesAbiertos = null!;
-        private IReadOnlyCollection<string> _placasAbiertas = null!;
 
         private readonly ObservableCollection<FilaCamion> _filas = new();
         private readonly List<CamionPesaje> _bajas = new();
-        private readonly string? _placaFija;
 
         private SelectorCatalogoModal? _selectorCatalogo;
         private FilaCamion? _filaDelSelector;
@@ -63,66 +66,42 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
         {
             _catalogos        = null!;
             _camionesAbiertos = null!;
-            _placasAbiertas   = null!;
             InitializeComponent();
         }
 
         public RegistroCamionesModal(
             IReadOnlyList<CamionPesaje> camionesAbiertos,
-            string? placaFija = null,
             CamionPesaje? enfocar = null)
         {
             InitializeComponent();
 
             _camionesAbiertos = camionesAbiertos;
-            _placaFija        = string.IsNullOrWhiteSpace(placaFija) ? null : placaFija.Trim().ToUpperInvariant();
-            _placasAbiertas   = PlacasDe(camionesAbiertos);
 
             _catalogos   = App.Services.GetRequiredService<ICatalogoRepository>();
             _anchoPropio = Width;
             _altoPropio  = Height;
 
             for (int i = 1; i <= PesajeViewModel.MaxCamiones; i++)
-            {
-                var f = new FilaCamion(i) { EsAlterna = i % 2 == 0 };
-                if (!string.IsNullOrEmpty(_placaFija)) f.Placa = _placaFija;
-                _filas.Add(f);
-            }
+                _filas.Add(new FilaCamion(i) { EsAlterna = i % 2 == 0 });
 
-            // Si hay placa fija, cargamos solo los camiones que pertenezcan a esa placa
-            var camionesParaCargar = !string.IsNullOrEmpty(_placaFija)
-                ? camionesAbiertos.Where(c => Normalizar(c) == _placaFija).ToList()
-                : camionesAbiertos;
-
-            // Cargar camiones existentes abiertos
-            for (int i = 0; i < camionesParaCargar.Count && i < _filas.Count; i++)
+            // Las recepciones abiertas ocupan las primeras filas. Nunca son más que el cupo
+            // (la BD no lo permite), así que todas entran en la tabla.
+            for (int i = 0; i < camionesAbiertos.Count && i < _filas.Count; i++)
             {
-                _filas[i].EstablecerOriginal(camionesParaCargar[i]);
+                _filas[i].EstablecerOriginal(camionesAbiertos[i]);
                 _filas[i].Activa = true;
             }
 
-            // Si no había ningún camión cargado, activar la primera fila para empezar a cargar
-            if (camionesParaCargar.Count == 0)
-            {
+            // Si no había ninguna, se activa la primera fila para empezar a cargar.
+            if (camionesAbiertos.Count == 0)
                 _filas[0].Activa = true;
-            }
 
             FilasHost.ItemsSource = _filas;
 
-            if (!string.IsNullOrEmpty(_placaFija))
-            {
-                TxtEyebrow.Text = $"GESTIÓN DE PROVEEDORES · VEHÍCULO {_placaFija}";
-                TxtTituloPrincipal.Text = $"Proveedores · Placa {_placaFija}";
-                TxtInstruccion.Text =
-                    $"Gestioná los proveedores asociados a la placa {_placaFija} (hasta {PesajeViewModel.MaxCamiones} proveedores). " +
-                    "No se puede agregar el mismo proveedor dos veces a la misma placa.";
-            }
-            else
-            {
-                TxtInstruccion.Text =
-                    $"Gestioná los camiones del andén o registrá nuevas descargas (hasta " +
-                    $"{PesajeViewModel.MaxCamiones} camiones en total). La placa y el proveedor son obligatorios.";
-            }
+            TxtInstruccion.Text =
+                $"Gestioná los camiones del andén o registrá nuevas descargas (hasta " +
+                $"{PesajeViewModel.MaxCamiones} en total). Si un camión trae carga de varios " +
+                "proveedores, registralo una vez por proveedor con la misma placa.";
 
             ActualizarContadores();
 
@@ -144,13 +123,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
 
         private int Ocupadas => _filas.Count(f => f.Activa);
 
-        private static string Normalizar(CamionPesaje c) => (c.Placa ?? "").Trim().ToUpperInvariant();
-
-        private static IReadOnlyCollection<string> PlacasDe(IEnumerable<CamionPesaje> camiones) => camiones
-            .Select(Normalizar)
-            .Where(p => p.Length > 0)
-            .Distinct(StringComparer.Ordinal)
-            .ToList();
+        private static string Normalizar(CamionPesaje c) => ReglasCamion.NormalizarPlaca(c.Placa);
 
         // ── Auto-enfoque y tabulación ───────────────────────────────────────────
 
@@ -221,11 +194,6 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
             if (libre is null) return;
 
             libre.Activa = true;
-            if (!string.IsNullOrEmpty(_placaFija))
-            {
-                libre.Placa = _placaFija;
-                if (libre.CajaPlaca != null) libre.CajaPlaca.Text = _placaFija;
-            }
             ActualizarContadores();
 
             EnfocarFila(libre);
@@ -245,7 +213,6 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
             else               CompactarDesde(fila);
 
             LimpiarMarcasDeError();
-            RevisarPlacas();
             ActualizarContadores();
         }
 
@@ -274,7 +241,6 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
         public void AplicarGuardadoParcial(int guardadas, IReadOnlyList<CamionPesaje> camionesAbiertos)
         {
             _camionesAbiertos = camionesAbiertos;
-            _placasAbiertas   = PlacasDe(camionesAbiertos);
 
             var primerNueva = _filas.FirstOrDefault(f => f.Activa && !f.EsExistente);
             for (int i = 0; i < guardadas && primerNueva != null; i++)
@@ -286,7 +252,6 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
             if (Ocupadas == 0) _filas[0].Activa = true;
 
             LimpiarMarcasDeError();
-            RevisarPlacas();
             ActualizarContadores();
         }
 
@@ -298,7 +263,8 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
 
             _filaDelSelector = fila;
 
-            string placaDeFila = (fila.PlacaNormalizada.Length > 0 ? fila.PlacaNormalizada : _placaFija) ?? "";
+            // R5: el selector atenúa los proveedores que esa placa ya tiene abiertos.
+            string placaDeFila = fila.PlacaNormalizada;
             var idsYaElegidos = new HashSet<int>();
 
             foreach (var c in _camionesAbiertos)
@@ -315,8 +281,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
             {
                 if (f.Activa && !ReferenceEquals(f, fila) && f.IdProveedor.HasValue && f.IdProveedor.Value > 0)
                 {
-                    string fPlaca = (f.PlacaNormalizada.Length > 0 ? f.PlacaNormalizada : _placaFija) ?? "";
-                    if (fPlaca == placaDeFila)
+                    if (f.PlacaNormalizada == placaDeFila)
                     {
                         idsYaElegidos.Add(f.IdProveedor.Value);
                     }
@@ -335,7 +300,6 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
                 destino.Proveedor   = item.Nombre;
                 if (destino.CajaProveedor is not null) destino.CajaProveedor.Text = item.Nombre;
 
-                RevisarPlacas();
                 ActualizarContadores();
             };
 
@@ -427,7 +391,6 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
             }
 
             if (caja.DataContext is FilaCamion fila) fila.Placa = arriba;
-            RevisarPlacas();
             ActualizarContadores();
         }
 
@@ -447,29 +410,6 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
             caja.ScrollToHome();
         }
 
-        private void RevisarPlacas()
-        {
-            var avisos = new List<string>();
-
-            foreach (var fila in _filas.Where(f => f.Activa && f.PlacaNormalizada.Length > 0))
-            {
-                var otra = _camionesAbiertos.FirstOrDefault(c =>
-                    c.Id != fila.CamionOriginal?.Id &&
-                    !_bajas.Any(b => b.Id == c.Id) &&
-                    Normalizar(c) == fila.PlacaNormalizada &&
-                    c.IdProveedor != fila.IdProveedor);
-
-                if (otra is not null)
-                    avisos.Add($"La placa {fila.PlacaNormalizada} ya está abierta con {otra.Proveedor}.");
-            }
-
-            if (avisos.Count == 0) { PanelAviso.Visibility = Visibility.Collapsed; return; }
-
-            TxtAviso.Text = string.Join(" ", avisos.Distinct()) +
-                            " Se registrará una recepción aparte para el proveedor que elijas.";
-            PanelAviso.Visibility = Visibility.Visible;
-        }
-
         private void ActualizarContadores()
         {
             int ocupadas = Ocupadas;
@@ -486,22 +426,30 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
 
             BtnAgregarFila.IsEnabled = ocupadas < PesajeViewModel.MaxCamiones;
 
-            int cupo = PesajeViewModel.MaxCamiones - _filas.Where(f => f.Activa && f.EsExistente).Select(f => f.PlacaNormalizada).Distinct(StringComparer.Ordinal).Count();
-            int placasNuevas = PlacasNuevas().Count;
-
-            if (placasNuevas > cupo)
-                MostrarError($"Ya hay {_camionesAbiertos.Count - _bajas.Count} camión(es) en el andén y solo quedan " +
-                             $"{Math.Max(0, cupo)} lugar(es) libres; estás registrando {placasNuevas} placas distintas.");
-            else
-                PanelError.Visibility = Visibility.Collapsed;
+            // El cupo no se puede pasar desde acá: la tabla tiene exactamente MaxCamiones filas.
+            // Las reglas entre filas (duplicados) se reportan al guardar; mientras el operador
+            // edita, el error del intento anterior deja de aplicar.
+            PanelError.Visibility = Visibility.Collapsed;
         }
 
-        private List<string> PlacasNuevas() => _filas
-            .Where(f => f.Activa && !f.EsExistente && f.PlacaNormalizada.Length > 0)
-            .Select(f => f.PlacaNormalizada)
-            .Distinct(StringComparer.Ordinal)
-            .Where(p => !_placasAbiertas.Contains(p))
-            .ToList();
+        /// <summary>
+        /// R4 + R5 sobre lo que quedaría abierto después de guardar: las filas activas
+        /// reemplazan a su recepción original, y las bajas dejan de contar.
+        /// </summary>
+        private IReadOnlyList<string> ErroresDeReglas()
+        {
+            var propuestas = _filas
+                .Where(f => f.Activa)
+                .Select(f => new ReglasCamion.RecepcionClave(f.CamionOriginal?.Id, f.PlacaNormalizada, f.IdProveedor ?? 0, f.Numero))
+                .ToList();
+
+            var abiertas = _camionesAbiertos
+                .Where(c => !_bajas.Any(b => b.Id == c.Id))
+                .Select(c => new ReglasCamion.RecepcionClave(c.Id, c.Placa, c.IdProveedor ?? 0))
+                .ToList();
+
+            return ReglasCamion.ValidarRecepciones(abiertas, propuestas);
+        }
 
         // ── Guardado ────────────────────────────────────────────────────────────
 
@@ -548,12 +496,10 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
             foreach (var fila in activas)
                 if (fila.Validador is not null && !fila.Validador.Validar()) return;
 
-            if (!SinDuplicados(activas)) return;
-
-            int cupo = PesajeViewModel.MaxCamiones - _filas.Where(f => f.Activa && f.EsExistente).Select(f => f.PlacaNormalizada).Distinct(StringComparer.Ordinal).Count();
-            if (PlacasNuevas().Count > cupo)
+            var errores = ErroresDeReglas();
+            if (errores.Count > 0)
             {
-                ActualizarContadores();
+                MostrarError(errores[0]);
                 return;
             }
 
@@ -587,39 +533,6 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
             {
                 MostrarGuardando(false);
             }
-        }
-
-        private bool SinDuplicados(IReadOnlyList<FilaCamion> activas)
-        {
-            var vistas = new HashSet<(string, int)>();
-
-            foreach (var fila in activas)
-            {
-                var clave = (fila.PlacaNormalizada, fila.IdProveedor!.Value);
-
-                if (!vistas.Add(clave))
-                {
-                    MostrarError($"El camión {fila.Numero} repite la placa {fila.PlacaNormalizada} " +
-                                 $"con el mismo proveedor ({fila.Proveedor}). Quitá la fila repetida " +
-                                 "o cambiale el proveedor.");
-                    fila.CajaPlaca?.Focus();
-                    return false;
-                }
-
-                if (_camionesAbiertos.Any(c => c.Id != fila.CamionOriginal?.Id &&
-                                               !_bajas.Any(b => b.Id == c.Id) &&
-                                               Normalizar(c) == fila.PlacaNormalizada &&
-                                               c.IdProveedor == fila.IdProveedor))
-                {
-                    MostrarError($"La placa {fila.PlacaNormalizada} ya tiene una recepción abierta con " +
-                                 $"{fila.Proveedor}. Agregale los productos a esa recepción en vez de " +
-                                 "registrarla de nuevo.");
-                    fila.CajaPlaca?.Focus();
-                    return false;
-                }
-            }
-
-            return true;
         }
 
         private void MostrarError(string mensaje)
@@ -666,11 +579,14 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
             public int?    IdProveedor { get; set; }
             public string  Descripcion { get; set; } = "";
 
-            private string _placaOriginal       = "";
-            private int?   _idProveedorOriginal;
-            private string _descripcionOriginal = "";
+            /// <summary>Campos editables de una recepción existente; el tracker compara por valor.</summary>
+            private sealed record Snapshot(string Placa, int? IdProveedor, string Descripcion);
 
-            public string PlacaNormalizada => Placa.Trim().ToUpperInvariant();
+            private ChangeTracker<Snapshot>? _tracker;
+
+            private Snapshot Actual => new(PlacaNormalizada, IdProveedor, Descripcion.Trim());
+
+            public string PlacaNormalizada => ReglasCamion.NormalizarPlaca(Placa);
 
             public TextBox? CajaPlaca       { get; set; }
             public TextBox? CajaProveedor   { get; set; }
@@ -685,17 +601,10 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
                 Proveedor            = c.Proveedor ?? "";
                 IdProveedor          = c.IdProveedor;
                 Descripcion          = c.Observaciones ?? "";
-
-                _placaOriginal       = (c.Placa ?? "").Trim().ToUpperInvariant();
-                _idProveedorOriginal = c.IdProveedor;
-                _descripcionOriginal = (c.Observaciones ?? "").Trim();
+                _tracker             = ChangeTracker.Create(Actual);
             }
 
-            public bool Modificada => EsExistente && (
-                !string.Equals(PlacaNormalizada, _placaOriginal, StringComparison.Ordinal) ||
-                IdProveedor != _idProveedorOriginal ||
-                !string.Equals(Descripcion.Trim(), _descripcionOriginal, StringComparison.Ordinal)
-            );
+            public bool Modificada => EsExistente && _tracker is not null && _tracker.IsDirty(Actual);
 
             public void SembrarSiHaceFalta(TextBox caja)
             {
@@ -721,9 +630,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
             {
                 Activa               = otra.Activa;
                 CamionOriginal       = otra.CamionOriginal;
-                _placaOriginal       = otra._placaOriginal;
-                _idProveedorOriginal = otra._idProveedorOriginal;
-                _descripcionOriginal = otra._descripcionOriginal;
+                _tracker             = otra._tracker;
 
                 Placa       = otra.Placa;
                 Proveedor   = otra.Proveedor;
@@ -738,9 +645,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
             public void Limpiar()
             {
                 CamionOriginal       = null;
-                _placaOriginal       = "";
-                _idProveedorOriginal = null;
-                _descripcionOriginal = "";
+                _tracker             = null;
 
                 Placa       = "";
                 Proveedor   = "";

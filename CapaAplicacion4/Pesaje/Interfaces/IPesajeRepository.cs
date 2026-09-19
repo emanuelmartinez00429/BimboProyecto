@@ -35,7 +35,6 @@ public interface IPesajeRepository
 {
     // ── Camiones (movimientos) ──────────────────────────────────────────────
     Task<Result<IReadOnlyList<CamionDto>>> GetCamionesActivosAsync(CancellationToken ct = default);
-    Task<Result<int>> CrearCamionAsync(int idProveedor, string placa, string observaciones, int idUsuario, CancellationToken ct = default);
 
     /// <summary>
     /// Registra de forma atómica (en una sola transacción en el servidor) un lote de camiones.

@@ -10,6 +10,7 @@ using System.Windows.Media.Animation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
 using CapaAplicacion.Common.Catalogos;
+using CapaDominio.Reglas;
 using CapaDominio.Reportes;
 using CapaUI.Converters;
 using CapaUI.Core.Permisos;
@@ -92,7 +93,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
                 // Si al entrar no hay camiones en el andén, abrir el registro de camión automáticamente
                 if (_vm.Camiones.Count == 0 && SesionPermisos.Tiene(Permiso.RegistrarEntrada) && ModalOverlay.Visibility != Visibility.Visible)
                 {
-                    AbrirCamionModal(null, soloPlaca: false);
+                    AbrirRegistroCamionesModal();
                 }
             }
             catch (OperationCanceledException)
@@ -178,13 +179,6 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             BtnCamionAgregar.IsEnabled   = _vm.PuedeAgregarCamion;
             BtnCamionEditar.IsEnabled    = hayCamion && !cerrado;
             BtnCamionCerrar.IsEnabled     = hayCamion && !cerrado;
-            // Con la placa compartida el botón cierra UNA recepción, no el camión: el
-            // camión sigue en el andén hasta que se cierre la del otro proveedor. Cada
-            // recepción se recibe y se firma por separado, así que cerrar de a una es
-            // lo correcto — solo hay que decirlo bien.
-            TxtBtnCamionCerrar.Text = _vm.SelectedCamion?.PlacaCompartida == true
-                ? "Cerrar recepción"
-                : "Cerrar camión";
             // El reporte se puede reimprimir aunque el camión ya esté cerrado — ya
             // no depende de cerrarlo, así que su único requisito es tener uno seleccionado.
             BtnImprimirReporte.IsEnabled = hayCamion;
@@ -371,73 +365,24 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             _spinnerCarga = null;
         }
 
-        // ── Selección y eventos de Camiones y Proveedores ─────────────────────
-        private async void GrupoCamion_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        // ── Selección y eventos de la tabla de Camiones ───────────────────────
+        // Una fila = una recepción (placa + proveedor). El VM manda: la grilla solo
+        // avisa qué fila tocó el operador, y el binding OneWay de SelectedItem la
+        // vuelve a marcar cuando el VM recarga.
+        private async void DgCamiones_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (_sync || _vm == null) return;
-            if (sender is FrameworkElement fe && fe.Tag is GrupoCamionPesaje grupo)
-            {
-                if (e.ClickCount == 2)
-                {
-                    var camion = grupo.Recepciones.FirstOrDefault();
-                    if (camion != null && !_vm.CamionCerrado)
-                        AbrirCamionModal(camion, soloPlaca: true);
-                    return;
-                }
-
-                var target = _vm.SelectedCamion != null && grupo.Recepciones.Contains(_vm.SelectedCamion)
-                    ? _vm.SelectedCamion
-                    : grupo.Recepciones.FirstOrDefault();
-                if (target != null)
-                {
-                    await _vm.SeleccionarCamionAsync(target);
-                }
-            }
-        }
-
-        private async void RecepcionProveedor_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
-        {
-            if (_sync || _vm == null) return;
-            if (sender is FrameworkElement fe && fe.Tag is CamionPesaje camion)
-            {
-                if (e.ClickCount == 2)
-                {
-                    if (!_vm.CamionCerrado)
-                        AbrirRegistroCamionesModal(placaFija: camion.Placa, enfocar: camion);
-                    return;
-                }
-
+            if (DgCamiones.SelectedItem is CamionPesaje camion && !ReferenceEquals(camion, _vm.SelectedCamion))
                 await _vm.SeleccionarCamionAsync(camion);
-            }
         }
 
-        private void BtnQuitarGrupo_Click(object sender, RoutedEventArgs e)
+        /// <summary>Doble clic en una fila abre la edición de camiones parada en esa recepción.</summary>
+        private void DgCamiones_DoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
-            if (!SesionPermisos.Tiene(Permiso.CancelarPesaje)) return;
-            if (sender is not Button b || b.Tag is not GrupoCamionPesaje grupo) return;
-            if (!grupo.PuedeQuitar) return;
-
-            string mensaje = grupo.EsPlacaVacia
-                ? $"¿Retirar la placa {grupo.Placa} de la lista?"
-                : $"¿Quitar el camión {grupo.Placa} y todas sus recepciones asociadas?";
-
-            var confirmar = MessageBox.Show(
-                mensaje,
-                "Quitar camión",
-                MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No);
-            if (confirmar != MessageBoxResult.Yes) return;
-
-            _ = QuitarGrupoFlujo(grupo);
-        }
-
-        private async Task QuitarGrupoFlujo(GrupoCamionPesaje grupo)
-        {
-            var vm = _vm;
-            if (vm == null) return;
-            await vm.QuitarCamionCompletoAsync(grupo);
-            if (!ReferenceEquals(_vm, vm)) return;
-            SincronizarSeleccion();
-            ActualizarUI();
+            if (ItemsControl.ContainerFromElement(DgCamiones, e.OriginalSource as DependencyObject) is not DataGridRow fila) return;
+            if (fila.Item is not CamionPesaje camion || camion.Estado != "Abierto") return;
+            if (SesionPermisos.Tiene(Permiso.ModificarPesaje))
+                AbrirRegistroCamionesModal(enfocar: camion);
         }
 
         private void BtnQuitarRecepcion_Click(object sender, RoutedEventArgs e)
@@ -723,22 +668,21 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             var cerradas = await vm.CerrarTodosAsync();
             if (!ReferenceEquals(_vm, vm)) return;
             ActualizarUI();
-            if (cerradas.Count > 0) AbrirReporte(cerradas);
+            if (cerradas.Count > 0) AbrirReporte(cerradas.Select(c => c.Placa));
         }
 
-        /// <summary>Alta de camiones: abre el modal para registrar placa y proveedor inicial.</summary>
+        /// <summary>Alta de camiones: abre la tabla de registro (hasta completar el cupo).</summary>
         private void BtnNuevoProceso_Click(object sender, RoutedEventArgs e)
         {
             if (SesionPermisos.Tiene(Permiso.RegistrarEntrada))
-                AbrirCamionModal(null, soloPlaca: false);
+                AbrirRegistroCamionesModal();
         }
 
-        /// <summary>Edita los datos del camión o sus proveedores asociados.
-        /// Abre RegistroCamionesModal enfocado en ese camión y placa.</summary>
+        /// <summary>Edita las recepciones abiertas; el modal abre parado en la seleccionada.</summary>
         private void BtnEditarProceso_Click(object sender, RoutedEventArgs e)
         {
             if (SesionPermisos.Tiene(Permiso.ModificarPesaje) && _vm.SelectedCamion != null && !_vm.CamionCerrado)
-                AbrirRegistroCamionesModal(placaFija: _vm.SelectedCamion.Placa, enfocar: _vm.SelectedCamion);
+                AbrirRegistroCamionesModal(enfocar: _vm.SelectedCamion);
         }
 
         /// <summary>
@@ -755,12 +699,13 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
         }
 
         /// <summary>
-        /// Abre el reporte del camión seleccionado, esté abierto o cerrado — antes
-        /// esto solo pasaba como efecto secundario de cerrarlo con "Descargar".
+        /// Abre el reporte con la placa seleccionada ya marcada — entran TODAS sus
+        /// recepciones (un camión con tres proveedores sale unificado). En el modal se
+        /// pueden sumar otras placas o todas.
         /// </summary>
         private void BtnImprimirReporte_Click(object sender, RoutedEventArgs e)
         {
-            if (_vm.SelectedCamion is { } camion) AbrirReporte(new List<CamionPesaje> { camion });
+            if (_vm.SelectedCamion is { } camion) AbrirReporte(new[] { camion.Placa });
         }
 
         // ── Productos ────────────────────────────────────────────────────────
@@ -899,74 +844,13 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
         //  Modales
         // ══════════════════════════════════════════════════════════════════════
         /// <summary>
-        /// Tabla de alta del proceso de descarga: hasta
-        /// <summary>
-        /// Gestión integral de los camiones del andén: muestra los camiones ya abiertos para
-        /// consultarlos o editarlos, y permite incorporar nuevos camiones al proceso de descarga.
+        /// Gestión de los camiones del andén en una tabla: altas, ediciones y bajas de
+        /// recepciones. <paramref name="enfocar"/> decide en qué fila arranca el cursor.
         /// </summary>
-        /// <summary>
-        /// Abre el modal de camión para alta (placa + proveedor inicial) o para edición
-        /// de vehículo/placa física (soloPlaca: true).
-        /// </summary>
-        private void AbrirCamionModal(CamionPesaje? camion = null, bool soloPlaca = false)
+        private void AbrirRegistroCamionesModal(CamionPesaje? enfocar = null)
         {
             var abiertos = _vm.Camiones.Where(c => c.Estado == "Abierto").ToList();
-            var modal = new CamionModal(camion, abiertos, soloPlaca);
-
-            modal.Cerrado += CerrarModal;
-
-            if (soloPlaca && camion != null)
-            {
-                modal.ConfirmadoPlaca += async resultado =>
-                {
-                    bool ok = await _vm.ActualizarPlacaCamionAsync(camion.Id, resultado.Placa, resultado.Observaciones);
-                    if (!ok) return;
-
-                    CerrarModal();
-                    SincronizarSeleccion();
-                    ActualizarUI();
-                };
-            }
-            else
-            {
-                modal.Confirmado += async resultado =>
-                {
-                    if (camion == null)
-                    {
-                        if (!resultado.IdProveedor.HasValue) return;
-                        var lote = new List<(string Placa, int IdProveedor, string Descripcion)>
-                        {
-                            (resultado.Placa, resultado.IdProveedor.Value, resultado.Observaciones)
-                        };
-                        int creados = await _vm.RegistrarCamionesAsync(lote);
-                        if (creados > 0)
-                        {
-                            CerrarModal();
-                            SincronizarSeleccion();
-                            ActualizarUI();
-                        }
-                    }
-                    else
-                    {
-                        bool ok = await _vm.GuardarCamionAsync(
-                            camion, resultado.Placa, resultado.Proveedor, resultado.IdProveedor, resultado.Observaciones);
-                        if (ok)
-                        {
-                            CerrarModal();
-                            SincronizarSeleccion();
-                            ActualizarUI();
-                        }
-                    }
-                };
-            }
-
-            MostrarModal(modal);
-        }
-
-        private void AbrirRegistroCamionesModal(string? placaFija = null, CamionPesaje? enfocar = null)
-        {
-            var abiertos = _vm.Camiones.Where(c => c.Estado == "Abierto").ToList();
-            var modal = new RegistroCamionesModal(abiertos, placaFija, enfocar);
+            var modal = new RegistroCamionesModal(abiertos, enfocar);
 
             modal.Cerrado += CerrarModal;
             modal.Confirmado += async cambios =>
@@ -980,7 +864,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
                 // 2. Modificaciones a camiones existentes
                 foreach (var edit in cambios.Cambios)
                 {
-                    bool ok = await _vm.GuardarCamionAsync(edit.Camion, edit.Placa, edit.Proveedor, edit.IdProveedor, edit.Descripcion);
+                    bool ok = await _vm.GuardarCamionAsync(edit.Camion, edit.Placa, edit.IdProveedor, edit.Descripcion);
                     if (!ok) return false;
                 }
 
@@ -1094,10 +978,13 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             MostrarModal(modal);
         }
 
-        private void AbrirReporte(List<CamionPesaje> camiones)
+        /// <summary>
+        /// El reporte se elige por placa: <paramref name="placasMarcadas"/> llegan tildadas
+        /// y el operador puede sumar o quitar otras antes de exportar.
+        /// </summary>
+        private void AbrirReporte(IEnumerable<string> placasMarcadas)
         {
-            var todos = _vm.Camiones.ToList();
-            var modal = new ReporteModal(camiones, todos);
+            var modal = new ReporteModal(_vm.Camiones.ToList(), placasMarcadas);
             modal.Cerrado += CerrarModal;
             modal.FormatoSeleccionado += async (formato, listaCamiones) =>
             {
@@ -1110,8 +997,9 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
         private async Task ElegirRutaYGenerarReporteAsync(ReportFormat formato, List<CamionPesaje> camiones)
         {
             string extension = formato == ReportFormat.Pdf ? ".pdf" : ".xlsx";
-            string nombreSugerido = camiones.Count == 1
-                ? $"Pesaje_Camion_{camiones[0].Placa}_{DateTime.Now:yyyyMMdd_HHmmss}{extension}"
+            var placas = camiones.Select(c => ReglasCamion.NormalizarPlaca(c.Placa)).Distinct().ToList();
+            string nombreSugerido = placas.Count == 1
+                ? $"Pesaje_Camion_{placas[0]}_{DateTime.Now:yyyyMMdd_HHmmss}{extension}"
                 : $"Pesaje_Insumos_BES_{DateTime.Now:yyyyMMdd_HHmmss}{extension}";
 
             var dialog = new Microsoft.Win32.SaveFileDialog
@@ -1155,7 +1043,6 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
         {
             if (_vm == null) return;
             _sync = true;
-            _vm.ActualizarSeleccionGrupos();
             if (_vm.SelectedProducto != null) DgProductos.SelectedItem = _vm.SelectedProducto;
             _sync = false;
         }

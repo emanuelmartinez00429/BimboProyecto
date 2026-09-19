@@ -169,6 +169,69 @@ public static class ReglasCamion
 
     // Columna: observaciones (varchar 500) — «Descripción» en la pantalla de registro
     public static readonly ReglaCampo Descripcion = new(LargoMaximo: 500);
+
+    // ── Reglas entre filas (R4/R5) ──────────────────────────────────────────
+    // Una fila de movimientos = una placa + un proveedor. Un camión con carga de tres
+    // proveedores son tres recepciones con la misma placa. La BD aplica lo mismo en el
+    // trigger trg_validar_recepcion_movimiento
+    // (20260918194910_regla_recepciones_abiertas_camiones.sql) — si cambia el tope,
+    // cambia en los dos lados.
+
+    /// <summary>Tope de recepciones abiertas a la vez, contadas por fila (no por placa).</summary>
+    public const int MaxRecepcionesAbiertas = 5;
+
+    /// <summary>Forma canónica de la placa para comparar y guardar: sin espacios y en mayúsculas.</summary>
+    public static string NormalizarPlaca(string? placa) => (placa ?? string.Empty).Trim().ToUpperInvariant();
+
+    /// <summary>
+    /// Clave de una recepción para las reglas entre filas. <paramref name="Id"/> es null en
+    /// una fila nueva; en una editada es su id, para que no choque consigo misma.
+    /// <paramref name="Fila"/> es el número que ve el operador ("el camión 3").
+    /// </summary>
+    public sealed record RecepcionClave(int? Id, string Placa, int IdProveedor, int Fila = 0);
+
+    /// <summary>
+    /// Valida el cupo (R4) y la unicidad placa + proveedor (R5) de lo que quedaría abierto.
+    /// </summary>
+    /// <param name="abiertas">Recepciones abiertas en la base que no se tocan en esta operación.</param>
+    /// <param name="propuestas">Filas nuevas o editadas que se quieren guardar.</param>
+    /// <returns>Mensajes de error para el operador; vacío si todo es válido.</returns>
+    public static IReadOnlyList<string> ValidarRecepciones(
+        IReadOnlyCollection<RecepcionClave> abiertas,
+        IReadOnlyCollection<RecepcionClave> propuestas)
+    {
+        var errores = new List<string>();
+
+        // Las editadas reemplazan a su versión abierta: no ocupan un segundo lugar ni chocan consigo mismas.
+        var idsPropuestos = propuestas.Where(p => p.Id.HasValue).Select(p => p.Id!.Value).ToHashSet();
+        var intactas = abiertas.Where(a => !(a.Id.HasValue && idsPropuestos.Contains(a.Id.Value))).ToList();
+
+        int total = intactas.Count + propuestas.Count;
+        if (total > MaxRecepcionesAbiertas)
+            errores.Add($"Solo puede haber {MaxRecepcionesAbiertas} camiones abiertos a la vez; quedarían {total}.");
+
+        var vistas = new Dictionary<(string, int), RecepcionClave>();
+        foreach (var a in intactas)
+            vistas.TryAdd((NormalizarPlaca(a.Placa), a.IdProveedor), a);
+
+        foreach (var p in propuestas)
+        {
+            var clave = (NormalizarPlaca(p.Placa), p.IdProveedor);
+            if (string.IsNullOrEmpty(clave.Item1) || p.IdProveedor <= 0)
+                continue; // placa/proveedor vacíos los reporta la regla de campo, no esta
+
+            if (vistas.TryGetValue(clave, out var previa))
+            {
+                errores.Add(previa.Id.HasValue && !idsPropuestos.Contains(previa.Id.Value)
+                    ? $"El camión {p.Fila}: la placa {clave.Item1} ya tiene una recepción abierta con ese proveedor."
+                    : $"El camión {p.Fila} repite la placa {clave.Item1} con el mismo proveedor que el camión {previa.Fila}.");
+                continue;
+            }
+            vistas.Add(clave, p);
+        }
+
+        return errores;
+    }
 }
 
 /// <summary>

@@ -120,6 +120,25 @@ Durante la primera carga se muestra un indicador "Cargando camiones en proceso d
 >
 > Regla general: cualquier "estado vacío" derivado de una colección que se llena por red tiene que distinguir **"vacío porque no hay nada"** de **"vacío porque todavía no cargó"**. Detectado y corregido el 2026-07-26.
 
+### Tabla de camiones — una fila por recepción (2026-09-18)
+
+> [!important] Ya no se agrupa por placa
+> El panel «Camiones de Entrega» es un `DataGrid` plano (`DgCamiones`): **# · PLACA · PROVEEDOR · KG · ESTADO · 🗑**, y **una fila = una recepción** (placa + proveedor), igual que en `movimientos`. Un camión con carga de tres proveedores se registra **tres veces con la misma placa**. Cada fila muestra su propio KG manifestado; no hay total por placa. La agrupación visual por placa (2026-09-11 a 2026-09-16: `GrupoCamionPesaje`, `EsPlacaVacia`, modo `soloPlaca`, propagar la placa con N updates) se retiró entera. Decisión en [[ADR-029 - Recepciones de pesaje planas con reglas en trigger de tabla]]; detalle en [[Sesión 2026-09-18 - Camiones en tabla plana y reglas de recepción en BD]].
+
+| # | Regla | Dónde |
+|---|---|---|
+| R1 | La placa es obligatoria, de 20 caracteres como máximo, y se guarda normalizada (`upper(trim)`) | `ReglasCamion` · `ValidadorFormulario` · trigger |
+| R2 | El proveedor es obligatorio y debe estar activo | `ReglasCamion` · RPC |
+| R3 | La descripción tiene 500 caracteres como máximo | `ReglasCamion` · `varchar(500)` |
+| R4 | **Como máximo 5 recepciones abiertas, contadas por fila** | `ReglasCamion.MaxRecepcionesAbiertas` · trigger con `pg_advisory_xact_lock` |
+| R5 | Placa + proveedor únicos entre las abiertas; **misma placa con otro proveedor sí**, sin aviso | `ReglasCamion.ValidarRecepciones` · trigger · índice `ux_movimientos_abierto_placa_proveedor` |
+| R6 | Editar cambia **solo esa fila** (`ChangeTracker`; sin cambios, no hay red) | `RegistroCamionesModal` · RPC + trigger |
+| R7 | Quitar solo si la recepción no tiene productos | basurero deshabilitado · trigger |
+| R8 | Cerrar cierra solo la fila seleccionada | RPC `cambiar_estado_movimiento_…` |
+| R9 | El reporte se elige **por placa** (todas sus recepciones) y sale en un solo archivo | `ReporteModal` · `GenerarReportePesajesAsync` |
+
+La BD aplica R1, R4, R5 y R7 en el trigger `trg_validar_recepcion_movimiento` (migración `20260918194910_regla_recepciones_abiertas_camiones`), así que también se cumplen con dos terminales a la vez. El mensaje del trigger ya está escrito para el operador: `PesajeRepository.ConMensajeDelServidor` lo desenvuelve del JSON de PostgREST.
+
 ### Proceso de descarga — alta en tabla, edición de a uno
 
 > [!warning] `ProcesoDescargaModal` ya no existe
@@ -129,9 +148,10 @@ Hoy el camión y sus productos son dos caminos separados:
 
 | Componente | Qué hace | Se abre desde |
 |---|---|---|
-| `Modales/RegistroCamionesModal` | **Alta de hasta 5 camiones de una vez**, en tabla | Estado vacío / "Nueva descarga" |
-| `Modales/CamionModal` | Edición de **un** camión (placa, proveedor, observaciones) | "Editar proceso" |
-| `Modales/ProductoCamionModal` | Agregar/editar **un** producto del camión | Panel de Movimiento |
+| `Modales/RegistroCamionesModal` | **Altas, ediciones y bajas** de hasta 5 recepciones, en tabla | Estado vacío · «Agregar» · «Editar» · doble clic en una fila |
+| `Modales/ProductosCargaModal` | La carga entera de la recepción (altas, cambios y bajas de productos) | Panel de Movimiento |
+
+`CamionModal` se eliminó el 2026-09-18: el alta y la edición pasan por `RegistroCamionesModal`.
 
 #### Alta múltiple (2026-09-05)
 
@@ -145,15 +165,10 @@ En el andén los camiones llegan juntos, así que darlos de alta de a uno signif
 > [!bug] Al compactar se decide por posición, no por estado
 > La fila que hay que vaciar al final es la **última de la colección**, no `Last(f => f.Activa)`. El bucle que sube los valores también copia el flag de ocupada, así que preguntar después por "la última ocupada" devuelve una fila que el propio bucle ya liberó — y borra un camión que el operador sí quería. Se detectó en producción de pruebas el 2026-09-05: borrar el camión 3 borraba también el 2. Ver [[Sesión 2026-09-05 - Alta múltiple de camiones y topes de texto en movimientos]].
 
-Tres reglas que el validador de campo no cubre y viven en el modal:
+Las reglas entre filas (cupo R4 y duplicados R5) ya no viven en el modal: las decide `ReglasCamion.ValidarRecepciones` al guardar (ver la tabla de arriba). Las altas se guardan con la RPC transaccional `registrar_camiones_lote_seguro` ([[Deuda Técnica - Pendientes|P-053]], resuelto); si el lote falla no se guarda nada.
 
-1. **Cupo** — se cuenta por **placa distinta**, no por fila: dos filas con la misma placa (un camión con dos proveedores) ocupan un solo lugar.
-2. **Duplicado interno** — misma placa + mismo proveedor en dos filas.
-3. **Duplicado contra lo abierto** — esa placa ya tiene recepción abierta con ese proveedor.
-
-El aviso ámbar de "placa ya abierta con otro proveedor" informa pero **no** bloquea: es el caso legítimo del camión con carga de dos proveedores.
-
-El guardado son N INSERT sueltos **sin transacción** ([[Deuda Técnica - Pendientes|P-053]]): si se corta a mitad se informa cuántos entraron y el modal se descuenta las filas ya persistidas.
+> [!note] Historial
+> Hasta el 2026-09-18 el cupo se contaba por **placa distinta** y había un aviso ámbar de «placa ya abierta con otro proveedor». Las dos cosas se retiraron con la tabla plana.
 
 > [!important] Regla de borrado de productos
 > Un producto **con pesajes registrados no se puede quitar** (botón deshabilitado + tooltip). Uno agregado por error y sin pesar, sí. Doble guarda: binding + chequeo en el handler.
@@ -189,11 +204,11 @@ Captura el **peso bruto** y, opcionalmente, la **tara extra de esa pesada**. Tod
 > Hasta esta fecha, guardar una pesada disparaba 4–5 round trips (INSERT + recargar el camión entero) y cerraba el modal — "Seguir pesando" no seguía pesando. Se redujo a 1–2 round trips aplicando en memoria el `EntradaDto` que ya devuelve el propio INSERT (el trigger es `BEFORE INSERT`), y el modal ahora se limpia y queda abierto para la siguiente tarima, con guarda de reentrada y estado "Guardando…" visible. Patrón completo en [[Guardado sin Refetch - Aplicar en memoria la respuesta del servidor]]; detalle de la sesión en [[Sesión 2026-08-20 - Guardado de pesajes sin refetch]].
 
 ### Reportes de Pesaje — "Pesado de Insumos BES" (Fase 9 / 2026-08-21)
-El botón **«Imprimir reporte»** (y el cierre de camión) abre `ReporteModal` permitiendo generar el reporte institucional en **PDF** y **Excel** (.xlsx):
+El botón **«Imprimir reporte»** (y «Cerrar todos») abre `ReporteModal` permitiendo generar el reporte institucional en **PDF** y **Excel** (.xlsx):
 - **Consolidación por producto:** Las distintas pesadas de un mismo producto en el camión se consolidan en una sola fila.
 - **Cálculo de diferencias:** `Diferencia (KG) = Peso Recibido (Neto) - Peso Manifestado` y `Diferencia (%) = ((Peso Recibido - Peso Manifestado) / Peso Manifestado) * 100`.
 - **Columnas estándar (Figura 28):** `FECHA ASIG.`, `PLACA`, `PRODUCTO`, `PROVEEDOR`, `BULTOS (APROX)`, `PESO MANIFESTADO`, `PESO BRUTO`, `PESO TARA`, `PESO RECIBIDO`, `DIF. (KG)`, `DIF. (%)`.
-- **Alcance flexible:** Permite exportar únicamente el camión seleccionado o consolidar todos los camiones activos.
+- **Alcance por placa (2026-09-18):** Hay un `CheckBox` por placa, más «Todas» y «Ninguna». Marcar una placa incluye **todas sus recepciones**: el camión de tres proveedores sale unificado. «Imprimir reporte» abre con la placa seleccionada marcada. Varias placas van a un solo archivo, ordenado por placa → proveedor → producto. Los metadatos y la auditoría cuentan camiones (placas) y recepciones por separado.
 - **Auditoría e Integración:** Registra la emisión vía RPC `ingresar_reporte_tabla_bitacora` antes de escribir el archivo y abrirlo automáticamente en Windows.
 
 ---
@@ -206,8 +221,8 @@ Pesaje entró al esquema de [[ADR-021 - Validacion en tres capas reglas de negoc
 
 | Capa | Qué hay |
 |---|---|
-| **BD** | `movimientos.placa_vehiculo` `varchar(20)` · `movimientos.observaciones` `varchar(500)` — migración `20260905215247_limitar_texto_movimientos` |
-| **Dominio** | `ReglasCamion` en `CapaDominio/Reglas/ReglasEntidades.cs` (`Proveedor`, `Placa`, `Descripcion`) |
+| **BD** | `movimientos.placa_vehiculo` `varchar(20)` · `movimientos.observaciones` `varchar(500)` — migración `20260905215247_limitar_texto_movimientos`. Reglas entre filas (cupo, unicidad, quitar con productos): trigger `trg_validar_recepcion_movimiento` — migración `20260918194910_regla_recepciones_abiertas_camiones` |
+| **Dominio** | `ReglasCamion` en `CapaDominio/Reglas/ReglasEntidades.cs` (`Proveedor`, `Placa`, `Descripcion`, `MaxRecepcionesAbiertas`, `NormalizarPlaca`, `ValidarRecepciones`) |
 | **UI** | `ValidadorFormulario` por fila en `RegistroCamionesModal`; el `MaxLength` del TextBox lo pone solo `Segun()` vía `TopePreventivo` |
 
 > [!warning] Cobertura parcial — [[Deuda Técnica - Pendientes|P-045]] sigue abierta
@@ -231,20 +246,22 @@ CapaDatos/Repositories/Pesaje/
   PickerProductoRepository.cs           — puente producto→fabricante→proveedor
 
 CapaDominio/Reglas/
-  ReglasEntidades.cs                    — ReglasCamion (placa 20, descripción 500)
+  ReglasEntidades.cs                    — ReglasCamion (placa 20, descripción 500, cupo 5, ValidarRecepciones)
   ReglasPanelPesaje.cs                  — escala del gráfico, raleo eje X, cascada de avisos del modal
 
 CapaUI/.../Pantallas/Pesaje/
-  PesajeView.xaml(.cs)                  — 3 paneles + estado vacío + impresión de reporte
+  PesajeView.xaml(.cs)                  — 3 paneles (DgCamiones plano) + estado vacío + impresión de reporte
   PesajeViewModel.cs                    — estado, MaxCamiones, RegistrarCamionesAsync, GenerarReportePesajesAsync
   Modelos/PesajeModels.cs               — PesajeCalc + modelos de UI
-  Modales/RegistroCamionesModal         — ALTA: tabla de hasta 5 camiones (placa · proveedor · descripción)
-  Modales/CamionModal                   — EDICIÓN de un camión
-  Modales/ProductoCamionModal           — agregar/editar un producto de la carga
+  Modales/RegistroCamionesModal         — altas/ediciones/bajas: tabla de hasta 5 recepciones (placa · proveedor · descripción)
+  Modales/ProductosCargaModal           — la carga entera de la recepción
   Modales/PesajeModal                   — la pesada (bruto + tara extra opcional) + panel lateral en vivo
   Controles/PesadasChart.cs             — gráfico "Pesadas (kg neto)" dibujado en OnRender
   Modales/TaraExtraTotalModal           — tara extra total, repartida entre pesadas
-  Modales/ReporteModal                  — selección de formato (PDF/Excel) y alcance para exportar pesajes
+  Modales/ReporteModal                  — formato (PDF/Excel) y alcance por placa (CheckBox por placa)
+
+supabase/migrations/
+  20260918194910_regla_recepciones_abiertas_camiones.sql — trigger + índice único de recepciones abiertas
 ```
 
 ## Estilos de los modales
@@ -292,6 +309,8 @@ Revisado contra `Deuda Técnica - Pendientes.md` y contra el código. Ordenados 
 - [[Sesión 2026-08-20 - Guardado de pesajes sin refetch]] — "Seguir pesando" pasó de 4-5 round trips a 1-2, modal ya no se cierra al guardar
 - [[Sesión 2026-08-24 - RPC idempotentes auditadas de Pesajes]] — diez RPC desplegadas; `movimientos` y el ingreso de pesaje ya integrados en C# con detalle legible en Bitácora, sin revocar DML ni modificar RLS
 - [[Sesión 2026-09-18 - Panel de control y gráfico de pesadas en PesajeModal]] — panel lateral, gráfico con punto "Ahora" y avisos en cascada
+- [[Sesión 2026-09-18 - Camiones en tabla plana y reglas de recepción en BD]] — tabla plana, reglas R1–R9 en Dominio y trigger, reporte por placa
+- [[ADR-029 - Recepciones de pesaje planas con reglas en trigger de tabla]] — por qué una fila por recepción y por qué un trigger
 - [[Sesión 2026-09-05 - Alta múltiple de camiones y topes de texto en movimientos]] — alta en tabla de hasta 5 camiones, `ReglasCamion` y topes reales en `movimientos`
 - [[ADR-021 - Validacion en tres capas reglas de negocio en Dominio]] — el esquema de validación al que el camión por fin se sumó
 - [[Supabase - Vistas SQL, RLS y security_invoker]] — por qué la migración de topes tuvo que recrear `v_mov_productos_resumen`

@@ -9,7 +9,7 @@ namespace CapaUI.Core.Controls
     /// <remarks>
     /// <para>
     /// Antes cada pantalla superponía su propio <c>TextBlock</c> gris sobre la caja y le
-    /// acertaba el margen a ojo: <c>24</c> en <c>CamionModal</c>, <c>12</c> en los modales
+    /// acertaba el margen a ojo: <c>24</c> en el viejo <c>CamionModal</c>, <c>12</c> en los modales
     /// de tabla. Ninguno de esos números coincidía con dónde arranca el texto de verdad,
     /// que es <c>BorderThickness + Padding</c> del estilo — 11px sin foco y 12px con foco
     /// en <c>MInput</c>/<c>CeldaInput</c>. Resultado: el marcador quedaba corrido respecto
