@@ -12,7 +12,7 @@ using CapaUI.Core.Controls;
 using CapaDominio.Reportes;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Newtonsoft.Json;
+using CapaAplicacion.Reportes;
 
 namespace CapaUI.Formularios.Principal.Pantallas.Bitacora;
 
@@ -434,21 +434,15 @@ public partial class BitacoraViewModel : ObservableObject, IDisposable
                 .Select(x => x.FechaHora!.Value.Date)
                 .ToList();
 
-            string parametrosJson = JsonConvert.SerializeObject(new
-            {
-                origen = "bitacora",
-                ids_bitacora = seleccion.Select(x => x.IdBitacora).ToArray(),
-                cantidad_registros = seleccion.Count,
-                filtros = new
-                {
-                    id_usuario = _usuarioFiltro,
-                    id_modulo = _moduloFiltro,
-                    id_accion = _accionFiltro,
-                    fecha_desde = _fechaDesde?.ToString("yyyy-MM-dd"),
-                    fecha_hasta = _fechaHasta?.ToString("yyyy-MM-dd"),
-                },
-                columnas = new[] { "fecha_hora", "usuario", "modulo", "accion", "campo_afectado", "detalle" },
-            });
+            string parametrosTexto = ParametrosReporteTexto.Crear(
+                ("Origen", "Bitácora"),
+                ("Referencias de registros", seleccion.Select(x => x.IdBitacora).ToArray()),
+                ("Cantidad de registros", seleccion.Count),
+                ("Filtro de usuario (referencia)", _usuarioFiltro),
+                ("Filtro de módulo (referencia)", _moduloFiltro),
+                ("Filtro de acción (referencia)", _accionFiltro),
+                ("Desde", _fechaDesde), ("Hasta", _fechaHasta),
+                ("Columnas", "Fecha y hora, usuario, módulo, acción, campo afectado, detalle"));
 
             var registro = await _reporteRepository.RegistrarAsync(new ReporteRegistroDto
             {
@@ -457,7 +451,7 @@ public partial class BitacoraViewModel : ObservableObject, IDisposable
                 Descripcion = $"Reporte de bitácora con {seleccion.Count} registro(s) seleccionado(s).",
                 FechaDesde = fechas.Count > 0 ? fechas.Min() : null,
                 FechaHasta = fechas.Count > 0 ? fechas.Max() : null,
-                ParametrosJson = parametrosJson,
+                ParametrosTexto = parametrosTexto,
                 UsuarioIngresando = sesion.IdUsuario,
             }, ct);
 

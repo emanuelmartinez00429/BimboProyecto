@@ -122,7 +122,8 @@
              look de los ComboBox de filtro (alto 26, borde #CBD5E1, Segoe UI 13). -->
         <Style x:Key="FiltroDatePicker" TargetType="DatePicker">
             <Setter Property="Height" Value="26"/>
-            <Setter Property="Width" Value="130"/>
+            <Setter Property="MinWidth" Value="120"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
             <Setter Property="FontFamily" Value="Segoe UI"/>
             <Setter Property="FontSize" Value="15"/>
             <Setter Property="BorderBrush" Value="#CBD5E1"/>
@@ -137,45 +138,23 @@
     <Grid>
     <Grid Margin="22,18,22,0">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="12"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="10"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>   <!-- 0: Page Header -->
+            <RowDefinition Height="12"/>     <!-- 1: Spacing -->
+            <RowDefinition Height="Auto"/>   <!-- 2: Toolbar -->
+            <RowDefinition Height="10"/>     <!-- 3: Spacing -->
+            <RowDefinition Height="*"/>      <!-- 4: Table -->
+            <RowDefinition Height="Auto"/>   <!-- 5: Action buttons -->
+            <RowDefinition Height="Auto"/>   <!-- 6: Error display -->
         </Grid.RowDefinitions>
 
         <!-- ROW 0: PAGE HEADER -->
-        <Grid Grid.Row="0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
-
-            <controls:EncabezadoCatalogo Grid.Column="0"
-                Icono="{StaticResource IconHistory}" IconoEsRelleno="False"
-                ModuloPadre="Usuarios" Submodulo="Bitácora"
-                Titulo="Registro de auditoría del sistema"
-                Total="{Binding TotalCount}"/>
-                <!-- Activos/Inactivos sin bindear (quedan null): solo la pastilla Total se renderiza,
-                     la bitácora no tiene concepto de estado. -->
-
-            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0,0,0">
-                <Button x:Name="BtnSeleccionarPagina"
-                        Content="Seleccionar página"
-                        Click="BtnSeleccionarPagina_Click"
-                        IsEnabled="False"
-                        Background="{DynamicResource EmpresaPrimaryDarkBrush}" Style="{StaticResource ActionBtn}"
-                        Padding="16,0" Height="38" MinWidth="150" Margin="0,0,10,0"/>
-                <Button Command="{Binding CrearReporteCommand}"
-                        Background="{DynamicResource EmpresaPrimaryBrush}" Style="{StaticResource ActionBtn}"
-                        Padding="16,0" Height="38" MinWidth="150">
-                    <TextBlock FontFamily="Segoe UI" FontSize="15" FontWeight="SemiBold" Foreground="White">
-                        <Run Text="Crear reporte"/><Run Text=" ("/><Run Text="{Binding CantidadSeleccionada, Mode=OneWay}"/><Run Text=")"/>
-                    </TextBlock>
-                </Button>
-            </StackPanel>
-        </Grid>
+        <controls:EncabezadoCatalogo Grid.Row="0"
+            Icono="{StaticResource IconHistory}" IconoEsRelleno="False"
+            ModuloPadre="Usuarios" Submodulo="Bitácora"
+            Titulo="Registro de auditoría del sistema"
+            Total="{Binding TotalCount}"/>
+            <!-- Activos/Inactivos sin bindear (quedan null): solo la pastilla Total se renderiza,
+                 la bitácora no tiene concepto de estado. -->
 
         <!-- ROW 2: TOOLBAR -->
         <Border Grid.Row="2" x:Name="TarjetaToolbar" Background="White" CornerRadius="10"
@@ -203,60 +182,74 @@
 
                 <Border BorderBrush="#E5E7EB" BorderThickness="0,0,0,1" Margin="0,10,0,10" SnapsToDevicePixels="True"/>
 
-                <!-- Filtros: Módulo · Acción · Usuario -->
-                <Grid Margin="0,0,0,8">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
+                <!-- Filtros: Módulo · Acción · Usuario · Desde · Hasta -->
+                <controls:PanelFiltrosFluido EspacioHorizontal="16" EspacioVertical="12">
+                    <Grid controls:PanelFiltrosFluido.Peso="1" VerticalAlignment="Center">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="MÓDULO" Style="{StaticResource FiltroLabel}"/>
+                        <ComboBox Grid.Column="1" x:Name="CmbModulo" Height="26" MinWidth="120"
+                                  HorizontalAlignment="Stretch"
+                                  FontFamily="Segoe UI" FontSize="15" BorderBrush="#CBD5E1"
+                                  IsEditable="True" IsTextSearchEnabled="True" StaysOpenOnEdit="True"
+                                  VerticalAlignment="Center"
+                                  SelectionChanged="CmbModulo_SelectionChanged"/>
+                    </Grid>
 
-                    <TextBlock Grid.Column="0" Text="MÓDULO" Style="{StaticResource FiltroLabel}"/>
-                    <ComboBox Grid.Column="1" x:Name="CmbModulo" Width="180" Height="26"
-                              FontFamily="Segoe UI" FontSize="15" BorderBrush="#CBD5E1"
-                              IsEditable="True" IsTextSearchEnabled="True" StaysOpenOnEdit="True"
-                              VerticalAlignment="Center" Margin="0,0,16,0"
-                              SelectionChanged="CmbModulo_SelectionChanged"/>
+                    <Grid controls:PanelFiltrosFluido.Peso="1" VerticalAlignment="Center">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="ACCIÓN" Style="{StaticResource FiltroLabel}"/>
+                        <ComboBox Grid.Column="1" x:Name="CmbAccion" Height="26" MinWidth="120"
+                                  HorizontalAlignment="Stretch"
+                                  FontFamily="Segoe UI" FontSize="15" BorderBrush="#CBD5E1"
+                                  IsEditable="True" IsTextSearchEnabled="True" StaysOpenOnEdit="True"
+                                  VerticalAlignment="Center"
+                                  SelectionChanged="CmbAccion_SelectionChanged"/>
+                    </Grid>
 
-                    <TextBlock Grid.Column="2" Text="ACCIÓN" Style="{StaticResource FiltroLabel}"/>
-                    <ComboBox Grid.Column="3" x:Name="CmbAccion" Width="180" Height="26"
-                              FontFamily="Segoe UI" FontSize="15" BorderBrush="#CBD5E1"
-                              IsEditable="True" IsTextSearchEnabled="True" StaysOpenOnEdit="True"
-                              VerticalAlignment="Center" Margin="0,0,16,0"
-                              SelectionChanged="CmbAccion_SelectionChanged"/>
+                    <Grid controls:PanelFiltrosFluido.Peso="1" VerticalAlignment="Center">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="USUARIO" Style="{StaticResource FiltroLabel}"/>
+                        <ComboBox Grid.Column="1" x:Name="CmbUsuario" Height="26" MinWidth="120"
+                                  HorizontalAlignment="Stretch"
+                                  FontFamily="Segoe UI" FontSize="15" BorderBrush="#CBD5E1"
+                                  IsEditable="True" IsTextSearchEnabled="True" StaysOpenOnEdit="True"
+                                  VerticalAlignment="Center"
+                                  SelectionChanged="CmbUsuario_SelectionChanged"/>
+                    </Grid>
 
-                    <TextBlock Grid.Column="4" Text="USUARIO" Style="{StaticResource FiltroLabel}"/>
-                    <ComboBox Grid.Column="5" x:Name="CmbUsuario" Width="200" Height="26"
-                              FontFamily="Segoe UI" FontSize="15" BorderBrush="#CBD5E1"
-                              IsEditable="True" IsTextSearchEnabled="True" StaysOpenOnEdit="True"
-                              VerticalAlignment="Center"
-                              SelectionChanged="CmbUsuario_SelectionChanged"/>
-                </Grid>
+                    <Grid controls:PanelFiltrosFluido.Peso="1" VerticalAlignment="Center">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="DESDE" Style="{StaticResource FiltroLabel}"/>
+                        <DatePicker Grid.Column="1" x:Name="DpDesde"
+                                    Style="{StaticResource FiltroDatePicker}"
+                                    HorizontalAlignment="Stretch"
+                                    SelectedDateChanged="DpDesde_SelectedDateChanged"/>
+                    </Grid>
 
-                <!-- Filtros: rango de fechas -->
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-
-                    <TextBlock Grid.Column="0" Text="DESDE" Style="{StaticResource FiltroLabel}"/>
-                    <DatePicker Grid.Column="1" x:Name="DpDesde"
-                                Style="{StaticResource FiltroDatePicker}" Margin="0,0,16,0"
-                                SelectedDateChanged="DpDesde_SelectedDateChanged"/>
-
-                    <TextBlock Grid.Column="2" Text="HASTA" Style="{StaticResource FiltroLabel}"/>
-                    <DatePicker Grid.Column="3" x:Name="DpHasta"
-                                Style="{StaticResource FiltroDatePicker}"
-                                SelectedDateChanged="DpHasta_SelectedDateChanged"/>
-                </Grid>
+                    <Grid controls:PanelFiltrosFluido.Peso="1" VerticalAlignment="Center">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="HASTA" Style="{StaticResource FiltroLabel}"/>
+                        <DatePicker Grid.Column="1" x:Name="DpHasta"
+                                    Style="{StaticResource FiltroDatePicker}"
+                                    HorizontalAlignment="Stretch"
+                                    SelectedDateChanged="DpHasta_SelectedDateChanged"/>
+                    </Grid>
+                </controls:PanelFiltrosFluido>
             </StackPanel>
         </Border>
 
@@ -396,8 +389,27 @@
             </Border>
         </Grid>
 
-        <!-- ROW 5: ERROR DISPLAY -->
-        <Border x:Name="ErrorPanel" Grid.Row="5" Background="#FEF2F2" CornerRadius="8"
+        <!-- ROW 5: ACTION BUTTONS -->
+        <DockPanel Grid.Row="5" Margin="0,4,0,14" LastChildFill="False">
+            <StackPanel DockPanel.Dock="Left" Orientation="Horizontal">
+                <Button x:Name="BtnSeleccionarPagina"
+                        Content="Seleccionar página"
+                        Click="BtnSeleccionarPagina_Click"
+                        IsEnabled="False"
+                        Background="{DynamicResource EmpresaPrimaryDarkBrush}" Style="{StaticResource ActionBtn}"
+                        Padding="16,0" Height="38" MinWidth="150" Margin="0,0,10,0"/>
+                <Button Command="{Binding CrearReporteCommand}"
+                        Background="#16A34A" Style="{StaticResource ActionBtn}"
+                        Padding="16,0" Height="38" MinWidth="150">
+                    <TextBlock FontFamily="Segoe UI" FontSize="15" FontWeight="SemiBold" Foreground="White">
+                        <Run Text="Crear reporte"/><Run Text=" ("/><Run Text="{Binding CantidadSeleccionada, Mode=OneWay}"/><Run Text=")"/>
+                    </TextBlock>
+                </Button>
+            </StackPanel>
+        </DockPanel>
+
+        <!-- ROW 6: ERROR DISPLAY -->
+        <Border x:Name="ErrorPanel" Grid.Row="6" Background="#FEF2F2" CornerRadius="8"
                 BorderBrush="#FECACA" BorderThickness="1"
                 Padding="14,10" Margin="0,0,0,14" Visibility="Collapsed">
             <TextBlock x:Name="ErrorText"

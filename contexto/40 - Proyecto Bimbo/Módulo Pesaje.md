@@ -210,6 +210,7 @@ El botón **«Imprimir reporte»** (y «Cerrar todos») abre `ReporteModal` perm
 - **Columnas estándar (Figura 28):** `FECHA ASIG.`, `PLACA`, `PRODUCTO`, `PROVEEDOR`, `BULTOS (APROX)`, `PESO MANIFESTADO`, `PESO BRUTO`, `PESO TARA`, `PESO RECIBIDO`, `DIF. (KG)`, `DIF. (%)`.
 - **Alcance por placa (2026-09-18):** Hay un `CheckBox` por placa, más «Todas» y «Ninguna». Marcar una placa incluye **todas sus recepciones**: el camión de tres proveedores sale unificado. «Imprimir reporte» abre con la placa seleccionada marcada. Varias placas van a un solo archivo, ordenado por placa → proveedor → producto. Los metadatos y la auditoría cuentan camiones (placas) y recepciones por separado.
 - **Auditoría e Integración:** Registra la emisión vía RPC `ingresar_reporte_tabla_bitacora` antes de escribir el archivo y abrirlo automáticamente en Windows.
+- **Parámetros legibles:** Desde 2026-09-18 la RPC recibe texto con origen, recepciones, cantidades y totales etiquetados; ya no persiste un objeto JSON en `reporteria.parametros_reporte`. Ver [[Sesión 2026-09-18 - Auditoría legible y parámetros de reportes en texto]].
 
 ---
 
@@ -311,6 +312,7 @@ Revisado contra `Deuda Técnica - Pendientes.md` y contra el código. Ordenados 
 - [[Sesión 2026-09-18 - Panel de control y gráfico de pesadas en PesajeModal]] — panel lateral, gráfico con punto "Ahora" y avisos en cascada
 - [[Sesión 2026-09-18 - Camiones en tabla plana y reglas de recepción en BD]] — tabla plana, reglas R1–R9 en Dominio y trigger, reporte por placa
 - [[ADR-029 - Recepciones de pesaje planas con reglas en trigger de tabla]] — por qué una fila por recepción y por qué un trigger
+- [[Sesión 2026-09-18 - Auditoría legible y parámetros de reportes en texto]] — normalización textual de Bitácora y parámetros legibles en la RPC de reportes
 - [[Sesión 2026-09-05 - Alta múltiple de camiones y topes de texto en movimientos]] — alta en tabla de hasta 5 camiones, `ReglasCamion` y topes reales en `movimientos`
 - [[ADR-021 - Validacion en tres capas reglas de negocio en Dominio]] — el esquema de validación al que el camión por fin se sumó
 - [[Supabase - Vistas SQL, RLS y security_invoker]] — por qué la migración de topes tuvo que recrear `v_mov_productos_resumen`

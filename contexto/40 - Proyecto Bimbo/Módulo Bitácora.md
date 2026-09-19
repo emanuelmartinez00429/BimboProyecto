@@ -67,10 +67,21 @@ El flujo es transaccional desde la perspectiva de entrega del archivo:
 
 1. `IReportGeneratorService` resuelve `PdfReportStrategy` o `ExcelReportStrategy` y genera el documento en memoria.
 2. La UI escribe un archivo temporal junto al destino elegido.
-3. `ReporteRepository` ejecuta `ingresar_reporte_tabla_bitacora`, enviando nombre, tipo, descripción, rango de las filas y un JSON con IDs seleccionados, filtros activos y columnas.
+3. `ReporteRepository` ejecuta `ingresar_reporte_tabla_bitacora`, enviando nombre, tipo, descripción, rango de las filas y texto descriptivo con IDs seleccionados, filtros activos y columnas.
 4. Solo si la RPC devuelve un entero positivo se mueve el temporal al nombre definitivo. Si falla, se elimina el temporal y se muestra el error.
 
 La generación del reporte **no crea una entrada nueva en `bitacora` desde la UI**; registra el reporte exclusivamente mediante la RPC indicada. La selección se limita a la página actual y se limpia al cambiar de página o recargar filtros.
+
+## Contrato de texto legible
+
+Desde 2026-09-18 los campos visibles `estado_anterior`, `estado_actual` y `campo_extra` se guardan como texto administrativo, no como JSON. La migración `20260918192751_bitacora_y_reportes_texto` aplica dos defensas complementarias:
+
+- `private.registrar_auditoria_rbac` convierte las estructuras recibidas por las RPC antes del `INSERT`.
+- `trg_bitacora_texto` normaliza cualquier emisor adicional justo antes de insertar en `public.bitacora`.
+
+`BitacoraCrudRepository` también usa `TextoAuditoria.Formatear` al mapear filas. Esa segunda defensa permite mostrar registros históricos JSON como pares etiqueta–valor sin modificar físicamente el historial append-only. Los estados se presentan por su significado de negocio y no por sus identificadores numéricos.
+
+Los parámetros utilizados al registrar reportes se construyen con `ParametrosReporteTexto`; el JSON permanece reservado para contratos técnicos no visibles, como idempotencia y respuestas internas de RPC. Ver [[Sesión 2026-09-18 - Auditoría legible y parámetros de reportes en texto]].
 
 Archivos adicionales:
 
@@ -111,5 +122,6 @@ Los registros ya cargados en producción vienen con formato dispar: `tabla_afect
 - [[Plan Fase 9 - Subsistema de Reportes]]
 - [[ADR-006 - Motor de Reportes y Exportación]]
 - [[Sesión 2026-09-02 - Selección avanzada de filas en Bitácora]]
+- [[Sesión 2026-09-18 - Auditoría legible y parámetros de reportes en texto]]
 - [[Sesión 2026-08-16 - Reportes PDF y Excel desde Bitácora]]
 - [[Sesión 2026-07-26 - Módulo Bitácora (auditoría, solo lectura)]]

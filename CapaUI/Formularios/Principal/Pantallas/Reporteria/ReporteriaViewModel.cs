@@ -11,7 +11,7 @@ using CapaUI.Core.Empresa;
 using CapaUI.Core.Permisos;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Newtonsoft.Json;
+using CapaAplicacion.Reportes;
 
 namespace CapaUI.Formularios.Principal.Pantallas.Reporteria;
 
@@ -237,8 +237,8 @@ public partial class ReporteriaViewModel : ObservableObject
         if(!PuedeExportar||_sesion.SesionActual is not{} sesion)return; IsBusy=true; int? id=null; string? temporal=null;
         try
         {
-            var parametros=JsonConvert.SerializeObject(CrearParametrosRegistro());
-            var registro=await _registro.RegistrarAsync(new(){NombreReporte=$"{TituloDocumento()} - {DateTime.Now:yyyyMMdd-HHmmss}",TipoReporte=formato==ReportFormat.Pdf?"PDF":"Excel",Descripcion=$"{TituloDocumento()} con {_snapshot.Count} registro(s).",FechaDesde=RequiereFechas?FechaDesde:null,FechaHasta=RequiereFechas?FechaHasta:null,ParametrosJson=parametros,UsuarioIngresando=sesion.IdUsuario},ct);
+            var parametros=CrearParametrosRegistro();
+            var registro=await _registro.RegistrarAsync(new(){NombreReporte=$"{TituloDocumento()} - {DateTime.Now:yyyyMMdd-HHmmss}",TipoReporte=formato==ReportFormat.Pdf?"PDF":"Excel",Descripcion=$"{TituloDocumento()} con {_snapshot.Count} registro(s).",FechaDesde=RequiereFechas?FechaDesde:null,FechaHasta=RequiereFechas?FechaHasta:null,ParametrosTexto=parametros,UsuarioIngresando=sesion.IdUsuario},ct);
             if(!registro.Success){Mensaje=registro.Error;return;} id=registro.Value;
             var documento=await CrearDocumentoAsync(sesion);
             var generado=await _generador.GenerateAsync(documento,formato,ct);if(!generado.Success){Mensaje=$"El reporte #{id} quedó registrado, pero el archivo no pudo generarse: {generado.Error}";return;}
@@ -308,15 +308,6 @@ public partial class ReporteriaViewModel : ObservableObject
     private static string ValorNormalizado(string? valor) =>
         string.IsNullOrWhiteSpace(valor) ? "—" : valor.Trim();
 
-    private IReadOnlyList<string> ColumnasEntradaAuditoria()
-    {
-        var columnas = new List<string> { "fecha_hora" };
-        if (_entradaIncluyePlaca) columnas.Add("placa");
-        if (_entradaIncluyePesador) columnas.Add("pesador");
-        columnas.AddRange(["peso_bruto", "peso_tara", "peso_neto"]);
-        return columnas;
-    }
-
     private string TituloDocumento() => TipoActual switch
     {
         ReporteOperativoTipo.EntradaMateriaPrima => "Detalle - Entrada de Materia Prima",
@@ -333,13 +324,32 @@ public partial class ReporteriaViewModel : ObservableObject
         _ => "primeros_10_productos"
     };
 
-    private object CrearParametrosRegistro() => TipoActual switch
+    private string CrearParametrosRegistro()
     {
-        ReporteOperativoTipo.EntradaMateriaPrima => new { origen = "pesajes", reporte = "entrada_materia_prima", filtros = new { id_producto = ProductoSeleccionado!.Id, id_proveedor = ProveedorSeleccionado!.Id, fecha_desde = FechaDesde!.Value.ToString("yyyy-MM-dd"), fecha_hasta = FechaHasta!.Value.ToString("yyyy-MM-dd") }, columnas = ColumnasEntradaAuditoria(), ids_registros = _ids, cantidad_registros = _snapshot.Count },
-        ReporteOperativoTipo.PorProveedor => new { origen = "pesajes", reporte = "por_proveedor", filtros = new { id_proveedor = ProveedorSeleccionado!.Id, fecha_desde = FechaDesde!.Value.ToString("yyyy-MM-dd"), fecha_hasta = FechaHasta!.Value.ToString("yyyy-MM-dd") }, columnas = new[] { "fecha_ingreso", "nombre_producto", "bultos_estimados", "peso_teorico", "peso_recibido", "diferencia_kg", "diferencia_monetaria" }, ids_registros = _ids, cantidad_registros = _snapshot.Count },
-        ReporteOperativoTipo.ProductosConMerma => new { origen = "pesajes", reporte = "productos_con_mas_merma", filtros = new { id_categoria = CategoriaSeleccionada?.Id, todas_las_categorias = CategoriaSeleccionada is null, fecha_desde = FechaDesde!.Value.ToString("yyyy-MM-dd"), fecha_hasta = FechaHasta!.Value.ToString("yyyy-MM-dd") }, columnas = new[] { "producto", "proveedor", "categoria", "entradas", "peso_teorico", "peso_recibido", "diferencia_kg", "merma_porcentaje" }, ids_registros = _ids, cantidad_registros = _snapshot.Count },
-        _ => new { origen = "productos", reporte = "primeros_10_productos", filtros = new { solo_activos = true, orden = "id_producto_asc", limite = 10 }, columnas = new[] { "id_producto", "codigo", "nombre", "categoria", "proveedor", "estado" }, ids_registros = _ids, cantidad_registros = _snapshot.Count }
-    };
+        var campos = new List<(string Etiqueta, object? Valor)>
+        {
+            ("Reporte", TituloDocumento()), ("Cantidad de registros", _snapshot.Count),
+            ("Referencias de registros", _ids), ("Columnas", _columnas.Select(c => c.Header).ToArray())
+        };
+        if (RequiereFechas) { campos.Add(("Desde", FechaDesde)); campos.Add(("Hasta", FechaHasta)); }
+        if (TipoActual is ReporteOperativoTipo.EntradaMateriaPrima or ReporteOperativoTipo.PorProveedor)
+        {
+            campos.Add(("Proveedor", Etiqueta(ProveedorSeleccionado)));
+            campos.Add(("Referencia de proveedor", ProveedorSeleccionado?.Id));
+        }
+        if (TipoActual == ReporteOperativoTipo.EntradaMateriaPrima)
+        {
+            campos.Add(("Producto", Etiqueta(ProductoSeleccionado)));
+            campos.Add(("Referencia de producto", ProductoSeleccionado?.Id));
+        }
+        if (TipoActual == ReporteOperativoTipo.ProductosConMerma)
+        {
+            campos.Add(("Categoría", CategoriaSeleccionada is null ? "Todas" : Etiqueta(CategoriaSeleccionada)));
+            campos.Add(("Referencia de categoría", CategoriaSeleccionada?.Id));
+        }
+        if (!RequiereFechas) campos.Add(("Criterio", "10 productos activos con menor referencia"));
+        return ParametrosReporteTexto.Crear(campos.ToArray());
+    }
 
     private void Invalidar(bool sinMensaje = false)
     {
