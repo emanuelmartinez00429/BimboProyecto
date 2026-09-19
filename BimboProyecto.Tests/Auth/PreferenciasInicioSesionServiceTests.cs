@@ -99,6 +99,39 @@ public sealed class PreferenciasInicioSesionServiceTests : IDisposable
     }
 
     [Fact]
+    public void Si_no_se_puede_cifrar_la_migracion_conserva_el_texto_plano()
+    {
+        if (!OperatingSystem.IsWindows()) return;
+
+        Directory.CreateDirectory(Path.GetDirectoryName(RutaLegada)!);
+        File.WriteAllText(RutaLegada, Correo, Encoding.UTF8);
+        // Un archivo con el nombre de la carpeta de destino: CreateDirectory falla y no hay dónde cifrar.
+        Directory.CreateDirectory(_raiz);
+        File.WriteAllText(Carpeta, "bloqueo");
+
+        var leido = Nuevo().ObtenerUltimoUsuario();
+
+        Assert.Equal(Correo, leido);             // el login igual lo muestra
+        Assert.True(File.Exists(RutaLegada));    // no se pierde: se reintenta en el próximo arranque
+    }
+
+    [Fact]
+    public void Olvidar_borra_el_temporal_de_una_escritura_cortada()
+    {
+        if (!OperatingSystem.IsWindows()) return;
+
+        var svc = Nuevo();
+        svc.GuardarUltimoUsuario(Correo);
+        // Simula un corte entre la escritura del temporal y el reemplazo.
+        File.WriteAllBytes(RutaBlob + ".tmp", File.ReadAllBytes(RutaBlob));
+
+        svc.GuardarUltimoUsuario(null);
+
+        Assert.False(File.Exists(RutaBlob));
+        Assert.False(File.Exists(RutaBlob + ".tmp"));
+    }
+
+    [Fact]
     public void Un_blob_que_no_se_puede_descifrar_se_descarta()
     {
         if (!OperatingSystem.IsWindows()) return;

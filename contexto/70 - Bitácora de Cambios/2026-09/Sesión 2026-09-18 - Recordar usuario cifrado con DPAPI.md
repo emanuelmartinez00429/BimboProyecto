@@ -68,6 +68,18 @@ Era el punto 4.2 de [[Plan de Seguridad - Roadmap 10-10]].
 
 ---
 
+## Corrección posterior (misma fecha) — revisión del agente de un compañero
+
+Una revisión externa encontró dos huecos reales. La frase «quien ya tenía Recordar usuario no lo pierde» y la de «Olvidar borra» no se cumplían en el 100% de los casos:
+
+- **La migración podía perder el correo.** `GuardarUltimoUsuario` se tragaba el error y después el `.txt` se borraba igual. Ahora el cifrado pasa por `GuardarCifrado()`, que devuelve `bool`. El `.txt` se borra **solo si quedó cifrado**. Si falla, se conserva para reintentar en el próximo arranque y el login igual muestra el correo.
+- **«Olvidar» no borraba el `.tmp`** que podía quedar si la app se cortaba entre la escritura y el `File.Move`. Ahora lo borra, y un guardado fallido también limpia su temporal.
+- 2 tests nuevos: `Si_no_se_puede_cifrar_la_migracion_conserva_el_texto_plano` y `Olvidar_borra_el_temporal_de_una_escritura_cortada`. `dotnet test` → **595 en verde**; `CapaDatos` → 0 advertencias.
+
+El resto de la tabla de esa revisión («un usuario de la misma sesión no puede manipular: No cumple») es el límite ya documentado arriba. No es un defecto corregible desde la app.
+
+---
+
 ## Relaciones
 
 - [[Sesión 2026-09-11 - Recordar mi usuario en Login]] — la implementación original en texto plano

@@ -63,7 +63,8 @@ public sealed class PreferenciasInicioSesionService : IPreferenciasInicioSesionS
 
         try
         {
-            MigrarLegadoSiExiste();
+            var sinMigrar = MigrarLegadoSiExiste();
+            if (sinMigrar is not null) return sinMigrar;
             if (!File.Exists(_rutaCifrada)) return null;
 
             var claro = ProtectedData.Unprotect(File.ReadAllBytes(_rutaCifrada), Proposito, DataProtectionScope.CurrentUser);
@@ -87,26 +88,41 @@ public sealed class PreferenciasInicioSesionService : IPreferenciasInicioSesionS
     {
         if (!OperatingSystem.IsWindows()) return;
 
+        if (string.IsNullOrWhiteSpace(email))
+        {
+            // «Olvidar»: el blob, un temporal que haya quedado de una escritura cortada y el
+            // texto plano de la versión anterior.
+            BorrarSilencioso(_rutaCifrada);
+            BorrarSilencioso(RutaTemporal);
+            BorrarSilencioso(_rutaLegada);
+            return;
+        }
+
+        // Si falla, falla de forma silenciosa para no interrumpir el flujo del usuario.
+        GuardarCifrado(email.Trim());
+    }
+
+    private string RutaTemporal => _rutaCifrada + ".tmp";
+
+    /// <summary>Cifra y escribe el correo. Devuelve <c>false</c> si no quedó guardado.</summary>
+    private bool GuardarCifrado(string email)
+    {
+        if (!OperatingSystem.IsWindows()) return false;
+
         try
         {
-            if (string.IsNullOrWhiteSpace(email))
-            {
-                BorrarSilencioso(_rutaCifrada);
-                BorrarSilencioso(_rutaLegada);
-                return;
-            }
-
             Directory.CreateDirectory(_carpeta);
-            var cifrado = ProtectedData.Protect(Encoding.UTF8.GetBytes(email.Trim()), Proposito, DataProtectionScope.CurrentUser);
+            var cifrado = ProtectedData.Protect(Encoding.UTF8.GetBytes(email), Proposito, DataProtectionScope.CurrentUser);
 
             // Temporal + reemplazo: un corte a mitad de escritura no deja un blob truncado.
-            var temporal = _rutaCifrada + ".tmp";
-            File.WriteAllBytes(temporal, cifrado);
-            File.Move(temporal, _rutaCifrada, overwrite: true);
+            File.WriteAllBytes(RutaTemporal, cifrado);
+            File.Move(RutaTemporal, _rutaCifrada, overwrite: true);
+            return true;
         }
         catch
         {
-            // Falla de forma silenciosa para no interrumpir el flujo del usuario si hay problemas de disco o permisos
+            BorrarSilencioso(RutaTemporal);
+            return false;
         }
     }
 
@@ -114,15 +130,20 @@ public sealed class PreferenciasInicioSesionService : IPreferenciasInicioSesionS
     /// Convierte el archivo en texto plano de la versión anterior y lo borra, para que quien
     /// ya tenía «Recordar usuario» no lo pierda y el correo en claro no quede en disco.
     /// </summary>
-    private void MigrarLegadoSiExiste()
+    /// <returns>
+    /// El correo viejo si no se pudo cifrar: el <c>.txt</c> se conserva para reintentar en el
+    /// próximo arranque y el login igual lo muestra. <c>null</c> en cualquier otro caso.
+    /// </returns>
+    private string? MigrarLegadoSiExiste()
     {
-        if (!File.Exists(_rutaLegada)) return;
+        if (!File.Exists(_rutaLegada)) return null;
 
         var viejo = File.ReadAllText(_rutaLegada, Encoding.UTF8).Trim();
-        if (viejo.Length > 0 && !File.Exists(_rutaCifrada))
-            GuardarUltimoUsuario(viejo);
+        if (viejo.Length > 0 && !File.Exists(_rutaCifrada) && !GuardarCifrado(viejo))
+            return viejo;
 
         BorrarSilencioso(_rutaLegada);
+        return null;
     }
 
     private static void BorrarSilencioso(string ruta)
