@@ -48,7 +48,9 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
         public EntradaPesaje? EntradaEnEdicion => _editInitial;
 
         private static readonly Brush _blanco = Brushes.White;
-        private static readonly Brush _rojo   = (Brush)new BrushConverter().ConvertFromString("#FCA5A5")!;
+        private static readonly Brush _rojo   = Hex("#FCA5A5");
+        private static readonly Brush _verde  = Hex("#4ADE80");
+        private static readonly Brush _blancoSuave = Hex("#CCFFFFFF");
 
         /// <summary>Constructor de diseño (el diseñador de VS instancia por acá). Ver ADR-028.</summary>
         public PesajeModal()
@@ -80,8 +82,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
             TxtFechaHora.Text = $"{_fecha} {_hora}";
             TxtCodigo.Text    = producto.ProductoCodigo;
             TxtTaraInd.Text   = _taraInd.ToString("N2", CultureInfo.InvariantCulture);
-            TxtManifestado.Text = producto.PesoManifestado.ToString("N0", CultureInfo.InvariantCulture) + " kg";
-            TxtBultosDeclarados.Text = producto.BultosDeclarados.ToString("N0", CultureInfo.InvariantCulture);
+            TxtManifestado.Text = Kg(producto.PesoManifestado);
 
             _validador = ValidadorFormulario.Nuevo()
                 .Campo(TxtObs, "Las observaciones").Segun(ReglasEntradaPesaje.Observaciones)
@@ -119,13 +120,11 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
             if (_producto is null) return;
 
             double taraExtra = TaraExtraEntrada;
-            double taraTotal = _taraInd + taraExtra;
             // Sin Math.Max(0, ...) a propósito: hay que VER el negativo para entender el error.
             double neto      = NetoCalculado;
             double netoTotal = _pesoRecibidoPrevio + Math.Max(0, neto);
             double dif       = _producto.PesoManifestado - netoTotal;
 
-            TxtTaraTotal.Text = taraTotal.ToString("N2", CultureInfo.InvariantCulture);
             // Sin bruto todavía no hay nada que mostrar: "—" (igual que Bultos estimados).
             // Con bruto cargado, sí se muestra el negativo si corresponde (ver comentario arriba).
             TxtNeto.Text      = Bruto > 0
@@ -141,22 +140,118 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
                 ? estimados.Value.ToString("N2", CultureInfo.InvariantCulture)
                 : "—";
 
-            TxtDif.Text = (dif < 0 ? "+" : "") + Math.Abs(dif).ToString("N1", CultureInfo.InvariantCulture);
-            TxtDif.Foreground = dif < 0 ? _rojo : _blanco;
-            TxtDifMsg.Text = dif < 0
-                ? "Excedente sobre lo manifestado"
-                : dif == 0 ? "Recepción completa" : "Aún falta por recibir";
+            // Se muestra sin decimales, así que "completa" es lo que se leería como 0.
+            bool completa = Math.Abs(dif) < 0.5;
+            TxtDif.Text = (dif < 0 && !completa ? "+" : "") + Kg(Math.Abs(dif));
+            TxtDif.Foreground = dif < 0 && !completa ? _rojo : _blanco;
+            TxtDifMsg.Text = completa ? "Recepción completa"
+                : dif < 0 ? "Excedente sobre lo manifestado" : "Aún falta por recibir";
 
-            if (AvisoBultosAprox != null)
-                AvisoBultosAprox.Visibility = PesajeCalc.BultosSonAproximados(taraExtra)
-                    ? Visibility.Visible : Visibility.Collapsed;
-
-            if (AvisoNetoInvalido != null)
-                AvisoNetoInvalido.Visibility = Bruto > 0 && neto <= 0
-                    ? Visibility.Visible : Visibility.Collapsed;
+            ActualizarPanel(neto, taraExtra, netoTotal);
 
             if (BtnSeguir != null) BtnSeguir.IsEnabled = Valido;
         }
+
+        /// <summary>
+        /// Tarjetas de acumulados, barra de avance, gráfico y avisos del panel lateral.
+        /// <para/>
+        /// La pesada que se está corrigiendo se saca de las "previas": si no, contaría dos
+        /// veces (la versión guardada y la que se teclea) en el gráfico, el promedio y el
+        /// contador. En el gráfico, "Ahora" ocupa su lugar en vez de ir al final.
+        /// </summary>
+        private void ActualizarPanel(double neto, double taraExtra, double netoTotal)
+        {
+            var previas = _producto.Entradas.Where(e => e != _editInitial).ToList();
+            var netosPrevios = previas.Select(e => e.Neto).ToList();
+            bool pesadaValida = Bruto > 0 && neto > 0;
+            double manifestado = _producto.PesoManifestado;
+
+            int conteo = previas.Count(e => e.Neto > 0) + (pesadaValida ? 1 : 0);
+            TxtConteoPesajes.Text = conteo == 1 ? "1 pesaje" : $"{conteo} pesajes";
+
+            TxtNetoAcum.Text = Kg(netoTotal);
+            TxtNetoAcum.Foreground = manifestado > 0 && netoTotal > manifestado ? _rojo : _verde;
+            // Tara individual PLANA por pesada (igual que el trigger), no bultos × tara.
+            TxtTaraAcum.Text = Kg(previas.Sum(e => e.TaraInd) + (pesadaValida ? _taraInd : 0));
+            TxtTaraExtraAcum.Text = Kg(previas.Sum(e => e.TaraExtra) + (pesadaValida ? taraExtra : 0));
+
+            double avance = manifestado > 0 ? Math.Clamp(netoTotal / manifestado, 0, 1) : 0;
+            TxtAvance.Text = $"{avance * 100:0}%";
+            ColAvance.Width = new GridLength(avance, GridUnitType.Star);
+            ColResto.Width  = new GridLength(1 - avance, GridUnitType.Star);
+
+            int indiceAhora = _editInitial is null ? previas.Count : Math.Max(0, _producto.Entradas.IndexOf(_editInitial));
+            Grafico.Actualizar(netosPrevios, indiceAhora, pesadaValida ? neto : null);
+            TxtGraficoResumen.Text = $"{conteo} {(conteo == 1 ? "pesada" : "pesadas")} · máx {Grafico.EscalaY.ToString("0.##", CultureInfo.InvariantCulture)}";
+            TxtPromedio.Text = netosPrevios.Count > 0 ? $"promedio {Kg(netosPrevios.Average())} kg" : "";
+
+            var alertas = ReglasPanelPesaje.EvaluarAlertas(Bruto, neto, taraExtra, _pesoRecibidoPrevio, manifestado, netosPrevios);
+            PanelAlertas.Children.Clear();
+            foreach (var a in alertas.Take(MaxAlertasVisibles))
+                PanelAlertas.Children.Add(CrearAlerta(a));
+            int ocultas = alertas.Count - MaxAlertasVisibles;
+            TxtAlertasExtra.Text = ocultas == 1 ? "+1 aviso más" : $"+{ocultas} avisos más";
+            TxtAlertasExtra.Visibility = ocultas > 0 ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        private const int MaxAlertasVisibles = 2;
+
+        private static Border CrearAlerta(AlertaPesaje a)
+        {
+            var (fondo, borde, titulo) = a.Nivel switch
+            {
+                NivelAlertaPesaje.Critica     => ("#33DC2626", "#80EF4444", "#FECACA"),
+                NivelAlertaPesaje.Advertencia => ("#33D97706", "#80F59E0B", "#FDE68A"),
+                _                             => ("#2610B981", "#8034D399", "#86EFAC"),
+            };
+            bool ok = a.Nivel is NivelAlertaPesaje.Info or NivelAlertaPesaje.Ok;
+
+            FrameworkElement icono = ok
+                ? new System.Windows.Shapes.Path
+                  {
+                      Data = Geometry.Parse("M20,6 L9,17 l-5,-5"), Stroke = Hex(titulo), StrokeThickness = 2.2,
+                      Width = 11, Height = 11, Stretch = Stretch.Uniform, Margin = new Thickness(0, 3, 8, 0),
+                      VerticalAlignment = VerticalAlignment.Top,
+                  }
+                : new TextBlock
+                  {
+                      Text = "!", FontFamily = new FontFamily("Segoe UI"), FontSize = 13, FontWeight = FontWeights.Black,
+                      Foreground = Hex(titulo), Margin = new Thickness(2, -1, 10, 0), VerticalAlignment = VerticalAlignment.Top,
+                  };
+
+            var texto = new StackPanel();
+            texto.Children.Add(new TextBlock
+            {
+                Text = a.Titulo, FontFamily = new FontFamily("Segoe UI"), FontSize = 11.5,
+                FontWeight = FontWeights.SemiBold, Foreground = Hex(titulo),
+            });
+            texto.Children.Add(new TextBlock
+            {
+                Text = a.Mensaje, FontFamily = new FontFamily("Segoe UI"), FontSize = 11,
+                Foreground = _blancoSuave, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 1, 0, 0),
+            });
+
+            var fila = new DockPanel();
+            DockPanel.SetDock(icono, Dock.Left);
+            fila.Children.Add(icono);
+            fila.Children.Add(texto);
+
+            return new Border
+            {
+                Background = Hex(fondo), BorderBrush = Hex(borde), BorderThickness = new Thickness(1),
+                CornerRadius = new CornerRadius(7), Padding = new Thickness(11, 8, 11, 8),
+                Margin = new Thickness(0, 0, 0, 6), Child = fila,
+            };
+        }
+
+        private static Brush Hex(string color)
+        {
+            var b = (Brush)new BrushConverter().ConvertFromString(color)!;
+            b.Freeze();
+            return b;
+        }
+
+        private static string Kg(double v) => v.ToString("N0", CultureInfo.InvariantCulture);
 
         private EntradaPesaje Snapshot()
         {

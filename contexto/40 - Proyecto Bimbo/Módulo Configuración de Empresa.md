@@ -30,6 +30,10 @@ EmpresaRepository : RepositorioBase
 - `EmpresaRepository` usa `Result`, `TryAsync` y la sesión inyectada.
 - El cliente actualiza únicamente campos editables; el timestamp de modificación queda bajo responsabilidad del trigger configurado en la base.
 - Las validaciones de negocio de RTN, correo, teléfono y dominio siguen pospuestas. El logo sí se limita técnicamente a PNG/JPG/JPEG decodificable y 2 MB.
+- **2026-09-18, `ConfiguracionEmpresaView`:**
+  - En "Identidad visual" la columna izquierda es el **Logo** y la derecha el **Ícono del menú lateral**. Los títulos estaban cruzados respecto de sus bindings.
+  - El aviso "Si cambia el dominio…" solo aparece mientras el campo de dominio tiene foco, en un recuadro amarillo pálido.
+  - Ver [[Sesión 2026-09-18 - Panel de control y gráfico de pesadas en PesajeModal]].
 
 ## Logo corporativo
 
@@ -65,3 +69,4 @@ Los azules de marca se reemplazaron por recursos `DynamicResource` compartidos e
 - [[ADR-016 - Logo de empresa dinamico en login con cache por nombre de archivo]]
 - [[Deuda Técnica - Pendientes]]
 - [[Sesión 2026-08-14 - Módulo de configuración de empresa y tema dinámico]]
+- [[Sesión 2026-09-18 - Panel de control y gráfico de pesadas en PesajeModal]] — títulos logo/ícono y aviso del dominio con foco
