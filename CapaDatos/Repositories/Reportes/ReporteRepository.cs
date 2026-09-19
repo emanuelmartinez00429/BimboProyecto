@@ -24,7 +24,7 @@ public sealed class ReporteRepository : RepositorioBase, IReporteRepository
                 ["p_descripcion"] = reporte.Descripcion,
                 ["p_fecha_desde"] = reporte.FechaDesde?.Date,
                 ["p_fecha_hasta"] = reporte.FechaHasta?.Date,
-                ["p_parametros_reporte"] = JObject.Parse(reporte.ParametrosJson),
+                ["p_parametros_reporte"] = reporte.ParametrosTexto,
                 ["p_usuario_ingresando"] = reporte.UsuarioIngresando,
             };
 

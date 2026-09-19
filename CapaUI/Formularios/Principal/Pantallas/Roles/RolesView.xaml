@@ -328,10 +328,13 @@
                                                 CommandParameter="{Binding IdRol}"
                                                 AutomationProperties.Name="{Binding Nombre, StringFormat=Administrar permisos del rol {0}}"
                                                 Style="{StaticResource RolTarjetaSeleccionable}"/>
-                                        <Grid Margin="18" IsHitTestVisible="False">
-                                        <Grid>
-                                            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-                                            <Grid>
+                                        <Grid Margin="18">
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="*"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
+                                            <Grid Grid.Row="0" IsHitTestVisible="False">
                                                 <StackPanel>
                                                     <StackPanel Orientation="Horizontal">
                                                         <TextBlock Text="{Binding Nombre}" FontSize="17" FontWeight="Bold" Foreground="{StaticResource RolText}"/>
@@ -344,16 +347,14 @@
                                                 </StackPanel>
                                                 <Path HorizontalAlignment="Right" Style="{StaticResource RolIcono}" Data="{StaticResource GeoEscudo}" Width="25" Height="25" Stroke="{StaticResource RolBrand}"/>
                                             </Grid>
-                                            <StackPanel Grid.Row="1" Margin="0,16,0,14">
+                                            <StackPanel Grid.Row="1" Margin="0,16,0,8" IsHitTestVisible="False">
                                                 <TextBlock FontSize="13" Foreground="{StaticResource RolText2}"><Run Text="Usuarios asignados: "/><Run Text="{Binding UsuariosAsignados}" FontWeight="Bold"/></TextBlock>
                                                 <TextBlock FontSize="13" Foreground="{StaticResource RolText2}" Margin="0,5,0,0"><Run Text="Permisos activos: "/><Run Text="{Binding Permisos}" FontWeight="Bold"/></TextBlock>
                                                 <TextBlock Text="Rol de sistema: nombre, estado y todos sus permisos son inmutables."
                                                            FontSize="11" Foreground="#92400E" TextWrapping="Wrap" Margin="0,8,0,0"
                                                            Visibility="{Binding EsSistema, Converter={x:Static conv:BoolToVisibilityConverter.Instancia}}"/>
                                             </StackPanel>
-                                        </Grid>
-                                        </Grid>
-                                            <StackPanel VerticalAlignment="Bottom" HorizontalAlignment="Right" Orientation="Horizontal" Margin="18">
+                                            <StackPanel Grid.Row="2" VerticalAlignment="Bottom" HorizontalAlignment="Right" Orientation="Horizontal" Margin="0,8,0,0">
                                                 <Button Content="Editar" Margin="0,0,8,0"
                                                         Command="{Binding DataContext.EditarRolCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                         CommandParameter="{Binding}">
@@ -369,6 +370,7 @@
                                                     </Button.Style>
                                                 </Button>
                                             </StackPanel>
+                                        </Grid>
                                     </Grid>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>

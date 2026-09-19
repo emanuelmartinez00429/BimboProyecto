@@ -15,7 +15,7 @@ using CapaUI.Core.Empresa;
 using CapaUI.Core.MVVM;
 using CapaUI.Formularios.Principal.Pantallas.Pesaje.Modelos;
 using CommunityToolkit.Mvvm.ComponentModel;
-using Newtonsoft.Json;
+using CapaAplicacion.Reportes;
 
 namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
 {
@@ -347,16 +347,12 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
                 await File.WriteAllBytesAsync(rutaTemporal, generadoResult.Value!, ct);
 
                 // Auditoría en base de datos vía RPC
-                string parametrosJson = JsonConvert.SerializeObject(new
-                {
-                    origen = "pesaje_materia_prima",
-                    ids_movimientos = idsMovimientos.ToArray(),
-                    cantidad_camiones = camionesAExportar.Count,
-                    cantidad_productos = rows.Count,
-                    total_neto = totalNeto,
-                    total_manifestado = totalManifestado,
-                    diferencia_kg = difTotalKg
-                });
+                string parametrosTexto = ParametrosReporteTexto.Crear(
+                    ("Origen", "Pesajes de materia prima"),
+                    ("Referencias de recepciones", idsMovimientos.ToArray()),
+                    ("Camiones", camionesAExportar.Count), ("Productos", rows.Count),
+                    ("Total neto (kg)", totalNeto), ("Total manifestado (kg)", totalManifestado),
+                    ("Diferencia (kg)", difTotalKg));
 
                 var registro = await _reporteRepository.RegistrarAsync(new ReporteRegistroDto
                 {
@@ -365,7 +361,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
                     Descripcion = $"Reporte Pesado de Insumos BES ({camionesAExportar.Count} camión/camiones, {rows.Count} producto(s)).",
                     FechaDesde = generado.Date,
                     FechaHasta = generado.Date,
-                    ParametrosJson = parametrosJson,
+                    ParametrosTexto = parametrosTexto,
                     UsuarioIngresando = sesion.IdUsuario,
                 }, ct);
 

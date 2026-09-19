@@ -10,6 +10,9 @@ aliases:
 
 # Arquitectura Actual — Bimbo
 
+> [!success] Actualizado 2026-09-18 — Auditoría legible y parámetros de reportes en texto
+> Los campos visibles de Bitácora se normalizan a texto descriptivo en Supabase y cuentan con compatibilidad de lectura en C# para filas históricas estructuradas. `reporteria.parametros_reporte` y la RPC `ingresar_reporte_tabla_bitacora` usan ahora texto de extremo a extremo; Pesaje, Bitácora y Reportería construyen pares etiqueta–valor legibles. La migración remota, el catálogo, la prueba transaccional, el build y 560 pruebas quedaron verificados; la revisión visual autenticada sigue pendiente. Ver [[Módulo Bitácora]], [[Módulo Reportería]], [[Módulo Pesaje]] y [[Sesión 2026-09-18 - Auditoría legible y parámetros de reportes en texto]].
+
 > [!success] Actualizado 2026-09-17 — Filtros independientes en el Dashboard
 > El selector del encabezado controla exclusivamente los KPI de pesajes y los RadioButtons controlan exclusivamente el Top 5 de mermas. Ambos conservan su selección en refrescos, reconexiones y eventos Realtime mediante estados y cancelaciones independientes. La opción interna `Mes` ahora representa una ventana móvil de 30 días, comparada con los 30 días inmediatamente anteriores. El inventario permanece como corte actual y el feed de últimos pesajes continúa global. Cambio validado visualmente por Fernando, con build limpio, 526 pruebas y arnés WPF aprobado. Ver [[Módulo Dashboard]] y [[Sesión 2026-09-17 - Filtros independientes en Dashboard]].
 

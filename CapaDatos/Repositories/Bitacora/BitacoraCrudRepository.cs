@@ -32,9 +32,9 @@ public class BitacoraCrudRepository : RepositorioBase, IBitacoraRepository
         NombreModulo       = b.modulos?.nombreModulo  ?? string.Empty,
         NombreAccion       = b.acciones?.nombreAccion ?? string.Empty,
         CampoAfectado      = b.campoAfectado,
-        EstadoAnterior     = b.estadoAnterior,
-        EstadoActual       = b.estadoActual,
-        CampoExtra         = b.campoExtra,
+        EstadoAnterior     = CapaAplicacion.Bitacora.TextoAuditoria.Formatear(b.estadoAnterior, b.tablaAfectada),
+        EstadoActual       = CapaAplicacion.Bitacora.TextoAuditoria.Formatear(b.estadoActual, b.tablaAfectada),
+        CampoExtra         = b.campoExtra is null ? null : CapaAplicacion.Bitacora.TextoAuditoria.Formatear(b.campoExtra, b.tablaAfectada),
         TablaAfectada      = b.tablaAfectada,
         IdRegistroAfectado = b.idRegistroAfectado,
     };
