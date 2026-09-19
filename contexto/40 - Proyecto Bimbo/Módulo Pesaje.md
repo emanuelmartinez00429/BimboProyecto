@@ -168,7 +168,22 @@ Config del catálogo: `Catalogos.Productos(_catalogos, prov?.Id, permiteMultiple
 Se perdió el toggle "Todo el catálogo" que tenía el picker viejo (el acotamiento por proveedor ahora es fijo) y el `SelectorProductosViewModel` a medida — ya no hace falta, el genérico no depende de `RealtimeAwareViewModel` ni de nada que suscriba a Realtime.
 
 ### Modal de pesaje
-Captura el **peso bruto** y, opcionalmente, la **tara extra de esa pesada**. Todo lo demás es contexto de solo lectura: placa, proveedor, producto, bultos declarados y los cálculos. Muestra los **bultos estimados** en vivo, avisa en ámbar si la estimación es aproximada (sin tara extra) y en rojo si el neto quedaría en cero o negativo — el CHECK de la BD lo rechazaría con una excepción cruda de Postgrest.
+Captura el **peso bruto** y, opcionalmente, la **tara extra de esa pesada**. Todo lo demás es contexto de solo lectura: placa, proveedor, producto y los cálculos. Muestra los **bultos estimados** en vivo.
+
+> [!info] Panel de control y gráfico de pesadas (2026-09-18)
+> El modal mide 980 px y tiene un panel lateral de 360 px con:
+> - la diferencia y el contador de pesajes;
+> - 4 tarjetas: Manifestado, Neto acumulado, Tara acumulada y Tara extra acumulada. La tara es **plana por pesada**, no bultos × tara;
+> - la barra de avance;
+> - el gráfico `PesadasChart` (`Pesaje/Controles/`), con las pesadas guardadas y el punto amarillo **"Ahora"** que se mueve mientras se teclea. En edición, "Ahora" reemplaza a la entrada que se corrige;
+> - los avisos en cascada.
+>
+> Las cuentas viven en `CapaDominio/Reglas/ReglasPanelPesaje.cs`, con tests:
+> - la **escala Y** es el doble del promedio, así la línea queda a media altura (10 kg → 0–20);
+> - el raleo del eje X;
+> - la cascada de avisos: sin bruto → neto ≤ 0 → Excedente → Sin tara extra → Pesada atípica ±35 % (con ≥ 2 previas) → OK. Se muestran como máximo 2 más "+N".
+>
+> El excedente se pinta en rojo pero **no bloquea el guardado**. Detalle en [[Sesión 2026-09-18 - Panel de control y gráfico de pesadas en PesajeModal]].
 
 > [!important] "Seguir pesando" se queda abierto (2026-08-20)
 > Hasta esta fecha, guardar una pesada disparaba 4–5 round trips (INSERT + recargar el camión entero) y cerraba el modal — "Seguir pesando" no seguía pesando. Se redujo a 1–2 round trips aplicando en memoria el `EntradaDto` que ya devuelve el propio INSERT (el trigger es `BEFORE INSERT`), y el modal ahora se limpia y queda abierto para la siguiente tarima, con guarda de reentrada y estado "Guardando…" visible. Patrón completo en [[Guardado sin Refetch - Aplicar en memoria la respuesta del servidor]]; detalle de la sesión en [[Sesión 2026-08-20 - Guardado de pesajes sin refetch]].
@@ -218,6 +233,7 @@ CapaDatos/Repositories/Pesaje/
 
 CapaDominio/Reglas/
   ReglasEntidades.cs                    — ReglasCamion (placa 20, descripción 500)
+  ReglasPanelPesaje.cs                  — escala del gráfico, raleo eje X, cascada de avisos del modal
 
 CapaUI/.../Pantallas/Pesaje/
   PesajeView.xaml(.cs)                  — 3 paneles + estado vacío + impresión de reporte
@@ -226,7 +242,8 @@ CapaUI/.../Pantallas/Pesaje/
   Modales/RegistroCamionesModal         — ALTA: tabla de hasta 5 camiones (placa · proveedor · descripción)
   Modales/CamionModal                   — EDICIÓN de un camión
   Modales/ProductoCamionModal           — agregar/editar un producto de la carga
-  Modales/PesajeModal                   — la pesada (bruto + tara extra opcional)
+  Modales/PesajeModal                   — la pesada (bruto + tara extra opcional) + panel lateral en vivo
+  Controles/PesadasChart.cs             — gráfico "Pesadas (kg neto)" dibujado en OnRender
   Modales/TaraExtraTotalModal           — tara extra total, repartida entre pesadas
   Modales/ReporteModal                  — selección de formato (PDF/Excel) y alcance para exportar pesajes
 ```
@@ -263,6 +280,7 @@ Los modales de Pesaje comparten `Modales/PesajeModalStyles.xaml` (prefijo `M`): 
 - [[Sesión 2026-08-19 - Selector de proveedor por tabla y consolidacion de estilos]] — retiro de `SelectorProductosModal`, marco cuadrado, multiselección de productos
 - [[Sesión 2026-08-20 - Guardado de pesajes sin refetch]] — "Seguir pesando" pasó de 4-5 round trips a 1-2, modal ya no se cierra al guardar
 - [[Sesión 2026-08-24 - RPC idempotentes auditadas de Pesajes]] — diez RPC desplegadas; `movimientos` y el ingreso de pesaje ya integrados en C# con detalle legible en Bitácora, sin revocar DML ni modificar RLS
+- [[Sesión 2026-09-18 - Panel de control y gráfico de pesadas en PesajeModal]] — panel lateral, gráfico con punto "Ahora" y avisos en cascada
 - [[Sesión 2026-09-18 - Auditoría legible y parámetros de reportes en texto]] — normalización textual de Bitácora y parámetros legibles en la RPC de reportes
 - [[Sesión 2026-09-05 - Alta múltiple de camiones y topes de texto en movimientos]] — alta en tabla de hasta 5 camiones, `ReglasCamion` y topes reales en `movimientos`
 - [[ADR-021 - Validacion en tres capas reglas de negocio en Dominio]] — el esquema de validación al que el camión por fin se sumó

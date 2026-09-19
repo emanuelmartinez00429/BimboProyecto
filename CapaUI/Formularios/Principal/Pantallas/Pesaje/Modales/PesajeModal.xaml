@@ -4,10 +4,12 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:conv="clr-namespace:CapaUI.Converters"
+             xmlns:controls="clr-namespace:CapaUI.Core.Controls"
+             xmlns:pesajeCtl="clr-namespace:CapaUI.Formularios.Principal.Pantallas.Pesaje.Controles"
              mc:Ignorable="d"
-             Width="760"
-             d:DesignWidth="760"
-             d:DesignHeight="708.387"
+             Width="980"
+             d:DesignWidth="980"
+             d:DesignHeight="700"
 
 
              UseLayoutRounding="True"
@@ -54,10 +56,10 @@
                 <Border Height="1" Background="#26FFFFFF"/>
 
                 <Grid>
-                    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="200"/></Grid.ColumnDefinitions>
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="360"/></Grid.ColumnDefinitions>
 
                     <!-- Formulario -->
-                    <StackPanel Grid.Column="0" Margin="26,18,26,10">
+                    <StackPanel Grid.Column="0" Margin="26,18,26,14">
                         <Grid Margin="0,0,0,12">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="14"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                             <StackPanel Grid.Column="0">
@@ -65,7 +67,7 @@
                                 <TextBox x:Name="TxtPlaca" Style="{StaticResource MInputDisplay}" IsEnabled="False"/>
                             </StackPanel>
                             <StackPanel Grid.Column="2">
-                                <TextBlock Text="Proveedor" Style="{StaticResource MLabel}"/>
+                                <TextBlock Text="Proveedor del ítem" Style="{StaticResource MLabel}"/>
                                 <TextBox x:Name="TxtProveedor" Style="{StaticResource MInputDisplay}" IsEnabled="False"/>
                             </StackPanel>
                         </Grid>
@@ -83,45 +85,43 @@
 
                         <Border Height="1" Background="#26FFFFFF" Margin="0,4,0,14"/>
 
+                        <!-- Separa el contexto (arriba, solo lectura) de lo que el operador teclea. -->
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                            <Path Data="{StaticResource MIcoPack}" Stroke="#B3FFFFFF" StrokeThickness="2" Width="12" Height="12"
+                                  Stretch="Uniform" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                            <TextBlock Text="CAPTURÁ LOS PESOS AQUÍ" FontFamily="Segoe UI" FontSize="10.5" FontWeight="Bold"
+                                       Foreground="#B3FFFFFF" VerticalAlignment="Center"/>
+                        </StackPanel>
+
                         <Grid Margin="0,0,0,12">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="14"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                             <StackPanel Grid.Column="0">
                                 <TextBlock Text="Peso bruto (kg)" Style="{StaticResource MLabel}"/>
-                                <TextBox x:Name="TxtBruto" Style="{StaticResource MInput}" TextChanged="Recalcular"/>
+                                <TextBox x:Name="TxtBruto" Style="{StaticResource MInput}" TextChanged="Recalcular"
+                                         controls:Placeholder.Texto="0.00"/>
                             </StackPanel>
                             <!-- La tara extra se PESA, nunca se calcula: son las tarimas/forros que
                                  vinieron en esta pesada. Es opcional — si no se pesa acá, se puede
                                  cargar el total después con «Tara extra» y el sistema lo reparte. -->
                             <StackPanel Grid.Column="2">
-                                <TextBlock Text="Tara extra de esta pesada (kg) · opcional" Style="{StaticResource MLabel}"/>
-                                <TextBox x:Name="TxtTaraExtraEntrada" Style="{StaticResource MInput}" TextChanged="Recalcular"/>
+                                <TextBlock Text="Peso tara extra (kg)" Style="{StaticResource MLabel}"/>
+                                <TextBox x:Name="TxtTaraExtraEntrada" Style="{StaticResource MInput}" TextChanged="Recalcular"
+                                         controls:Placeholder.Texto="0 · opcional"/>
                             </StackPanel>
                         </Grid>
 
                         <Grid Margin="0,0,0,12">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="14"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                             <StackPanel Grid.Column="0">
-                                <TextBlock Text="Peso tara individual (kg)" Style="{StaticResource MLabel}"/>
-                                <TextBox x:Name="TxtTaraInd" Style="{StaticResource MInputDisplay}" IsEnabled="False"/>
-                            </StackPanel>
-                            <StackPanel Grid.Column="2">
-                                <TextBlock Text="Peso tara total (kg)" Style="{StaticResource MLabel}"/>
-                                <TextBox x:Name="TxtTaraTotal" Style="{StaticResource MInputDisplay}" IsEnabled="False"/>
-                            </StackPanel>
-                        </Grid>
-
-                        <!-- Bultos estimados: cuántos bultos representa el peso pesado -->
-                        <Grid Margin="0,0,0,12">
-                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="14"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                            <StackPanel Grid.Column="0">
-                                <TextBlock Text="Bultos declarados" Style="{StaticResource MLabel}"/>
-                                <TextBox x:Name="TxtBultosDeclarados" Style="{StaticResource MInputDisplay}" IsEnabled="False"/>
-                            </StackPanel>
-                            <StackPanel Grid.Column="2">
                                 <TextBlock Text="Bultos estimados (calculado)" Style="{StaticResource MLabel}"/>
                                 <TextBox x:Name="TxtBultosEstimados" Style="{StaticResource MInputDisplay}" IsEnabled="False"/>
                             </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Peso tara individual (kg)" Style="{StaticResource MLabel}"/>
+                                <TextBox x:Name="TxtTaraInd" Style="{StaticResource MInputDisplay}" IsEnabled="False"/>
+                            </StackPanel>
                         </Grid>
+
                         <Grid Margin="0,0,0,12">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="14"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                             <StackPanel Grid.Column="0">
@@ -134,37 +134,139 @@
                             </StackPanel>
                         </Grid>
                         <TextBlock Text="Observaciones" Style="{StaticResource MLabel}"/>
-                        <TextBox x:Name="TxtObs" Style="{StaticResource MInput}" Height="48" AcceptsReturn="True" TextWrapping="Wrap"
+                        <TextBox x:Name="TxtObs" Style="{StaticResource MInput}" Height="70" AcceptsReturn="True" TextWrapping="Wrap"
                                  VerticalContentAlignment="Top" Padding="10,8"/>
                     </StackPanel>
 
-                    <!-- Panel de diferencia -->
-                    <Border Grid.Column="1" Background="#38000000" BorderBrush="#1FFFFFFF" BorderThickness="1,0,0,0" Padding="20,22">
+                    <!-- Panel lateral: diferencia, acumulados, gráfico de pesadas y avisos en vivo.
+                         Las cuentas y la cascada de avisos viven en CapaDominio.Reglas.ReglasPanelPesaje. -->
+                    <Border Grid.Column="1" Background="#38000000" BorderBrush="#1FFFFFFF" BorderThickness="1,0,0,0" Padding="18,16">
+                        <Border.Resources>
+                            <Style x:Key="PanelEyebrow" TargetType="TextBlock">
+                                <Setter Property="FontFamily" Value="Segoe UI"/>
+                                <Setter Property="FontSize" Value="10.5"/>
+                                <Setter Property="FontWeight" Value="Bold"/>
+                                <Setter Property="Foreground" Value="#99FFFFFF"/>
+                            </Style>
+                            <Style x:Key="PanelNota" TargetType="TextBlock">
+                                <Setter Property="FontFamily" Value="Segoe UI"/>
+                                <Setter Property="FontSize" Value="11"/>
+                                <Setter Property="Foreground" Value="#B3FFFFFF"/>
+                            </Style>
+                            <Style x:Key="Tarjeta" TargetType="Border">
+                                <Setter Property="Background" Value="#14FFFFFF"/>
+                                <Setter Property="BorderBrush" Value="#29FFFFFF"/>
+                                <Setter Property="BorderThickness" Value="1"/>
+                                <Setter Property="CornerRadius" Value="7"/>
+                                <Setter Property="Padding" Value="10,7"/>
+                            </Style>
+                            <Style x:Key="TarjetaValor" TargetType="TextBlock">
+                                <Setter Property="FontFamily" Value="Segoe UI"/>
+                                <Setter Property="FontSize" Value="15"/>
+                                <Setter Property="FontWeight" Value="Bold"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Style>
+                            <Style x:Key="TarjetaKg" TargetType="TextBlock">
+                                <Setter Property="FontFamily" Value="Segoe UI"/>
+                                <Setter Property="FontSize" Value="11"/>
+                                <Setter Property="Foreground" Value="#B3FFFFFF"/>
+                                <Setter Property="Margin" Value="4,0,0,2"/>
+                                <Setter Property="VerticalAlignment" Value="Bottom"/>
+                                <Setter Property="Text" Value="kg"/>
+                            </Style>
+                        </Border.Resources>
                         <StackPanel>
-                            <TextBlock Text="DIFERENCIA" FontFamily="Segoe UI" FontSize="10.5" FontWeight="Bold" Foreground="#99FFFFFF"/>
-                            <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
-                                <TextBlock x:Name="TxtDif" FontFamily="Segoe UI" FontSize="30" FontWeight="Bold" Foreground="White"/>
-                                <TextBlock Text="kg" FontFamily="Segoe UI" FontSize="15" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Bottom" Margin="4,0,0,5"/>
+                            <Grid>
+                                <TextBlock Text="DIFERENCIA" Style="{StaticResource PanelEyebrow}"/>
+                                <TextBlock x:Name="TxtConteoPesajes" Style="{StaticResource PanelNota}" HorizontalAlignment="Right"/>
+                            </Grid>
+                            <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                                <TextBlock x:Name="TxtDif" FontFamily="Segoe UI" FontSize="28" FontWeight="Bold" Foreground="White"/>
+                                <TextBlock Text="kg" FontFamily="Segoe UI" FontSize="14" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Bottom" Margin="5,0,0,5"/>
                             </StackPanel>
-                            <TextBlock x:Name="TxtDifMsg" FontFamily="Segoe UI" FontSize="11.5" Foreground="#B3FFFFFF" TextWrapping="Wrap" Margin="0,2,0,0"/>
-                            <Border Height="1" Background="#26FFFFFF" Margin="0,10"/>
-                            <TextBlock Text="MANIFESTADO" FontFamily="Segoe UI" FontSize="10.5" FontWeight="Bold" Foreground="#99FFFFFF"/>
-                            <TextBlock x:Name="TxtManifestado" FontFamily="Segoe UI" FontSize="16" FontWeight="Bold" Foreground="White" Margin="0,2,0,0"/>
+                            <TextBlock x:Name="TxtDifMsg" Style="{StaticResource PanelNota}" TextWrapping="Wrap"/>
 
-                            <!-- Sin tara extra en esta pesada, el peso de las tarimas se cuenta
-                                 como si fuera producto: la estimación de bultos queda alta. -->
-                            <Border x:Name="AvisoBultosAprox" Background="#40D97706" CornerRadius="6"
-                                    Padding="10,8" Margin="0,14,0,0" Visibility="Collapsed">
-                                <TextBlock FontFamily="Segoe UI" FontSize="11" Foreground="#FDE68A" TextWrapping="Wrap"
-                                           Text="Sin la tara extra de esta pesada, los bultos estimados son aproximados. Podés pesarla ahora o cargar el total después con «Tara extra»."/>
+                            <!-- Tarjetas 2x2 de acumulados -->
+                            <Grid Margin="0,12,0,0">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="8"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions><RowDefinition/><RowDefinition Height="8"/><RowDefinition/></Grid.RowDefinitions>
+                                <Border Style="{StaticResource Tarjeta}">
+                                    <StackPanel>
+                                        <TextBlock Text="MANIFESTADO" Style="{StaticResource PanelEyebrow}" Foreground="#CCFFFFFF"/>
+                                        <StackPanel Orientation="Horizontal" Margin="0,3,0,0">
+                                            <TextBlock x:Name="TxtManifestado" Style="{StaticResource TarjetaValor}"/>
+                                            <TextBlock Style="{StaticResource TarjetaKg}"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+                                <Border Grid.Column="2" Style="{StaticResource Tarjeta}">
+                                    <StackPanel>
+                                        <TextBlock Text="NETO ACUMULADO" Style="{StaticResource PanelEyebrow}" Foreground="#CCFFFFFF"/>
+                                        <StackPanel Orientation="Horizontal" Margin="0,3,0,0">
+                                            <TextBlock x:Name="TxtNetoAcum" Style="{StaticResource TarjetaValor}" Foreground="#4ADE80"/>
+                                            <TextBlock Style="{StaticResource TarjetaKg}"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+                                <Border Grid.Row="2" Style="{StaticResource Tarjeta}">
+                                    <StackPanel>
+                                        <TextBlock Text="TARA ACUMULADA" Style="{StaticResource PanelEyebrow}" Foreground="#CCFFFFFF"/>
+                                        <StackPanel Orientation="Horizontal" Margin="0,3,0,0">
+                                            <TextBlock x:Name="TxtTaraAcum" Style="{StaticResource TarjetaValor}"/>
+                                            <TextBlock Style="{StaticResource TarjetaKg}"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+                                <Border Grid.Row="2" Grid.Column="2" Style="{StaticResource Tarjeta}">
+                                    <StackPanel>
+                                        <TextBlock Text="TARA EXTRA ACUM." Style="{StaticResource PanelEyebrow}" Foreground="#CCFFFFFF"/>
+                                        <StackPanel Orientation="Horizontal" Margin="0,3,0,0">
+                                            <TextBlock x:Name="TxtTaraExtraAcum" Style="{StaticResource TarjetaValor}"/>
+                                            <TextBlock Style="{StaticResource TarjetaKg}"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
+
+                            <!-- Avance acumulado. El relleno es la columna izquierda de un Grid con
+                                 pesos en estrella: el code-behind solo cambia las proporciones. -->
+                            <Grid Margin="0,12,0,4">
+                                <TextBlock Text="Avance acumulado" Style="{StaticResource PanelNota}" Foreground="#D9FFFFFF"/>
+                                <TextBlock x:Name="TxtAvance" Style="{StaticResource PanelNota}" Foreground="White" FontWeight="Bold" HorizontalAlignment="Right"/>
+                            </Grid>
+                            <Border Height="7" CornerRadius="4" Background="#660F172A">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition x:Name="ColAvance" Width="0*"/>
+                                        <ColumnDefinition x:Name="ColResto" Width="1*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Border CornerRadius="4">
+                                        <Border.Background>
+                                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                                <GradientStop Color="#22C55E" Offset="0"/><GradientStop Color="#4ADE80" Offset="1"/>
+                                            </LinearGradientBrush>
+                                        </Border.Background>
+                                    </Border>
+                                </Grid>
                             </Border>
 
-                            <!-- El CHECK de la BD rechaza un neto <= 0: se ataja antes de guardar. -->
-                            <Border x:Name="AvisoNetoInvalido" Background="#40DC2626" CornerRadius="6"
-                                    Padding="10,8" Margin="0,10,0,0" Visibility="Collapsed">
-                                <TextBlock FontFamily="Segoe UI" FontSize="11" Foreground="#FECACA" TextWrapping="Wrap"
-                                           Text="El peso neto quedaría en cero o negativo. Revisá el peso bruto o la tara extra."/>
-                            </Border>
+                            <Border Height="1" Background="#26FFFFFF" Margin="0,14,0,10"/>
+
+                            <Grid>
+                                <TextBlock Text="PESADAS (KG NETO)" Style="{StaticResource PanelEyebrow}" Foreground="#CCFFFFFF"/>
+                                <TextBlock x:Name="TxtGraficoResumen" Style="{StaticResource PanelNota}" HorizontalAlignment="Right"/>
+                            </Grid>
+                            <pesajeCtl:PesadasChart x:Name="Grafico" Height="128" Margin="0,4,0,0"/>
+                            <Grid Margin="0,2,0,0">
+                                <TextBlock Text="tendencia de todas las pesadas" Style="{StaticResource PanelNota}" FontSize="10.5"/>
+                                <TextBlock x:Name="TxtPromedio" Style="{StaticResource PanelNota}" FontSize="10.5" Foreground="#93C5FD" HorizontalAlignment="Right"/>
+                            </Grid>
+
+                            <Border Height="1" Background="#26FFFFFF" Margin="0,10,0,10"/>
+
+                            <!-- Avisos en vivo: se llenan desde Recalcular() (máximo 2 + "+N más"). -->
+                            <StackPanel x:Name="PanelAlertas"/>
+                            <TextBlock x:Name="TxtAlertasExtra" Style="{StaticResource PanelNota}" FontSize="10.5" Margin="2,6,0,0" Visibility="Collapsed"/>
                         </StackPanel>
                     </Border>
                 </Grid>

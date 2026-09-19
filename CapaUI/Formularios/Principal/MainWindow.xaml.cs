@@ -722,7 +722,8 @@ namespace CapaUI.Formularios.Principal
         private async void HandleSalirAplicacionAsync()
         {
             var resultado = MessageBox.Show(
-                "Asegúrese de guardar todos los cambios, de lo contrario podría perderlos.\n\n¿Desea salir del sistema?",
+                this,
+                "Asegúrese de guardar todos los cambios,\nde lo contrario podría perderlos.\n\n¿Desea salir del sistema?",
                 "Salir del sistema",
                 MessageBoxButton.YesNo, MessageBoxImage.Warning);
 
