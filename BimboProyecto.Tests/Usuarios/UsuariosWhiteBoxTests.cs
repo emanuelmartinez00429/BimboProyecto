@@ -170,6 +170,25 @@ public sealed class UsuariosWhiteBoxTests
         Assert.Contains("_solicitud.Confirmar();", cs);
     }
 
+    [Fact(DisplayName = "Los tres flujos de contraseña reutilizan un controlador único")]
+    public void PasswordVisibility_EstaCentralizada_SinBanderasDuplicadas()
+    {
+        var raiz = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..");
+        var login = File.ReadAllText(Path.Combine(raiz, "CapaUI", "Formularios", "InicioSesion", "LoginWindow.xaml.cs"));
+        var recuperacion = File.ReadAllText(Path.Combine(raiz, "CapaUI", "Formularios", "InicioSesion", "ForgotNewPanel.xaml.cs"));
+        var usuario = File.ReadAllText(Path.Combine(raiz, "CapaUI", "Formularios", "Principal", "Pantallas", "Usuarios", "UsuarioModal.xaml.cs"));
+        var controlador = File.ReadAllText(Path.Combine(raiz, "CapaUI", "Core", "Controls", "PasswordVisibilityController.cs"));
+
+        Assert.Contains("PasswordVisibilityController", login);
+        Assert.Contains("PasswordVisibilityController", recuperacion);
+        Assert.Contains("PasswordVisibilityController", usuario);
+        Assert.DoesNotContain("_pwdVisible", login);
+        Assert.DoesNotContain("_show1", recuperacion);
+        Assert.DoesNotContain("_show2", recuperacion);
+        Assert.Contains("public void SetVisible(bool visible)", controlador);
+        Assert.Contains("_passwordBox.Password = _visibleTextBox.Text;", controlador);
+    }
+
     // =========================================================================
     // 6. INVARIANTES DE CACHÉ REALTIME Y SUGERENCIAS (ADR-026)
     // =========================================================================

@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using CapaDominio.Reglas;
+using CapaUI.Core.Controls;
 using WpfColor     = System.Windows.Media.Color;
 using WpfBrush     = System.Windows.Media.SolidColorBrush;
 using WpfEffect    = System.Windows.Media.Effects.DropShadowEffect;
@@ -15,7 +16,8 @@ namespace CapaUI.Formularios.InicioSesion
         private readonly LoginWindow _win;
         private readonly NuevaPasswordViewModel _vm;
         private readonly string _email;
-        private bool _show1 = false, _show2 = false;
+        private readonly PasswordVisibilityController _newPasswordVisibility;
+        private readonly PasswordVisibilityController _confirmPasswordVisibility;
 
         private static readonly WpfBrush _successBrush  = new(WpfColor.FromRgb(0x10, 0xB9, 0x81));
         private static readonly WpfBrush _borderBrush   = new(WpfColor.FromRgb(0xD8, 0xDC, 0xE4));
@@ -35,10 +37,12 @@ namespace CapaUI.Formularios.InicioSesion
             TxtNewVisible.MaxLength = maxLen;
             TxtConfirm.MaxLength = maxLen;
             TxtConfirmVisible.MaxLength = maxLen;
+            _newPasswordVisibility = new PasswordVisibilityController(TxtNew, TxtNewVisible);
+            _confirmPasswordVisibility = new PasswordVisibilityController(TxtConfirm, TxtConfirmVisible);
         }
 
-        private string NewPassword     => _show1 ? TxtNewVisible.Text     : TxtNew.Password;
-        private string ConfirmPassword => _show2 ? TxtConfirmVisible.Text : TxtConfirm.Password;
+        private string NewPassword     => _newPasswordVisibility.Password;
+        private string ConfirmPassword => _confirmPasswordVisibility.Password;
 
         // ── Focus effects ──
         private void Pass_GotFocus(object sender, RoutedEventArgs e)
@@ -68,34 +72,29 @@ namespace CapaUI.Formularios.InicioSesion
 
         // ── Password 1 ──
         private void TxtNew_Changed(object sender, RoutedEventArgs e)      { UpdateStrength(TxtNew.Password); Validate(); }
-        private void TxtNewVisible_Changed(object sender, TextChangedEventArgs e) { UpdateStrength(TxtNewVisible.Text); Validate(); }
 
         // ── Password 2 ──
         private void TxtConfirm_Changed(object sender, RoutedEventArgs e)      => Validate();
-        private void TxtConfirmVisible_Changed(object sender, TextChangedEventArgs e) => Validate();
 
         // ── Eye toggles ──
         private void BtnToggle1_Click(object sender, RoutedEventArgs e)
         {
-            _show1 = !_show1;
-            if (_show1) { TxtNewVisible.Text = TxtNew.Password; TxtNew.Visibility = Visibility.Collapsed; TxtNewVisible.Visibility = Visibility.Visible; TxtNewVisible.Focus(); }
-            else         { TxtNew.Password = TxtNewVisible.Text; TxtNewVisible.Visibility = Visibility.Collapsed; TxtNew.Visibility = Visibility.Visible; TxtNew.Focus(); }
+            _newPasswordVisibility.Toggle();
             Validate();
         }
 
         private void BtnToggle2_Click(object sender, RoutedEventArgs e)
         {
-            _show2 = !_show2;
-            if (_show2) { TxtConfirmVisible.Text = TxtConfirm.Password; TxtConfirm.Visibility = Visibility.Collapsed; TxtConfirmVisible.Visibility = Visibility.Visible; TxtConfirmVisible.Focus(); }
-            else         { TxtConfirm.Password = TxtConfirmVisible.Text; TxtConfirmVisible.Visibility = Visibility.Collapsed; TxtConfirm.Visibility = Visibility.Visible; TxtConfirm.Focus(); }
+            _confirmPasswordVisibility.Toggle();
             Validate();
         }
 
         private void ChkShow_Changed(object sender, RoutedEventArgs e)
         {
             bool show = ChkShow.IsChecked == true;
-            if (show != _show1) BtnToggle1_Click(sender, e);
-            if (show != _show2) BtnToggle2_Click(sender, e);
+            _newPasswordVisibility.SetVisible(show);
+            _confirmPasswordVisibility.SetVisible(show);
+            Validate();
         }
 
         // ── Strength meter ──

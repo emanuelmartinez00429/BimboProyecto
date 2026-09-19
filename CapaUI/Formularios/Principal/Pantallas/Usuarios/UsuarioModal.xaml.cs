@@ -25,6 +25,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Usuarios
         private readonly string?               _preselectedCorreo;
         private readonly SolicitudIdempotente  _solicitud = new();
         private ChangeTracker<UsuarioSnapshot> _tracker = new(null);
+        private PasswordVisibilityController?  _passwordVisibility;
 
         private sealed record UsuarioSnapshot(int IdRol, int IdEstado);
 
@@ -49,6 +50,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Usuarios
             _usuario     = usuario ?? throw new ArgumentNullException(nameof(usuario));
             _esNuevo     = false;
             InitializeComponent();
+            InitializePasswordVisibility();
             Loaded += OnLoaded;
         }
 
@@ -67,7 +69,13 @@ namespace CapaUI.Formularios.Principal.Pantallas.Usuarios
             _preselectedNombre       = nombreEmpleado;
             _preselectedCorreo       = correoEmpleado;
             InitializeComponent();
+            InitializePasswordVisibility();
             Loaded += OnLoaded;
+        }
+
+        private void InitializePasswordVisibility()
+        {
+            _passwordVisibility = new PasswordVisibilityController(TxtPassword, TxtPasswordVisible);
         }
 
         private async void OnLoaded(object sender, RoutedEventArgs e)
@@ -150,6 +158,9 @@ namespace CapaUI.Formularios.Principal.Pantallas.Usuarios
         // ── Acciones ─────────────────────────────────────────────────────
 
         private void BtnCerrar_Click(object sender, RoutedEventArgs e) => Cerrado?.Invoke();
+
+        private void BtnTogglePassword_Click(object sender, RoutedEventArgs e)
+            => _passwordVisibility?.Toggle();
 
         private async void BtnGuardar_Click(object sender, RoutedEventArgs e)
         {

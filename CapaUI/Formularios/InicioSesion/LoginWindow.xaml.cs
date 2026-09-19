@@ -14,6 +14,7 @@ using CapaAplicacion.Empresa.Dtos;
 using CapaAplicacion.Empresa.Interfaces;
 using CapaAplicacion.Usuarios.Interfaces;
 using CapaDominio.Reglas;
+using CapaUI.Core.Controls;
 using CapaUI.Core.Empresa;
 using CapaUI.Services.Empresa;
 
@@ -39,7 +40,7 @@ namespace CapaUI.Formularios.InicioSesion
         private readonly IEmpresaRepository _empresaRepository;
         private readonly LogoEmpresaCache _logoCache;
         private readonly EmpresaThemeService _themeService;
-        private bool _pwdVisible = false;
+        private PasswordVisibilityController? _passwordVisibility;
 
         private static readonly SolidColorBrush _borderBrush  = new(Color.FromRgb(0xD8, 0xDC, 0xE4));
         private static readonly SolidColorBrush _successBrush = new(Color.FromRgb(0x10, 0xB9, 0x81));
@@ -68,6 +69,7 @@ namespace CapaUI.Formularios.InicioSesion
             TxtEmail.MaxLength = ReglasUsuario.Correo.LargoMaximo ?? 50;
             TxtPassword.MaxLength = ReglasUsuario.Password.LargoMaximo ?? 72;
             TxtPasswordVisible.MaxLength = ReglasUsuario.Password.LargoMaximo ?? 72;
+            _passwordVisibility = new PasswordVisibilityController(TxtPassword, TxtPasswordVisible);
             Loaded += LoginWindow_Loaded;
             SourceInitialized += OnSourceInitialized;
         }
@@ -231,7 +233,7 @@ namespace CapaUI.Formularios.InicioSesion
             // El PasswordBox no se puede bindear (decisión de seguridad de WPF), así que
             // la vista empuja los dos campos al ViewModel y le pregunta la regla.
             _vm.Email    = TxtEmail.Text;
-            _vm.Password = _pwdVisible ? TxtPasswordVisible.Text : TxtPassword.Password;
+            _vm.Password = _passwordVisibility?.Password ?? TxtPassword.Password;
             BtnIngresar.IsEnabled = _vm.PuedeIngresar;
         }
 
@@ -244,21 +246,7 @@ namespace CapaUI.Formularios.InicioSesion
         // ── Toggle password ───────────────────────────────────────────────────
         private void BtnTogglePwd_Click(object sender, RoutedEventArgs e)
         {
-            _pwdVisible = !_pwdVisible;
-            if (_pwdVisible)
-            {
-                TxtPasswordVisible.Text       = TxtPassword.Password;
-                TxtPassword.Visibility        = Visibility.Collapsed;
-                TxtPasswordVisible.Visibility = Visibility.Visible;
-                TxtPasswordVisible.Focus();
-            }
-            else
-            {
-                TxtPassword.Password          = TxtPasswordVisible.Text;
-                TxtPasswordVisible.Visibility = Visibility.Collapsed;
-                TxtPassword.Visibility        = Visibility.Visible;
-                TxtPassword.Focus();
-            }
+            _passwordVisibility?.Toggle();
             Fields_Changed(sender, e);
         }
 
@@ -270,7 +258,7 @@ namespace CapaUI.Formularios.InicioSesion
             // El correo real lleva el sufijo de dominio que pinta el GhostTextBox, y eso
             // Fields_Changed no lo ve: se vuelve a empujar acá, antes de autenticar.
             _vm.Email    = TxtEmail.GetFullText();
-            _vm.Password = _pwdVisible ? TxtPasswordVisible.Text : TxtPassword.Password;
+            _vm.Password = _passwordVisibility?.Password ?? TxtPassword.Password;
 
             BtnIngresar.IsEnabled = false;
             OcultarError();

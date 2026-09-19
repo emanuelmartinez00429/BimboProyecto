@@ -186,10 +186,12 @@
                                          Style="{StaticResource InputTextBox}"
                                          Visibility="Collapsed"
                                          GotFocus="Input_GotFocus" LostFocus="Input_LostFocus"
-                                         KeyDown="Field_KeyDown" TextChanged="Fields_Changed"/>
+                                         KeyDown="Field_KeyDown"/>
                                 <Button x:Name="BtnTogglePwd" Grid.Column="2" Width="40"
                                         Background="Transparent" BorderThickness="0"
-                                        Cursor="Hand" Click="BtnTogglePwd_Click">
+                                        Cursor="Hand" Click="BtnTogglePwd_Click"
+                                        ToolTip="Mostrar u ocultar contraseña"
+                                        AutomationProperties.Name="Mostrar u ocultar contraseña">
                                     <Viewbox Width="18" Height="18">
                                         <Canvas Width="24" Height="24">
                                             <Path x:Name="EyePath"

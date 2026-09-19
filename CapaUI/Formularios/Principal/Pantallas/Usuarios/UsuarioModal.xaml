@@ -6,6 +6,7 @@
              xmlns:po="http://schemas.microsoft.com/winfx/2006/xaml/presentation/options"
              xmlns:conv="clr-namespace:CapaUI.Converters"
              xmlns:controls="clr-namespace:CapaUI.Core.Controls"
+             xmlns:validacion="clr-namespace:CapaUI.Core.Validacion"
              mc:Ignorable="d po"
              Width="560"
              d:DesignWidth="560"
@@ -23,6 +24,9 @@
             </ResourceDictionary.MergedDictionaries>
 
             <PathGeometry x:Key="IconCloseM" Figures="M6,6 l12,12 M18,6 l-12,12" po:Freeze="True"/>
+            <PathGeometry x:Key="IconEyePassword"
+                          Figures="M12 4.5C7 4.5 2.73 7.61 1 12C2.73 16.39 7 19.5 12 19.5C17 19.5 21.27 16.39 23 12C21.27 7.61 17 4.5 12 4.5ZM12 17C9.24 17 7 14.76 7 12C7 9.24 9.24 7 12 7C14.76 7 17 9.24 17 12C17 14.76 14.76 17 12 17ZM12 9C10.34 9 9 10.34 9 12C9 13.66 10.34 15 12 15C13.66 15 15 13.66 15 12C15 10.34 13.66 9 12 9Z"
+                          po:Freeze="True"/>
 
             <!-- ModalSegBtn, EtiquetaCampo, CampoModal y ModalPassword vienen de Styles.xaml. -->
         </ResourceDictionary>
@@ -123,18 +127,48 @@
                     <StackPanel Style="{StaticResource CampoModal}">
                         <TextBlock Text="Email" Style="{StaticResource EtiquetaCampo}"/>
                         <TextBox x:Name="TxtEmail" Style="{StaticResource ModalInput}"
-                                 IsReadOnly="True" TabIndex="20"/>
+                                 IsReadOnly="True" TabIndex="20"
+                                 Padding="10,0,12,0" HorizontalAlignment="Stretch"/>
                     </StackPanel>
 
                     <!-- Contraseña: solo al crear. -->
                     <StackPanel x:Name="RowPassword" Style="{StaticResource CampoModal}" Visibility="Collapsed">
                         <TextBlock Text="Contrase&#241;a" Style="{StaticResource EtiquetaCampo}"/>
-                        <PasswordBox x:Name="TxtPassword" Style="{StaticResource ModalPassword}" TabIndex="30"/>
+                        <Grid x:Name="PasswordInputGrid" HorizontalAlignment="Stretch">
+                            <PasswordBox x:Name="TxtPassword"
+                                         Style="{StaticResource ModalPassword}"
+                                         Padding="10,0,42,0"
+                                         HorizontalAlignment="Stretch"
+                                         TabIndex="30"/>
+                            <TextBox x:Name="TxtPasswordVisible"
+                                     Style="{StaticResource ModalInput}"
+                                     Padding="10,0,42,0"
+                                     HorizontalAlignment="Stretch"
+                                     Visibility="Collapsed"
+                                     TabIndex="30"
+                                     validacion:Validacion.TieneError="{Binding Path=(validacion:Validacion.TieneError), ElementName=TxtPassword}"
+                                     validacion:Validacion.Error="{Binding Path=(validacion:Validacion.Error), ElementName=TxtPassword}"/>
+                            <Button x:Name="BtnTogglePassword"
+                                    Width="40" Height="36"
+                                    HorizontalAlignment="Right" VerticalAlignment="Center"
+                                    Background="Transparent" BorderThickness="0"
+                                    Cursor="Hand" FocusVisualStyle="{x:Null}"
+                                    ToolTip="Mostrar u ocultar contraseña"
+                                    AutomationProperties.Name="Mostrar u ocultar contraseña"
+                                    Click="BtnTogglePassword_Click" TabIndex="31">
+                                <Viewbox Width="18" Height="18">
+                                    <Canvas Width="24" Height="24">
+                                        <Path Data="{StaticResource IconEyePassword}" Fill="#64748B"/>
+                                    </Canvas>
+                                </Viewbox>
+                            </Button>
+                        </Grid>
                     </StackPanel>
 
                     <StackPanel Style="{StaticResource CampoModal}">
                         <TextBlock Text="Rol" Style="{StaticResource EtiquetaCampo}"/>
-                        <ComboBox x:Name="CmbRolModal" Style="{StaticResource ModalCombo}" TabIndex="40"/>
+                        <ComboBox x:Name="CmbRolModal" Style="{StaticResource ModalCombo}"
+                                  HorizontalAlignment="Stretch" TabIndex="40"/>
                     </StackPanel>
 
                     <!-- Estado: solo al editar. -->
