@@ -253,6 +253,13 @@ Cuando un caso de uso requiere múltiples operaciones RPC secuenciales (ej. `Upd
    - Notificar explícitamente al operador mediante un aviso contextual (`"Los datos se actualizaron correctamente, pero no se pudo cambiar su estado: ..."`).
    - Invocar el evento de guardado para refrescar los datos consolidados en la grilla, preservando la edición exitosa y evitando estados desincronizados en el cliente.
 
+## 16. Plantillas de `TextBox` y triggers de `ControlTemplate`: dos gotchas
+
+1. **No repetir el `Padding` en `PART_ContentHost`.** `TextBoxBase` ya aplica el `Padding` dentro del host. Con `Margin="{TemplateBinding Padding}"` en el `ScrollViewer`, el texto queda corrido el doble. Si hay un marcador superpuesto, alinearlo con el texto real (Padding + ~2px del `TextBoxView`) y **verificarlo con un render**, no a ojo. Pendiente de auditar en los estilos compartidos: [[Deuda Técnica - Pendientes#P-064|P-064]].
+2. **En `ControlTemplate.Triggers`, el control plantillado es `RelativeSource Self`.** Un `Binding` dentro de un `DataTrigger`/`MultiBinding` de los triggers de la plantilla **no** resuelve con `RelativeSource TemplatedParent`. Usar `Self` (ej. `CommandParameter` del botón para marcar la opción activa).
+
+Evidencia: [[Sesión 2026-09-17 - Rediseño visual de Configuración de empresa]].
+
 ## Anti-patrones — lista negra rápida
 
 | ❌ No hacer | ✅ En su lugar |
@@ -271,6 +278,8 @@ Cuando un caso de uso requiere múltiples operaciones RPC secuenciales (ej. `Upd
 | `GroupName` en RadioButtons enlazados a enums con ViewModel | Omitir `GroupName` y tipar `ConverterParameter={x:Static ...}` |
 | `_cts?.Cancel()` sincrónico o `Task.WhenAny` con Delay | `Interlocked.Exchange` + `_ = oldCts.CancelAsync()` |
 | Reintentos ciegos ignorando fallo en la 2da RPC | Manejo de fallo parcial y confirmación idempotente del 1er paso |
+| `PART_ContentHost` con `Margin="{TemplateBinding Padding}"` | host sin `Margin` (el `Padding` ya lo aplica `TextBoxBase`) |
+| `RelativeSource TemplatedParent` en `ControlTemplate.Triggers` | `RelativeSource Self` |
 | Literal de otro framework como atributo XAML | equivalente WPF verificado en la API |
 
 ---

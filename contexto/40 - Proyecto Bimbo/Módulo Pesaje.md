@@ -261,15 +261,27 @@ Los modales de Pesaje comparten `Modales/PesajeModalStyles.xaml` (prefijo `M`): 
 > [!warning] El build verde NO garantiza que los StaticResource resuelvan
 > WPF resuelve `StaticResource` y `FindResource(...)` **en tiempo de ejecución**. Un `dotnet build` con 0 errores puede esconder recursos inexistentes que revientan al abrir el modal. Al crear un XAML nuevo, cruzar sus `StaticResource` contra: sus propias `Resources`, el diccionario que importe, y `CapaUI/Resources/Styles.xaml` (global vía `App.xaml`).
 
-## Deuda técnica conocida
+## Pendientes (revisado 2026-09-18)
 
-- **Tara plana vs por bulto** (arriba) y **catálogo de taras con datos de prueba**.
-- `CapaDatos/Repositorios/productos_movimientos/RepositorioMovimiento.cs` y `RepositorioMovimientoProducto.cs` son una implementación **vieja y sin usar** (métodos estáticos, sin Result Pattern). `CapaUI` no los referencia. Candidatos a eliminar.
-- Las RPC idempotentes y auditadas están desplegadas. `movimientos` y el ingreso de `entradas_producto` ya se consumen desde `PesajeRepository`; falta migrar las demás escrituras directas. No se revocaron permisos DML ni se cambiaron políticas RLS porque ese endurecimiento se realizará al final del desarrollo.
-- La prueba funcional del flujo integrado fue aprobada por Emanuel el 2026-08-24. Queda pendiente confirmar visualmente en Bitácora que los cambios de estado muestran su significado (`Recepción cerrada`, `Pesaje anulado`, etc.) y nunca el identificador numérico; ver P-046.
-- **Topes de texto a medias** (P-045): las dos `observaciones` de `movimiento_productos` y `entradas_producto` siguen sin límite en ninguna capa.
-- **Alta múltiple sin transacción** (P-053): `RegistrarCamionesAsync` hace N INSERT sueltos. Misma familia que P-032; ambas se cierran con una RPC transaccional.
-- **Tercer estilo de input** (P-042): `RegistroCamionesModal` define `CeldaInput` local porque `MInput` no reacciona a `Validacion.TieneError` y su borde blanco es invisible sobre tarjeta clara. Ya son tres inputs conviviendo en Pesaje y solo uno señala el error.
+Revisado contra `Deuda Técnica - Pendientes.md` y contra el código. Ordenados por impacto.
+
+**🔴 Afectan el peso que se le paga al proveedor**
+1. **[[Deuda Técnica - Pendientes#P-023|P-023]] · Catálogo de taras con datos de prueba.** `tara` tiene una sola fila de 20 kg y la usan 503 de 505 productos, casi todos de menos de 10 kg. La tara se resta del bruto, así que el neto pagado sale mal. Requiere **datos reales de planta**.
+2. **[[Deuda Técnica - Pendientes#P-024|P-024]] · Tara plana o por bulto.** El trigger la resta una vez por pesada; `PesajeCalc.BultosTeoricos` la cuenta por bulto. Una de las dos está mal. **Bloqueado por P-023.**
+
+**🟠 Funcionalidad faltante**
+
+3. **[[Deuda Técnica - Pendientes#P-036|P-036]] · Sin pantalla CRUD de Tara.** Hoy solo se elige con la lupa al editar un producto; las filas se cargan directo en Supabase. El módulo de Presentaciones sirve de plantilla (falta el combo de unidad filtrado a Masa). Conviene resolverlo junto con P-023.
+
+**🟡 Verificaciones y decisiones abiertas**
+
+4. **[[Deuda Técnica - Pendientes#P-046|P-046]] · Descripciones de estado en Bitácora.** Falta una prueba visual en la grilla real: tiene que decir "Recepción cerrada" o "Pesaje anulado", nunca "Estado 8". El flujo integrado ya lo aprobó Emanuel el 2026-08-24.
+5. **Decisión de negocio: ¿el excedente bloquea el guardado?** En `PesajeModal` el excedente se pinta en rojo, pero "Seguir pesando" sigue habilitado. Si se decide bloquear, es una línea en `PesajeModal.Valido`. Ver [[Sesión 2026-09-18 - Panel de control y gráfico de pesadas en PesajeModal]].
+6. **Endurecimiento de la BD, pospuesto a propósito al final del desarrollo.** Las RPC idempotentes y auditadas están desplegadas y `movimientos` y el ingreso de `entradas_producto` ya las usan. Falta migrar las demás escrituras directas, revocar el DML directo y ajustar RLS.
+
+> [!note] Líneas quitadas de este apartado el 2026-09-18 por estar desactualizadas
+> - **P-045** (topes de texto), **P-053** (alta múltiple sin transacción) y **P-042** (tercer estilo de input) figuraban como abiertos, pero están resueltos desde el 2026-09-06.
+> - Los repositorios viejos `CapaDatos/Repositorios/productos_movimientos/RepositorioMovimiento*.cs` figuraban como "candidatos a eliminar", pero ya no existen en el repo: se borraron en el commit `b4feb64`.
 
 ## Relaciones
 

@@ -409,6 +409,20 @@ Hoy no revienta porque solo hay 2 usos en todo el código: `PesajeView.xaml` (pa
 
 ---
 
+### P-064 · Posible `Padding` duplicado en plantillas de `TextBox` con `PART_ContentHost Margin="{TemplateBinding Padding}"`
+
+**Archivos:** `CapaUI/Resources/Styles.xaml` — `InputBox`, `CeldaInput`, `ModalInput` y cualquier plantilla de `TextBox` que repita el patrón.
+
+Al rediseñar `ConfiguracionEmpresaView`, una plantilla de `TextBox` con `Margin="{TemplateBinding Padding}"` en el `ScrollViewer` `PART_ContentHost` dejó el texto tipeado ~16px más adentro que el marcador, visto en un render con `RenderTargetBitmap`. `TextBoxBase` ya aplica el `Padding` dentro del host, así que el margen lo duplica. En esa vista se corrigió (host sin `Margin`). **No se auditaron los estilos compartidos**, que usan el mismo patrón y cuyo `controls:Placeholder` asume que marcador y cursor coinciden.
+
+**Riesgo:** texto corrido respecto del placeholder e inputs con más sangría de la esperada en todas las pantallas que usan esos estilos.
+
+**Cómo verificar:** renderizar un `TextBox` con texto y otro vacío con placeholder usando cada estilo y comparar la X de arranque. Si se confirma, quitar el `Margin` del host y ajustar el del marcador. Es un control compartido: grepear todos los usos antes de tocarlo.
+
+**Estado:** `[ ] Pendiente` — detectado en [[Sesión 2026-09-17 - Rediseño visual de Configuración de empresa]]
+
+---
+
 ### ~~P-019 · Nombre confuso: propiedad `correoUsuario` mapea a columna `alias_usuario`~~ ✅ Resuelto 2026-07-26
 
 **Archivo:** `CapaDatos/Modelados/Usuarios/Usuarios.cs`
@@ -1485,6 +1499,7 @@ Eran **dos problemas encimados**, y el segundo era el grave:
 | P-061 | "Transacción compensatoria" en AGENTS.md no revierte nada (mal nombrada) | `[x]` Resuelto 2026-09-11 | [[Auditoría Externa — Optimizaciones WPF de Antigravity vs. Investigaciones QA]] |
 | P-062 | `EmptyStateOverlay.OnIconoChanged` fuerza Fill=Stroke en cualquier ícono, no solo íconos de relleno | `[x]` Resuelto 2026-09-11 — `IconoEsRelleno` DP (default false); `PesajeView` declara `True` | [[Sesión 2026-09-11 - Rediseño e integración del icono de Pesajes]] |
 | P-063 | RLS `select_Proveedores` en `USING (true)` para `public` — cualquiera sin login leía RTN/teléfono/correo/dirección de proveedores | `[x]` Resuelto 2026-09-11 — política re-escrita con 5 permisos (`OR`); migración `fix_select_proveedores_rls_publico` | [[Sesión 2026-09-11 - RLS de proveedores abierta al público (P-063)]] |
+| P-064 | Posible `Padding` duplicado en plantillas de `TextBox` con `PART_ContentHost Margin="{TemplateBinding Padding}"` | `[ ]` Pendiente — corregido solo en `ConfiguracionEmpresaView` | [[Sesión 2026-09-17 - Rediseño visual de Configuración de empresa]] |
 
 ---
 

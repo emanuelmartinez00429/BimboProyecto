@@ -30,6 +30,11 @@ EmpresaRepository : RepositorioBase
 - `EmpresaRepository` usa `Result`, `TryAsync` y la sesión inyectada.
 - El cliente actualiza únicamente campos editables; el timestamp de modificación queda bajo responsabilidad del trigger configurado en la base.
 - Las validaciones de negocio de RTN, correo, teléfono y dominio siguen pospuestas. El logo sí se limita técnicamente a PNG/JPG/JPEG decodificable y 2 MB.
+- **2026-09-17, rediseño visual de `ConfiguracionEmpresaView`:**
+  - Dos tarjetas hermanas de igual altura, más una barra de acciones separada con "Guardar cambios". **Sin botón Cancelar** (decisión vigente, cubierta por test).
+  - Las muestras de color marcan la activa con aro oscuro vía `TextosIgualesConverter` (`ColorEmpresa` vs `CommandParameter`).
+  - Estilos locales a la vista: `TarjetaSeccion`, `TituloSeccion`, `SubtituloSeccion`, `IconoSeccion`, `InputStyle` (con `controls:Placeholder.Texto`) y `PresetColorButton`.
+  - Ver [[Sesión 2026-09-17 - Rediseño visual de Configuración de empresa]].
 - **2026-09-18, `ConfiguracionEmpresaView`:**
   - En "Identidad visual" la columna izquierda es el **Logo** y la derecha el **Ícono del menú lateral**. Los títulos estaban cruzados respecto de sus bindings.
   - El aviso "Si cambia el dominio…" solo aparece mientras el campo de dominio tiene foco, en un recuadro amarillo pálido.
