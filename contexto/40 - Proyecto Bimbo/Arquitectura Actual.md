@@ -10,6 +10,12 @@ aliases:
 
 # Arquitectura Actual — Bimbo
 
+> [!success] Actualizado 2026-09-18 — «Recordar usuario» cifrado con DPAPI
+> El correo de «Recordar usuario», que también es el usuario de login, se guarda cifrado con DPAPI (`ProtectedData`, `CurrentUser`, con entropía propia) en `%LOCALAPPDATA%\BimboPesaje\Preferencias\ultimo_usuario.bin`. Deja de estar en texto plano y en Roaming. El `.txt` viejo se migra y se borra solo. 7 tests nuevos. Cierra el punto 4.2 de [[Plan de Seguridad - Roadmap 10-10]]. Ver [[Sesión 2026-09-18 - Recordar usuario cifrado con DPAPI]].
+
+> [!success] Actualizado 2026-09-18 — Camiones de Pesaje en tabla plana y reglas de recepción en BD
+> «Camiones de Entrega» dejó de agrupar por placa: es un `DataGrid` donde **una fila es una recepción** (placa + proveedor), cada una con su KG manifestado. Tope de **5 recepciones abiertas contadas por fila**; la placa se repite solo con otro proveedor. Las reglas viven en `ReglasCamion.ValidarRecepciones` (12 tests) **y** en la BD: trigger `trg_validar_recepcion_movimiento` con advisory lock y el índice único `ux_movimientos_abierto_placa_proveedor`, que cubren todos los caminos de alta y edición. El reporte se elige por placa y junta todas sus recepciones en un solo archivo. Se eliminaron `GrupoCamionPesaje`, `CamionModal` y los N updates sin transacción. Ver [[ADR-029 - Recepciones de pesaje planas con reglas en trigger de tabla]] y [[Sesión 2026-09-18 - Camiones en tabla plana y reglas de recepción en BD]].
+
 > [!success] Actualizado 2026-09-18 — Panel de control y gráfico de pesadas en PesajeModal
 > `PesajeModal` suma un panel lateral en vivo: diferencia, tarjetas de acumulados (tara plana por pesada), barra de avance, gráfico `PesadasChart` (`OnRender`, sin librerías) con el punto "Ahora" y avisos en cascada. Las cuentas quedan en `CapaDominio/Reglas/ReglasPanelPesaje.cs` con 14 tests. La escala del eje Y es el doble del promedio, así la línea siempre queda a media altura. En `ConfiguracionEmpresaView` se corrigieron los títulos cruzados logo/ícono y el aviso del dominio pasó a mostrarse solo con foco. Revisado visualmente por Fernando. Ver [[Módulo Pesaje]] y [[Sesión 2026-09-18 - Panel de control y gráfico de pesadas en PesajeModal]].
 
@@ -29,7 +35,7 @@ aliases:
 > El ícono de balanza se centralizó como `IcoScale` (`PathGeometry`, `FillRule="Nonzero"`, `po:Freeze="True"`) en `Styles.xaml`, reemplazando el glifo de fuente del sidebar y las copias locales de `DashboardView`/`PesajeView`. De paso se encontró y cerró [[Deuda Técnica - Pendientes#P-062|P-062]]: `EmptyStateOverlay.OnIconoChanged` forzaba `Fill = Stroke` para cualquier ícono asignado, no solo los de relleno sólido — nueva propiedad `IconoEsRelleno` (default `false`) lo hace opcional y protege por default a todos los íconos de línea del proyecto. Ver [[Sesión 2026-09-11 - Rediseño e integración del icono de Pesajes]].
 
 > [!success] Actualizado 2026-09-11 — "Recordar mi usuario" en el login, 100% local
-> Checkbox opcional (destildado por default) que guarda solo el correo — nunca la contraseña — en `%APPDATA%\BimboPesaje\Preferencias\ultimo_usuario.txt`, aislado por máquina y sin tocar Supabase. Nuevo contrato `IPreferenciasInicioSesionService` (`CapaAplicacion4`) implementado en `CapaDatos.Preferencias`. Ver [[Sesión 2026-09-11 - Recordar mi usuario en Login]].
+> Checkbox opcional (destildado por default) que guarda solo el correo — nunca la contraseña — en `%APPDATA%\BimboPesaje\Preferencias\ultimo_usuario.txt`, aislado por máquina y sin tocar Supabase. *(Desde 2026-09-18: cifrado con DPAPI en `%LOCALAPPDATA%` — ver arriba.)* Nuevo contrato `IPreferenciasInicioSesionService` (`CapaAplicacion4`) implementado en `CapaDatos.Preferencias`. Ver [[Sesión 2026-09-11 - Recordar mi usuario en Login]].
 
 > [!success] Actualizado 2026-09-11 — `ChangeTracker<T>` erradica el dirty tracking manual en los 5 modales de catálogo
 > `ChangeTracker<T>` (`CapaUI/Core/Validacion/`), genérico y sellado, reemplazó las cadenas de `!string.Equals` en `ProveedorModal`, `ProductoModal`, `FabricanteModal`, `CategoriaModal` y `PresentacionModal` por comparación de valor sobre un `record` privado por modal. De paso se cerró la auditoría externa de las optimizaciones WPF de Antigravity contra las investigaciones de QA: `EnumToBooleanConverter` quedó `sealed` con comparación bit a bit, y el swap atómico de `CancellationTokenSource` dejó de llamar `Dispose()` sobre el token reemplazado (P-060), evitando el riesgo de `ObjectDisposedException` documentado en la investigación de concurrencia. Ver [[Auditoría Externa — Optimizaciones WPF de Antigravity vs. Investigaciones QA]] y [[Sesión 2026-09-11 - Dirty Tracking tipado con ChangeTracker y optimizaciones finales]].
@@ -261,6 +267,7 @@ _Ninguna advertencia activa._ W-001 (CS0067 `SalirSolicitado`) eliminada — eve
 ## Relaciones
 
 - [[Plan de CI-CD y Actualizaciones Remotas]] — diseño de entrega; implementación no iniciada
+- [[ADR-029 - Recepciones de pesaje planas con reglas en trigger de tabla]] — una fila por recepción; cupo y unicidad en trigger de tabla
 - [[ADR-027 - Codigo privado y distribucion publica de actualizaciones]] — decisión de distribución aceptada
 - [[Sesión 2026-09-08 - Plan de CI-CD y actualizaciones remotas]] — registro exclusivamente documental
 - [[Sesión 2026-09-03 - Corrección visual y acción masiva de Notificaciones]] — rediseño aprobado y cambio atómico de estado

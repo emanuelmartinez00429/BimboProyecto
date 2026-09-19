@@ -270,6 +270,9 @@ _inactividadTimer.Start();
 
 ### 4.2 Almacenamiento seguro del "Recordar usuario"
 
+> [!success] Hecho 2026-09-18
+> `PreferenciasInicioSesionService` cifra el correo con DPAPI (`CurrentUser` + entropía `BimboPesaje.UltimoUsuario.v1`) en `%LOCALAPPDATA%` y migra/borra el `.txt` viejo de Roaming. Verificado con 7 tests. Límite: no protege contra quien usa la misma sesión de Windows (en terminales compartidas, no marcar «Recordar usuario»). Ver [[Sesión 2026-09-18 - Recordar usuario cifrado con DPAPI]]. El texto de abajo queda como contexto histórico.
+
 **Problema actual:** No está implementado (solo guarda el email en `Settings`). Si algún día se implementara guardar credenciales, usar **Windows DPAPI**.
 
 ```csharp
