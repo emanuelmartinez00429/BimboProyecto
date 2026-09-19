@@ -180,6 +180,7 @@ El botón **«Imprimir reporte»** (y el cierre de camión) abre `ReporteModal` 
 - **Columnas estándar (Figura 28):** `FECHA ASIG.`, `PLACA`, `PRODUCTO`, `PROVEEDOR`, `BULTOS (APROX)`, `PESO MANIFESTADO`, `PESO BRUTO`, `PESO TARA`, `PESO RECIBIDO`, `DIF. (KG)`, `DIF. (%)`.
 - **Alcance flexible:** Permite exportar únicamente el camión seleccionado o consolidar todos los camiones activos.
 - **Auditoría e Integración:** Registra la emisión vía RPC `ingresar_reporte_tabla_bitacora` antes de escribir el archivo y abrirlo automáticamente en Windows.
+- **Parámetros legibles:** Desde 2026-09-18 la RPC recibe texto con origen, recepciones, cantidades y totales etiquetados; ya no persiste un objeto JSON en `reporteria.parametros_reporte`. Ver [[Sesión 2026-09-18 - Auditoría legible y parámetros de reportes en texto]].
 
 ---
 
@@ -262,6 +263,7 @@ Los modales de Pesaje comparten `Modales/PesajeModalStyles.xaml` (prefijo `M`): 
 - [[Sesión 2026-08-19 - Selector de proveedor por tabla y consolidacion de estilos]] — retiro de `SelectorProductosModal`, marco cuadrado, multiselección de productos
 - [[Sesión 2026-08-20 - Guardado de pesajes sin refetch]] — "Seguir pesando" pasó de 4-5 round trips a 1-2, modal ya no se cierra al guardar
 - [[Sesión 2026-08-24 - RPC idempotentes auditadas de Pesajes]] — diez RPC desplegadas; `movimientos` y el ingreso de pesaje ya integrados en C# con detalle legible en Bitácora, sin revocar DML ni modificar RLS
+- [[Sesión 2026-09-18 - Auditoría legible y parámetros de reportes en texto]] — normalización textual de Bitácora y parámetros legibles en la RPC de reportes
 - [[Sesión 2026-09-05 - Alta múltiple de camiones y topes de texto en movimientos]] — alta en tabla de hasta 5 camiones, `ReglasCamion` y topes reales en `movimientos`
 - [[ADR-021 - Validacion en tres capas reglas de negocio en Dominio]] — el esquema de validación al que el camión por fin se sumó
 - [[Supabase - Vistas SQL, RLS y security_invoker]] — por qué la migración de topes tuvo que recrear `v_mov_productos_resumen`

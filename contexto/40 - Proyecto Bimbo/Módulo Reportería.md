@@ -33,6 +33,12 @@ El reporte de proveedor calcula bultos como estimación con la fórmula vigente 
 
 Las cuatro RPC son `SECURITY INVOKER`, fijan `search_path`, niegan ejecución a `anon`, permiten `authenticated` y vuelven a validar sesión activa, permiso y catálogos seleccionados. Esto evita confiar únicamente en la visibilidad de botones del cliente.
 
+### Parámetros de auditoría en texto
+
+Desde 2026-09-18 `reporteria.parametros_reporte` es `text` y `ingresar_reporte_tabla_bitacora` recibe `p_parametros_reporte text`. La firma anterior con `jsonb` fue retirada para que PostgREST no encuentre sobrecargas ambiguas. `ReporteriaViewModel`, `PesajeViewModel` y `BitacoraViewModel` construyen el detalle mediante `ParametrosReporteTexto`, usando etiquetas administrativas y valores legibles en lugar de serializar objetos JSON.
+
+Los 26 registros históricos existentes fueron convertidos durante la migración forward-only. Este cambio no afecta las cuatro RPC de consulta ni el contenido de los archivos PDF/Excel; modifica únicamente el contrato persistido que describe cómo se generó cada reporte. Ver [[Sesión 2026-09-18 - Auditoría legible y parámetros de reportes en texto]].
+
 ## Selectores de catálogo y vista previa
 
 Producto, Proveedor y Categoría reutilizan `SelectorCatalogoModal`, alojado en
