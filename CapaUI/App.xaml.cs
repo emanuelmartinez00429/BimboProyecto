@@ -71,6 +71,8 @@ namespace CapaUI
         {
             base.OnStartup(e);
 
+            CapaUI.Core.ToolTipPlacement.Configurar();
+
             var logFolder = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                 "BimboPesaje", "Logs");

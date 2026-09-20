@@ -10,6 +10,9 @@ aliases:
 
 # Arquitectura Actual — Bimbo
 
+> [!success] Actualizado 2026-09-19 — Tooltips ya no quedan tapados por el cursor
+> Todos los ToolTip de la app salen 17 px más abajo de lo que WPF pone por defecto, así la mano de 32 px no pisa el texto. `CapaUI/Core/ToolTipPlacement.cs` sobreescribe el valor por defecto de `ToolTipService.VerticalOffset` para `FrameworkElement` y se invoca una vez en `App.OnStartup`. Es un valor fijo: usar el tamaño de cursor de Windows dejaba el tooltip demasiado lejos. Ver [[Sesión 2026-09-19 - Tooltips tapados por el cursor]].
+
 > [!success] Actualizado 2026-09-19 — Fila TOTAL de Entradas sin recorte al scrollear y layout de Movimiento
 > En Pesaje, la fila TOTAL de Entradas dejó de perder NETO, BULTOS y el conteo de pesajes al achicar la ventana: se desplazaba con un `TranslateTransform` y el *layout clip* de WPF (que viaja con la transformación) recortaba lo que quedaba más allá del ancho visible. Ahora vive en un `ScrollViewer` oculto (`TotalScroll`) que copia el offset horizontal de la grilla. Además, los paneles Movimiento de Materia Prima y Camiones ocupan todo el alto disponible, y los encabezados de Pesajes se alinean a la izquierda. Ver [[Sesión 2026-09-19 - Layout de Movimiento de Materia Prima y sincronización de fila TOTAL en Pesajes]].
 
