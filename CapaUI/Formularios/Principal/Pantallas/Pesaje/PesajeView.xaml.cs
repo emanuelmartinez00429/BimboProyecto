@@ -484,8 +484,9 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
 
         /// <summary>
         /// Mantiene la fila TOTAL pegada a las columnas: vive fuera del ScrollViewer
-        /// de la grilla, así que hay que desplazarla a mano y darle el ancho del
-        /// contenido (no el del viewport) para que no quede corta al scrollear.
+        /// de la grilla, así que su propio <see cref="TotalScroll"/> (barras ocultas)
+        /// copia el desplazamiento horizontal. Con un TranslateTransform los totales
+        /// de la derecha quedaban recortados por el layout clip de WPF.
         /// </summary>
         private void DgEntradas_ScrollChanged(object sender, ScrollChangedEventArgs e)
         {
@@ -495,15 +496,23 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             if (e.HorizontalChange == 0 && e.ExtentWidthChange == 0 && e.ViewportWidthChange == 0)
                 return;
 
-            TotalScrollTransform.X = -e.HorizontalOffset;
-
-            // NaN = "medí solo": cuando no hay scroll horizontal la fila se estira
-            // con el panel, igual que la grilla.
-            TotalGrid.Width = e.ExtentWidth > e.ViewportWidth ? e.ExtentWidth : double.NaN;
-
-            // Mantener la sincronización de anchos también al scrollear horizontalmente
-            // (el extent puede variar si se activa/desactiva el scrollbar horizontal).
+            // Anchos primero: la fila solo puede desplazarse hasta donde llegue su
+            // propio extent (el de la grilla cambia al (des)activar el scrollbar).
             SincronizarColumnasTotales();
+            TotalScroll.ScrollToHorizontalOffset(e.HorizontalOffset);
+        }
+
+        /// <summary>
+        /// Si el extent de la fila TOTAL crece después de que la grilla ya scrolleó
+        /// (se mide un pase de layout más tarde), el offset pedido quedó recortado al
+        /// extent viejo: se reaplica acá hasta que ambas coincidan.
+        /// </summary>
+        private void TotalScroll_ScrollChanged(object sender, ScrollChangedEventArgs e)
+        {
+            if (_svEntradas is null) return;
+            double objetivo = _svEntradas.HorizontalOffset;
+            if (Math.Abs(TotalScroll.HorizontalOffset - objetivo) > 0.5)
+                TotalScroll.ScrollToHorizontalOffset(objetivo);
         }
 
         /// <summary>

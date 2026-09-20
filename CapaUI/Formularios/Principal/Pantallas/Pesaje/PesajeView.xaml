@@ -291,6 +291,7 @@
             <Setter Property="FontSize" Value="11"/>
             <Setter Property="FontWeight" Value="Bold"/>
             <Setter Property="Height" Value="28"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="DataGridColumnHeader">
@@ -298,7 +299,7 @@
                             <TextBlock Text="{TemplateBinding Content}" Foreground="White"
                                        FontFamily="Segoe UI" FontSize="11" FontWeight="Bold"
                                        VerticalAlignment="Center"
-                                       HorizontalAlignment="Center"/>
+                                       HorizontalAlignment="Left"/>
                         </Border>
                     </ControlTemplate>
                 </Setter.Value>
@@ -459,7 +460,6 @@
                 <Grid Grid.Row="0" ClipToBounds="True">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
@@ -475,7 +475,7 @@
                         <!-- Tabla plana: una fila = una recepción (placa + proveedor). Un camión con
                              carga de tres proveedores son tres filas con la misma placa, cada una con
                              su propio KG manifestado. Se dejó de agrupar por placa el 2026-09-18. -->
-                        <DataGrid x:Name="DgCamiones" Grid.Row="1" Grid.RowSpan="2"
+                        <DataGrid x:Name="DgCamiones" Grid.Row="1"
                                   AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True"
                                   CanUserSortColumns="False" CanUserReorderColumns="False" CanUserResizeColumns="False"
                                   HeadersVisibility="Column" GridLinesVisibility="None"
@@ -583,7 +583,7 @@
                              Una sola fila de tres celdas iguales: con los textos cortos
                              entran holgados en el ancho de la columna, y las acciones
                              quedan a la vista sin segunda fila. UniformGrid y no WrapPanel -->
-                        <WrapPanel Grid.Row="3" Margin="12,8">
+                        <WrapPanel Grid.Row="2" Margin="12,8">
                             <Button x:Name="BtnCamionAgregar" Style="{StaticResource ToolSuccess}" Margin="0,0,6,4" Click="BtnNuevoProceso_Click" permisos:PermisoBehavior.Requiere="Registrar Entrada" ToolTip="Iniciar un nuevo proceso de descarga">
                                 <StackPanel Orientation="Horizontal">
                                     <Path Data="{StaticResource IcoPlus}" Stroke="White" StrokeThickness="2.2" Width="13" Height="13" Stretch="Uniform" Margin="0,0,7,0" VerticalAlignment="Center" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
@@ -613,7 +613,6 @@
                 <!-- Contenido interactivo limpio (renderizado directo a pantalla sin shader intermedio) -->
                 <Grid Grid.Row="2" ClipToBounds="True">
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
                             <RowDefinition Height="Auto"/>
@@ -793,7 +792,7 @@
                             </Border>
                         </Grid>
 
-                        <WrapPanel Grid.Row="3" Margin="12,8">
+                        <WrapPanel Grid.Row="2" Margin="12,8">
                             <Button x:Name="BtnProdAgregar" Style="{StaticResource ToolSuccess}" Margin="0,0,6,4" Click="BtnProdAgregar_Click" ToolTip="Agregar un producto al camión">
                                 <StackPanel Orientation="Horizontal">
                                     <Path Data="{StaticResource IcoPlus}" Stroke="White" StrokeThickness="2.2" Width="13" Height="13" Stretch="Uniform" Margin="0,0,7,0" VerticalAlignment="Center" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
@@ -1030,14 +1029,16 @@
                          arriba para que cada total caiga bajo su columna. -->
                     <Border Grid.Row="2" Background="#F7F9FC" BorderBrush="#E2E8F0" BorderThickness="0,1,0,0" Padding="0,9"
                             ClipToBounds="True">
-                        <!-- El desplazamiento lo escribe DgEntradas_ScrollChanged: la fila
-                             vive fuera del ScrollViewer de la grilla, así que sin esto se
-                             quedaría quieta al scrollear en horizontal y los totales
-                             dejarían de caer bajo su columna. -->
+                        <!-- La fila vive fuera del ScrollViewer de la grilla, así que su propio
+                             ScrollViewer (barras ocultas, sin foco ni clics) copia el
+                             desplazamiento horizontal en DgEntradas_ScrollChanged. NO usar un
+                             TranslateTransform: WPF recorta (layout clip) todo hijo más ancho
+                             que su ranura y el recorte viaja con la transformación, así que al
+                             scrollear desaparecían NETO, BULTOS y el conteo de pesajes. -->
+                        <ScrollViewer x:Name="TotalScroll" HorizontalScrollBarVisibility="Hidden"
+                                      VerticalScrollBarVisibility="Disabled" Focusable="False" IsHitTestVisible="False"
+                                      ScrollChanged="TotalScroll_ScrollChanged">
                         <Grid x:Name="TotalGrid" HorizontalAlignment="Left">
-                            <Grid.RenderTransform>
-                                <TranslateTransform x:Name="TotalScrollTransform"/>
-                            </Grid.RenderTransform>
                             <Grid.ColumnDefinitions>
                                 <!-- Col 0: #  — mismo Width fijo que DgEntradas Col 0 -->
                                 <ColumnDefinition x:Name="TcCol0" Width="52" MinWidth="48"/>
@@ -1075,6 +1076,7 @@
                                         Foreground="#9CA3AF" VerticalAlignment="Center" Margin="10,0"/>
                             <!-- Col 8: espaciadora del basurero, no se muestra ningún texto -->
                         </Grid>
+                        </ScrollViewer>
                     </Border>
 
                     <!-- ── Aviso de pesadas sin tara extra ──
