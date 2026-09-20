@@ -199,6 +199,30 @@ Encontrado mediante `/security-review` (metodología de 3 fases: subagente de id
 
 ---
 
+### P-065 · 19 tablas conceden `TRUNCATE` al rol `authenticated`, y RLS no filtra `TRUNCATE`
+
+**Alcance:** `bitacora`, `contactos_fabricante`, `contactos_proveedor`, `empleados`, `empresa`, `entradas_producto`, `estado_general`, `fabricantes_pais`, `modulos`, `movimiento_productos`, `movimientos`, `paises`, `productos_paises`, `proveedores_paises`, `reporteria`, `tara`, `tarima`, `tipo_unidad`, `unidad_medida`.
+
+Supabase concede `ALL` por defecto a `anon`/`authenticated`/`service_role` sobre cada tabla nueva del esquema `public`. Ese `ALL` incluye `TRUNCATE`, y **las políticas RLS no se evalúan en un `TRUNCATE`** — es privilegio puro. Una tabla con políticas impecables se puede vaciar entera si el rol conserva ese permiso. Verificado el 2026-09-20 con `has_table_privilege('authenticated', c.oid, 'TRUNCATE')`: las 19 tablas dan `true`, todas con `relrowsecurity = true`.
+
+**Riesgo:** latente, no explotable hoy por la vía normal — PostgREST no expone un verbo `TRUNCATE`, así que un cliente con el anon key y su JWT no puede invocarlo. Se vuelve real si alguna función `security definer` arma SQL dinámico, si se habilita una conexión directa a Postgres para algún rol de aplicación, o si una herramienta externa usa esas credenciales. `bitacora` es el caso más sensible: es el registro de auditoría.
+
+**Cómo verificar:**
+```sql
+select c.relname, has_table_privilege('authenticated', c.oid, 'TRUNCATE')
+from pg_class c join pg_namespace n on n.oid = c.relnamespace
+where n.nspname = 'public' and c.relkind = 'r'
+  and has_table_privilege('authenticated', c.oid, 'TRUNCATE');
+```
+
+**Solución propuesta:** por cada tabla, `revoke all ... from public, anon, authenticated` y volver a conceder solo las operaciones que la app usa (`select, insert, update, delete`, o menos). Hay que revisar tabla por tabla cuáles necesita cada rol — varias hoy solo se leen. No se hizo en bloque porque es un cambio de privilegios sobre 19 tablas en producción y merece su propia sesión con verificación por tabla.
+
+**Ya corregido en:** `usuario_preferencias`, que nace con `authenticated = arwd` (sin `TRUNCATE`) — migración `endurecer_privilegios_usuario_preferencias`.
+
+**Estado:** `[ ] Pendiente` — detectado en [[Sesión 2026-09-20 - Preferencias por usuario (Fase 1 del escalado)]]
+
+---
+
 ### ~~P-004 · `PropertyChanged` handler con 30+ condiciones en el code-behind~~ ✅ Resuelto 2026-05-28
 
 **Archivo:** `CapaUI/.../Productos/ProductosView.xaml.cs`
@@ -406,6 +430,26 @@ Hoy no revienta porque solo hay 2 usos en todo el código: `PesajeView.xaml` (pa
 ---
 
 ## 🟢 Menores — aceptables por ahora
+
+---
+
+### P-066 · `ConstructionVM` y `ConstructionScreen` quedaron sin ningún uso
+
+**Archivos:** `CapaUI/Formularios/Principal/MainViewModel.cs` (clase `ConstructionVM`),
+`CapaUI/Formularios/Principal/Pantallas/ConstructionScreen.xaml` (+ code-behind), y el
+`DataTemplate` correspondiente en `MainWindow.xaml`.
+
+Era la pantalla «en construcción» y su único consumidor era la ruta `Routes.MiUsuario`. Al
+construirse `MiUsuarioView` (2026-09-20), esa ruta pasó a `MiUsuarioViewModel` y **nadie instancia
+`ConstructionVM`**.
+
+**Riesgo:** ninguno funcional. Es andamio que compila, se mantiene y no se usa.
+
+**Decisión pendiente:** o se borra (VM + vista + `DataTemplate`, tres archivos), o se deja
+explícitamente como plantilla para el próximo módulo sin terminar y se documenta como tal. No se
+tocó en la sesión donde quedó huérfano porque borrarlo excedía el alcance de esa tarea.
+
+**Estado:** `[ ] Pendiente` — detectado en [[Sesión 2026-09-20 - Preferencias por usuario (Fase 1 del escalado)]]
 
 ---
 
@@ -1500,6 +1544,8 @@ Eran **dos problemas encimados**, y el segundo era el grave:
 | P-062 | `EmptyStateOverlay.OnIconoChanged` fuerza Fill=Stroke en cualquier ícono, no solo íconos de relleno | `[x]` Resuelto 2026-09-11 — `IconoEsRelleno` DP (default false); `PesajeView` declara `True` | [[Sesión 2026-09-11 - Rediseño e integración del icono de Pesajes]] |
 | P-063 | RLS `select_Proveedores` en `USING (true)` para `public` — cualquiera sin login leía RTN/teléfono/correo/dirección de proveedores | `[x]` Resuelto 2026-09-11 — política re-escrita con 5 permisos (`OR`); migración `fix_select_proveedores_rls_publico` | [[Sesión 2026-09-11 - RLS de proveedores abierta al público (P-063)]] |
 | P-064 | Posible `Padding` duplicado en plantillas de `TextBox` con `PART_ContentHost Margin="{TemplateBinding Padding}"` | `[ ]` Pendiente — corregido solo en `ConfiguracionEmpresaView` | [[Sesión 2026-09-17 - Rediseño visual de Configuración de empresa]] |
+| P-065 | 19 tablas conceden `TRUNCATE` a `authenticated`; RLS no filtra `TRUNCATE` | `[ ]` Pendiente — corregido solo en `usuario_preferencias` | [[Sesión 2026-09-20 - Preferencias por usuario (Fase 1 del escalado)]] |
+| P-066 | `ConstructionVM` y `ConstructionScreen` sin uso desde que `Mi Usuario` tiene pantalla real | `[ ]` Pendiente — borrar o declarar plantilla | [[Sesión 2026-09-20 - Preferencias por usuario (Fase 1 del escalado)]] |
 
 ---
 
