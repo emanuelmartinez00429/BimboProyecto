@@ -160,6 +160,51 @@
                                 <TextBlock Text="{Binding Email}" Style="{StaticResource MiUsuarioValor}"/>
                             </StackPanel>
                         </Grid>
+
+                        <!-- Apodo personal: cómo te saluda el menú principal.
+                             Preferencia propia (usuario_preferencias, clave 'apodo'):
+                             vaciar el campo borra el apodo y vuelve al nombre real. -->
+                        <TextBlock Text="APODO DE SALUDO" Style="{StaticResource MiUsuarioEtiqueta}"
+                                   Margin="0,18,0,0"/>
+                        <TextBlock Style="{StaticResource MiUsuarioSubtitulo}" Margin="0"
+                                   Text="Con este nombre te saluda el menú principal. Vaciarlo vuelve a tu nombre completo real. Solo cambia cómo te llama el sistema, no tus datos."/>
+
+                        <Grid Margin="0,10,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" MaxWidth="420"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Border Background="White" BorderBrush="#CBD5E1" BorderThickness="1"
+                                    CornerRadius="8" Padding="12,8">
+                                <TextBox BorderThickness="0" Background="Transparent"
+                                         FontFamily="Segoe UI" FontSize="14" Foreground="#172033"
+                                         MaxLength="64" VerticalContentAlignment="Center"
+                                         Text="{Binding ApodoEditable, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                         ToolTip="Escribe cómo te saluda el sistema (opcional)"/>
+                            </Border>
+
+                            <Button Grid.Column="1" Content="Guardar apodo"
+                                    Style="{StaticResource MiUsuarioBotonTexto}"
+                                    Background="{DynamicResource EmpresaPrimaryBrush}" Foreground="White"
+                                    Command="{Binding GuardarApodoCommand}"
+                                    IsEnabled="{Binding HayCambioApodo}"
+                                    VerticalAlignment="Center" Margin="12,0,0,0"
+                                    ToolTip="Guarda el apodo o borra la preferencia si lo dejaste vacío"/>
+                        </Grid>
+
+                        <TextBlock Margin="0,8,0,0" FontSize="12.5" Foreground="#6B7280">
+                            <Run Text="Así te saluda el sistema: "/>
+                            <Run FontWeight="Bold" Foreground="#172033"
+                                 Text="{Binding ApodoPreview, Mode=OneWay}"/>
+                        </TextBlock>
+
+                        <Border Background="#FEF3C7" BorderBrush="#FCD34D" BorderThickness="1"
+                                CornerRadius="8" Padding="12,10" Margin="0,10,0,0"
+                                Visibility="{Binding HayApodoMensaje, Converter={x:Static conv:BoolToVisibilityConverter.Instancia}}">
+                            <TextBlock Text="{Binding ApodoMensaje}" TextWrapping="Wrap"
+                                       FontSize="12.5" Foreground="#92400E"/>
+                        </Border>
                     </StackPanel>
                 </Grid>
             </Border>

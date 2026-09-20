@@ -1,4 +1,7 @@
+using CapaAplicacion.Perfil;
 using CapaAplicacion.Preferencias;
+using CapaAplicacion.Preferencias.Interfaces;
+using CapaAplicacion.Preferencias.Dtos;
 using CapaAplicacion.Usuarios.Interfaces;
 using CapaDominio.Reglas;
 using CapaUI.Core.Controls;
@@ -31,16 +34,42 @@ public sealed partial class MiUsuarioViewModel : ObservableObject, IDisposable
     private const int RetardoGuardadoMs = 600;
 
     private readonly IEscalaService _escala;
+    private readonly IPreferenciasUsuarioRepository _preferencias;
+    private readonly IPerfilUsuarioService _perfil;
+    private readonly IUsuarioSesionService _sesion;
     private readonly Debouncer _guardado = new(RetardoGuardadoMs);
 
     private bool _disposed;
 
-    // ── Perfil (solo lectura) ────────────────────────────────────────────────
+    // ── Perfil ───────────────────────────────────────────────────────────────
 
-    public string NombreCompleto { get; }
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ApodoPreview))]
+    private string _nombreCompleto;
+
     public string Iniciales      { get; }
     public string NombreRol      { get; }
     public string Email          { get; }
+
+    // ── Perfil: apodo personal ───────────────────────────────────────────────
+    // El saludo «Bienvenido, X» usa el apodo si el usuario definió uno. Es una
+    // preferencia personal (usuario_preferencias, clave 'apodo'): no toca el dato
+    // real del empleado. Vacío = sin apodo, el saludo vuelve al nombre real.
+
+    /// <summary>Valor guardado en la base; referencia para saber si hubo cambios.</summary>
+    private string _apodoGuardado;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ApodoPreview))]
+    [NotifyPropertyChangedFor(nameof(HayCambioApodo))]
+    private string _apodoEditable = string.Empty;
+
+    /// <summary>Lo que mostraría el saludo del menú principal con la edición actual.</summary>
+    public string ApodoPreview =>
+        string.IsNullOrWhiteSpace(ApodoEditable) ? NombreCompleto : ApodoEditable.Trim();
+
+    public bool HayCambioApodo =>
+        ApodoEditable.Trim() != _apodoGuardado;
 
     // ── Apariencia ───────────────────────────────────────────────────────────
 
@@ -130,12 +159,21 @@ public sealed partial class MiUsuarioViewModel : ObservableObject, IDisposable
     public void EstablecerNueva(string pwd)       { ContrasenaNueva = pwd ?? string.Empty; Exito = null; }
     public void EstablecerConfirmar(string pwd)   { ContrasenaConfirmar = pwd ?? string.Empty; Exito = null; }
 
-    public MiUsuarioViewModel(IUsuarioSesionService sesion, IEscalaService escala)
+    public MiUsuarioViewModel(IUsuarioSesionService sesion, IEscalaService escala,
+                              IPreferenciasUsuarioRepository preferencias,
+                              IPerfilUsuarioService perfil)
     {
-        _escala = escala;
+        _escala       = escala;
+        _preferencias = preferencias;
+        _perfil       = perfil;
+        _sesion       = sesion;
 
         var actual = sesion.SesionActual;
-        NombreCompleto = actual?.NombreCompleto ?? "—";
+        var guardado = perfil.PerfilActual?.Apodo;
+
+        _nombreCompleto = actual?.NombreCompleto ?? "—";
+        _apodoGuardado  = guardado ?? string.Empty;
+        _apodoEditable  = guardado ?? string.Empty;
         Iniciales      = actual?.Iniciales      ?? "—";
         NombreRol      = actual?.NombreRol      ?? "—";
         Email          = actual?.Email          ?? "—";
@@ -164,6 +202,77 @@ public sealed partial class MiUsuarioViewModel : ObservableObject, IDisposable
 
     [RelayCommand]
     private void UsarSugerido() => CambiarA(FactorSugerido);
+
+    /// <summary>
+    /// Guarda el apodo personal. Vacío restablece: borra la preferencia y el saludo
+    /// vuelve al nombre completo real. Tras escribir, refresca el perfil para que la
+    /// próxima vista del menú principal salude con el apodo nuevo.
+    /// </summary>
+    [RelayCommand]
+    private async Task GuardarApodoAsync(CancellationToken ct)
+    {
+        ApodoMensaje = null;
+
+        var idUsuario = IdSesion();
+        if (idUsuario is null)
+        {
+            ApodoMensaje = "No hay una sesión activa; volvé a iniciar sesión para editar tu apodo.";
+            return;
+        }
+
+        var apodo = ApodoEditable.Trim();
+
+        // Validación de forma: una preferencia es texto cortito, no una biografía.
+        if (apodo.Length > 64)
+        {
+            ApodoMensaje = "El apodo puede tener hasta 64 caracteres.";
+            return;
+        }
+
+        if (apodo.Length > 0 && apodo == _apodoGuardado)
+        {
+            ApodoMensaje = "Ese apodo ya está guardado.";
+            return;
+        }
+
+        var guardado =
+            apodo.Length == 0
+                ? await _preferencias.EliminarAsync(idUsuario.Value, ClavesPreferencia.Apodo,
+                    ClavesPreferencia.AmbitoGlobal, ct)
+                : await _preferencias.GuardarAsync(idUsuario.Value, ClavesPreferencia.Apodo,
+                    ClavesPreferencia.AmbitoGlobal, ValorPreferencia.DesdeTexto(apodo), ct);
+
+        if (!guardado.Success)
+        {
+            ApodoMensaje = guardado.Error;
+            return;
+        }
+
+        _apodoGuardado = apodo;
+
+        // Refresca el perfil singleton: el saludo del menú principal lee
+        // PerfilActual.NombreCompleto, que con apodo ya lo pisa.
+        await _perfil.CargarAsync(idUsuario.Value);
+        if (_perfil.PerfilActual is { } fresco)
+            NombreCompleto = fresco.NombreCompleto;
+
+        ApodoMensaje = apodo.Length == 0
+            ? "Apodo borrado: el saludo vuelve a usar tu nombre real."
+            : "Apodo guardado.";
+    }
+
+    /// <summary>Id del usuario logueado, o <c>null</c> sin sesión (apodo no editable).</summary>
+    private int? IdSesion() => _sesion.SesionActual?.IdUsuario;
+
+    // ── Perfil: mensajes del editor de apodo ─────────────────────────────────
+    // Mensajes propios de la tarjeta Perfil (no reusan los de Seguridad para que
+    // un banner de "contraseña guardada" no aparezca en la tarjeta equivocada).
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HayApodoMensaje))]
+    private string? _apodoMensaje;
+
+    public bool HayApodoMensaje => !string.IsNullOrWhiteSpace(ApodoMensaje);
 
     /// <summary>
     /// STUB VISUAL del cambio de contraseña: valida la forma ya al tempo del dominio
