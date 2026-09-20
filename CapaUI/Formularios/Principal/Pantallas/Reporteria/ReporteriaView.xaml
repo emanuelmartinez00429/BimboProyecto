@@ -193,20 +193,25 @@
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
 
-                    <Border Grid.Column="0"
-                            Width="38" Height="38"
-                            Background="{DynamicResource EmpresaPrimaryBrush}"
-                            CornerRadius="8"
-                            Margin="0,0,12,0"
-                            VerticalAlignment="Center">
-                        <Border.Effect>
-                            <DropShadowEffect Color="{DynamicResource EmpresaPrimaryColor}" BlurRadius="8" ShadowDepth="2" Opacity="0.3"/>
-                        </Border.Effect>
-                        <Path Data="{StaticResource IcoReporte}"
-                              Fill="White"
-                              Width="20" Height="20"
-                              Stretch="Uniform"/>
-                    </Border>
+                    <Grid Grid.Column="0"
+                          Width="38" Height="38"
+                          Margin="0,0,12,0"
+                          VerticalAlignment="Center">
+                        <Border CornerRadius="8"
+                                Background="{DynamicResource EmpresaPrimaryBrush}"
+                                IsHitTestVisible="False">
+                            <Border.Effect>
+                                <DropShadowEffect Color="{DynamicResource EmpresaPrimaryColor}" BlurRadius="8" ShadowDepth="2" Opacity="0.3"/>
+                            </Border.Effect>
+                        </Border>
+                        <Border CornerRadius="8"
+                                Background="{DynamicResource EmpresaPrimaryBrush}">
+                            <Path Data="{StaticResource IcoReporte}"
+                                  Fill="White"
+                                  Width="20" Height="20"
+                                  Stretch="Uniform"/>
+                        </Border>
+                    </Grid>
 
                     <StackPanel Grid.Column="1" VerticalAlignment="Center">
                         <TextBlock FontFamily="Segoe UI" FontSize="14" Foreground="#6B7280"
@@ -348,15 +353,19 @@
                     </Grid.RowDefinitions>
 
                     <!-- Tarjeta de Filtros -->
-                    <Border Grid.Row="0"
-                            Background="White"
-                            CornerRadius="10"
-                            BorderBrush="#D8E1EC"
-                            BorderThickness="1"
-                            Padding="18,14">
-                        <Border.Effect>
-                            <DropShadowEffect Color="Black" BlurRadius="10" ShadowDepth="2" Opacity="0.06"/>
-                        </Border.Effect>
+                    <Grid Grid.Row="0">
+                        <!-- Sombra estática desacoplada: Border hermano detrás del contenido (AP-06 Zero-Shader Layout) -->
+                        <Border Background="White" CornerRadius="10">
+                            <Border.Effect>
+                                <DropShadowEffect Color="#0F172A" BlurRadius="10" ShadowDepth="2" Opacity="0.06"/>
+                            </Border.Effect>
+                        </Border>
+                        <Border Background="White"
+                                CornerRadius="10"
+                                BorderBrush="#D8E1EC"
+                                BorderThickness="1"
+                                Padding="18,14"
+                                RenderOptions.ClearTypeHint="Enabled">
                         <WrapPanel VerticalAlignment="Center">
                             <StackPanel Width="310" Margin="0,0,18,10" Visibility="{Binding RequiereProveedor,Converter={x:Static conv:BoolToVisibilityConverter.Instancia}}">
                                 <TextBlock Text="Proveedor *" Style="{StaticResource FieldLabel}"/>
@@ -390,17 +399,21 @@
                             <Button Content="Consultar" Command="{Binding ConsultarCommand}" Style="{StaticResource BtnPrimary}" Width="135" VerticalAlignment="Bottom" Margin="0,0,0,10"/>
                         </WrapPanel>
                     </Border>
+                    </Grid>
 
-                    <!-- Contenedor de la tabla con tarjeta, sombra y bordes redondeados del sistema -->
-                    <Border Grid.Row="2"
-                            Background="White"
-                            CornerRadius="10"
-                            BorderBrush="#D8E1EC"
-                            BorderThickness="1"
-                            ClipToBounds="True">
-                        <Border.Effect>
-                            <DropShadowEffect Color="#0F172A" BlurRadius="14" ShadowDepth="4" Opacity="0.08"/>
-                        </Border.Effect>
+                    <!-- Contenedor de la tabla con tarjeta, sombra desacoplada (AP-06 Zero-Shader Layout) -->
+                    <Grid Grid.Row="2">
+                        <Border Background="White" CornerRadius="10">
+                            <Border.Effect>
+                                <DropShadowEffect Color="#0F172A" BlurRadius="14" ShadowDepth="4" Opacity="0.08"/>
+                            </Border.Effect>
+                        </Border>
+                        <Border Background="White"
+                                CornerRadius="10"
+                                BorderBrush="#D8E1EC"
+                                BorderThickness="1"
+                                ClipToBounds="True"
+                                RenderOptions.ClearTypeHint="Enabled">
                         <Grid>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto"/>
@@ -551,6 +564,7 @@
                             </Border>
                         </Grid>
                     </Border>
+                    </Grid>
 
                     <Grid Grid.Row="3" Margin="0,14,0,0">
                         <Grid.ColumnDefinitions>
@@ -584,27 +598,32 @@
 
     <!-- SelectorCatalogoModal es chromeless: esta tarjeta le da el mismo marco
          degradado que ProductoModal, sin permitir que ocupe toda la vista. -->
-    <Border x:Name="SelectorFrame"
-            Width="820" Height="650"
-            MaxWidth="{Binding ActualWidth, ElementName=ModalOverlay, Converter={x:Static conv:RestarMargenConverter.Instancia}, ConverterParameter=48}"
-            MaxHeight="{Binding ActualHeight, ElementName=ModalOverlay, Converter={x:Static conv:RestarMargenConverter.Instancia}, ConverterParameter=48}"
-            HorizontalAlignment="Center"
-            VerticalAlignment="Center"
-            CornerRadius="10"
-            ClipToBounds="True"
-            Visibility="Collapsed">
-     <Border.Effect>
-      <DropShadowEffect Color="Black" BlurRadius="24" ShadowDepth="8" Opacity="0.55"/>
-     </Border.Effect>
-     <Border.Background>
-      <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-       <GradientStop Color="{DynamicResource EmpresaPrimaryDarkColor}" Offset="0"/>
-       <GradientStop Color="{DynamicResource EmpresaPrimaryColor}" Offset="0.55"/>
-       <GradientStop Color="{DynamicResource EmpresaPrimaryDarkColor}" Offset="1"/>
-      </LinearGradientBrush>
-     </Border.Background>
-     <ContentControl x:Name="SelectorContent"/>
-    </Border>
+    <Grid x:Name="SelectorFrame"
+          Width="820" Height="650"
+          MaxWidth="{Binding ActualWidth, ElementName=ModalOverlay, Converter={x:Static conv:RestarMargenConverter.Instancia}, ConverterParameter=48}"
+          MaxHeight="{Binding ActualHeight, ElementName=ModalOverlay, Converter={x:Static conv:RestarMargenConverter.Instancia}, ConverterParameter=48}"
+          HorizontalAlignment="Center"
+          VerticalAlignment="Center"
+          Visibility="Collapsed">
+      <!-- Sombra estática desacoplada (AP-06 Zero-Shader Layout) -->
+      <Border Background="#1E293B" CornerRadius="10">
+        <Border.Effect>
+          <DropShadowEffect Color="Black" BlurRadius="24" ShadowDepth="8" Opacity="0.55"/>
+        </Border.Effect>
+      </Border>
+
+      <!-- Contenedor con recorte para el gradiente y bordes redondeados limpios -->
+      <Border CornerRadius="10" ClipToBounds="True">
+        <Border.Background>
+          <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Color="{DynamicResource EmpresaPrimaryDarkColor}" Offset="0"/>
+            <GradientStop Color="{DynamicResource EmpresaPrimaryColor}" Offset="0.55"/>
+            <GradientStop Color="{DynamicResource EmpresaPrimaryDarkColor}" Offset="1"/>
+          </LinearGradientBrush>
+        </Border.Background>
+        <ContentControl x:Name="SelectorContent"/>
+      </Border>
+    </Grid>
    </Grid>
   </Border>
  </Grid>

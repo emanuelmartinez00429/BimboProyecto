@@ -34,14 +34,17 @@
                 </Grid.ColumnDefinitions>
 
                 <StackPanel Orientation="Horizontal">
-                    <Border Width="38" Height="38" CornerRadius="10" Background="{StaticResource RolInsignia}"
-                            Margin="0,0,13,0">
-                        <Border.Effect>
-                            <DropShadowEffect BlurRadius="12" ShadowDepth="4" Opacity="0.4" Color="{DynamicResource EmpresaPrimaryColor}"/>
-                        </Border.Effect>
-                        <Path Style="{StaticResource RolIcono}" Data="{StaticResource GeoEscudo}"
-                              Width="20" Height="20" StrokeThickness="1.9" Stroke="White"/>
-                    </Border>
+                    <Grid Width="38" Height="38" Margin="0,0,13,0">
+                        <Border CornerRadius="10" Background="{StaticResource RolInsignia}" IsHitTestVisible="False">
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="12" ShadowDepth="4" Opacity="0.4" Color="{DynamicResource EmpresaPrimaryColor}"/>
+                            </Border.Effect>
+                        </Border>
+                        <Border CornerRadius="10" Background="{StaticResource RolInsignia}">
+                            <Path Style="{StaticResource RolIcono}" Data="{StaticResource GeoEscudo}"
+                                  Width="20" Height="20" StrokeThickness="1.9" Stroke="White"/>
+                        </Border>
+                    </Grid>
 
                     <StackPanel VerticalAlignment="Center">
                         <StackPanel Orientation="Horizontal">
@@ -457,5 +460,11 @@
         <StackPanel x:Name="ToastHost" Grid.RowSpan="3" VerticalAlignment="Bottom"
                     HorizontalAlignment="Center" Margin="0,0,0,72" Panel.ZIndex="90"
                     IsHitTestVisible="False"/>
+
+        <!-- Overlay del modal de rol. ZIndex 100 para quedar por encima de los avisos (90). -->
+        <Border x:Name="ModalOverlay" Grid.RowSpan="3" Background="#990F172A"
+                Visibility="Collapsed" Panel.ZIndex="100">
+            <ContentControl x:Name="ModalContent" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        </Border>
     </Grid>
 </UserControl>

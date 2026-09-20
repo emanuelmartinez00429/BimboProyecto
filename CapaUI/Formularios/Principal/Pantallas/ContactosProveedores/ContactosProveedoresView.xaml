@@ -114,11 +114,15 @@
         </Grid.RowDefinitions>
 
         <!-- ── Encabezado ───────────────────────────── -->
-        <Border Grid.Row="0" Background="White" CornerRadius="10"
-                BorderBrush="#D8E1EC" BorderThickness="1" Padding="16,14">
-            <Border.Effect>
-                <DropShadowEffect Color="Black" BlurRadius="10" ShadowDepth="2" Opacity="0.06"/>
-            </Border.Effect>
+        <Grid Grid.Row="0">
+            <Border Background="White" CornerRadius="10">
+                <Border.Effect>
+                    <DropShadowEffect Color="#0F172A" BlurRadius="10" ShadowDepth="2" Opacity="0.06"/>
+                </Border.Effect>
+            </Border>
+            <Border Background="White" CornerRadius="10"
+                    BorderBrush="#D8E1EC" BorderThickness="1" Padding="16,14"
+                    RenderOptions.ClearTypeHint="Enabled">
             <Grid>
                 <!-- MODO LISTA: ícono + título simple -->
                 <StackPanel x:Name="HeaderListMode" Orientation="Horizontal" VerticalAlignment="Center">
@@ -183,57 +187,73 @@
                 </Grid>
             </Grid>
         </Border>
+        </Grid>
 
         <!-- ── Toolbar SearchBox ─────────────────────── -->
-        <Border x:Name="ToolbarPanel" Grid.Row="2" Background="White" CornerRadius="10"
-                BorderBrush="#D8E1EC" BorderThickness="1" Padding="12">
-            <Border.Effect>
-                <DropShadowEffect Color="Black" BlurRadius="10" ShadowDepth="2" Opacity="0.06"/>
-            </Border.Effect>
-            <controls:SuggestionSearchBox x:Name="SearchBox"
-                Query="{Binding Query, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                SuggestItems="{Binding SuggestItems}"
-                HighlightIndex="{Binding HighlightIndex, Mode=TwoWay}"
-                Placeholder="Buscar proveedor por nombre o RTN..."
-                ItemSelected="SearchBox_ItemSelected"/>
-        </Border>
+        <Grid x:Name="ToolbarPanel" Grid.Row="2">
+            <Border Background="White" CornerRadius="10">
+                <Border.Effect>
+                    <DropShadowEffect Color="#0F172A" BlurRadius="10" ShadowDepth="2" Opacity="0.06"/>
+                </Border.Effect>
+            </Border>
+            <Border Background="White" CornerRadius="10"
+                    BorderBrush="#D8E1EC" BorderThickness="1" Padding="12" ClipToBounds="True"
+                    RenderOptions.ClearTypeHint="Enabled">
+                <controls:SuggestionSearchBox x:Name="SearchBox"
+                    Query="{Binding Query, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                    SuggestItems="{Binding SuggestItems}"
+                    HighlightIndex="{Binding HighlightIndex, Mode=TwoWay}"
+                    Placeholder="Buscar proveedor por nombre o RTN..."
+                    ItemSelected="SearchBox_ItemSelected"/>
+            </Border>
+        </Grid>
 
         <!-- ── Toolbar modo contactos ───────────────── -->
-        <Border x:Name="ContactsToolbar" Grid.Row="2" Background="White" CornerRadius="10"
-                BorderBrush="#D8E1EC" BorderThickness="1" Padding="12" Visibility="Collapsed">
-            <Border.Effect>
-                <DropShadowEffect Color="Black" BlurRadius="10" ShadowDepth="2" Opacity="0.06"/>
-            </Border.Effect>
-            <Grid>
-                <Button x:Name="BtnVolver" Style="{StaticResource GhostBtn}" Padding="14,0"
-                        HorizontalAlignment="Left" Click="BtnVolver_Click">
-                    <StackPanel Orientation="Horizontal">
-                        <Path Data="{StaticResource IconArrowLeft}" Stroke="{DynamicResource EmpresaPrimaryBrush}" StrokeThickness="2"
-                              StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                              Width="13" Height="13" Stretch="Uniform" Margin="0,0,5,0"/>
-                        <TextBlock Text="Volver a proveedores" FontFamily="Segoe UI" FontSize="15"
-                                   FontWeight="SemiBold" Foreground="{DynamicResource EmpresaPrimaryBrush}"/>
-                    </StackPanel>
-                </Button>
-                <Button x:Name="BtnNuevoContacto" Style="{StaticResource ActionBtn}" Background="#16A34A" permisos:PermisoBehavior.Requiere="Crear Proveedor"
-                        Padding="14,0" HorizontalAlignment="Right" Click="BtnNuevoContacto_Click">
-                    <StackPanel Orientation="Horizontal">
-                        <Path Data="{StaticResource IconPlus}" Stroke="White" StrokeThickness="2.2"
-                              StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                              Width="14" Height="14" Stretch="Uniform" Margin="0,0,6,0"/>
-                        <TextBlock Text="Nuevo contacto" FontFamily="Segoe UI" FontSize="15"
-                                   FontWeight="SemiBold" Foreground="White"/>
-                    </StackPanel>
-                </Button>
-            </Grid>
-        </Border>
+        <Grid x:Name="ContactsToolbar" Grid.Row="2" Visibility="Collapsed">
+            <Border Background="White" CornerRadius="10">
+                <Border.Effect>
+                    <DropShadowEffect Color="#0F172A" BlurRadius="10" ShadowDepth="2" Opacity="0.06"/>
+                </Border.Effect>
+            </Border>
+            <Border Background="White" CornerRadius="10"
+                    BorderBrush="#D8E1EC" BorderThickness="1" Padding="12" ClipToBounds="True"
+                    RenderOptions.ClearTypeHint="Enabled">
+                <Grid>
+                    <Button x:Name="BtnVolver" Style="{StaticResource GhostBtn}" Padding="14,0"
+                            HorizontalAlignment="Left" Click="BtnVolver_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="{StaticResource IconArrowLeft}" Stroke="{DynamicResource EmpresaPrimaryBrush}" StrokeThickness="2"
+                                  StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                  Width="13" Height="13" Stretch="Uniform" Margin="0,0,5,0"/>
+                            <TextBlock Text="Volver a proveedores" FontFamily="Segoe UI" FontSize="15"
+                                       FontWeight="SemiBold" Foreground="{DynamicResource EmpresaPrimaryBrush}"/>
+                        </StackPanel>
+                    </Button>
+                    <Button x:Name="BtnNuevoContacto" Style="{StaticResource ActionBtn}" Background="#16A34A" permisos:PermisoBehavior.Requiere="Crear Proveedor"
+                            Padding="14,0" HorizontalAlignment="Right" Click="BtnNuevoContacto_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="{StaticResource IconPlus}" Stroke="White" StrokeThickness="2.2"
+                                  StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                  Width="14" Height="14" Stretch="Uniform" Margin="0,0,6,0"/>
+                            <TextBlock Text="Nuevo contacto" FontFamily="Segoe UI" FontSize="15"
+                                       FontWeight="SemiBold" Foreground="White"/>
+                        </StackPanel>
+                    </Button>
+                </Grid>
+            </Border>
+        </Grid>
 
         <!-- ── Contenido ─────────────────────────────── -->
-        <Border Grid.Row="4" Background="White" CornerRadius="10"
-                BorderBrush="#D8E1EC" BorderThickness="1" ClipToBounds="True">
-            <Border.Effect>
-                <DropShadowEffect Color="#0F172A" BlurRadius="14" ShadowDepth="4" Opacity="0.08"/>
-            </Border.Effect>
+        <Grid Grid.Row="4">
+            <!-- Sombra estática desacoplada: Border hermano detrás del contenido (AP-06 Zero-Shader Layout) -->
+            <Border Background="White" CornerRadius="10">
+                <Border.Effect>
+                    <DropShadowEffect Color="#0F172A" BlurRadius="14" ShadowDepth="4" Opacity="0.08"/>
+                </Border.Effect>
+            </Border>
+            <Border Background="White" CornerRadius="10"
+                    BorderBrush="#D8E1EC" BorderThickness="1" ClipToBounds="True"
+                    RenderOptions.ClearTypeHint="Enabled">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*"/>
@@ -318,9 +338,6 @@
                                                         </Style.Triggers>
                                                     </Style>
                                                 </Border.Style>
-                                                <Border.Effect>
-                                                    <DropShadowEffect Color="{DynamicResource EmpresaPrimaryColor}" BlurRadius="4" ShadowDepth="1" Opacity="0.3"/>
-                                                </Border.Effect>
                                                 <Path Data="{StaticResource IconCheck}" Stroke="White" StrokeThickness="2.8"
                                                       StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
                                                       Width="11" Height="11" Stretch="Uniform"/>
@@ -453,6 +470,7 @@
                 </Grid>
             </Grid>
         </Border>
+        </Grid>
 
     </Grid>
 

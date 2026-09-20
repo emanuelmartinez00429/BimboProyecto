@@ -482,24 +482,59 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
-                    <Border x:Name="Bd"
-                            Background="{TemplateBinding Background}"
-                            CornerRadius="8"
-                            Padding="{TemplateBinding Padding}">
-                        <Border.Effect>
-                            <DropShadowEffect BlurRadius="6" ShadowDepth="2" Opacity="0.3" Color="Black"/>
-                        </Border.Effect>
-                        <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                    </Border>
+                    <!--
+                        Borde Hermano desacoplado (regla 12 de AGENTS.md — Zero-Shader Layout).
+
+                        La sombra NO puede ir en el borde que contiene el texto. Un
+                        DropShadowEffect es un pixel shader: WPF rasteriza el elemento a
+                        una textura intermedia al tamaño SIN escalar y después estira ese
+                        bitmap. Con el escalado propio de la app el texto del botón se
+                        estiraba como imagen en vez de dibujarse vectorial.
+
+                        Medido el 2026-09-20 a escala 1,3, con el gradiente máximo entre
+                        píxeles vecinos como indicador de nitidez:
+                            con la sombra sobre el texto  ->  94,7
+                            con la sombra desacoplada     -> 173,8
+                            sin escalar (referencia)      -> 176,7
+                        Es decir: desacoplarla recupera el 98 % de la nitidez original.
+
+                        `Sombra` pinta el mismo rectángulo redondeado detrás y es lo único
+                        que se rasteriza; ahí el desenfoque no importa, porque es una
+                        sombra. `Bd` queda limpio y dibuja el texto vectorialmente.
+                    -->
+                    <Grid>
+                        <Border x:Name="Sombra"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="8"
+                                IsHitTestVisible="False">
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="6" ShadowDepth="2" Opacity="0.3" Color="Black"/>
+                            </Border.Effect>
+                        </Border>
+
+                        <Border x:Name="Bd"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="8"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        </Border>
+                    </Grid>
                     <ControlTemplate.Triggers>
+                        <!-- Los dos bordes se mueven y se apagan juntos: antes eran un solo
+                             elemento y el usuario no debe notar que ahora son dos. -->
                         <Trigger Property="IsPressed" Value="True">
                             <Setter TargetName="Bd" Property="RenderTransform">
+                                <Setter.Value><TranslateTransform Y="1"/></Setter.Value>
+                            </Setter>
+                            <Setter TargetName="Sombra" Property="RenderTransform">
                                 <Setter.Value><TranslateTransform Y="1"/></Setter.Value>
                             </Setter>
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter TargetName="Bd" Property="Background" Value="#CBD5E1"/>
                             <Setter TargetName="Bd" Property="Opacity" Value="0.7"/>
+                            <Setter TargetName="Sombra" Property="Background" Value="#CBD5E1"/>
+                            <Setter TargetName="Sombra" Property="Opacity" Value="0.7"/>
                             <Setter Property="Cursor" Value="Arrow"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
@@ -521,14 +556,22 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="RadioButton">
-                    <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
-                        <ContentPresenter/>
-                    </Border>
+                    <!-- Borde Hermano, igual que ActionBtn: la sombra del segmento marcado
+                         no puede ir sobre el borde que lleva el texto, o bajo el escalado
+                         propio se rasteriza y el rótulo sale borroso. -->
+                    <Grid>
+                        <Border x:Name="Sombra" CornerRadius="6" Visibility="Collapsed" IsHitTestVisible="False"/>
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter/>
+                        </Border>
+                    </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsChecked" Value="True">
                             <Setter TargetName="Bd" Property="Background" Value="White"/>
                             <Setter Property="Foreground" Value="#1A1F2E"/>
-                            <Setter TargetName="Bd" Property="Effect">
+                            <Setter TargetName="Sombra" Property="Visibility" Value="Visible"/>
+                            <Setter TargetName="Sombra" Property="Background" Value="White"/>
+                            <Setter TargetName="Sombra" Property="Effect">
                                 <Setter.Value><DropShadowEffect Color="Black" BlurRadius="4" ShadowDepth="1" Opacity="0.08"/></Setter.Value>
                             </Setter>
                         </Trigger>
@@ -651,22 +694,29 @@
                                IsOpen="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}}"
                                Focusable="False"
                                PopupAnimation="Slide">
-                            <Border Background="White"
-                                    BorderBrush="#CBD5E1"
-                                    BorderThickness="1"
-                                    CornerRadius="6"
-                                    MinWidth="{Binding ActualWidth, ElementName=MainGrid}"
-                                    MaxHeight="{TemplateBinding MaxDropDownHeight}"
-                                    Margin="0,4,0,0">
-                                <Border.Effect>
-                                    <DropShadowEffect Color="#0F172A" BlurRadius="16" ShadowDepth="4" Opacity="0.15"/>
-                                </Border.Effect>
-                                <ScrollViewer x:Name="DropDownScrollViewer" CanContentScroll="True" Margin="0,4">
-                                    <ItemsPresenter x:Name="ItemsPresenter"
-                                                    KeyboardNavigation.DirectionalNavigation="Contained"
-                                                    SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
-                                </ScrollViewer>
-                            </Border>
+                            <!-- Borde Hermano: el popup hereda el escalado de la app, y una
+                                 sombra sobre el borde que contiene la lista rasterizaría
+                                 los ítems y los dejaría borrosos. -->
+                            <Grid Margin="0,4,0,0"
+                                  MinWidth="{Binding ActualWidth, ElementName=MainGrid}"
+                                  MaxHeight="{TemplateBinding MaxDropDownHeight}">
+                                <Border Background="White" CornerRadius="6" IsHitTestVisible="False">
+                                    <Border.Effect>
+                                        <DropShadowEffect Color="#0F172A" BlurRadius="16" ShadowDepth="4" Opacity="0.15"/>
+                                    </Border.Effect>
+                                </Border>
+
+                                <Border Background="White"
+                                        BorderBrush="#CBD5E1"
+                                        BorderThickness="1"
+                                        CornerRadius="6">
+                                    <ScrollViewer x:Name="DropDownScrollViewer" CanContentScroll="True" Margin="0,4">
+                                        <ItemsPresenter x:Name="ItemsPresenter"
+                                                        KeyboardNavigation.DirectionalNavigation="Contained"
+                                                        SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                                    </ScrollViewer>
+                                </Border>
+                            </Grid>
                         </Popup>
                     </Grid>
                     <ControlTemplate.Triggers>

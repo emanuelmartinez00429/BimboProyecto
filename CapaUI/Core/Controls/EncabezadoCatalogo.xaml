@@ -29,21 +29,26 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <Border Grid.Column="0"
-                    Width="38" Height="38"
-                    CornerRadius="8"
-                    Background="{DynamicResource EmpresaPrimaryBrush}"
-                    Margin="0,0,12,0"
-                    VerticalAlignment="Center">
-                <Border.Effect>
-                    <DropShadowEffect Color="{DynamicResource EmpresaPrimaryColor}" BlurRadius="8" ShadowDepth="2" Opacity="0.3"/>
-                </Border.Effect>
-                <Path x:Name="PathIcono"
-                      Data="{StaticResource IconBox}"
-                      Stroke="White" StrokeThickness="1.5"
-                      StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                      Width="20" Height="20" Stretch="Uniform"/>
-            </Border>
+            <Grid Grid.Column="0"
+                  Width="38" Height="38"
+                  Margin="0,0,12,0"
+                  VerticalAlignment="Center">
+                <Border CornerRadius="8"
+                        Background="{DynamicResource EmpresaPrimaryBrush}"
+                        IsHitTestVisible="False">
+                    <Border.Effect>
+                        <DropShadowEffect Color="{DynamicResource EmpresaPrimaryColor}" BlurRadius="8" ShadowDepth="2" Opacity="0.3"/>
+                    </Border.Effect>
+                </Border>
+                <Border CornerRadius="8"
+                        Background="{DynamicResource EmpresaPrimaryBrush}">
+                    <Path x:Name="PathIcono"
+                          Data="{StaticResource IconBox}"
+                          Stroke="White" StrokeThickness="1.5"
+                          StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                          Width="20" Height="20" Stretch="Uniform"/>
+                </Border>
+            </Grid>
 
             <StackPanel Grid.Column="1" VerticalAlignment="Center">
                 <TextBlock FontFamily="Segoe UI" FontSize="13" Foreground="#6B7280"

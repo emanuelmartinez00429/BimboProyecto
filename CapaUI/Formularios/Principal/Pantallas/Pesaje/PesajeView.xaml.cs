@@ -1099,16 +1099,28 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
         // ── Toast ──────────────────────────────────────────────────────────────
         private void MostrarToast(string mensaje)
         {
-            var border = new Border
+            var bgBrush = (Brush)new BrushConverter().ConvertFromString("#1A1F2E")!;
+            var container = new Grid
             {
-                Background = (Brush)new BrushConverter().ConvertFromString("#1A1F2E")!,
-                CornerRadius = new CornerRadius(8),
-                Padding = new Thickness(18, 9, 18, 9),
                 Margin = new Thickness(0, 8, 0, 0),
                 Opacity = 0,
             };
-            border.Effect = new System.Windows.Media.Effects.DropShadowEffect
-            { BlurRadius = 18, ShadowDepth = 4, Opacity = 0.4, Color = Colors.Black };
+
+            var shadowBorder = new Border
+            {
+                Background = bgBrush,
+                CornerRadius = new CornerRadius(8),
+                IsHitTestVisible = false,
+                Effect = new System.Windows.Media.Effects.DropShadowEffect
+                { BlurRadius = 18, ShadowDepth = 4, Opacity = 0.4, Color = Colors.Black }
+            };
+
+            var border = new Border
+            {
+                Background = bgBrush,
+                CornerRadius = new CornerRadius(8),
+                Padding = new Thickness(18, 9, 18, 9),
+            };
 
             var sp = new StackPanel { Orientation = Orientation.Horizontal };
             sp.Children.Add(new Path
@@ -1126,11 +1138,14 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             });
             border.Child = sp;
 
-            var trans = new TranslateTransform(0, 8);
-            border.RenderTransform = trans;
-            ToastHost.Children.Add(border);
+            container.Children.Add(shadowBorder);
+            container.Children.Add(border);
 
-            border.BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(180)));
+            var trans = new TranslateTransform(0, 8);
+            container.RenderTransform = trans;
+            ToastHost.Children.Add(container);
+
+            container.BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(180)));
             trans.BeginAnimation(TranslateTransform.YProperty,
                 new DoubleAnimation(8, 0, TimeSpan.FromMilliseconds(180)) { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } });
 
@@ -1139,8 +1154,8 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             {
                 timer.Stop();
                 var outAnim = new DoubleAnimation(1, 0, TimeSpan.FromMilliseconds(180));
-                outAnim.Completed += (_, ___) => ToastHost.Children.Remove(border);
-                border.BeginAnimation(OpacityProperty, outAnim);
+                outAnim.Completed += (_, ___) => ToastHost.Children.Remove(container);
+                container.BeginAnimation(OpacityProperty, outAnim);
             };
             timer.Start();
         }

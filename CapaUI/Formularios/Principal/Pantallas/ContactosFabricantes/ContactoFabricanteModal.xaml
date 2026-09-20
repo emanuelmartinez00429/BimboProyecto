@@ -8,7 +8,9 @@
              mc:Ignorable="d"
              Width="520"
              d:DesignWidth="520"
-             d:DesignHeight="600"
+             d:DesignHeight="600"
+
+
              UseLayoutRounding="True"
              TextOptions.TextRenderingMode="Grayscale"
              TextOptions.TextFormattingMode="Display" controls:AtajoGuardar.Boton="{x:Reference BtnGuardar}">
@@ -61,10 +63,18 @@
         </ResourceDictionary>
     </UserControl.Resources>
 
-    <Border CornerRadius="12" ClipToBounds="True">
-        <Border.Effect>
-            <DropShadowEffect Color="Black" BlurRadius="20" ShadowDepth="6" Opacity="0.5"/>
-        </Border.Effect>
+    <!-- Modal container with decoupled drop shadow (AP-06) -->
+    <Grid>
+        <!-- Borde hermano estático para sombra: la GPU lo rasteriza de forma independiente
+             y no sufre recorte por ClipToBounds ni conflicto de shaders. -->
+        <Border Background="#1E293B" CornerRadius="12">
+            <Border.Effect>
+                <DropShadowEffect Color="Black" BlurRadius="20" ShadowDepth="6" Opacity="0.5"/>
+            </Border.Effect>
+        </Border>
+
+        <!-- Contenedor con recorte para el gradiente y bordes redondeados limpios -->
+        <Border CornerRadius="12" ClipToBounds="True">
         <Grid>
             <!-- Fondo degradado -->
             <Border CornerRadius="12">
@@ -213,27 +223,31 @@
                                 Click="BtnGuardar_Click">
                             <Button.Template>
                                 <ControlTemplate TargetType="Button">
-                                    <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="8">
-                                        <Border.Effect>
-                                            <DropShadowEffect Color="#16A34A" BlurRadius="8" ShadowDepth="0" Opacity="0.5"/>
-                                        </Border.Effect>
-                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center">
-                                            <Path Data="{StaticResource IconCheckM}"
-                                                  Stroke="White" StrokeThickness="2.2"
-                                                  StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                                                  Width="14" Height="14" Stretch="Uniform" Margin="0,0,6,0"/>
-                                            <TextBlock Text="{TemplateBinding Tag}"
-                                                       FontFamily="Segoe UI" FontSize="17" FontWeight="SemiBold"
-                                                       Foreground="White"/>
-                                        </StackPanel>
-                                    </Border>
+                                    <Grid>
+                                        <Border x:Name="Sombra" Background="{TemplateBinding Background}" CornerRadius="8" IsHitTestVisible="False">
+                                            <Border.Effect>
+                                                <DropShadowEffect Color="#16A34A" BlurRadius="8" ShadowDepth="0" Opacity="0.5"/>
+                                            </Border.Effect>
+                                        </Border>
+                                        <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="8">
+                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center">
+                                                <Path Data="{StaticResource IconCheckM}"
+                                                      Stroke="White" StrokeThickness="2.2"
+                                                      StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                                      Width="14" Height="14" Stretch="Uniform" Margin="0,0,6,0"/>
+                                                <TextBlock Text="{TemplateBinding Tag}"
+                                                           FontFamily="Segoe UI" FontSize="17" FontWeight="SemiBold"
+                                                           Foreground="White"/>
+                                            </StackPanel>
+                                        </Border>
+                                    </Grid>
                                     <ControlTemplate.Triggers>
                                         <Trigger Property="IsMouseOver" Value="True">
                                             <Setter TargetName="Bd" Property="Background" Value="#15803D"/>
                                         </Trigger>
                                         <Trigger Property="IsEnabled" Value="False">
                                             <Setter TargetName="Bd" Property="Background" Value="#CBD5E1"/>
-                                            <Setter TargetName="Bd" Property="Effect" Value="{x:Null}"/>
+                                            <Setter TargetName="Sombra" Property="Visibility" Value="Collapsed"/>
                                         </Trigger>
                                     </ControlTemplate.Triggers>
                                 </ControlTemplate>
@@ -244,5 +258,6 @@
             </StackPanel>
             </ScrollViewer>
         </Grid>
-    </Border>
+    </Border>
+    </Grid>
 </UserControl>

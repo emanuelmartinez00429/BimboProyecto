@@ -205,11 +205,6 @@ namespace CapaUI.Formularios.InicioSesion
             var border = GetParentBorder(sender as FrameworkElement);
             if (border == null) return;
             border.BorderBrush = EmpresaThemeService.ObtenerBrushPrincipalActual();
-            border.Effect = new System.Windows.Media.Effects.DropShadowEffect
-            {
-                BlurRadius = 8, ShadowDepth = 0,
-                Color = EmpresaThemeService.ObtenerColorPrincipalActual(), Opacity = 0.12
-            };
         }
 
         private void Input_LostFocus(object sender, RoutedEventArgs e)
@@ -217,7 +212,6 @@ namespace CapaUI.Formularios.InicioSesion
             var border = GetParentBorder(sender as FrameworkElement);
             if (border == null) return;
             border.BorderBrush = _borderBrush;
-            border.Effect = null;
         }
 
         private static Border? GetParentBorder(FrameworkElement? el)

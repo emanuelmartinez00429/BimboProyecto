@@ -40,8 +40,17 @@
             Total="{Binding TotalCount}" Activos="{Binding ActivosCount}" Inactivos="{Binding InactivosCount}"/>
 
         <!-- TOOLBAR -->
-        <Border Grid.Row="2" x:Name="TarjetaToolbar" Background="White" CornerRadius="10"
-                BorderBrush="#D8E1EC" BorderThickness="1" Padding="12" ClipToBounds="True">
+        <Grid Grid.Row="2">
+            <!-- Sombra estática desacoplada: Border hermano detrás del contenido (AP-06 Zero-Shader Layout) -->
+            <Border Background="White" CornerRadius="10">
+                <Border.Effect>
+                    <DropShadowEffect Color="#0F172A" BlurRadius="10" ShadowDepth="2" Opacity="0.06"/>
+                </Border.Effect>
+            </Border>
+
+            <Border x:Name="TarjetaToolbar" Background="White" CornerRadius="10"
+                    BorderBrush="#D8E1EC" BorderThickness="1" Padding="12" ClipToBounds="True"
+                    RenderOptions.ClearTypeHint="Enabled">
             <StackPanel>
                 <Grid>
                     <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
@@ -87,6 +96,7 @@
                 </Grid>
             </StackPanel>
         </Border>
+        </Grid>
 
         <!-- TABLE -->
         <Grid Grid.Row="4">

@@ -396,13 +396,17 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                    <Border Width="38" Height="38" Background="{DynamicResource EmpresaPrimaryBrush}" CornerRadius="10" Margin="0,0,14,0">
-                        <Border.Effect>
-                            <DropShadowEffect Color="{DynamicResource EmpresaPrimaryColor}" BlurRadius="12" ShadowDepth="2" Opacity="0.4"/>
-                        </Border.Effect>
-                        <Path Data="{StaticResource IcoScale}" Fill="White"
-                              Width="20" Height="20" Stretch="Uniform"/>
-                    </Border>
+                    <Grid Width="38" Height="38" Margin="0,0,14,0">
+                        <Border CornerRadius="10" Background="{DynamicResource EmpresaPrimaryBrush}" IsHitTestVisible="False">
+                            <Border.Effect>
+                                <DropShadowEffect Color="{DynamicResource EmpresaPrimaryColor}" BlurRadius="12" ShadowDepth="2" Opacity="0.4"/>
+                            </Border.Effect>
+                        </Border>
+                        <Border CornerRadius="10" Background="{DynamicResource EmpresaPrimaryBrush}">
+                            <Path Data="{StaticResource IcoScale}" Fill="White"
+                                  Width="20" Height="20" Stretch="Uniform"/>
+                        </Border>
+                    </Grid>
                     <StackPanel VerticalAlignment="Center">
                         <TextBlock FontFamily="Segoe UI" FontSize="13" Foreground="#6B7280">
                             <Run Text="Producción"/><Run Text="  /  "/><Run Text="Recepción de Materia Prima" FontWeight="SemiBold" Foreground="#1A1F2E"/>
@@ -1210,26 +1214,33 @@
                         FocusVisualStyle="{x:Null}" Click="BtnNuevoProceso_Click">
                     <Button.Template>
                         <ControlTemplate TargetType="Button">
-                            <Border x:Name="Bd" Background="{DynamicResource EmpresaPrimaryBrush}" CornerRadius="9" Padding="28,14">
-                                <Border.Effect>
-                                    <DropShadowEffect Color="{DynamicResource EmpresaPrimaryColor}" BlurRadius="14" ShadowDepth="3" Opacity="0.35"/>
-                                </Border.Effect>
-                                <StackPanel Orientation="Horizontal">
-                                    <Path Data="{StaticResource IcoPlus}" Stroke="White" StrokeThickness="2.2"
-                                          Width="16" Height="16" Stretch="Uniform" Margin="0,0,10,0"
-                                          VerticalAlignment="Center"
-                                          StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
-                                    <TextBlock Text="Iniciar nuevo proceso de descarga" Foreground="White"
-                                               FontFamily="Segoe UI" FontSize="16.5" FontWeight="SemiBold"
-                                               VerticalAlignment="Center"/>
-                                </StackPanel>
-                            </Border>
+                            <Grid>
+                                <Border x:Name="Sombra" Background="{DynamicResource EmpresaPrimaryBrush}" CornerRadius="9" IsHitTestVisible="False">
+                                    <Border.Effect>
+                                        <DropShadowEffect Color="{DynamicResource EmpresaPrimaryColor}" BlurRadius="14" ShadowDepth="3" Opacity="0.35"/>
+                                    </Border.Effect>
+                                </Border>
+                                <Border x:Name="Bd" Background="{DynamicResource EmpresaPrimaryBrush}" CornerRadius="9" Padding="28,14">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Path Data="{StaticResource IcoPlus}" Stroke="White" StrokeThickness="2.2"
+                                              Width="16" Height="16" Stretch="Uniform" Margin="0,0,10,0"
+                                              VerticalAlignment="Center"
+                                              StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                                        <TextBlock Text="Iniciar nuevo proceso de descarga" Foreground="White"
+                                                   FontFamily="Segoe UI" FontSize="16.5" FontWeight="SemiBold"
+                                                   VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsMouseOver" Value="True">
                                     <Setter TargetName="Bd" Property="Background" Value="{DynamicResource EmpresaPrimaryDarkBrush}"/>
                                 </Trigger>
                                 <Trigger Property="IsPressed" Value="True">
                                     <Setter TargetName="Bd" Property="RenderTransform">
+                                        <Setter.Value><TranslateTransform Y="1"/></Setter.Value>
+                                    </Setter>
+                                    <Setter TargetName="Sombra" Property="RenderTransform">
                                         <Setter.Value><TranslateTransform Y="1"/></Setter.Value>
                                     </Setter>
                                 </Trigger>
@@ -1246,16 +1257,21 @@
 
         <!-- ══ CONFIRM POPUP ══ -->
         <Popup x:Name="ConfirmPopup" AllowsTransparency="True" StaysOpen="False" Placement="Center" PlacementTarget="{Binding ElementName=DgProductos}">
-            <Border Background="White" CornerRadius="10" BorderBrush="#D8E1EC" BorderThickness="1" Padding="14" Width="240">
-                <Border.Effect><DropShadowEffect Color="#0F172A" BlurRadius="20" ShadowDepth="6" Opacity="0.25"/></Border.Effect>
-                <StackPanel>
-                    <TextBlock x:Name="ConfirmText" FontFamily="Segoe UI" FontSize="14.5" Foreground="#1A1F2E" TextWrapping="Wrap" Margin="0,0,0,12"/>
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                        <Button Content="Cancelar" Style="{StaticResource ToolBtn}" Margin="0,0,8,0" Click="ConfirmCancel_Click"/>
-                        <Button Content="Quitar" Style="{StaticResource ToolBtn}" Background="#DC2626" Foreground="White" BorderBrush="#DC2626" Click="ConfirmOk_Click"/>
+            <Grid Width="240">
+                <Border Background="White" CornerRadius="10" IsHitTestVisible="False">
+                    <Border.Effect><DropShadowEffect Color="#0F172A" BlurRadius="20" ShadowDepth="6" Opacity="0.25"/></Border.Effect>
+                </Border>
+                <Border Background="White" CornerRadius="10" BorderBrush="#D8E1EC" BorderThickness="1" Padding="14"
+                        RenderOptions.ClearTypeHint="Enabled">
+                    <StackPanel>
+                        <TextBlock x:Name="ConfirmText" FontFamily="Segoe UI" FontSize="14.5" Foreground="#1A1F2E" TextWrapping="Wrap" Margin="0,0,0,12"/>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                            <Button Content="Cancelar" Style="{StaticResource ToolBtn}" Margin="0,0,8,0" Click="ConfirmCancel_Click"/>
+                            <Button Content="Quitar" Style="{StaticResource ToolBtn}" Background="#DC2626" Foreground="White" BorderBrush="#DC2626" Click="ConfirmOk_Click"/>
+                        </StackPanel>
                     </StackPanel>
-                </StackPanel>
-            </Border>
+                </Border>
+            </Grid>
         </Popup>
 
         <!-- ══ MODAL OVERLAY ══ -->

@@ -40,8 +40,17 @@
             Total="{Binding TotalCount}" Activos="{Binding ActivosCount}" Inactivos="{Binding InactivosCount}"/>
 
         <!-- TOOLBAR -->
-        <Border Grid.Row="2" x:Name="TarjetaToolbar" Background="White" CornerRadius="10"
-                BorderBrush="#D8E1EC" BorderThickness="1" Padding="12" ClipToBounds="True">
+        <Grid Grid.Row="2">
+            <!-- Sombra estática desacoplada: Border hermano detrás del contenido (AP-06 Zero-Shader Layout) -->
+            <Border Background="White" CornerRadius="10">
+                <Border.Effect>
+                    <DropShadowEffect Color="#0F172A" BlurRadius="10" ShadowDepth="2" Opacity="0.06"/>
+                </Border.Effect>
+            </Border>
+
+            <Border x:Name="TarjetaToolbar" Background="White" CornerRadius="10"
+                    BorderBrush="#D8E1EC" BorderThickness="1" Padding="12" ClipToBounds="True"
+                    RenderOptions.ClearTypeHint="Enabled">
             <StackPanel>
                 <Grid>
                     <Grid.ColumnDefinitions>
@@ -56,7 +65,7 @@
                         Placeholder="Buscar fabricante por nombre..."
                         ItemSelected="SearchBox_ItemSelected"/>
                     <controls:BotonLimpiarFiltros Grid.Column="1"
-                                                  ReferenciaAncho="{Binding ElementName=TarjetaToolbar}"/>
+                                                   ReferenciaAncho="{Binding ElementName=TarjetaToolbar}"/>
                 </Grid>
                 <Border BorderBrush="#E5E7EB" BorderThickness="0,0,0,1" Margin="0,10,0,10" SnapsToDevicePixels="True"/>
                 <Grid>
@@ -104,6 +113,7 @@
                 </Grid>
             </StackPanel>
         </Border>
+        </Grid>
 
         <!-- TABLE -->
         <Grid Grid.Row="4">

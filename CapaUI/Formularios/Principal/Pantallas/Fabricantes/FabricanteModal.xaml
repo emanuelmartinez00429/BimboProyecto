@@ -28,9 +28,18 @@
         </ResourceDictionary>
     </UserControl.Resources>
 
-    <Border CornerRadius="10" ClipToBounds="True"
->
-        <Border.Effect><DropShadowEffect Color="Black" BlurRadius="24" ShadowDepth="8" Opacity="0.55"/></Border.Effect>
+    <!-- Modal container with decoupled drop shadow (AP-06) -->
+    <Grid>
+        <!-- Borde hermano estático para sombra: la GPU lo rasteriza de forma independiente
+             y no sufre recorte por ClipToBounds ni conflicto de shaders. -->
+        <Border Background="#1E293B" CornerRadius="10">
+            <Border.Effect>
+                <DropShadowEffect Color="Black" BlurRadius="24" ShadowDepth="8" Opacity="0.55"/>
+            </Border.Effect>
+        </Border>
+
+        <!-- Contenedor con recorte para el gradiente y bordes redondeados limpios -->
+        <Border CornerRadius="10" ClipToBounds="True">
         <Grid x:Name="RootGrid">
             <Border CornerRadius="10">
                 <Border.Background>
@@ -199,4 +208,5 @@
             <ContentControl x:Name="SelectorHost" Visibility="Collapsed"/>
         </Grid>
     </Border>
+    </Grid>
 </UserControl>

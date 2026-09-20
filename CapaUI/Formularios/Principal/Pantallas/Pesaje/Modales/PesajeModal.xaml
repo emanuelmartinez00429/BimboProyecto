@@ -25,8 +25,24 @@
         </ResourceDictionary>
     </UserControl.Resources>
 
-    <Border CornerRadius="10" ClipToBounds="True">
-        <Border.Effect><DropShadowEffect Color="Black" BlurRadius="24" ShadowDepth="8" Opacity="0.55"/></Border.Effect>
+    <!--
+        Borde Hermano desacoplado (regla 12 de AGENTS.md — Zero-Shader Layout).
+
+        La sombra estaba sobre el borde raíz, que envuelve TODO el modal, y encima
+        dentro de un contenedor con ClipToBounds="True" — la combinación que la regla 12
+        prohíbe expresamente. Un DropShadowEffect es un pixel shader: WPF rasterizaba el
+        modal entero a una textura y, con el escalado propio de la app, ese bitmap se
+        estiraba. De ahí que este modal fuera el más borroso de todos.
+
+        Ahora `SombraModal` pinta el mismo rectángulo redondeado detrás y es lo único que
+        se rasteriza. El contenido queda limpio y se dibuja vectorial.
+    -->
+    <Grid>
+        <Border x:Name="SombraModal" CornerRadius="10" Background="Black" IsHitTestVisible="False">
+            <Border.Effect><DropShadowEffect Color="Black" BlurRadius="24" ShadowDepth="8" Opacity="0.55"/></Border.Effect>
+        </Border>
+
+        <Border CornerRadius="10" ClipToBounds="True">
         <Grid>
             <Border CornerRadius="10">
                 <Border.Background>
@@ -297,5 +313,6 @@
                 </Border>
             </StackPanel>
         </Grid>
-    </Border>
+        </Border>
+    </Grid>
 </UserControl>

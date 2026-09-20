@@ -110,14 +110,21 @@
                StaysOpen="False"
                AllowsTransparency="True"
                PopupAnimation="None">
-            <Border Background="White"
-                    CornerRadius="0,0,8,8"
-                    BorderBrush="#D8E1EC" BorderThickness="1,0,1,1"
-                    MinWidth="{Binding ActualWidth, ElementName=SearchBoxBorder}"
-                    MaxHeight="400">
-                <Border.Effect>
-                    <DropShadowEffect Color="#0F172A" BlurRadius="24" ShadowDepth="8" Opacity="0.18"/>
-                </Border.Effect>
+            <!-- Borde Hermano: sombra desacoplada para preservar ClearType y nitidez vectorial (AP-06) -->
+            <Grid MinWidth="{Binding ActualWidth, ElementName=SearchBoxBorder}"
+                  MaxHeight="400">
+                <Border Background="White"
+                        CornerRadius="0,0,8,8"
+                        IsHitTestVisible="False">
+                    <Border.Effect>
+                        <DropShadowEffect Color="#0F172A" BlurRadius="24" ShadowDepth="8" Opacity="0.18"/>
+                    </Border.Effect>
+                </Border>
+
+                <Border Background="White"
+                        CornerRadius="0,0,8,8"
+                        BorderBrush="#D8E1EC" BorderThickness="1,0,1,1"
+                        RenderOptions.ClearTypeHint="Enabled">
 
                 <!-- DockPanel: header fijo + lista con scroll -->
                 <DockPanel>
@@ -302,6 +309,7 @@
                     </Grid>
                 </DockPanel>
             </Border>
+            </Grid>
         </Popup>
     </Grid>
 </UserControl>

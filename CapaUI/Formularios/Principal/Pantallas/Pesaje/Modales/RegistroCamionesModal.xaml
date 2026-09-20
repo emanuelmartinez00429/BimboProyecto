@@ -71,8 +71,18 @@
         </ResourceDictionary>
     </UserControl.Resources>
 
-    <Border CornerRadius="10" ClipToBounds="True">
-        <Border.Effect><DropShadowEffect Color="Black" BlurRadius="24" ShadowDepth="8" Opacity="0.55"/></Border.Effect>
+    <!-- Modal container with decoupled drop shadow (AP-06) -->
+    <Grid>
+        <!-- Borde hermano estático para sombra: la GPU lo rasteriza de forma independiente
+             y no sufre recorte por ClipToBounds ni conflicto de shaders. -->
+        <Border Background="#1E293B" CornerRadius="10">
+            <Border.Effect>
+                <DropShadowEffect Color="Black" BlurRadius="24" ShadowDepth="8" Opacity="0.55"/>
+            </Border.Effect>
+        </Border>
+
+        <!-- Contenedor con recorte para el gradiente y bordes redondeados limpios -->
+        <Border CornerRadius="10" ClipToBounds="True">
         <!-- Alto congelado en código (ver BuscarProveedor_Click) mientras el selector
              de proveedor está abierto, mismo mecanismo que el selector de los demás modales. -->
         <Grid x:Name="RootGrid">
@@ -343,5 +353,6 @@
                  contenido mientras está abierto, mismo mecanismo que el selector de los demás modales. -->
             <ContentControl x:Name="CatalogoSelectorHost" Visibility="Collapsed"/>
         </Grid>
-    </Border>
+    </Border>
+    </Grid>
 </UserControl>

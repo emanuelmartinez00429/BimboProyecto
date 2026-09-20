@@ -116,20 +116,25 @@
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
 
-                    <Border Grid.Column="0"
-                            Width="38" Height="38"
-                            Background="{DynamicResource EmpresaPrimaryBrush}"
-                            CornerRadius="8"
-                            Margin="0,0,12,0"
-                            VerticalAlignment="Center">
-                        <Border.Effect>
-                            <DropShadowEffect Color="{DynamicResource EmpresaPrimaryColor}" BlurRadius="8" ShadowDepth="2" Opacity="0.3"/>
-                        </Border.Effect>
-                        <Path Data="{StaticResource IcoDashboard}"
-                              Fill="White"
-                              Width="20" Height="20"
-                              Stretch="Uniform"/>
-                    </Border>
+                    <Grid Grid.Column="0"
+                          Width="38" Height="38"
+                          Margin="0,0,12,0"
+                          VerticalAlignment="Center">
+                        <Border CornerRadius="8"
+                                Background="{DynamicResource EmpresaPrimaryBrush}"
+                                IsHitTestVisible="False">
+                            <Border.Effect>
+                                <DropShadowEffect Color="{DynamicResource EmpresaPrimaryColor}" BlurRadius="8" ShadowDepth="2" Opacity="0.3"/>
+                            </Border.Effect>
+                        </Border>
+                        <Border CornerRadius="8"
+                                Background="{DynamicResource EmpresaPrimaryBrush}">
+                            <Path Data="{StaticResource IcoDashboard}"
+                                  Fill="White"
+                                  Width="20" Height="20"
+                                  Stretch="Uniform"/>
+                        </Border>
+                    </Grid>
 
                     <StackPanel Grid.Column="1" VerticalAlignment="Center">
                         <TextBlock FontFamily="Segoe UI" FontSize="14" Foreground="#6B7280"
@@ -202,12 +207,17 @@
                            AllowsTransparency="True" StaysOpen="False"
                            PopupAnimation="Fade"
                            Closed="PopupPeriodo_Closed">
-                        <Border Background="White" BorderBrush="#E5E7EB" BorderThickness="1"
-                                CornerRadius="8" Padding="4" MinWidth="110">
-                            <Border.Effect>
-                                <DropShadowEffect BlurRadius="12" ShadowDepth="3"
-                                                  Direction="270" Opacity="0.12" Color="#000000"/>
-                            </Border.Effect>
+                        <Grid MinWidth="110">
+                            <Border Background="White" CornerRadius="8" IsHitTestVisible="False">
+                                <Border.Effect>
+                                    <DropShadowEffect BlurRadius="12" ShadowDepth="3"
+                                                      Direction="270" Opacity="0.12" Color="#000000"/>
+                                </Border.Effect>
+                            </Border>
+
+                            <Border Background="White" BorderBrush="#E5E7EB" BorderThickness="1"
+                                    CornerRadius="8" Padding="4"
+                                    RenderOptions.ClearTypeHint="Enabled">
                             <StackPanel>
                                 <!-- Opción Hoy -->
                                 <Border CornerRadius="5" Padding="10,6" Cursor="Hand"
@@ -303,6 +313,7 @@
                                 </Border>
                             </StackPanel>
                         </Border>
+                        </Grid>
                     </Popup>
                     <!-- Botón Actualizar -->
                     <Button Command="{Binding RefreshCommand}"

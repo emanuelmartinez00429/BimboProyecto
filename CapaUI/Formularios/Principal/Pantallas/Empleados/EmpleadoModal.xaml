@@ -173,18 +173,25 @@
                                 </Button.Background>
                                 <Button.Template>
                                     <ControlTemplate TargetType="Button">
-                                        <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
-                                                BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6" Padding="{TemplateBinding Padding}">
-                                            <Border.Effect><DropShadowEffect Color="#16A34A" BlurRadius="8" ShadowDepth="2" Opacity="0.4"/></Border.Effect>
-                                            <StackPanel Orientation="Horizontal">
-                                                <Path Data="M20,6 L9,17 l-5,-5" Stroke="White" StrokeThickness="2.6"
-                                                      StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                                                      Width="14" Height="14" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center"/>
-                                                <TextBlock Text="{Binding Content, RelativeSource={RelativeSource TemplatedParent}}" FontFamily="Segoe UI" FontSize="17" FontWeight="Bold" Foreground="White" VerticalAlignment="Center"/>
-                                            </StackPanel>
-                                        </Border>
+                                        <Grid>
+                                            <Border x:Name="Sombra" Background="{TemplateBinding Background}" CornerRadius="6" IsHitTestVisible="False">
+                                                <Border.Effect><DropShadowEffect Color="#16A34A" BlurRadius="8" ShadowDepth="2" Opacity="0.4"/></Border.Effect>
+                                            </Border>
+                                            <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                                                    BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Path Data="M20,6 L9,17 l-5,-5" Stroke="White" StrokeThickness="2.6"
+                                                          StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                                          Width="14" Height="14" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="{Binding Content, RelativeSource={RelativeSource TemplatedParent}}" FontFamily="Segoe UI" FontSize="17" FontWeight="Bold" Foreground="White" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </Border>
+                                        </Grid>
                                         <ControlTemplate.Triggers>
-                                            <Trigger Property="IsPressed" Value="True"><Setter TargetName="Bd" Property="RenderTransform"><Setter.Value><TranslateTransform Y="1"/></Setter.Value></Setter></Trigger>
+                                            <Trigger Property="IsPressed" Value="True">
+                                                <Setter TargetName="Bd" Property="RenderTransform"><Setter.Value><TranslateTransform Y="1"/></Setter.Value></Setter>
+                                                <Setter TargetName="Sombra" Property="RenderTransform"><Setter.Value><TranslateTransform Y="1"/></Setter.Value></Setter>
+                                            </Trigger>
                                         </ControlTemplate.Triggers>
                                     </ControlTemplate>
                                 </Button.Template>

@@ -2,7 +2,6 @@ using System.Windows;
 using System.Windows.Controls;
 using WpfColor  = System.Windows.Media.Color;
 using WpfBrush  = System.Windows.Media.SolidColorBrush;
-using WpfEffect = System.Windows.Media.Effects.DropShadowEffect;
 using CapaDominio.Reglas;
 using CapaUI.Services.Empresa;
 
@@ -39,17 +38,11 @@ namespace CapaUI.Formularios.InicioSesion
         private void Email_GotFocus(object sender, RoutedEventArgs e)
         {
             EmailBorder.BorderBrush = EmpresaThemeService.ObtenerBrushPrincipalActual();
-            EmailBorder.Effect = new WpfEffect
-            {
-                BlurRadius = 8, ShadowDepth = 0,
-                Color = EmpresaThemeService.ObtenerColorPrincipalActual(), Opacity = 0.12
-            };
         }
 
         private void Email_LostFocus(object sender, RoutedEventArgs e)
         {
             EmailBorder.BorderBrush = _borderBrush;
-            EmailBorder.Effect = null;
         }
 
         private async void BtnSend_Click(object sender, RoutedEventArgs e)

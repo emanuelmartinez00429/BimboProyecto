@@ -77,8 +77,22 @@ public partial class RolesView : System.Windows.Controls.UserControl
     private void AbrirModalRol(RolItemVm? rol)
     {
         if (_vm is null) return;
-        var modal = new RolModal(_vm, rol) { Owner = Window.GetWindow(this) };
-        modal.ShowDialog();
+
+        var modal = new RolModal(_vm, rol);
+        modal.Cerrado  += CerrarModalRol;
+        modal.Guardado += CerrarModalRol;   // el ViewModel ya actualizó su colección
+
+        // ADR-028: el límite lo pone el overlay, no un ancestro buscado en el árbol.
+        CapaUI.Core.ModalLayout.LimitarAlOverlay(modal, ModalOverlay);
+
+        ModalContent.Content    = modal;
+        ModalOverlay.Visibility = Visibility.Visible;
+    }
+
+    private void CerrarModalRol()
+    {
+        ModalOverlay.Visibility = Visibility.Collapsed;
+        ModalContent.Content    = null;
     }
 
     private bool ConfirmarCambioEstado(RolItemVm rol)
@@ -248,22 +262,36 @@ public partial class RolesView : System.Windows.Controls.UserControl
             VerticalAlignment = VerticalAlignment.Center,
         });
 
+        var contenedor = new Grid
+        {
+            Margin = new Thickness(0, 8, 0, 0),
+            Opacity = 0,
+        };
+
+        var sombra = new Border
+        {
+            Background = FondoAviso,
+            CornerRadius = new CornerRadius(8),
+            IsHitTestVisible = false,
+            Effect = new DropShadowEffect { BlurRadius = 18, ShadowDepth = 4, Opacity = 0.4, Color = Colors.Black },
+        };
+
         var burbuja = new Border
         {
             Background = FondoAviso,
             CornerRadius = new CornerRadius(8),
             Padding = new Thickness(18, 9, 18, 9),
-            Margin = new Thickness(0, 8, 0, 0),
-            Opacity = 0,
             Child = contenido,
-            Effect = new DropShadowEffect { BlurRadius = 18, ShadowDepth = 4, Opacity = 0.4, Color = Colors.Black },
         };
 
-        var desplazamiento = new TranslateTransform(0, 8);
-        burbuja.RenderTransform = desplazamiento;
-        ToastHost.Children.Add(burbuja);
+        contenedor.Children.Add(sombra);
+        contenedor.Children.Add(burbuja);
 
-        burbuja.BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(180)));
+        var desplazamiento = new TranslateTransform(0, 8);
+        contenedor.RenderTransform = desplazamiento;
+        ToastHost.Children.Add(contenedor);
+
+        contenedor.BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(180)));
         desplazamiento.BeginAnimation(
             TranslateTransform.YProperty,
             new DoubleAnimation(8, 0, TimeSpan.FromMilliseconds(180))
@@ -279,8 +307,8 @@ public partial class RolesView : System.Windows.Controls.UserControl
             _temporizadores.Remove(temporizador);
 
             var salida = new DoubleAnimation(1, 0, TimeSpan.FromMilliseconds(180));
-            salida.Completed += (_, _) => ToastHost.Children.Remove(burbuja);
-            burbuja.BeginAnimation(OpacityProperty, salida);
+            salida.Completed += (_, _) => ToastHost.Children.Remove(contenedor);
+            contenedor.BeginAnimation(OpacityProperty, salida);
         };
         temporizador.Start();
     }

@@ -4,7 +4,6 @@ using CapaDominio.Reglas;
 using CapaUI.Core.Controls;
 using WpfColor     = System.Windows.Media.Color;
 using WpfBrush     = System.Windows.Media.SolidColorBrush;
-using WpfEffect    = System.Windows.Media.Effects.DropShadowEffect;
 using WpfBrushes   = System.Windows.Media.Brushes;
 using WpfColorConv = System.Windows.Media.ColorConverter;
 using CapaUI.Services.Empresa;
@@ -50,7 +49,6 @@ namespace CapaUI.Formularios.InicioSesion
             if (GetBorder(sender as FrameworkElement) is { } b)
             {
                 b.BorderBrush = EmpresaThemeService.ObtenerBrushPrincipalActual();
-                b.Effect = new WpfEffect { BlurRadius = 8, ShadowDepth = 0, Color = EmpresaThemeService.ObtenerColorPrincipalActual(), Opacity = 0.12 };
             }
         }
 
@@ -59,7 +57,6 @@ namespace CapaUI.Formularios.InicioSesion
             if (GetBorder(sender as FrameworkElement) is { } b)
             {
                 b.BorderBrush = _borderBrush;
-                b.Effect = null;
             }
         }
 
