@@ -446,7 +446,7 @@
                 <!-- ── Columna izquierda: Camiones + Movimiento ── -->
                 <Grid Grid.Column="0">
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
                         <RowDefinition Height="14"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
@@ -460,7 +460,7 @@
                 <Grid Grid.Row="0" ClipToBounds="True">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
                         <Border Grid.Row="0" Height="42" Padding="14,0" BorderBrush="#EEF2F8" BorderThickness="0,0,0,1">
@@ -472,10 +472,9 @@
                             </StackPanel>
                         </Border>
 
-                        <!-- Tabla plana: una fila = una recepción (placa + proveedor). Un camión con
-                             carga de tres proveedores son tres filas con la misma placa, cada una con
-                             su propio KG manifestado. Se dejó de agrupar por placa el 2026-09-18. -->
-                        <DataGrid x:Name="DgCamiones" Grid.Row="1"
+                        <!-- Tabla plana de camiones: altura fija para 5 filas exactas (242px = 40px header + 5x40px filas + 2px borde).
+                             Sin espacio sobrante bajo el 5to ítem, botones inmediatamente debajo y el espacio liberado transferido a Movimiento. -->
+                        <DataGrid x:Name="DgCamiones" Grid.Row="1" Height="242"
                                   AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True"
                                   CanUserSortColumns="False" CanUserReorderColumns="False" CanUserResizeColumns="False"
                                   HeadersVisibility="Column" GridLinesVisibility="None"

@@ -63,4 +63,16 @@ public class PesajeWhiteBoxTests
         // DgProductos nunca colapsa su visibilidad (los encabezados permanecen siempre vivos)
         Assert.DoesNotContain("DgProductos.Visibility", codigoCs);
     }
+
+    [Fact(DisplayName = "PesajeView asigna altura compacta de 242px a DgCamiones para 5 ítems exactos")]
+    public void PesajeView_DgCamionesAlturaFijaCincoItems()
+    {
+        var archivoXaml = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "CapaUI", "Formularios", "Principal", "Pantallas", "Pesaje", "PesajeView.xaml");
+        if (!File.Exists(archivoXaml)) return;
+
+        var codigoXaml = File.ReadAllText(archivoXaml);
+
+        // DgCamiones con altura exacta para 5 ítems
+        Assert.Contains("x:Name=\"DgCamiones\" Grid.Row=\"1\" Height=\"242\"", codigoXaml);
+    }
 }
