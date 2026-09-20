@@ -1007,6 +1007,25 @@
                                     </Border>
                                 </StackPanel>
 
+                                <!-- ═══════════ CEO MI USUARIO (Réglage del usuario) ═══════════ -->
+                                <StackPanel>
+                                    <Button x:Name="BtnMiUsuario"
+                                            Style="{StaticResource SidebarSubButton}"
+                                            Tag="mi-usuario"
+                                            Click="BtnMiUsuario_Click"
+                                            HorizontalContentAlignment="Left"
+                                            ToolTip="Mi Usuario: tu perfil, tu contraseña y tus preferencias">
+                                        <Grid>
+                                            <Border x:Name="DotMiUsuario" Width="4" Height="4" CornerRadius="2"
+                                                    Background="{StaticResource AccentGreen}"
+                                                    HorizontalAlignment="Left" Margin="-16,0,0,0" Visibility="Collapsed"/>
+                                            <TextBlock x:Name="LblMiUsuario" Text="Mi Usuario"
+                                                       Foreground="#D9FFFFFF" FontFamily="Segoe UI" FontSize="16"
+                                                       TextTrimming="CharacterEllipsis"/>
+                                        </Grid>
+                                    </Button>
+                                </StackPanel>
+
                             </StackPanel>
                         </ScrollViewer>
 

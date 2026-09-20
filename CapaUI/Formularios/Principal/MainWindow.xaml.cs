@@ -695,6 +695,21 @@ namespace CapaUI.Formularios.Principal
             Vm.NavigateCommand.Execute(Routes.Configuracion);
         }
 
+        /// <summary>
+        /// Acceso directo desde el sidebar a «Mi Usuario»: el módulo personal
+        /// que cualquier usuario entra sin permisos (edita lo suyo, RLS por usuario).
+        /// Sin indicador de módulo expandible: ClearActiveStates solo deselecciona
+        /// lo que estaba activo y el dot queda sin encender porque forma la
+        /// navegación de único nivel.
+        /// </summary>
+        private void BtnMiUsuario_Click(object sender, RoutedEventArgs e)
+        {
+            NotifPopup.IsOpen = false;
+            ClearActiveStates();
+            _activeModuleId = Routes.MiUsuario;
+            Vm.NavigateCommand.Execute(Routes.MiUsuario);
+        }
+
         private async void OnConfiguracionGuardada(EmpresaGuardadaDto resultado)
         {
             await CargarIconoSidebarAsync(resultado.Empresa.IconoSidebar);
