@@ -10,6 +10,9 @@ aliases:
 
 # Arquitectura Actual — Bimbo
 
+> [!success] Actualizado 2026-09-19 — Fila TOTAL de Entradas sin recorte al scrollear y layout de Movimiento
+> En Pesaje, la fila TOTAL de Entradas dejó de perder NETO, BULTOS y el conteo de pesajes al achicar la ventana: se desplazaba con un `TranslateTransform` y el *layout clip* de WPF (que viaja con la transformación) recortaba lo que quedaba más allá del ancho visible. Ahora vive en un `ScrollViewer` oculto (`TotalScroll`) que copia el offset horizontal de la grilla. Además, los paneles Movimiento de Materia Prima y Camiones ocupan todo el alto disponible, y los encabezados de Pesajes se alinean a la izquierda. Ver [[Sesión 2026-09-19 - Layout de Movimiento de Materia Prima y sincronización de fila TOTAL en Pesajes]].
+
 > [!success] Actualizado 2026-09-18 — «Recordar usuario» cifrado con DPAPI
 > El correo de «Recordar usuario», que también es el usuario de login, se guarda cifrado con DPAPI (`ProtectedData`, `CurrentUser`, con entropía propia) en `%LOCALAPPDATA%\BimboPesaje\Preferencias\ultimo_usuario.bin`. Deja de estar en texto plano y en Roaming. El `.txt` viejo se migra y se borra solo. 7 tests nuevos. Cierra el punto 4.2 de [[Plan de Seguridad - Roadmap 10-10]]. Ver [[Sesión 2026-09-18 - Recordar usuario cifrado con DPAPI]].
 
