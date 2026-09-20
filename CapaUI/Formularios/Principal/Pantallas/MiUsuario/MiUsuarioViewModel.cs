@@ -1,5 +1,6 @@
 using CapaAplicacion.Preferencias;
 using CapaAplicacion.Usuarios.Interfaces;
+using CapaDominio.Reglas;
 using CapaUI.Core.Controls;
 using CapaUI.Services.Escala;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -73,6 +74,62 @@ public sealed partial class MiUsuarioViewModel : ObservableObject, IDisposable
     public bool EsSugerido     => EscalaUi.SonIguales(FactorEscala, FactorSugerido);
     public bool HayError       => !string.IsNullOrWhiteSpace(Error);
 
+    // ── Seguridad: cambio de la propia contraseña (stub visual) ─────────────
+    // El cableado real (verificar la actual contra Supabase, generar OTP, etc.)
+    // queda para el paso siguiente: esta sección solo sostiene el estado visual
+    // y aplica las reglas del dominio para pintar el medidor y la checklist.
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ScoreFortaleza))]
+    [NotifyPropertyChangedFor(nameof(PuedeEnviarCambio))]
+    private string _contrasenaNueva = string.Empty;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HayCoincidencia))]
+    [NotifyPropertyChangedFor(nameof(PuedeEnviarCambio))]
+    private string _contrasenaConfirmar = string.Empty;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(PuedeEnviarCambio))]
+    private string _contrasenaActual = string.Empty;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HayAviso))]
+    private string? _avisoInfo;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HayExito))]
+    private string? _exito;
+
+    /// <summary>Checklist R1..R4 de la vista: las 4 reglas del dominio evaluadas.</summary>
+    public bool[] RequisitosOk => new[]
+    {
+        ReglasContrasena.TieneLargoMinimo(ContrasenaNueva),
+        ReglasContrasena.TieneMayuscula(ContrasenaNueva),
+        ReglasContrasena.TieneNumero(ContrasenaNueva),
+        ReglasContrasena.TieneSimbolo(ContrasenaNueva),
+    };
+
+    /// <summary>Score de fortaleza 0..5 del dominio, para el medidor de barras.</summary>
+    public int ScoreFortaleza => ReglasContrasena.CalcularScore(ContrasenaNueva);
+
+    /// <summary><c>true</c> mientras las contraseñas escritas coinciden (solo enrojece cuando el usuario ya escribió la confirmación).</summary>
+    public bool HayCoincidencia => string.IsNullOrEmpty(ContrasenaConfirmar) || ContrasenaNueva == ContrasenaConfirmar;
+
+    public bool HayAviso => !string.IsNullOrWhiteSpace(AvisoInfo);
+    public bool HayExito => !string.IsNullOrWhiteSpace(Exito);
+
+    /// <summary>Forma completa: la actual está escrita, la nueva cumple TODAS las reglas del dominio y la confirmación coincide.</summary>
+    public bool PuedeEnviarCambio =>
+        ContrasenaActual.Length > 0 &&
+        ReglasContrasena.CumpleTodasLasReglas(ContrasenaNueva) &&
+        ContrasenaNueva == ContrasenaConfirmar;
+
+    /// <summary>Alimenta el estado del formulario desde el code-behind (PasswordChanged).</summary>
+    public void EstablecerActual(string pwd)      { ContrasenaActual = pwd ?? string.Empty; Exito = null; }
+    public void EstablecerNueva(string pwd)       { ContrasenaNueva = pwd ?? string.Empty; Exito = null; }
+    public void EstablecerConfirmar(string pwd)   { ContrasenaConfirmar = pwd ?? string.Empty; Exito = null; }
+
     public MiUsuarioViewModel(IUsuarioSesionService sesion, IEscalaService escala)
     {
         _escala = escala;
@@ -107,6 +164,32 @@ public sealed partial class MiUsuarioViewModel : ObservableObject, IDisposable
 
     [RelayCommand]
     private void UsarSugerido() => CambiarA(FactorSugerido);
+
+    /// <summary>
+    /// STUB VISUAL del cambio de contraseña: valida la forma ya al tempo del dominio
+    /// y responde con un aviso honesto; NO llama al backend todavía.
+    /// El cableado real usará auth.users de Supabase + RecuperacionPasswordService.
+    /// </summary>
+    [RelayCommand]
+    private void CambiarContrasena()
+    {
+        if (!PuedeEnviarCambio) return;
+
+        AvisoInfo = "Formulario válido, pero el cambio todavía no está cableado al backend " +
+                    "(sin auth.users de Supabase ni token de provisión). La validación que ya corre " +
+                    "es la del dominio: ReglasContrasena.";
+    }
+
+    [RelayCommand]
+    private void LimpiarFormulario()
+    {
+        ContrasenaActual = string.Empty;
+        ContrasenaNueva = string.Empty;
+        ContrasenaConfirmar = string.Empty;
+        Error = null;
+        AvisoInfo = null;
+        Exito = null;
+    }
 
     [RelayCommand]
     private async Task RestablecerAsync()
