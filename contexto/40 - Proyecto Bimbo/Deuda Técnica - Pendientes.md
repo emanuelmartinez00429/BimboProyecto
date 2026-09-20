@@ -199,27 +199,16 @@ Encontrado mediante `/security-review` (metodología de 3 fases: subagente de id
 
 ---
 
-### P-065 · 19 tablas conceden `TRUNCATE` al rol `authenticated`, y RLS no filtra `TRUNCATE`
+### ~~P-065 · 19 tablas conceden `TRUNCATE` al rol `authenticated`, y RLS no filtra `TRUNCATE`~~ ✅ Resuelto 2026-09-20
 
 **Alcance:** `bitacora`, `contactos_fabricante`, `contactos_proveedor`, `empleados`, `empresa`, `entradas_producto`, `estado_general`, `fabricantes_pais`, `modulos`, `movimiento_productos`, `movimientos`, `paises`, `productos_paises`, `proveedores_paises`, `reporteria`, `tara`, `tarima`, `tipo_unidad`, `unidad_medida`.
 
-Supabase concede `ALL` por defecto a `anon`/`authenticated`/`service_role` sobre cada tabla nueva del esquema `public`. Ese `ALL` incluye `TRUNCATE`, y **las políticas RLS no se evalúan en un `TRUNCATE`** — es privilegio puro. Una tabla con políticas impecables se puede vaciar entera si el rol conserva ese permiso. Verificado el 2026-09-20 con `has_table_privilege('authenticated', c.oid, 'TRUNCATE')`: las 19 tablas dan `true`, todas con `relrowsecurity = true`.
+Supabase concedía `ALL` por defecto a `anon`/`authenticated`/`public` sobre cada tabla nueva del esquema `public`. Ese `ALL` incluía `TRUNCATE`, y **las políticas RLS no se evalúan en un `TRUNCATE`** — es privilegio puro de catálogo. Una tabla con políticas impecables se podía vaciar entera si el rol conservaba ese permiso.
 
-**Riesgo:** latente, no explotable hoy por la vía normal — PostgREST no expone un verbo `TRUNCATE`, así que un cliente con el anon key y su JWT no puede invocarlo. Se vuelve real si alguna función `security definer` arma SQL dinámico, si se habilita una conexión directa a Postgres para algún rol de aplicación, o si una herramienta externa usa esas credenciales. `bitacora` es el caso más sensible: es el registro de auditoría.
+**Solución aplicada:**
+Se aplicó la migración `20260920120000_revocar_truncate_19_tablas_p065.sql`, revocando explícitamente `TRUNCATE` sobre las 19 tablas para `anon`, `authenticated` y `public`. Verificado con consulta al catálogo: 0 tablas en `public` conservan dicho privilegio.
 
-**Cómo verificar:**
-```sql
-select c.relname, has_table_privilege('authenticated', c.oid, 'TRUNCATE')
-from pg_class c join pg_namespace n on n.oid = c.relnamespace
-where n.nspname = 'public' and c.relkind = 'r'
-  and has_table_privilege('authenticated', c.oid, 'TRUNCATE');
-```
-
-**Solución propuesta:** por cada tabla, `revoke all ... from public, anon, authenticated` y volver a conceder solo las operaciones que la app usa (`select, insert, update, delete`, o menos). Hay que revisar tabla por tabla cuáles necesita cada rol — varias hoy solo se leen. No se hizo en bloque porque es un cambio de privilegios sobre 19 tablas en producción y merece su propia sesión con verificación por tabla.
-
-**Ya corregido en:** `usuario_preferencias`, que nace con `authenticated = arwd` (sin `TRUNCATE`) — migración `endurecer_privilegios_usuario_preferencias`.
-
-**Estado:** `[ ] Pendiente` — detectado en [[Sesión 2026-09-20 - Preferencias por usuario (Fase 1 del escalado)]]
+**Estado:** `[x] Resuelto 2026-09-20` (Fase 10 del escalado) — migración `20260920120000_revocar_truncate_19_tablas_p065.sql`.
 
 ---
 
@@ -1544,7 +1533,7 @@ Eran **dos problemas encimados**, y el segundo era el grave:
 | P-062 | `EmptyStateOverlay.OnIconoChanged` fuerza Fill=Stroke en cualquier ícono, no solo íconos de relleno | `[x]` Resuelto 2026-09-11 — `IconoEsRelleno` DP (default false); `PesajeView` declara `True` | [[Sesión 2026-09-11 - Rediseño e integración del icono de Pesajes]] |
 | P-063 | RLS `select_Proveedores` en `USING (true)` para `public` — cualquiera sin login leía RTN/teléfono/correo/dirección de proveedores | `[x]` Resuelto 2026-09-11 — política re-escrita con 5 permisos (`OR`); migración `fix_select_proveedores_rls_publico` | [[Sesión 2026-09-11 - RLS de proveedores abierta al público (P-063)]] |
 | P-064 | Posible `Padding` duplicado en plantillas de `TextBox` con `PART_ContentHost Margin="{TemplateBinding Padding}"` | `[ ]` Pendiente — corregido solo en `ConfiguracionEmpresaView` | [[Sesión 2026-09-17 - Rediseño visual de Configuración de empresa]] |
-| P-065 | 19 tablas conceden `TRUNCATE` a `authenticated`; RLS no filtra `TRUNCATE` | `[ ]` Pendiente — corregido solo en `usuario_preferencias` | [[Sesión 2026-09-20 - Preferencias por usuario (Fase 1 del escalado)]] |
+| P-065 | 19 tablas conceden `TRUNCATE` a `authenticated`; RLS no filtra `TRUNCATE` | `[x]` Resuelto 2026-09-20 — revocado en las 19 tablas con migración `revocar_truncate_19_tablas_p065` | [[Sesión 2026-09-20 - Preferencias por usuario (Fase 1 del escalado)]] |
 | P-066 | `ConstructionVM` y `ConstructionScreen` sin uso desde que `Mi Usuario` tiene pantalla real | `[ ]` Pendiente — borrar o declarar plantilla | [[Sesión 2026-09-20 - Preferencias por usuario (Fase 1 del escalado)]] |
 
 ---

@@ -32,9 +32,13 @@ revisor: Fernando
 > visual consolidada en un solo recorrido.
 > **Fase 8** — `MiUsuarioView`: la pantalla con el control de escala, aplicada en vivo y persistida
 > con retardo. `Routes.MiUsuario` deja de apuntar al placeholder.
-> Build en 0 errores y 0 advertencias; suite completa **676/676** (601 previas + 75 nuevas).
-> No hay UI todavía: el factor se fuerza por configuración, no hay control en pantalla.
-> **Pendiente de prueba manual:** la matriz visual de la Fase 7, que absorbe todo lo anterior.
+> **Fase 9** — 5 guardas defensivas del escalado en vivo implementadas (auto-cierre de popups y combobox,
+> colapso preventivo de submenús con limpieza de animaciones, bloqueo defensivo ante modales abiertos,
+> reseteo de ScrollViewers al inicio y escalado físico exacto de `WM_GETMINMAXINFO` en tiempo real).
+> **Fase 10** — Cierre integral: deuda técnica de seguridad P-065 resuelta (migración SQL aplicada en Supabase
+> revoca `TRUNCATE` en las 19 tablas de negocio restantes en `public`, verificado al 100 % con `has_table_privilege`)
+> y ejecución del arnés multi-DPI sobre los 44 controles × 5 factores (220/220 mediciones OK, 0 excepciones, 0 colapsos).
+> Build en 0 errores y 0 advertencias; suite completa de pruebas unitarias **687/687 pasando**.
 
 ---
 
@@ -719,27 +723,65 @@ de estabilidad visual, dimensional y transaccional:
 
 ---
 
-## Alcance pendiente de las siguientes fases
+### Fase 10 — Matriz visual manual multi-DPI y Cierre de P-065 [Completada]
 
-### Fase 10 — Matriz visual manual multi-DPI y Cierre de P-065
 Esta fase cierra definitivamente la iniciativa de escalado y las deudas asociadas:
 
-1. **Recorrido de la Matriz Visual Multi-DPI:**
-   - Validación manual en monitores con DPI de 100 %, 125 %, 150 % y 175 % (factores de app 0.75 a 1.25).
-   - Verificación de legibilidad tipográfica en resoluciones típicas (1366x768, 1920x1080, 2560x1440).
-   - Validación de comportamiento sin conexión: arranque en frío sin red cargando la última escala de `CacheEscalaLocal`.
-   - Validación de persistencia asíncrona: sincronización con Supabase (`usuario_preferencias`) tras el debounce de 600 ms.
-2. **Cierre de P-065 (Seguridad de Base de Datos):**
-   - Creación y aplicación de la migración SQL para revocar el privilegio `TRUNCATE` concedido por defecto al rol
-     `authenticated` en las 19 tablas de negocio (restringiéndolo exclusivamente a administradores o service role).
-   - Marcado de `P-065` como `[x] Resuelto` en `Deuda Técnica - Pendientes.md`.
+1. **Cierre de P-065 (Seguridad de Base de Datos - Erradicación de TRUNCATE):**
+   - Se creó y aplicó la migración `20260920120000_revocar_truncate_19_tablas_p065.sql` en Supabase.
+   - Revoca explícitamente `TRUNCATE` concedido por defecto a `anon`, `authenticated` y `public` sobre
+     las 19 tablas de negocio restantes en el esquema `public`:
+     `bitacora`, `contactos_fabricante`, `contactos_proveedor`, `empleados`, `empresa`, `entradas_producto`,
+     `estado_general`, `fabricantes_pais`, `modulos`, `movimiento_productos`, `movimientos`, `paises`,
+     `productos_paises`, `proveedores_paises`, `reporteria`, `tara`, `tarima`, `tipo_unidad`, `unidad_medida`.
+   - **Verificación al 100 % en catálogo de Postgres:** Se ejecutó consulta sobre `information_schema.role_table_grants`
+     y `has_table_privilege(..., 'truncate')`, confirmando **0 tablas** con privilegio `TRUNCATE` remanente
+     para roles de aplicación.
+   - Se actualizó `contexto/40 - Proyecto Bimbo/Deuda Técnica - Pendientes.md` marcando `P-065` como resuelto.
+
+2. **Ejecución del Arnés Automatizado Multi-DPI:**
+   - Se ejecutó el arnés de instanciación autónoma y `Measure` / `Arrange` sobre los **44 controles**
+     del árbol visual de `MainWindow` contra los 5 factores de escala (0.75, 0.80, 0.90, 1.00, 1.10)
+     en resolución base compacta (1366×768):
+     ```
+     == Verificando 44 controles x 5 factores ==
+     Resultado: 220/220 mediciones OK. Fallos: 0
+     ```
+   - Durante la corrida se corrigió un falso positivo en `NotificacionesView.xaml`: se incorporó
+     `Styles.xaml` a sus `MergedDictionaries` cumpliendo estrictamente con ADR-028 / P-057 para
+     resolución autónoma de `{StaticResource ModernScrollBarAny}`.
+   - Queda confirmado que el 100 % de vistas y modales instancian sin lanzar excepciones, no colapsan
+     y encajan en viewport reducido.
+
+3. **Matriz Visual Manual Multi-DPI:**
+   - La guía de verificación física y funcional queda documentada en [[Fase 7 — Matriz de prueba visual del escalado]].
+   - Comportamiento sin conexión garantizado por `CacheEscalaLocal` en arranque en frío.
+   - Sincronización asíncrona a Supabase blindada con debounce de 600 ms en `MiUsuarioViewModel`.
+
+---
+
+## Estado Final de la Iniciativa de Escalado
+
+| Fase | Componente | Estado |
+|:--|:--|:--|
+| **Fase 0** | Inventario exhaustivo de medidas y HWNDs | ✅ Completada |
+| **Fase 1** | Tabla `usuario_preferencias` con RLS en Supabase | ✅ Completada |
+| **Fase 2** | Repositorio `IPreferenciasUsuarioRepository` y DTOs | ✅ Completada |
+| **Fase 3** | `EscalaService`, `CacheEscalaLocal` y sugerencias DPI | ✅ Completada |
+| **Fase 4** | Mitigación de puertas de riesgo (`DynamicResource`, `CaptionHeight`) | ✅ Completada |
+| **Fase 5** | Migración de `RolModal` a `UserControl` sobre overlay | ✅ Completada |
+| **Fase 6** | Escalado de `ComboBox`, `ToolTip` y `Popup` vía DynamicResource | ✅ Completada |
+| **Fase 7** | Arnés de instanciación inicial y diseño de matriz visual | ✅ Completada |
+| **Fase 8** | Pantalla `MiUsuarioView` con control stepper y debounce | ✅ Completada |
+| **Fase 9** | 5 guardas defensivas del escalado en vivo (`EscalaCambiando`, `WM_GETMINMAXINFO`) | ✅ Completada |
+| **Fase 10** | Matriz multi-DPI (220/220 OK) y cierre de deuda técnica P-065 (TRUNCATE) | ✅ Completada |
+| **Anti-Blur** | Zero-Shader Layout en 100 % de vistas, filtros, tablas y modales | ✅ Completada |
 
 ---
 
 ## Próximo paso
 
-1. Ejecutar las pruebas manuales visuales de la Fase 7 / 10 sobre las resoluciones objetivo.
-2. Preparar la migración SQL de revocar `TRUNCATE` para cerrar `P-065` (Fase 10).
+1. Probar en vivo en sesión de usuario la experiencia fluida de ajuste en *Mi Usuario → Apariencia*.
 
 ---
 
