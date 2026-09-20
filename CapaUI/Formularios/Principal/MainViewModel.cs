@@ -126,7 +126,9 @@ namespace CapaUI.Formularios.Principal
                 [Routes.CrearReportes] = () => new ReporteriaVM(),
                 // Especiales
                 [Routes.Bienvenida] = () => new WelcomeVM(),
-                [Routes.MiUsuario]  = () => new ConstructionVM("Mi Usuario", ""),
+                // Sin entrada en _routePermissions a proposito: cada quien edita lo suyo
+                // y RLS lo garantiza del lado del servidor. No hace falta un permiso RBAC.
+                [Routes.MiUsuario]  = () => App.CrearVm<Pantallas.MiUsuario.MiUsuarioViewModel>(),
                 // Configuración
                 [Routes.Configuracion] = () => App.CrearVm<ConfiguracionEmpresaViewModel>(),
             };

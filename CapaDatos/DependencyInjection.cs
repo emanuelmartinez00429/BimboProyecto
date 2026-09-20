@@ -9,6 +9,7 @@ using CapaAplicacion.Fabricantes.Interfaces;
 using CapaAplicacion.Pesaje.Interfaces;
 using CapaAplicacion.Notificaciones.Interfaces;
 using CapaAplicacion.Perfil;
+using CapaAplicacion.Preferencias.Interfaces;
 using CapaAplicacion.Presentaciones.Interfaces;
 using CapaAplicacion.Productos.Interfaces;
 using CapaAplicacion.Proveedores.Interfaces;
@@ -149,6 +150,11 @@ public static class DependencyInjection
 
         // Configuración de la empresa y logo corporativo
         services.AddTransient<IEmpresaRepository, EmpresaRepository>();
+
+        // Preferencias personales del usuario (escala de la UI, densidad, etc.)
+        services.AddTransient<IPreferenciasUsuarioRepository,
+            Repositories.Preferencias.PreferenciasUsuarioRepository>();
+        services.AddSingleton<ICacheEscalaLocal, CacheEscalaLocal>();
 
         // Empleados — solo lectura por ahora (módulo en revisión)
         services.AddTransient<IEmpleadoRepository, EmpleadoCrudRepository>();

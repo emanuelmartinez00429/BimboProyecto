@@ -21,6 +21,7 @@ using CapaUI.Formularios.Principal.Pantallas.Roles;
 using CapaUI.Formularios.Principal.Pantallas.Reporteria;
 using CapaUI.Formularios.Principal.Pantallas.Usuarios;
 using CapaUI.Formularios.Principal.Pantallas.Notificaciones;
+using CapaUI.Services.Escala;
 using CapaUI.Services.Picker;
 using CapaUI.Services.Empresa;
 using CapaUI.Core.Empresa;
@@ -113,6 +114,9 @@ namespace CapaUI
             services.AddApplicationLayer();
             services.AddSingleton<IPickerService, PickerService>();
             services.AddSingleton<EmpresaThemeService>();
+            // Scoped y no Singleton: la escala es del usuario de la sesión, así que muere
+            // con el scope de sesión igual que el resto del estado de la sesión.
+            services.AddScoped<IEscalaService, EscalaService>();
             services.AddSingleton<LogoEmpresaCache>();
             services.AddSingleton<IconoSidebarCache>();
             services.AddTransient<UniversalSearchViewModel>();
@@ -162,6 +166,12 @@ namespace CapaUI
         private static void MostrarPrincipal()
         {
             _scopeSesion = Services.CreateScope();
+
+            // Antes de construir la ventana: así nace con la escala puesta en vez de
+            // dibujarse a 1.0 y reacomodarse a la vista. Solo lee disco, no red — la
+            // consulta a Supabase la dispara MainWindow cuando ya está arriba.
+            _scopeSesion.ServiceProvider.GetRequiredService<IEscalaService>().CargarCacheSinRed();
+
             _mainActual = _scopeSesion.ServiceProvider.GetRequiredService<MainWindow>();
             _mainActual.SesionCerrada += OnSesionCerrada;
             _mainActual.Show();

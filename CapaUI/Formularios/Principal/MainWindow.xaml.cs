@@ -18,6 +18,7 @@ using CapaUI.Core.Empresa;
 using CapaUI.Core.Permisos;
 using CapaUI.Formularios.Principal.Pantallas.Configuracion;
 using CapaUI.Navigation;
+using CapaUI.Services.Escala;
 using Microsoft.Extensions.DependencyInjection;
 using WpfColor = System.Windows.Media.Color;
 using WpfColorConverter = System.Windows.Media.ColorConverter;
@@ -37,6 +38,7 @@ namespace CapaUI.Formularios.Principal
         private readonly IconoSidebarCache     _iconoSidebarCache;
         private readonly ICacheService              _cache;
         private readonly IInvalidadorCacheRealtime  _invalidadorCache;
+        private readonly IEscalaService             _escala;
 
         // ── Estado del sidebar ────────────────────────────────────────────
         private bool   _collapsed      = false;
@@ -133,8 +135,10 @@ namespace CapaUI.Formularios.Principal
         public MainWindow(MainViewModel vm, IUsuarioSesionService sesionService,
                           IRealtimeService realtimeService, IConexionMonitor conexionMonitor,
                           IEmpresaRepository empresaRepository, IconoSidebarCache iconoSidebarCache,
-                          ICacheService cache, IInvalidadorCacheRealtime invalidadorCache)
+                          ICacheService cache, IInvalidadorCacheRealtime invalidadorCache,
+                          IEscalaService escala)
         {
+            _escala          = escala;
             _sesionService   = sesionService;
             _realtimeService = realtimeService;
             _conexionMonitor = conexionMonitor;
@@ -185,6 +189,12 @@ namespace CapaUI.Formularios.Principal
 
             _hwndSource = HwndSource.FromHwnd(hwnd);
             _hwndSource?.AddHook(WndProc);
+
+            // Acá y no en Loaded: SourceInitialized corre antes del primer pase de
+            // layout, así la ventana se mide una sola vez y ya con la escala puesta.
+            // Necesita el handle, que recién existe a esta altura, para saber en qué
+            // monitor está abriendo y elegir el factor de esa pantalla.
+            _escala.AplicarA(this);
         }
 
         private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
@@ -262,10 +272,24 @@ namespace CapaUI.Formularios.Principal
 
             await Vm.Notificaciones.InicializarAsync();
             await CargarIconoSidebarAsync();
+
+            // La escala ya se aplicó desde la caché local en SourceInitialized. Esto
+            // reconcilia contra Supabase por si el usuario la cambió en otra terminal;
+            // no reaplica sobre esta ventana, se ve en el próximo inicio de sesión.
+            await _escala.RefrescarDesdeBaseAsync();
         }
 
         private void MostrarDetalleNotificacion(CapaAplicacion.Notificaciones.Dtos.NotificacionDto notificacion)
-            => new Pantallas.Notificaciones.NotificacionDetalleWindow(notificacion) { Owner = this }.ShowDialog();
+        {
+            var ventana = new Pantallas.Notificaciones.NotificacionDetalleWindow(notificacion) { Owner = this };
+
+            // Tiene su propio HWND: no hereda el LayoutTransform de esta ventana, así que
+            // sin esto abriría a 1.0 mientras el resto de la app está escalada. Se engancha
+            // en SourceInitialized porque ahí ya hay handle y todavía no hubo layout.
+            ventana.SourceInitialized += (remitente, _) => _escala.AplicarA((Window)remitente!);
+
+            ventana.ShowDialog();
+        }
 
         private async Task CargarIconoSidebarAsync(string? rutaStorage = null)
         {

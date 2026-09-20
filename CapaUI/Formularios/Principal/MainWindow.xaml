@@ -19,6 +19,7 @@
         xmlns:roles="clr-namespace:CapaUI.Formularios.Principal.Pantallas.Roles"
         xmlns:notifs="clr-namespace:CapaUI.Formularios.Principal.Pantallas.Notificaciones"
         xmlns:config="clr-namespace:CapaUI.Formularios.Principal.Pantallas.Configuracion"
+        xmlns:miusuario="clr-namespace:CapaUI.Formularios.Principal.Pantallas.MiUsuario"
         xmlns:permisos="clr-namespace:CapaUI.Core.Permisos"
         xmlns:dash="clr-namespace:CapaUI.Formularios.Dashboard"
         xmlns:searchVm="clr-namespace:CapaUI.ViewModels.Search"
@@ -95,6 +96,9 @@
             </DataTemplate>
             <DataTemplate DataType="{x:Type config:ConfiguracionEmpresaViewModel}">
                 <config:ConfiguracionEmpresaView/>
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type miusuario:MiUsuarioViewModel}">
+                <miusuario:MiUsuarioView/>
             </DataTemplate>
             <DataTemplate DataType="{x:Type local:PlaceholderVM}">
                 <Grid Background="#F4F5F7">
@@ -307,14 +311,17 @@
                                    HorizontalOffset="-396"
                                    AllowsTransparency="True" StaysOpen="False"
                                    Closed="NotifPopup_Closed">
-                                <Border Width="440" MaxHeight="720" Background="White"
-                                        CornerRadius="10"
-                                        BorderBrush="#E5E7EB" BorderThickness="1"
-                                        ClipToBounds="False">
-                                    <Border.Effect>
-                                        <DropShadowEffect BlurRadius="30" ShadowDepth="8"
-                                                          Direction="270" Opacity="0.18"/>
-                                    </Border.Effect>
+                                <Grid Width="440" MaxHeight="720">
+                                    <Border Background="White" CornerRadius="10" IsHitTestVisible="False">
+                                        <Border.Effect>
+                                            <DropShadowEffect BlurRadius="30" ShadowDepth="8"
+                                                              Direction="270" Opacity="0.18"/>
+                                        </Border.Effect>
+                                    </Border>
+                                    <Border Background="White"
+                                            CornerRadius="10"
+                                            BorderBrush="#E5E7EB" BorderThickness="1"
+                                            RenderOptions.ClearTypeHint="Enabled">
                                     <StackPanel>
                                         <!-- Header -->
                                         <Border BorderBrush="#F3F4F6" BorderThickness="0,0,0,1"
@@ -364,6 +371,7 @@
                                         </Border>
                                     </StackPanel>
                                 </Border>
+                                </Grid>
                             </Popup>
                         </Grid>
 

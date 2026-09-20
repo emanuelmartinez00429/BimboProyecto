@@ -1,17 +1,33 @@
-<Window x:Class="CapaUI.Formularios.Principal.Pantallas.Roles.RolModal"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        mc:Ignorable="d"
-        Title="Rol" Width="470" Height="285"
-        WindowStartupLocation="CenterOwner" ResizeMode="NoResize"
-        WindowStyle="None" AllowsTransparency="True" Background="Transparent"
-        FontFamily="Segoe UI">
-    <Border Background="White" CornerRadius="14" BorderBrush="#DCE3EC" BorderThickness="1">
-        <Border.Effect>
-            <DropShadowEffect BlurRadius="24" ShadowDepth="5" Opacity="0.22"/>
-        </Border.Effect>
+<UserControl x:Class="CapaUI.Formularios.Principal.Pantallas.Roles.RolModal"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
+             Width="470" MinHeight="285"
+             d:DesignWidth="470"
+             d:DesignHeight="285"
+             FontFamily="Segoe UI">
+    <!--
+        Era un Window con Width/Height fijos y ResizeMode="NoResize". Con el escalado
+        propio de la app eso se rompía: el LayoutTransform escala el contenido pero no
+        el marco de la ventana, así que a 1,1x el contenido no entraba y no había forma
+        de agrandarla. Ahora es un UserControl sobre el overlay de RolesView, igual que
+        los otros 14 modales — hereda el transform como cualquier hijo del árbol visual.
+
+        MinHeight en vez de Height: conserva el aire del diseño original (la fila * se
+        queda con la holgura) pero deja crecer si el texto envuelve más líneas.
+    -->
+    <!-- Modal container with decoupled drop shadow (AP-06) -->
+    <Grid>
+        <Border Background="White" CornerRadius="14">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="24" ShadowDepth="5" Opacity="0.22" Color="#0F172A"/>
+            </Border.Effect>
+        </Border>
+
+        <Border Background="White" CornerRadius="14" BorderBrush="#DCE3EC" BorderThickness="1"
+                RenderOptions.ClearTypeHint="Enabled">
         <Grid Margin="24">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
@@ -20,7 +36,8 @@
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <Grid MouseLeftButtonDown="Encabezado_MouseLeftButtonDown">
+            <!-- Sin arrastre: ya no es una ventana, el overlay lo mantiene centrado. -->
+            <Grid>
                 <StackPanel>
                     <TextBlock x:Name="TxtContexto" Text="NUEVO ROL" FontSize="11" FontWeight="Bold"
                                Foreground="{DynamicResource EmpresaPrimaryBrush}"/>
@@ -54,4 +71,5 @@
             </StackPanel>
         </Grid>
     </Border>
-</Window>
+    </Grid>
+</UserControl>
