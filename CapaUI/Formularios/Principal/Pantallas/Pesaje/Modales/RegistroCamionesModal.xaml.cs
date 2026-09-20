@@ -422,6 +422,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
             if (nuevos > 0)       partes.Add(nuevos == 1 ? "1 nuevo" : $"{nuevos} nuevos");
             if (modificados > 0)  partes.Add(modificados == 1 ? "1 modificado" : $"{modificados} modificados");
             if (_bajas.Count > 0) partes.Add(_bajas.Count == 1 ? "1 por quitar" : $"{_bajas.Count} por quitar");
+            partes.Add("Ctrl+Enter para finalizar");
             TxtPie.Text = string.Join(" · ", partes);
 
             BtnAgregarFila.IsEnabled = ocupadas < PesajeViewModel.MaxCamiones;

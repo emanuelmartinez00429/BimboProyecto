@@ -39,12 +39,6 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
         /// <summary>Animación del spinner de la carga inicial.</summary>
         private Storyboard? _spinnerCarga;
 
-        /// <summary>
-        /// Animación de los spinners de "cambiando de camión" (CargandoMovimiento +
-        /// CargandoEntradas) — un solo Storyboard con una rotación por cada Path, así se
-        /// prenden/apagan juntos con un solo Begin/Stop.
-        /// </summary>
-        private Storyboard? _spinnerProductos;
 
         /// <summary>
         /// ScrollViewer interno de DgEntradas. No se busca en el árbol visual: lo
@@ -114,7 +108,6 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
         private void UserControl_Unloaded(object sender, RoutedEventArgs e)
         {
             DetenerSpinnerCarga();   // si se sale mientras cargaba, no dejar la animación viva
-            DetenerSpinnerProductos();
             CerrarModalActivo();
             if (_vm == null) return;
             _vm.Toast -= MostrarToast;
@@ -158,15 +151,17 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             bool prodAbierto = _vm.SelectedProducto?.Estado == "Abierto";
             bool hayEntrada  = _vm.SelectedEntrada != null;
 
-            bool sinProductos = !hayCamion || (_vm.SelectedCamion!.Productos.Count == 0);
-            MovEmpty.Visibility    = sinProductos ? Visibility.Visible : Visibility.Collapsed;
-            DgProductos.Visibility = sinProductos ? Visibility.Collapsed : Visibility.Visible;
-            MovEmpty.Text = !hayCamion
-                ? "Selecciona un camión para ver sus productos"
-                : "Este camión no tiene productos agregados todavía";
-
             // La grilla NO se oculta: el estado vacío es un overlay por encima, así los
             // encabezados quedan a la vista (ver "Empty State en DataGrid" en la bóveda).
+            bool sinProductos = !hayCamion || (_vm.SelectedCamion!.Productos.Count == 0);
+            MovEmpty.EstaVacio = sinProductos;
+            MovEmpty.Mensaje = !hayCamion
+                ? "Selecciona un camión para ver sus productos"
+                : "Este camión no tiene productos agregados todavía";
+            MovEmpty.Submensaje = hayCamion && !cerrado
+                ? "Usá «Agregar» para incluir productos"
+                : string.Empty;
+
             bool sinEntradas = _vm.FilasEntradas.Count == 0;
             EntEmpty.EstaVacio = sinEntradas;
             EntEmpty.Mensaje = !hayCamion
@@ -290,34 +285,8 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             if (_vm == null) return;
 
             bool cargando = _vm.CargandoProductos;
-            CargandoMovimiento.Visibility = cargando ? Visibility.Visible : Visibility.Collapsed;
-            CargandoEntradas.Visibility   = cargando ? Visibility.Visible : Visibility.Collapsed;
-            if (cargando) IniciarSpinnerProductos(); else DetenerSpinnerProductos();
-        }
-
-        private void IniciarSpinnerProductos()
-        {
-            if (_spinnerProductos != null) return;
-            _spinnerProductos = new Storyboard();
-            foreach (var target in new[] { SpinnerMovimiento, SpinnerEntradas })
-            {
-                var anim = new DoubleAnimation(0, 360, TimeSpan.FromSeconds(0.8))
-                { RepeatBehavior = RepeatBehavior.Forever };
-                Storyboard.SetTarget(anim, target);
-                Storyboard.SetTargetProperty(anim,
-                    new PropertyPath("(UIElement.RenderTransform).(RotateTransform.Angle)"));
-                _spinnerProductos.Children.Add(anim);
-            }
-            _spinnerProductos.Begin();
-        }
-
-        private void DetenerSpinnerProductos()
-        {
-            if (_spinnerProductos is null) return;
-            _spinnerProductos.Stop();
-            _spinnerProductos.Remove();
-            _spinnerProductos.Children.Clear();
-            _spinnerProductos = null;
+            CargandoMovimiento.IsLoading = cargando;
+            CargandoEntradas.IsLoading   = cargando;
         }
 
         /// <summary>
@@ -606,8 +575,8 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             if (DgEntradas == null) return;
 
             // Suma de anchos mínimos de las columnas con la nueva distribución:
-            // #(52) + PRODUCTO(180) + BRUTO(96) + TARA(90) + TARA_EXTRA(100) + NETO(96) + BULTOS(85) + FECHA/HORA(135, fija) + BASURERO(52) + margen scrollbar(~16)
-            double minAncho = 52 + 180 + 96 + 90 + 100 + 96 + 85 + 135 + 52 + 16;
+            // #(52) + PRODUCTO(180) + BRUTO(96) + TARA(90) + TARA_EXTRA(100) + NETO(96) + BULTOS(85) + FECHA/HORA(96, fija) + BASURERO(52) + margen scrollbar(~16)
+            double minAncho = 52 + 180 + 96 + 90 + 100 + 96 + 85 + 96 + 52 + 16;
 
             double anchoActual = DgEntradas.ActualWidth;
             if (anchoActual <= 0) return;

@@ -288,16 +288,16 @@
             <Setter Property="Background" Value="{DynamicResource EmpresaPrimaryBrush}"/>
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="FontFamily" Value="Segoe UI"/>
-            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontSize" Value="13"/>
             <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Height" Value="28"/>
+            <Setter Property="Height" Value="40"/>
             <Setter Property="HorizontalContentAlignment" Value="Left"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="DataGridColumnHeader">
-                        <Border Background="{DynamicResource EmpresaPrimaryBrush}" Padding="8,0">
+                        <Border Background="{DynamicResource EmpresaPrimaryBrush}" BorderBrush="#1EFFFFFF" BorderThickness="0,0,1,0" Padding="10,0">
                             <TextBlock Text="{TemplateBinding Content}" Foreground="White"
-                                       FontFamily="Segoe UI" FontSize="11" FontWeight="Bold"
+                                       FontFamily="Segoe UI" FontSize="13" FontWeight="Bold"
                                        VerticalAlignment="Center"
                                        HorizontalAlignment="Left"/>
                         </Border>
@@ -361,7 +361,7 @@
         <!-- Texto de celda (Entradas) -->
         <Style x:Key="EntText" TargetType="TextBlock">
             <Setter Property="FontFamily" Value="Segoe UI"/>
-            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontSize" Value="15.5"/>
             <Setter Property="Foreground" Value="#1A1F2E"/>
             <Setter Property="Margin" Value="10,0"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
@@ -482,6 +482,7 @@
                                   SelectionMode="Single" SelectionUnit="FullRow"
                                   Background="White" RowBackground="White" BorderThickness="0"
                                   RenderOptions.ClearTypeHint="Enabled"
+                                  FontFamily="Segoe UI" FontSize="15.5"
                                   AlternationCount="2" RowStyle="{StaticResource PgRow}" CellStyle="{StaticResource PgCell}"
                                   ColumnHeaderStyle="{StaticResource PgHeader}" RowHeight="40"
                                   ItemsSource="{Binding Camiones}"
@@ -501,15 +502,15 @@
                                 <DataGridTemplateColumn Header="#" Width="40"
                                                         CanUserResize="False" CanUserReorder="False"
                                                         CellTemplate="{StaticResource PlantillaCeldaNumeroFila}"/>
-                                <DataGridTemplateColumn Header="PLACA" Width="96">
+                                <DataGridTemplateColumn Header="PLACA" Width="104">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
                                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="6,0">
                                                 <Path Data="{StaticResource IcoTruck}" Stroke="#64748B"
-                                                      StrokeThickness="1.8" Width="14" Height="14" Stretch="Uniform"
+                                                      StrokeThickness="1.8" Width="15" Height="15" Stretch="Uniform"
                                                       Margin="0,0,6,0" VerticalAlignment="Center"
                                                       StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
-                                                <TextBlock Text="{Binding Placa}" FontFamily="Segoe UI" FontSize="13" FontWeight="Bold"
+                                                <TextBlock Text="{Binding Placa}" FontFamily="Segoe UI" FontSize="15.5" FontWeight="Bold"
                                                            Foreground="#0F172A" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
                                             </StackPanel>
                                         </DataTemplate>
@@ -519,29 +520,29 @@
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
                                             <TextBlock Text="{Binding Proveedor}" ToolTip="{Binding Proveedor}"
-                                                       FontFamily="Segoe UI" FontSize="12.5" FontWeight="SemiBold" Foreground="#334155"
+                                                       FontFamily="Segoe UI" FontSize="15.5" FontWeight="SemiBold" Foreground="#334155"
                                                        TextTrimming="CharacterEllipsis" VerticalAlignment="Center" Margin="6,0"/>
                                         </DataTemplate>
                                     </DataGridTemplateColumn.CellTemplate>
                                 </DataGridTemplateColumn>
-                                <DataGridTemplateColumn Header="KG" Width="80">
+                                <DataGridTemplateColumn Header="KG" Width="88">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
                                             <TextBlock Text="{Binding TotalKgTexto}" ToolTip="Peso manifestado de esta recepción"
-                                                       FontFamily="Segoe UI" FontSize="12.5" FontWeight="Bold" Foreground="#1E293B"
+                                                       FontFamily="Segoe UI" FontSize="15.5" FontWeight="Bold" Foreground="#1E293B"
                                                        HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,8,0"/>
                                         </DataTemplate>
                                     </DataGridTemplateColumn.CellTemplate>
                                 </DataGridTemplateColumn>
-                                <DataGridTemplateColumn Header="ESTADO" Width="90">
+                                <DataGridTemplateColumn Header="ESTADO" Width="96">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
                                             <!-- Punto plano, sin sombra (Zero-Shader). Gris cuando la recepción ya se cerró. -->
-                                            <Border x:Name="Badge" CornerRadius="999" Padding="6,2" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                            <Border x:Name="Badge" CornerRadius="999" Padding="8,3" HorizontalAlignment="Center" VerticalAlignment="Center"
                                                     Background="#ECFDF5" BorderBrush="#A7F3D0" BorderThickness="1">
                                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                                     <Border x:Name="Punto" Width="6" Height="6" CornerRadius="3" Background="#10B981" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                                                    <TextBlock x:Name="TxtEstado" Text="{Binding Estado}" FontFamily="Segoe UI" FontSize="11.5" FontWeight="Bold" Foreground="#065F46" VerticalAlignment="Center"/>
+                                                    <TextBlock x:Name="TxtEstado" Text="{Binding Estado}" FontFamily="Segoe UI" FontSize="13.5" FontWeight="Bold" Foreground="#065F46" VerticalAlignment="Center"/>
                                                 </StackPanel>
                                             </Border>
                                             <DataTemplate.Triggers>
@@ -583,23 +584,23 @@
                              Una sola fila de tres celdas iguales: con los textos cortos
                              entran holgados en el ancho de la columna, y las acciones
                              quedan a la vista sin segunda fila. UniformGrid y no WrapPanel -->
-                        <WrapPanel Grid.Row="2" Margin="12,8">
-                            <Button x:Name="BtnCamionAgregar" Style="{StaticResource ToolSuccess}" Margin="0,0,6,4" Click="BtnNuevoProceso_Click" permisos:PermisoBehavior.Requiere="Registrar Entrada" ToolTip="Iniciar un nuevo proceso de descarga">
+                        <WrapPanel Grid.Row="2" Margin="12,10">
+                            <Button x:Name="BtnCamionAgregar" Style="{StaticResource ActionBtn}" Background="#16A34A" Padding="20,0" Margin="0,0,8,4" Click="BtnNuevoProceso_Click" permisos:PermisoBehavior.Requiere="Registrar Entrada" ToolTip="Iniciar un nuevo proceso de descarga" ToolTipService.ShowOnDisabled="True">
                                 <StackPanel Orientation="Horizontal">
-                                    <Path Data="{StaticResource IcoPlus}" Stroke="White" StrokeThickness="2.2" Width="13" Height="13" Stretch="Uniform" Margin="0,0,7,0" VerticalAlignment="Center" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
-                                    <TextBlock Text="Agregar" VerticalAlignment="Center"/>
+                                    <Path Data="{StaticResource IconPlus}" Stroke="White" StrokeThickness="2.2" Width="15" Height="15" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                                    <TextBlock Text="Agregar" FontFamily="Segoe UI" FontSize="15.5" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>
-                            <Button x:Name="BtnCamionEditar" Style="{StaticResource ToolPrimary}" Margin="0,0,6,4" Click="BtnEditarProceso_Click" permisos:PermisoBehavior.Requiere="Modificar Pesaje" ToolTip="Editar el proceso: camión y productos">
+                            <Button x:Name="BtnCamionEditar" Style="{StaticResource ActionBtn}" Background="{DynamicResource EmpresaPrimaryBrush}" Padding="20,0" Margin="0,0,8,4" Click="BtnEditarProceso_Click" permisos:PermisoBehavior.Requiere="Modificar Pesaje" ToolTip="Editar el proceso: camión y productos" ToolTipService.ShowOnDisabled="True">
                                 <StackPanel Orientation="Horizontal">
-                                    <Path Data="{StaticResource IcoPencil}" Stroke="White" StrokeThickness="2" Width="13" Height="13" Stretch="Uniform" Margin="0,0,7,0" VerticalAlignment="Center" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
-                                    <TextBlock Text="Editar" VerticalAlignment="Center"/>
+                                    <Path Data="{StaticResource IconPencil}" Stroke="White" StrokeThickness="2.2" Width="15" Height="15" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                                    <TextBlock Text="Editar" FontFamily="Segoe UI" FontSize="15.5" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>
-                            <Button x:Name="BtnCamionCerrar" Style="{StaticResource ToolWarn}" Margin="0,0,0,4" Click="BtnCamionCerrar_Click">
+                            <Button x:Name="BtnCamionCerrar" Style="{StaticResource ActionBtn}" Background="{DynamicResource EmpresaPrimaryDarkBrush}" Padding="20,0" Margin="0,0,0,4" Click="BtnCamionCerrar_Click" ToolTipService.ShowOnDisabled="True">
                                 <StackPanel Orientation="Horizontal">
-                                    <Path Data="{StaticResource IcoCheck}" Stroke="White" StrokeThickness="2.4" Width="13" Height="13" Stretch="Uniform" Margin="0,0,7,0" VerticalAlignment="Center" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
-                                    <TextBlock x:Name="TxtBtnCamionCerrar" Text="Cerrar camión" VerticalAlignment="Center"/>
+                                    <Path Data="{StaticResource IconCheck}" Stroke="White" StrokeThickness="2.4" Width="15" Height="15" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                                    <TextBlock x:Name="TxtBtnCamionCerrar" Text="Cerrar camión" FontFamily="Segoe UI" FontSize="15.5" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>
                         </WrapPanel>
@@ -640,13 +641,17 @@
                         </Border>
 
                         <Grid Grid.Row="1">
-                            <TextBlock x:Name="MovEmpty" Text="Selecciona un camión para ver sus productos"
-                                       FontFamily="Segoe UI" FontSize="14.5" Foreground="#9CA3AF"
-                                       HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center"/>
+                            <!-- EmptyStateOverlay para Movimiento: por encima de la grilla sin ocultarla,
+                                 garantizando que los encabezados permanezcan siempre visibles fijos (patrón AP-04) -->
+                            <controls:EmptyStateOverlay x:Name="MovEmpty" Panel.ZIndex="5"
+                                                        HeaderOffset="40"
+                                                        Icono="{StaticResource IcoPack}"
+                                                        Mensaje="Selecciona un camión para ver sus productos"/>
                             <DataGrid x:Name="DgProductos" AutoGenerateColumns="False" CanUserAddRows="False"
                                       IsReadOnly="True"
                                       CanUserSortColumns="False" HeadersVisibility="Column" GridLinesVisibility="None"
                                       SelectionMode="Single" SelectionUnit="FullRow" Background="White" BorderThickness="0"
+                                      FontFamily="Segoe UI" FontSize="15.5"
                                       AlternationCount="2" RowStyle="{StaticResource PgRow}" CellStyle="{StaticResource PgCell}"
                                       ColumnHeaderStyle="{StaticResource PgHeader}" RowHeight="46"
                                       ItemsSource="{Binding SelectedCamion.Productos}"
@@ -668,7 +673,7 @@
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
                                                 <Border Style="{StaticResource CodeChip}" HorizontalAlignment="Left" Margin="10,0">
-                                                    <TextBlock Text="{Binding ProductoCodigo}" FontFamily="Consolas" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource EmpresaPrimaryBrush}"/>
+                                                    <TextBlock Text="{Binding ProductoCodigo}" FontFamily="Consolas" FontSize="14.5" FontWeight="Bold" Foreground="{DynamicResource EmpresaPrimaryBrush}"/>
                                                 </Border>
                                             </DataTemplate>
                                         </DataGridTemplateColumn.CellTemplate>
@@ -676,14 +681,14 @@
                                     <DataGridTemplateColumn Header="PRODUCTO" Width="*" MinWidth="180">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
-                                                <TextBlock Text="{Binding ProductoNombre}" FontFamily="Segoe UI" FontSize="14.5" FontWeight="SemiBold" Foreground="#1A1F2E" TextTrimming="CharacterEllipsis" Margin="10,0"/>
+                                                <TextBlock Text="{Binding ProductoNombre}" FontFamily="Segoe UI" FontSize="15.5" FontWeight="SemiBold" Foreground="#1A1F2E" TextTrimming="CharacterEllipsis" Margin="10,0"/>
                                             </DataTemplate>
                                         </DataGridTemplateColumn.CellTemplate>
                                     </DataGridTemplateColumn>
                                     <DataGridTemplateColumn Header="REST." Width="72" MinWidth="72">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
-                                                <TextBlock Text="{Binding BultosRestantes, StringFormat=N1}" FontFamily="Segoe UI" FontSize="14" FontWeight="Bold" Foreground="#1A1F2E" HorizontalAlignment="Center"/>
+                                                <TextBlock Text="{Binding BultosRestantes, StringFormat=N1}" FontFamily="Segoe UI" FontSize="15.5" FontWeight="Bold" Foreground="#1A1F2E" HorizontalAlignment="Center"/>
                                             </DataTemplate>
                                         </DataGridTemplateColumn.CellTemplate>
                                     </DataGridTemplateColumn>
@@ -702,7 +707,7 @@
                                                             </Border.Width>
                                                         </Border>
                                                     </Border>
-                                                    <TextBlock Text="{Binding ProgresoTexto}" FontFamily="Segoe UI" FontSize="13" FontWeight="Bold" Foreground="#6B7280" HorizontalAlignment="Center" Margin="0,3,0,0"/>
+                                                    <TextBlock Text="{Binding ProgresoTexto}" FontFamily="Segoe UI" FontSize="13.5" FontWeight="Bold" Foreground="#6B7280" HorizontalAlignment="Center" Margin="0,3,0,0"/>
                                                 </StackPanel>
                                             </DataTemplate>
                                         </DataGridTemplateColumn.CellTemplate>
@@ -770,45 +775,31 @@
                                 </DataGrid.Columns>
                             </DataGrid>
 
-                            <!-- Cambiar de camión sí pega a la base (CargarProductosAsync):
-                                 sin esto, la tabla se quedaba mostrando el camión anterior
-                                 hasta que respondía la consulta, sin ningún indicio de que
-                                 algo estaba pasando. Mismo patrón code-behind que el resto
-                                 de la app (nunca Visibility bindeada en XAML). -->
-                            <Border x:Name="CargandoMovimiento" Background="White" Visibility="Collapsed" Panel.ZIndex="50">
-                                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Horizontal">
-                                    <Path x:Name="SpinnerMovimiento"
-                                          Data="M 12 2 A 10 10 0 1 1 2 12"
-                                          Stroke="{DynamicResource EmpresaPrimaryBrush}" StrokeThickness="2.5"
-                                          StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                                          Width="18" Height="18" Stretch="Uniform"
-                                          RenderTransformOrigin="0.5,0.5" Margin="0,0,9,0">
-                                        <Path.RenderTransform><RotateTransform/></Path.RenderTransform>
-                                    </Path>
-                                    <TextBlock Text="Actualizando productos..."
-                                               FontFamily="Segoe UI" FontSize="14" Foreground="#6B7280"
-                                               VerticalAlignment="Center"/>
-                                </StackPanel>
-                            </Border>
+                            <!-- Loading overlay reutilizable (AP-04) con encabezados visibles fijos -->
+                            <controls:LoadingOverlay x:Name="CargandoMovimiento"
+                                                     Panel.ZIndex="50"
+                                                     HeaderOffset="40"
+                                                     IsLoading="{Binding CargandoProductos}"
+                                                     Mensaje="Actualizando productos..."/>
                         </Grid>
 
-                        <WrapPanel Grid.Row="2" Margin="12,8">
-                            <Button x:Name="BtnProdAgregar" Style="{StaticResource ToolSuccess}" Margin="0,0,6,4" Click="BtnProdAgregar_Click" ToolTip="Agregar un producto al camión">
+                        <WrapPanel Grid.Row="2" Margin="12,10">
+                            <Button x:Name="BtnProdAgregar" Style="{StaticResource ActionBtn}" Background="#16A34A" Padding="20,0" Margin="0,0,8,4" Click="BtnProdAgregar_Click" ToolTip="Agregar un producto al camión" ToolTipService.ShowOnDisabled="True">
                                 <StackPanel Orientation="Horizontal">
-                                    <Path Data="{StaticResource IcoPlus}" Stroke="White" StrokeThickness="2.2" Width="13" Height="13" Stretch="Uniform" Margin="0,0,7,0" VerticalAlignment="Center" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
-                                    <TextBlock Text="Agregar" VerticalAlignment="Center"/>
+                                    <Path Data="{StaticResource IconPlus}" Stroke="White" StrokeThickness="2.2" Width="15" Height="15" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                                    <TextBlock Text="Agregar" FontFamily="Segoe UI" FontSize="15.5" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>
-                            <Button x:Name="BtnProdEditar" Style="{StaticResource ToolPrimary}" Margin="0,0,6,4" Click="BtnProdEditar_Click" ToolTip="Editar el producto seleccionado">
+                            <Button x:Name="BtnProdEditar" Style="{StaticResource ActionBtn}" Background="{DynamicResource EmpresaPrimaryBrush}" Padding="20,0" Margin="0,0,8,4" Click="BtnProdEditar_Click" ToolTip="Editar el producto seleccionado" ToolTipService.ShowOnDisabled="True">
                                 <StackPanel Orientation="Horizontal">
-                                    <Path Data="{StaticResource IcoPencil}" Stroke="White" StrokeThickness="2" Width="13" Height="13" Stretch="Uniform" Margin="0,0,7,0" VerticalAlignment="Center" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
-                                    <TextBlock Text="Editar" VerticalAlignment="Center"/>
+                                    <Path Data="{StaticResource IconPencil}" Stroke="White" StrokeThickness="2.2" Width="15" Height="15" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                                    <TextBlock Text="Editar" FontFamily="Segoe UI" FontSize="15.5" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>
-                            <Button x:Name="BtnProdCerrar" Style="{StaticResource ToolWarn}" Margin="0,0,0,4" Click="BtnProdCerrar_Click">
+                            <Button x:Name="BtnProdCerrar" Style="{StaticResource ActionBtn}" Background="{DynamicResource EmpresaPrimaryDarkBrush}" Padding="20,0" Margin="0,0,0,4" Click="BtnProdCerrar_Click" ToolTipService.ShowOnDisabled="True">
                                 <StackPanel Orientation="Horizontal">
-                                    <Path Data="{StaticResource IcoCheck}" Stroke="White" StrokeThickness="2.4" Width="13" Height="13" Stretch="Uniform" Margin="0,0,7,0" VerticalAlignment="Center" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
-                                    <TextBlock x:Name="TxtBtnProdCerrar" Text="Cerrar producto" VerticalAlignment="Center"/>
+                                    <Path Data="{StaticResource IconCheck}" Stroke="White" StrokeThickness="2.4" Width="15" Height="15" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                                    <TextBlock x:Name="TxtBtnProdCerrar" Text="Cerrar producto" FontFamily="Segoe UI" FontSize="15.5" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>
                         </WrapPanel>
@@ -868,6 +859,7 @@
                                   IsReadOnly="True"
                                   CanUserSortColumns="False" HeadersVisibility="Column" GridLinesVisibility="None"
                                   SelectionMode="Single" SelectionUnit="FullRow" Background="White" BorderThickness="0"
+                                  FontFamily="Segoe UI" FontSize="15.5"
                                   AlternationCount="2" RowStyle="{StaticResource PgRow}" CellStyle="{StaticResource PgCell}"
                                   ColumnHeaderStyle="{StaticResource PgHeader}" RowHeight="40"
                                   ItemsSource="{Binding FilasEntradas}"
@@ -895,7 +887,7 @@
                                     <DataGridTextColumn.ElementStyle>
                                         <Style TargetType="TextBlock">
                                             <Setter Property="FontFamily" Value="Segoe UI"/>
-                                            <Setter Property="FontSize" Value="13"/>
+                                            <Setter Property="FontSize" Value="14"/>
                                             <Setter Property="Foreground" Value="#9CA3AF"/>
                                             <Setter Property="HorizontalAlignment" Value="Center"/>
                                             <Setter Property="VerticalAlignment" Value="Center"/>
@@ -905,14 +897,15 @@
                                 <!-- Siempre visible, aunque se repita fila tras fila en "Producto
                                      actual" — es más fácil detectar de qué producto es cada entrada
                                      que confiar en recordar cuál está seleccionado arriba. -->
-                                <DataGridTextColumn x:Name="ColEntProducto" Header="PRODUCTO" Binding="{Binding ProdNombre}" Width="3.5*" MinWidth="180">
+                                <DataGridTextColumn x:Name="ColEntProducto" Header="PRODUCTO" Binding="{Binding ProdNombre}" Width="5*" MinWidth="180">
                                     <DataGridTextColumn.ElementStyle>
                                         <Style TargetType="TextBlock">
                                             <Setter Property="FontFamily" Value="Segoe UI"/>
-                                            <Setter Property="FontSize" Value="14"/>
+                                            <Setter Property="FontSize" Value="15.5"/>
                                             <Setter Property="FontWeight" Value="SemiBold"/>
                                             <Setter Property="Foreground" Value="#1A1F2E"/>
                                             <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+                                            <Setter Property="ToolTip" Value="{Binding ProdNombre}"/>
                                             <Setter Property="Margin" Value="10,0"/>
                                             <Setter Property="VerticalAlignment" Value="Center"/>
                                         </Style>
@@ -933,7 +926,7 @@
                                                     <Border x:Name="PuntoTara" Width="5" Height="5" CornerRadius="3" Background="#D97706"
                                                             Margin="0,0,5,0" VerticalAlignment="Center" Visibility="Collapsed"/>
                                                     <TextBlock x:Name="TxtTara" Text="{Binding TaraExtra, StringFormat=N2}"
-                                                                FontFamily="Segoe UI" FontSize="14" Foreground="#1A1F2E"
+                                                                FontFamily="Segoe UI" FontSize="15.5" Foreground="#1A1F2E"
                                                                 VerticalAlignment="Center"/>
                                                 </StackPanel>
                                             </Border>
@@ -953,7 +946,7 @@
                                     <DataGridTextColumn.ElementStyle>
                                         <Style TargetType="TextBlock">
                                             <Setter Property="FontFamily" Value="Segoe UI"/>
-                                            <Setter Property="FontSize" Value="14"/>
+                                            <Setter Property="FontSize" Value="15.5"/>
                                             <Setter Property="FontWeight" Value="Bold"/>
                                             <Setter Property="Foreground" Value="{DynamicResource EmpresaPrimaryBrush}"/>
                                             <Setter Property="Margin" Value="10,0"/>
@@ -978,50 +971,40 @@
                                 <!-- Fecha y hora en una sola celda a dos líneas: se leen siempre
                                      juntas y así el ancho que ocupaban dos columnas queda libre
                                      para los pesos, que son el dato que importa. -->
-                                <DataGridTemplateColumn Header="FECHA / HORA" Width="140" MinWidth="135" CanUserResize="False">
+                                <DataGridTemplateColumn Header="FECHA / HORA" Width="100" MinWidth="96" CanUserResize="False">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
-                                            <StackPanel VerticalAlignment="Center" Margin="10,0">
-                                                <TextBlock Text="{Binding Fecha}" FontFamily="Segoe UI" FontSize="13.5" Foreground="#1A1F2E"/>
-                                                <TextBlock Text="{Binding Hora}" FontFamily="Segoe UI" FontSize="12.5" Foreground="#9CA3AF"/>
+                                            <StackPanel VerticalAlignment="Center" Margin="8,0">
+                                                <TextBlock Text="{Binding Fecha}" FontFamily="Segoe UI" FontSize="14" Foreground="#1A1F2E"/>
+                                                <TextBlock Text="{Binding Hora}" FontFamily="Segoe UI" FontSize="13" Foreground="#9CA3AF"/>
                                             </StackPanel>
                                         </DataTemplate>
                                     </DataGridTemplateColumn.CellTemplate>
                                 </DataGridTemplateColumn>
                                 <!-- Basurero al final de la fila: usa el estilo prefabricado
                                      global BasureroCelda (con IcoTrashFila congelado en GPU) y
-                                     sin bindings rotos a propiedades inexistentes. -->
+                                     aprovecha CanDeleteEntry del VM para no colgarse de
+                                     DgEntradas.IsEnabled (que se apaga al cerrar el camión). -->
                                 <DataGridTemplateColumn Header="" Width="52" CanUserResize="False" CanUserReorder="False">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
-                                            <Button Style="{StaticResource BasureroCelda}" Tag="{Binding}"
+                                            <Button Style="{StaticResource BasureroCelda}"
+                                                    HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                    Tag="{Binding}" Click="QuitarEntrada_Click"
                                                     ToolTip="Quitar este pesaje"
-                                                    VerticalAlignment="Center" HorizontalAlignment="Center"
-                                                    Click="QuitarEntrada_Click"/>
+                                                    IsEnabled="{Binding DataContext.CanDeleteEntry, RelativeSource={RelativeSource AncestorType=DataGrid}}"/>
                                         </DataTemplate>
                                     </DataGridTemplateColumn.CellTemplate>
                                 </DataGridTemplateColumn>
                             </DataGrid.Columns>
                         </DataGrid>
 
-                        <!-- Mismo overlay que CargandoMovimiento, scoped a este panel: cambiar
-                             de camión también deja obsoleta la tabla de entradas hasta que
-                             responde CargarProductosAsync. -->
-                        <Border x:Name="CargandoEntradas" Background="White" Visibility="Collapsed" Panel.ZIndex="50">
-                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Horizontal">
-                                <Path x:Name="SpinnerEntradas"
-                                      Data="M 12 2 A 10 10 0 1 1 2 12"
-                                      Stroke="{DynamicResource EmpresaPrimaryBrush}" StrokeThickness="2.5"
-                                      StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                                      Width="18" Height="18" Stretch="Uniform"
-                                      RenderTransformOrigin="0.5,0.5" Margin="0,0,9,0">
-                                    <Path.RenderTransform><RotateTransform/></Path.RenderTransform>
-                                </Path>
-                                <TextBlock Text="Actualizando pesajes..."
-                                           FontFamily="Segoe UI" FontSize="14" Foreground="#6B7280"
-                                           VerticalAlignment="Center"/>
-                            </StackPanel>
-                        </Border>
+                        <!-- Loading overlay reutilizable (AP-04) con encabezados visibles fijos -->
+                        <controls:LoadingOverlay x:Name="CargandoEntradas"
+                                                 Panel.ZIndex="50"
+                                                 HeaderOffset="40"
+                                                 IsLoading="{Binding CargandoProductos}"
+                                                 Mensaje="Actualizando pesajes..."/>
                     </Grid>
 
                     <!-- ── Fila TOTAL ──
@@ -1043,7 +1026,7 @@
                                 <!-- Col 0: #  — mismo Width fijo que DgEntradas Col 0 -->
                                 <ColumnDefinition x:Name="TcCol0" Width="52" MinWidth="48"/>
                                 <!-- Col 1: PRODUCTO — sincronizado por código -->
-                                <ColumnDefinition x:Name="TcCol1" Width="3.5*" MinWidth="180"/>
+                                <ColumnDefinition x:Name="TcCol1" Width="5*" MinWidth="180"/>
                                 <!-- Col 2: BRUTO (KG) -->
                                 <ColumnDefinition x:Name="TcCol2" Width="1.1*" MinWidth="96"/>
                                 <!-- Col 3: TARA (KG) -->
@@ -1055,25 +1038,25 @@
                                 <!-- Col 6: BULTOS -->
                                 <ColumnDefinition x:Name="TcCol6" Width="0.9*" MinWidth="85"/>
                                 <!-- Col 7: FECHA / HORA — mismo Width fijo que DgEntradas Col 7 -->
-                                <ColumnDefinition x:Name="TcCol7" Width="140" MinWidth="135"/>
+                                <ColumnDefinition x:Name="TcCol7" Width="100" MinWidth="96"/>
                                 <!-- Col 8: espaciador del botón basurero — mismo Width que DgEntradas Col 8 -->
                                 <ColumnDefinition x:Name="TcCol8" Width="52"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="TOTAL" FontFamily="Segoe UI" FontSize="12.5" FontWeight="Bold"
+                            <TextBlock Grid.Column="0" Text="TOTAL" FontFamily="Segoe UI" FontSize="13.5" FontWeight="Bold"
                                         Foreground="#6B7280" VerticalAlignment="Center" HorizontalAlignment="Center"/>
                             <!-- Col 1 vacía: reserva el espacio del nombre de producto -->
-                            <TextBlock Grid.Column="2" Text="{Binding TotalBruto, StringFormat=N2}" FontFamily="Segoe UI" FontSize="14"
+                            <TextBlock Grid.Column="2" Text="{Binding TotalBruto, StringFormat=N2}" FontFamily="Segoe UI" FontSize="15.5"
                                         FontWeight="Bold" Foreground="#1A1F2E" VerticalAlignment="Center" Margin="10,0"/>
-                            <TextBlock Grid.Column="3" Text="{Binding TotalTara, StringFormat=N2}" FontFamily="Segoe UI" FontSize="14"
+                            <TextBlock Grid.Column="3" Text="{Binding TotalTara, StringFormat=N2}" FontFamily="Segoe UI" FontSize="15.5"
                                         Foreground="#6B7280" VerticalAlignment="Center" Margin="10,0"/>
-                            <TextBlock Grid.Column="4" Text="{Binding TotalTaraExtra, StringFormat=N2}" FontFamily="Segoe UI" FontSize="14"
+                            <TextBlock Grid.Column="4" Text="{Binding TotalTaraExtra, StringFormat=N2}" FontFamily="Segoe UI" FontSize="15.5"
                                         Foreground="#6B7280" VerticalAlignment="Center" Margin="10,0"/>
-                            <TextBlock Grid.Column="5" Text="{Binding TotalNeto, StringFormat=N2}" FontFamily="Segoe UI" FontSize="14"
+                            <TextBlock Grid.Column="5" Text="{Binding TotalNeto, StringFormat=N2}" FontFamily="Segoe UI" FontSize="15.5"
                                         FontWeight="Bold" Foreground="{DynamicResource EmpresaPrimaryBrush}" VerticalAlignment="Center" Margin="10,0"/>
-                            <TextBlock Grid.Column="6" Text="{Binding TotalBultos, StringFormat=N1}" FontFamily="Segoe UI" FontSize="14"
+                            <TextBlock Grid.Column="6" Text="{Binding TotalBultos, StringFormat=N1}" FontFamily="Segoe UI" FontSize="15.5"
                                         FontWeight="Bold" Foreground="#1A1F2E" VerticalAlignment="Center" Margin="10,0"/>
-                            <TextBlock Grid.Column="7" Text="{Binding TotalPesajesTexto}" FontFamily="Segoe UI" FontSize="13"
-                                        Foreground="#9CA3AF" VerticalAlignment="Center" Margin="10,0"/>
+                            <TextBlock Grid.Column="7" Text="{Binding TotalPesajesTexto}" FontFamily="Segoe UI" FontSize="14"
+                                        Foreground="#9CA3AF" VerticalAlignment="Center" Margin="8,0"/>
                             <!-- Col 8: espaciadora del basurero, no se muestra ningún texto -->
                         </Grid>
                         </ScrollViewer>
@@ -1103,30 +1086,39 @@
                         </Grid>
                     </Border>
 
-                    <WrapPanel Grid.Row="4" Margin="12,9">
-                        <Button x:Name="BtnProdPesar" Style="{StaticResource ToolPrimary}" Margin="0,0,8,0"
+                    <WrapPanel Grid.Row="4" Margin="12,10">
+                        <Button x:Name="BtnProdPesar" Style="{StaticResource ActionBtn}"
+                                Background="#16A34A"
+                                Padding="20,0" Margin="0,0,8,4"
                                 Click="BtnProdPesar_Click" ToolTipService.ShowOnDisabled="True">
                             <StackPanel Orientation="Horizontal">
-                                <Path Data="{StaticResource IcoScale}" Fill="White" Width="13" Height="13" Stretch="Uniform" Margin="0,0,7,0" VerticalAlignment="Center"/>
-                                <TextBlock Text="Pesar" VerticalAlignment="Center"/>
+                                <Path Data="{StaticResource IcoScale}" Fill="White" Width="15" Height="15" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Pesar" FontFamily="Segoe UI" FontSize="15.5" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
                         <!-- La tara extra (tarimas) se pesa aparte y se reparte entre las
                              pesadas ya registradas del producto o de todo el camión: vive
                              acá, junto a la grilla de esas pesadas. -->
-                        <Button x:Name="BtnProdTaraExtra" Style="{StaticResource ToolPrimary}" Margin="0,0,8,0"
+                        <Button x:Name="BtnProdTaraExtra" Style="{StaticResource ActionBtn}"
+                                Background="{DynamicResource EmpresaPrimaryBrush}"
+                                Padding="20,0" Margin="0,0,8,4"
                                 Click="BtnProdTaraExtra_Click"
                                 permisos:PermisoBehavior.Requiere="Modificar Pesaje"
-                                ToolTip="Cargar el peso de las tarimas y repartirlo entre las pesadas">
+                                ToolTip="Cargar el peso de las tarimas y repartirlo entre las pesadas"
+                                ToolTipService.ShowOnDisabled="True">
                             <StackPanel Orientation="Horizontal">
-                                <Path Data="{StaticResource IcoPack}" Stroke="White" StrokeThickness="2" Width="13" Height="13" Stretch="Uniform" Margin="0,0,7,0" VerticalAlignment="Center" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
-                                <TextBlock Text="Tara extra" VerticalAlignment="Center"/>
+                                <Path Data="{StaticResource IcoPack}" Stroke="White" StrokeThickness="2" Width="15" Height="15" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                                <TextBlock Text="Tara extra" FontFamily="Segoe UI" FontSize="15.5" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
-                        <Button x:Name="BtnEntEditar" Style="{StaticResource ToolPrimary}" Margin="0,0,8,0" Click="BtnEntEditar_Click">
+                        <Button x:Name="BtnEntEditar" Style="{StaticResource ActionBtn}"
+                                Background="{DynamicResource EmpresaPrimaryBrush}"
+                                Padding="20,0" Margin="0,0,0,4"
+                                Click="BtnEntEditar_Click"
+                                ToolTipService.ShowOnDisabled="True">
                             <StackPanel Orientation="Horizontal">
-                                <Path Data="{StaticResource IcoPencil}" Stroke="White" StrokeThickness="2" Width="13" Height="13" Stretch="Uniform" Margin="0,0,7,0" VerticalAlignment="Center" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
-                                <TextBlock Text="Editar" VerticalAlignment="Center"/>
+                                <Path Data="{StaticResource IconPencil}" Stroke="White" StrokeThickness="2.2" Width="15" Height="15" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                                <TextBlock Text="Editar" FontFamily="Segoe UI" FontSize="15.5" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
                     </WrapPanel>
@@ -1147,22 +1139,26 @@
                  propio panel de Camiones ("Cerrar camión"). -->
             <Border Grid.Row="4" BorderBrush="#D8E1EC" BorderThickness="0,1,0,0" Padding="0,14,0,0">
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
-                    <Button x:Name="BtnImprimirReporte" Style="{StaticResource ToolPrimary}" Height="36"
-                            Margin="0,0,10,0" Click="BtnImprimirReporte_Click">
+                    <Button x:Name="BtnImprimirReporte" Style="{StaticResource ActionBtn}"
+                            Background="{DynamicResource EmpresaPrimaryBrush}"
+                            Padding="20,0" Margin="0,0,10,0" Click="BtnImprimirReporte_Click"
+                            ToolTipService.ShowOnDisabled="True">
                         <StackPanel Orientation="Horizontal">
                             <Path Data="{StaticResource IcoDownload}" Stroke="White" StrokeThickness="2.2"
                                   StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                                  Width="14" Height="14" Stretch="Uniform" Margin="0,0,7,0" VerticalAlignment="Center"/>
-                            <TextBlock Text="Imprimir reporte" VerticalAlignment="Center"/>
+                                  Width="15" Height="15" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Imprimir reporte" FontFamily="Segoe UI" FontSize="15.5" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
-                    <Button x:Name="BtnCerrarTodos" Style="{StaticResource ToolWarn}" Height="36"
-                            Click="BtnCerrarTodos_Click">
+                    <Button x:Name="BtnCerrarTodos" Style="{StaticResource ActionBtn}"
+                            Background="{DynamicResource EmpresaPrimaryDarkBrush}"
+                            Padding="20,0" Click="BtnCerrarTodos_Click"
+                            ToolTipService.ShowOnDisabled="True">
                         <StackPanel Orientation="Horizontal">
                             <Path Data="{StaticResource IcoCheckDbl}" Stroke="White" StrokeThickness="2"
                                   StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                                  Width="14" Height="14" Stretch="Uniform" Margin="0,0,7,0" VerticalAlignment="Center"/>
-                            <TextBlock Text="Cerrar todos los camiones" VerticalAlignment="Center"/>
+                                  Width="15" Height="15" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Cerrar todos los camiones" FontFamily="Segoe UI" FontSize="15.5" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
                 </StackPanel>

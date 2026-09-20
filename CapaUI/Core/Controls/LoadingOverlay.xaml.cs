@@ -121,8 +121,9 @@ public partial class LoadingOverlay : UserControl
 
     private void ActualizarOffset()
     {
+        Margin = new Thickness(Margin.Left, HeaderOffset, Margin.Right, Margin.Bottom);
         if (FindName("ContenedorPanel") is FrameworkElement panel)
-            panel.Margin = new Thickness(0, HeaderOffset, 0, 0);
+            panel.Margin = new Thickness(0);
     }
 
     private RotateTransform? GetRotateTransform()

@@ -184,7 +184,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
 
             TxtPie.Text = n == 0
                 ? "Sin pesadas registradas"
-                : $"{n} pesada(s) · {(n > 0 ? (total / n).ToString("N2", CultureInfo.InvariantCulture) : "0")} kg c/u";
+                : $"{n} pesada(s) · {(n > 0 ? (total / n).ToString("N2", CultureInfo.InvariantCulture) : "0")} kg c/u  ·  Ctrl+Enter para aplicar";
         }
 
         /// <summary>

@@ -15,7 +15,8 @@
 
              UseLayoutRounding="True"
              TextOptions.TextRenderingMode="Grayscale"
-             TextOptions.TextFormattingMode="Display">
+             TextOptions.TextFormattingMode="Display"
+             controls:AtajoGuardar.Boton="{x:Reference BtnGuardar}">
 
     <UserControl.Resources>
         <ResourceDictionary>
@@ -182,7 +183,7 @@
                         <DockPanel>
                             <!-- Encabezado de columnas -->
                             <Border DockPanel.Dock="Top" Background="{DynamicResource EmpresaPrimaryBrush}"
-                                    Padding="14,0" Height="38">
+                                    Padding="14,0" Height="40">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="44"/>
@@ -242,7 +243,7 @@
                                                             Background="#EFF6FF" BorderBrush="#BFDBFE" BorderThickness="1"
                                                             HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,4,0,0">
                                                         <TextBlock x:Name="TxtNumero" Text="{Binding Numero}"
-                                                                   FontFamily="Segoe UI" FontSize="12.5" FontWeight="SemiBold"
+                                                                   FontFamily="Segoe UI" FontSize="13.5" FontWeight="SemiBold"
                                                                    Foreground="{DynamicResource EmpresaPrimaryBrush}"
                                                                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                     </Border>
@@ -250,7 +251,7 @@
                                                     <!-- Espacio libre (fila sin ocupar) -->
                                                     <TextBlock x:Name="TxtLibre" Grid.Column="1" Grid.ColumnSpan="4"
                                                                Text="Espacio libre · usá &quot;Registrar otro camión&quot; para ocuparlo"
-                                                               FontFamily="Segoe UI" FontSize="13" FontStyle="Italic"
+                                                               FontFamily="Segoe UI" FontSize="14" FontStyle="Italic"
                                                                Foreground="#B4BCC8" VerticalAlignment="Center"/>
 
                                                     <!-- Placa -->
@@ -295,7 +296,7 @@
                                                                  IsHitTestVisible=False para que el click pase directo a la caja. -->
                                                             <TextBlock Text="{Binding Text, ElementName=CajaDescripcion}"
                                                                        TextTrimming="CharacterEllipsis"
-                                                                       FontFamily="Segoe UI" FontSize="13.5" Foreground="#1A1F2E"
+                                                                       FontFamily="Segoe UI" FontSize="15.5" Foreground="#1A1F2E"
                                                                        Background="White" Margin="1" Padding="10,0"
                                                                        VerticalAlignment="Center" IsHitTestVisible="False"
                                                                        Visibility="{Binding IsKeyboardFocusWithin, ElementName=CajaDescripcion, Converter={x:Static conv:InverseBoolToVisibilityConverter.Instancia}}"/>

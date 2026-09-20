@@ -14,7 +14,8 @@
 
              UseLayoutRounding="True"
              TextOptions.TextRenderingMode="Grayscale"
-             TextOptions.TextFormattingMode="Display">
+             TextOptions.TextFormattingMode="Display"
+             controls:AtajoGuardar.Boton="{x:Reference BtnSeguir}">
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>

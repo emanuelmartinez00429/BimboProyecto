@@ -75,7 +75,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
 
             TxtEyebrow.Text = editInitial != null ? "EDICIÓN · PESAJE" : "REGISTRAR PESAJE";
             TxtTitle.Text   = producto.ProductoNombre;
-            TxtHint.Text    = $"Reporte MOV-PROD-{producto.Id}";
+            TxtHint.Text    = $"Reporte MOV-PROD-{producto.Id}  ·  Ctrl+Enter para guardar";
 
             TxtPlaca.Text     = camion.Placa;
             TxtProveedor.Text = camion.Proveedor;

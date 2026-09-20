@@ -292,6 +292,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
             var partes = new List<string> { total == 1 ? "1 producto en la carga" : $"{total} producto(s) en la carga" };
             if (nuevos > 0)      partes.Add(nuevos == 1 ? "1 nuevo" : $"{nuevos} nuevos");
             if (_bajas.Count > 0) partes.Add(_bajas.Count == 1 ? "1 por quitar" : $"{_bajas.Count} por quitar");
+            partes.Add("Ctrl+Enter para finalizar");
             TxtPie.Text = string.Join(" · ", partes);
 
             PanelSinProductos.Visibility = total == 0 ? Visibility.Visible : Visibility.Collapsed;
