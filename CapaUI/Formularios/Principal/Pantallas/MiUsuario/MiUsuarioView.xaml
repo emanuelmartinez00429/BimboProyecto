@@ -5,15 +5,20 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:po="http://schemas.microsoft.com/winfx/2006/xaml/presentation/options"
              xmlns:conv="clr-namespace:CapaUI.Converters"
+             xmlns:controls="clr-namespace:CapaUI.Core.Controls"
              mc:Ignorable="d po"
              d:DesignWidth="1200" d:DesignHeight="760"
              Background="#EAF1F8"
              FontFamily="Segoe UI"
-             UseLayoutRounding="True">
+             UseLayoutRounding="True"
+             TextOptions.TextRenderingMode="Auto"
+             TextOptions.TextFormattingMode="Display">
 
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
+                <!-- Estilos/geometrias compartidos viven en Styles.xaml; el disenador
+                     de VS no ejecuta App.xaml y no los ve sin este merge. Ver ADR-028 / P-057. -->
                 <ResourceDictionary Source="/CapaUI;component/Resources/Styles.xaml"/>
             </ResourceDictionary.MergedDictionaries>
 
@@ -22,11 +27,32 @@
             <PathGeometry x:Key="IconoCandadoMiUsuario" po:Freeze="True"
                           Figures="M5,11 h14 v10 H5 z M8,11 V7 a4,4 0 0 1 8,0 v4"/>
 
+            <!-- Sistema de banner compartido de la vista: mismo lenguaje para
+                 información (azul), peligro (rojo), éxito (verde) y advertencia
+                 (ámbar). Los cuatro reutilizan la misma anatomía Border+TextBlock. -->
+            <Style x:Key="MiUsuarioBanner" TargetType="Border">
+                <Setter Property="CornerRadius" Value="8"/>
+                <Setter Property="BorderThickness" Value="1"/>
+                <Setter Property="Padding" Value="12,10"/>
+            </Style>
+
+            <!-- Campo apilado de Seguridad: tarjeta interior con etiqueta + input. -->
+            <Style x:Key="MiUsuarioBloque" TargetType="Border">
+                <Setter Property="Background" Value="#F8FAFC"/>
+                <Setter Property="BorderBrush" Value="#E2E8F0"/>
+                <Setter Property="BorderThickness" Value="1"/>
+                <Setter Property="CornerRadius" Value="10"/>
+                <Setter Property="Padding" Value="16"/>
+                <Setter Property="MinWidth" Value="340"/>
+                <Setter Property="MaxWidth" Value="520"/>
+                <Setter Property="HorizontalAlignment" Value="Left"/>
+            </Style>
+
             <!-- Encabezado de tarjeta: ícono + título, mismo lenguaje que Configuración de empresa. -->
             <Style x:Key="MiUsuarioTarjeta" TargetType="Border">
                 <Setter Property="Background" Value="White"/>
-                <Setter Property="CornerRadius" Value="12"/>
-                <Setter Property="BorderBrush" Value="#DCE3EC"/>
+                <Setter Property="CornerRadius" Value="10"/>
+                <Setter Property="BorderBrush" Value="#D8E1EC"/>
                 <Setter Property="BorderThickness" Value="1"/>
                 <Setter Property="Padding" Value="24"/>
             </Style>
@@ -117,15 +143,31 @@
     </UserControl.Resources>
 
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-        <Grid Margin="24" MaxWidth="1000" HorizontalAlignment="Left">
+        <Grid Margin="22,18,22,0" MaxWidth="1000" HorizontalAlignment="Left">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="12"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="20"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="20"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
+            <!-- ROW 0: encabezado de página, mismo componente que el resto de los módulos -->
+            <controls:EncabezadoCatalogo Grid.Row="0"
+                Icono="{StaticResource IcoMiUsuario}" IconoEsRelleno="True"
+                ModuloPadre="Sistema" Submodulo="Mi Usuario"
+                Titulo="Tu perfil, tu apariencia y tu seguridad"/>
+
             <!-- ══════════════════ Perfil ══════════════════ -->
-            <Border Style="{StaticResource MiUsuarioTarjeta}">
+            <Border Grid.Row="2" Background="White" CornerRadius="10">
+                <Border.Effect>
+                    <DropShadowEffect Color="#0F172A" BlurRadius="10" ShadowDepth="2" Opacity="0.06"/>
+                </Border.Effect>
+            </Border>
+            <Border Grid.Row="2" Style="{StaticResource MiUsuarioTarjeta}" ClipToBounds="True"
+                    RenderOptions.ClearTypeHint="Enabled">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
@@ -141,8 +183,19 @@
                     </Border>
 
                     <StackPanel Grid.Column="1">
+                        <!-- Encabezado de la tarjeta, repite el lenguaje de Apariencia/Seguridad -->
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="{StaticResource IcoMiUsuario}"
+                                  Fill="{DynamicResource EmpresaPrimaryBrush}"
+                                  Width="20" Height="20" Stretch="Uniform" Margin="0,0,10,0"
+                                  VerticalAlignment="Center"/>
+                            <TextBlock Text="Perfil" Style="{StaticResource MiUsuarioTituloSeccion}"/>
+                        </StackPanel>
+                        <TextBlock Style="{StaticResource MiUsuarioSubtitulo}"
+                                   Text="Tus datos de cuenta. Lo que podés editar es solo tu apodo de saludo; el resto viene del registro de empleados."/>
+
                         <TextBlock Text="{Binding NombreCompleto}" FontSize="24" FontWeight="Bold"
-                                   Foreground="#172033" TextTrimming="CharacterEllipsis"/>
+                                   Foreground="#172033" TextTrimming="CharacterEllipsis" Margin="0,8,0,0"/>
 
                         <Grid Margin="0,16,0,0">
                             <Grid.ColumnDefinitions>
@@ -175,8 +228,7 @@
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
 
-                            <Border Background="White" BorderBrush="#CBD5E1" BorderThickness="1"
-                                    CornerRadius="8" Padding="12,8">
+                            <Border Style="{StaticResource MiUsuarioBloque}" Padding="10,6">
                                 <TextBox BorderThickness="0" Background="Transparent"
                                          FontFamily="Segoe UI" FontSize="14" Foreground="#172033"
                                          MaxLength="64" VerticalContentAlignment="Center"
@@ -199,8 +251,8 @@
                                  Text="{Binding ApodoPreview, Mode=OneWay}"/>
                         </TextBlock>
 
-                        <Border Background="#FEF3C7" BorderBrush="#FCD34D" BorderThickness="1"
-                                CornerRadius="8" Padding="12,10" Margin="0,10,0,0"
+                        <Border Style="{StaticResource MiUsuarioBanner}" Background="#FEF3C7" BorderBrush="#FCD34D"
+                                Margin="0,10,0,0"
                                 Visibility="{Binding HayApodoMensaje, Converter={x:Static conv:BoolToVisibilityConverter.Instancia}}">
                             <TextBlock Text="{Binding ApodoMensaje}" TextWrapping="Wrap"
                                        FontSize="12.5" Foreground="#92400E"/>
@@ -210,7 +262,13 @@
             </Border>
 
             <!-- ══════════════════ Apariencia ══════════════════ -->
-            <Border Grid.Row="1" Style="{StaticResource MiUsuarioTarjeta}" Margin="0,20,0,0">
+            <Border Grid.Row="4" Background="White" CornerRadius="10">
+                <Border.Effect>
+                    <DropShadowEffect Color="#0F172A" BlurRadius="10" ShadowDepth="2" Opacity="0.06"/>
+                </Border.Effect>
+            </Border>
+            <Border Grid.Row="4" Style="{StaticResource MiUsuarioTarjeta}" ClipToBounds="True"
+                    RenderOptions.ClearTypeHint="Enabled">
                 <StackPanel>
                     <StackPanel Orientation="Horizontal">
                         <Path Data="{StaticResource IconoLupaMiUsuario}"
@@ -225,15 +283,14 @@
 
                     <!-- Aviso cuando UI_ESCALA impone el factor: sin esto, el usuario movería
                          los botones sin efecto y no sabría por qué. -->
-                    <Border Background="#FEF3C7" BorderBrush="#FCD34D" BorderThickness="1"
-                            CornerRadius="8" Padding="12,10" Margin="0,16,0,0"
+                    <Border Style="{StaticResource MiUsuarioBanner}" Background="#FEF3C7" BorderBrush="#FCD34D"
+                            Margin="0,16,0,0"
                             Visibility="{Binding EstaForzado, Converter={x:Static conv:BoolToVisibilityConverter.Instancia}}">
                         <TextBlock TextWrapping="Wrap" FontSize="12.5" Foreground="#92400E"
                                    Text="El tamaño está fijado por la configuración UI_ESCALA de este equipo, así que no se puede cambiar desde acá."/>
                     </Border>
 
-                    <Border Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1"
-                            CornerRadius="10" Padding="18" Margin="0,18,0,0">
+                    <Border Style="{StaticResource MiUsuarioBloque}" Margin="0,18,0,0" MaxWidth="1000">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
@@ -285,8 +342,8 @@
                         </Grid>
                     </Border>
 
-                    <Border Background="#FEE2E2" BorderBrush="#FCA5A5" BorderThickness="1"
-                            CornerRadius="8" Padding="12,10" Margin="0,14,0,0"
+                    <Border Style="{StaticResource MiUsuarioBanner}" Background="#FEE2E2" BorderBrush="#FCA5A5"
+                            Margin="0,14,0,0"
                             Visibility="{Binding HayError, Converter={x:Static conv:BoolToVisibilityConverter.Instancia}}">
                         <TextBlock Text="{Binding Error}" TextWrapping="Wrap"
                                    FontSize="12.5" Foreground="#991B1B"/>
@@ -294,14 +351,18 @@
                 </StackPanel>
             </Border>
 
-            <!-- ══════════════════ Seguridad (visual-first) ══════════════════
-                 Estado actual: solo VISUAL. El botón valida la forma con las
-                 reglas del dominio (ReglasContrasena) pero NO llama al backend:
-                 muestra un aviso de "lógica pendiente". El cableado a
-                 RecuperacionPasswordService/auth.users queda para el paso siguiente. -->
-            <Border Grid.Row="2" Style="{StaticResource MiUsuarioTarjeta}" Margin="0,20,0,0">
+            <!-- ══════════════════ Seguridad ══════════════════
+                 El botón valida la forma con las reglas del dominio
+                 (ReglasContrasena) y sostiene el estado visual; el cableado a
+                 RecuperacionPasswordService/auth.users es el paso siguiente. -->
+            <Border Grid.Row="6" Background="White" CornerRadius="10">
+                <Border.Effect>
+                    <DropShadowEffect Color="#0F172A" BlurRadius="10" ShadowDepth="2" Opacity="0.06"/>
+                </Border.Effect>
+            </Border>
+            <Border Grid.Row="6" Style="{StaticResource MiUsuarioTarjeta}" ClipToBounds="True"
+                    RenderOptions.ClearTypeHint="Enabled">
                 <StackPanel>
-                    <!-- Encabezado de tarjeta de Seguridad... -->
                     <StackPanel Orientation="Horizontal">
                         <Path Data="{StaticResource IconoCandadoMiUsuario}"
                               Stroke="{DynamicResource EmpresaPrimaryBrush}" StrokeThickness="1.8"
@@ -313,117 +374,118 @@
                     <TextBlock Style="{StaticResource MiUsuarioSubtitulo}"
                                Text="Actualizá tu propia contraseña acá, sin cerrar la sesión y sin permisos administrativos."/>
 
-                    <!-- ═════ Contraseña actual ═════ -->
                     <Grid Margin="0,18,0,0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <Border Grid.Column="0" CornerRadius="10" BorderBrush="#E2E8F0" BorderThickness="1"
-                                Background="#F8FAFC" Padding="14" MinWidth="340" MaxWidth="480" HorizontalAlignment="Left" VerticalAlignment="Top">
-                            <StackPanel>
-                                <TextBlock Text="CONTRASEÑA ACTUAL" Style="{StaticResource MiUsuarioEtiqueta}"/>
-                                <Grid Margin="0,8,0,0">
-                                    <PasswordBox x:Name="TxtActual" Style="{StaticResource InputPassword}" Height="40"/>
-                                </Grid>
-                            </StackPanel>
-                        </Border>
-                    </Grid>
 
-                    <!-- ═════ Nueva contraseña ═════ -->
-                    <Border Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1"
-                            CornerRadius="10" Padding="18" Margin="0,14,0,0" MinWidth="340" MaxWidth="480" HorizontalAlignment="Left">
-                        <StackPanel>
-                            <TextBlock Text="NUEVA CONTRASEÑA" Style="{StaticResource MiUsuarioEtiqueta}"/>
-                            <Grid Margin="0,8,0,0">
-                                <PasswordBox x:Name="TxtNueva" Style="{StaticResource InputPassword}" Height="40"/>
-                                <TextBox x:Name="TxtNuevaVisible" Style="{StaticResource InputBox}" Visibility="Collapsed" Height="40"/>
-                            </Grid>
+                        <!-- Columna izquierda: los 3 campos apilados, ancho alineado -->
+                        <StackPanel Grid.Column="0" Margin="0,0,24,0">
+                            <!-- Contraseña actual -->
+                            <Border Style="{StaticResource MiUsuarioBloque}">
+                                <StackPanel>
+                                    <TextBlock Text="CONTRASEÑA ACTUAL" Style="{StaticResource MiUsuarioEtiqueta}"/>
+                                    <PasswordBox x:Name="TxtActual" Style="{StaticResource InputPassword}"
+                                                 Height="40" Margin="0,8,0,0"/>
+                                </StackPanel>
+                            </Border>
 
-                            <!-- Medidor de fortaleza: 5 barras + etiqueta, con score de ReglasContrasena -->
-                            <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
-                                <Border x:Name="Bar1" Height="4" Width="52" CornerRadius="2" Background="#E5E7EB" Margin="0,0,4,0"/>
-                                <Border x:Name="Bar2" Height="4" Width="52" CornerRadius="2" Background="#E5E7EB" Margin="0,0,4,0"/>
-                                <Border x:Name="Bar3" Height="4" Width="52" CornerRadius="2" Background="#E5E7EB" Margin="0,0,4,0"/>
-                                <Border x:Name="Bar4" Height="4" Width="52" CornerRadius="2" Background="#E5E7EB" Margin="0,0,4,0"/>
-                                <Border x:Name="Bar5" Height="4" Width="52" CornerRadius="2" Background="#E5E7EB"/>
-                                <TextBlock x:Name="LblFortaleza" Text="" FontSize="12" Foreground="#64748B"
-                                           Margin="10,0,0,0" VerticalAlignment="Center"/>
-                            </StackPanel>
+                            <!-- Confirmar -->
+                            <Border Style="{StaticResource MiUsuarioBloque}" Margin="0,14,0,0">
+                                <StackPanel>
+                                    <TextBlock Text="CONFIRMAR CONTRASEÑA" Style="{StaticResource MiUsuarioEtiqueta}"/>
+                                    <Grid Margin="0,8,0,0">
+                                        <PasswordBox x:Name="TxtConfirmar" Style="{StaticResource InputPassword}" Height="40"/>
+                                        <TextBox x:Name="TxtConfirmarVisible" Style="{StaticResource InputBox}" Visibility="Collapsed" Height="40"/>
+                                    </Grid>
+                                    <TextBlock x:Name="LblCoincidencia" Text="Las contraseñas no coinciden." FontSize="12"
+                                               Foreground="#991B1B" Visibility="Collapsed" Margin="0,6,0,0"/>
+                                </StackPanel>
+                            </Border>
 
-                            <!-- Requisitos del dominio, pintados por el VM con ReglasContrasena -->
-                            <StackPanel Margin="0,12,0,0">
-                                <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
-                                    <Ellipse x:Name="R1Icon" Width="10" Height="10" Margin="0,0,8,0" VerticalAlignment="Center" Fill="#E5E7EB"/>
-                                    <TextBlock x:Name="R1Text" Text="Al menos 8 caracteres" FontSize="12.5" Foreground="#64748B"/>
-                                </StackPanel>
-                                <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                                    <Ellipse x:Name="R2Icon" Width="10" Height="10" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                                    <TextBlock x:Name="R2Text" Text="Una letra mayúscula" FontSize="12.5" Foreground="#64748B"/>
-                                </StackPanel>
-                                <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
-                                    <Ellipse x:Name="R3Icon" Width="10" Height="10" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                                    <TextBlock x:Name="R3Text" Text="Un número" FontSize="12.5" Foreground="#64748B"/>
-                                </StackPanel>
-                                <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
-                                    <Ellipse x:Name="R4Icon" Width="10" Height="10" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                                    <TextBlock x:Name="R4Text" Text="Un símbolo (!, @, #…)" FontSize="12.5" Foreground="#64748B"/>
-                                </StackPanel>
+                            <!-- Acción principal: habilita cuando la forma está completa. -->
+                            <StackPanel Orientation="Horizontal" Margin="0,18,0,0">
+                                <Button Content="Cambiar contraseña"
+                                        Style="{StaticResource MiUsuarioBotonTexto}"
+                                        Background="{DynamicResource EmpresaPrimaryBrush}" Foreground="White"
+                                        Command="{Binding CambiarContrasenaCommand}"
+                                        IsEnabled="{Binding PuedeEnviarCambio}"
+                                        ToolTip="Actualiza tu propia contraseña en Supabase"/>
+
+                                <Button Content="Restablecer"
+                                        Style="{StaticResource MiUsuarioBotonTexto}"
+                                        Command="{Binding LimpiarFormularioCommand}"
+                                        Margin="10,0,0,0"
+                                        ToolTip="Limpiar los campos del formulario"/>
                             </StackPanel>
                         </StackPanel>
-                    </Border>
 
-                    <!-- ═════ Confirmar ═════ -->
-                    <Grid Margin="0,14,0,0">
-                        <Border CornerRadius="10" BorderBrush="#E2E8F0" BorderThickness="1"
-                                Background="White" Padding="14" MinWidth="340" MaxWidth="480" HorizontalAlignment="Left">
+                        <!-- Columna derecha: la nueva con sus reglas, siempre visible -->
+                        <Border Grid.Column="1" Style="{StaticResource MiUsuarioBloque}">
                             <StackPanel>
-                                <TextBlock Text="CONFIRMAR CONTRASEÑA" Style="{StaticResource MiUsuarioEtiqueta}"/>
-                                <Grid Margin="0,8,0,2">
-                                    <PasswordBox x:Name="TxtConfirmar" Style="{StaticResource InputPassword}" Height="40"/>
-                                    <TextBox x:Name="TxtConfirmarVisible" Style="{StaticResource InputBox}" Visibility="Collapsed" Height="40"/>
+                                <TextBlock Text="NUEVA CONTRASEÑA" Style="{StaticResource MiUsuarioEtiqueta}"/>
+                                <Grid Margin="0,8,0,0">
+                                    <PasswordBox x:Name="TxtNueva" Style="{StaticResource InputPassword}" Height="40"/>
+                                    <TextBox x:Name="TxtNuevaVisible" Style="{StaticResource InputBox}" Visibility="Collapsed" Height="40"/>
                                 </Grid>
-                                <TextBlock x:Name="LblCoincidencia" Text="Las contraseñas no coinciden." FontSize="12"
-                                           Foreground="#991B1B" Visibility="Collapsed"/>
+
+                                <!-- Medidor de fortaleza: 5 barras + etiqueta, score de ReglasContrasena -->
+                                <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+                                    <Border x:Name="Bar1" Height="4" Width="52" CornerRadius="2" Background="#E5E7EB" Margin="0,0,4,0"/>
+                                    <Border x:Name="Bar2" Height="4" Width="52" CornerRadius="2" Background="#E5E7EB" Margin="0,0,4,0"/>
+                                    <Border x:Name="Bar3" Height="4" Width="52" CornerRadius="2" Background="#E5E7EB" Margin="0,0,4,0"/>
+                                    <Border x:Name="Bar4" Height="4" Width="52" CornerRadius="2" Background="#E5E7EB" Margin="0,0,4,0"/>
+                                    <Border x:Name="Bar5" Height="4" Width="52" CornerRadius="2" Background="#E5E7EB"/>
+                                    <TextBlock x:Name="LblFortaleza" Text="" FontSize="12" Foreground="#64748B"
+                                               Margin="10,0,0,0" VerticalAlignment="Center"/>
+                                </StackPanel>
+
+                                <!-- Requisitos del dominio, pintados por el code-behind con ReglasContrasena -->
+                                <StackPanel Margin="0,12,0,0">
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                        <Ellipse x:Name="R1Icon" Width="10" Height="10" Margin="0,0,8,0" VerticalAlignment="Center" Fill="#E5E7EB"/>
+                                        <TextBlock x:Name="R1Text" Text="Al menos 8 caracteres" FontSize="12.5" Foreground="#64748B"/>
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                        <Ellipse x:Name="R2Icon" Width="10" Height="10" Margin="0,0,8,0" VerticalAlignment="Center" Fill="#E5E7EB"/>
+                                        <TextBlock x:Name="R2Text" Text="Una letra mayúscula" FontSize="12.5" Foreground="#64748B"/>
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                        <Ellipse x:Name="R3Icon" Width="10" Height="10" Margin="0,0,8,0" VerticalAlignment="Center" Fill="#E5E7EB"/>
+                                        <TextBlock x:Name="R3Text" Text="Un número" FontSize="12.5" Foreground="#64748B"/>
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Ellipse x:Name="R4Icon" Width="10" Height="10" Margin="0,0,8,0" VerticalAlignment="Center" Fill="#E5E7EB"/>
+                                        <TextBlock x:Name="R4Text" Text="Un símbolo (!, @, #…)" FontSize="12.5" Foreground="#64748B"/>
+                                    </StackPanel>
+                                </StackPanel>
                             </StackPanel>
                         </Border>
                     </Grid>
 
                     <!-- Banner de información (lógica aún no cableada) -->
-                    <Border Background="#DBEAFE" BorderBrush="#93C5FD" BorderThickness="1"
-                            CornerRadius="8" Padding="12,10" Margin="0,16,0,0"
+                    <Border Style="{StaticResource MiUsuarioBanner}" Background="#DBEAFE" BorderBrush="#93C5FD"
+                            Margin="0,16,0,0"
                             Visibility="{Binding HayAviso, Converter={x:Static conv:BoolToVisibilityConverter.Instancia}}">
                         <TextBlock Text="{Binding AvisoInfo}" TextWrapping="Wrap" FontSize="12.5" Foreground="#1E40AF"/>
                     </Border>
 
                     <!-- Error / éxito reutilizando el lenguaje de la vista -->
-                    <Border Background="#FEE2E2" BorderBrush="#FCA5A5" BorderThickness="1"
-                            CornerRadius="8" Padding="12,10" Margin="0,10,0,0"
+                    <Border Style="{StaticResource MiUsuarioBanner}" Background="#FEE2E2" BorderBrush="#FCA5A5"
+                            Margin="0,10,0,0"
                             Visibility="{Binding HayError, Converter={x:Static conv:BoolToVisibilityConverter.Instancia}}">
                         <TextBlock Text="{Binding Error}" TextWrapping="Wrap" FontSize="12.5" Foreground="#991B1B"/>
                     </Border>
 
-                    <Border Background="#DCFCE7" BorderBrush="#86EFAC" BorderThickness="1"
-                            CornerRadius="8" Padding="12,10" Margin="0,10,0,0"
+                    <Border Style="{StaticResource MiUsuarioBanner}" Background="#DCFCE7" BorderBrush="#86EFAC"
+                            Margin="0,10,0,0"
                             Visibility="{Binding HayExito, Converter={x:Static conv:BoolToVisibilityConverter.Instancia}}">
                         <TextBlock Text="{Binding Exito}" TextWrapping="Wrap" FontSize="12.5" Foreground="#166534"/>
                     </Border>
-
-                    <!-- Acción principal: habilita cuando la forma está completa (visual stub). -->
-                    <StackPanel Orientation="Horizontal" Margin="0,18,0,0">
-                        <Button Content="Cambiar contraseña"
-                                Style="{StaticResource MiUsuarioBotonTexto}"
-                                Background="{DynamicResource EmpresaPrimaryBrush}" Foreground="White"
-                                Command="{Binding CambiarContrasenaCommand}"
-                                IsEnabled="{Binding PuedeEnviarCambio}"
-                                ToolTip="Actualiza tu propia contraseña en Supabase"/>
-
-                        <Button Content="Restablecer"
-                                Style="{StaticResource MiUsuarioBotonTexto}"
-                                Command="{Binding LimpiarFormularioCommand}"
-                                Margin="10,0,0,0"
-                                ToolTip="Limpiar los campos del formulario"/>
-                    </StackPanel>
                 </StackPanel>
             </Border>
         </Grid>

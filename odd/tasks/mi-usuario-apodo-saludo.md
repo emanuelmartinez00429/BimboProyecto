@@ -32,3 +32,4 @@ que reemplaza su nombre en el saludo "Bienvenido, X" de la pantalla principal.
 
 ## Historial
 - 2026-09-20 — creado tras aprobación del usuario del enfoque "apodo personal".
+- 2026-09-20 — T7 (nuevo, pedido del usuario): reestructuración visual integral de MiUsuarioView al lenguaje del sistema: EncabezadoCatalogo (componente compartido, icono IcoMiUsuario), tarjetas radio 10 con sombra desacoplada (AP-06), banner compartido MiUsuarioBanner, bloques alineados de Seguridad (actual/confirmar a la izquierda, nueva + medidor + checklist a la derecha), Padding/etiquetas unificadas. Build 0/0 + arné de instanciación OK (978x900). Sin commit: prueba visual pendiente.
