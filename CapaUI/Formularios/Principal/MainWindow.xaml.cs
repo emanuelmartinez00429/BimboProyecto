@@ -163,6 +163,7 @@ namespace CapaUI.Formularios.Principal
                 LblModuloProductos, ChevProductos,
                 LblModuloPesajes,   ChevPesajes,
                 LblModuloReportes,  ChevReportes,
+                ExpMiUsuario,
                 NavLabel, HomeButtonContainer, UserCardButton, LogoContainer,
             };
 
@@ -389,6 +390,14 @@ namespace CapaUI.Formularios.Principal
                 AnimateOpacity(entry.CollapsedIcon, 1, CompactCardFadeMs);
             }
 
+            // Mi Usuario — módulo directo fuera de _moduleMap (sin acordeón).
+            // Mismo comportamiento que los CollapsedIcon de los módulos map-eados.
+            ExpMiUsuario.Visibility = Visibility.Collapsed;
+            ExpMiUsuario.Opacity    = 1;
+            IcoMiUsuario.Opacity    = 0;
+            IcoMiUsuario.Visibility = Visibility.Visible;
+            AnimateOpacity(IcoMiUsuario, 1, CompactCardFadeMs);
+
             // Restituir opacidad para la próxima expansión
             foreach (var el in _sidebarChromeElements)
                 el.Opacity = 1;
@@ -441,6 +450,11 @@ namespace CapaUI.Formularios.Principal
                 entry.ExpandedView.Visibility  = Visibility.Visible;
                 entry.ExpandedView.Opacity     = 0;
             }
+
+            // Mi Usuario — módulo directo fuera de _moduleMap.
+            // El label+icono expandido entra por el fade del chrome (ExpMiUsuario
+            // está en _sidebarChromeElements); solo ocultamos el icono compacto.
+            IcoMiUsuario.Visibility = Visibility.Collapsed;
 
             AnimateSidebarWidth(SidebarExpanded);
 
@@ -519,6 +533,9 @@ namespace CapaUI.Formularios.Principal
                 if (!ownsActiveSub)
                     kv.Value.Indicator.Visibility = Visibility.Collapsed;
             }
+
+            // Abrir un acordeón deselecciona también los módulos directos
+            IndMiUsuario.Visibility = Visibility.Collapsed;
         }
 
         private void OnEscalaCambiando(double nuevoFactor) => ColapsarSubmenusInmediato();
@@ -615,9 +632,10 @@ namespace CapaUI.Formularios.Principal
             foreach (var kv in _moduleMap)
                 kv.Value.Indicator.Visibility = Visibility.Collapsed;
 
-            IndReportes.Visibility = Visibility.Collapsed;
+            IndReportes.Visibility  = Visibility.Collapsed;
+            IndMiUsuario.Visibility = Visibility.Collapsed;
             ActualizarIndicadorConfiguracion(false);
-            _activeSubId           = "";
+            _activeSubId            = "";
         }
 
         // ══════════════════════════════════════════════════════════════════
@@ -634,6 +652,7 @@ namespace CapaUI.Formularios.Principal
         {
             ClearActiveStates();
             _activeModuleId = Routes.MiUsuario;
+            IndMiUsuario.Visibility = Visibility.Visible;
             Vm.NavigateCommand.Execute(Routes.MiUsuario);
         }
 
@@ -698,15 +717,16 @@ namespace CapaUI.Formularios.Principal
         /// <summary>
         /// Acceso directo desde el sidebar a «Mi Usuario»: el módulo personal
         /// que cualquier usuario entra sin permisos (edita lo suyo, RLS por usuario).
-        /// Sin indicador de módulo expandible: ClearActiveStates solo deselecciona
-        /// lo que estaba activo y el dot queda sin encender porque forma la
-        /// navegación de único nivel.
+        /// Módulo de un solo nivel estilo SidebarModuleButton (sin acordeón):
+        /// ClearActiveStates solo deselecciona lo que estaba activo y el botón
+        /// marca su activación con el indicador lateral, igual que los módulos.
         /// </summary>
         private void BtnMiUsuario_Click(object sender, RoutedEventArgs e)
         {
             NotifPopup.IsOpen = false;
             ClearActiveStates();
             _activeModuleId = Routes.MiUsuario;
+            IndMiUsuario.Visibility = Visibility.Visible;
             Vm.NavigateCommand.Execute(Routes.MiUsuario);
         }
 
