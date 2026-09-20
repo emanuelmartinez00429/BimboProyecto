@@ -673,25 +673,53 @@ vectorial con ClearType nativo.
 
 ## Alcance pendiente de las siguientes fases
 
-### Fase 9 — Guardas del escalado en vivo (Live Scaling Guards)
-El escalado visual con `LayoutTransform` funciona en vivo (Fases 1 a 8), pero para garantizar
-estabilidad absoluta en producción se requiere implementar las siguientes guardas defensivas:
+### Fase 9 — Guardas del escalado en vivo (Live Scaling Guards) [Completada]
 
-1. **Auto-cierre de Popups y ComboBox:**
-   - Al cambiar el factor de escala en `EscalaService.Aplicar()`, cerrar cualquier `Popup` o `ComboBox.IsDropDownOpen`
-     activo en la ventana para evitar orfandad de coordenadas en pantalla.
-2. **Colapso preventivo de submenús del Sidebar:**
-   - Si un menú desplegable del sidebar está animando o abierto (`MaxHeight` animado), colapsarlo antes del relayout
-     para evitar que quede con medidas intermedias calculadas para el factor anterior.
-3. **Bloqueo defensivo ante modales abiertos:**
-   - Si el usuario tiene un modal abierto sobre el overlay (`ModalOverlay.Visibility == Visible`), deshabilitar temporalmente
-     el ajuste de escala en `MiUsuarioView` o rechazar el cambio en caliente para proteger el árbol visual en segundo plano.
-4. **Reseteo / preservación de scroll en grillas:**
-   - Restablecer los `ScrollViewer` de tablas de catálogos al inicio (`ScrollToTop()`) al cambiar de factor, evitando
-     que un scroll intermedio quede cortado por el cambio de densidad física.
-5. **Actualización de `WM_GETMINMAXINFO`:**
-   - Ajustar el gancho nativo de Win32 en `MainWindow` para que el `ptMinTrackSize` se multiplique por el factor de
-     escala actual, impidiendo que el usuario pueda encoger la ventana por debajo del mínimo utilizable.
+El escalado visual en vivo con `LayoutTransform` queda blindado con las 5 guardas defensivas
+de estabilidad visual, dimensional y transaccional:
+
+1. **Guarda 1 (Auto-cierre de Popups y ComboBox):**
+   - En `EscalaService.Aplicar(Window, factor)`, se recorre el árbol visual cerrando preventivamente cualquier
+     `Popup.IsOpen = true` y `ComboBox.IsDropDownOpen = true`.
+   - Evita que las ventanas Win32 independientes de los desplegables queden huérfanas en coordenadas
+     de pantalla obsoletas tras el cambio de escala de sus controles ancla.
+2. **Guarda 2 (Colapso preventivo de submenús del Sidebar):**
+   - `MainWindow` se suscribe a `_escala.EscalaCambiando`.
+   - Ante la señal previa al relayout, `ColapsarSubmenusInmediato()` cancela cualquier animación activa en
+     `Border.MaxHeightProperty` y `RotateTransform.AngleProperty` (`BeginAnimation(..., null)`), forzando
+     `MaxHeight = 0` y `Angle = 0`.
+   - Limpia `_activeModuleId = ""` preservando la marca del submódulo activo. Al reabrir el acordeón,
+     `AnimateSubMenu` mide el contenido sobre la nueva escala sin medidas residuales ni recortes.
+   - La suscripción se libera limpiamente en `LimpiarRecursosAsync()` al cerrar sesión o salir.
+3. **Guarda 3 (Bloqueo defensivo ante modales abiertos):**
+   - Se incorporó `IEscalaService.HayModalAbierto`, que inspecciona tanto `ComponentDispatcher.IsThreadModal`
+     (diálogos modales nativos de Win32/WPF) como la presencia de cualquier `Border` con `Name == "ModalOverlay"`
+     y `Visibility == Visibility.Visible` en las ventanas activas.
+   - `Aplicar(factor)` aborta preventivamente con log de advertencia si hay un modal abierto.
+   - `GuardarAsync` y `RestablecerAsync` rechazan el cambio retornando `Result.Fail("No se puede cambiar la escala mientras haya un modal o diálogo abierto.")`.
+   - En `MiUsuarioViewModel`, los botones `PuedeAumentar` y `PuedeDisminuir` se deshabilitan reactivamente ante modales,
+     y los comandos muestran un mensaje de error descriptivo en la interfaz.
+4. **Guarda 4 (Reseteo de ScrollViewer en grillas y vistas):**
+   - En `EscalaService.Aplicar(Window, factor)`, si el factor cambia se invoca `RestablecerScroll(ventana)`,
+     recorriendo el árbol para invocar `ScrollToTop()` y `ScrollToLeftEnd()` en todos los `ScrollViewer`
+     (incluyendo los `ScrollViewer` internos de `DataGrid` y contenedores de tarjetas).
+   - Evita que desplazamientos intermedios queden descalzados respecto a la nueva densidad física del viewport.
+5. **Guarda 5 (Escalado físico de `WM_GETMINMAXINFO`):**
+   - `MainWindow` registra `_baseMinWidth` (960) y `_baseMinHeight` (520) inmutables en su construcción.
+   - En el hook `WndProc` para `WM_GETMINMAXINFO` (0x0024):
+     `mmi.ptMinTrackSize.X = (int)Math.Ceiling(_baseMinWidth * factor * dpi.DpiScaleX);`
+     `mmi.ptMinTrackSize.Y = (int)Math.Ceiling(_baseMinHeight * factor * dpi.DpiScaleY);`
+   - `Math.Ceiling` elimina el riesgo de truncamiento por subpíxel. Windows impone físicamente el límite
+     mínimo exacto en tiempo real al arrastrar los bordes de la ventana.
+
+**Verificación:**
+- Suite de pruebas unitarias: **687/687 pruebas pasando** (11 pruebas nuevas en `EscalaUiTests.cs` cubriendo
+  el dimensionamiento físico exacto de `MinTrackSize` a través de múltiples combinaciones de escala y DPI).
+- Build: 0 errores, 0 advertencias.
+
+---
+
+## Alcance pendiente de las siguientes fases
 
 ### Fase 10 — Matriz visual manual multi-DPI y Cierre de P-065
 Esta fase cierra definitivamente la iniciativa de escalado y las deudas asociadas:
@@ -711,8 +739,7 @@ Esta fase cierra definitivamente la iniciativa de escalado y las deudas asociada
 ## Próximo paso
 
 1. Ejecutar las pruebas manuales visuales de la Fase 7 / 10 sobre las resoluciones objetivo.
-2. Implementar las guardas de la Fase 9 en `EscalaService` y `MainWindow`.
-3. Preparar la migración SQL de revocar `TRUNCATE` para cerrar `P-065`.
+2. Preparar la migración SQL de revocar `TRUNCATE` para cerrar `P-065` (Fase 10).
 
 ---
 

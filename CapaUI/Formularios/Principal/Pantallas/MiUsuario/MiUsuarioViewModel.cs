@@ -68,8 +68,8 @@ public sealed partial class MiUsuarioViewModel : ObservableObject, IDisposable
     public string PorcentajeEscala    => Porcentaje(FactorEscala);
     public string PorcentajeSugerido  => Porcentaje(FactorSugerido);
 
-    public bool PuedeAumentar  => !EstaForzado && FactorEscala < EscalaUi.Maximo - 0.001;
-    public bool PuedeDisminuir => !EstaForzado && FactorEscala > EscalaUi.Minimo + 0.001;
+    public bool PuedeAumentar  => !EstaForzado && !_escala.HayModalAbierto && FactorEscala < EscalaUi.Maximo - 0.001;
+    public bool PuedeDisminuir => !EstaForzado && !_escala.HayModalAbierto && FactorEscala > EscalaUi.Minimo + 0.001;
     public bool EsSugerido     => EscalaUi.SonIguales(FactorEscala, FactorSugerido);
     public bool HayError       => !string.IsNullOrWhiteSpace(Error);
 
@@ -87,6 +87,14 @@ public sealed partial class MiUsuarioViewModel : ObservableObject, IDisposable
         FactorEscala      = escala.Factor;
         FactorSugerido    = EscalaUi.Sugerido(escala.EscalaDeWindows());
         PorcentajeWindows = Porcentaje(escala.EscalaDeWindows());
+
+        _escala.EscalaCambiado += OnEscalaExternaCambiado;
+    }
+
+    private void OnEscalaExternaCambiado(double factor)
+    {
+        if (!EscalaUi.SonIguales(factor, FactorEscala))
+            FactorEscala = factor;
     }
 
     // ── Comandos ─────────────────────────────────────────────────────────────
@@ -104,6 +112,12 @@ public sealed partial class MiUsuarioViewModel : ObservableObject, IDisposable
     private async Task RestablecerAsync()
     {
         if (EstaForzado) return;
+
+        if (_escala.HayModalAbierto)
+        {
+            Error = "No se puede cambiar la escala mientras haya un modal o diálogo abierto.";
+            return;
+        }
 
         _guardado.Cancelar();
         Error = null;
@@ -126,6 +140,12 @@ public sealed partial class MiUsuarioViewModel : ObservableObject, IDisposable
     private void CambiarA(double factor)
     {
         if (EstaForzado || _disposed) return;
+
+        if (_escala.HayModalAbierto)
+        {
+            Error = "No se puede cambiar la escala mientras haya un modal o diálogo abierto.";
+            return;
+        }
 
         var ajustado = EscalaUi.Ajustar(factor);
         if (EscalaUi.SonIguales(ajustado, FactorEscala)) return;
@@ -153,6 +173,7 @@ public sealed partial class MiUsuarioViewModel : ObservableObject, IDisposable
     {
         if (_disposed) return;
         _disposed = true;
+        _escala.EscalaCambiado -= OnEscalaExternaCambiado;
         _guardado.Dispose();
     }
 }

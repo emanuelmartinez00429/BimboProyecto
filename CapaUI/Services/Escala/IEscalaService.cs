@@ -29,6 +29,19 @@ public interface IEscalaService
     bool EstaForzado { get; }
 
     /// <summary>
+    /// <c>true</c> cuando hay un modal abierto en la aplicación (sea un diálogo modal Win32/WPF
+    /// o un overlay activo con <c>ModalOverlay</c> visible). Mientras lo esté, el cambio de escala
+    /// en vivo se bloquea para no alterar el layout en medio de una transacción.
+    /// </summary>
+    bool HayModalAbierto { get; }
+
+    /// <summary>Se dispara justo antes de aplicar un nuevo factor de escala sobre las ventanas.</summary>
+    event Action<double>? EscalaCambiando;
+
+    /// <summary>Se dispara tras haber aplicado un nuevo factor de escala sobre las ventanas.</summary>
+    event Action<double>? EscalaCambiado;
+
+    /// <summary>
     /// Carga los factores del usuario de la sesión desde la caché local, sin tocar la red.
     /// Se llama antes de construir la ventana principal, para que nazca con la escala
     /// puesta en vez de saltar a la vista. Mismo papel que

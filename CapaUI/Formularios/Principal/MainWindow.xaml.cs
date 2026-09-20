@@ -14,6 +14,7 @@ using CapaAplicacion.Realtime;
 using CapaAplicacion.Usuarios.Interfaces;
 using CapaAplicacion.Empresa.Dtos;
 using CapaAplicacion.Empresa.Interfaces;
+using CapaAplicacion.Preferencias;
 using CapaUI.Core.Empresa;
 using CapaUI.Core.Permisos;
 using CapaUI.Formularios.Principal.Pantallas.Configuracion;
@@ -39,6 +40,10 @@ namespace CapaUI.Formularios.Principal
         private readonly ICacheService              _cache;
         private readonly IInvalidadorCacheRealtime  _invalidadorCache;
         private readonly IEscalaService             _escala;
+
+        // ── Medidas base para WM_GETMINMAXINFO (Fase 9) ───────────────────
+        private readonly double _baseMinWidth;
+        private readonly double _baseMinHeight;
 
         // ── Estado del sidebar ────────────────────────────────────────────
         private bool   _collapsed      = false;
@@ -149,6 +154,9 @@ namespace CapaUI.Formularios.Principal
             DataContext    = vm;
             InitializeComponent();
 
+            _baseMinWidth  = MinWidth > 0 ? MinWidth : 960;
+            _baseMinHeight = MinHeight > 0 ? MinHeight : 520;
+
             _sidebarChromeElements = new UIElement[]
             {
                 LblModuloUsuarios,  ChevUsuarios,
@@ -157,6 +165,8 @@ namespace CapaUI.Formularios.Principal
                 LblModuloReportes,  ChevReportes,
                 NavLabel, HomeButtonContainer, UserCardButton, LogoContainer,
             };
+
+            _escala.EscalaCambiando += OnEscalaCambiando;
 
             Vm.CierreRequerido += OnCierreRequerido;
             Vm.Notificaciones.SolicitarDetalle += MostrarDetalleNotificacion;
@@ -214,13 +224,14 @@ namespace CapaUI.Formularios.Principal
                 mmi.ptMaxSize.X      = Math.Abs(work.Right  - work.Left);
                 mmi.ptMaxSize.Y      = Math.Abs(work.Bottom - work.Top);
 
-                // ptMinTrackSize es en píxeles físicos; MinWidth/MinHeight de WPF son
-                // DIPs (1/96"). Hay que escalar por el DPI real del monitor actual —
-                // sin esto, en pantallas >100% el mínimo nativo quedaría más chico
-                // que el que pide el XAML, y se podría volver a achicar de más.
-                var dpi = VisualTreeHelper.GetDpi(this);
-                mmi.ptMinTrackSize.X = (int)(MinWidth  * dpi.DpiScaleX);
-                mmi.ptMinTrackSize.Y = (int)(MinHeight * dpi.DpiScaleY);
+                // ptMinTrackSize es en píxeles físicos. Multiplicamos la medida base declarada
+                // por el factor de escala propio de la app y por el DPI real del monitor actual.
+                // Con esto Windows restringe físicamente el marco nativo al tamaño mínimo escalado,
+                // impidiendo que el usuario achique la ventana por debajo del contenido usable.
+                var dpi    = VisualTreeHelper.GetDpi(this);
+                var factor = _escala?.Factor ?? EscalaUi.Normal;
+                mmi.ptMinTrackSize.X = (int)Math.Ceiling(_baseMinWidth  * factor * dpi.DpiScaleX);
+                mmi.ptMinTrackSize.Y = (int)Math.Ceiling(_baseMinHeight * factor * dpi.DpiScaleY);
 
                 Marshal.StructureToPtr(mmi, lParam, true);
                 handled = true;
@@ -510,6 +521,34 @@ namespace CapaUI.Formularios.Principal
             }
         }
 
+        private void OnEscalaCambiando(double nuevoFactor) => ColapsarSubmenusInmediato();
+
+        /// <summary>
+        /// Guarda 2 del escalado en vivo: cancela animaciones en curso del acordeón y
+        /// colapsa de inmediato todos los submenús antes del relayout, impidiendo que
+        /// queden con un MaxHeight intermedio calculado para el factor previo.
+        /// </summary>
+        private void ColapsarSubmenusInmediato()
+        {
+            bool activeSubHasParent = _subMap.TryGetValue(_activeSubId, out var activeSub);
+
+            foreach (var kv in _moduleMap)
+            {
+                kv.Value.SubMenu.BeginAnimation(Border.MaxHeightProperty, null);
+                kv.Value.SubMenu.MaxHeight = 0;
+
+                kv.Value.Chevron.BeginAnimation(RotateTransform.AngleProperty, null);
+                kv.Value.Chevron.Angle = 0;
+
+                // Mantener el indicador del módulo que tiene el subitem activo seleccionado
+                bool ownsActiveSub = activeSubHasParent && activeSub!.ParentModule == kv.Key;
+                if (!ownsActiveSub)
+                    kv.Value.Indicator.Visibility = Visibility.Collapsed;
+            }
+
+            _activeModuleId = "";
+        }
+
         // Módulos directos (Reportería)
         private void BtnModuloDirect_Click(object sender, RoutedEventArgs e)
         {
@@ -796,6 +835,7 @@ namespace CapaUI.Formularios.Principal
             // Liberar hook, desuscribir eventos, disponer VM
             _hwndSource?.RemoveHook(WndProc);
             _hwndSource = null;
+            _escala.EscalaCambiando -= OnEscalaCambiando;
             Vm.CierreRequerido -= OnCierreRequerido;
             Vm.Notificaciones.SolicitarDetalle -= MostrarDetalleNotificacion;
             ConfiguracionEmpresaViewModel.EmpresaActualizada -= OnConfiguracionGuardada;

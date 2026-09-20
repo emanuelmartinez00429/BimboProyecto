@@ -1,6 +1,8 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Interop;
 using System.Windows.Media;
 using CapaAplicacion.Common;
@@ -48,6 +50,28 @@ public sealed class EscalaService : IEscalaService
     public double Factor { get; private set; } = EscalaUi.Normal;
 
     public bool EstaForzado => _forzado is not null;
+
+    public event Action<double>? EscalaCambiando;
+    public event Action<double>? EscalaCambiado;
+
+    public bool HayModalAbierto
+    {
+        get
+        {
+            if (System.Windows.Interop.ComponentDispatcher.IsThreadModal)
+                return true;
+
+            if (Application.Current is null) return false;
+
+            foreach (Window ventana in Application.Current.Windows)
+            {
+                if (TieneModalOverlayVisible(ventana))
+                    return true;
+            }
+
+            return false;
+        }
+    }
 
     public EscalaService(
         IUsuarioSesionService sesion,
@@ -134,19 +158,32 @@ public sealed class EscalaService : IEscalaService
 
     public void Aplicar(double factor)
     {
+        if (HayModalAbierto)
+        {
+            Serilog.Log.Warning("[EscalaService] No se puede aplicar el escalado en vivo porque hay un modal abierto.");
+            return;
+        }
+
         var ajustado = EscalaUi.Ajustar(factor);
+
+        EscalaCambiando?.Invoke(ajustado);
 
         // A todas las ventanas abiertas. No se resuelve el factor por pantalla acá: el
         // usuario está mirando una y eligió un valor concreto; recalcular por monitor
         // haría que la ventana de al lado cambie sola a otro tamaño.
         foreach (Window abierta in Application.Current.Windows)
             Aplicar(abierta, ajustado);
+
+        EscalaCambiado?.Invoke(ajustado);
     }
 
     public async Task<Result> GuardarAsync(double factor, CancellationToken ct = default)
     {
         if (_forzado is not null)
             return Result.Fail("Hay un factor de escala forzado por UI_ESCALA; quitalo para poder cambiarlo desde la app.");
+
+        if (HayModalAbierto)
+            return Result.Fail("No se puede cambiar la escala mientras haya un modal o diálogo abierto.");
 
         var idUsuario = _sesion.SesionActual?.IdUsuario;
         if (idUsuario is null) return Result.Fail("No hay una sesión activa.");
@@ -177,6 +214,9 @@ public sealed class EscalaService : IEscalaService
     {
         if (_forzado is not null)
             return Result.Fail("Hay un factor de escala forzado por UI_ESCALA; quitalo para poder cambiarlo desde la app.");
+
+        if (HayModalAbierto)
+            return Result.Fail("No se puede cambiar la escala mientras haya un modal o diálogo abierto.");
 
         var idUsuario = _sesion.SesionActual?.IdUsuario;
         if (idUsuario is null) return Result.Fail("No hay una sesión activa.");
@@ -215,6 +255,13 @@ public sealed class EscalaService : IEscalaService
         var declaradas = _medidas.GetValue(ventana, MedidasDeclaradas.Capturar);
         var cambio     = !EscalaUi.SonIguales(Factor, factor);
 
+        // Guarda 1: auto-cierre de Popups y ComboBox abiertos para evitar coordenadas huérfanas
+        CerrarPopupsYDesplegables(ventana);
+
+        // Guarda 4: reseteo de ScrollViewer si el factor cambió, evitando cortes de viewport
+        if (cambio)
+            RestablecerScroll(ventana);
+
         Factor = factor;
 
         raiz.LayoutTransform = EscalaUi.EsNormal(factor)
@@ -237,6 +284,68 @@ public sealed class EscalaService : IEscalaService
         // Windows cachea el tamaño mínimo hasta que la ventana avisa que cambió su marco.
         // Sin esto, tras un cambio en vivo el mínimo viejo sigue vigente.
         if (cambio) ForzarRelecturaDelMarco(ventana);
+    }
+
+    // ── Guardas defensivas del escalado (Fase 9) ──────────────────────────────
+
+    private static bool TieneModalOverlayVisible(DependencyObject? raiz)
+    {
+        if (raiz is null) return false;
+
+        if (raiz is FrameworkElement { Name: "ModalOverlay", Visibility: Visibility.Visible })
+            return true;
+
+        if (raiz is not Visual and not System.Windows.Media.Media3D.Visual3D)
+            return false;
+
+        int count = VisualTreeHelper.GetChildrenCount(raiz);
+        for (int i = 0; i < count; i++)
+        {
+            if (TieneModalOverlayVisible(VisualTreeHelper.GetChild(raiz, i)))
+                return true;
+        }
+
+        return false;
+    }
+
+    private static void CerrarPopupsYDesplegables(DependencyObject? elemento)
+    {
+        if (elemento is null) return;
+
+        if (elemento is ComboBox { IsDropDownOpen: true } cb)
+            cb.IsDropDownOpen = false;
+
+        if (elemento is Popup { IsOpen: true } pop)
+            pop.IsOpen = false;
+
+        if (elemento is not Visual and not System.Windows.Media.Media3D.Visual3D)
+            return;
+
+        int count = VisualTreeHelper.GetChildrenCount(elemento);
+        for (int i = 0; i < count; i++)
+        {
+            CerrarPopupsYDesplegables(VisualTreeHelper.GetChild(elemento, i));
+        }
+    }
+
+    private static void RestablecerScroll(DependencyObject? elemento)
+    {
+        if (elemento is null) return;
+
+        if (elemento is ScrollViewer sv)
+        {
+            sv.ScrollToTop();
+            sv.ScrollToLeftEnd();
+        }
+
+        if (elemento is not Visual and not System.Windows.Media.Media3D.Visual3D)
+            return;
+
+        int count = VisualTreeHelper.GetChildrenCount(elemento);
+        for (int i = 0; i < count; i++)
+        {
+            RestablecerScroll(VisualTreeHelper.GetChild(elemento, i));
+        }
     }
 
     // ── Pantalla ─────────────────────────────────────────────────────────────

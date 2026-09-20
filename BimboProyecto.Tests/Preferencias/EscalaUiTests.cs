@@ -132,4 +132,27 @@ public sealed class EscalaUiTests
         Assert.InRange(EscalaUi.Normal, EscalaUi.Minimo, EscalaUi.Maximo);
         Assert.Equal(EscalaUi.Normal, EscalaUi.Ajustar(EscalaUi.Normal));
     }
+
+    // ── Guardas de dimensionamiento físico (Fase 9: WM_GETMINMAXINFO) ─────────
+
+    [Theory]
+    [InlineData(960, 0.80, 1.00, 768)]
+    [InlineData(960, 1.00, 1.00, 960)]
+    [InlineData(960, 1.25, 1.00, 1200)]
+    [InlineData(960, 0.80, 1.25, 960)]
+    [InlineData(960, 1.00, 1.25, 1200)]
+    [InlineData(960, 1.25, 1.25, 1500)]
+    [InlineData(520, 0.80, 1.00, 416)]
+    [InlineData(520, 1.00, 1.00, 520)]
+    [InlineData(520, 1.25, 1.00, 650)]
+    [InlineData(520, 0.80, 1.50, 624)]
+    [InlineData(520, 1.00, 1.50, 780)]
+    public void MinTrackSize_calcula_pixeles_fisicos_exactos_con_escala_y_dpi(
+        double baseMin, double factor, double dpiScale, int esperado)
+    {
+        var factorAjustado = EscalaUi.Ajustar(factor);
+        var pixelesFisicos = (int)Math.Ceiling(baseMin * factorAjustado * dpiScale);
+
+        Assert.Equal(esperado, pixelesFisicos);
+    }
 }
