@@ -4,15 +4,20 @@ using System.Diagnostics;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
+using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using System.Windows.Threading;
 using CapaAplicacion.Bitacora.Dtos;
 using CapaAplicacion.Productos.Dtos;
 using CapaUI.Core.Controls;
+using CapaUI.Core;
 using CapaDominio.Reportes;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Win32;
+using CapaUI.Core.Permisos;
 
 namespace CapaUI.Formularios.Principal.Pantallas.Bitacora
 {
@@ -25,6 +30,9 @@ namespace CapaUI.Formularios.Principal.Pantallas.Bitacora
         private int _dragAnchorIndex = -1;
         private int _lastDragIndex = -1;
         private bool _isSelectingByDrag;
+        private BitacoraDetalleModal? _detalleModal;
+        private BitacoraDto? _registroDetalle;
+        private bool _selectorDetalleAbierto;
 
         public BitacoraView()
         {
@@ -78,6 +86,16 @@ namespace CapaUI.Formularios.Principal.Pantallas.Bitacora
             _vm.Dispose();
             DataContext = null;
             _vm = null!;
+            if (_detalleModal is not null)
+            {
+                _detalleModal.Cerrado -= CerrarDetalle;
+                _detalleModal.ImprimirSolicitado -= AbrirSelectorFormatoDetalle;
+            }
+            _detalleModal = null;
+            _registroDetalle = null;
+            _selectorDetalleAbierto = false;
+            ModalContent.Content = null;
+            ModalOverlay.Visibility = Visibility.Collapsed;
             DetenerSpinner();
         }
 
@@ -313,6 +331,21 @@ namespace CapaUI.Formularios.Principal.Pantallas.Bitacora
         private void DgBitacora_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e) =>
             ReiniciarArrastre();
 
+        private void DgBitacora_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            if (_vm == null || e.ChangedButton != MouseButton.Left ||
+                ModalOverlay.Visibility == Visibility.Visible)
+                return;
+
+            var source = e.OriginalSource as DependencyObject;
+            if (ObtenerFila(source) is not { Item: BitacoraDto registro } fila ||
+                !DgBitacora.Items.Contains(registro) ||
+                EsControlInteractivo(source, fila))
+                return;
+
+            AbrirDetalle(registro);
+        }
+
         private void BtnSeleccionarPagina_Click(object sender, RoutedEventArgs e)
         {
             if (_vm == null || DgBitacora.Items.Count == 0) return;
@@ -377,6 +410,21 @@ namespace CapaUI.Formularios.Principal.Pantallas.Bitacora
             return source as DataGridRow;
         }
 
+        private static bool EsControlInteractivo(DependencyObject? source, DataGridRow fila)
+        {
+            while (source is not null && !ReferenceEquals(source, fila))
+            {
+                if (source is ButtonBase or TextBoxBase or Selector or Hyperlink or ScrollBar)
+                    return true;
+
+                source = source is FrameworkContentElement content
+                    ? content.Parent
+                    : VisualTreeHelper.GetParent(source);
+            }
+
+            return false;
+        }
+
         private void ReiniciarArrastre()
         {
             _dragAnchorIndex = -1;
@@ -386,6 +434,8 @@ namespace CapaUI.Formularios.Principal.Pantallas.Bitacora
 
         private void AbrirModalFormatoReporte()
         {
+            if (ModalOverlay.Visibility == Visibility.Visible) return;
+
             var modal = new FormatoReporteModal();
             modal.Cerrado += CerrarModal;
             modal.FormatoSeleccionado += async formato =>
@@ -395,6 +445,94 @@ namespace CapaUI.Formularios.Principal.Pantallas.Bitacora
             };
             ModalContent.Content = modal;
             ModalOverlay.Visibility = Visibility.Visible;
+        }
+
+        private void AbrirDetalle(BitacoraDto registro)
+        {
+            if (_detalleModal is not null || ModalOverlay.Visibility == Visibility.Visible)
+                return;
+
+            var modal = new BitacoraDetalleModal(registro);
+            modal.Cerrado += CerrarDetalle;
+            modal.ImprimirSolicitado += AbrirSelectorFormatoDetalle;
+
+            _detalleModal = modal;
+            _registroDetalle = registro;
+            _selectorDetalleAbierto = false;
+
+            ModalLayout.LimitarAlOverlay(modal, ModalOverlay);
+            ModalContent.Content = modal;
+            ModalOverlay.Visibility = Visibility.Visible;
+            _ = Dispatcher.BeginInvoke(DispatcherPriority.Input, () => modal.Focus());
+        }
+
+        private void AbrirSelectorFormatoDetalle(BitacoraDto registro)
+        {
+            if (_detalleModal is null || _registroDetalle is null ||
+                !ReferenceEquals(registro, _registroDetalle) || _selectorDetalleAbierto)
+                return;
+
+            if (!SesionPermisos.Tiene(Permiso.GenerarReporte))
+            {
+                PermisoBehavior.EvaluarArbol(_detalleModal);
+                _detalleModal.MostrarError("No tiene permiso para generar reportes.");
+                return;
+            }
+
+            _detalleModal.MostrarError(null);
+            _selectorDetalleAbierto = true;
+            var selector = new FormatoReporteModal("Elige el formato para este registro de bitácora.");
+            selector.Cerrado += RestaurarDetalleTrasSelector;
+            selector.FormatoSeleccionado += async formato =>
+            {
+                if (!_selectorDetalleAbierto) return;
+                RestaurarDetalleTrasSelector();
+                await ElegirRutaYGenerarDetalleAsync(formato, registro);
+            };
+
+            ModalLayout.LimitarAlOverlay(selector, ModalOverlay);
+            ModalContent.Content = selector;
+        }
+
+        private void RestaurarDetalleTrasSelector()
+        {
+            if (!_selectorDetalleAbierto) return;
+            _selectorDetalleAbierto = false;
+            if (_detalleModal is not null)
+                ModalContent.Content = _detalleModal;
+        }
+
+        private void CerrarDetalle()
+        {
+            if (_detalleModal is null) return;
+
+            var registro = _registroDetalle;
+            _detalleModal.Cerrado -= CerrarDetalle;
+            _detalleModal.ImprimirSolicitado -= AbrirSelectorFormatoDetalle;
+            _detalleModal = null;
+            _registroDetalle = null;
+            _selectorDetalleAbierto = false;
+
+            ModalOverlay.Visibility = Visibility.Collapsed;
+            ModalContent.Content = null;
+
+            _ = Dispatcher.BeginInvoke(DispatcherPriority.Input, () => RestaurarFocoEnFila(registro));
+        }
+
+        private void RestaurarFocoEnFila(BitacoraDto? registro)
+        {
+            if (registro is null || !DgBitacora.Items.Contains(registro))
+            {
+                DgBitacora.Focus();
+                return;
+            }
+
+            DgBitacora.ScrollIntoView(registro);
+            DgBitacora.UpdateLayout();
+            if (DgBitacora.ItemContainerGenerator.ContainerFromItem(registro) is DataGridRow fila)
+                fila.Focus();
+            else
+                DgBitacora.Focus();
         }
 
         private void CerrarModal()
@@ -420,6 +558,48 @@ namespace CapaUI.Formularios.Principal.Pantallas.Bitacora
 
             if (dialog.ShowDialog() != true) return;
             await _vm.GenerarReporteAsync(formato, dialog.FileName);
+        }
+
+        private async Task ElegirRutaYGenerarDetalleAsync(ReportFormat formato, BitacoraDto registro)
+        {
+            if (_detalleModal is null || _vm == null) return;
+
+            if (!SesionPermisos.Tiene(Permiso.GenerarReporte))
+            {
+                PermisoBehavior.EvaluarArbol(_detalleModal);
+                _detalleModal.MostrarError("No tiene permiso para generar reportes.");
+                return;
+            }
+
+            string extension = formato == ReportFormat.Pdf ? ".pdf" : ".xlsx";
+            var dialog = new SaveFileDialog
+            {
+                Title = "Guardar detalle de bitácora",
+                FileName = $"Detalle_Bitacora_{registro.IdBitacora}_{DateTime.Now:yyyyMMdd_HHmmss}{extension}",
+                DefaultExt = extension,
+                AddExtension = true,
+                OverwritePrompt = true,
+                Filter = formato == ReportFormat.Pdf
+                    ? "Documento PDF (*.pdf)|*.pdf"
+                    : "Libro de Excel (*.xlsx)|*.xlsx",
+            };
+
+            if (dialog.ShowDialog() != true) return;
+
+            var modal = _detalleModal;
+            modal.MostrarError(null);
+            modal.EstablecerGenerando(true);
+            try
+            {
+                await _vm.GenerarReporteDetalleAsync(formato, dialog.FileName, registro);
+                if (!string.IsNullOrWhiteSpace(_vm.ErrorCarga))
+                    modal.MostrarError(_vm.ErrorCarga);
+            }
+            finally
+            {
+                modal.EstablecerGenerando(false);
+                PermisoBehavior.EvaluarArbol(modal);
+            }
         }
 
         private static void OnReporteCreado(string ruta)

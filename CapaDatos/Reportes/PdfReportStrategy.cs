@@ -61,7 +61,7 @@ public sealed class PdfReportStrategy : IReportStrategy
             title.Format.SpaceAfter = Unit.FromPoint(5);
             title.Format.Alignment = ParagraphAlignment.Center;
 
-            var generated = section.AddParagraph($"Generado: {report.GeneratedAt:dd/MM/yyyy HH:mm:ss}   |   Registros: {report.Rows.Count}");
+            var generated = section.AddParagraph($"Generado: {report.GeneratedAt:dd/MM/yyyy HH:mm:ss}   |   Registros: {report.RecordCount ?? report.Rows.Count}");
             generated.Format.Font.Size = 9;
             generated.Format.SpaceAfter = Unit.FromPoint(6);
 

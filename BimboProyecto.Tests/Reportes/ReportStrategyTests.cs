@@ -61,6 +61,35 @@ public sealed class ReportStrategyTests
         Assert.NotEmpty(result.Value!);
     }
 
+    [Fact]
+    public async Task Excel_RespetaCantidadSemanticaCuandoUnRegistroUsaVariasFilas()
+    {
+        var doc = new TabularReportDto
+        {
+            Title = "Detalle del registro de bitácora #2",
+            SheetName = "Detalle bitácora",
+            GeneratedAt = new DateTime(2026, 9, 3, 10, 30, 0),
+            RecordCount = 1,
+            Columns = ["CAMPO", "VALOR"],
+            Rows =
+            [
+                new object?[] { "USUARIO", "Fernando José" },
+                new object?[] { "ACCIÓN", "Modificación de fabricante" },
+                new object?[] { "DETALLE", "Nombre: Actual" },
+            ],
+        };
+
+        var result = await new ExcelReportStrategy().GenerateAsync(doc);
+
+        Assert.True(result.Success, result.Error);
+        using var stream = new MemoryStream(result.Value!);
+        using var workbook = new XLWorkbook(stream);
+        var sheet = workbook.Worksheet("Detalle bitácora");
+        var registros = sheet.CellsUsed().Single(c => c.GetString() == "Registros");
+        Assert.Equal("1", sheet.Cell(registros.Address.RowNumber, 2).GetString());
+        Assert.Contains(sheet.CellsUsed(), c => c.GetString() == "Fernando José");
+    }
+
     private static TabularReportDto CrearReporte() => new()
     {
         Title = "Reporte de Bitácora",

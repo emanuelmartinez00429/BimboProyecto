@@ -11,6 +11,12 @@ public partial class FormatoReporteModal : UserControl
 
     public FormatoReporteModal() => InitializeComponent();
 
+    public FormatoReporteModal(string descripcion) : this()
+    {
+        if (!string.IsNullOrWhiteSpace(descripcion))
+            TxtDescripcion.Text = descripcion;
+    }
+
     private void BtnPdf_Click(object sender, RoutedEventArgs e) =>
         FormatoSeleccionado?.Invoke(ReportFormat.Pdf);
 

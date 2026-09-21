@@ -39,7 +39,7 @@ public sealed class ExcelReportStrategy : IReportStrategy
             sheet.Cell(2, 1).Style.Font.FontSize = 14;
             int metadataRow = 4;
             WriteMetadata(sheet, metadataRow++, "Generado", report.GeneratedAt.ToString("dd/MM/yyyy HH:mm:ss"));
-            WriteMetadata(sheet, metadataRow++, "Registros", report.Rows.Count.ToString());
+            WriteMetadata(sheet, metadataRow++, "Registros", (report.RecordCount ?? report.Rows.Count).ToString());
             WriteMetadata(sheet, metadataRow++, "Correo usuario", report.Author.Email);
             WriteMetadata(sheet, metadataRow++, "Rol", report.Author.Rol);
             foreach (var filter in report.Filters) WriteMetadata(sheet, metadataRow++, filter.Label, filter.Value);

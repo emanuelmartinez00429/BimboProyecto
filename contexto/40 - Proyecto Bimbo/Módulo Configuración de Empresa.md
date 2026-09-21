@@ -12,7 +12,7 @@ Administra la única fila de `public.empresa` desde el engranaje de la barra sup
 
 Desde 2026-08-15 también administra `empresa.icono_sidebar`: una segunda imagen independiente que reemplaza el recurso empacado `Resources/bimbo-logo.png` en la barra superior. El recurso local se conserva únicamente como fallback cuando la columna está vacía o la descarga falla.
 
-El acceso exige la acción literal `Modificar Configuración` en tres niveles: visibilidad/apertura del modal, repositorio C# y políticas RLS de Supabase.
+El acceso exige la acción `Modificar Configuración` en tres niveles. La UI resuelve su etiqueta amigable al código estable `CONFIGURACION_MODIFICAR`; el repositorio C# valida ese código contra la sesión en memoria; y las políticas RLS de Supabase comprueban la asignación activa antes de modificar `public.empresa` o `storage.objects`.
 
 ## Flujo vigente
 
@@ -28,6 +28,7 @@ EmpresaRepository : RepositorioBase
 
 - La empresa es un singleton funcional: la pantalla solo edita la fila existente.
 - `EmpresaRepository` usa `Result`, `TryAsync` y la sesión inyectada.
+- Desde 2026-09-21, `EmpresaRepository` exige `CONFIGURACION_MODIFICAR`. No debe comparar `Modificar Configuración` directamente porque `UsuarioSesion` almacena `codigo_accion`, no nombres visibles.
 - El cliente actualiza únicamente campos editables; el timestamp de modificación queda bajo responsabilidad del trigger configurado en la base.
 - Las validaciones de negocio de RTN, correo, teléfono y dominio siguen pospuestas. El logo sí se limita técnicamente a PNG/JPG/JPEG decodificable y 2 MB.
 - **2026-09-17, rediseño visual de `ConfiguracionEmpresaView`:**
@@ -75,3 +76,4 @@ Los azules de marca se reemplazaron por recursos `DynamicResource` compartidos e
 - [[Deuda Técnica - Pendientes]]
 - [[Sesión 2026-08-14 - Módulo de configuración de empresa y tema dinámico]]
 - [[Sesión 2026-09-18 - Panel de control y gráfico de pesadas en PesajeModal]] — títulos logo/ícono y aviso del dominio con foco
+- [[Sesión 2026-09-21 - Corrección RBAC al guardar Configuración de empresa]] — alineación entre el código cargado en sesión y la guarda del repositorio

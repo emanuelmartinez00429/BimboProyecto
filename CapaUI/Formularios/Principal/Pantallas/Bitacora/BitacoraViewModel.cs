@@ -13,6 +13,8 @@ using CapaDominio.Reportes;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CapaAplicacion.Reportes;
+using CapaAplicacion.Bitacora;
+using CapaUI.Core.Permisos;
 
 namespace CapaUI.Formularios.Principal.Pantallas.Bitacora;
 
@@ -370,6 +372,46 @@ public partial class BitacoraViewModel : ObservableObject, IDisposable
     {
         if (!PuedeCrearReporte()) return;
 
+        await GenerarReporteInternoAsync(
+            format,
+            rutaFinal,
+            _seleccionReporte.ToList(),
+            detalleIndividual: false,
+            ct: ct);
+    }
+
+    public async Task GenerarReporteDetalleAsync(
+        ReportFormat format,
+        string rutaFinal,
+        BitacoraDto registro,
+        CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(registro);
+
+        if (IsGeneratingReport) return;
+        if (!SesionPermisos.Tiene(Permiso.GenerarReporte))
+        {
+            ErrorCarga = "No tiene permiso para generar reportes.";
+            return;
+        }
+
+        await GenerarReporteInternoAsync(
+            format,
+            rutaFinal,
+            [registro],
+            detalleIndividual: true,
+            ct: ct);
+    }
+
+    private async Task GenerarReporteInternoAsync(
+        ReportFormat format,
+        string rutaFinal,
+        IReadOnlyList<BitacoraDto> seleccion,
+        bool detalleIndividual,
+        CancellationToken ct)
+    {
+        if (seleccion.Count == 0 || IsGeneratingReport) return;
+
         var sesion = _sesionService.SesionActual;
         if (sesion is null)
         {
@@ -393,32 +435,60 @@ public partial class BitacoraViewModel : ObservableObject, IDisposable
 
         try
         {
-            var seleccion = _seleccionReporte.ToList();
             DateTime generado = DateTime.Now;
             string tipo = format == ReportFormat.Pdf ? "PDF" : "Excel";
-            string nombre = $"Reporte de Bitácora - {generado:yyyyMMdd-HHmmss}";
+            string nombre = detalleIndividual
+                ? $"Detalle de Bitácora #{seleccion[0].IdBitacora} - {generado:yyyyMMdd-HHmmss}"
+                : $"Reporte de Bitácora - {generado:yyyyMMdd-HHmmss}";
 
-            var documento = new TabularReportDto
+            var autor = new ReportAuthorDto
             {
-                Title = "Reporte de Bitácora",
-                GeneratedAt = generado,
-                Author = new ReportAuthorDto
-                {
-                    Email = sesion.Email,
-                    Rol = sesion.NombreRol,
-                },
-                SheetName = "Bitácora",
-                Columns = [new("FECHA / HORA", "dd/MM/yyyy HH:mm"), new("USUARIO"), new("MÓDULO"), new("ACCIÓN"), new("CAMPO AFECTADO"), new("DETALLE")],
-                Rows = seleccion.Select(b => (IReadOnlyList<object?>)new object?[]
-                    {
-                        b.FechaHora,
-                        b.AliasUsuario,
-                        b.NombreModulo,
-                        b.NombreAccion,
-                        b.CampoAfectado,
-                        b.EstadoActual,
-                    }).ToList(),
+                Email = sesion.Email,
+                Rol = sesion.NombreRol,
             };
+
+            TabularReportDto documento;
+            string columnasRegistradas;
+            if (detalleIndividual)
+            {
+                var registroDetalle = seleccion[0];
+                var campos = BitacoraDetalle.CrearCampos(registroDetalle);
+                documento = new TabularReportDto
+                {
+                    Title = $"Detalle del registro de bitácora #{registroDetalle.IdBitacora}",
+                    GeneratedAt = generado,
+                    Author = autor,
+                    SheetName = "Detalle bitácora",
+                    RecordCount = 1,
+                    Landscape = false,
+                    Columns = [new("CAMPO", null, 5.2), new("VALOR", null, 13.4)],
+                    Rows = campos
+                        .Select(c => (IReadOnlyList<object?>)new object?[] { c.Etiqueta, c.Valor })
+                        .ToList(),
+                };
+                columnasRegistradas = string.Join(", ", campos.Select(c => c.Etiqueta));
+            }
+            else
+            {
+                documento = new TabularReportDto
+                {
+                    Title = "Reporte de Bitácora",
+                    GeneratedAt = generado,
+                    Author = autor,
+                    SheetName = "Bitácora",
+                    Columns = [new("FECHA / HORA", "dd/MM/yyyy HH:mm"), new("USUARIO"), new("MÓDULO"), new("ACCIÓN"), new("CAMPO AFECTADO"), new("DETALLE")],
+                    Rows = seleccion.Select(b => (IReadOnlyList<object?>)new object?[]
+                        {
+                            b.FechaHora,
+                            b.AliasUsuario,
+                            b.NombreModulo,
+                            b.NombreAccion,
+                            b.CampoAfectado,
+                            b.EstadoActual,
+                        }).ToList(),
+                };
+                columnasRegistradas = "Fecha y hora, usuario, módulo, acción, campo afectado, detalle";
+            }
 
             var generadoResult = await _reportGenerator.GenerateAsync(documento, format, ct);
             if (!generadoResult.Success)
@@ -442,13 +512,15 @@ public partial class BitacoraViewModel : ObservableObject, IDisposable
                 ("Filtro de módulo (referencia)", _moduloFiltro),
                 ("Filtro de acción (referencia)", _accionFiltro),
                 ("Desde", _fechaDesde), ("Hasta", _fechaHasta),
-                ("Columnas", "Fecha y hora, usuario, módulo, acción, campo afectado, detalle"));
+                ("Columnas", columnasRegistradas));
 
             var registro = await _reporteRepository.RegistrarAsync(new ReporteRegistroDto
             {
                 NombreReporte = nombre,
                 TipoReporte = tipo,
-                Descripcion = $"Reporte de bitácora con {seleccion.Count} registro(s) seleccionado(s).",
+                Descripcion = detalleIndividual
+                    ? $"Detalle del registro de bitácora #{seleccion[0].IdBitacora}."
+                    : $"Reporte de bitácora con {seleccion.Count} registro(s) seleccionado(s).",
                 FechaDesde = fechas.Count > 0 ? fechas.Min() : null,
                 FechaHasta = fechas.Count > 0 ? fechas.Max() : null,
                 ParametrosTexto = parametrosTexto,

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using CapaAplicacion.Empresa.Dtos;
 using CapaAplicacion.Empresa.Interfaces;
+using CapaDatos.Repositories.Empresa;
 using CapaDominio.Reglas;
 using CapaUI.Core.Permisos;
 using CapaUI.Core.Validacion;
@@ -247,6 +248,17 @@ public sealed class ConfiguracionEmpresaWhiteBoxTests
         Assert.True(existe);
         Assert.Equal("Modificar Configuración", def.NombreVisible);
         Assert.Equal("CONFIGURACION_MODIFICAR", def.CodigoAccion);
+    }
+
+    [Fact(DisplayName = "RBAC: EmpresaRepository valida el código estable de configuración")]
+    public void EmpresaRepository_PermisoAdministrar_UsaCodigoAccion()
+    {
+        var campo = typeof(EmpresaRepository).GetField(
+            "PermisoAdministrar",
+            BindingFlags.NonPublic | BindingFlags.Static);
+
+        Assert.NotNull(campo);
+        Assert.Equal("CONFIGURACION_MODIFICAR", campo.GetRawConstantValue());
     }
 
     // =========================================================================

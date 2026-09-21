@@ -13,7 +13,7 @@ namespace CapaDatos.Repositories.Empresa;
 public sealed class EmpresaRepository : RepositorioBase, IEmpresaRepository
 {
     private const string BucketLogos = "empresa-logos";
-    private const string PermisoAdministrar = "Modificar Configuración";
+    private const string PermisoAdministrar = "CONFIGURACION_MODIFICAR";
     private const long MaxLogoBytes = 2 * 1024 * 1024;
 
     private readonly IUsuarioSesionService _sesion;

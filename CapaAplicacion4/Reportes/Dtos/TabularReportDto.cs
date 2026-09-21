@@ -6,6 +6,11 @@ public sealed class TabularReportDto
     public DateTime GeneratedAt { get; init; }
     public ReportAuthorDto Author { get; init; } = new();
     public string SheetName { get; init; } = "Reporte";
+    /// <summary>
+    /// Cantidad semántica de registros representados. Si se omite, se usa el
+    /// número de filas, que conserva el comportamiento de los reportes actuales.
+    /// </summary>
+    public int? RecordCount { get; init; }
     public bool Landscape { get; init; } = true;
     public ReportBrandingDto Branding { get; init; } = new();
     public IReadOnlyList<ReportColumnDto> Columns { get; init; } = Array.Empty<ReportColumnDto>();

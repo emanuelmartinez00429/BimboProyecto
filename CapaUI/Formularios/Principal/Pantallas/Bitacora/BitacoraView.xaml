@@ -311,6 +311,7 @@
                            PreviewMouseLeftButtonDown="DgBitacora_PreviewMouseLeftButtonDown"
                            PreviewMouseMove="DgBitacora_PreviewMouseMove"
                            PreviewMouseLeftButtonUp="DgBitacora_PreviewMouseLeftButtonUp"
+                           MouseDoubleClick="DgBitacora_MouseDoubleClick"
                           Background="White" BorderThickness="0" AlternationCount="2"
                           RowStyle="{StaticResource BitacoraRowStyle}" CellStyle="{StaticResource CeldaCentrada}"
                           ScrollViewer.VerticalScrollBarVisibility="Auto"

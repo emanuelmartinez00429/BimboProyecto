@@ -20,7 +20,7 @@
         <StackPanel>
             <TextBlock Text="Crear reporte" FontFamily="Segoe UI" FontSize="24" FontWeight="Bold"
                        Foreground="#1A1F2E"/>
-            <TextBlock Text="Elige el formato para los registros seleccionados."
+            <TextBlock x:Name="TxtDescripcion" Text="Elige el formato para los registros seleccionados."
                        FontFamily="Segoe UI" FontSize="15" Foreground="#6B7280" Margin="0,6,0,22"/>
 
             <Grid>
