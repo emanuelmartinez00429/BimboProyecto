@@ -22,8 +22,10 @@ que reemplaza su nombre en el saludo "Bienvenido, X" de la pantalla principal.
       "Bienvenido, X"
 - [x] T5 — Build 0 errores / 0 warnings
 - [ ] T6 — Prueba visual del usuario (arranca app, cambia apodo, vuelve al menú principal)
+- [x] T8 — Cambio de contraseña real vía re-autenticación + Auth.Update (ver registro abajo)
 
 ## Registro de rutas y evidencia
+- 2026-09-20 — T8 (nuevo): cambio de contraseña REAL desde Mi Usuario. Análisis: OTP (recuperación) vs re-autenticación con contraseña actual + Auth.Update sobre la sesión real (la OTP es para quien NO sabe la contraseña; aquí el usuario ya está autenticado). Decisión: re-autenticación (SignInWithPassword, mismo método de login) → Auth.Update (misma primitiva de la recuperación) SIN SignOut. Nuevos ICambioPropiaPasswordService/CambioPropiaPasswordService + DI; VM stub → comando real con CambiandoPassword (doble envío bloqueado). Build 0/0 + arné OK. Sin commit: prueba del usuario pendiente.
 - Ruta elegida: delegado directo → inline (dispatcher de subagentes caído 2×, mismo defecto de runtime "json: unknown field __managed_by").
 - Ejecutado inline el 2026-09-20 por el orquestador con verificación build.
 - T5 VERIFICADO: `dotnet build BimboProyecto.sln` → "Compilación correcta. 0 Advertencia(s), 0 Errores" (2026-09-20).

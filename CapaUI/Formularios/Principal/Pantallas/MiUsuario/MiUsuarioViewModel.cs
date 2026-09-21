@@ -1,3 +1,4 @@
+using CapaAplicacion.Auth.Interfaces;
 using CapaAplicacion.Perfil;
 using CapaAplicacion.Preferencias;
 using CapaAplicacion.Preferencias.Interfaces;
@@ -37,6 +38,7 @@ public sealed partial class MiUsuarioViewModel : ObservableObject, IDisposable
     private readonly IPreferenciasUsuarioRepository _preferencias;
     private readonly IPerfilUsuarioService _perfil;
     private readonly IUsuarioSesionService _sesion;
+    private readonly ICambioPropiaPasswordService _cambioPassword;
     private readonly Debouncer _guardado = new(RetardoGuardadoMs);
 
     private bool _disposed;
@@ -103,7 +105,7 @@ public sealed partial class MiUsuarioViewModel : ObservableObject, IDisposable
     public bool EsSugerido     => EscalaUi.SonIguales(FactorEscala, FactorSugerido);
     public bool HayError       => !string.IsNullOrWhiteSpace(Error);
 
-    // ── Seguridad: cambio de la propia contraseña (stub visual) ─────────────
+    // ── Seguridad: cambio de la propia contraseña ──────────────────────────
     // El cableado real (verificar la actual contra Supabase, generar OTP, etc.)
     // queda para el paso siguiente: esta sección solo sostiene el estado visual
     // y aplica las reglas del dominio para pintar el medidor y la checklist.
@@ -150,6 +152,7 @@ public sealed partial class MiUsuarioViewModel : ObservableObject, IDisposable
 
     /// <summary>Forma completa: la actual está escrita, la nueva cumple TODAS las reglas del dominio y la confirmación coincide.</summary>
     public bool PuedeEnviarCambio =>
+        !CambiandoPassword &&
         ContrasenaActual.Length > 0 &&
         ReglasContrasena.CumpleTodasLasReglas(ContrasenaNueva) &&
         ContrasenaNueva == ContrasenaConfirmar;
@@ -161,12 +164,14 @@ public sealed partial class MiUsuarioViewModel : ObservableObject, IDisposable
 
     public MiUsuarioViewModel(IUsuarioSesionService sesion, IEscalaService escala,
                               IPreferenciasUsuarioRepository preferencias,
-                              IPerfilUsuarioService perfil)
+                              IPerfilUsuarioService perfil,
+                              ICambioPropiaPasswordService cambioPassword)
     {
         _escala       = escala;
         _preferencias = preferencias;
         _perfil       = perfil;
         _sesion       = sesion;
+        _cambioPassword = cambioPassword;
 
         var actual = sesion.SesionActual;
         var guardado = perfil.PerfilActual?.Apodo;
@@ -274,19 +279,56 @@ public sealed partial class MiUsuarioViewModel : ObservableObject, IDisposable
 
     public bool HayApodoMensaje => !string.IsNullOrWhiteSpace(ApodoMensaje);
 
-    /// <summary>
-    /// STUB VISUAL del cambio de contraseña: valida la forma ya al tempo del dominio
-    /// y responde con un aviso honesto; NO llama al backend todavía.
-    /// El cableado real usará auth.users de Supabase + RecuperacionPasswordService.
-    /// </summary>
-    [RelayCommand]
-    private void CambiarContrasena()
-    {
-        if (!PuedeEnviarCambio) return;
+    // ── Seguridad: cambio de la propia contraseña (cableado real) ─────────────
+    // La prueba de dueño es la re-autenticación con la contraseña actual (mismo
+    // método del login). El servicio usa la sesión re-validada para fijar la nueva
+    // contraseña y NO cierra la sesión (a diferencia de la recuperación por OTP,
+    // que mata su sesión de recuperación al terminar).
 
-        AvisoInfo = "Formulario válido, pero el cambio todavía no está cableado al backend " +
-                    "(sin auth.users de Supabase ni token de provisión). La validación que ya corre " +
-                    "es la del dominio: ReglasContrasena.";
+    /// <summary>Ocupado mientras corre el cambio; bloquea doble clic y reenvíos.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(PuedeEnviarCambio))]
+    private bool _cambiandoPassword;
+
+    [RelayCommand]
+    private async Task CambiarContrasenaAsync(CancellationToken ct)
+    {
+        if (!PuedeEnviarCambio || CambiandoPassword) return;
+
+        CambiandoPassword = true;
+        Error = null;
+        AvisoInfo = null;
+        Exito = null;
+
+        try
+        {
+            var correo = _sesion.SesionActual?.Email ?? string.Empty;
+
+            var resultado = await _cambioPassword.CambiarAsync(
+                correo, ContrasenaActual, ContrasenaNueva, ct);
+
+            if (ct.IsCancellationRequested) return;
+
+            if (!resultado.Success)
+            {
+                AvisoInfo = resultado.Error;
+                return;
+            }
+
+            Exito = "Contraseña actualizada. La necesitarás la próxima vez que inicies sesión.";
+
+            // Limpia los campos con la misma vía que usa la vista para alimentarlos
+            // (los PasswordBox son one-way hacia el VM; no se pueden vaciar desde acá).
+            ContrasenaActual = string.Empty;
+            ContrasenaNueva = string.Empty;
+            ContrasenaConfirmar = string.Empty;
+            OnPropertyChanged(nameof(RequisitosOk));
+            OnPropertyChanged(nameof(ScoreFortaleza));
+        }
+        finally
+        {
+            CambiandoPassword = false;
+        }
     }
 
     [RelayCommand]
