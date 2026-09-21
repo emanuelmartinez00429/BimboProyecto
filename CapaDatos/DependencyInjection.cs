@@ -56,6 +56,10 @@ public static class DependencyInjection
         // hablaban directo a client.Auth (P-058); ahora pasan por este contrato.
         services.AddTransient<IRecuperacionPasswordService, RecuperacionPasswordService>();
 
+        // Cambio de contraseña propia desde «Mi Usuario»: re-autenticación con la
+        // contraseña actual sobre la sesión real (no es flujo de recuperación).
+        services.AddTransient<ICambioPropiaPasswordService, CambioPropiaPasswordService>();
+
         // Preferencias locales del inicio de sesión (recordar usuario)
         services.AddSingleton<IPreferenciasInicioSesionService, PreferenciasInicioSesionService>();
 
