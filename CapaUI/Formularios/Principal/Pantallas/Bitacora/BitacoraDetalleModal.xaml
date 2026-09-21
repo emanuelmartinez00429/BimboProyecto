@@ -20,18 +20,18 @@
 
     <Grid>
         <!-- Sombra desacoplada del contenido desplazable. -->
-        <Border Background="#162E66" CornerRadius="14">
+        <Border Background="{DynamicResource EmpresaPrimaryDarkerBrush}" CornerRadius="14">
             <Border.Effect>
                 <DropShadowEffect Color="Black" BlurRadius="28" ShadowDepth="10" Opacity="0.45"/>
             </Border.Effect>
         </Border>
 
-        <Border CornerRadius="14" BorderBrush="#254B99" BorderThickness="1"
+        <Border CornerRadius="14" BorderBrush="{DynamicResource EmpresaPrimaryLightBrush}" BorderThickness="1"
                 RenderOptions.ClearTypeHint="Enabled" ClipToBounds="True">
             <Border.Background>
                 <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                    <GradientStop Color="#1A387E" Offset="0"/>
-                    <GradientStop Color="#142A63" Offset="1"/>
+                    <GradientStop Color="{DynamicResource EmpresaPrimaryDarkColor}" Offset="0"/>
+                    <GradientStop Color="{DynamicResource EmpresaPrimaryDarkerColor}" Offset="1"/>
                 </LinearGradientBrush>
             </Border.Background>
             <Grid>
@@ -53,7 +53,8 @@
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <!-- Icono de documento/auditoría -->
                             <Border Width="44" Height="44" CornerRadius="10"
-                                    Background="#1E3E85" BorderBrush="#3B6FCE" BorderThickness="1">
+                                    Background="{DynamicResource EmpresaPrimaryDarkBrush}"
+                                    BorderBrush="{DynamicResource EmpresaPrimaryLightBrush}" BorderThickness="1">
                                 <Path Stretch="Uniform" Width="20" Height="20"
                                       Fill="White"
                                       Data="M14,2 H6 A2,2 0 0,0 4,4 V20 A2,2 0 0,0 6,22 H18 A2,2 0 0,0 20,20 V8 Z M13,3.5 L18.5,9 H13 Z M8,12 H16 V13.5 H8 Z M8,15 H16 V16.5 H8 Z M8,18 H13 V19.5 H8 Z"
@@ -62,7 +63,7 @@
 
                             <StackPanel Margin="14,0,0,0" VerticalAlignment="Center">
                                 <TextBlock Text="AUDITORÍA DEL SISTEMA" FontFamily="Segoe UI"
-                                           FontSize="11.5" FontWeight="Bold" Foreground="#8FB7F5"/>
+                                           FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource EmpresaPrimaryLighterBrush}"/>
                                 <TextBlock Text="Detalle del registro de bitácora" FontFamily="Segoe UI"
                                            FontSize="20" FontWeight="Bold" Foreground="White" Margin="0,2,0,0"/>
                             </StackPanel>
@@ -74,15 +75,16 @@
                                 Click="BtnRegresar_Click">
                             <Button.Template>
                                 <ControlTemplate TargetType="Button">
-                                    <Border x:Name="BdCerrar" Background="#1E3E85" BorderBrush="#3B6FCE"
+                                    <Border x:Name="BdCerrar" Background="{DynamicResource EmpresaPrimaryDarkBrush}"
+                                            BorderBrush="{DynamicResource EmpresaPrimaryLightBrush}"
                                             BorderThickness="1" CornerRadius="8">
                                         <TextBlock Text="&#x2715;" FontSize="13" FontWeight="Bold"
                                                    Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                     </Border>
                                     <ControlTemplate.Triggers>
                                         <Trigger Property="IsMouseOver" Value="True">
-                                            <Setter TargetName="BdCerrar" Property="Background" Value="#254FA8"/>
-                                            <Setter TargetName="BdCerrar" Property="BorderBrush" Value="#60A5FA"/>
+                                            <Setter TargetName="BdCerrar" Property="Background" Value="{DynamicResource EmpresaPrimaryBrush}"/>
+                                            <Setter TargetName="BdCerrar" Property="BorderBrush" Value="{DynamicResource EmpresaPrimaryLighterBrush}"/>
                                         </Trigger>
                                     </ControlTemplate.Triggers>
                                 </ControlTemplate>
@@ -92,7 +94,7 @@
                 </Border>
 
                 <!-- ROW 1: HERO CARD -->
-                <Border Grid.Row="1" Margin="24,0,24,14" Background="#1B3777"
+                <Border Grid.Row="1" Margin="24,0,24,14" Background="{DynamicResource EmpresaPrimaryDarkBrush}"
                         BorderBrush="#10B981" BorderThickness="3.5,0,0,0"
                         CornerRadius="8" Padding="18,14">
                     <Grid>
@@ -104,7 +106,7 @@
                         <!-- Izquierda: Registro y número #ID en verde -->
                         <StackPanel Grid.Column="0" VerticalAlignment="Center">
                             <TextBlock Text="REGISTRO DE BITÁCORA" FontFamily="Segoe UI"
-                                       FontSize="11" FontWeight="Bold" Foreground="#8FB7F5"/>
+                                       FontSize="11" FontWeight="Bold" Foreground="{DynamicResource EmpresaPrimaryLighterBrush}"/>
                             <TextBlock x:Name="TxtRegistroId" Text="#0" FontFamily="Segoe UI"
                                        FontSize="24" FontWeight="Bold" Foreground="#10B981" Margin="0,2,0,0"/>
                         </StackPanel>
@@ -113,14 +115,15 @@
                         <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                             <StackPanel VerticalAlignment="Center" Margin="0,0,14,0">
                                 <TextBlock Text="FECHA / HORA" FontFamily="Segoe UI"
-                                           FontSize="10.5" FontWeight="Bold" Foreground="#8FB7F5"
+                                           FontSize="10.5" FontWeight="Bold" Foreground="{DynamicResource EmpresaPrimaryLighterBrush}"
                                            HorizontalAlignment="Right"/>
                                 <TextBlock x:Name="TxtFechaHora" Text="Sin información" FontFamily="Segoe UI"
                                            FontSize="14" FontWeight="Bold" Foreground="White"
                                            HorizontalAlignment="Right" Margin="0,2,0,0"/>
                             </StackPanel>
 
-                            <Border Background="#214A9E" BorderBrush="#3B74D8" BorderThickness="1"
+                            <Border Background="{DynamicResource EmpresaPrimaryBrush}"
+                                    BorderBrush="{DynamicResource EmpresaPrimaryLightBrush}" BorderThickness="1"
                                     CornerRadius="5" Padding="10,4" VerticalAlignment="Center">
                                 <TextBlock x:Name="TxtModuloBadge" Text="SISTEMA" FontFamily="Segoe UI"
                                            FontSize="11.5" FontWeight="Bold" Foreground="White"/>
@@ -135,14 +138,17 @@
                     <ItemsControl ItemsSource="{Binding}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <Border BorderBrush="#1C3877" BorderThickness="0,0,0,1" Padding="0,11">
+                                <Border BorderThickness="0,0,0,1" Padding="0,11">
+                                    <Border.BorderBrush>
+                                        <SolidColorBrush Color="{DynamicResource EmpresaPrimaryLightColor}" Opacity="0.25"/>
+                                    </Border.BorderBrush>
                                     <Grid>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="220"/>
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
                                         <TextBlock Grid.Column="0" Text="{Binding Etiqueta}" FontFamily="Segoe UI"
-                                                   FontSize="11.5" FontWeight="Bold" Foreground="#8FB7F5"
+                                                   FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource EmpresaPrimaryLighterBrush}"
                                                    TextWrapping="Wrap" VerticalAlignment="Top"/>
                                         <TextBlock Grid.Column="1" Text="{Binding Valor}" FontFamily="Segoe UI"
                                                    FontSize="14" FontWeight="Medium" Foreground="White"
@@ -155,7 +161,8 @@
                 </ScrollViewer>
 
                 <!-- ROW 3: FOOTER -->
-                <Border Grid.Row="3" Background="#11234F" BorderBrush="#1B3877" BorderThickness="0,1,0,0" Padding="24,14">
+                <Border Grid.Row="3" Background="{DynamicResource EmpresaPrimaryDarkerBrush}"
+                        BorderBrush="{DynamicResource EmpresaPrimaryDarkBrush}" BorderThickness="0,1,0,0" Padding="24,14">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
@@ -179,11 +186,12 @@
 
                             <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
                                 <!-- Icono Candado -->
-                                <Path Stretch="Uniform" Width="13" Height="13" Fill="#8FB7F5" Margin="0,0,8,0"
+                                <Path Stretch="Uniform" Width="13" Height="13"
+                                      Fill="{DynamicResource EmpresaPrimaryLighterBrush}" Margin="0,0,8,0"
                                       VerticalAlignment="Center"
                                       Data="M12,2 A4,4 0 0,0 8,6 V8 H7 A2,2 0 0,0 5,10 V20 A2,2 0 0,0 7,22 H17 A2,2 0 0,0 19,20 V10 A2,2 0 0,0 17,8 H16 V6 A4,4 0 0,0 12,2 Z M10,6 A2,2 0 0,1 14,6 V8 H10 V6 Z M12,13 A2,2 0 0,1 14,15 C14,15.74 13.6,16.38 13,16.72 V19 H11 V16.72 C10.4,16.38 10,15.74 10,15 A2,2 0 0,1 12,13 Z"/>
                                 <TextBlock Text="Información en modo de solo lectura" FontFamily="Segoe UI"
-                                           FontSize="12" Foreground="#8FB7F5" VerticalAlignment="Center"/>
+                                           FontSize="12" Foreground="{DynamicResource EmpresaPrimaryLighterBrush}" VerticalAlignment="Center"/>
                             </StackPanel>
 
                             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
@@ -192,7 +200,8 @@
                                         Margin="0,0,10,0" Cursor="Hand" Click="BtnRegresar_Click">
                                     <Button.Template>
                                         <ControlTemplate TargetType="Button">
-                                            <Border x:Name="BdRegresar" Background="#1D3B7D" BorderBrush="#3B71D0"
+                                            <Border x:Name="BdRegresar" Background="{DynamicResource EmpresaPrimaryDarkBrush}"
+                                                    BorderBrush="{DynamicResource EmpresaPrimaryLightBrush}"
                                                     BorderThickness="1" CornerRadius="8" Padding="{TemplateBinding Padding}">
                                                 <TextBlock Text="{TemplateBinding Content}" FontFamily="Segoe UI"
                                                            FontSize="13.5" FontWeight="SemiBold" Foreground="White"
@@ -200,8 +209,8 @@
                                             </Border>
                                             <ControlTemplate.Triggers>
                                                 <Trigger Property="IsMouseOver" Value="True">
-                                                    <Setter TargetName="BdRegresar" Property="Background" Value="#254EA4"/>
-                                                    <Setter TargetName="BdRegresar" Property="BorderBrush" Value="#60A5FA"/>
+                                                    <Setter TargetName="BdRegresar" Property="Background" Value="{DynamicResource EmpresaPrimaryBrush}"/>
+                                                    <Setter TargetName="BdRegresar" Property="BorderBrush" Value="{DynamicResource EmpresaPrimaryLighterBrush}"/>
                                                 </Trigger>
                                             </ControlTemplate.Triggers>
                                         </ControlTemplate>
