@@ -19,9 +19,11 @@ namespace CapaUI.Formularios.Principal.Pantallas.MiUsuario;
 public partial class MiUsuarioView : UserControl
 {
     // (PasswordBox, TextBox visible que lo reemplaza al ojo abierto)
+    private (PasswordBox Box, TextBox Visible)? _parActual;
     private (PasswordBox Box, TextBox Visible)? _parNueva;
     private (PasswordBox Box, TextBox Visible)? _parConfirmar;
 
+    private PasswordVisibilityController? _ctlActual;
     private PasswordVisibilityController? _ctlNueva;
     private PasswordVisibilityController? _ctlConfirmar;
 
@@ -30,9 +32,8 @@ public partial class MiUsuarioView : UserControl
         InitializeComponent();
 
         // Los PasswordBox no previsualizan su texto reutilizando DataContext, así
-        // que el ojo actúa solo en la NUEVA y en la CONFIRMACIÓN (la actual
-        // siempre es a ojo cerrado: revelar la contraseña vigente no aporta
-        // seguridad y filtra por captura de pantalla en flotas-shared PCs).
+        // que el ojo actúa en la ACTUAL, la NUEVA y la CONFIRMACIÓN, siempre con
+        // el mismo PasswordVisibilityController del login/UsuarioModal.
         Loaded += (_, _) => IniciarControlesPassword();
     }
 
@@ -41,6 +42,10 @@ public partial class MiUsuarioView : UserControl
         // Armado defensivo: FindName tolera el orden del ciclo de vida (§10 del nodo
         // de convenciones) — evita CS0103 si la caché .g.i.cs se desincroniza en VS.
 
+        _parActual    = FindName("TxtActual") as PasswordBox is { } actual
+            && FindName("TxtActualVisible") as TextBox is { } actualVisible
+                ? (actual, actualVisible)
+                : null;
         _parNueva = FindName("TxtNueva") as PasswordBox is { } nueva
             && FindName("TxtNuevaVisible") as TextBox is { } nuevaVisible
                 ? (nueva, nuevaVisible)
@@ -50,11 +55,9 @@ public partial class MiUsuarioView : UserControl
                 ? (confirmar, confirmarVisible)
                 : null;
 
-        _ctlNueva = CrearControl(_parNueva, HandleNuevaChanged);
-        _ctlConfirmar = CrearControl(_parConfirmar, HandleConfirmarChanged);
-
-        var actual = FindName("TxtActual") as PasswordBox;
-        if (actual is not null) actual.PasswordChanged += (_, _) => HandleActualChanged(actual);
+        _ctlActual     = CrearControl(_parActual,    HandleActualChanged);
+        _ctlNueva      = CrearControl(_parNueva,     HandleNuevaChanged);
+        _ctlConfirmar  = CrearControl(_parConfirmar, HandleConfirmarChanged);
     }
 
     private static PasswordVisibilityController? CrearControl(
@@ -92,6 +95,17 @@ public partial class MiUsuarioView : UserControl
         vm.EstablecerConfirmar(box.Password);
         if (!vm.HayCoincidencia) MostrarMismatch(); else OcultarMismatch();
     }
+
+    // ── Ojos de mostrar/ocultar ─────────────────────────────────────────────────
+    // Los tres campos (ACTUAL, NUEVA y CONFIRMACIÓN) usan el mismo
+    // PasswordVisibilityController del login/UsuarioModal: intercambia
+    // PasswordBox ⇄ TextBox y sincroniza el texto, y los PasswordChanged de la
+    // caja canónica siguen empujando al VM. Decisión del usuario 2026-09-21:
+    // la ACTUAL también lleva ojo.
+
+    private void BtnVerActual_Click(object sender, RoutedEventArgs e)    => _ctlActual?.Toggle();
+    private void BtnVerNueva_Click(object sender, RoutedEventArgs e)     => _ctlNueva?.Toggle();
+    private void BtnVerConfirmar_Click(object sender, RoutedEventArgs e) => _ctlConfirmar?.Toggle();
 
     // ── Estado visual: medidor de fortaleza (lapsos 0..5) ──────────────────────
     private void PintarMedidor(int score)

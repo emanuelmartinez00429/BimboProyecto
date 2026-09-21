@@ -390,8 +390,26 @@
                             <Border Style="{StaticResource MiUsuarioBloque}">
                                 <StackPanel>
                                     <TextBlock Text="CONTRASEÑA ACTUAL" Style="{StaticResource MiUsuarioEtiqueta}"/>
-                                    <PasswordBox x:Name="TxtActual" Style="{StaticResource InputPassword}"
-                                                 Height="40" Margin="0,8,0,0"/>
+                                    <Grid Margin="0,8,0,0">
+                                        <PasswordBox x:Name="TxtActual" Style="{StaticResource InputPassword}"
+                                                     Height="40" Padding="0,0,44,0"/>
+                                        <TextBox x:Name="TxtActualVisible" Style="{StaticResource InputBox}"
+                                                 Visibility="Collapsed" Height="40" Padding="0,0,44,0"/>
+                                        <Button x:Name="BtnVerActual"
+                                                Width="40" Height="36"
+                                                HorizontalAlignment="Right" VerticalAlignment="Center"
+                                                Background="Transparent" BorderThickness="0"
+                                                Cursor="Hand" FocusVisualStyle="{x:Null}"
+                                                ToolTip="Mostrar u ocultar la contraseña actual"
+                                                AutomationProperties.Name="Mostrar u ocultar la contraseña actual"
+                                                Click="BtnVerActual_Click">
+                                            <Viewbox Width="18" Height="18">
+                                                <Canvas Width="24" Height="24">
+                                                    <Path Data="{StaticResource IconEyePassword}" Fill="#64748B"/>
+                                                </Canvas>
+                                            </Viewbox>
+                                        </Button>
+                                    </Grid>
                                 </StackPanel>
                             </Border>
 
@@ -400,8 +418,24 @@
                                 <StackPanel>
                                     <TextBlock Text="CONFIRMAR CONTRASEÑA" Style="{StaticResource MiUsuarioEtiqueta}"/>
                                     <Grid Margin="0,8,0,0">
-                                        <PasswordBox x:Name="TxtConfirmar" Style="{StaticResource InputPassword}" Height="40"/>
-                                        <TextBox x:Name="TxtConfirmarVisible" Style="{StaticResource InputBox}" Visibility="Collapsed" Height="40"/>
+                                        <PasswordBox x:Name="TxtConfirmar" Style="{StaticResource InputPassword}"
+                                                     Height="40" Padding="0,0,44,0"/>
+                                        <TextBox x:Name="TxtConfirmarVisible" Style="{StaticResource InputBox}"
+                                                 Visibility="Collapsed" Height="40" Padding="0,0,44,0"/>
+                                        <Button x:Name="BtnVerConfirmar"
+                                                Width="40" Height="36"
+                                                HorizontalAlignment="Right" VerticalAlignment="Center"
+                                                Background="Transparent" BorderThickness="0"
+                                                Cursor="Hand" FocusVisualStyle="{x:Null}"
+                                                ToolTip="Mostrar u ocultar la confirmación"
+                                                AutomationProperties.Name="Mostrar u ocultar la confirmación"
+                                                Click="BtnVerConfirmar_Click">
+                                            <Viewbox Width="18" Height="18">
+                                                <Canvas Width="24" Height="24">
+                                                    <Path Data="{StaticResource IconEyePassword}" Fill="#64748B"/>
+                                                </Canvas>
+                                            </Viewbox>
+                                        </Button>
                                     </Grid>
                                     <TextBlock x:Name="LblCoincidencia" Text="Las contraseñas no coinciden." FontSize="12"
                                                Foreground="#991B1B" Visibility="Collapsed" Margin="0,6,0,0"/>
@@ -430,8 +464,24 @@
                             <StackPanel>
                                 <TextBlock Text="NUEVA CONTRASEÑA" Style="{StaticResource MiUsuarioEtiqueta}"/>
                                 <Grid Margin="0,8,0,0">
-                                    <PasswordBox x:Name="TxtNueva" Style="{StaticResource InputPassword}" Height="40"/>
-                                    <TextBox x:Name="TxtNuevaVisible" Style="{StaticResource InputBox}" Visibility="Collapsed" Height="40"/>
+                                    <PasswordBox x:Name="TxtNueva" Style="{StaticResource InputPassword}"
+                                                 Height="40" Padding="0,0,44,0"/>
+                                    <TextBox x:Name="TxtNuevaVisible" Style="{StaticResource InputBox}"
+                                             Visibility="Collapsed" Height="40" Padding="0,0,44,0"/>
+                                    <Button x:Name="BtnVerNueva"
+                                            Width="40" Height="36"
+                                            HorizontalAlignment="Right" VerticalAlignment="Center"
+                                            Background="Transparent" BorderThickness="0"
+                                            Cursor="Hand" FocusVisualStyle="{x:Null}"
+                                            ToolTip="Mostrar u ocultar la nueva contraseña"
+                                            AutomationProperties.Name="Mostrar u ocultar la nueva contraseña"
+                                            Click="BtnVerNueva_Click">
+                                        <Viewbox Width="18" Height="18">
+                                            <Canvas Width="24" Height="24">
+                                                <Path Data="{StaticResource IconEyePassword}" Fill="#64748B"/>
+                                            </Canvas>
+                                        </Viewbox>
+                                    </Button>
                                 </Grid>
 
                                 <!-- Medidor de fortaleza: 5 barras + etiqueta, score de ReglasContrasena -->
