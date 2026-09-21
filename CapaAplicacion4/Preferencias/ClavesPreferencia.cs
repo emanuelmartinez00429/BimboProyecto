@@ -19,6 +19,13 @@ public static class ClavesPreferencia
     public const string PantallaInicio  = "pantalla_inicio";
     public const string RecordarFiltros = "recordar_filtros";
 
+    /// <summary>
+    /// Apodo personal con el que el sistema saluda al usuario («Bienvenido, Paco»).
+    /// Solo reemplaza el <b>nombre para mostrar</b>: nunca toca los datos reales del
+    /// empleado. Sin fila, el saludo vuelve al nombre completo real.
+    /// </summary>
+    public const string Apodo = "apodo";
+
     /// <summary>Ámbito por defecto: la preferencia no depende de la pantalla.</summary>
     public const string AmbitoGlobal = "global";
 

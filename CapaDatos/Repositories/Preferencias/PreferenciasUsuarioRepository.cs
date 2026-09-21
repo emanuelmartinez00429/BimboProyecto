@@ -7,6 +7,8 @@ using Newtonsoft.Json.Linq;
 using ServicioConexión.Conexion;
 using Supabase.Postgrest;
 
+using Op = Supabase.Postgrest.Constants.Operator;
+
 namespace CapaDatos.Repositories.Preferencias;
 
 /// <summary>
@@ -95,7 +97,14 @@ public sealed class PreferenciasUsuarioRepository : RepositorioBase, IPreferenci
             var client = await ConexionSupabase.GetClientAsync();
 
             await client.From<UsuarioPreferencia>()
-                .Where(x => x.idUsuario == idUsuario && x.clave == clave && x.ambito == ambito)
+                // .Filter() encadenados y NO `.Where(x => a && b && c)`: el traductor de
+                // expression-trees de Supabase.Postgrest 4.0.3 genera el árbol
+                // `((and.(a,b),c))` con 3+ términos — PGRST100 "failed to parse logic
+                // tree". Encadenar Filters es el patrón del resto del repo y cada
+                // término entra como AND separado en el query-string de PostgREST.
+                .Filter("id_usuario", Op.Equals, idUsuario.ToString())
+                .Filter("clave",      Op.Equals, clave)
+                .Filter("ambito",     Op.Equals, ambito)
                 .Delete(null, ct);
         }, "Eliminar preferencia del usuario");
 

@@ -632,6 +632,7 @@ namespace CapaUI.Formularios.Principal
 
         private void UserCard_Click(object sender, MouseButtonEventArgs e)
         {
+            // Único acceso a «Mi Usuario»: la tarjeta de usuario del sidebar.
             ClearActiveStates();
             _activeModuleId = Routes.MiUsuario;
             Vm.NavigateCommand.Execute(Routes.MiUsuario);
