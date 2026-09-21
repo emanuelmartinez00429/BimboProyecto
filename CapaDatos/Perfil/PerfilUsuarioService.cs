@@ -11,6 +11,8 @@ public class PerfilUsuarioService : IPerfilUsuarioService
 {
     private readonly IPreferenciasUsuarioRepository _preferencias;
 
+    public event Action? PerfilActualizado;
+
     // Registro del DI: addSingleton con este ctor; el repo de preferencias ya está registrado.
     public PerfilUsuarioService(IPreferenciasUsuarioRepository preferencias)
     {
@@ -34,9 +36,11 @@ public class PerfilUsuarioService : IPerfilUsuarioService
             string ini2     = apellido.Length > 0 ? apellido[0].ToString() : "";
             string iniciales = $"{ini1}{ini2}".ToUpper();
 
-            // Apodo personal (preferencia 'apodo', ámbito global): si el usuario definió
+            // Alias personal (preferencia 'apodo', ámbito global): si el usuario definió
             // uno, gana sobre el nombre real para el nombre para mostrar (saludo y
-            // tarjeta). Nunca reescribe nombreEmpleado/apellidoEmpleado.
+            // tarjeta). Nunca reescribe nombreEmpleado/apellidoEmpleado. Con ALIAS,
+            // las iniciales toman las iniciales del alias (hasta las dos primeras
+            // palabras) — el avatar refleja cómo te llama el sistema, no tu RRHH.
             string? apodo = null;
             var prefs = await _preferencias.ObtenerTodasAsync(idUsuario);
             if (prefs.Success)
@@ -45,6 +49,24 @@ public class PerfilUsuarioService : IPerfilUsuarioService
                 apodo = fila is null
                     ? null
                     : ValorPreferencia.Texto(fila.ValorJson, "").Trim() is { Length: > 0 } t ? t : null;
+            }
+
+            if (apodo is { Length: > 0 })
+            {
+                var palabras = apodo
+                    .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                    .Take(2)
+                    .ToArray();
+
+                if (palabras.Length > 0)
+                {
+                    iniciales = new string(palabras
+                        .Select(p => p[0])
+                        .ToArray())
+                        .ToUpperInvariant();
+
+                    if (iniciales.Length == 0) iniciales = "??";
+                }
             }
 
             PerfilActual = new PerfilUsuario
@@ -61,9 +83,15 @@ public class PerfilUsuarioService : IPerfilUsuarioService
                 NombreRol      = usuario.nombre_Rol,
                 Apodo          = apodo,
             };
+
+            PerfilActualizado?.Invoke();
         }
         catch { /* continúa con perfil null */ }
     }
 
-    public void Limpiar() => PerfilActual = null;
+    public void Limpiar()
+    {
+        PerfilActual = null;
+        PerfilActualizado?.Invoke();
+    }
 }

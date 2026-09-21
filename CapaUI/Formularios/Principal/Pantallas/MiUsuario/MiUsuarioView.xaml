@@ -188,7 +188,7 @@
                             <TextBlock Text="Perfil" Style="{StaticResource MiUsuarioTituloSeccion}"/>
                         </StackPanel>
                         <TextBlock Style="{StaticResource MiUsuarioSubtitulo}"
-                                   Text="Tus datos de cuenta. Lo que podés editar es solo tu apodo de saludo; el resto viene del registro de empleados."/>
+                                   Text="Tus datos de cuenta. Lo que podés editar es solo tu alias de saludo; el resto viene del registro de empleados."/>
 
                         <TextBlock Text="{Binding NombreCompleto}" FontSize="24" FontWeight="Bold"
                                    Foreground="#172033" TextTrimming="CharacterEllipsis" Margin="0,8,0,0"/>
@@ -213,10 +213,10 @@
                         <!-- Apodo personal: cómo te saluda el menú principal.
                              Preferencia propia (usuario_preferencias, clave 'apodo'):
                              vaciar el campo borra el apodo y vuelve al nombre real. -->
-                        <TextBlock Text="APODO DE SALUDO" Style="{StaticResource MiUsuarioEtiqueta}"
+                        <TextBlock Text="ALIAS DE SALUDO" Style="{StaticResource MiUsuarioEtiqueta}"
                                    Margin="0,18,0,0"/>
                         <TextBlock Style="{StaticResource MiUsuarioSubtitulo}" Margin="0"
-                                   Text="Con este nombre te saluda el menú principal. Vaciarlo vuelve a tu nombre completo real. Solo cambia cómo te llama el sistema, no tus datos."/>
+                                   Text="Con este nombre te saluda el menú principal. Vaciarlo vuelve a tu nombre completo real. Solo cambia cómo te llama el sistema, no tus datos. Hasta dos nombres (ej: Paco Pérez)."/>
 
                         <Grid Margin="0,10,0,0">
                             <Grid.ColumnDefinitions>
@@ -234,13 +234,13 @@
                                          ToolTip="Escribe cómo te saluda el sistema (opcional). Enter para guardar."/>
                             </Border>
 
-                            <Button Grid.Column="1" Content="Guardar apodo"
+                             <Button Grid.Column="1" Content="Guardar alias"
                                     Style="{StaticResource MiUsuarioBotonTexto}"
                                     Background="{DynamicResource EmpresaPrimaryBrush}" Foreground="White"
                                     Command="{Binding GuardarApodoCommand}"
                                     IsEnabled="{Binding HayCambioApodo}"
                                     VerticalAlignment="Center" Margin="12,0,0,0"
-                                    ToolTip="Guarda el apodo o borra la preferencia si lo dejaste vacío"/>
+                                     ToolTip="Guarda el alias o borra la preferencia si lo dejaste vacío"/>
                         </Grid>
 
                         <TextBlock Margin="0,8,0,0" FontSize="12.5" Foreground="#6B7280">

@@ -1073,13 +1073,13 @@
                                         </StackPanel>
                                     </StackPanel>
                                 </StackPanel>
-                                <Border BorderBrush="#0FFFFFFF" BorderThickness="0,1,0,0"
-                                        Margin="0,10,0,0" Padding="0,4,0,0">
-                                    <Grid>
-                                        <TextBlock Text="v1.0.0" Foreground="#66FFFFFF" FontSize="10" HorizontalAlignment="Left"/>
-                                        <TextBlock Text="© 2026"  Foreground="#66FFFFFF" FontSize="10" HorizontalAlignment="Right"/>
-                                    </Grid>
-                                </Border>
+                            <Border BorderBrush="#0FFFFFFF" BorderThickness="0,1,0,0"
+                                    Margin="0,10,0,0" Padding="0,4,0,0">
+                                <Grid>
+                                    <TextBlock Text="v1.0.0" Foreground="#66FFFFFF" FontSize="10" HorizontalAlignment="Left"/>
+                                    <TextBlock Text="© 2026" Foreground="#66FFFFFF" FontSize="10" HorizontalAlignment="Right"/>
+                                </Grid>
+                            </Border>
                             </StackPanel>
                         </Border>
 

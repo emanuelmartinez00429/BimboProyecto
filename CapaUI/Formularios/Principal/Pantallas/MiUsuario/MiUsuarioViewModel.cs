@@ -221,22 +221,30 @@ public sealed partial class MiUsuarioViewModel : ObservableObject, IDisposable
         var idUsuario = IdSesion();
         if (idUsuario is null)
         {
-            ApodoMensaje = "No hay una sesión activa; volvé a iniciar sesión para editar tu apodo.";
+            ApodoMensaje = "No hay una sesión activa; volvé a iniciar sesión para editar tu alias.";
             return;
         }
 
         var apodo = ApodoEditable.Trim();
 
-        // Validación de forma: una preferencia es texto cortito, no una biografía.
+        // Validation rule: a preference is a short chunk of text, not a biography (limit of the CHECK).
         if (apodo.Length > 64)
         {
-            ApodoMensaje = "El apodo puede tener hasta 64 caracteres.";
+            ApodoMensaje = "El alias puede tener hasta 64 caracteres.";
+            return;
+        }
+
+        // New rule requested by the user: at most TWO names ("Paco", "Paco Pérez").
+        // A trim is done to not penalize double spaces between names.
+        if (apodo.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length > 2)
+        {
+            ApodoMensaje = "El alias puede tener hasta dos nombres (ej: Paco Pérez).";
             return;
         }
 
         if (apodo.Length > 0 && apodo == _apodoGuardado)
         {
-            ApodoMensaje = "Ese apodo ya está guardado.";
+            ApodoMensaje = "Ese alias ya está guardado.";
             return;
         }
 
@@ -256,14 +264,14 @@ public sealed partial class MiUsuarioViewModel : ObservableObject, IDisposable
         _apodoGuardado = apodo;
 
         // Refresca el perfil singleton: el saludo del menú principal lee
-        // PerfilActual.NombreCompleto, que con apodo ya lo pisa.
+        // PerfilActual.NombreCompleto, que con alias ya lo pisa.
         await _perfil.CargarAsync(idUsuario.Value);
         if (_perfil.PerfilActual is { } fresco)
             NombreCompleto = fresco.NombreCompleto;
 
         ApodoMensaje = apodo.Length == 0
-            ? "Apodo borrado: el saludo vuelve a usar tu nombre real."
-            : "Apodo guardado.";
+            ? "Alias borrado: el saludo vuelve a usar tu nombre real."
+            : "Alias guardado.";
     }
 
     /// <summary>Id del usuario logueado, o <c>null</c> sin sesión (apodo no editable).</summary>

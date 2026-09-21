@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel;
 using System.Globalization;
+using System.Windows;
 using System.Windows.Controls;
 using CapaAplicacion.Perfil;
 using Microsoft.Extensions.DependencyInjection;
@@ -28,9 +29,11 @@ namespace CapaUI.Formularios.Principal.Pantallas
                 .ToString("dddd, d 'de' MMMM 'de' yyyy", new CultureInfo("es-MX"))
                 .ToUpper();
 
+            // Se muestra el ALIAS COMPLETO (hasta dos nombres) del perfil fresco —
+            // el mismo valor que usa la tarjeta del sidebar; sin recortar al
+            // primer nombre. Si no hay alias, es el nombre real completo.
             var perfil = App.Services.GetRequiredService<IPerfilUsuarioService>();
-            var nombre = perfil.PerfilActual?.NombreCompleto ?? "";
-            RunNombre.Text = nombre.Split(' ')[0];
+            RunNombre.Text = perfil.PerfilActual?.NombreCompleto ?? "";
         }
     }
 }

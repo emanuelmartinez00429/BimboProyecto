@@ -68,9 +68,16 @@ namespace CapaUI.Formularios.Principal
         }
 
         // ── Info de usuario ──────────────────────────────────────────────
-        public string NombreUsuario => _sesionService.SesionActual?.NombreCompleto
+        // Se lee del SERVICIO DE PERFIL (no de la sesión congelada al login): así la
+        // tarjeta del sidebar refleja el alias al momento de guardarlo — el service
+        // dispara PerfilActualizado tras cada CargarAsync y este VM notifica.
+        private readonly CapaAplicacion.Perfil.IPerfilUsuarioService? _perfilService;
+
+        public string NombreUsuario => _perfilService?.PerfilActual?.NombreCompleto
+                                       ?? _sesionService.SesionActual?.NombreCompleto
                                        ?? _sesionService.SesionActual?.Email ?? "";
-        public string Iniciales     => _sesionService.SesionActual?.Iniciales ?? "??";
+        public string Iniciales     => _perfilService?.PerfilActual?.Iniciales
+                                       ?? _sesionService.SesionActual?.Iniciales ?? "??";
         public string NombreRol     => _sesionService.SesionActual?.NombreRol  ?? "";
 
         // ── Visibilidad de módulos ───────────────────────────────────────
@@ -91,13 +98,19 @@ namespace CapaUI.Formularios.Principal
         public MainViewModel(IUsuarioSesionService sesionService,
                              UniversalSearchViewModel searchVm,
                              IConexionMonitor conexionMonitor,
-                             NotificacionesViewModel notificaciones)
+                             NotificacionesViewModel notificaciones,
+                             CapaAplicacion.Perfil.IPerfilUsuarioService perfilService)
         {
             _sesionService = sesionService;
             _searchVm      = searchVm;
             Notificaciones = notificaciones;
             Notificaciones.NavegacionService = this;
             _searchVm.ResultSelected += OnResultadoBusquedaSeleccionado;
+            _perfilService = perfilService;
+
+            // Nombre/imágenes del sidebar vivos: cuando el service re-carga el perfil
+            // (p. ej. al guardar el alias en Mi Usuario) la tarjeta se redibuja sola.
+            _perfilService.PerfilActualizado += OnPerfilActualizado;
 
             _conexionMonitor = conexionMonitor;
             _conectividad    = _conexionMonitor.Estado;   // estado actual al construir
@@ -260,6 +273,15 @@ namespace CapaUI.Formularios.Principal
         [RelayCommand]
         private void CerrarSesion() => CierreRequerido?.Invoke(this, EventArgs.Empty);
 
+        // ── Compat: refresco de la info de usuario con perfil ─────────────
+        private void OnPerfilActualizado()
+        {
+            // La tarjeta del sidebar (expandida y compacta) redibuja su nombre e
+            // iniciales sin esperar el próximo login.
+            OnPropertyChanged(nameof(NombreUsuario));
+            OnPropertyChanged(nameof(Iniciales));
+        }
+
         // ── IDisposable ─────────────────────────────────────────────────
         public void Dispose()
         {
@@ -268,6 +290,7 @@ namespace CapaUI.Formularios.Principal
 
             // Desuscribir del monitor de conexión (singleton — no debe retener este VM)
             _conexionMonitor.EstadoCambiado -= OnEstadoConexionCambiado;
+            _perfilService?.PerfilActualizado -= OnPerfilActualizado;
 
             // Disponer la vista actual (si es IDisposable)
             (VistaActual as IDisposable)?.Dispose();
