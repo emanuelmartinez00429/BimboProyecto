@@ -28,6 +28,20 @@ Tabla ordenada por **fecha descendente** (más reciente primero), paginada 50/p�
 
 Un solo chip de stats: **TOTAL** — la bitácora no tiene concepto de activo/inactivo, así que no aplica el trío TOTAL/ACTIVOS/INACTIVOS de los demás módulos.
 
+## Detalle de un registro
+
+Desde 2026-09-21, un doble clic izquierdo sobre una fila válida abre `BitacoraDetalleModal` dentro del overlay de la pantalla. El modal es de solo lectura y recibe directamente el `BitacoraDto` enlazado a la fila; no reconstruye valores desde las celdas ni vuelve a consultar Supabase.
+
+`BitacoraDetalle.CrearCampos` es la proyección compartida por el modal y el reporte individual. Presenta etiquetas administrativas y los valores disponibles del registro:
+
+- registro de bitácora, fecha/hora, usuario, módulo y acción;
+- campo afectado, estado anterior y detalle actual;
+- información adicional, origen y referencia del registro.
+
+La fecha conserva `dd/MM/yyyy HH:mm`; cualquier texto nulo, vacío o referencia no positiva se muestra como **Sin información**. El contenido extenso usa ajuste de línea y desplazamiento vertical.
+
+La apertura es defensiva: no responde sobre encabezados, espacios vacíos, filas sin `BitacoraDto` ni controles interactivos internos. Si ya hay un overlay o detalle abierto, no crea otra instancia. El clic simple, la selección múltiple, el arrastre, los filtros, la búsqueda y la paginación mantienen su flujo anterior. Al cerrar con **Regresar** o `×`, se conserva la selección y el foco vuelve a la fila que abrió el detalle.
+
 ## Filtros
 
 Todos combinables y aplicados **server-side** (importante: la tabla crece a miles de registros):
@@ -47,12 +61,14 @@ Buscador de texto libre (`SuggestionSearchBox`, igual que los demás módulos) s
 ```
 CapaDatos/Modelados/Usuarios/Bitacora.cs        — modelo Supabase + embeds usuarios/acciones/modulos
 CapaAplicacion4/Bitacora/
+  BitacoraDetalle.cs                          — etiquetas, orden, formato y fallback compartidos
   Dtos/BitacoraDto.cs
   Queries/BitacoraFiltros.cs                    — IdUsuario, IdModulo, IdAccion, FechaDesde, FechaHasta
   Interfaces/IBitacoraRepository.cs             — SOLO lectura + lookups de dropdowns
 CapaDatos/Repositories/Bitacora/BitacoraCrudRepository.cs
 CapaUI/.../Pantallas/Bitacora/BitacoraViewModel.cs
 CapaUI/.../Pantallas/Bitacora/BitacoraView.xaml(.cs)
+CapaUI/.../Pantallas/Bitacora/BitacoraDetalleModal.xaml(.cs)
 ```
 
 ## Reportes de filas seleccionadas
@@ -71,6 +87,14 @@ El flujo es transaccional desde la perspectiva de entrega del archivo:
 4. Solo si la RPC devuelve un entero positivo se mueve el temporal al nombre definitivo. Si falla, se elimina el temporal y se muestra el error.
 
 La generación del reporte **no crea una entrada nueva en `bitacora` desde la UI**; registra el reporte exclusivamente mediante la RPC indicada. La selección se limita a la página actual y se limpia al cambiar de página o recargar filtros.
+
+### Reporte individual desde el detalle
+
+**Imprimir reporte** reutiliza `FormatoReporteModal`; no existe un segundo selector de PDF/Excel. El botón conserva el permiso `Generar Reporte`, que se vuelve a validar antes de abrir el selector y antes de generar, por si la sesión perdió autorización.
+
+El reporte contiene exclusivamente el `BitacoraDto` abierto y usa los mismos pares **CAMPO → VALOR** del modal. `TabularReportDto.RecordCount = 1` mantiene el conteo semántico aunque un registro ocupe varias filas; `Landscape = false` produce el PDF en A4 vertical y `ReportColumnDto.WidthCm` asigna anchos legibles a las dos columnas. Los valores largos se ajustan en PDF y Excel.
+
+Después de escoger formato se solicita la ruta. Cancelar el selector o el diálogo de guardado restaura el detalle sin exportar. Si la generación o la auditoría falla, el error se muestra dentro del modal, que permanece abierto; el archivo temporal se elimina mediante el flujo transaccional existente. El reporte exitoso se registra mediante `ingresar_reporte_tabla_bitacora` y luego se abre con la asociación del sistema.
 
 ## Contrato de texto legible
 
@@ -103,7 +127,7 @@ BimboProyecto.Tests/Reportes/ReportStrategyTests.cs
 |---|---|---|
 | Orden | `id_xxx` ASC | `fecha_hora` **DESC** |
 | Comandos CRUD | Nuevo / Editar / Cambiar Estado | **ninguno** |
-| Modal | Sí | solo selector de formato para reportes; no existe modal CRUD |
+| Modal | Sí | detalle de solo lectura + selector de formato; no existe modal CRUD |
 | Filtro de estado | Segmentado Activos/Inactivos/Todos | no existe (sin columna de estado) |
 | Stats | TOTAL / ACTIVOS / INACTIVOS | solo TOTAL |
 | `Seleccionado` | dispara Editar | solo resalta la fila al elegir sugerencia |
@@ -123,5 +147,6 @@ Los registros ya cargados en producción vienen con formato dispar: `tabla_afect
 - [[ADR-006 - Motor de Reportes y Exportación]]
 - [[Sesión 2026-09-02 - Selección avanzada de filas en Bitácora]]
 - [[Sesión 2026-09-18 - Auditoría legible y parámetros de reportes en texto]]
+- [[Sesión 2026-09-21 - Detalle de Bitácora por doble clic y reporte individual]]
 - [[Sesión 2026-08-16 - Reportes PDF y Excel desde Bitácora]]
 - [[Sesión 2026-07-26 - Módulo Bitácora (auditoría, solo lectura)]]

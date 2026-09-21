@@ -5,8 +5,8 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:permisos="clr-namespace:CapaUI.Core.Permisos"
              mc:Ignorable="d"
-             Width="760" Height="640"
-             d:DesignWidth="760" d:DesignHeight="640"
+             Width="720" Height="660"
+             d:DesignWidth="720" d:DesignHeight="660"
              UseLayoutRounding="True"
              TextOptions.TextRenderingMode="Auto"
              Focusable="True">
@@ -20,58 +20,133 @@
 
     <Grid>
         <!-- Sombra desacoplada del contenido desplazable. -->
-        <Border Background="White" CornerRadius="12">
+        <Border Background="#162E66" CornerRadius="14">
             <Border.Effect>
-                <DropShadowEffect Color="Black" BlurRadius="24" ShadowDepth="8" Opacity="0.35"/>
+                <DropShadowEffect Color="Black" BlurRadius="28" ShadowDepth="10" Opacity="0.45"/>
             </Border.Effect>
         </Border>
 
-        <Border Background="White" CornerRadius="12" BorderBrush="#D8E1EC" BorderThickness="1"
+        <Border CornerRadius="14" BorderBrush="#254B99" BorderThickness="1"
                 RenderOptions.ClearTypeHint="Enabled" ClipToBounds="True">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                    <GradientStop Color="#1A387E" Offset="0"/>
+                    <GradientStop Color="#142A63" Offset="1"/>
+                </LinearGradientBrush>
+            </Border.Background>
             <Grid>
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <Border Grid.Row="0" Background="{DynamicResource EmpresaPrimaryBrush}" Padding="24,18">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <StackPanel>
-                        <TextBlock Text="Detalle del registro de bitácora" FontFamily="Segoe UI"
-                                   FontSize="23" FontWeight="Bold" Foreground="White"/>
-                        <TextBlock Text="Información de auditoría en modo de solo lectura"
-                                   FontFamily="Segoe UI" FontSize="13.5" Foreground="#DDEBFF" Margin="0,4,0,0"/>
-                    </StackPanel>
-                    <Button x:Name="BtnCerrar" Grid.Column="1" Content="×" Width="36" Height="36"
-                            Margin="16,0,0,0" VerticalAlignment="Top" FontSize="24" FontWeight="SemiBold"
-                            Foreground="White" Background="Transparent" BorderThickness="0"
-                            Cursor="Hand" ToolTip="Cerrar" Click="BtnRegresar_Click"/>
-                </Grid>
+                <!-- ROW 0: HEADER -->
+                <Border Grid.Row="0" Padding="24,20,24,14">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <!-- Icono de documento/auditoría -->
+                            <Border Width="44" Height="44" CornerRadius="10"
+                                    Background="#1E3E85" BorderBrush="#3B6FCE" BorderThickness="1">
+                                <Path Stretch="Uniform" Width="20" Height="20"
+                                      Fill="White"
+                                      Data="M14,2 H6 A2,2 0 0,0 4,4 V20 A2,2 0 0,0 6,22 H18 A2,2 0 0,0 20,20 V8 Z M13,3.5 L18.5,9 H13 Z M8,12 H16 V13.5 H8 Z M8,15 H16 V16.5 H8 Z M8,18 H13 V19.5 H8 Z"
+                                      VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                            </Border>
+
+                            <StackPanel Margin="14,0,0,0" VerticalAlignment="Center">
+                                <TextBlock Text="AUDITORÍA DEL SISTEMA" FontFamily="Segoe UI"
+                                           FontSize="11.5" FontWeight="Bold" Foreground="#8FB7F5"/>
+                                <TextBlock Text="Detalle del registro de bitácora" FontFamily="Segoe UI"
+                                           FontSize="20" FontWeight="Bold" Foreground="White" Margin="0,2,0,0"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <!-- Botón Cerrar (x) -->
+                        <Button x:Name="BtnCerrar" Grid.Column="1" Width="36" Height="36"
+                                VerticalAlignment="Center" Cursor="Hand" ToolTip="Cerrar"
+                                Click="BtnRegresar_Click">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border x:Name="BdCerrar" Background="#1E3E85" BorderBrush="#3B6FCE"
+                                            BorderThickness="1" CornerRadius="8">
+                                        <TextBlock Text="&#x2715;" FontSize="13" FontWeight="Bold"
+                                                   Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="BdCerrar" Property="Background" Value="#254FA8"/>
+                                            <Setter TargetName="BdCerrar" Property="BorderBrush" Value="#60A5FA"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                    </Grid>
                 </Border>
 
-                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto"
-                              HorizontalScrollBarVisibility="Disabled" Padding="24,20">
+                <!-- ROW 1: HERO CARD -->
+                <Border Grid.Row="1" Margin="24,0,24,14" Background="#1B3777"
+                        BorderBrush="#10B981" BorderThickness="3.5,0,0,0"
+                        CornerRadius="8" Padding="18,14">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Izquierda: Registro y número #ID en verde -->
+                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                            <TextBlock Text="REGISTRO DE BITÁCORA" FontFamily="Segoe UI"
+                                       FontSize="11" FontWeight="Bold" Foreground="#8FB7F5"/>
+                            <TextBlock x:Name="TxtRegistroId" Text="#0" FontFamily="Segoe UI"
+                                       FontSize="24" FontWeight="Bold" Foreground="#10B981" Margin="0,2,0,0"/>
+                        </StackPanel>
+
+                        <!-- Derecha: Fecha/Hora y Badge del módulo -->
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                            <StackPanel VerticalAlignment="Center" Margin="0,0,14,0">
+                                <TextBlock Text="FECHA / HORA" FontFamily="Segoe UI"
+                                           FontSize="10.5" FontWeight="Bold" Foreground="#8FB7F5"
+                                           HorizontalAlignment="Right"/>
+                                <TextBlock x:Name="TxtFechaHora" Text="Sin información" FontFamily="Segoe UI"
+                                           FontSize="14" FontWeight="Bold" Foreground="White"
+                                           HorizontalAlignment="Right" Margin="0,2,0,0"/>
+                            </StackPanel>
+
+                            <Border Background="#214A9E" BorderBrush="#3B74D8" BorderThickness="1"
+                                    CornerRadius="5" Padding="10,4" VerticalAlignment="Center">
+                                <TextBlock x:Name="TxtModuloBadge" Text="SISTEMA" FontFamily="Segoe UI"
+                                           FontSize="11.5" FontWeight="Bold" Foreground="White"/>
+                            </Border>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- ROW 2: LISTA DE CAMPOS -->
+                <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Disabled" Padding="24,0,24,8">
                     <ItemsControl ItemsSource="{Binding}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <Border BorderBrush="#E2E8F0" BorderThickness="0,0,0,1" Padding="0,11">
+                                <Border BorderBrush="#1C3877" BorderThickness="0,0,0,1" Padding="0,11">
                                     <Grid>
                                         <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="190"/>
-                                            <ColumnDefinition Width="18"/>
+                                            <ColumnDefinition Width="220"/>
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
                                         <TextBlock Grid.Column="0" Text="{Binding Etiqueta}" FontFamily="Segoe UI"
-                                                   FontSize="12.5" FontWeight="Bold" Foreground="#64748B"
+                                                   FontSize="11.5" FontWeight="Bold" Foreground="#8FB7F5"
                                                    TextWrapping="Wrap" VerticalAlignment="Top"/>
-                                        <TextBlock Grid.Column="2" Text="{Binding Valor}" FontFamily="Segoe UI"
-                                                   FontSize="14.5" Foreground="#1A1F2E" TextWrapping="Wrap"
-                                                   VerticalAlignment="Top"/>
+                                        <TextBlock Grid.Column="1" Text="{Binding Valor}" FontFamily="Segoe UI"
+                                                   FontSize="14" FontWeight="Medium" Foreground="White"
+                                                   TextWrapping="Wrap" VerticalAlignment="Top"/>
                                     </Grid>
                                 </Border>
                             </DataTemplate>
@@ -79,27 +154,89 @@
                     </ItemsControl>
                 </ScrollViewer>
 
-                <Border Grid.Row="2" Background="#F8FAFC" Padding="24,16">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-                    <Border x:Name="ErrorPanel" Grid.Row="0" Background="#FEF2F2" CornerRadius="7"
-                            BorderBrush="#FECACA" BorderThickness="1" Padding="12,9"
-                            Margin="0,0,0,12" Visibility="Collapsed">
-                        <TextBlock x:Name="ErrorText" FontFamily="Segoe UI" FontSize="13.5"
-                                   Foreground="#B91C1C" TextWrapping="Wrap"/>
-                    </Border>
-                    <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right">
-                        <Button x:Name="BtnRegresar" Content="Regresar" Style="{StaticResource ActionBtn}"
-                                Background="{DynamicResource EmpresaPrimaryDarkBrush}"
-                                Padding="20,0" Margin="0,0,10,0" Click="BtnRegresar_Click"/>
-                        <Button x:Name="BtnImprimir" Content="Imprimir reporte" Style="{StaticResource ActionBtn}"
-                                Background="#16A34A" Padding="20,0" Click="BtnImprimir_Click"
-                                permisos:PermisoBehavior.Requiere="Generar Reporte"/>
-                    </StackPanel>
-                </Grid>
+                <!-- ROW 3: FOOTER -->
+                <Border Grid.Row="3" Background="#11234F" BorderBrush="#1B3877" BorderThickness="0,1,0,0" Padding="24,14">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- ErrorPanel -->
+                        <Border x:Name="ErrorPanel" Grid.Row="0" Background="#451A1A" CornerRadius="7"
+                                BorderBrush="#B91C1C" BorderThickness="1" Padding="12,9"
+                                Margin="0,0,0,12" Visibility="Collapsed">
+                            <TextBlock x:Name="ErrorText" FontFamily="Segoe UI" FontSize="13.5"
+                                       Foreground="#FCA5A5" TextWrapping="Wrap"/>
+                        </Border>
+
+                        <!-- Barra inferior: Información de solo lectura + Botones -->
+                        <Grid Grid.Row="1">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                                <!-- Icono Candado -->
+                                <Path Stretch="Uniform" Width="13" Height="13" Fill="#8FB7F5" Margin="0,0,8,0"
+                                      VerticalAlignment="Center"
+                                      Data="M12,2 A4,4 0 0,0 8,6 V8 H7 A2,2 0 0,0 5,10 V20 A2,2 0 0,0 7,22 H17 A2,2 0 0,0 19,20 V10 A2,2 0 0,0 17,8 H16 V6 A4,4 0 0,0 12,2 Z M10,6 A2,2 0 0,1 14,6 V8 H10 V6 Z M12,13 A2,2 0 0,1 14,15 C14,15.74 13.6,16.38 13,16.72 V19 H11 V16.72 C10.4,16.38 10,15.74 10,15 A2,2 0 0,1 12,13 Z"/>
+                                <TextBlock Text="Información en modo de solo lectura" FontFamily="Segoe UI"
+                                           FontSize="12" Foreground="#8FB7F5" VerticalAlignment="Center"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                <!-- Botón Regresar -->
+                                <Button x:Name="BtnRegresar" Content="Regresar" Height="38" Padding="22,0"
+                                        Margin="0,0,10,0" Cursor="Hand" Click="BtnRegresar_Click">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border x:Name="BdRegresar" Background="#1D3B7D" BorderBrush="#3B71D0"
+                                                    BorderThickness="1" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                                                <TextBlock Text="{TemplateBinding Content}" FontFamily="Segoe UI"
+                                                           FontSize="13.5" FontWeight="SemiBold" Foreground="White"
+                                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="BdRegresar" Property="Background" Value="#254EA4"/>
+                                                    <Setter TargetName="BdRegresar" Property="BorderBrush" Value="#60A5FA"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
+
+                                <!-- Botón Imprimir reporte -->
+                                <Button x:Name="BtnImprimir" Height="38" Padding="18,0"
+                                        Cursor="Hand" Click="BtnImprimir_Click"
+                                        permisos:PermisoBehavior.Requiere="Generar Reporte">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border x:Name="BdImprimir" Background="#16A34A" BorderBrush="#22C55E"
+                                                    BorderThickness="1" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                    <Path Stretch="Uniform" Width="14" Height="14" Fill="White" Margin="0,0,8,0"
+                                                          VerticalAlignment="Center"
+                                                          Data="M6,2 H18 V6 H6 Z M6,14 H4 A2,2 0 0,1 2,12 V9 A2,2 0 0,1 4,7 H20 A2,2 0 0,1 22,9 V12 A2,2 0 0,1 20,14 H18 V19 H6 Z M8,12 H16 V17 H8 Z M17,9.5 A1,1 0 1,0 19,9.5 A1,1 0 1,0 17,9.5 Z"/>
+                                                    <TextBlock Text="Imprimir reporte" FontFamily="Segoe UI"
+                                                               FontSize="13.5" FontWeight="Bold" Foreground="White"
+                                                               VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="BdImprimir" Property="Background" Value="#15803D"/>
+                                                    <Setter TargetName="BdImprimir" Property="BorderBrush" Value="#4ADE80"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
+                            </StackPanel>
+                        </Grid>
+                    </Grid>
                 </Border>
             </Grid>
         </Border>

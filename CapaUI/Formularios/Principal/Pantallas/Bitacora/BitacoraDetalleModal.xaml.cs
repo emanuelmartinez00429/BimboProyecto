@@ -12,6 +12,10 @@ public partial class BitacoraDetalleModal : UserControl
     public event Action? Cerrado;
     public event Action<BitacoraDto>? ImprimirSolicitado;
 
+    public string RegistroId { get; private set; } = string.Empty;
+    public string FechaHoraTexto { get; private set; } = string.Empty;
+    public string ModuloBadge { get; private set; } = string.Empty;
+
     public BitacoraDetalleModal()
     {
         InitializeComponent();
@@ -21,7 +25,15 @@ public partial class BitacoraDetalleModal : UserControl
     public BitacoraDetalleModal(BitacoraDto registro) : this()
     {
         _registro = registro ?? throw new ArgumentNullException(nameof(registro));
-        DataContext = BitacoraDetalle.CrearCampos(registro);
+        RegistroId = $"#{registro.IdBitacora}";
+        FechaHoraTexto = registro.FechaHora?.ToString("dd/MM/yyyy HH:mm") ?? BitacoraDetalle.SinInformacion;
+        ModuloBadge = string.IsNullOrWhiteSpace(registro.NombreModulo) ? "SISTEMA" : registro.NombreModulo.ToUpperInvariant();
+
+        TxtRegistroId.Text = RegistroId;
+        TxtFechaHora.Text = FechaHoraTexto;
+        TxtModuloBadge.Text = ModuloBadge;
+
+        DataContext = BitacoraDetalle.CrearCamposSinHero(registro);
     }
 
     public void MostrarError(string? mensaje)

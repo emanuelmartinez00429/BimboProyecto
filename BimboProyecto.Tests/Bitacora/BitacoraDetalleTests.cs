@@ -50,6 +50,27 @@ public sealed class BitacoraDetalleTests
         Assert.Equal(BitacoraDetalle.SinInformacion, Valor(campos, "REFERENCIA DEL REGISTRO"));
     }
 
+    [Fact]
+    public void CrearCamposSinHero_OmiteRegistroYFechaHora()
+    {
+        var registro = new BitacoraDto
+        {
+            IdBitacora = 705,
+            FechaHora = new DateTime(2026, 9, 20, 22, 56, 0),
+            AliasUsuario = "fbarahona280@gmail.com",
+            NombreModulo = "Pesaje",
+            NombreAccion = "Registrar Entrada",
+        };
+
+        var campos = BitacoraDetalle.CrearCamposSinHero(registro);
+
+        Assert.DoesNotContain(campos, c => c.Etiqueta == "REGISTRO DE BITÁCORA");
+        Assert.DoesNotContain(campos, c => c.Etiqueta == "FECHA / HORA");
+        Assert.Equal("fbarahona280@gmail.com", Valor(campos, "USUARIO"));
+        Assert.Equal("Pesaje", Valor(campos, "MÓDULO"));
+        Assert.Equal(9, campos.Count);
+    }
+
     private static string Valor(IReadOnlyList<BitacoraDetalleCampo> campos, string etiqueta) =>
         Assert.Single(campos, c => c.Etiqueta == etiqueta).Valor;
 }

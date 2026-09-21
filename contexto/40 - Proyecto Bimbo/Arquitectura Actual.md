@@ -10,6 +10,9 @@ aliases:
 
 # Arquitectura Actual — Bimbo
 
+> [!success] Actualizado 2026-09-21 — Detalle de Bitácora por doble clic y reporte individual
+> Un doble clic izquierdo sobre una fila real de Bitácora abre `BitacoraDetalleModal`, de solo lectura, usando el `BitacoraDto` enlazado y sin consultar nuevamente Supabase. La proyección `BitacoraDetalle` concentra etiquetas amigables, formato `dd/MM/yyyy HH:mm` y fallback `Sin información`; la misma proyección alimenta un PDF/Excel individual desde el selector de formato existente. Encabezados, espacios vacíos y controles interactivos no abren el detalle; se evita duplicar el modal y al cerrar se restaura el foco en la fila. La exportación conserva `Generar Reporte`, la auditoría previa y el archivo temporal del flujo existente. Ver [[Sesión 2026-09-21 - Detalle de Bitácora por doble clic y reporte individual]].
+
 > [!success] Actualizado 2026-09-21 — Configuración valida el código RBAC estable antes de guardar
 > `EmpresaRepository` dejó de comparar la etiqueta visible `Modificar Configuración` contra la sesión, que almacena códigos de acción, y ahora exige `CONFIGURACION_MODIFICAR`. La autorización sigue siendo doble: validación local con `IUsuarioSesionService` y RLS de Supabase para `public.empresa` y `storage.objects`. Una prueba de regresión fija este contrato. Ver [[Sesión 2026-09-21 - Corrección RBAC al guardar Configuración de empresa]].
 

@@ -32,6 +32,26 @@ public static class BitacoraDetalle
         ];
     }
 
+    public static IReadOnlyList<BitacoraDetalleCampo> CrearCamposSinHero(BitacoraDto registro)
+    {
+        ArgumentNullException.ThrowIfNull(registro);
+
+        return
+        [
+            new("USUARIO", Valor(registro.AliasUsuario)),
+            new("MÓDULO", Valor(registro.NombreModulo)),
+            new("ACCIÓN", Valor(registro.NombreAccion)),
+            new("CAMPO AFECTADO", Valor(registro.CampoAfectado)),
+            new("ESTADO ANTERIOR", Valor(registro.EstadoAnterior)),
+            new("DETALLE", Valor(registro.EstadoActual)),
+            new("INFORMACIÓN ADICIONAL", Valor(registro.CampoExtra)),
+            new("ORIGEN DEL REGISTRO", Valor(registro.TablaAfectada)),
+            new("REFERENCIA DEL REGISTRO", registro.IdRegistroAfectado is > 0
+                ? registro.IdRegistroAfectado.Value.ToString()
+                : SinInformacion),
+        ];
+    }
+
     private static string Valor(string? valor) =>
         string.IsNullOrWhiteSpace(valor) ? SinInformacion : valor.Trim();
 }
