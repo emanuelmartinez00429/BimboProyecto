@@ -4,6 +4,7 @@ using CapaAplicacion;
 using CapaAplicacion.Usuarios.Interfaces;
 using CapaDatos;
 using CapaUI.Core.Permisos;
+using CapaUI.Services.Sesion;
 using CapaUI.Formularios.InicioSesion;
 using CapaUI.Formularios.Principal;
 using CapaUI.Formularios.Principal.Pantallas.Bitacora;
@@ -117,6 +118,10 @@ namespace CapaUI
             // Scoped y no Singleton: la escala es del usuario de la sesión, así que muere
             // con el scope de sesión igual que el resto del estado de la sesión.
             services.AddScoped<IEscalaService, EscalaService>();
+
+            // Timeout por inactividad (Fase 4.1): scoped para que el estado (timer,
+            // último input, minutos) muera con la sesión y no sobreviva a un logout.
+            services.AddScoped<ISesionInactividadService, SesionInactividadService>();
             services.AddSingleton<LogoEmpresaCache>();
             services.AddSingleton<IconoSidebarCache>();
             services.AddTransient<UniversalSearchViewModel>();

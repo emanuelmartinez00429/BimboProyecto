@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
 using CapaUI.Core.Controls;
@@ -106,6 +107,43 @@ public partial class MiUsuarioView : UserControl
     private void BtnVerActual_Click(object sender, RoutedEventArgs e)    => _ctlActual?.Toggle();
     private void BtnVerNueva_Click(object sender, RoutedEventArgs e)     => _ctlNueva?.Toggle();
     private void BtnVerConfirmar_Click(object sender, RoutedEventArgs e) => _ctlConfirmar?.Toggle();
+
+    // ── Teclado: Enter = ejecutar, Tab = bajar ──────────────────────────────────
+    // El orden de Tab lo fija TabIndex en el XAML (ACTUAL 10 → NUEVA 20 →
+    // CONFIRMAR 30, ojo después de cada caja). Enter en el apodo guarda; Enter en
+    // cualquier campo de contraseña intenta el cambio si el formulario está completo.
+
+    /// <summary>Enter en el apodo ejecuta GuardarApodoCommand.</summary>
+    private void TxtApodo_KeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key != Key.Enter) return;
+
+        e.Handled = true;
+        // El TextBox visible tiene UpdateSourceTrigger=PropertyChanged, así que
+        // el VM ya tiene el texto final antes del guardado.
+        (DataContext as MiUsuarioViewModel)?.GuardarApodoCommand.Execute(null);
+    }
+
+    /// <summary>Enter en ACTUAL/NUEVA/CONFIRMAR intenta el cambio si la forma está completa.</summary>
+    private void Contrasena_KeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key != Key.Enter) return;
+
+        var vm = DataContext as MiUsuarioViewModel;
+        if (vm is null || !vm.PuedeEnviarCambio) return;
+
+        e.Handled = true;
+        vm.CambiarContrasenaCommand.Execute(null);
+    }
+
+    /// <summary>Enter en el campo de minutos guarda el timeout por inactividad.</summary>
+    private void TxtMinutos_KeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key != Key.Enter) return;
+
+        e.Handled = true;
+        (DataContext as MiUsuarioViewModel)?.GuardarTimeoutCommand.Execute(null);
+    }
 
     // ── Estado visual: medidor de fortaleza (lapsos 0..5) ──────────────────────
     private void PintarMedidor(int score)

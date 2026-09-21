@@ -20,6 +20,7 @@ using CapaUI.Core.Permisos;
 using CapaUI.Formularios.Principal.Pantallas.Configuracion;
 using CapaUI.Navigation;
 using CapaUI.Services.Escala;
+using CapaUI.Services.Sesion;
 using Microsoft.Extensions.DependencyInjection;
 using WpfColor = System.Windows.Media.Color;
 using WpfColorConverter = System.Windows.Media.ColorConverter;
@@ -40,6 +41,7 @@ namespace CapaUI.Formularios.Principal
         private readonly ICacheService              _cache;
         private readonly IInvalidadorCacheRealtime  _invalidadorCache;
         private readonly IEscalaService             _escala;
+        private readonly ISesionInactividadService  _inactividad;
 
         // ── Medidas base para WM_GETMINMAXINFO (Fase 9) ───────────────────
         private readonly double _baseMinWidth;
@@ -141,9 +143,11 @@ namespace CapaUI.Formularios.Principal
                           IRealtimeService realtimeService, IConexionMonitor conexionMonitor,
                           IEmpresaRepository empresaRepository, IconoSidebarCache iconoSidebarCache,
                           ICacheService cache, IInvalidadorCacheRealtime invalidadorCache,
-                          IEscalaService escala)
+                          IEscalaService escala,
+                          ISesionInactividadService inactividad)
         {
             _escala          = escala;
+            _inactividad     = inactividad;
             _sesionService   = sesionService;
             _realtimeService = realtimeService;
             _conexionMonitor = conexionMonitor;
@@ -168,6 +172,7 @@ namespace CapaUI.Formularios.Principal
             };
 
             _escala.EscalaCambiando += OnEscalaCambiando;
+            _inactividad.SesionExpirada += OnSesionExpirada;
 
             Vm.CierreRequerido += OnCierreRequerido;
             Vm.Notificaciones.SolicitarDetalle += MostrarDetalleNotificacion;
@@ -281,6 +286,10 @@ namespace CapaUI.Formularios.Principal
             // Va antes que las notificaciones para que quede escuchando desde el
             // primer instante de la sesión.
             _invalidadorCache.Suscribir();
+
+            // Timeout por inactividad: arranca la vigilancia con la preferencia del
+            // usuario; al expirar, cierra la sesión SIN preguntar.
+            await _inactividad.CargarEIniciarAsync();
 
             await Vm.Notificaciones.InicializarAsync();
             await CargarIconoSidebarAsync();
@@ -789,6 +798,26 @@ namespace CapaUI.Formularios.Principal
 
         private void OnCierreRequerido(object? s, EventArgs e) => HandleCerrarSesionAsync();
 
+        /// <summary>
+        /// Cierre automático por inactividad (Fase 4.1): MISMO camino de limpieza que
+        /// «Cerrar sesión» pero SIN el MessageBox de confirmación — nadie está
+        /// mirando la pantalla para responderlo.
+        /// <para/>
+        /// Voler al login es el comportamiento del plan: no cierra la app, deja el
+        /// programa listo para que el siguiente operario inicique su propia sesión.
+        /// </summary>
+        private async void OnSesionExpirada()
+            => await CerrarPorInactividadAsync();
+
+        private async Task CerrarPorInactividadAsync()
+        {
+            await LimpiarRecursosAsync();
+
+            _cerrando = true;
+            SesionCerrada?.Invoke(this, EventArgs.Empty);
+            Close();
+        }
+
         // ══════════════════════════════════════════════════════════════════
         //  Cierre — X / Alt+F4 → salir app; botón "Cerrar sesión" → logout
         // ══════════════════════════════════════════════════════════════════
@@ -868,6 +897,8 @@ namespace CapaUI.Formularios.Principal
             _sesionService.CerrarSesion();
 
             // Liberar hook, desuscribir eventos, disponer VM
+            _inactividad.Detener();
+            _inactividad.SesionExpirada -= OnSesionExpirada;
             _hwndSource?.RemoveHook(WndProc);
             _hwndSource = null;
             _escala.EscalaCambiando -= OnEscalaCambiando;

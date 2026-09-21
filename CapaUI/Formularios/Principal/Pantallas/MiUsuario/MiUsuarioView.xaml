@@ -26,6 +26,8 @@
                           Figures="M11,4 a7,7 0 1 1 0,14 a7,7 0 0 1 0,-14 z M20,20 l-4.3,-4.3 M9,11 h4 M11,9 v4"/>
             <PathGeometry x:Key="IconoCandadoMiUsuario" po:Freeze="True"
                           Figures="M5,11 h14 v10 H5 z M8,11 V7 a4,4 0 0 1 8,0 v4"/>
+            <PathGeometry x:Key="IconoRelojMiUsuario" po:Freeze="True"
+                          Figures="M12,4 a8,8 0 1 1 0,16 a8,8 0 0 1 0,-16 z M12,7.5 v5 l3,2"/>
 
             <!-- Sistema de banner compartido de la vista: mismo lenguaje para
                  información (azul), peligro (rojo), éxito (verde) y advertencia
@@ -152,6 +154,8 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="20"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="20"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
             <!-- ROW 0: encabezado de página, mismo componente que el resto de los módulos -->
@@ -232,8 +236,10 @@
                                 <TextBox BorderThickness="0" Background="Transparent"
                                          FontFamily="Segoe UI" FontSize="14" Foreground="#172033"
                                          MaxLength="64" VerticalContentAlignment="Center"
+                                         x:Name="TxtApodo"
                                          Text="{Binding ApodoEditable, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                         ToolTip="Escribe cómo te saluda el sistema (opcional)"/>
+                                         KeyDown="TxtApodo_KeyDown"
+                                         ToolTip="Escribe cómo te saluda el sistema (opcional). Enter para guardar."/>
                             </Border>
 
                             <Button Grid.Column="1" Content="Guardar apodo"
@@ -352,16 +358,69 @@
                 </StackPanel>
             </Border>
 
-            <!-- ══════════════════ Seguridad ══════════════════
-                 El botón valida la forma con las reglas del dominio
-                 (ReglasContrasena) y sostiene el estado visual; el cableado a
-                 RecuperacionPasswordService/auth.users es el paso siguiente. -->
+            <!-- ══════════════════ Sesión (timeout por inactividad) ══════════════════ -->
             <Border Grid.Row="6" Background="White" CornerRadius="10">
                 <Border.Effect>
                     <DropShadowEffect Color="#0F172A" BlurRadius="10" ShadowDepth="2" Opacity="0.06"/>
                 </Border.Effect>
             </Border>
             <Border Grid.Row="6" Style="{StaticResource MiUsuarioTarjeta}" ClipToBounds="True"
+                    RenderOptions.ClearTypeHint="Enabled">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <Path Data="{StaticResource IconoRelojMiUsuario}"
+                              Stroke="{DynamicResource EmpresaPrimaryBrush}" StrokeThickness="1.8"
+                              Width="20" Height="20" Stretch="Uniform" Margin="0,0,10,0"
+                              VerticalAlignment="Center"/>
+                        <TextBlock Text="Sesión" Style="{StaticResource MiUsuarioTituloSeccion}"/>
+                    </StackPanel>
+
+                    <TextBlock Style="{StaticResource MiUsuarioSubtitulo}"
+                               Text="Si nadie usa el sistema durante estos minutos, tu sesión se cierra sola y vuelve al login. Sirve para terminales compartidas de planta: te protege cuando te alejás sin cerrar sesión."/>
+
+                    <Border Style="{StaticResource MiUsuarioBloque}" Margin="0,16,0,0">
+                        <StackPanel>
+                            <TextBlock Text="MINUTOS DE INACTIVIDAD" Style="{StaticResource MiUsuarioEtiqueta}"/>
+                            <Grid Margin="0,8,0,0">
+                                <Border Background="White" BorderBrush="#CBD5E1" BorderThickness="1"
+                                        CornerRadius="8" Padding="10,6" Width="120" HorizontalAlignment="Left">
+                                    <TextBox BorderThickness="0" Background="Transparent"
+                                             FontFamily="Segoe UI" FontSize="14" Foreground="#172033"
+                                             MaxLength="3" VerticalContentAlignment="Center"
+                                             x:Name="TxtMinutos" TabIndex="5"
+                                             Text="{Binding MinutosInactividadEditable, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                             KeyDown="TxtMinutos_KeyDown"
+                                             ToolTip="Minutos sin actividad antes de cerrar la sesión. Enter para guardar"/>
+                                </Border>
+
+                                <Button Content="Guardar timeout"
+                                        Style="{StaticResource MiUsuarioBotonTexto}"
+                                        Background="{DynamicResource EmpresaPrimaryBrush}" Foreground="White"
+                                        Command="{Binding GuardarTimeoutCommand}"
+                                        IsEnabled="{Binding HayCambioMinutos}"
+                                        HorizontalAlignment="Left" VerticalAlignment="Center"
+                                        Margin="12,0,0,0"
+                                        ToolTip="Guarda los minutos de inactividad (1 a 240)"/>
+                            </Grid>
+
+                            <Border Style="{StaticResource MiUsuarioBanner}" Background="#FEF3C7" BorderBrush="#FCD34D"
+                                    Margin="0,12,0,0"
+                                    Visibility="{Binding HayTimeoutMensaje, Converter={x:Static conv:BoolToVisibilityConverter.Instancia}}">
+                                <TextBlock Text="{Binding TimeoutMensaje}" TextWrapping="Wrap"
+                                           FontSize="12.5" Foreground="#92400E"/>
+                            </Border>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Border>
+
+            <!-- ══════════════════ Seguridad (cambiar contraseña siempre al final) ══════════════════ -->
+            <Border Grid.Row="8" Background="White" CornerRadius="10">
+                <Border.Effect>
+                    <DropShadowEffect Color="#0F172A" BlurRadius="10" ShadowDepth="2" Opacity="0.06"/>
+                </Border.Effect>
+            </Border>
+            <Border Grid.Row="8" Style="{StaticResource MiUsuarioTarjeta}" ClipToBounds="True"
                     RenderOptions.ClearTypeHint="Enabled">
                 <StackPanel>
                     <StackPanel Orientation="Horizontal">
@@ -375,101 +434,62 @@
                     <TextBlock Style="{StaticResource MiUsuarioSubtitulo}"
                                Text="Actualizá tu propia contraseña acá, sin cerrar la sesión y sin permisos administrativos."/>
 
-                    <Grid Margin="0,18,0,0">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
+                    <!-- Dos columnas, con el orden de lectura pedido:
+                         izquierda = ACTUAL → NUEVA (medidor y reglas);
+                         derecha = CONFIRMAR → acción. -->
+                    <Grid Margin="0,18,0,0" UseLayoutRounding="True">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*" MaxWidth="600"/>
+                            <ColumnDefinition Width="*" MaxWidth="600"/>
                         </Grid.ColumnDefinitions>
 
-                        <!-- Columna izquierda: los 3 campos apilados, ancho alineado -->
-                        <StackPanel Grid.Column="0" Margin="0,0,24,0">
-                            <!-- Contraseña actual -->
-                            <Border Style="{StaticResource MiUsuarioBloque}">
-                                <StackPanel>
-                                    <TextBlock Text="CONTRASEÑA ACTUAL" Style="{StaticResource MiUsuarioEtiqueta}"/>
-                                    <Grid Margin="0,8,0,0">
-                                        <PasswordBox x:Name="TxtActual" Style="{StaticResource InputPassword}"
-                                                     Height="40" Padding="0,0,44,0"/>
-                                        <TextBox x:Name="TxtActualVisible" Style="{StaticResource InputBox}"
-                                                 Visibility="Collapsed" Height="40" Padding="0,0,44,0"/>
-                                        <Button x:Name="BtnVerActual"
-                                                Width="40" Height="36"
-                                                HorizontalAlignment="Right" VerticalAlignment="Center"
-                                                Background="Transparent" BorderThickness="0"
-                                                Cursor="Hand" FocusVisualStyle="{x:Null}"
-                                                ToolTip="Mostrar u ocultar la contraseña actual"
-                                                AutomationProperties.Name="Mostrar u ocultar la contraseña actual"
-                                                Click="BtnVerActual_Click">
-                                            <Viewbox Width="18" Height="18">
-                                                <Canvas Width="24" Height="24">
-                                                    <Path Data="{StaticResource IconEyePassword}" Fill="#64748B"/>
-                                                </Canvas>
-                                            </Viewbox>
-                                        </Button>
-                                    </Grid>
-                                </StackPanel>
-                            </Border>
+                        <!-- Columna izquierda -->
+                        <StackPanel Grid.Column="0" Margin="0,0,20,0">
 
-                            <!-- Confirmar -->
-                            <Border Style="{StaticResource MiUsuarioBloque}" Margin="0,14,0,0">
-                                <StackPanel>
-                                    <TextBlock Text="CONFIRMAR CONTRASEÑA" Style="{StaticResource MiUsuarioEtiqueta}"/>
-                                    <Grid Margin="0,8,0,0">
-                                        <PasswordBox x:Name="TxtConfirmar" Style="{StaticResource InputPassword}"
-                                                     Height="40" Padding="0,0,44,0"/>
-                                        <TextBox x:Name="TxtConfirmarVisible" Style="{StaticResource InputBox}"
-                                                 Visibility="Collapsed" Height="40" Padding="0,0,44,0"/>
-                                        <Button x:Name="BtnVerConfirmar"
-                                                Width="40" Height="36"
-                                                HorizontalAlignment="Right" VerticalAlignment="Center"
-                                                Background="Transparent" BorderThickness="0"
-                                                Cursor="Hand" FocusVisualStyle="{x:Null}"
-                                                ToolTip="Mostrar u ocultar la confirmación"
-                                                AutomationProperties.Name="Mostrar u ocultar la confirmación"
-                                                Click="BtnVerConfirmar_Click">
-                                            <Viewbox Width="18" Height="18">
-                                                <Canvas Width="24" Height="24">
-                                                    <Path Data="{StaticResource IconEyePassword}" Fill="#64748B"/>
-                                                </Canvas>
-                                            </Viewbox>
-                                        </Button>
-                                    </Grid>
-                                    <TextBlock x:Name="LblCoincidencia" Text="Las contraseñas no coinciden." FontSize="12"
-                                               Foreground="#991B1B" Visibility="Collapsed" Margin="0,6,0,0"/>
-                                </StackPanel>
-                            </Border>
-
-                            <!-- Acción principal: habilita cuando la forma está completa. -->
-                            <StackPanel Orientation="Horizontal" Margin="0,18,0,0">
-                                <Button Content="Cambiar contraseña"
-                                        Style="{StaticResource MiUsuarioBotonTexto}"
-                                        Background="{DynamicResource EmpresaPrimaryBrush}" Foreground="White"
-                                        Command="{Binding CambiarContrasenaCommand}"
-                                        IsEnabled="{Binding PuedeEnviarCambio}"
-                                        ToolTip="Actualiza tu propia contraseña en Supabase"/>
-
-                                <Button Content="Restablecer"
-                                        Style="{StaticResource MiUsuarioBotonTexto}"
-                                        Command="{Binding LimpiarFormularioCommand}"
-                                        Margin="10,0,0,0"
-                                        ToolTip="Limpiar los campos del formulario"/>
+                        <!-- 1. Contraseña actual -->
+                        <Border Style="{StaticResource MiUsuarioBloque}">
+                            <StackPanel>
+                                <TextBlock Text="CONTRASEÑA ACTUAL" Style="{StaticResource MiUsuarioEtiqueta}"/>
+                                <Grid Margin="0,8,0,0">
+                                    <PasswordBox x:Name="TxtActual" Style="{StaticResource InputPassword}"
+                                                 Height="40" Padding="0,0,44,0"
+                                                 TabIndex="10" KeyDown="Contrasena_KeyDown"/>
+                                    <TextBox x:Name="TxtActualVisible" Style="{StaticResource InputBox}"
+                                             Visibility="Collapsed" Height="40" Padding="0,0,44,0"
+                                             TabIndex="10" KeyDown="Contrasena_KeyDown"/>
+                                    <Button x:Name="BtnVerActual"
+                                            Width="40" Height="36"
+                                            Focusable="False" IsTabStop="False"
+                                            HorizontalAlignment="Right" VerticalAlignment="Center"
+                                            Background="Transparent" BorderThickness="0"
+                                            Cursor="Hand" FocusVisualStyle="{x:Null}"
+                                            ToolTip="Mostrar u ocultar la contraseña actual"
+                                            AutomationProperties.Name="Mostrar u ocultar la contraseña actual"
+                                            Click="BtnVerActual_Click">
+                                        <Viewbox Width="18" Height="18">
+                                            <Canvas Width="24" Height="24">
+                                                <Path Data="{StaticResource IconEyePassword}" Fill="#64748B"/>
+                                            </Canvas>
+                                        </Viewbox>
+                                    </Button>
+                                </Grid>
                             </StackPanel>
-                        </StackPanel>
+                        </Border>
 
-                        <!-- Columna derecha: la nueva con sus reglas, siempre visible -->
-                        <Border Grid.Column="1" Style="{StaticResource MiUsuarioBloque}">
+                        <!-- 2. Nueva contraseña, con su medidor y reglas del dominio -->
+                        <Border Style="{StaticResource MiUsuarioBloque}" Margin="0,14,0,0">
                             <StackPanel>
                                 <TextBlock Text="NUEVA CONTRASEÑA" Style="{StaticResource MiUsuarioEtiqueta}"/>
                                 <Grid Margin="0,8,0,0">
                                     <PasswordBox x:Name="TxtNueva" Style="{StaticResource InputPassword}"
-                                                 Height="40" Padding="0,0,44,0"/>
+                                                 Height="40" Padding="0,0,44,0"
+                                                 TabIndex="20" KeyDown="Contrasena_KeyDown"/>
                                     <TextBox x:Name="TxtNuevaVisible" Style="{StaticResource InputBox}"
-                                             Visibility="Collapsed" Height="40" Padding="0,0,44,0"/>
+                                             Visibility="Collapsed" Height="40" Padding="0,0,44,0"
+                                             TabIndex="20" KeyDown="Contrasena_KeyDown"/>
                                     <Button x:Name="BtnVerNueva"
                                             Width="40" Height="36"
+                                            Focusable="False" IsTabStop="False"
                                             HorizontalAlignment="Right" VerticalAlignment="Center"
                                             Background="Transparent" BorderThickness="0"
                                             Cursor="Hand" FocusVisualStyle="{x:Null}"
@@ -516,6 +536,43 @@
                                 </StackPanel>
                             </StackPanel>
                         </Border>
+                        </StackPanel>
+
+                        <!-- Columna derecha -->
+                        <StackPanel Grid.Column="1">
+
+                        <!-- 3. Confirmar la nueva -->
+                        <Border Style="{StaticResource MiUsuarioBloque}">
+                            <StackPanel>
+                                <TextBlock Text="CONFIRMAR CONTRASEÑA" Style="{StaticResource MiUsuarioEtiqueta}"/>
+                                <Grid Margin="0,8,0,0">
+                                    <PasswordBox x:Name="TxtConfirmar" Style="{StaticResource InputPassword}"
+                                                 Height="40" Padding="0,0,44,0"
+                                                 TabIndex="30" KeyDown="Contrasena_KeyDown"/>
+                                    <TextBox x:Name="TxtConfirmarVisible" Style="{StaticResource InputBox}"
+                                             Visibility="Collapsed" Height="40" Padding="0,0,44,0"
+                                             TabIndex="30" KeyDown="Contrasena_KeyDown"/>
+                                    <Button x:Name="BtnVerConfirmar"
+                                            Width="40" Height="36"
+                                            Focusable="False" IsTabStop="False"
+                                            HorizontalAlignment="Right" VerticalAlignment="Center"
+                                            Background="Transparent" BorderThickness="0"
+                                            Cursor="Hand" FocusVisualStyle="{x:Null}"
+                                            ToolTip="Mostrar u ocultar la confirmación"
+                                            AutomationProperties.Name="Mostrar u ocultar la confirmación"
+                                            Click="BtnVerConfirmar_Click">
+                                        <Viewbox Width="18" Height="18">
+                                            <Canvas Width="24" Height="24">
+                                                <Path Data="{StaticResource IconEyePassword}" Fill="#64748B"/>
+                                            </Canvas>
+                                        </Viewbox>
+                                    </Button>
+                                </Grid>
+                                <TextBlock x:Name="LblCoincidencia" Text="Las contraseñas no coinciden." FontSize="12"
+                                           Foreground="#991B1B" Visibility="Collapsed" Margin="0,6,0,0"/>
+                            </StackPanel>
+                        </Border>
+                        </StackPanel>
                     </Grid>
 
                     <!-- Banner de información (lógica aún no cableada) -->
@@ -537,6 +594,22 @@
                             Visibility="{Binding HayExito, Converter={x:Static conv:BoolToVisibilityConverter.Instancia}}">
                         <TextBlock Text="{Binding Exito}" TextWrapping="Wrap" FontSize="12.5" Foreground="#166534"/>
                     </Border>
+
+                    <!-- Acción principal: habilita cuando la forma está completa. -->
+                    <StackPanel Orientation="Horizontal" Margin="0,18,0,0">
+                        <Button Content="Cambiar contraseña"
+                                Style="{StaticResource MiUsuarioBotonTexto}"
+                                Background="{DynamicResource EmpresaPrimaryBrush}" Foreground="White"
+                                Command="{Binding CambiarContrasenaCommand}"
+                                IsEnabled="{Binding PuedeEnviarCambio}"
+                                ToolTip="Actualiza tu propia contraseña en Supabase"/>
+
+                        <Button Content="Restablecer"
+                                Style="{StaticResource MiUsuarioBotonTexto}"
+                                Command="{Binding LimpiarFormularioCommand}"
+                                Margin="10,0,0,0"
+                                ToolTip="Limpiar los campos del formulario"/>
+                    </StackPanel>
                 </StackPanel>
             </Border>
         </Grid>

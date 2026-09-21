@@ -7,6 +7,7 @@ using CapaAplicacion.Usuarios.Interfaces;
 using CapaDominio.Reglas;
 using CapaUI.Core.Controls;
 using CapaUI.Services.Escala;
+using CapaUI.Services.Sesion;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
@@ -39,6 +40,7 @@ public sealed partial class MiUsuarioViewModel : ObservableObject, IDisposable
     private readonly IPerfilUsuarioService _perfil;
     private readonly IUsuarioSesionService _sesion;
     private readonly ICambioPropiaPasswordService _cambioPassword;
+    private readonly ISesionInactividadService _inactividad;
     private readonly Debouncer _guardado = new(RetardoGuardadoMs);
 
     private bool _disposed;
@@ -165,13 +167,15 @@ public sealed partial class MiUsuarioViewModel : ObservableObject, IDisposable
     public MiUsuarioViewModel(IUsuarioSesionService sesion, IEscalaService escala,
                               IPreferenciasUsuarioRepository preferencias,
                               IPerfilUsuarioService perfil,
-                              ICambioPropiaPasswordService cambioPassword)
+                              ICambioPropiaPasswordService cambioPassword,
+                              ISesionInactividadService inactividad)
     {
         _escala       = escala;
         _preferencias = preferencias;
         _perfil       = perfil;
         _sesion       = sesion;
         _cambioPassword = cambioPassword;
+        _inactividad    = inactividad;
 
         var actual = sesion.SesionActual;
         var guardado = perfil.PerfilActual?.Apodo;
@@ -182,6 +186,11 @@ public sealed partial class MiUsuarioViewModel : ObservableObject, IDisposable
         Iniciales      = actual?.Iniciales      ?? "—";
         NombreRol      = actual?.NombreRol      ?? "—";
         Email          = actual?.Email          ?? "—";
+
+        // Timeout por inactividad (Fase 4.1): el service ya cargó el valor propio
+        // del usuario cuando MainWindow subió; leyemos el snapshot.
+        _minutosGuardados = inactividad.Minutos;
+        MinutosInactividadEditable = inactividad.Minutos.ToString();
 
         EstaForzado       = escala.EstaForzado;
         FactorEscala      = escala.Factor;
@@ -269,6 +278,33 @@ public sealed partial class MiUsuarioViewModel : ObservableObject, IDisposable
     /// <summary>Id del usuario logueado, o <c>null</c> sin sesión (apodo no editable).</summary>
     private int? IdSesion() => _sesion.SesionActual?.IdUsuario;
 
+    /// <summary>
+    /// Guarda los minutos de inactividad (Fase 4.1). La validación de rango está en el
+    /// servicio; acá solo se filtra lo no numérico por ley.
+    /// </summary>
+    [RelayCommand]
+    private async Task GuardarTimeoutAsync(CancellationToken ct)
+    {
+        TimeoutMensaje = null;
+
+        if (!int.TryParse(MinutosInactividadEditable.Trim(), out var minutos))
+        {
+            TimeoutMensaje = "Escribe un número de minutos (ej: 30).";
+            return;
+        }
+
+        var guardado = await _inactividad.GuardarMinutosAsync(minutos, ct);
+        if (!guardado.Success)
+        {
+            TimeoutMensaje = guardado.Error;
+            return;
+        }
+
+        _minutosGuardados = minutos;
+        TimeoutMensaje = "Guardado: la sesión se cerrará sola después de " +
+                         $"{minutos} minuto(s) sin actividad.";
+    }
+
     // ── Perfil: mensajes del editor de apodo ─────────────────────────────────
     // Mensajes propios de la tarjeta Perfil (no reusan los de Seguridad para que
     // un banner de "contraseña guardada" no aparezca en la tarjeta equivocada).
@@ -278,6 +314,27 @@ public sealed partial class MiUsuarioViewModel : ObservableObject, IDisposable
     private string? _apodoMensaje;
 
     public bool HayApodoMensaje => !string.IsNullOrWhiteSpace(ApodoMensaje);
+
+    // ── Sesión: timeout por inactividad (Fase 4.1) ───────────────────────────
+    // Cierre automático de sesión tras X minutos sin input. El valor vive como
+    // preferencia 'timeout_inactividad'; el minuto en que hiciera efecto lo
+    // maneja SesionInactividadService (MainWindow).
+
+    private int _minutosGuardados;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HayCambioMinutos))]
+    private string _minutosInactividadEditable = string.Empty;
+
+    public bool HayCambioMinutos =>
+        int.TryParse(MinutosInactividadEditable.Trim(), out var n) &&
+        n > 0 && n <= 240 && n != _minutosGuardados;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HayTimeoutMensaje))]
+    private string? _timeoutMensaje;
+
+    public bool HayTimeoutMensaje => !string.IsNullOrWhiteSpace(TimeoutMensaje);
 
     // ── Seguridad: cambio de la propia contraseña (cableado real) ─────────────
     // La prueba de dueño es la re-autenticación con la contraseña actual (mismo

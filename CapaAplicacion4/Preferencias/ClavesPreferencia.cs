@@ -26,6 +26,12 @@ public static class ClavesPreferencia
     /// </summary>
     public const string Apodo = "apodo";
 
+    /// <summary>
+    /// Minutos de inactividad antes de cerrar la sesión sola (Fase 4.1 del Plan de
+    /// Seguridad). Se consume en <c>SesionInactividadService</c>; sin fila vale 30.
+    /// </summary>
+    public const string TimeoutInactividad = "timeout_inactividad";
+
     /// <summary>Ámbito por defecto: la preferencia no depende de la pantalla.</summary>
     public const string AmbitoGlobal = "global";
 
