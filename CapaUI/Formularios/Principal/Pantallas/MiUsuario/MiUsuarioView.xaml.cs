@@ -147,6 +147,28 @@ public partial class MiUsuarioView : UserControl
         vm.CambiarContrasenaCommand.Execute(null);
     }
 
+    /// <summary>
+    /// «Limpiar»: los PasswordBox son unidireccionales hacia el VM — setear
+    /// <c>ContrasenaActual = ""</c> en el VM NO vacía la caja, así que este handler
+    /// vacía las tres parejas (ojo abierto incluido) en la vista y luego deja al VM
+    /// limpiar sus banderas de aviso/éxito/error.
+    /// </summary>
+    private void BtnLimpiarFormulario_Click(object sender, RoutedEventArgs e)
+    {
+        if (FindName("TxtActual") as PasswordBox is { } actual)  actual.Password = string.Empty;
+        if (FindName("TxtNueva") as PasswordBox is { } nueva)      nueva.Password = string.Empty;
+        if (FindName("TxtNuevaVisible") as TextBox is { } nV)      nV.Text = string.Empty;
+        if (FindName("TxtConfirmar") as PasswordBox is { } conf)   conf.Password = string.Empty;
+        if (FindName("TxtConfirmarVisible") as TextBox is { } cV)  cV.Text = string.Empty;
+
+        // El medidor, la checklist y el aviso de no-coincidencia vuelven al estado vacío.
+        PintarMedidor(0);
+        PintarChecklist(new[] { false, false, false, false });
+        OcultarMismatch();
+
+        (DataContext as MiUsuarioViewModel)?.LimpiarFormularioCommand.Execute(null);
+    }
+
     // ── Estado visual: medidor de fortaleza (lapsos 0..5) ──────────────────────
     private void PintarMedidor(int score)
     {
