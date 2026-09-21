@@ -38,7 +38,11 @@ revisor: Fernando
 > **Fase 10** — Cierre integral: deuda técnica de seguridad P-065 resuelta (migración SQL aplicada en Supabase
 > revoca `TRUNCATE` en las 19 tablas de negocio restantes en `public`, verificado al 100 % con `has_table_privilege`)
 > y ejecución del arnés multi-DPI sobre los 44 controles × 5 factores (220/220 mediciones OK, 0 excepciones, 0 colapsos).
+> **Post-Fase 10 (Fix Estabilidad de Ventana)** — Corrección de dos bugs críticos en escalado dinámico:
+> (1) sobreescritura errónea de `Width`/`Height` en `MainWindow` al ajustar escala en pantalla dividida (Aero Snap),
+> y (2) bloqueo/congelamiento del redimensionamiento en modo ventana al inflar `ptMinTrackSize` y `MinWidth` por encima de 960 px.
 > Build en 0 errores y 0 advertencias; suite completa de pruebas unitarias **687/687 pasando**.
+
 
 ---
 
@@ -760,6 +764,60 @@ Esta fase cierra definitivamente la iniciativa de escalado y las deudas asociada
 
 ---
 
+## Resolución de Bugs en Pantalla Dividida (Aero Snap) y Modo Ventana
+
+### 1. Síntomas Reportados
+- **Bug 1 (Pantalla Dividida / Aero Snap):** Al ajustar la escala en modo pantalla dividida (e.g. 960×1040 px en 1080p), la ventana exterior cambiaba inesperadamente de tamaño físico (se achicaba a 960×640 a 0.8× o se agrandaba a 1320×880 a 1.1×) en vez de escalar únicamente su contenido interno.
+- **Bug 2 (Modo Ventana Trabado / Pillado):** Tras ajustar la escala en modo ventana, la ventana quedaba trabada sin permitir redimensionamiento libre mediante arrastre de bordes (ni agrandar ni achicar) a menos que se reiniciara la sesión del usuario.
+
+### 2. Análisis de Causa Raíz
+1. **Sobreescritura destructiva de dimensiones externas (`Width`/`Height`):**
+   - En `EscalaService.cs`, el método `MedidasDeclaradas.AplicarEscaladas` ejecutaba incondicionalmente `v.Width = Ancho * factor` y `v.Height = Alto * factor`.
+   - `MainWindow.xaml` declara `Width="1200"` y `Height="800"` como dimensiones iniciales de restauración. Al ejecutar `AplicarEscaladas`, WPF reescribía `Width` y `Height` de la ventana activa, destruyendo el estado acoplado de Aero Snap impuesto por el gestor de ventanas de Windows (DWM).
+2. **Inflado de límites mínimos (`MinWidth` y `ptMinTrackSize`):**
+   - `v.MinWidth = AnchoMin * factor` y `mmi.ptMinTrackSize.X = (int)Math.Ceiling(_baseMinWidth * factor * dpi.DpiScaleX)` multiplicaban el límite mínimo por el factor.
+   - A factores superiores a 1.0 (e.g. 1.1× o 1.25×), `MinWidth` crecía de 960 px a 1056 px o 1200 px. En una pantalla Full HD estándar (1920×1080), media pantalla son exactamente 960 px. Al superar los 960 px, Windows DWM no permitía encajar en la mitad de la pantalla ni achicar la ventana por debajo de ese límite inflado.
+3. **Desincronización de DWM por `SetWindowPos(SWP_FRAMECHANGED)`:**
+   - La llamada forzada a `ForzarRelecturaDelMarco` con dimensiones desincronizadas rompía la comunicación del marco con DWM mientras estaba en división activa.
+
+### 3. Solución Implementada
+- **`CapaUI/Services/Escala/EscalaService.cs`:**
+  - Se introdujo la guarda `esVentanaFija`:
+    ```csharp
+    bool esVentanaFija = v.ResizeMode == ResizeMode.NoResize
+                      || v.ResizeMode == ResizeMode.CanMinimize
+                      || v.SizeToContent != SizeToContent.Manual;
+    ```
+    Solo ventanas fijas o de tamaño a contenido reescalan su marco externo. Las ventanas principales redimensionables (`CanResize` sin `SizeToContent`) **nunca** modifican su `Width`, `Height`, `MaxWidth` ni `MaxHeight` externo. El contenido escala exclusivamente mediante el `LayoutTransform` (`ScaleTransform`).
+  - `MinWidth` y `MinHeight` ahora se acotan defensivamente:
+    ```csharp
+    v.MinWidth  = factor < 1.0 ? AnchoMin * factor : AnchoMin;
+    v.MinHeight = factor < 1.0 ? AltoMin  * factor : AltoMin;
+    ```
+    Permite compactar la ventana en pantallas pequeñas si el factor es menor a 1.0, pero jamás infla el mínimo por encima de la base (960 px) a factores mayores a 1.0, preservando Aero Snap en monitores 1080p.
+  - `ForzarRelecturaDelMarco` se restringió a `if (cambio && factor < 1.0)` para no molestar a DWM innecesariamente.
+- **`CapaUI/Formularios/Principal/MainWindow.xaml.cs`:**
+  - En `WndProc` para el mensaje `WM_GETMINMAXINFO` (0x0024):
+    ```csharp
+    var factorMin = factor < 1.0 ? factor : 1.0;
+    mmi.ptMinTrackSize.X = (int)Math.Ceiling(_baseMinWidth  * factorMin * dpi.DpiScaleX);
+    mmi.ptMinTrackSize.Y = (int)Math.Ceiling(_baseMinHeight * factorMin * dpi.DpiScaleY);
+    ```
+    Evita que `ptMinTrackSize` físico supere el ancho base escalado por DPI, garantizando redimensionamiento suave y snap a media pantalla en cualquier factor.
+
+### 4. Verificación y Resultados
+- **Arnés de validación en tiempo real:**
+  - Arranque inicial restaurado: 1200×800.
+  - Aero Snap a pantalla dividida: 960×1040.
+  - Factor 0.8×: Ventana exterior permanece intacta en **960×1040**, `MinWidth` baja a 768 px.
+  - Factor 1.1×: Ventana exterior permanece intacta en **960×1040**, `MinWidth` se mantiene en 960 px.
+  - Factor 1.25×: Ventana exterior permanece intacta en **960×1040**, `MinWidth` se mantiene en 960 px.
+- **Pruebas de regresión:**
+  - `dotnet build BimboProyecto.sln`: 0 errores, 0 advertencias.
+  - `dotnet test BimboProyecto.sln`: **687/687 pruebas pasando**.
+
+---
+
 ## Estado Final de la Iniciativa de Escalado
 
 | Fase | Componente | Estado |
@@ -776,6 +834,7 @@ Esta fase cierra definitivamente la iniciativa de escalado y las deudas asociada
 | **Fase 9** | 5 guardas defensivas del escalado en vivo (`EscalaCambiando`, `WM_GETMINMAXINFO`) | ✅ Completada |
 | **Fase 10** | Matriz multi-DPI (220/220 OK) y cierre de deuda técnica P-065 (TRUNCATE) | ✅ Completada |
 | **Anti-Blur** | Zero-Shader Layout en 100 % de vistas, filtros, tablas y modales | ✅ Completada |
+| **Fix Ventanas** | Estabilidad de Aero Snap en pantalla dividida y redimensionamiento libre en modo ventana | ✅ Completada |
 
 ---
 

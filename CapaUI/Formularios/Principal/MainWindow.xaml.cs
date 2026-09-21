@@ -224,14 +224,14 @@ namespace CapaUI.Formularios.Principal
                 mmi.ptMaxSize.X      = Math.Abs(work.Right  - work.Left);
                 mmi.ptMaxSize.Y      = Math.Abs(work.Bottom - work.Top);
 
-                // ptMinTrackSize es en píxeles físicos. Multiplicamos la medida base declarada
-                // por el factor de escala propio de la app y por el DPI real del monitor actual.
-                // Con esto Windows restringe físicamente el marco nativo al tamaño mínimo escalado,
-                // impidiendo que el usuario achique la ventana por debajo del contenido usable.
-                var dpi    = VisualTreeHelper.GetDpi(this);
-                var factor = _escala?.Factor ?? EscalaUi.Normal;
-                mmi.ptMinTrackSize.X = (int)Math.Ceiling(_baseMinWidth  * factor * dpi.DpiScaleX);
-                mmi.ptMinTrackSize.Y = (int)Math.Ceiling(_baseMinHeight * factor * dpi.DpiScaleY);
+                // ptMinTrackSize es en píxeles físicos. Si el factor es menor a 1.0, permitimos
+                // achicar más la ventana. Si es mayor a 1.0, no inflamos ptMinTrackSize por encima
+                // de la base para no romper la pantalla dividida (Aero Snap a 960px en 1080p) ni trabar el resize.
+                var dpi       = VisualTreeHelper.GetDpi(this);
+                var factor    = _escala?.Factor ?? EscalaUi.Normal;
+                var factorMin = factor < 1.0 ? factor : 1.0;
+                mmi.ptMinTrackSize.X = (int)Math.Ceiling(_baseMinWidth  * factorMin * dpi.DpiScaleX);
+                mmi.ptMinTrackSize.Y = (int)Math.Ceiling(_baseMinHeight * factorMin * dpi.DpiScaleY);
 
                 Marshal.StructureToPtr(mmi, lParam, true);
                 handled = true;

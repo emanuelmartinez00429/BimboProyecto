@@ -282,8 +282,8 @@ public sealed class EscalaService : IEscalaService
         declaradas.AplicarEscaladas(ventana, factor);
 
         // Windows cachea el tamaño mínimo hasta que la ventana avisa que cambió su marco.
-        // Sin esto, tras un cambio en vivo el mínimo viejo sigue vigente.
-        if (cambio) ForzarRelecturaDelMarco(ventana);
+        // Solo es necesario forzar relectura si el tamaño mínimo realmente se redujo (factor < 1.0).
+        if (cambio && factor < 1.0) ForzarRelecturaDelMarco(ventana);
     }
 
     // ── Guardas defensivas del escalado (Fase 9) ──────────────────────────────
@@ -484,16 +484,26 @@ public sealed class EscalaService : IEscalaService
 
         public void AplicarEscaladas(Window v, double factor)
         {
-            // Width/Height pueden venir en NaN (tamaño automático) y Max* en infinito:
-            // en esos casos no hay nada que escalar.
-            if (!double.IsNaN(Ancho)) v.Width  = Ancho * factor;
-            if (!double.IsNaN(Alto))  v.Height = Alto  * factor;
+            // Solo ventanas de tamaño fijo (diálogos no redimensionables o con SizeToContent)
+            // escalan su Width/Height exterior. La ventana principal (CanResize sin SizeToContent)
+            // conserva las dimensiones que el usuario o Windows Snap le hayan asignado; su
+            // contenido se adapta via LayoutTransform.
+            bool esVentanaFija = v.ResizeMode == ResizeMode.NoResize
+                              || v.ResizeMode == ResizeMode.CanMinimize
+                              || v.SizeToContent != SizeToContent.Manual;
 
-            v.MinWidth  = AnchoMin * factor;
-            v.MinHeight = AltoMin  * factor;
+            if (esVentanaFija)
+            {
+                if (!double.IsNaN(Ancho)) v.Width  = Ancho * factor;
+                if (!double.IsNaN(Alto))  v.Height = Alto  * factor;
+                if (!double.IsInfinity(AnchoMax)) v.MaxWidth  = AnchoMax * factor;
+                if (!double.IsInfinity(AltoMax))  v.MaxHeight = AltoMax  * factor;
+            }
 
-            if (!double.IsInfinity(AnchoMax)) v.MaxWidth  = AnchoMax * factor;
-            if (!double.IsInfinity(AltoMax))  v.MaxHeight = AltoMax  * factor;
+            // MinWidth permite achicar si el factor es menor a 1.0, pero no bloquea
+            // la pantalla dividida (Aero Snap a 960px) si el factor es mayor a 1.0.
+            v.MinWidth  = factor < 1.0 ? AnchoMin * factor : AnchoMin;
+            v.MinHeight = factor < 1.0 ? AltoMin  * factor : AltoMin;
 
             AjustarBarraDeTitulo(v, factor);
         }
