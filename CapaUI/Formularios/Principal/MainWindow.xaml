@@ -1007,35 +1007,6 @@
                                     </Border>
                                 </StackPanel>
 
-                                <!-- ══ MI USUARIO (módulo directo de un solo nivel) ══ -->
-                                <StackPanel>
-                                    <Button x:Name="BtnMiUsuario"
-                                            Tag="mi-usuario"
-                                            Style="{StaticResource SidebarModuleButton}"
-                                            Click="BtnMiUsuario_Click"
-                                            ToolTip="Mi Usuario: tu perfil, tu contraseña y tus preferencias">
-                                        <Grid>
-                                            <Border x:Name="IndMiUsuario" Width="3"
-                                                    HorizontalAlignment="Left" Margin="-12,8,0,8"
-                                                    Background="{StaticResource AccentGreen}"
-                                                    CornerRadius="0,2,2,0" Visibility="Collapsed"/>
-                                            <DockPanel x:Name="ExpMiUsuario" HorizontalAlignment="Stretch">
-                                                <Path DockPanel.Dock="Left" Data="{StaticResource IcoMiUsuario}"
-                                                      Fill="White" Width="30" Height="30" Stretch="Uniform"
-                                                      VerticalAlignment="Center"/>
-                                                <TextBlock x:Name="LblMiUsuario" DockPanel.Dock="Left"
-                                                           Text="Mi Usuario" Foreground="White"
-                                                           FontFamily="Segoe UI" FontSize="20" FontWeight="Medium"
-                                                           VerticalAlignment="Center" Margin="12,0,0,0"/>
-                                            </DockPanel>
-                                            <Path x:Name="IcoMiUsuario" Data="{StaticResource IcoMiUsuario}"
-                                                  Fill="White" Width="30" Height="30" Stretch="Uniform"
-                                                  HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                  Visibility="Collapsed"/>
-                                        </Grid>
-                                    </Button>
-                                </StackPanel>
-
                             </StackPanel>
                         </ScrollViewer>
 
