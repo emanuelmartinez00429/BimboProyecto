@@ -26,8 +26,6 @@
                           Figures="M11,4 a7,7 0 1 1 0,14 a7,7 0 0 1 0,-14 z M20,20 l-4.3,-4.3 M9,11 h4 M11,9 v4"/>
             <PathGeometry x:Key="IconoCandadoMiUsuario" po:Freeze="True"
                           Figures="M5,11 h14 v10 H5 z M8,11 V7 a4,4 0 0 1 8,0 v4"/>
-            <PathGeometry x:Key="IconoRelojMiUsuario" po:Freeze="True"
-                          Figures="M12,4 a8,8 0 1 1 0,16 a8,8 0 0 1 0,-16 z M12,7.5 v5 l3,2"/>
 
             <!-- Sistema de banner compartido de la vista: mismo lenguaje para
                  información (azul), peligro (rojo), éxito (verde) y advertencia
@@ -149,8 +147,6 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="12"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="20"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="20"/>
                 <RowDefinition Height="Auto"/>
@@ -350,66 +346,9 @@
                 </StackPanel>
             </Border>
 
-            <!-- ══════════════════ Sesión (timeout por inactividad) ══════════════════ -->
+            <!-- ══════════════════ Seguridad (cambiar contraseña siempre al final) ══════════════════ -->
             <Border Grid.Row="6" Background="#140F172A" CornerRadius="10" />
             <Border Grid.Row="6" Style="{StaticResource MiUsuarioTarjeta}" ClipToBounds="True"
-                    RenderOptions.ClearTypeHint="Enabled">
-                <StackPanel>
-                    <StackPanel Orientation="Horizontal">
-                        <Path Data="{StaticResource IconoRelojMiUsuario}"
-                              Stroke="{DynamicResource EmpresaPrimaryBrush}" StrokeThickness="1.8"
-                              Width="20" Height="20" Stretch="Uniform" Margin="0,0,10,0"
-                              VerticalAlignment="Center"/>
-                        <TextBlock Text="Sesión" Style="{StaticResource MiUsuarioTituloSeccion}"/>
-                    </StackPanel>
-
-                    <TextBlock Style="{StaticResource MiUsuarioSubtitulo}"
-                               Text="Si nadie usa el sistema durante estos minutos, tu sesión se cierra sola y vuelve al login. Sirve para terminales compartidas de planta: te protege cuando te alejás sin cerrar sesión."/>
-
-                    <Border Style="{StaticResource MiUsuarioBloque}" Margin="0,16,0,0">
-                        <StackPanel>
-                            <TextBlock Text="MINUTOS DE INACTIVIDAD" Style="{StaticResource MiUsuarioEtiqueta}"/>
-                            <Grid Margin="0,8,0,0">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-
-                                <Border Grid.Column="0" Background="White" BorderBrush="#CBD5E1" BorderThickness="1"
-                                        CornerRadius="8" Padding="10,6" Width="120" HorizontalAlignment="Left">
-                                    <TextBox BorderThickness="0" Background="Transparent"
-                                             FontFamily="Segoe UI" FontSize="14" Foreground="#172033"
-                                             MaxLength="3" VerticalContentAlignment="Center"
-                                             x:Name="TxtMinutos" TabIndex="5"
-                                             Text="{Binding MinutosInactividadEditable, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                             KeyDown="TxtMinutos_KeyDown"
-                                             ToolTip="Minutos sin actividad antes de cerrar la sesión. Enter para guardar"/>
-                                </Border>
-
-                                <Button Grid.Column="1" Content="Guardar timeout"
-                                        Style="{StaticResource MiUsuarioBotonTexto}"
-                                        Background="{DynamicResource EmpresaPrimaryBrush}" Foreground="White"
-                                        Command="{Binding GuardarTimeoutCommand}"
-                                        IsEnabled="{Binding HayCambioMinutos}"
-                                        HorizontalAlignment="Left" VerticalAlignment="Center"
-                                        Margin="12,0,0,0"
-                                        ToolTip="Guarda los minutos de inactividad (1 a 240)"/>
-                            </Grid>
-
-                            <Border Style="{StaticResource MiUsuarioBanner}" Background="#FEF3C7" BorderBrush="#FCD34D"
-                                    Margin="0,12,0,0"
-                                    Visibility="{Binding HayTimeoutMensaje, Converter={x:Static conv:BoolToVisibilityConverter.Instancia}}">
-                                <TextBlock Text="{Binding TimeoutMensaje}" TextWrapping="Wrap"
-                                           FontSize="12.5" Foreground="#92400E"/>
-                            </Border>
-                        </StackPanel>
-                    </Border>
-                </StackPanel>
-            </Border>
-
-            <!-- ══════════════════ Seguridad (cambiar contraseña siempre al final) ══════════════════ -->
-            <Border Grid.Row="8" Background="#140F172A" CornerRadius="10" />
-            <Border Grid.Row="8" Style="{StaticResource MiUsuarioTarjeta}" ClipToBounds="True"
                     RenderOptions.ClearTypeHint="Enabled">
                 <StackPanel>
                     <StackPanel Orientation="Horizontal">

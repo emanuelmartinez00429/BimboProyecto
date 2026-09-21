@@ -147,15 +147,6 @@ public partial class MiUsuarioView : UserControl
         vm.CambiarContrasenaCommand.Execute(null);
     }
 
-    /// <summary>Enter en el campo de minutos guarda el timeout por inactividad.</summary>
-    private void TxtMinutos_KeyDown(object sender, KeyEventArgs e)
-    {
-        if (e.Key != Key.Enter) return;
-
-        e.Handled = true;
-        (DataContext as MiUsuarioViewModel)?.GuardarTimeoutCommand.Execute(null);
-    }
-
     // ── Estado visual: medidor de fortaleza (lapsos 0..5) ──────────────────────
     private void PintarMedidor(int score)
     {
