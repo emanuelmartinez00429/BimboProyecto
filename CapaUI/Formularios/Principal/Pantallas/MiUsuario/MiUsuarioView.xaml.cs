@@ -20,6 +20,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.MiUsuario;
 public partial class MiUsuarioView : UserControl
 {
     // (PasswordBox, TextBox visible que lo reemplaza al ojo abierto)
+    private bool _controlesIniciados;
     private (PasswordBox Box, TextBox Visible)? _parActual;
     private (PasswordBox Box, TextBox Visible)? _parNueva;
     private (PasswordBox Box, TextBox Visible)? _parConfirmar;
@@ -40,6 +41,16 @@ public partial class MiUsuarioView : UserControl
 
     private void IniciarControlesPassword()
     {
+        // Idempotente (anti-leak): `Loaded` de un UserControl se dispara CADA vez que
+        // la vista entra al árbol visual, no solo al primer arranque. Subscribir de
+        // nuevo en cada visita sumaba suscripciones sobre las MISMAS PasswordBox sin
+        // liberar las anteriores (el controlador viejo quedaba vivo con su closure:
+        // fuga de memoria por navegación, exactamente lo que NO habia en los demás
+        // módulos, que no re-ensamblan nada en Loaded). Una sola vez es suficiente:
+        // los PasswordBox y el VM son nombres estables de la misma vista.
+        if (_controlesIniciados) return;
+        _controlesIniciados = true;
+
         // Armado defensivo: FindName tolera el orden del ciclo de vida (§10 del nodo
         // de convenciones) — evita CS0103 si la caché .g.i.cs se desincroniza en VS.
 
