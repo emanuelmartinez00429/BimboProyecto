@@ -23,44 +23,6 @@
                 <ResourceDictionary Source="/CapaUI;component/Resources/Styles.xaml"/>
             </ResourceDictionary.MergedDictionaries>
 
-
-        <!-- ── Celda de filtro de catálogo (Proveedor · Fabricante · Categoría · País) ──
-             Las tres piezas viven acá una sola vez: antes cada combo repetía las
-             mismas ocho propiedades inline y cada uno tenía su propio Width, que
-             es lo que rompía la simetría de la barra. -->
-        <Style x:Key="CeldaFiltro" TargetType="Grid">
-            <!-- Sin Margin: la separación entre grupos la pone el panel
-                 (EspacioHorizontal), que además la descuenta al decidir el corte
-                 de línea. Un margen acá se le escaparía de esa cuenta. -->
-            <Setter Property="VerticalAlignment" Value="Center"/>
-        </Style>
-
-        <Style x:Key="EtiquetaFiltro" TargetType="TextBlock">
-            <Setter Property="FontFamily" Value="Segoe UI"/>
-            <Setter Property="FontSize" Value="15.5"/>
-            <Setter Property="Foreground" Value="#1A1F2E"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
-            <Setter Property="Margin" Value="0,0,8,0"/>
-        </Style>
-
-        <Style x:Key="ComboFiltroBox" TargetType="ComboBox">
-            <Setter Property="Height" Value="26"/>
-            <!-- Sin Width: se estira con lo que el panel le reparta a su celda.
-                 MinWidth es el piso de legibilidad: por debajo de esto el panel
-                 baja el grupo de línea en vez de seguir achicándolo (que es lo
-                 que producía los "(Todos" recortados). -->
-            <Setter Property="HorizontalAlignment" Value="Stretch"/>
-            <Setter Property="MinWidth" Value="120"/>
-            <Setter Property="FontFamily" Value="Segoe UI"/>
-            <Setter Property="FontSize" Value="15"/>
-            <Setter Property="BorderBrush" Value="#CBD5E1"/>
-            <Setter Property="IsEditable" Value="True"/>
-            <Setter Property="IsTextSearchEnabled" Value="False"/>
-            <Setter Property="StaysOpenOnEdit" Value="True"/>
-            <Setter Property="DisplayMemberPath" Value="Nombre"/>
-            <Setter Property="KeyboardNavigation.DirectionalNavigation" Value="Cycle"/>
-        </Style>
-
         <!-- Element style for plain (non-templated) DataGridTextColumn cells,
              standardized to the largest body font size used in the grid (15.5) -->
         <Style x:Key="ProductCellTextStyle" TargetType="TextBlock">
@@ -239,6 +201,7 @@
                         <TextBlock Grid.Column="0" Text="Proveedor" Style="{StaticResource EtiquetaFiltro}"/>
                         <ComboBox Grid.Column="1" x:Name="CmbProveedor"
                                   Style="{StaticResource ComboFiltroBox}"
+                                  DisplayMemberPath="Nombre"
                                   ToolTip="Acota la lista de fabricantes"/>
                     </Grid>
 
@@ -249,7 +212,8 @@
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="0" Text="Fabricante" Style="{StaticResource EtiquetaFiltro}"/>
                         <ComboBox Grid.Column="1" x:Name="CmbFabricante"
-                                  Style="{StaticResource ComboFiltroBox}"/>
+                                  Style="{StaticResource ComboFiltroBox}"
+                                  DisplayMemberPath="Nombre"/>
                     </Grid>
 
                     <Grid Style="{StaticResource CeldaFiltro}" controls:PanelFiltrosFluido.Peso="1">
@@ -259,7 +223,8 @@
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="0" Text="Categor&#237;a" Style="{StaticResource EtiquetaFiltro}"/>
                         <ComboBox Grid.Column="1" x:Name="CmbCategoria"
-                                  Style="{StaticResource ComboFiltroBox}"/>
+                                  Style="{StaticResource ComboFiltroBox}"
+                                  DisplayMemberPath="Nombre"/>
                     </Grid>
 
                     <Grid Style="{StaticResource CeldaFiltro}" controls:PanelFiltrosFluido.Peso="1">
@@ -269,7 +234,8 @@
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="0" Text="Pa&#237;s" Style="{StaticResource EtiquetaFiltro}"/>
                         <ComboBox Grid.Column="1" x:Name="CmbPais"
-                                  Style="{StaticResource ComboFiltroBox}"/>
+                                  Style="{StaticResource ComboFiltroBox}"
+                                  DisplayMemberPath="Nombre"/>
                     </Grid>
                 </controls:PanelFiltrosFluido>
             </StackPanel>

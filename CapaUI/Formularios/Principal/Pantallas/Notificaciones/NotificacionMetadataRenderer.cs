@@ -45,18 +45,33 @@ public static class NotificacionMetadataRenderer
         return generales;
     }
 
+    /// <summary>
+    /// Devuelve los campos que van debajo del resumen visual del modal. La fecha
+    /// y la severidad viven en el hero para no repetir la misma información.
+    /// </summary>
+    public static IReadOnlyList<CampoNotificacionDetalle> RenderizarCuerpo(NotificacionDto notificacion)
+    {
+        var campos = Renderizar(notificacion);
+        return campos.Where(x => x.Etiqueta is not "Severidad" and not "Creada").ToArray();
+    }
+
     private static IReadOnlyList<CampoNotificacionDetalle> RenderizarRegistro(JObject metadata)
     {
-        var id = metadata["id_registro_origen"]?.Value<string>();
-        return string.IsNullOrWhiteSpace(id)
+        var nombre = metadata["nombre_registro_origen"]?.Value<string>();
+        return string.IsNullOrWhiteSpace(nombre)
             ? []
-            : [new CampoNotificacionDetalle("Registro relacionado", id)];
+            : [new CampoNotificacionDetalle("Registro relacionado", nombre)];
     }
 
     private static IReadOnlyList<CampoNotificacionDetalle> RenderizarSeguro(JObject metadata) => metadata.Properties()
+        .Where(x => !string.Equals(x.Name, "id_registro_origen", StringComparison.OrdinalIgnoreCase))
         .Where(x => x.Value.Type is JTokenType.String or JTokenType.Integer or JTokenType.Float or JTokenType.Boolean)
         .Take(8)
-        .Select(x => new CampoNotificacionDetalle(FormatearEtiqueta(x.Name), x.Value.ToString()))
+        .Select(x => new CampoNotificacionDetalle(
+            string.Equals(x.Name, "nombre_registro_origen", StringComparison.OrdinalIgnoreCase)
+                ? "Registro relacionado"
+                : FormatearEtiqueta(x.Name),
+            x.Value.ToString()))
         .ToList();
 
     private static bool TryLeerObjeto(string? json, out JObject metadata)

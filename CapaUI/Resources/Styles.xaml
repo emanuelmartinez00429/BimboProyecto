@@ -593,6 +593,35 @@
     </Style>
 
     <!-- ── Modal ComboBox ──────────────────────────────────────────────── -->
+    <!-- Una sola definición para los filtros de toolbar. DisplayMemberPath
+         se declara en cada pantalla porque los catálogos no comparten DTO. -->
+    <Style x:Key="CeldaFiltro" TargetType="Grid">
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+
+    <Style x:Key="EtiquetaFiltro" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontSize" Value="15.5"/>
+        <Setter Property="Foreground" Value="#1A1F2E"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="Margin" Value="0,0,8,0"/>
+    </Style>
+
+    <Style x:Key="ComboFiltroBox" TargetType="ComboBox">
+        <Setter Property="Height" Value="26"/>
+        <Setter Property="HorizontalAlignment" Value="Stretch"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="MinWidth" Value="120"/>
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontSize" Value="15"/>
+        <Setter Property="Background" Value="White"/>
+        <Setter Property="BorderBrush" Value="#CBD5E1"/>
+        <Setter Property="IsEditable" Value="True"/>
+        <Setter Property="IsTextSearchEnabled" Value="False"/>
+        <Setter Property="StaysOpenOnEdit" Value="True"/>
+        <Setter Property="KeyboardNavigation.DirectionalNavigation" Value="Cycle"/>
+    </Style>
+
     <Style x:Key="ModalCombo" TargetType="ComboBox">
         <Setter Property="Height" Value="38"/>
         <Setter Property="FontFamily" Value="Segoe UI"/>

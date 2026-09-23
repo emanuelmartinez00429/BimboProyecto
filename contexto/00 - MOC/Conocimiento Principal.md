@@ -150,7 +150,10 @@ Regla: `CapaAplicacion` **nunca** referencia `CapaDatos`.
 ## Bitácora
 
 Las sesiones están en `70 - Bitácora de Cambios/`.  
-Sesiones más recientes (2026-09-18):
+Sesiones más recientes (2026-09-21):
+- [[Sesión 2026-09-21 - Homologación visual y nombres relacionados en Notificaciones]]
+- [[Sesión 2026-09-21 - Detalle de Bitácora por doble clic y reporte individual]]
+- [[Sesión 2026-09-21 - Corrección RBAC al guardar Configuración de empresa]]
 - [[Sesión 2026-09-18 - Auditoría legible y parámetros de reportes en texto]]
 - [[Sesión 2026-09-17 - Filtros independientes en Dashboard]]
 - [[Sesión 2026-09-17 - Integración de datos en vivo del Dashboard con FusionCache y Realtime]]

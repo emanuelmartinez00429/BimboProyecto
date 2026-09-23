@@ -21,32 +21,6 @@
                 <ResourceDictionary Source="/CapaUI;component/Resources/Styles.xaml"/>
             </ResourceDictionary.MergedDictionaries>
 
-        <!-- ── Celda de filtro de catálogo ── -->
-        <Style x:Key="CeldaFiltro" TargetType="Grid">
-            <Setter Property="VerticalAlignment" Value="Center"/>
-        </Style>
-
-        <Style x:Key="EtiquetaFiltro" TargetType="TextBlock">
-            <Setter Property="FontFamily" Value="Segoe UI"/>
-            <Setter Property="FontSize" Value="15.5"/>
-            <Setter Property="Foreground" Value="#1A1F2E"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
-            <Setter Property="Margin" Value="0,0,8,0"/>
-        </Style>
-
-        <Style x:Key="ComboFiltroBox" TargetType="ComboBox">
-            <Setter Property="Height" Value="26"/>
-            <Setter Property="HorizontalAlignment" Value="Stretch"/>
-            <Setter Property="MinWidth" Value="120"/>
-            <Setter Property="FontFamily" Value="Segoe UI"/>
-            <Setter Property="FontSize" Value="15"/>
-            <Setter Property="BorderBrush" Value="#CBD5E1"/>
-            <Setter Property="IsEditable" Value="True"/>
-            <Setter Property="IsTextSearchEnabled" Value="False"/>
-            <Setter Property="StaysOpenOnEdit" Value="True"/>
-            <Setter Property="DisplayMemberPath" Value="Nombre"/>
-            <Setter Property="KeyboardNavigation.DirectionalNavigation" Value="Cycle"/>
-        </Style>
         </ResourceDictionary>
     </UserControl.Resources>
 
@@ -152,7 +126,8 @@
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="0" Text="Rol" Style="{StaticResource EtiquetaFiltro}"/>
                         <ComboBox Grid.Column="1" x:Name="CmbRol"
-                                  Style="{StaticResource ComboFiltroBox}"/>
+                                  Style="{StaticResource ComboFiltroBox}"
+                                  DisplayMemberPath="Nombre"/>
                     </Grid>
 
                 </controls:PanelFiltrosFluido>

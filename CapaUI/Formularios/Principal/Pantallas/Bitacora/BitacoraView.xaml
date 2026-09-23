@@ -196,11 +196,9 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="0" Text="MÓDULO" Style="{StaticResource FiltroLabel}"/>
-                        <ComboBox Grid.Column="1" x:Name="CmbModulo" Height="26" MinWidth="120"
-                                  HorizontalAlignment="Stretch"
-                                  FontFamily="Segoe UI" FontSize="15" BorderBrush="#CBD5E1"
-                                  IsEditable="True" IsTextSearchEnabled="True" StaysOpenOnEdit="True"
-                                  VerticalAlignment="Center"
+                        <ComboBox Grid.Column="1" x:Name="CmbModulo"
+                                  Style="{StaticResource ComboFiltroBox}"
+                                  IsTextSearchEnabled="True"
                                   SelectionChanged="CmbModulo_SelectionChanged"/>
                     </Grid>
 
@@ -210,11 +208,9 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="0" Text="ACCIÓN" Style="{StaticResource FiltroLabel}"/>
-                        <ComboBox Grid.Column="1" x:Name="CmbAccion" Height="26" MinWidth="120"
-                                  HorizontalAlignment="Stretch"
-                                  FontFamily="Segoe UI" FontSize="15" BorderBrush="#CBD5E1"
-                                  IsEditable="True" IsTextSearchEnabled="True" StaysOpenOnEdit="True"
-                                  VerticalAlignment="Center"
+                        <ComboBox Grid.Column="1" x:Name="CmbAccion"
+                                  Style="{StaticResource ComboFiltroBox}"
+                                  IsTextSearchEnabled="True"
                                   SelectionChanged="CmbAccion_SelectionChanged"/>
                     </Grid>
 
@@ -224,11 +220,9 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="0" Text="USUARIO" Style="{StaticResource FiltroLabel}"/>
-                        <ComboBox Grid.Column="1" x:Name="CmbUsuario" Height="26" MinWidth="120"
-                                  HorizontalAlignment="Stretch"
-                                  FontFamily="Segoe UI" FontSize="15" BorderBrush="#CBD5E1"
-                                  IsEditable="True" IsTextSearchEnabled="True" StaysOpenOnEdit="True"
-                                  VerticalAlignment="Center"
+                        <ComboBox Grid.Column="1" x:Name="CmbUsuario"
+                                  Style="{StaticResource ComboFiltroBox}"
+                                  IsTextSearchEnabled="True"
                                   SelectionChanged="CmbUsuario_SelectionChanged"/>
                     </Grid>
 

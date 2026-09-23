@@ -1,7 +1,14 @@
 <UserControl x:Class="CapaUI.Formularios.Principal.Pantallas.Notificaciones.NotificacionesView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             Background="#F4F5F7">
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:controls="clr-namespace:CapaUI.Core.Controls"
+             mc:Ignorable="d"
+             d:DesignWidth="1200" d:DesignHeight="760"
+             Background="#F4F5F7"
+             UseLayoutRounding="True"
+             TextOptions.TextRenderingMode="Auto">
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -33,23 +40,40 @@
 
         <Border Grid.Row="1" Background="White" CornerRadius="10" Padding="16" Margin="0,18,0,14"
                 BorderBrush="#E2E8F0" BorderThickness="1">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <TextBlock Text="Estado" Foreground="#475569" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                <ComboBox Grid.Column="1" ItemsSource="{Binding Estados}" SelectedItem="{Binding EstadoSeleccionado}"
-                          DisplayMemberPath="Etiqueta" Width="145" Height="34" Margin="8,0,20,0"/>
-                <TextBlock Grid.Column="2" Text="Severidad" Foreground="#475569" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                <ComboBox Grid.Column="3" ItemsSource="{Binding Severidades}" SelectedItem="{Binding SeveridadSeleccionada}"
-                          DisplayMemberPath="Etiqueta" Width="145" Height="34" Margin="8,0,10,0"/>
-                <Button Grid.Column="4" Content="Aplicar" Command="{Binding AplicarFiltrosCommand}"
-                        Style="{StaticResource NotifBotonTextoSecundario}" HorizontalAlignment="Left"/>
-            </Grid>
+            <controls:PanelFiltrosFluido EspacioHorizontal="16" EspacioVertical="12">
+                <Grid Style="{StaticResource CeldaFiltro}" controls:PanelFiltrosFluido.Peso="1">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="ESTADO" Style="{StaticResource EtiquetaFiltro}"/>
+                    <ComboBox Grid.Column="1"
+                              ItemsSource="{Binding Estados}"
+                              SelectedItem="{Binding EstadoSeleccionado}"
+                              DisplayMemberPath="Etiqueta"
+                              IsReadOnly="True"
+                              Style="{StaticResource ComboFiltroBox}"/>
+                </Grid>
+
+                <Grid Style="{StaticResource CeldaFiltro}" controls:PanelFiltrosFluido.Peso="1">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="SEVERIDAD" Style="{StaticResource EtiquetaFiltro}"/>
+                    <ComboBox Grid.Column="1"
+                              ItemsSource="{Binding Severidades}"
+                              SelectedItem="{Binding SeveridadSeleccionada}"
+                              DisplayMemberPath="Etiqueta"
+                              IsReadOnly="True"
+                              Style="{StaticResource ComboFiltroBox}"/>
+                </Grid>
+
+                <Button Content="Aplicar"
+                        Command="{Binding AplicarFiltrosCommand}"
+                        Style="{StaticResource NotifBotonTextoSecundario}"
+                        VerticalAlignment="Center"/>
+            </controls:PanelFiltrosFluido>
         </Border>
 
         <Grid Grid.Row="2">

@@ -40,6 +40,8 @@ namespace CapaUI.Formularios.Principal
         private readonly ICacheService              _cache;
         private readonly IInvalidadorCacheRealtime  _invalidadorCache;
         private readonly IEscalaService             _escala;
+        private Pantallas.Notificaciones.NotificacionDetalleModal? _detalleNotificacion;
+        private IInputElement? _focoAntesDetalleNotificacion;
 
         // ── Medidas base para WM_GETMINMAXINFO (Fase 9) ───────────────────
         private readonly double _baseMinWidth;
@@ -292,14 +294,46 @@ namespace CapaUI.Formularios.Principal
 
         private void MostrarDetalleNotificacion(CapaAplicacion.Notificaciones.Dtos.NotificacionDto notificacion)
         {
-            var ventana = new Pantallas.Notificaciones.NotificacionDetalleWindow(notificacion) { Owner = this };
+            if (_detalleNotificacion is not null ||
+                NotificacionModalOverlay.Visibility == Visibility.Visible)
+                return;
 
-            // Tiene su propio HWND: no hereda el LayoutTransform de esta ventana, así que
-            // sin esto abriría a 1.0 mientras el resto de la app está escalada. Se engancha
-            // en SourceInitialized porque ahí ya hay handle y todavía no hubo layout.
-            ventana.SourceInitialized += (remitente, _) => _escala.AplicarA((Window)remitente!);
+            _focoAntesDetalleNotificacion = Keyboard.FocusedElement;
+            NotifPopup.IsOpen = false;
 
-            ventana.ShowDialog();
+            var modal = new Pantallas.Notificaciones.NotificacionDetalleModal(notificacion);
+            modal.Cerrado += CerrarDetalleNotificacion;
+            _detalleNotificacion = modal;
+
+            CapaUI.Core.ModalLayout.LimitarAlOverlay(modal, NotificacionModalOverlay);
+            NotificacionModalContent.Content = modal;
+            NotificacionModalOverlay.Visibility = Visibility.Visible;
+
+            _ = Dispatcher.BeginInvoke(
+                System.Windows.Threading.DispatcherPriority.Input,
+                () => modal.Focus());
+        }
+
+        private void CerrarDetalleNotificacion()
+        {
+            if (_detalleNotificacion is null) return;
+
+            _detalleNotificacion.Cerrado -= CerrarDetalleNotificacion;
+            _detalleNotificacion = null;
+            NotificacionModalOverlay.Visibility = Visibility.Collapsed;
+            NotificacionModalContent.Content = null;
+
+            var focoAnterior = _focoAntesDetalleNotificacion;
+            _focoAntesDetalleNotificacion = null;
+            _ = Dispatcher.BeginInvoke(
+                System.Windows.Threading.DispatcherPriority.Input,
+                () =>
+                {
+                    if (focoAnterior is UIElement { IsVisible: true, Focusable: true } elemento)
+                        elemento.Focus();
+                    else
+                        BtnNotif.Focus();
+                });
         }
 
         private async Task CargarIconoSidebarAsync(string? rutaStorage = null)
@@ -839,6 +873,12 @@ namespace CapaUI.Formularios.Principal
             _escala.EscalaCambiando -= OnEscalaCambiando;
             Vm.CierreRequerido -= OnCierreRequerido;
             Vm.Notificaciones.SolicitarDetalle -= MostrarDetalleNotificacion;
+            if (_detalleNotificacion is not null)
+                _detalleNotificacion.Cerrado -= CerrarDetalleNotificacion;
+            _detalleNotificacion = null;
+            _focoAntesDetalleNotificacion = null;
+            NotificacionModalContent.Content = null;
+            NotificacionModalOverlay.Visibility = Visibility.Collapsed;
             ConfiguracionEmpresaViewModel.EmpresaActualizada -= OnConfiguracionGuardada;
             Vm.Dispose();
 
@@ -967,9 +1007,14 @@ namespace CapaUI.Formularios.Principal
         // Brush semitransparente que ya usa esa View (varía: "#990F172A", "#8C0F172A", …) para que
         // el backdrop anti-flash se vea idéntico a la sombra real del modal, no un tono inventado.
         private Brush? ObtenerModalOverlayBrush()
-            => FindNamedChild(ContentArea, "ModalOverlay") is Border { Visibility: Visibility.Visible } overlay
-               ? overlay.Background
-               : null;
+        {
+            if (NotificacionModalOverlay.Visibility == Visibility.Visible)
+                return NotificacionModalOverlay.Background;
+
+            return FindNamedChild(ContentArea, "ModalOverlay") is Border { Visibility: Visibility.Visible } overlay
+                ? overlay.Background
+                : null;
+        }
 
         private static FrameworkElement? FindNamedChild(DependencyObject parent, string name)
         {

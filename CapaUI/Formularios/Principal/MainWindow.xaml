@@ -342,6 +342,7 @@
                                                         Command="{Binding Notificaciones.MarcarTodasLeidasYArchivarCommand}"
                                                         IsEnabled="{Binding Notificaciones.ServicioDisponible}"
                                                         Style="{StaticResource NotifBotonTextoSecundario}"
+                                                        Height="30" Margin="0,0,0,6"
                                                         FontSize="11" Padding="10,0" VerticalAlignment="Center"/>
                                             </Grid>
                                         </Border>
@@ -1110,6 +1111,18 @@
 
                 <Border x:Name="ContentAreaBorder" Grid.Column="1">
                     <ContentControl x:Name="ContentArea" Content="{Binding VistaActual}"/>
+                </Border>
+
+                <!-- Overlay global: el detalle puede abrirse tanto desde la campana
+                     como desde la bandeja completa, sin crear una ventana secundaria. -->
+                <Border x:Name="NotificacionModalOverlay"
+                        Grid.Column="1"
+                        Background="#990F172A"
+                        Visibility="Collapsed"
+                        Panel.ZIndex="200">
+                    <ContentControl x:Name="NotificacionModalContent"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"/>
                 </Border>
 
             </Grid>
