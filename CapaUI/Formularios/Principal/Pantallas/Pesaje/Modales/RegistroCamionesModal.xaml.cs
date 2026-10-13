@@ -624,7 +624,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
                     .Catalogo(CajaProveedor, $"El proveedor del camión {Numero}", () => IdProveedor.HasValue)
                         .Segun(ReglasCamion.Proveedor)
                     .Campo(CajaDescripcion, $"La descripción del camión {Numero}").Segun(ReglasCamion.Descripcion)
-                    .ValidarAlSalirDelCampo();
+                    .ValidarAlSalirDelCampo(marcarAlSalir: false, fondoClaro: true);
             }
 
             public void CopiarDe(FilaCamion otra)

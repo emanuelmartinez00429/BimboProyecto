@@ -542,7 +542,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje.Modales
                     .Campo(CajaPeso,   $"El peso manifestado de {Nombre}").Segun(ReglasProductoCamion.Cantidad)
                     .Campo(CajaBultos, $"Los bultos de {Nombre}").Segun(ReglasProductoCamion.Cantidad)
                     .Campo(CajaObs,    $"Las observaciones de {Nombre}").Segun(ReglasProductoCamion.Observaciones)
-                    .ValidarAlSalirDelCampo();
+                    .ValidarAlSalirDelCampo(marcarAlSalir: false, fondoClaro: true);
             }
         }
     }
