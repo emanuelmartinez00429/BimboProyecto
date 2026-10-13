@@ -86,6 +86,14 @@ namespace CapaUI.Formularios.Principal.Pantallas.Proveedores
         // con que el mouse sí tuviera una acción.
         private void DgProveedores_PreviewKeyDown(object sender, WpfKey e)
         {
+            // Flecha arriba en la primera fila: sin esto WPF intenta salir por el
+            // borde superior, deselecciona la fila y deja el foco en una celda suelta.
+            if (e.Key == Key.Up && sender is System.Windows.Controls.DataGrid dg && dg.SelectedIndex <= 0)
+            {
+                e.Handled = true;
+                return;
+            }
+
             if (e.Key != Key.Enter || _vm?.Seleccionado == null) return;
             e.Handled = true;
             AbrirModalEditar(_vm.Seleccionado);

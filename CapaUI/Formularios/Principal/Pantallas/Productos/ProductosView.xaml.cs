@@ -145,6 +145,14 @@ namespace CapaUI.Formularios.Principal.Pantallas.Productos
         // de WPF (sin efecto real acá, la grilla es IsReadOnly).
         private void DgProductos_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
+            // Flecha arriba en la primera fila: sin esto WPF intenta salir por el
+            // borde superior, deselecciona la fila y deja el foco en una celda suelta.
+            if (e.Key == System.Windows.Input.Key.Up && sender is System.Windows.Controls.DataGrid dg && dg.SelectedIndex <= 0)
+            {
+                e.Handled = true;
+                return;
+            }
+
             if (e.Key != System.Windows.Input.Key.Enter || _vm?.Seleccionado == null) return;
             e.Handled = true;
             AbrirModalEditar(_vm.Seleccionado);
