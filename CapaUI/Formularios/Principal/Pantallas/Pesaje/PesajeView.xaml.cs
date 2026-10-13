@@ -56,7 +56,8 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             if (_vm != null) return;
             _vm = App.CrearVm<PesajeViewModel>();
             _catalogos = App.Services.GetRequiredService<ICatalogoRepository>();
-            _vm.Toast           += MostrarToast;
+            _vm.Toast           += MostrarInfo;
+            _vm.Aviso           += MostrarAviso;
             _vm.PropertyChanged += OnVmPropertyChanged;
             DataContext = _vm;
 
@@ -110,7 +111,8 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             DetenerSpinnerCarga();   // si se sale mientras cargaba, no dejar la animación viva
             CerrarModalActivo();
             if (_vm == null) return;
-            _vm.Toast -= MostrarToast;
+            _vm.Toast -= MostrarInfo;
+            _vm.Aviso -= MostrarAviso;
             _vm.PropertyChanged -= OnVmPropertyChanged;
             DataContext = null;
             (_vm as IDisposable)?.Dispose();
@@ -1095,6 +1097,12 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             }
             ModalContent.Content = null;
         }
+
+        private void MostrarInfo(string mensaje) =>
+            MessageBox.Show(mensaje, "Pesajes", MessageBoxButton.OK, MessageBoxImage.Information);
+
+        private void MostrarAviso(string mensaje) =>
+            MessageBox.Show(mensaje, "Pesajes", MessageBoxButton.OK, MessageBoxImage.Warning);
 
         // ── Toast ──────────────────────────────────────────────────────────────
         private void MostrarToast(string mensaje)

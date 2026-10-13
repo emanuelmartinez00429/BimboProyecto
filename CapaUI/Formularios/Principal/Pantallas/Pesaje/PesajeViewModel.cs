@@ -120,6 +120,29 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
 
         public event Action<string>? Toast;
 
+        /// <summary>Falla que el operador debe ver en un MessageBox (nunca texto crudo de la base).</summary>
+        public event Action<string>? Aviso;
+
+        private static readonly string[] _marcasTecnicas =
+        {
+            "{", "\"code\"", "PGRST", "P0001", "SQLSTATE", "postgres", "npgsql", "supabase", "postgrest",
+            "duplicate key", "violates", "constraint", "relation ", "schema", "function ", "rpc",
+            "jwt", "http", "timeout", "exception", "stack", "null reference", "23505",
+        };
+
+        // Registra el texto crudo en el log y le muestra al operador solo mensajes
+        // escritos para él (p.ej. las reglas del trigger); si huele a base de datos,
+        // usa el texto genérico.
+        private void Falla(string? error, string generico)
+        {
+            if (!string.IsNullOrWhiteSpace(error))
+                Serilog.Log.Warning("PesajeVM: {Generico} — detalle: {Error}", generico, error);
+
+            bool tecnico = string.IsNullOrWhiteSpace(error)
+                || _marcasTecnicas.Any(m => error.Contains(m, StringComparison.OrdinalIgnoreCase));
+            Aviso?.Invoke(tecnico ? generico : error!);
+        }
+
         public PesajeViewModel(
             IPesajeRepository repo, 
             IUsuarioSesionService sesionService,
@@ -339,7 +362,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
                 var generadoResult = await _reportGenerator.GenerateAsync(documento, formato, ct);
                 if (!generadoResult.Success)
                 {
-                    Toast?.Invoke($"Error al generar reporte: {generadoResult.Error}");
+                    Falla(generadoResult.Error, "No se pudo generar el reporte.");
                     return false;
                 }
 
@@ -368,7 +391,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
                 if (!registro.Success)
                 {
                     if (File.Exists(rutaTemporal)) File.Delete(rutaTemporal);
-                    Toast?.Invoke($"No se pudo registrar la auditoría del reporte: {registro.Error}");
+                    Falla(registro.Error, "No se pudo registrar el reporte generado.");
                     return false;
                 }
 
@@ -384,7 +407,8 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
                 {
                     try { File.Delete(rutaTemporal); } catch { }
                 }
-                Toast?.Invoke($"Error inesperado al generar reporte: {ex.Message}");
+                Serilog.Log.Error(ex, "PesajeVM: error inesperado al generar reporte");
+                Falla(null, "No se pudo generar el reporte.");
                 return false;
             }
             finally
@@ -419,7 +443,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
         {
             IsLoading = true;
             var r = await _repo.GetCamionesActivosAsync();
-            if (!r.Success) { IsLoading = false; Toast?.Invoke(r.Error ?? "Error al cargar camiones"); return; }
+            if (!r.Success) { IsLoading = false; Falla(r.Error, "Error al cargar camiones"); return; }
 
             Camiones.Clear();
             foreach (var c in r.Value!) Camiones.Add(MapCamion(c));
@@ -470,7 +494,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             if (!r.Success)
             {
                 CargandoProductos = false;
-                Toast?.Invoke(r.Error ?? "Error al cargar productos");
+                Falla(r.Error, "Error al cargar productos");
                 return;
             }
             foreach (var p in r.Value!) camion.Productos.Add(MapProducto(p, camion.Proveedor));
@@ -526,7 +550,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             if (!HaySesionActiva("guardar el camión")) return false;
 
             var r = await _repo.ActualizarCamionAsync(camion.Id, idProveedor.Value, placa, obs);
-            if (!r.Success) { Toast?.Invoke(r.Error ?? "No se pudo actualizar el camión"); return false; }
+            if (!r.Success) { Falla(r.Error, "No se pudo actualizar el camión"); return false; }
 
             await RecargarCamionesAsync(seleccionarId: camion.Id);
             Toast?.Invoke("Cambios guardados");
@@ -560,7 +584,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             {
                 string error = r.Error ?? "No se pudo registrar el lote de camiones";
                 Serilog.Log.Warning("PesajeVM: error al registrar lote de camiones: {Error}", error);
-                Toast?.Invoke(error);
+                Falla(r.Error, "No se pudo registrar el lote de camiones.");
                 return 0;
             }
 
@@ -591,7 +615,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
         public async Task QuitarCamionAsync(CamionPesaje camion)
         {
             var r = await _repo.AnularCamionAsync(camion.Id);
-            if (!r.Success) { Toast?.Invoke(r.Error ?? "No se pudo quitar"); return; }
+            if (!r.Success) { Falla(r.Error, "No se pudo quitar"); return; }
 
             await RecargarCamionesAsync(seleccionarId: SelectedCamion == camion ? null : SelectedCamion?.Id);
             Toast?.Invoke("Camión eliminado");
@@ -601,7 +625,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
         {
             if (SelectedCamion is null || CamionCerrado) return false;
             var r = await _repo.CerrarCamionAsync(SelectedCamion.Id);
-            if (!r.Success) { Toast?.Invoke(r.Error ?? "No se pudo cerrar"); return false; }
+            if (!r.Success) { Falla(r.Error, "No se pudo cerrar"); return false; }
 
             SelectedCamion.Estado = "Cerrado";
             OnPropertyChanged(nameof(CamionCerrado));
@@ -616,7 +640,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             {
                 var r = await _repo.CerrarCamionAsync(c.Id);
                 if (r.Success) c.Estado = "Cerrado";
-                else Toast?.Invoke(r.Error ?? $"No se pudo cerrar {c.Placa}");
+                else Falla(r.Error, $"No se pudo cerrar {c.Placa}");
             }
             OnPropertyChanged(nameof(CamionCerrado));
             NotificarStats();
@@ -660,7 +684,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             {
                 string error = r.Error ?? "No se pudieron guardar los productos de la carga";
                 Serilog.Log.Warning("PesajeVM: error al guardar la carga del movimiento {Id}: {Error}", camion.Id, error);
-                Toast?.Invoke(error);
+                Falla(r.Error, "No se pudieron guardar los productos de la carga.");
                 return false;
             }
 
@@ -708,7 +732,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
 
             var camion = SelectedCamion;
             var r = await _repo.AnularProductoAsync(producto.Id);
-            if (!r.Success) { Toast?.Invoke(r.Error ?? "No se pudo quitar el producto"); return false; }
+            if (!r.Success) { Falla(r.Error, "No se pudo quitar el producto"); return false; }
 
             await CargarProductosAsync(camion);
             SelectedProducto = camion.Productos.FirstOrDefault();
@@ -724,7 +748,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             if (CamionCerrado) return;
             bool cerrar = p.Estado == "Abierto";
             var r = await _repo.SetEstadoProductoAsync(p.Id, cerrar);
-            if (!r.Success) { Toast?.Invoke(r.Error ?? "No se pudo cambiar estado"); return; }
+            if (!r.Success) { Falla(r.Error, "No se pudo cambiar estado"); return; }
             p.Estado = cerrar ? "Cerrado" : "Abierto";
         }
 
@@ -752,7 +776,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             if (editando is not null)
             {
                 var ra = await _repo.AnularEntradaAsync(editando.Id);
-                if (!ra.Success) { Toast?.Invoke(ra.Error ?? "No se pudo editar"); return false; }
+                if (!ra.Success) { Falla(ra.Error, "No se pudo editar"); return false; }
                 producto.Entradas.Remove(editando);
             }
 
@@ -765,7 +789,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
 
             if (!r.Success)
             {
-                Toast?.Invoke(r.Error ?? "No se pudo guardar el pesaje");
+                Falla(r.Error, "No se pudo guardar el pesaje");
 
                 // Si veníamos de una edición, la entrada vieja ya se anuló en la BD y se quitó
                 // de la colección: sin el INSERT que la reemplace, la memoria y la BD podrían
@@ -817,7 +841,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
         {
             if (SelectedCamion is null) return;
             var r = await _repo.AnularEntradaAsync(entrada.Id);
-            if (!r.Success) { Toast?.Invoke(r.Error ?? "No se pudo quitar"); return; }
+            if (!r.Success) { Falla(r.Error, "No se pudo quitar"); return; }
 
             // La entrada sabe a qué producto pertenece (RecalcularFilas le setea ProdId), así
             // que se ubica sin depender de cuál esté seleccionado: en vista "Todo el camión"
@@ -889,7 +913,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
             if (!resultado.Success)
             {
                 Serilog.Log.Error("PesajeVM: falló el reparto atómico de tara extra: {Error}", resultado.Error);
-                Toast?.Invoke($"Error al repartir la tara extra: {resultado.Error}");
+                Falla(resultado.Error, "No se pudo repartir la tara extra.");
                 return false;
             }
 
@@ -972,7 +996,7 @@ namespace CapaUI.Formularios.Principal.Pantallas.Pesaje
         private async Task RecargarCamionesAsync(int? seleccionarId = null)
         {
             var r = await _repo.GetCamionesActivosAsync();
-            if (!r.Success) { Toast?.Invoke(r.Error ?? "Error al recargar"); return; }
+            if (!r.Success) { Falla(r.Error, "Error al recargar"); return; }
 
             Camiones.Clear();
             foreach (var c in r.Value!) Camiones.Add(MapCamion(c));
