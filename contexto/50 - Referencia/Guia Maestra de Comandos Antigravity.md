@@ -11,7 +11,7 @@ date: 2026-09-02
 
 # Guía Maestra de Comandos de Acción (Slash Commands)
 
-> **Propósito:** Esta guía documenta los **8 modos de orquestación y comandos de acción (`/`)** disponibles en el entorno de desarrollo Antigravity. A diferencia de las *Skills* (que son bibliotecas pasivas de consulta), los **Slash Commands** son interruptores que transforman la forma en que el agente piensa, colabora, investiga y ejecuta código en el proyecto Bimbo Honduras.
+> **Propósito:** Esta guía documenta los **9 modos de orquestación y comandos de acción (`/`)** disponibles en el entorno de desarrollo Antigravity. A diferencia de las *Skills* (que son bibliotecas pasivas de consulta), los **Slash Commands** son interruptores que transforman la forma en que el agente piensa, colabora, investiga y ejecuta código en el proyecto Bimbo Honduras.
 
 ---
 
@@ -124,7 +124,32 @@ Invoca a un subagente especializado con un navegador Chromium real integrado, ca
 
 ---
 
-## 5. `/grill-me` — Entrevístame (Alineación Previa de Requisitos)
+## 5. `/plan` — Planificación Estructurada (Desglose Paso a Paso Antes de Ejecutar)
+
+### Definición
+Activa un modo de análisis y diseño arquitectónico que genera un plan de ejecución estructurado y desglosado paso a paso (fases, archivos afectados, dependencias y riesgos) antes de modificar código, permitiendo revisar y validar la estrategia técnica antes de actuar.
+
+> [!NOTE]
+> **Analogía de la vida real:**  
+> Es como el plano arquitectónico y el cronograma de obra de un ingeniero civil antes de levantar un edificio. No empieza a cavar zanjas ni a comprar vigas a lo loco; primero traza las fases de la construcción (cimentación, estructura, fontanería, acabados), calcula los tiempos, identifica las rutas críticas y te presenta el cronograma detallado para que lo apruebes antes de poner la primera piedra.
+
+### Casos de Uso en BimboProyecto
+* **Refactorización estructural o desacoplamiento de servicios:**
+  > `/plan Diseña el plan de migración de la lógica de negocio de los repositorios hacia servicios de dominio independientes.`  
+  *Efecto:* El agente no edita código de inmediato; produce un desglose estructurado por fases: auditoría de dependencias, orden de migración interfaz por interfaz, puntos de ruptura, compatibilidad regresiva y checklist de verificación.
+* **Integración de funcionalidades complejas multi-capa:**
+  > `/plan Planifica la implementación de la sincronización offline-first con Supabase en la aplicación de pesaje.`  
+  *Efecto:* Mapea paso a paso los modelos locales (SQLite), las tablas intermedias de sync, la resolución de conflictos de concurrencia y los tests necesarios antes de escribir una sola línea.
+
+| ✅ Cuándo SÍ usarlo | ❌ Cuándo NO usarlo |
+|---|---|
+| Tareas técnicas complejas con múltiples dependencias o fases secuenciales. | Cambios sencillos o evidentes en 1 o 2 archivos. |
+| Refactors estructurales o migraciones donde necesitas aprobar el orden de ejecución. | Corrección de errores tipográficos o sintaxis básica. |
+| Cuando quieres revisar el diseño y alcance de la solución antes de que se toquen archivos. | Cuando ya tienes el plan aprobado y quieres ejecución autónoma continua (usa `/goal`). |
+
+---
+
+## 6. `/grill-me` — Entrevístame (Alineación Previa de Requisitos)
 
 ### Definición
 Invierte la dinámica: en lugar de que tú des órdenes y el agente programe asumiendo supuestos, **el agente se convierte en un entrevistador técnico inquisitivo** que te hace preguntas profundas sobre diseño, flujos, casos borde y reglas de negocio antes de tocar el código.
@@ -148,7 +173,7 @@ Invierte la dinámica: en lugar de que tú des órdenes y el agente programe asu
 
 ---
 
-## 6. `/teamwork-preview` — Equipo de Agentes en Cuadrilla
+## 7. `/teamwork-preview` — Equipo de Agentes en Cuadrilla
 
 ### Definición
 Despliega un equipo completo de agentes autónomos especializados trabajando simultáneamente en paralelo: un líder/orquestador, auditores de arquitectura, programadores frontend/backend, revisores de código y testers.
@@ -172,7 +197,7 @@ Despliega un equipo completo de agentes autónomos especializados trabajando sim
 
 ---
 
-## 7. `/learn` — Aprender y Fijar Reglas en Piedra
+## 8. `/learn` — Aprender y Fijar Reglas en Piedra
 
 ### Definición
 Le ordena al agente analizar la conversación reciente, extraer las correcciones, preferencias o directrices que le diste, y consolidarlas en archivos de reglas formales ([[reglas-bimbo]]) o en la memoria permanente para que nunca más se le olviden.
@@ -196,7 +221,7 @@ Le ordena al agente analizar la conversación reciente, extraer las correcciones
 
 ---
 
-## 8. `/boost` — Modo Boost (Máxima Potencia y Razonamiento)
+## 9. `/boost` — Modo Boost (Máxima Potencia y Razonamiento)
 
 ### Definición
 Activa un orquestador de máxima capacidad cognitiva enfocado en pensamiento profundo, verificación cruzada estricta y eliminación radical de suposiciones erróneas para problemas de alta complejidad.
@@ -228,6 +253,7 @@ Activa un orquestador de máxima capacidad cognitiva enfocado en pensamiento pro
 | **/goal** | 🤖🤖🤖 Total | ⏱️ Media | Terminar tareas grandes sin pedir permiso a mitad de camino. |
 | **/schedule** | ⏲️ Asíncrono | ⏳ Diferido | Esperar procesos largos o monitorear logs en segundo plano. |
 | **/browser** | 🔍 Investigativo | 🌐 Externa | Leer documentación oficial de librerías en internet. |
+| **/plan** | 📐 Planificador | 📋 Metódico | Diseñar y desglosar paso a paso la estrategia antes de tocar código. |
 | **/grill-me** | 🗣️ Interactivo | 💬 Diálogo | Aterrizar requisitos y diseño antes de programar. |
 | **/teamwork-preview** | 👥 Cuadrilla | 🚀 Paralelo | Proyectos grandes con impacto en múltiples capas a la vez. |
 | **/learn** | 🧠 Estratégico | 💾 Permanente | Fijar reglas aprendidas en la memoria del proyecto. |
