@@ -84,6 +84,8 @@
 
   <!-- Estilo de encabezados DataGrid: fondo primario de empresa, texto blanco bold centrado verticalmente -->
   <Style x:Key="ReporteHeaderStyle" TargetType="DataGridColumnHeader">
+   <Setter Property="Focusable" Value="False"/>
+   <Setter Property="IsTabStop" Value="False"/>
    <Setter Property="Background" Value="{DynamicResource EmpresaPrimaryBrush}"/>
    <Setter Property="Foreground" Value="White"/>
    <Setter Property="FontFamily" Value="Segoe UI"/>

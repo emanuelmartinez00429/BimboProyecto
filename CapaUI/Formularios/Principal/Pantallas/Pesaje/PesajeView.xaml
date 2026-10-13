@@ -285,6 +285,8 @@
 
         <!-- ── DataGrid header/row/cell ── -->
         <Style x:Key="PgHeader" TargetType="DataGridColumnHeader">
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="IsTabStop" Value="False"/>
             <Setter Property="Background" Value="{DynamicResource EmpresaPrimaryBrush}"/>
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="FontFamily" Value="Segoe UI"/>

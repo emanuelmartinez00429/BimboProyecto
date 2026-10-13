@@ -1167,6 +1167,8 @@
     </Style>
 
     <Style x:Key="TablaCatalogoHeader" TargetType="DataGridColumnHeader">
+        <Setter Property="Focusable" Value="False"/>
+        <Setter Property="IsTabStop" Value="False"/>
         <Setter Property="Height" Value="38"/>
         <Setter Property="Template">
             <Setter.Value>
@@ -1183,8 +1185,15 @@
         </Setter>
     </Style>
 
+    <!-- ══ Configuración por defecto de DataGrid (Compartida) ══ -->
+    <Style TargetType="DataGrid">
+        <Setter Property="KeyboardNavigation.DirectionalNavigation" Value="Contained"/>
+    </Style>
+
     <!-- ══ Encabezados de DataGrid (Compartidos) ══ -->
     <Style TargetType="DataGridColumnHeader">
+        <Setter Property="Focusable" Value="False"/>
+        <Setter Property="IsTabStop" Value="False"/>
         <Setter Property="Background" Value="{DynamicResource EmpresaPrimaryBrush}"/>
         <Setter Property="Foreground" Value="White"/>
         <Setter Property="FontFamily" Value="Segoe UI"/>
@@ -1211,6 +1220,8 @@
     </Style>
 
     <Style x:Key="HeaderCentrado" TargetType="DataGridColumnHeader">
+        <Setter Property="Focusable" Value="False"/>
+        <Setter Property="IsTabStop" Value="False"/>
         <Setter Property="Background" Value="{DynamicResource EmpresaPrimaryBrush}"/>
         <Setter Property="Foreground" Value="White"/>
         <Setter Property="FontFamily" Value="Segoe UI"/>
@@ -1237,6 +1248,8 @@
     </Style>
 
     <Style x:Key="HeaderDerecho" TargetType="DataGridColumnHeader">
+        <Setter Property="Focusable" Value="False"/>
+        <Setter Property="IsTabStop" Value="False"/>
         <Setter Property="Background" Value="{DynamicResource EmpresaPrimaryBrush}"/>
         <Setter Property="Foreground" Value="White"/>
         <Setter Property="FontFamily" Value="Segoe UI"/>
