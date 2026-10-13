@@ -181,7 +181,9 @@ namespace CapaUI.Formularios.Principal
             // Ctrl+K → enfocar buscador
             PreviewKeyDown += (_, e) =>
             {
-                if (e.Key == Key.K && (Keyboard.Modifiers & ModifierKeys.Control) != 0)
+                // Buscador oculto por ahora: sin foco a una caja invisible.
+                if (SearchPill.Visibility == Visibility.Visible
+                    && e.Key == Key.K && (Keyboard.Modifiers & ModifierKeys.Control) != 0)
                 {
                     TxtSearch.Focus();
                     e.Handled = true;
