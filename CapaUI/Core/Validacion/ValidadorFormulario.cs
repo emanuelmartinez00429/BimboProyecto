@@ -421,16 +421,17 @@ public sealed class ValidadorFormulario
         }
 
         /// <summary>
-        /// La regla solo aplica si <paramref name="condicion"/> se cumple al
+        /// Las reglas del campo solo aplican si <paramref name="condicion"/> se cumple al
         /// momento de validar. Sirve para lo que solo vale al crear (la contraseña
         /// de un usuario nuevo, por ejemplo).
         /// </summary>
         public ConstructorCampo SoloSi(Func<bool> condicion)
         {
-            if (_campo.Reglas.Count == 0) return this;
-
-            var (esValido, mensaje) = _campo.Reglas[^1];
-            _campo.Reglas[^1] = (c => !condicion() || esValido(c), mensaje);
+            for (int i = 0; i < _campo.Reglas.Count; i++)
+            {
+                var (esValido, mensaje) = _campo.Reglas[i];
+                _campo.Reglas[i] = (c => !condicion() || esValido(c), mensaje);
+            }
             return this;
         }
 
