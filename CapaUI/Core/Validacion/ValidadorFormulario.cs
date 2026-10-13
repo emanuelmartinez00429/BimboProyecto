@@ -42,6 +42,7 @@ namespace CapaUI.Core.Validacion;
 public sealed class ValidadorFormulario
 {
     private readonly List<CampoValidado> _campos = new();
+    private Brush _colorRenglon = new SolidColorBrush(Color.FromRgb(0xFC, 0xA5, 0xA5));
 
     private ValidadorFormulario() { }
 
@@ -96,16 +97,29 @@ public sealed class ValidadorFormulario
     /// nuevo y tabular por él lo pintaría todo de rojo antes de que el usuario
     /// escriba nada. Solo se marca lo que se visitó y quedó mal.
     /// </remarks>
-    public ValidadorFormulario ValidarAlSalirDelCampo()
+    /// <param name="marcarAlSalir">
+    /// <c>false</c>: no se marca nada al salir del campo; el error aparece recién
+    /// al guardar (y desde ahí se actualiza al editar).
+    /// </param>
+    /// <param name="fondoClaro">
+    /// <c>true</c>: el mensaje usa un rojo oscuro legible sobre fondo blanco.
+    /// </param>
+    public ValidadorFormulario ValidarAlSalirDelCampo(bool marcarAlSalir = true, bool fondoClaro = false)
     {
+        if (fondoClaro)
+            _colorRenglon = new SolidColorBrush(Color.FromRgb(0xDC, 0x26, 0x26));
+
         foreach (var campo in _campos)
         {
             var actual = campo;
-            actual.Control.LostFocus += (_, _) =>
+            if (marcarAlSalir)
             {
-                actual.Visitado = true;
-                Evaluar(actual);
-            };
+                actual.Control.LostFocus += (_, _) =>
+                {
+                    actual.Visitado = true;
+                    Evaluar(actual);
+                };
+            }
 
             if (actual.Control is TextBox tb)
             {
@@ -165,7 +179,7 @@ public sealed class ValidadorFormulario
         foreach (var campo in _campos)
         {
             campo.Visitado = false;
-            AplicarError(campo, null);
+            AplicarError(campo, null, _colorRenglon);
         }
     }
 
@@ -175,18 +189,18 @@ public sealed class ValidadorFormulario
 
         // Sin visitar todavía: se calla, pero igual reporta el estado real para
         // que Validar() sepa que hay algo mal.
-        AplicarError(campo, campo.Visitado ? mensaje : null);
+        AplicarError(campo, campo.Visitado ? mensaje : null, _colorRenglon);
         campo.MensajeError = mensaje ?? string.Empty;
         return mensaje is null;
     }
 
     // ── Presentación del error ────────────────────────────────────────────
 
-    private static void AplicarError(CampoValidado campo, string? mensaje)
+    private static void AplicarError(CampoValidado campo, string? mensaje, Brush color)
     {
         Validacion.SetError(campo.Control, mensaje);
         campo.Control.ToolTip = mensaje;   // respaldo si el campo no está en un CampoModal
-        MostrarRenglon(campo, mensaje);
+        MostrarRenglon(campo, mensaje, color);
     }
 
     /// <summary>
@@ -202,7 +216,7 @@ public sealed class ValidadorFormulario
     /// Si no encuentra ese StackPanel —Configuración de Empresa usa su propio
     /// layout— no hace nada y el error igual se ve por el ToolTip y el borde rojo.
     /// </remarks>
-    private static void MostrarRenglon(CampoValidado campo, string? mensaje)
+    private static void MostrarRenglon(CampoValidado campo, string? mensaje, Brush color)
     {
         var panel = BuscarPanelDelCampo(campo.Control);
         if (panel is null) return;
@@ -220,7 +234,7 @@ public sealed class ValidadorFormulario
             {
                 FontFamily   = new FontFamily("Segoe UI"),
                 FontSize     = 13,
-                Foreground   = new SolidColorBrush(Color.FromRgb(0xFC, 0xA5, 0xA5)),
+                Foreground   = color,
                 TextWrapping = TextWrapping.Wrap,
                 Margin       = new Thickness(2, 4, 0, 0),
             };
@@ -443,7 +457,7 @@ public sealed class ValidadorFormulario
         public ConstructorCampo Catalogo(TextBox caja, string etiqueta, Func<int?>? obtenerId = null) => _validador.Catalogo(caja, etiqueta, obtenerId);
         public ConstructorCampo Catalogo(TextBox caja, string etiqueta, Func<bool> tieneValor) => _validador.Catalogo(caja, etiqueta, tieneValor);
 
-        public ValidadorFormulario ValidarAlSalirDelCampo() => _validador.ValidarAlSalirDelCampo();
+        public ValidadorFormulario ValidarAlSalirDelCampo(bool marcarAlSalir = true, bool fondoClaro = false) => _validador.ValidarAlSalirDelCampo(marcarAlSalir, fondoClaro);
         public ValidadorFormulario Listo() => _validador;
     }
 }
