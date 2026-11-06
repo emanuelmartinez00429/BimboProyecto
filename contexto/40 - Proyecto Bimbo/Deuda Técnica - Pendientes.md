@@ -1464,6 +1464,25 @@ Eran **dos problemas encimados**, y el segundo era el grave:
 
 ---
 
+### P-067 — Paquete transitivo vulnerable: `System.Security.Cryptography.Pkcs` 8.0.1
+
+**Archivos:** `CapaDatos/CapaDatos.csproj` y `BimboProyecto.Tests/BimboProyecto.Tests.csproj`, ambos por vía **transitiva**. No hay `PackageReference` directo, así que no se corrige con una línea en esos `.csproj`: hay que trazar el árbol y actualizar el padre.
+
+Dos advisories activos sobre la misma versión:
+
+- `NU1903` (gravedad alta) — GHSA-846f-f764-76mx.
+- `NU1902` (gravedad moderada) — GHSA-2fmv-rv2c-59x7.
+
+**Detectado:** 2026-11-06, al correr `dotnet add package Velopack` en `CapaUI`, que forzó un restore completo con NuGet Audit encendido. Los warnings ya estaban latentes: cualquier restore desde cero los destapa. **No los introdujo la integración de Velopack** — se confirmó con `git diff main -- CapaDatos/CapaDatos.csproj`, que devuelve vacío.
+
+**Riesgo:** no es de comportamiento. El proyecto compila y la app funciona; el riesgo es de cadena de suministro. Que el advisory sea "alta" no implica explotación automática en este uso concreto, pero deja un paquete con CVE conocidos dentro del grafo de un producto que se distribuye a estaciones de planta.
+
+**Solución:** `dotnet list CapaDatos\CapaDatos.csproj package --include-transitive --vulnerable` para identificar el padre y subirlo de versión. Si el padre todavía no publicó parche, fijar el transitivo con un `<PackageReference>` explícito a una versión corregida como parche temporal, dejando comentado el motivo.
+
+**Estado:** `[ ]` Pendiente — detectado en [[Sesión 2026-11-06 - Integración inicial de Velopack en CapaUI]]
+
+---
+
 
 ## Historial de resolución
 
@@ -1535,6 +1554,7 @@ Eran **dos problemas encimados**, y el segundo era el grave:
 | P-064 | Posible `Padding` duplicado en plantillas de `TextBox` con `PART_ContentHost Margin="{TemplateBinding Padding}"` | `[ ]` Pendiente — corregido solo en `ConfiguracionEmpresaView` | [[Sesión 2026-09-17 - Rediseño visual de Configuración de empresa]] |
 | P-065 | 19 tablas conceden `TRUNCATE` a `authenticated`; RLS no filtra `TRUNCATE` | `[x]` Resuelto 2026-09-20 — revocado en las 19 tablas con migración `revocar_truncate_19_tablas_p065` | [[Sesión 2026-09-20 - Preferencias por usuario (Fase 1 del escalado)]] |
 | P-066 | `ConstructionVM` y `ConstructionScreen` sin uso desde que `Mi Usuario` tiene pantalla real | `[ ]` Pendiente — borrar o declarar plantilla | [[Sesión 2026-09-20 - Preferencias por usuario (Fase 1 del escalado)]] |
+| P-067 | `System.Security.Cryptography.Pkcs` 8.0.1 transitivo con CVE alta y moderada (NU1903 / NU1902) | `[ ]` Pendiente — identificar padre y actualizar | [[Sesión 2026-11-06 - Integración inicial de Velopack en CapaUI]] |
 
 ---
 
