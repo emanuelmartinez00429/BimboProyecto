@@ -14,12 +14,30 @@
       por eso se reemplazó por el manifest. Ver app.manifest.
     -->
     <ApplicationManifest>app.manifest</ApplicationManifest>
+
+    <!--
+      Velopack: el punto de entrada tiene que ser el Main propio de App.xaml.cs,
+      no el que genera WPF desde App.xaml, para que VelopackApp.Build().Run()
+      corra antes de que exista la Application y de que se mergeen los estilos.
+    -->
+    <StartupObject>CapaUI.App</StartupObject>
+
+    <!-- Fuente única de verdad de la versión: vpk pack -v se alimenta de acá. -->
+    <Version>1.0.0</Version>
   </PropertyGroup>
+
+  <ItemGroup>
+    <!-- App.xaml deja de ser ApplicationDefinition para no generar un Main automático. -->
+    <ApplicationDefinition Remove="App.xaml" />
+    <Page Include="App.xaml" />
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
     <PackageReference Include="Serilog" Version="4.3.1" />
     <PackageReference Include="Supabase" Version="1.1.1" />
+    <PackageReference Include="Velopack" Version="1.2.161" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\bimbo_no_bg.png" />

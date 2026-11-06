@@ -195,6 +195,10 @@ DocProject/Help/html
 # Click-Once directory
 publish/
 
+# Salida de Velopack (vpk pack): instaladores, nupkgs y releases.*.json.
+# No se versiona: se publica como release de GitHub.
+Releases/
+
 # Publish Web Output
 *.[Pp]ublish.xml
 *.azurePubxml

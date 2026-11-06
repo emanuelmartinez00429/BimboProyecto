@@ -28,11 +28,31 @@ using CapaUI.Core.Empresa;
 using CapaUI.ViewModels.Search;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
+using Velopack;
 
 namespace CapaUI
 {
     public partial class App : Application
     {
+        /// <summary>
+        /// Punto de entrada explícito (StartupObject en el .csproj).
+        /// <para/>
+        /// Velopack reutiliza este mismo ejecutable para instalar, crear shortcuts,
+        /// desinstalar y aplicar actualizaciones. Si esa llamada no corre antes de que
+        /// exista la <see cref="Application"/> — y antes de que App.xaml mergee los
+        /// estilos — esos eventos quedan envueltos en la inicialización completa de WPF.
+        /// Por eso no alcanza con llamarlo desde <see cref="OnStartup"/>.
+        /// </summary>
+        [STAThread]
+        private static void Main(string[] args)
+        {
+            VelopackApp.Build().Run();
+
+            App app = new();
+            app.InitializeComponent();
+            app.Run();
+        }
+
         // C13: lazy-init para que App.Services funcione incluso cuando
         // BimboPesaje (WinForms host) es el ejecutable de entrada y
         // CapaUI.App.OnStartup nunca se invoca.
