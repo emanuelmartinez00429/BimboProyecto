@@ -172,6 +172,8 @@ namespace CapaUI.Formularios.Principal
 
             Vm.CierreRequerido += OnCierreRequerido;
             Vm.Notificaciones.SolicitarDetalle += MostrarDetalleNotificacion;
+            Vm.Actualizacion.ReinicioSolicitado += OnReinicioSolicitado;
+            Closed += OnClosedActualizacion;
             ConfiguracionEmpresaViewModel.EmpresaActualizada += OnConfiguracionGuardada;
             Vm.PropertyChanged += OnVmPropertyChanged;
 
@@ -790,6 +792,32 @@ namespace CapaUI.Formularios.Principal
         private void BtnCerrarVentana_Click(object sender, RoutedEventArgs e) => Close();
 
         private void OnCierreRequerido(object? s, EventArgs e) => HandleCerrarSesionAsync();
+
+        // ── Actualización ─────────────────────────────────────────────────────
+        // La confirmación vive en la vista, no en el ViewModel. Si el usuario acepta,
+        // Velopack queda preparado para aplicar y reiniciar; después se apaga la app.
+        private void OnReinicioSolicitado(object? sender, EventArgs e)
+        {
+            if (_cerrando) return;
+
+            var resultado = MessageBox.Show(
+                this,
+                "La aplicación se reiniciará para aplicar la actualización.\n\n¿Continuar?",
+                "Reiniciar ahora",
+                MessageBoxButton.YesNo, MessageBoxImage.Question);
+
+            if (resultado != MessageBoxResult.Yes) return;
+
+            _cerrando = true;
+            Vm.Actualizacion.AplicarReinicio();
+            Application.Current.Shutdown();
+        }
+
+        private void OnClosedActualizacion(object? sender, EventArgs e)
+        {
+            Vm.Actualizacion.ReinicioSolicitado -= OnReinicioSolicitado;
+            Closed -= OnClosedActualizacion;
+        }
 
         // ══════════════════════════════════════════════════════════════════
         //  Cierre — X / Alt+F4 → salir app; botón "Cerrar sesión" → logout

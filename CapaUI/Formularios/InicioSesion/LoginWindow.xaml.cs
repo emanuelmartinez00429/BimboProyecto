@@ -16,6 +16,7 @@ using CapaAplicacion.Usuarios.Interfaces;
 using CapaDominio.Reglas;
 using CapaUI.Core.Controls;
 using CapaUI.Core.Empresa;
+using CapaUI.Formularios.Principal;
 using CapaUI.Services.Empresa;
 
 namespace CapaUI.Formularios.InicioSesion
@@ -40,7 +41,9 @@ namespace CapaUI.Formularios.InicioSesion
         private readonly IEmpresaRepository _empresaRepository;
         private readonly LogoEmpresaCache _logoCache;
         private readonly EmpresaThemeService _themeService;
+        private readonly ActualizacionViewModel _actualizacion;
         private PasswordVisibilityController? _passwordVisibility;
+        private bool _cerrando;
 
         private static readonly SolidColorBrush _borderBrush  = new(Color.FromRgb(0xD8, 0xDC, 0xE4));
         private static readonly SolidColorBrush _successBrush = new(Color.FromRgb(0x10, 0xB9, 0x81));
@@ -53,15 +56,21 @@ namespace CapaUI.Formularios.InicioSesion
             IEmpresaRepository empresaRepository,
             LogoEmpresaCache logoCache,
             EmpresaThemeService themeService,
-            IPreferenciasInicioSesionService preferencias)
+            IPreferenciasInicioSesionService preferencias,
+            ActualizacionViewModel actualizacion)
         {
             _empresaRepository = empresaRepository;
             _logoCache = logoCache;
             _themeService = themeService;
+            _actualizacion = actualizacion;
             Recuperacion  = recuperacion;
             _vm = new LoginViewModel(authService, sesionService, preferencias);
             InitializeComponent();
             DataContext = _vm;
+            // El DataContext de la ventana es LoginViewModel; el banner tiene el suyo.
+            BannerActualizacion.DataContext = _actualizacion;
+            _actualizacion.ReinicioSolicitado += OnReinicioSolicitado;
+            Closed += OnClosed;
             if (!string.IsNullOrEmpty(_vm.Email))
             {
                 TxtEmail.Text = _vm.Email;
@@ -76,6 +85,11 @@ namespace CapaUI.Formularios.InicioSesion
 
         private async void LoginWindow_Loaded(object sender, RoutedEventArgs e)
         {
+            // Se dispara una sola vez por proceso y no bloquea el login: si hay red,
+            // se verifica y descarga en background. El singleton también alimenta el
+            // banner de MainWindow si el usuario se loguea mientras descarga.
+            _ = _actualizacion.IniciarAsync();
+
             if (!string.IsNullOrEmpty(_vm.Email))
             {
                 TxtPassword.Focus();
@@ -198,6 +212,33 @@ namespace CapaUI.Formularios.InicioSesion
 
         private void BtnClose_Click(object sender, RoutedEventArgs e)
             => Application.Current.Shutdown();
+
+        // ── Actualización ─────────────────────────────────────────────────────
+        // El ViewModel solo avisa que el usuario quiere reiniciar; la confirmación
+        // (y el apagado) son de la vista. La aplicación del paquete al cerrar la
+        // prepara App.OnExit, así este camino y el cierre normal comparten un solo punto.
+        private void OnReinicioSolicitado(object? sender, EventArgs e)
+        {
+            if (_cerrando) return;
+
+            var resultado = MessageBox.Show(
+                this,
+                "La aplicación se reiniciará para aplicar la actualización.\n\n¿Continuar?",
+                "Reiniciar ahora",
+                MessageBoxButton.YesNo, MessageBoxImage.Question);
+
+            if (resultado != MessageBoxResult.Yes) return;
+
+            _cerrando = true;
+            _actualizacion.AplicarReinicio();
+            Application.Current.Shutdown();
+        }
+
+        private void OnClosed(object? sender, EventArgs e)
+        {
+            _actualizacion.ReinicioSolicitado -= OnReinicioSolicitado;
+            Closed -= OnClosed;
+        }
 
         // ── Focus effects ─────────────────────────────────────────────────────
         private void Input_GotFocus(object sender, RoutedEventArgs e)
