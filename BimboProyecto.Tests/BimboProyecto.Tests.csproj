@@ -40,5 +40,14 @@
              Link="Auth\LoginViewModel.cs" />
     <Compile Include="..\CapaUI\Formularios\InicioSesion\RecuperacionPasswordViewModels.cs"
              Link="Auth\RecuperacionPasswordViewModels.cs" />
+    <!--
+      El runtime de actualización se prueba con un fake del servicio. Enlazar el
+      ViewModel (y su contrato) en vez de referenciar CapaUI compila solo si no
+      arrastra tipos de WPF, igual que LoginViewModel.
+    -->
+    <Compile Include="..\CapaUI\Services\Actualizacion\IActualizacionService.cs"
+             Link="Actualizacion\IActualizacionService.cs" />
+    <Compile Include="..\CapaUI\Formularios\Principal\ActualizacionViewModel.cs"
+             Link="Actualizacion\ActualizacionViewModel.cs" />
   </ItemGroup>
 </Project>

@@ -3,5 +3,7 @@
   <appSettings>
     <add key="SUPABASE_URL" value="https://tu-proyecto.supabase.co" />
     <add key="SUPABASE_KEY" value="tu-anon-key-aqui" />
+    <!-- Repo de GitHub desde donde Velopack busca releases (default en código si falta). -->
+    <add key="UPDATE_REPO_URL" value="https://github.com/emanuelmartinez00429/BimboProyecto" />
   </appSettings>
 </configuration>

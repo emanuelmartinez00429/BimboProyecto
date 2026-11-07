@@ -92,6 +92,7 @@
             <Grid Grid.Column="1" Background="White">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="32"/>
+                    <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
@@ -117,12 +118,15 @@
                     </Grid>
                 </Border>
 
+                <!-- ══ BANNER DE ACTUALIZACIÓN ══ -->
+                <controls:BannerActualizacion x:Name="BannerActualizacion" Grid.Row="1"/>
+
                 <!-- ══ LOGIN PANEL ══ -->
                 <!-- Sin barra vertical: en una ventana de tamaño fijo la barra solo
                      aparecía al mostrarse el error, pegada al borde y sin recorrido útil.
                      El espacio del mensaje se reserva desde el arranque (ver ErrorContainer),
                      así que el contenido entra siempre y no hay nada que scrollear. -->
-                <ScrollViewer x:Name="LoginPanel" Grid.Row="1"
+                <ScrollViewer x:Name="LoginPanel" Grid.Row="2"
                               VerticalScrollBarVisibility="Disabled"
                               HorizontalScrollBarVisibility="Disabled">
                     <!-- Márgenes verticales 44/24 → 28/16: los 24px que se liberan son los
@@ -243,17 +247,18 @@
                                        Foreground="{StaticResource TextDisabled}"/>
                             <TextBlock Text="   ·   " FontFamily="Segoe UI" FontSize="12"
                                        Foreground="{StaticResource TextDisabled}"/>
-                            <TextBlock Text="v1.0.0" FontFamily="Consolas" FontSize="12"
+                            <TextBlock Text="{Binding DataContext.VersionTexto, ElementName=BannerActualizacion}"
+                                       FontFamily="Consolas" FontSize="12"
                                        Foreground="{StaticResource TextDisabled}"/>
                         </StackPanel>
                     </StackPanel>
                 </ScrollViewer>
 
                 <!-- ══ FORGOT PANEL (host para navegación recuperar contraseña) ══ -->
-                <ContentControl x:Name="ForgotContent" Grid.Row="1" Visibility="Collapsed"/>
+                <ContentControl x:Name="ForgotContent" Grid.Row="2" Visibility="Collapsed"/>
 
                 <!-- ══ LOADING PANEL ══ -->
-                <Grid x:Name="LoadingPanel" Grid.Row="1" Visibility="Collapsed">
+                <Grid x:Name="LoadingPanel" Grid.Row="2" Visibility="Collapsed">
                     <Grid VerticalAlignment="Center" Margin="40">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>

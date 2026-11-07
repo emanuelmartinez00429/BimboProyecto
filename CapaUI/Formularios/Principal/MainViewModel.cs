@@ -30,6 +30,12 @@ namespace CapaUI.Formularios.Principal
         private (string Tabla, int Id)? _registroNotificacionPendiente;
         public NotificacionesViewModel Notificaciones { get; }
 
+        /// <summary>
+        /// Estado del banner de actualización. Singleton de proceso: la misma instancia
+        /// que usa el login, para que el banner sobreviva al cambio de ventana.
+        /// </summary>
+        public ActualizacionViewModel Actualizacion { get; }
+
         // ── Vista actual ─────────────────────────────────────────────────
         [ObservableProperty] private object? _vistaActual;
 
@@ -99,11 +105,13 @@ namespace CapaUI.Formularios.Principal
                              UniversalSearchViewModel searchVm,
                              IConexionMonitor conexionMonitor,
                              NotificacionesViewModel notificaciones,
-                             CapaAplicacion.Perfil.IPerfilUsuarioService perfilService)
+                             CapaAplicacion.Perfil.IPerfilUsuarioService perfilService,
+                             ActualizacionViewModel actualizacion)
         {
             _sesionService = sesionService;
             _searchVm      = searchVm;
             Notificaciones = notificaciones;
+            Actualizacion  = actualizacion;
             Notificaciones.NavegacionService = this;
             _searchVm.ResultSelected += OnResultadoBusquedaSeleccionado;
             _perfilService = perfilService;

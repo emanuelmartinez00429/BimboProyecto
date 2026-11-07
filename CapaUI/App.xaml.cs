@@ -24,15 +24,36 @@ using CapaUI.Formularios.Principal.Pantallas.Notificaciones;
 using CapaUI.Services.Escala;
 using CapaUI.Services.Picker;
 using CapaUI.Services.Empresa;
+using CapaUI.Services.Actualizacion;
 using CapaUI.Core.Empresa;
 using CapaUI.ViewModels.Search;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
+using Velopack;
 
 namespace CapaUI
 {
     public partial class App : Application
     {
+        /// <summary>
+        /// Punto de entrada explícito (StartupObject en el .csproj).
+        /// <para/>
+        /// Velopack reutiliza este mismo ejecutable para instalar, crear shortcuts,
+        /// desinstalar y aplicar actualizaciones. Si esa llamada no corre antes de que
+        /// exista la <see cref="Application"/> — y antes de que App.xaml mergee los
+        /// estilos — esos eventos quedan envueltos en la inicialización completa de WPF.
+        /// Por eso no alcanza con llamarlo desde <see cref="OnStartup"/>.
+        /// </summary>
+        [STAThread]
+        private static void Main(string[] args)
+        {
+            VelopackApp.Build().Run();
+
+            App app = new();
+            app.InitializeComponent();
+            app.Run();
+        }
+
         // C13: lazy-init para que App.Services funcione incluso cuando
         // BimboPesaje (WinForms host) es el ejecutable de entrada y
         // CapaUI.App.OnStartup nunca se invoca.
@@ -119,6 +140,10 @@ namespace CapaUI
             services.AddScoped<IEscalaService, EscalaService>();
             services.AddSingleton<LogoEmpresaCache>();
             services.AddSingleton<IconoSidebarCache>();
+            // La actualización es de la máquina, no de la sesión: un solo estado por
+            // proceso, compartido por el banner del login y el de la ventana principal.
+            services.AddSingleton<IActualizacionService, ActualizacionService>();
+            services.AddSingleton<ActualizacionViewModel>();
             services.AddTransient<UniversalSearchViewModel>();
             services.AddTransient<ProductosViewModel>();
             services.AddTransient<PesajeViewModel>();
@@ -192,6 +217,21 @@ namespace CapaUI
             CapaUI.Core.Diagnosticos.PipelineTelemetryService.Instance.Dispose();
             _scopeSesion?.Dispose();
             _scopeSesion = null;
+
+            // Punto único de aplicación: cubre el cierre desde el login (X / Alt+F4)
+            // y el "Salir" de MainWindow. Velopack lanza Update.exe y espera a que este
+            // proceso muera; por eso se prepara antes de cerrar el log, así cualquier
+            // falla queda registrada. Si ya se pidió "Reiniciar ahora", el servicio
+            // ignora esta segunda llamada.
+            try
+            {
+                Services.GetRequiredService<IActualizacionService>().AplicarAlCerrar();
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "[Actualizacion] No se pudo preparar la actualización al cerrar");
+            }
+
             Log.CloseAndFlush();
             base.OnExit(e);
         }

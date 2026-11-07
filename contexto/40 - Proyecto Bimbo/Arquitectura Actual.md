@@ -10,6 +10,9 @@ aliases:
 
 # Arquitectura Actual — Bimbo
 
+> [!success] Actualizado 2026-11-06 — CapaUI adopta el punto de entrada de Velopack
+> `CapaUI` pasó a tener `Main` propio (`StartupObject=CapaUI.App`) y `App.xaml` compilado como `Page`, para que `VelopackApp.Build().Run()` corra antes de que exista la `Application` y antes de mergear `Resources/Styles.xaml`; un hook de instalación ya no paga el costo del árbol de recursos completo. Se incorporó `Velopack` 1.2.161 y `<Version>` como fuente única de la versión de producto. Identidad de distribución fijada: `packId=BimboPesaje`, `packTitle=Bimbo Pesaje Honduras`, `mainExe=CapaUI.exe`, canal único `win`; firma de código diferida. El arranque funcional (DI, Serilog, login, cierre de sesión) no cambió y no se tocó `main`. Todavía no existe consulta ni aplicación de actualizaciones en runtime. Ver [[Sesión 2026-11-06 - Integración inicial de Velopack en CapaUI]] y [[Plan de CI-CD y Actualizaciones Remotas]].
+
 > [!success] Actualizado 2026-09-21 — Notificaciones homologadas y relaciones por nombre
 > La bandeja completa usa los filtros compartidos `ComboFiltroBox` dentro de `PanelFiltrosFluido`. `NotificacionDetalleWindow` fue reemplazado por `NotificacionDetalleModal`, alojado en el overlay de `MainWindow`, con la anatomía de Bitácora y pinceles `EmpresaPrimary*` dinámicos. El RPC `listar_mis_notificaciones` enriquece la metadata de salida con el nombre completo del usuario o el nombre del rol, sin reescribir el historial; el ID queda reservado para navegación y nunca se presenta como «Registro relacionado». La migración `20260921141136_mostrar_nombre_registro_en_notificaciones.sql` está aplicada y verificada en Supabase. Ver [[Módulo Notificaciones]] y [[Sesión 2026-09-21 - Homologación visual y nombres relacionados en Notificaciones]].
 
