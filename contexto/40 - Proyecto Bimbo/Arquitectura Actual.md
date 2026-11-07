@@ -10,6 +10,9 @@ aliases:
 
 # Arquitectura Actual — Bimbo
 
+> [!success] Actualizado 2026-11-07 — Releases automáticos y MSI de Velopack
+> `main` integra runtime Velopack, el workflow `.github/workflows/publish-velopack-release.yml` (publicación al hacer push a `main`) y el empaquetado de Setup.exe/MSI mediante `scripts/publish-release.ps1`. Actions asigna `1.0.<run_number>` y usa `GITHUB_TOKEN`. Se generó localmente `Releases/BimboPesaje-win.msi` versión 1.0.2 con alcance `Either`; instalación y ejecución de Actions aún no verificadas en un equipo cliente. Ver [[Sesión 2026-11-07 - Merge y MSI de actualizaciones Velopack]].
+
 > [!success] Actualizado 2026-11-06 — CapaUI adopta el punto de entrada de Velopack
 > `CapaUI` pasó a tener `Main` propio (`StartupObject=CapaUI.App`) y `App.xaml` compilado como `Page`, para que `VelopackApp.Build().Run()` corra antes de que exista la `Application` y antes de mergear `Resources/Styles.xaml`; un hook de instalación ya no paga el costo del árbol de recursos completo. Se incorporó `Velopack` 1.2.161 y `<Version>` como fuente única de la versión de producto. Identidad de distribución fijada: `packId=BimboPesaje`, `packTitle=Bimbo Pesaje Honduras`, `mainExe=CapaUI.exe`, canal único `win`; firma de código diferida. El arranque funcional (DI, Serilog, login, cierre de sesión) no cambió y no se tocó `main`. Todavía no existe consulta ni aplicación de actualizaciones en runtime. Ver [[Sesión 2026-11-06 - Integración inicial de Velopack en CapaUI]] y [[Plan de CI-CD y Actualizaciones Remotas]].
 

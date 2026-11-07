@@ -65,7 +65,7 @@ Las rosas son rojas.
 
 ### Decisiones arquitecturales
 - [[ADR-029 - Recepciones de pesaje planas con reglas en trigger de tabla]] — Pesaje: una fila por recepción; cupo de 5 y placa + proveedor únicos en trigger de BD
-- [[ADR-027 - Codigo privado y distribucion publica de actualizaciones]] — fuente privada, binarios públicos y actualización dentro de la app; decisión aceptada, implementación pendiente
+- [[ADR-027 - Codigo privado y distribucion publica de actualizaciones]] — repositorio público único para fuentes y Releases durante pruebas; runtime implementado, distribución en validación
 - [[ADR-024 - Rol Administrador inmutable con acceso total]] — decisión vigente; todas las acciones actuales y futuras son obligatorias
 - [[ADR-023 - Rol Administrador de sistema con nucleo de permisos protegido]] — reemplazado por ADR-024
 - [[ADR-022 - Persistencia local-first con SQLCipher y sincronización por outbox]] — propuesta pendiente de aprobación

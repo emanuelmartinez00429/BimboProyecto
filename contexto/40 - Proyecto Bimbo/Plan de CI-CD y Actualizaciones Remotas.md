@@ -8,14 +8,14 @@ implementacion: parcial
 
 # Plan de CI-CD y Actualizaciones Remotas
 
-> [!info] Estado de implementación al 2026-11-06 — parcial
-> Se implementó el **cimiento técnico** en la rama `pruebas-remote-update` (commit `326e559`): `Main` propio con `VelopackApp.Build().Run()`, `App.xaml` como `Page`, `Velopack` 1.2.161 en `CapaUI`, `<Version>1.0.0</Version>` y `Releases/` ignorado. Build en 0 errores y arranque verificado.
+> [!info] Estado de implementación al 2026-11-07 — parcial; falta validación remota y en cliente
+> `main` integra runtime Velopack, el workflow `.github/workflows/publish-velopack-release.yml` que publica un Release ante cada push a `main`, y `scripts/publish-release.ps1` para generar Setup.exe y MSI. Actions asigna `1.0.<run_number>` y usa `GITHUB_TOKEN`. Se generó localmente `Releases/BimboPesaje-win.msi` versión 1.0.2 con alcance `Either`.
 >
-> **No está implementado**: consulta de actualizaciones en runtime, UI de aviso, `dotnet publish`, `vpk pack` ni publicación. Ver [[Sesión 2026-11-06 - Integración inicial de Velopack en CapaUI]].
+> **Pendiente:** push remoto de los cambios finales del empaquetado, verificar una ejecución de Actions y su Release, prueba visual del banner, instalación del MSI en una máquina limpia y ciclo real de actualización. El MSI se generó sin firma; el publish reportó NU1900 al no poder consultar NuGet. P-067 se mantiene pendiente según decisión del usuario.
 >
 > Decisiones tomadas en esa sesión: `packId = BimboPesaje`, `packTitle = "Bimbo Pesaje Honduras"`, `mainExe = CapaUI.exe`, canal único `win`, firma de código **diferida**.
 >
-> Discrepancias abiertas contra este plan: el repositorio fuente figura **público** (contradice el punto 1 de [[ADR-027 - Codigo privado y distribucion publica de actualizaciones]]); se adoptó instalación **per-user** en lugar de per-machine; falta validar salida HTTPS a GitHub desde una máquina de la planta.
+> Decisión vigente de distribución: repositorio público único para código y Releases, según [[ADR-027 - Codigo privado y distribucion publica de actualizaciones]]. El MSI permite seleccionar alcance (`Either`); validar la elección operativa en el piloto. Falta validar salida HTTPS desde una máquina de la planta.
 
 > [!important] Alcance autorizado: documentación solamente
 > Este plan recoge la conversación y adapta `guia.md` y `Plan_CICD_Actualizaciones_WPF_Supabase.docx` al proyecto inspeccionado. No autoriza implementar, instalar dependencias, modificar workflows, crear repositorios, publicar paquetes ni cambiar Supabase. Las fases siguientes son trabajo futuro, sujeto a autorización expresa. Ninguna está implementada por esta sesión.

@@ -165,7 +165,9 @@ vpk pack `
     -r $Runtime `
     --mainExe $MainExe `
     --packTitle $PackTitle `
-    --packAuthors $PackAuthors
+    --packAuthors $PackAuthors `
+    --msi `
+    --instLocation Either
 
 Assert-LastExit 'vpk pack'
 
@@ -174,14 +176,17 @@ $setupPath = Get-ChildItem $releasePath -Filter '*-Setup.exe' |
     Sort-Object LastWriteTime -Descending |
     Select-Object -First 1 -ExpandProperty FullName
 $manifestPath = Join-Path $releasePath "releases.$Channel.json"
+$msiPath = Get-ChildItem $releasePath -Filter '*.msi' |
+    Sort-Object LastWriteTime -Descending |
+    Select-Object -First 1 -ExpandProperty FullName
 
-foreach ($required in @($setupPath, $manifestPath)) {
+foreach ($required in @($setupPath, $manifestPath, $msiPath)) {
     if (-not $required -or -not (Test-Path $required)) {
         throw "vpk pack no generó el instalador o '$Channel.json'. Revisá la salida de arriba."
     }
 }
 
-Write-Host "    OK: $(Split-Path -Leaf $setupPath) + $(Split-Path -Leaf $manifestPath)"
+Write-Host "    OK: $(Split-Path -Leaf $setupPath) + $(Split-Path -Leaf $msiPath) + $(Split-Path -Leaf $manifestPath)"
 
 # --- 4. Upload --------------------------------------------------------------
 if (-not $Upload) {
