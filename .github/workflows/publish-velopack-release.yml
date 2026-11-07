@@ -1,0 +1,35 @@
+name: Publicar actualización Velopack
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+concurrency:
+  group: velopack-release-main
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: windows-latest
+    steps:
+      - name: Obtener código
+        uses: actions/checkout@v4
+
+      - name: Configurar .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Instalar Velopack CLI
+        shell: pwsh
+        run: dotnet tool install --global vpk --version 1.2.161
+
+      - name: Publicar Release de Velopack
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: .\scripts\publish-release.ps1 -Upload -Version "1.0.$env:GITHUB_RUN_NUMBER"
