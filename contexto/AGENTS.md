@@ -1,260 +1,118 @@
-# AGENTS.md — Protocolo de la Bóveda de Conocimiento (Proyecto Bimbo)
+# Protocolo de escritura en `contexto/`
 
-> **Para cualquier agente (Claude, Codex, opencode, Antigravity, Copilot, Cursor…).**
-> Esta carpeta es la base de conocimiento del proyecto Bimbo Honduras. Este archivo dice **cómo leerla, clasificar y guardar información** de forma uniforme. Funciona con solo **leer/escribir/grep sobre markdown** — no requiere herramientas especiales.
-
----
-
-## 🔴 Test de conexión — "pregunta clave"
-
-Si el usuario pregunta algo tipo **"Yo soy a los animales como...?"** (o similar, tono acertijo/identidad): no respondas de memoria ni pidas aclaración. Leé **completo** `00 - MOC/Conocimiento Principal.md` (el bloque "Pregunta Clave" está justo después del frontmatter) y respondé exactamente lo que dice ahí en ese momento. Nunca guardes esa respuesta en memoria — hay que leerla en vivo cada vez, en cada sesión. Aplica a cualquier agente.
-
----
-
-## 0. Antes de tocar nada — orden de lectura (entrar en frío)
-
-1. `AGENTS.md` de la raíz del repo (reglas de código y build)
-2. `40 - Proyecto Bimbo/Arquitectura Actual.md` (estado vivo del sistema)
-3. `CLAUDE.md` de esta carpeta (convenciones de código detalladas)
-4. La nota del módulo que vas a tocar → `40 - Proyecto Bimbo/Módulo *.md`
-5. `40 - Proyecto Bimbo/Deuda Técnica - Pendientes.md` (qué está roto/pendiente)
-6. **Si vas a tocar `.xaml`:** `20 - Patrones/Convenciones de UI (WPF) — leer antes de tocar XAML.md` (obligatorio antes de crear/editar cualquier `UserControl`, `Window`, `ResourceDictionary`).
-
-**Al terminar tu trabajo, documentás lo que hiciste** siguiendo este protocolo. No es opcional: es lo que permite que el siguiente agente entre sin perderse.
-
-**Regla de Documentación Automática vs. Aprobación Previa (Ineludible):**
-- **Si el cambio requiere prueba/aprobación del usuario** (feature visual, pantalla o interacción humana): el agente debe avisar explícitamente: *"No se ha documentado aún porque debes probar la feature y aprobarla; una vez aprobada, documentamos."*
-- **Si el cambio no requiere prueba interactiva** (técnico, backend, refactor, fixes): el agente debe documentar en automático todo lo que haga antes de responder.
-- **Actualización Viva de Arquitectura Actual (`contexto/40`):** Al concluir una sesión con cambios reales (features, refactors, patrones o fixes estructurales), es obligatorio anteponer un callout `> [!success] Actualizado AAAA-MM-DD — Título` al inicio de `40 - Proyecto Bimbo/Arquitectura Actual.md` (orden más nuevo primero) con resumen y enlace a la sesión en `70/`.
-- **Higiene de Formato en Bitácora (`contexto/70`):** Todo bloque de código multilínea debe abrir y cerrar con triple comilla invertida (```` ``` ````) y lenguaje especificado. Revisar el diff para asegurar que ninguna palabra quede amputada por reemplazos parciales.
-- **Cuidado de Controles Compartidos (`CapaUI/Core/Controls/`):** Antes de cerrar cualquier cambio en controles o estilos compartidos, grepear todos los usos en el proyecto (`Select-String -Path "CapaUI\*.xaml" -Pattern "Control"`) y validar que ninguno sufra regresiones. Comportamientos no estándar deben ser opt-in (`default = false`).
-- **Cierre obligatorio de Deuda Técnica:** Si resuelves o mitigas un ítem `P-NNN`, debes actualizarlo de inmediato a `[x] Resuelto` en `Deuda Técnica - Pendientes.md`, tachar el título y adjuntar la fecha, enlace a la nota de sesión y la evidencia concreta de verificación (consulta SQL en base viva o test unitario). Nunca dejarlo `[ ] Pendiente` si fue resuelto.
-- **Verificación en Base Viva:** Para migraciones en Supabase, verificar con `list_migrations`, inspección del catálogo (`pg_publication_tables`, `pg_policy`, `pg_trigger`), `get_advisors` de seguridad y cableado end-to-end en C#.
+Léelo cuando vayas a **escribir o clasificar notas** en `contexto/`. Para **leer**, entra por [`INDEX.md`](INDEX.md).
+Funciona con solo leer, escribir y buscar en markdown: no requiere herramientas especiales ni Obsidian.
+Las reglas de código, build y arquitectura del sistema viven en [`../AGENTS.md`](../AGENTS.md).
 
 ---
 
 ## 1. Taxonomía — qué va en cada carpeta
 
-| Carpeta | Qué va aquí | NO va aquí |
-|---|---|---|
-| `10 - Arquitectura` | Conceptos arquitectónicos generales (Clean Architecture, SOLID) | Estado específico del proyecto |
-| `20 - Patrones` | Patrones **reutilizables** del proyecto (Result Pattern, TryAsync) | Decisiones puntuales |
-| `30 - Casos de Uso` | Recetas end-to-end (CRUD con paginación) | — |
-| `40 - Proyecto Bimbo` | **Estado vivo**: Arquitectura Actual, notas de Módulo, Deuda Técnica | Hechos externos genéricos |
-| `45 - Decisiones` | **ADRs** — decisiones con trade-offs y alternativas descartadas | Cambios sin decisión de fondo |
-| `50 - Referencia` | Hechos **externos** (SDKs, APIs, bugs de librerías, WPF) | Lógica del proyecto |
-| `70 - Bitácora de Cambios/AAAA-MM` | **Notas de sesión** con fecha (todo lo que hiciste) | Conocimiento atemporal |
-| `_templates` | Plantillas copy-paste (no editar el contenido de trabajo aquí) | — |
-
-**Nota sobre `.claude/`:**
-- `.claude/settings.json` — configuración global compartida (commiteado)
-- `.claude/hooks/` — automatizaciones (scripts que detectan contexto y sugieren skills)
-- `.claude/skills/` — skills locales del proyecto (recetas de cómo hacer algo)
-- **Todas versionadas en git** — se replican a cualquier agente que clone el repo
+| Carpeta | Va aquí | No va aquí |
+| :-- | :-- | :-- |
+| `00 - MOC` | Mapas de contenido y dashboard (`Conocimiento Principal.md`) | Notas detalladas de implementación |
+| `10 - Arquitectura` | Conceptos y directrices de arquitectura general | Estado vivo de componentes Bimbo |
+| `20 - Patrones` | Patrones reutilizables de UI y código (`Convenciones de código.md`, `Convenciones de UI`) | Decisiones puntuales o historias |
+| `30 - Casos de Uso` | Flujos end-to-end y casos de uso operativos | Estado de deuda o bugs |
+| `40 - Proyecto Bimbo` | Estado vivo: `Arquitectura Actual.md`, fichas de módulos, `Deuda - Abierta.md` | Notas históricas de sesión |
+| `45 - Decisiones` | Registros de decisión arquitectónica (`ADR-NNN`) | Cambios rutinarios sin alternativas |
+| `50 - Referencia` | Hechos externos, SDKs, bugs de librerías, guías de configuración | Código de la aplicación |
+| `60 - Revisiones QA` | Auditorías de calidad, revisiones entre agentes, hallazgos | Código fuente o notas de sesión rutinarias |
+| `70 - Bitácora de Cambios/AAAA-MM/` | Notas de sesión por mes (`AAAA-MM-DD-autor-titulo-corto.md`) y resúmenes mensuales | Conocimiento atemporal |
+| `_templates` | Plantillas para crear notas (sesión, ADR, deuda, patrón, referencia) | Notas de trabajo reales |
 
 **Regla de decisión rápida:**
-- ¿Hice algo hoy? → **nota de sesión** en `70`.
-- ¿Eso reveló una decisión de fondo? → además un **ADR** en `45`.
-- ¿Descubrí un patrón que se repetirá? → además una nota en `20`.
-- ¿Encontré algo roto que no arreglé? → **ítem P-NNN** en Deuda Técnica.
-- ¿Aprendí un hecho externo (bug de SDK)? → nota en `50`.
+- ¿Hiciste algo hoy? → **nota de sesión** en `70 - Bitácora de Cambios/AAAA-MM/`.
+- ¿Reveló una decisión de diseño de fondo? → además un **ADR** en `45 - Decisiones/`.
+- ¿Descubriste un patrón reusable? → además una nota en `20 - Patrones/`.
+- ¿Encontraste algo roto que no arreglaste? → ítem **`P-NNN`** en `40 - Proyecto Bimbo/Deuda - Abierta.md`.
+- ¿Resolviste un `P-NNN`? → mover a `Deuda - Resuelta.md` con fecha y evidencia.
+- ¿Aprendiste un hecho externo? → nota en `50 - Referencia/`.
 
 ---
 
 ## 2. Frontmatter obligatorio
 
-Toda nota empieza con frontmatter YAML:
+Toda nota empieza con bloque YAML:
 
 ```yaml
 ---
-title: "Título legible"
-tags: [tag1, tag2]
+title: "Título descriptivo y legible"
+type: sesion           # sesion | resumen | adr | patron | referencia | arquitectura | qa | deuda | moc
+status: vigente        # vigente | borrador | reemplazado | archivado
 date: AAAA-MM-DD
+updated: AAAA-MM-DD
+summary: "Frase declarativa concisa que describe el contenido (se publica en el índice)."
+autor: alias           # tu id en contexto/.control/equipo.json (fernando, emanuel, carlos)
 ---
 ```
 
-Campos extra por tipo:
-- **Sesión:** agrega `branch:` y `autor_cambios:` (quién hizo el cambio) y `revisor:` si es QA.
-- **ADR:** agrega `estado:` (propuesto / aceptado / reemplazado).
-- **Referencia/Patrón:** `lifecycle:` opcional (draft / verified / archived).
+Campos obligatorios según el tipo:
+- **Sesión (`type: sesion`):** agrega obligatoriamente `agente:` (`claude-code`, `codex`, `antigravity`, `gemini-cli`, `copilot`, `cursor`, `opencode`, `humano`), `rama:`, `commits: [...]`, `tags: [sesion]`. Campo `modelo:` opcional.
+- **Resumen mensual (`type: resumen`):** 10 a 15 líneas condensando el mes cerrado (`AAAA-MM-resumen.md`).
+- **ADR (`type: adr`):** agrega `estado:` (`propuesto`, `aceptado`, `reemplazado`).
+- **Nota reemplazada:** debe incluir `reemplazado_por: [[nombre-de-nota-nueva]]`.
 
-Fechas siempre absolutas (`2026-07-23`), nunca "hoy" ni "ayer".
-
----
-
-## 3. Convención de nombres
-
-| Tipo | Formato | Ejemplo |
-|---|---|---|
-| Sesión | `Sesión AAAA-MM-DD - Título descriptivo.md` | `Sesión 2026-07-23 - Revisión QA Módulo Usuarios.md` |
-| ADR | `ADR-NNN - Título.md` (NNN correlativo) | `ADR-004 - GhostTextBox.md` |
-| Deuda | ítem `P-NNN` **dentro** de `Deuda Técnica - Pendientes.md` | `P-013 · Regresión auditoría` |
-| Patrón/Referencia | Título descriptivo directo | `Base Repository con TryAsync.md` |
-
-La deuda técnica **nunca** son archivos sueltos: se registra como ítem numerado `P-NNN` dentro del documento maestro, con su tabla de historial al final.
+Fechas siempre en formato absoluto `AAAA-MM-DD`. Nunca "hoy" ni "ayer".
 
 ---
 
-## 4. Enlazado y relaciones
+## 3. Convenciones de nombres e identificadores
 
-- Enlazá conceptos con `[[wikilink]]` (nombre del archivo sin extensión).
-- **Toda nota cierra con una sección `## Relaciones`** listando los `[[enlaces]]` relevantes.
-- Enlazá liberalmente: un `[[nombre]]` que aún no existe marca algo por escribir, no es un error.
-
----
-
-## 5. Regla anti-duplicados (CRÍTICA en multi-agente)
-
-**Antes de crear una nota, buscá si ya existe.** Varios agentes trabajan sin conocerse entre sí; la duplicación es el riesgo #1.
-
-1. `grep`/buscá el concepto en los **nombres de archivo** y en `00 - MOC/Conocimiento Principal.md`.
-2. Si ya existe una nota del tema → **actualizala**, no crees una nueva.
-3. Si dudás entre dos nombres para el mismo concepto → usá el que ya exista.
+- **Sesiones nuevas:** `70 - Bitácora de Cambios/AAAA-MM/AAAA-MM-DD-autor-titulo-corto.md`. Ejemplo: `2026-11-09-fernando-contrato-unico-agentes.md`.
+- **ADR:** `ADR-NNN - Título.md` (NNN correlativo de 3 dígitos).
+- **Deuda técnica:** ítems `P-NNN` dentro de `Deuda - Abierta.md` o `Deuda - Resuelta.md`. No crear archivos sueltos por P-NNN.
+- **Identificadores únicos:** cada `ADR-NNN` y `P-NNN` es único en todo el repositorio.
 
 ---
 
-## 6. Casos de uso — "hice X → va en Y → con formato Z"
+## 4. Búsqueda antes de crear (anti-duplicación)
 
-| Hice… | Va en… | Plantilla / cómo |
-|---|---|---|
-| Arreglé un bug | Nota de sesión (`70`) | `plantilla-sesion`; si revela deuda → agregá P-NNN |
-| Tomé una decisión arquitectónica | ADR (`45`) | `plantilla-adr`; enlazala desde `Arquitectura Actual` |
-| Descubrí un patrón reutilizable | `20 - Patrones` | `plantilla-patron` |
-| Encontré deuda que no arreglé | `Deuda Técnica` P-NNN | `plantilla-deuda` |
-| Aprendí un hecho externo (bug SDK, quirk de API) | `50 - Referencia` | `plantilla-referencia` |
-| Agregué/cambié un módulo | Actualizá `Arquitectura Actual` **+** la nota del módulo | edición + `## Relaciones` |
-| Revisé un PR/commit ajeno (QA) | Nota de sesión "Revisión QA" | `plantilla-sesion` con `revisor:` |
-| Refactoricé | Nota de sesión **+** actualizá el patrón/arquitectura afectado | — |
-| Marqué algo resuelto | Tachá el título (`~~P-NNN~~ ✅`) y actualizá la tabla de historial | — |
+1. Consulta [`INDEX.md`](INDEX.md) y [`INDEX-bitacora.md`](INDEX-bitacora.md).
+2. Si el concepto ya existe, actualiza la nota existente y actualiza `updated: AAAA-MM-DD`.
+3. Si dudas entre dos nombres, utiliza el ya existente en el grafo.
 
 ---
 
-## 7. Seguridad multi-agente concurrente
+## 5. Trabajo concurrente y colaborativo
 
-Varios agentes editan la bóveda vía git al mismo tiempo. Para evitar conflictos:
-
-- **Notas de sesión** = archivo con **fecha en el nombre** → cada agente crea el suyo, append-only, **sin conflictos de merge**. Preferí crear una sesión nueva antes que editar la de otro.
-- **Archivos compartidos** (`Deuda Técnica`, `Arquitectura Actual`, `Conocimiento Principal`) = puntos calientes:
-  - Ediciones **chicas y localizadas**.
-  - **Un `P-NNN` por agente** (no reserves rangos).
-  - Insertá en los puntos documentados (fin de la lista, fin de la tabla de historial).
-- **Commit:** los cambios de documentación van junto al código que documentan, o en un commit claramente separado con mensaje `docs: …`.
+- **Notas de sesión:** son estrictamente append-only. Cada autor/agente crea la suya sin editar sesiones ajenas.
+- **Puntos calientes compartidos (`Deuda - Abierta.md`, `Arquitectura Actual.md`):** realizar ediciones atómicas y localizadas.
+- **Los índices `INDEX.md` e `INDEX-bitacora.md`:** nunca se resuelven a mano en un merge conflict; se regeneran corriendo `node scripts/contexto/build-index.js`.
+- La documentación debe commitearse junto al cambio que documenta.
 
 ---
 
-## 8. Colores del grafo (Obsidian)
+## 6. Enlazado y relaciones
 
-`.obsidian/graph.json` está **versionado** (a propósito) — cualquiera que clone el repo y abra esta carpeta como bóveda en Obsidian ve el grafo coloreado por carpeta automáticamente, sin configurar nada.
-
-| Carpeta | Color |
-|---|---|
-| `00 - MOC` | azul |
-| `10 - Arquitectura` | naranja |
-| `20 - Patrones` | rojo |
-| `30 - Casos de Uso` | teal |
-| `40 - Proyecto Bimbo` | verde |
-| `45 - Decisiones` | amarillo |
-| `50 - Referencia` | morado |
-| `70 - Bitácora de Cambios` | rosa |
-| `_templates` | gris |
-
-**Si agregás una carpeta de primer nivel nueva** a la taxonomía (sección 1), sumale una entrada a `colorGroups` en `.obsidian/graph.json` con `path:"Nombre Carpeta"` y un color no usado. Con Claude, el skill `graph-colorize` automatiza esto (adaptado a esta taxonomía, no la genérica que trae por defecto). Sin ese skill, es una edición manual de una línea en `graph.json` — no requiere herramientas especiales.
-
-Los backups que genera cada recoloreo (`graph.json.backup-*`) están gitignoreados — no se versionan, son solo para poder deshacer localmente.
+- Enlaza notas usando `[[nombre-del-archivo]]` (sin extensión `.md`).
+- Toda nota debe cerrar con una sección `## Relaciones` listando sus vínculos relevantes en viñetas `[[...]]`.
 
 ---
 
-## 9. Skills e inyección de contexto del proyecto (`.claude/`)
+## 7. Higiene y ciclo de vida
 
-### Sistema de hooks + skills automatizados
-
-Proyecto Bimbo usa **3 niveles de inyección de contexto** para cualquier agente (Claude, Codex, Copilot, etc.):
-
-1. **`.claude/settings.json`** (commiteado) — configuración compartida, hooks globales
-2. **`.claude/hooks/`** — scripts que se ejecutan en eventos (`UserPromptSubmit`, `SessionStart`), detectan contexto y sugieren skills
-3. **`.claude/skills/`** — recetas/automatizaciones locales del proyecto
-
-### Hooks activos
-
-| Hook | Evento | Qué hace |
-|---|---|---|
-| `vault-trigger.js` | SessionStart + UserPromptSubmit | Lee bóveda Obsidian (test de conexión "pregunta clave") |
-| `diagram-auto-suggest.js` | UserPromptSubmit | Detecta solicitudes de diagrama, sugiere `/diagram-design` |
-| `ui-conventions-suggest.js` | UserPromptSubmit | Detecta trabajo en XAML/WPF (palabra "xaml", `UserControl`, `converter`, "diseñador de VS", etc.), recuerda leer `20 - Patrones/Convenciones de UI (WPF)…` y sugiere la skill `ui-conventions`. Umbral: 1 señal fuerte o 2 coincidencias — "wpf"/"modal" solos no disparan |
-
-### Skills disponibles
-
-| Skill | Cuándo se usa | Activación |
-|---|---|---|
-| `diagram-design` | Cualquier solicitud de diagrama | Automática (hook `diagram-auto-suggest.js`) u manual `/diagram-design` |
-| `ui-conventions` | Antes de crear/editar cualquier `.xaml` o su code-behind | Automática (hook `ui-conventions-suggest.js`) o manual `/ui-conventions`; el checklist resume `20 - Patrones/Convenciones de UI (WPF)…` y el arné de verificación |
-
-**Ventaja:** El usuario no tiene que recordar qué skill usar — el hook lo detecta y lo sugiere automáticamente.
-
-### Cómo agregar una skill nueva
-
-1. Crear `.claude/skills/NOMBRE.md` con frontmatter YAML + documentación
-2. (Opcional) Crear hook en `.claude/hooks/NAME.js` que la detecte automáticamente
-3. Registrar el hook en `.claude/settings.json` bajo `UserPromptSubmit` u otro evento
-4. Documentar en esta sección de `AGENTS.md`
-5. Commitear todo junto
-
-**Ejemplo real:** `diagram-design` fue agregada así — ver commit de 2026-08-12.
+- Lo que se carga al arrancar debe reflejar lo **vigente**, no la acumulación histórica.
+- Si una nota queda obsoleta:
+  - Si es reemplazada por otra: marca `status: reemplazado` y `reemplazado_por: [[nueva-nota]]`.
+  - Si ya no aplica pero tiene valor histórico: marca `status: archivado`.
+- Las notas `reemplazado` y `archivado` son excluidas automáticamente del índice de arranque `INDEX.md`.
+- **Datos prohibidos:** nunca escribir rutas absolutas de disco (`C:\`, `D:\`, `/c/`), números telefónicos reales, correos personales no autorizados, ni tokens o secretos (`service_role`, `sb_secret_`, JWT).
 
 ---
 
-## 10. Vía rápida opcional (solo Claude Code)
+## 8. Verificación tras editar
 
-Claude tiene skills genéricas (`wiki-query`, `wiki-capture`, `wiki-update`) que automatizan búsqueda y captura. **Los demás agentes ignoran esta sección** y trabajan con markdown plano siguiendo las reglas de arriba — el resultado es el mismo. Las skills nunca son requisito para contribuir.
+Tras cualquier cambio en notas o frontmatter:
 
----
-
-## 11. Regla de fuente de verdad (CRÍTICO)
-- El contenido de los archivos del vault (contexto/ y vault anterior) es 
-  SIEMPRE la única fuente de verdad. Tu memoria de conversaciones o 
-  sesiones anteriores NUNCA tiene prioridad sobre el contenido actual 
-  de un archivo.
-
-- Antes de responder cualquier pregunta sobre el estado del proyecto, 
-  DEBES releer el archivo relevante en ese momento, incluso si crees 
-  que ya lo leíste antes en esta misma sesión o en una anterior. 
-  No asumas que el contenido sigue igual.
-
-- Si tu respuesta se basa en algo que "recuerdas" haber dicho o leído 
-  antes pero no puedes confirmarlo releyendo el archivo actual ahora 
-  mismo, dilo explícitamente: "esto lo recuerdo de antes pero no lo 
-  he verificado releyendo el archivo actual."
-
-- Nunca inventes contenido de una nota que no puedas ubicar o releer. 
-  Si no encuentras el archivo o la sección, dilo — no rellenes con 
-  una versión "reconstruida" de memoria.
-
-
-## 12. Cómo trabaja el agente con Fernando (estilo de sesión)
-
-Esto no es sobre código — es sobre **cómo comportarse en la conversación** con el dueño del proyecto. Viene de patrones repetidos en varias sesiones; cualquier agente nuevo (Claude u otro) debería replicarlo desde el arranque, no aprenderlo a los golpes.
-
-- **Nombre de sesión / autor que gestiona al agente: Fernando.** Cuando el sistema pida identificar quién maneja la sesión (para nombrarla, loguearla, etc.), usar **"Claude Fernando"** como convención — y si el dueño abre otra sesión/instancia de Claude en paralelo con otro rol, nombrarla **"Claude <nombre de esa persona>"**, no genérico.
-
-- **Toda sesión de este proyecto la gestiona Fernando.** Es el único autor/solicitante — nunca "el usuario" genérico. Al nombrar o titular una sesión (herramientas de gestión de sesión del agente, `set_session_title` o equivalente), prefijar el título con **"Fernando — "** seguido del tema, salvo que él pida otra convención explícita. Aplica también a sesiones históricas encontradas sin ese prefijo: renombrarlas al detectarlas, sin esperar a que lo pida de nuevo.
-
-- **Fuente viva > memoria cacheada.** Antes de responder sobre estado/pendientes/deuda técnica del proyecto: `git fetch` + leer el archivo real (bóveda o código), nunca asumir que lo memorizado en una sesión anterior sigue vigente. Señalar explícitamente si hay diferencia entre lo cacheado y lo actual. Ver sección 11 arriba (mismo principio).
-
-- **Rama actual, no `master` fijo.** El proyecto avanza en ramas `feat/faseN-descripción` que se mergean a `master` al cerrar la fase. Una rama de fase puede estar adelantada Y atrasada respecto a `origin/master` a la vez. Antes de responder sobre estado de desarrollo: `git branch --show-current` + comparar divergencia real, y reportar en la respuesta qué rama se consultó. No dar por sentado cuál es "la fase actual".
-
-- **Calibrar preguntas ambiguas, no asumir un modo fijo.** No toda pregunta rara tiene significado oculto, y no toda pregunta es literal — investigar a fondo (leer archivos completos, grep) solo cuando hay señal real (se conecta con un patrón ya establecido, hay insistencia, hay framing deliberado de misterio). Si no hay señal, responder directo sin inventar complejidad.
-
-- **Entender antes de insistir.** Si Fernando reformula o repite la misma pregunta más de una vez, es señal de que la primera respuesta no dio en el blanco. No repetir la misma explicación — cambiar de enfoque, usar el contexto acumulado de la conversación para inferir qué busca realmente, y dar una respuesta concreta en vez de seguir pidiendo aclaración.
-
-- **Sin parches de compromiso.** Rechaza soluciones "aceptables a medias" (TTLs, ventanas de tolerancia, "funciona casi siempre") aunque sean más simples — para él, un bug que ocurre con menos frecuencia sigue siendo el mismo bug. Antes de proponer un parche con tolerancia temporal, buscar el diseño que elimina el problema de raíz. Si hay un trade-off real, presentar la comparación explícita (costo, velocidad, modo de falla) y dejarlo elegir — no elegir por él.
-
-- **Cambios puramente visuales/layout no generan nota de sesión.** Reordenar botones, espaciados, estilos XAML → solo código + commit, sin tocar `contexto/`. Pero si el trabajo visual revela algo reutilizable (un patrón, un componente nuevo, un gotcha de WPF, un bug real) eso **sí** va documentado — en el nodo que le corresponde por taxonomía (`20 - Patrones`, `50 - Referencia`, etc.), no como nota de sesión genérica. La regla nunca fue "no documentar", fue "no generar ruido en la bitácora por puro polish".
-
-- **Patrón para agregar automatización nueva (hooks + skills).** Cuando haga falta que un comportamiento sea determinístico en vez de depender de que el modelo "se acuerde" de una instrucción de texto (confirmado con el test de conexión de la bóveda — instrucciones en `CLAUDE.md`/`AGENTS.md` fallaron, un hook `UserPromptSubmit`/`SessionStart` con regex sí funciona): crear `.claude/hooks/NOMBRE.js`, registrarlo en `.claude/settings.json`, documentar la skill asociada en `.claude/skills/` y sumar la entrada en la sección 9 de este archivo. Ver `diagram-design` como implementación de referencia.
+```bash
+node scripts/contexto/build-index.js   # regenera INDEX.md e INDEX-bitacora.md
+node scripts/contexto/verificar.js     # comprueba integridad (0 errores)
+```
 
 ## Relaciones
 
-- [[Conocimiento Principal]] — dashboard/índice de la bóveda
-- [[Arquitectura Actual]] — estado vivo del sistema
-- [[Deuda Técnica - Pendientes]] — registro de deuda P-NNN
-- [[CLAUDE]] — convenciones de código detalladas
+- [[Conocimiento Principal]]
+- [[Arquitectura Actual]]
+- [[Deuda - Abierta]]
+- [[Convenciones de código]]

@@ -1,0 +1,20 @@
+[
+  {
+    "id": "fernando",
+    "nombre": "Fernando",
+    "github": "RedFer855",
+    "integrador": true
+  },
+  {
+    "id": "emanuel",
+    "nombre": "Emanuel",
+    "github": "emanuelmartinez00429",
+    "integrador": true
+  },
+  {
+    "id": "carlos",
+    "nombre": "por confirmar",
+    "github": "sanchezcarlosvalle-arch",
+    "integrador": false
+  }
+]

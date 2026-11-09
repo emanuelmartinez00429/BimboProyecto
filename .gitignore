@@ -392,3 +392,17 @@ CapaUI/App.config
 
 # Reportes de análisis de código muerto (temporales)
 analisis-muerto/
+
+# Corridas de agentes de IA y teamwork (no versionar)
+.agents/teamwork/
+.agents/auditor_*/
+.agents/challenger_*/
+.agents/explorer_*/
+.agents/orchestrator_*/
+.agents/reviewer_*/
+.agents/sentinel/
+.agents/survey_*/
+.agents/teamwork_preview_*/
+.agents/victory_auditor_*/
+.agents/worker_*/
+graphify-out/

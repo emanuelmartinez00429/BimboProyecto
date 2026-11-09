@@ -12,8 +12,8 @@ tags:
 > **Doble canal — van JUNTOS, nunca uno solo:**
 
 ## 1️⃣ Engram (lo revisa PRIMERO)
-Proyecto: **`antigravity`**
-- `mcp__engram__mem_save` con `project: "antigravity"`
+Proyecto: **`bimboproyecto`**
+- `mcp__engram__mem_save` con `project: "bimboproyecto"`
 - Rápido, revisor de Antigravity, auditable en tiempo real
 
 ## 2️⃣ Bóveda (fuente de verdad)
@@ -26,7 +26,7 @@ Ubicación: **`contexto/60 - Revisiones QA/`**
 
 ## Plantilla rápida
 
-**En Engram (proyecto `antigravity`):**
+**En Engram (proyecto `bimboproyecto`):**
 ```
 Pendiente: [descripción breve]
 Archivo: [path]

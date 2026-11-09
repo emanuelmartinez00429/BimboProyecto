@@ -16,12 +16,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node 'C:\\Users\\fbara\\OneDrive\\Desktop\\Proyecto de BIMBO\\BimboProyecto\\.codex\\hooks\\vault-trigger.js' 2>/dev/null || true",
+            "command": "node .codex/hooks/vault-trigger.js 2>/dev/null || true",
             "statusMessage": "Verificando pregunta clave de la bóveda..."
           },
           {
             "type": "command",
-            "command": "node 'C:\\Users\\fbara\\OneDrive\\Desktop\\Proyecto de BIMBO\\BimboProyecto\\.codex\\hooks\\diagram-auto-suggest.js' 2>/dev/null || true",
+            "command": "node .codex/hooks/diagram-auto-suggest.js 2>/dev/null || true",
             "statusMessage": "Detectando solicitudes de diagramas..."
           }
         ]
