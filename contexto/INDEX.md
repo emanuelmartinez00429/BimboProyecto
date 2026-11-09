@@ -159,4 +159,4 @@ _(1 nota retirada: reemplazadas o archivadas, no se listan)_
 - [[Sesión 2026-11-08 - Resolución P-067 (Pkcs 10.0.14)]] · sesion · emanuel · opencode · 2026-11-08
 - [[Sesión 2026-11-08 - Fix reporte de productos y actualización remota]] · sesion · emanuel · codex · 2026-11-08
 - [[Sesión 2026-11-07 - Merge y MSI de actualizaciones Velopack]] · sesion · emanuel · codex · 2026-11-07
-- _(9 sesiones más y 4 resúmenes mensuales: ver contexto/INDEX-bitacora.md)_
+- _(10 sesiones más y 4 resúmenes mensuales: ver contexto/INDEX-bitacora.md)_
