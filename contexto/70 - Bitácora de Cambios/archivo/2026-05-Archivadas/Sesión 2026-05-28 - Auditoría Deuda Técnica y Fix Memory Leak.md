@@ -5,7 +5,7 @@ status: vigente
 date: 2026-05-28
 updated: 2026-05-28
 autor: por-confirmar
-agente: humano
+agente: por-confirmar
 tags: [bitácora, deuda-técnica, memory-leak, wpf, fix]
 summary: "Auditoría Deuda Técnica y Fix Memory Leak"
 ---

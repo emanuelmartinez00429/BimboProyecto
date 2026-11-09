@@ -4,9 +4,10 @@ type: sesion
 status: vigente
 date: 2026-08-14
 updated: 2026-08-14
-autor: por-confirmar
-agente: humano
-modelo: opus-5/sonnet-5
+autor: fernando
+autor_fuente: git
+agente: claude-code
+modelo: opus-5
 rama: feat/fase8-MaquetadodeRoles
 tags: [sesion, productos, realtime, cache]
 summary: "La grilla de Productos ahora refleja en vivo los cambios de fabricante, proveedor, categoría, país, presentación, tara y unidad — antes solo escuchaba la tabla `productos` y esas siete columnas, que salen de un join, se quedaban con el nombre viejo hasta recargar la pantalla. Se publicaron cinco tablas nuevas en Realtime y se conectó la suscripción existente. Build: `0 errores`."

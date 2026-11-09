@@ -5,7 +5,7 @@ status: vigente
 date: 2026-05-28
 updated: 2026-05-28
 autor: por-confirmar
-agente: humano
+agente: por-confirmar
 tags: [sesion, realtime, fix, supabase]
 summary: "El formulario de Productos ya no lanza la excepción al abrir. Canal Realtime se establece correctamente."
 ---

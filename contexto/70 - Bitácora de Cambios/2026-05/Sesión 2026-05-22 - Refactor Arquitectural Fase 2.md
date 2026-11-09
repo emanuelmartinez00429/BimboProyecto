@@ -4,8 +4,9 @@ type: sesion
 status: vigente
 date: 2026-05-22
 updated: 2026-05-22
-autor: por-confirmar
-agente: humano
+autor: fernando
+autor_fuente: git
+agente: por-confirmar
 tags: [bitacora, arquitectura, clean-architecture, refactor, di]
 summary: "`ServicioPerfilUsuario` estaba en `CapaServicios` como clase estática global y referenciaba `RepositorioUsuario` de `CapaDatos` directamente. Esto era"
 ---

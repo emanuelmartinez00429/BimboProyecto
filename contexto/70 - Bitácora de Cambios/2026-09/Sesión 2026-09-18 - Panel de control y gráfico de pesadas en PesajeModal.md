@@ -4,11 +4,12 @@ type: sesion
 status: vigente
 date: 2026-09-18
 updated: 2026-09-18
-autor: por-confirmar
-agente: humano
+autor: fernando
+autor_fuente: git
+agente: claude-code
 rama: feat/fase8-MaquetadodeRoles
 tags: [sesion, pesaje, wpf, configuracion]
-summary: "`PesajeModal` tiene ahora un panel lateral con la diferencia, 4 tarjetas de acumulados, la barra de avance, el gráfico \\"Pesadas (kg neto)\\" con el punto \\"Ahora\\" en vivo y avisos en cascada. Las cuentas y la cascada viven en `CapaDominio` con 14 tests. Además se corrigieron dos detalles de `ConfiguracionEmpresaView`: los títulos logo/ícono estaban cruzados y el aviso del dominio pasó a mostrarse solo con foco. Fernando lo revisó visualmente y lo aprobó."
+summary: "`PesajeModal` tiene ahora un panel lateral con la diferencia, 4 tarjetas de acumulados, la barra de avance, el gráfico \"Pesadas (kg neto)\" con el punto \"Ahora\" en vivo y avisos en cascada. Las cuentas y la cascada viven en `CapaDominio` con 14 tests. Además se corrigieron dos detalles de `ConfiguracionEmpresaView`: los títulos logo/ícono estaban cruzados y el aviso del dominio pasó a mostrarse solo con foco. Fernando lo revisó visualmente y lo aprobó."
 ---
 
 # Sesión 2026-09-18 — Panel de control y gráfico de pesadas en PesajeModal

@@ -5,7 +5,7 @@ status: vigente
 date: 2026-05-22
 updated: 2026-05-22
 autor: por-confirmar
-agente: humano
+agente: por-confirmar
 tags: [bitacora, winforms, wpf, sesion, implementacion]
 summary: "Se detectó que el botón X del shell WPF cerraba la app sin mostrar confirmación ni hacer `client.Auth.SignOut()` en Supabase. El botón de logout sí mo"
 ---

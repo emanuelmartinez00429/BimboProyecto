@@ -8,7 +8,7 @@ autor: emanuel
 agente: codex
 rama: feat/fase8-MaquetadodeRoles
 tags: [sesion, usuarios, seguridad, rls]
-summary: "- La política anterior `update_Usuarios` estaba abierta a `public` con condiciones verdaderas; se reemplazó por una política para `authenticated` con "
+summary: "- La política anterior `update_Usuarios` estaba abierta a `public` con condiciones verdaderas; se reemplazó por una política para `authenticated` con"
 ---
 
 # Sesión 2026-08-15 - Protección contra autoadministración de usuarios

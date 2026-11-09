@@ -9,14 +9,8 @@ agente: antigravity
 modelo: gemini-2.5-pro
 rama: chore/contexto-validador
 commits: [ca74dab]
-tags:
-  - sesion
-  - devsecops
-  - contexto
-  - validador
+tags: [sesion, devsecops, contexto, validador]
 summary: "Portabilidad de lib.js, verificar.js y build-index.js, normalización de 178 notas de bitácora e índices INDEX.md e INDEX-bitacora.md"
-deuda: []
-adr: []
 ---
 
 # Sesión 2026-11-09 — Esquema de sesión, validador de contexto e índices generados
@@ -37,17 +31,35 @@ La bóveda de contexto de BimboProyecto acumulaba más de 295 notas sin portón 
 3. **Normalización de bitácora (`scripts/contexto/normalizar-bitacora.js`):**
    - Script idempotente con `--dry-run` por defecto y flag `--aplicar`.
    - Normalización de 178 notas existentes en `70 - Bitácora de Cambios`.
-   - Descomposición de `autor_cambios` en `autor`, `agente` y `modelo`.
-   - Mapeo de autores no resolubles a `autor: por-confirmar` con auditoría en `contexto/.control/mapeo-autores-pendiente.md`.
-4. **Higiene de contexto y seguridad:**
-   - Corrección de enlaces absolutos y rutas de disco a rutas relativas en notas de análisis QA y bitácora.
-   - Sustitución de correos de prueba por dominios estándar (`example.com` / `example.org`) y eliminación de referencias personales.
+   - Atribución rigurosa basada en hechos y sin inventar datos:
+     - Autor: ganado de la nota si tenía certeza; de lo contrario inferido del commit git creador (`RedFer855`/`Fernando` → `fernando`, `warthunderlover`/`emanuelmartinez00429` → `emanuel`, `sanchezcarlosvalle-arch` → `carlos`) con marca `autor_fuente: git` y listado en `.control/mapeo-autores-pendiente.md`.
+     - Agente: ganado de la nota si lo declaraba; de lo contrario inferido del trailer `Co-Authored-By` del commit (`Claude Opus/Sonnet/Haiku` → `claude-code`, modelo normalizado); si no hay trailer ni mención explícita de agente, se asigna `agente: por-confirmar`. El valor `humano` solo se usa si la nota lo declara explícitamente.
+   - El validador `verificar.js` admite `por-confirmar` en `agente` para notas históricas anteriores a 2026-11-10.
+
+#### Conteo de antes y después (Normalización de Bitácora)
+
+| Métrica | Antes (Corrida Inicial) | Después (Corrección Solicitada) |
+|---|---|---|
+| **`autor: fernando`** | 43 notas | **112 notas** (43 originales + 69 inferidas de git) |
+| **`autor: emanuel`** | 31 notas | **38 notas** (31 originales + 7 inferidas de git) |
+| **`autor: carlos`** | 0 notas | **1 nota** (inferida de git) |
+| **`autor: por-confirmar`** | 105 notas | **28 notas** (desconocidos reales auditados) |
+| **`agente: claude-code`** | 20 notas | **59 notas** (20 originales + 39 trailer git) |
+| **`agente: codex`** | 30 notas | **37 notas** |
+| **`agente: antigravity`** | 16 notas | **19 notas** |
+| **`agente: opencode`** | 2 notas | **5 notas** |
+| **`agente: por-confirmar`** | 0 notas | **59 notas** (agente desconocido real) |
+| **`agente: humano`** | 111 notas (falso default) | **0 notas** (sin afirmación explícita de ausencia de agente) |
+
+4. **Higiene de contexto y seguridad (Saneamiento justificado):**
+   - Se sanearon 20 notas históricas que contenían rutas absolutas de disco (unidades locales o esquemas `file:`) o correos personales fuera de dominios de prueba (`@gmail.com`).
+   - Justificación: Requisito estricto del validador de portón de calidad (`verificar.js`), que prohíbe rutas de disco absolutas y exposición de datos personales/secretos en cualquier archivo de la bóveda.
 
 ## Verificación
 
 - `node --test scripts/contexto/lib.test.js` → 7 pruebas superadas al 100% (0 fallos).
-- `node scripts/contexto/build-index.js` → Genera `INDEX.md` (10.183 B <= 10.240 B) e `INDEX-bitacora.md` (1.738 B).
-- `node scripts/contexto/verificar.js` → Salida con código 0, 0 errores, 295 notas analizadas.
+- `node scripts/contexto/build-index.js` → Genera `INDEX.md` (10.165 B <= 10.240 B) e `INDEX-bitacora.md` (1.887 B).
+- `node scripts/contexto/verificar.js` → Salida con código 0, 0 errores, 296 notas analizadas.
 
 ## Lo que no cambió
 

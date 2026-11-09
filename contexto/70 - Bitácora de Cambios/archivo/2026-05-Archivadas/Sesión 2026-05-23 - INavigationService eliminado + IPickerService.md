@@ -5,7 +5,7 @@ status: vigente
 date: 2026-05-23
 updated: 2026-05-23
 autor: por-confirmar
-agente: humano
+agente: por-confirmar
 tags: [bitacora, arquitectura, navegacion, picker, refactor]
 summary: "INavigationService eliminado + IPickerService creado"
 ---

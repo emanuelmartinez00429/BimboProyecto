@@ -4,8 +4,9 @@ type: sesion
 status: vigente
 date: 2026-09-06
 updated: 2026-09-06
-autor: por-confirmar
-agente: humano
+autor: fernando
+autor_fuente: git
+agente: por-confirmar
 tags: [sesion]
 summary: "El selector genérico `SelectorCatalogoModal` permite a los operadores elegir elementos de catálogos (productos, proveedores, etc.). En modo múltiple ("
 ---

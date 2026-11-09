@@ -5,7 +5,7 @@ status: vigente
 date: 2026-05-29
 updated: 2026-05-29
 autor: por-confirmar
-agente: humano
+agente: por-confirmar
 tags: [bitácora, seguridad, memory-leak, realtime, optimización, arquitectura]
 summary: "Sesión con dos partes:"
 ---

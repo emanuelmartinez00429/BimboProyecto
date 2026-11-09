@@ -8,7 +8,7 @@ autor: emanuel
 agente: codex
 rama: main
 tags: [sesion, bimbo, empleados, crud, supabase]
-summary: "El módulo de Empleados estaba en estado \\"solo lectura\\" desde su creación (Sesión 2026-07-26 - Módulo Empleados). El `BtnGuardar_Click` era un no-op co"
+summary: "El módulo de Empleados estaba en estado \"solo lectura\" desde su creación (Sesión 2026-07-26 - Módulo Empleados). El `BtnGuardar_Click` era un no-op co"
 ---
 
 # Sesión 2026-07-26 - CRUD Completo Módulo Empleados

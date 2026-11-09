@@ -5,7 +5,8 @@ status: vigente
 date: 2026-08-15
 updated: 2026-08-15
 autor: fernando
-agente: humano
+agente: claude-code
+modelo: sonnet-5
 rama: feat/fase8-MaquetadodeRoles-B-Fernando
 tags: [sesion, supabase, wpf, layout, deuda-tecnica]
 summary: "UNIQUE en presentaciones y limpieza de MaxLineas"

@@ -4,8 +4,9 @@ type: sesion
 status: vigente
 date: 2026-05-01
 updated: 2026-05-01
-autor: por-confirmar
-agente: humano
+autor: fernando
+autor_fuente: git
+agente: por-confirmar
 commits: [f105047]
 tags: [bitácora, archivo, referencia]
 summary: "Bitácora Archivada"

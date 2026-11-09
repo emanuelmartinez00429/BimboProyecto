@@ -5,7 +5,8 @@ status: vigente
 date: 2026-08-15
 updated: 2026-08-15
 autor: fernando
-agente: humano
+agente: claude-code
+modelo: sonnet-5
 rama: feat/fase8-MaquetadodeRoles-B-Fernando
 tags: [sesion, wpf, modales, ux, refactor]
 summary: "Normalización de modales y advertencia al inactivar"

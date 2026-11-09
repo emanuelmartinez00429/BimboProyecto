@@ -4,8 +4,9 @@ type: sesion
 status: vigente
 date: 2026-08-13
 updated: 2026-08-13
-autor: por-confirmar
-agente: humano
+autor: fernando
+autor_fuente: git
+agente: codex
 modelo: gpt-5
 rama: feat/fase8-MaquetadodeRoles
 tags: [sesion, productos, ui]

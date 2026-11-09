@@ -4,8 +4,9 @@ type: sesion
 status: vigente
 date: 2026-05-29
 updated: 2026-05-29
-autor: por-confirmar
-agente: humano
+autor: fernando
+autor_fuente: git
+agente: por-confirmar
 tags: [bitácora, arquitectura, limpieza, c13, c14]
 summary: "Continuación de la auditoría del 2026-05-29. Dos ítem del plan de remediación habían quedado pendientes en la sesión anterior:"
 ---

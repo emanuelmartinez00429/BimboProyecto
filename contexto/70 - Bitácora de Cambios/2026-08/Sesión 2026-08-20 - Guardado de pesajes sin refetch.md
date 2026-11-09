@@ -8,7 +8,7 @@ autor: fernando
 agente: claude-code
 rama: feat/fase8-MaquetadodeRoles
 tags: [sesion, pesaje, performance]
-summary: "\\"Seguir pesando\\" tardaba demasiado en responder. Diagnóstico contra la BD real (MCP de Supabase): no era la base de datos — era arquitectura, 4–5 round trips secuenciales por cada pesada guardada. Se redujo a 1–2, se agregó guarda de reentrada + estado visual de guardado, y el modal ahora se queda abierto entre pesadas en vez de cerrarse. Probado por Fernando en la app — funcionó."
+summary: "\"Seguir pesando\" tardaba demasiado en responder. Diagnóstico contra la BD real (MCP de Supabase): no era la base de datos — era arquitectura, 4–5 round trips secuenciales por cada pesada guardada. Se redujo a 1–2, se agregó guarda de reentrada + estado visual de guardado, y el modal ahora se queda abierto entre pesadas en vez de cerrarse. Probado por Fernando en la app — funcionó."
 ---
 
 # Sesión 2026-08-20 — Guardado de pesajes sin refetch

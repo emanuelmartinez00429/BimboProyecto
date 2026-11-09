@@ -4,8 +4,9 @@ type: sesion
 status: vigente
 date: 2026-09-10
 updated: 2026-09-10
-autor: por-confirmar
-agente: humano
+autor: fernando
+autor_fuente: git
+agente: por-confirmar
 tags: [bitacora, sesion, net10, arquitectura]
 summary: "Migración de la solución a .NET 10 (LTS)"
 ---

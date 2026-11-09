@@ -4,8 +4,9 @@ type: sesion
 status: vigente
 date: 2026-07-23
 updated: 2026-07-23
-autor: por-confirmar
-agente: humano
+autor: fernando
+autor_fuente: git
+agente: por-confirmar
 rama: feat/fase6-IntegracionWpf/MenuPrincipal
 tags: [sesion, animacion, sidebar, wpf, deuda-tecnica, regresion]
 summary: "Reconciliación Animación Sidebar (ContentAreaBorder) y Regresión BrandBlock"

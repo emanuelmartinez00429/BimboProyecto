@@ -4,8 +4,9 @@ type: sesion
 status: vigente
 date: 2026-09-02
 updated: 2026-09-02
-autor: por-confirmar
-agente: humano
+autor: fernando
+autor_fuente: git
+agente: por-confirmar
 tags: [sesion, validacion, dominio, wpf, supabase, ghosttextbox, tests]
 summary: "Se completó la implementación integral y sincronización de topes de longitud máxima en toda la aplicación: 10 entidades de dominio (34 reglas) alineadas con el esquema PostgreSQL de Supabase, derivación automática de `MaxLength` en UI mediante `ValidadorFormulario.Segun()`, limpieza de `MaxLength` redundante en XAML, estabilización completa de `GhostTextBox` (scroll horizontal sincronizado, detección de dominios externos y liberación de CTS), suite de pruebas de deriva y frontera, y documentación exhaustiva en la bóveda de conocimiento."
 ---

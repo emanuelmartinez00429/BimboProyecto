@@ -8,7 +8,7 @@ autor: fernando
 agente: claude-code
 rama: feat/fase8-MaquetadodeRoles
 tags: [sesion, ui, wpf, validacion, modales]
-summary: "Al validar en \\"Crear/Editar producto\\", los renglones de error (\\"El código es"
+summary: "Al validar en \"Crear/Editar producto\", los renglones de error (\"El código es"
 ---
 
 # Sesión 2026-09-03 — ProductoModal crece con los errores de validación en vez de sacar barra

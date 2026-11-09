@@ -4,8 +4,9 @@ type: sesion
 status: vigente
 date: 2026-05-29
 updated: 2026-05-29
-autor: por-confirmar
-agente: humano
+autor: fernando
+autor_fuente: git
+agente: por-confirmar
 tags: [sesion]
 summary: "El buscador con sugerencias estaba duplicado en los 4 formularios (Productos, Proveedores, Fabricantes, Categorías): cada uno tenía su propia clase `S"
 ---

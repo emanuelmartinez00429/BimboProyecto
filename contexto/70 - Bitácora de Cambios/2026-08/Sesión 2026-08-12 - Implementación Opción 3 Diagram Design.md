@@ -4,8 +4,9 @@ type: sesion
 status: vigente
 date: 2026-08-12
 updated: 2026-08-12
-autor: por-confirmar
-agente: humano
+autor: fernando
+autor_fuente: git
+agente: claude-code
 rama: feat/fase8-MaquetadodeRoles
 tags: [diagram-design, hooks, skills, automatización, inyección-contexto]
 summary: "Implementación Opción 3 — Diagram Design Automation"

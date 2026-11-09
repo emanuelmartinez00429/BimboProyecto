@@ -8,7 +8,7 @@ autor: fernando
 agente: antigravity
 rama: feat/fase8-MaquetadodeRoles
 tags: [sesion, ui, ux, wpf, datagrid, catalogos, auditoria]
-summary: "Se incorporaron de manera estándar las columnas de auditoría **CREADO** y **ACTUALIZADO** en las tablas de los 5 submódulos de catálogo (**Productos**, **Proveedores**, **Fabricantes**, **Categorías** y **Presentaciones**), ubicadas inmediatamente antes de la columna **ESTADO**, con encabezados acordes a la jerarquía de cada tabla, celdas de fecha alineadas a la derecha (`CeldaDerecha`) en formato `dd/MM/yyyy HH:mm` y dimensionamiento dinámico (`Width=\\"Auto\\"` con `MinWidth=\\"130\\"`). Asimismo, se institucionalizó la **Regla 8** de traducción idiomática conceptual a WPF."
+summary: "Se incorporaron de manera estándar las columnas de auditoría **CREADO** y **ACTUALIZADO** en las tablas de los 5 submódulos de catálogo (**Productos**, **Proveedores**, **Fabricantes**, **Categorías** y **Presentaciones**), ubicadas inmediatamente antes de la columna **ESTADO**, con encabezados acordes a la jerarquía de cada tabla, celdas de fecha alineadas a la derecha (`CeldaDerecha`) en formato `dd/MM/yyyy HH:mm` y dimensionamiento dinámico (`Width=\"Auto\"` con `MinWidth=\"130\"`). Asimismo, se institucionalizó la **Regla 8** de traducción idiomática conceptual a WPF."
 ---
 
 # Sesión 2026-09-02 — Columnas Creado y Actualizado en tablas de catálogo

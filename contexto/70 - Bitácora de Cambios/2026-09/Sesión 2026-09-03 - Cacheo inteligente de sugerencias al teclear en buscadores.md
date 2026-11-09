@@ -5,7 +5,7 @@ status: vigente
 date: 2026-09-03
 updated: 2026-09-03
 autor: fernando
-agente: humano
+agente: por-confirmar
 rama: feat/fase8-MaquetadodeRoles
 tags: [sesion, cache, buscador, rendimiento, fusioncache]
 summary: "Implementado el cacheo en memoria L1 con `ZiggyCreatures.FusionCache` para las sugerencias de texto al escribir en el buscador compartido `SuggestionSearchBox`. Se optimizó `SuggestionDebouncer` para descartar consultas de 1 sola letra, se normalizaron deterministamente los términos (`>= 3` caracteres) y se conectó la invalidación reactiva por tabla a `supabase_realtime`. Compilación limpia (0 errores, 0 advertencias) y 238/238 pruebas unitarias superadas."

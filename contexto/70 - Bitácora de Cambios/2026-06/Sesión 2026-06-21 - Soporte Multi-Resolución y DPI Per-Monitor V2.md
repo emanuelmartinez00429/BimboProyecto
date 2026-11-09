@@ -4,8 +4,9 @@ type: sesion
 status: vigente
 date: 2026-06-21
 updated: 2026-06-21
-autor: por-confirmar
-agente: humano
+autor: fernando
+autor_fuente: git
+agente: por-confirmar
 rama: feat/fase6-IntegracionWpf/MenuPrincipal
 tags: [sesion, wpf, dpi, escalado, rendering]
 summary: "Soporte Multi-Resolución y DPI Per-Monitor V2"

@@ -4,8 +4,9 @@ type: sesion
 status: vigente
 date: 2026-09-10
 updated: 2026-09-10
-autor: por-confirmar
-agente: humano
+autor: fernando
+autor_fuente: git
+agente: por-confirmar
 tags: [bitacora, sesion, wpf, mvvm, refactor, qa]
 summary: "Auditoría y refactorización técnica del módulo de Productos"
 ---

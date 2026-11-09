@@ -5,7 +5,8 @@ status: vigente
 date: 2026-08-15
 updated: 2026-08-15
 autor: fernando
-agente: humano
+agente: claude-code
+modelo: sonnet-5
 rama: feat/fase8-MaquetadodeRoles
 tags: [sesion, validacion, wpf, modales, refactor]
 summary: "Validación centralizada y doble clic en catálogos"

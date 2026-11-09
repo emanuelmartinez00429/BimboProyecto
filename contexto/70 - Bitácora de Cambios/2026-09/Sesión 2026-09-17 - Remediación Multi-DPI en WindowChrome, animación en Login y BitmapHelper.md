@@ -8,7 +8,7 @@ autor: fernando
 agente: antigravity
 rama: feat/fase8-MaquetadodeRoles
 tags: [sesion, wpf, dpi, win32, chrome, dwm, owasp, arquitectura]
-summary: "A partir de la auditoría técnica exhaustiva de los cambios recientes, se erradicó el antipatrón de `Margin=\\"6\\"` mediante cálculo dinámico Win32 en `WM_GETMINMAXINFO` adaptado a Per-Monitor V2, se conmutó el icono y tooltip de maximizar/restaurar, se migró `LoginWindow` a `WindowChrome` eliminando `AllowsTransparency=\\"True\\"` y habilitando animaciones nativas DWM, se extrajo `BitmapHelper` para desacoplar el ViewModel de renderizado gráfico de bajo nivel, y se emitieron directrices de seguridad OWASP para notificaciones móviles."
+summary: "A partir de la auditoría técnica exhaustiva de los cambios recientes, se erradicó el antipatrón de `Margin=\"6\"` mediante cálculo dinámico Win32 en `WM_GETMINMAXINFO` adaptado a Per-Monitor V2, se conmutó el icono y tooltip de maximizar/restaurar, se migró `LoginWindow` a `WindowChrome` eliminando `AllowsTransparency=\"True\"` y habilitando animaciones nativas DWM, se extrajo `BitmapHelper` para desacoplar el ViewModel de renderizado gráfico de bajo nivel, y se emitieron directrices de seguridad OWASP para notificaciones móviles."
 ---
 
 # Sesión 2026-09-17 — Remediación Multi-DPI en WindowChrome, animación en Login y BitmapHelper

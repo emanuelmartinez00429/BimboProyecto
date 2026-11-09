@@ -5,7 +5,7 @@ status: vigente
 date: 2026-08-15
 updated: 2026-08-15
 autor: por-confirmar
-agente: humano
+agente: claude-code
 rama: feat/fase8-MaquetadodeRoles-B-Fernando
 tags: [sesion, presentaciones, crud, catalogo]
 summary: "`presentacion_producto` dejó de ser un catálogo de solo lectura: ahora tiene pantalla propia con grilla, buscador, filtros de estado y orden, y modal de alta/edición. Resuelve la mitad de [[Deuda Técnica - Pendientes|P-036]] (queda pendiente la de Tara). Solo código — la migración SQL ya estaba aplicada de antes."

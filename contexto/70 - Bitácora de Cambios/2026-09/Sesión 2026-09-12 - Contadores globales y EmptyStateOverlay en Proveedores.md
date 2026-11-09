@@ -4,8 +4,10 @@ type: sesion
 status: vigente
 date: 2026-09-12
 updated: 2026-09-12
-autor: por-confirmar
-agente: humano
+autor: fernando
+autor_fuente: git
+agente: claude-code
+modelo: sonnet-5
 tags: [bitacora, sesion, wpf, mvvm, proveedores, productos, ui]
 summary: "Contadores globales y EmptyStateOverlay en Proveedores"
 ---

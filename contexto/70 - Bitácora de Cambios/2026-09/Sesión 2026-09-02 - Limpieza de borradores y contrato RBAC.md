@@ -4,8 +4,9 @@ type: sesion
 status: vigente
 date: 2026-09-02
 updated: 2026-09-02
-autor: por-confirmar
-agente: humano
+autor: emanuel
+autor_fuente: git
+agente: codex
 rama: feat/fase8-MaquetadodeRoles
 tags: [sesion, bimbo, rbac, supabase, pruebas]
 summary: "Limpieza de borradores y contrato RBAC"

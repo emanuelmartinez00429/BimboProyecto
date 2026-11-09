@@ -8,7 +8,7 @@ autor: emanuel
 agente: codex
 rama: main
 tags: [sesion, bimbo, gestion-usuarios, empleados, refactor, ux]
-summary: "El flujo anterior requería que el usuario fuera al módulo de Usuarios, diera click en \\"+Nuevo usuario\\", y seleccionara un empleado de un ComboBox. Est"
+summary: "El flujo anterior requería que el usuario fuera al módulo de Usuarios, diera click en \"+Nuevo usuario\", y seleccionara un empleado de un ComboBox. Est"
 ---
 
 # Sesión 2026-07-26 - Refactor Flujo Creación de Usuario desde Empleados

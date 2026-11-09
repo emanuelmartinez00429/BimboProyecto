@@ -5,7 +5,7 @@ status: vigente
 date: 2026-05-26
 updated: 2026-05-26
 autor: por-confirmar
-agente: humano
+agente: por-confirmar
 tags: [sesion]
 summary: "El ComboBox de **Fabricante** mostraba todos los ítems como lista estática, sin posibilidad de escribir para filtrar. El ComboBox de **País** ya tenía"
 ---

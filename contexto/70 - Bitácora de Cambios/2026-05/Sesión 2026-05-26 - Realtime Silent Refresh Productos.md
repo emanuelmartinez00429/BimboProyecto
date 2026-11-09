@@ -4,8 +4,9 @@ type: sesion
 status: vigente
 date: 2026-05-26
 updated: 2026-05-26
-autor: por-confirmar
-agente: humano
+autor: fernando
+autor_fuente: git
+agente: por-confirmar
 tags: [sesion, realtime, ux, productos, fix]
 summary: "El spinner de carga ya no aparece para eventos Realtime. Los datos se actualizan silenciosamente en segundo plano. 0 errores de compilación."
 ---

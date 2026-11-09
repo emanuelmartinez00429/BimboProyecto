@@ -4,8 +4,9 @@ type: sesion
 status: borrador
 date: 2026-05-23
 updated: 2026-05-23
-autor: por-confirmar
-agente: humano
+autor: fernando
+autor_fuente: git
+agente: por-confirmar
 tags: [bimbo, plan, navegacion, mvvm, refactor]
 summary: "Plan de Refactor — Navegación MainViewModel"
 ---

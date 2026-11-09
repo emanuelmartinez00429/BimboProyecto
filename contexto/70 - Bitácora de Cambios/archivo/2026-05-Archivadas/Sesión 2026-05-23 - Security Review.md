@@ -5,7 +5,7 @@ status: vigente
 date: 2026-05-23
 updated: 2026-05-23
 autor: por-confirmar
-agente: humano
+agente: por-confirmar
 tags: [seguridad, revision, bimbo]
 summary: "La anon key es intencionalmente pública. La seguridad real recae en las políticas RLS de Supabase, no en la ocultación de esta clave."
 ---

@@ -135,8 +135,14 @@ for (const n of notas) {
     }
   }
 
-  if (fm.agente && !L.AGENTES.has(fm.agente)) {
-    errores.push(`${rel}: agente '${fm.agente}' no es válido (${[...L.AGENTES].join(", ")})`);
+  if (fm.agente) {
+    if (fm.agente === "por-confirmar") {
+      if (fm.date && fm.date >= "2026-11-10") {
+        errores.push(`${rel}: 'por-confirmar' en agente solo se permite en notas anteriores a 2026-11-10`);
+      }
+    } else if (!L.AGENTES.has(fm.agente)) {
+      errores.push(`${rel}: agente '${fm.agente}' no es válido (${[...L.AGENTES].join(", ")}, por-confirmar)`);
+    }
   }
 
   // Validación de sesiones

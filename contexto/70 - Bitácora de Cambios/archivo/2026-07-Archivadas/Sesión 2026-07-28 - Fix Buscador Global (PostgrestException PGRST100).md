@@ -5,7 +5,7 @@ status: vigente
 date: 2026-07-28
 updated: 2026-07-28
 autor: por-confirmar
-agente: humano
+agente: claude-code
 rama: feat/fase7-GestióndeUsuarios
 tags: [sesion, buscador, bugfix, supabase]
 summary: "El buscador global (topbar) crasheaba con una excepción no controlada al buscar productos o empleados. Corregido el filtro OR mal construido en los dos repositorios afectados, y agregada una red de contención en el pipeline para que ninguna falla de una entidad vuelva a tumbar el buscador completo."

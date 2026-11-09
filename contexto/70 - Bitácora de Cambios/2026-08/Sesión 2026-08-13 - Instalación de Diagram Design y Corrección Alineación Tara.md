@@ -4,9 +4,10 @@ type: sesion
 status: vigente
 date: 2026-08-13
 updated: 2026-08-13
-autor: por-confirmar
-agente: humano
-modelo: gemini-flash
+autor: fernando
+autor_fuente: git
+agente: antigravity
+modelo: gemini-2.5-pro
 tags: [sesion, diagramas, ui, productos, fabricantes, combobox, modales, antigravity]
 summary: "Se instaló la habilidad `diagram-design` con regla de disparo automático, se generó el diagrama arquitectónico de `CapaUI`, se corrigió la alineación vertical de la columna **TARA** en Productos, se solucionó el bug en los ComboBoxes de filtro (primera letra borrada y navegación por flechas con confirmación en Enter) y se incrementó el tamaño de fuente y altura de los inputs en los modales de la aplicación para mejorar su legibilidad."
 ---

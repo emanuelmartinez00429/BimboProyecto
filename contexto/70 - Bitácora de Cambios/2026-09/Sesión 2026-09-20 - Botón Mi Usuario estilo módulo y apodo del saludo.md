@@ -4,8 +4,9 @@ type: sesion
 status: vigente
 date: 2026-09-20
 updated: 2026-09-20
-autor: por-confirmar
-agente: humano
+autor: carlos
+autor_fuente: git
+agente: por-confirmar
 tags: [sesion]
 summary: "Botón Mi Usuario estilo módulo y apodo del saludo"
 ---

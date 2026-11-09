@@ -4,8 +4,9 @@ type: sesion
 status: vigente
 date: 2026-09-20
 updated: 2026-09-20
-autor: por-confirmar
-agente: humano
+autor: fernando
+autor_fuente: git
+agente: claude-code
 rama: feat/fase8-MaquetadodeRoles
 tags: [sesion, supabase, rls, seguridad, preferencias, escalado]
 summary: "**Fase 1** — tabla `public.usuario_preferencias` creada y verificada en base viva, con RLS por"

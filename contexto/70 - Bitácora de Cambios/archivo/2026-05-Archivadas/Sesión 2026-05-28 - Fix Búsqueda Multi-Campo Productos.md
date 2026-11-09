@@ -5,7 +5,7 @@ status: vigente
 date: 2026-05-28
 updated: 2026-05-28
 autor: por-confirmar
-agente: humano
+agente: por-confirmar
 tags: [sesion, busqueda, supabase, bug, productos]
 summary: "El buscador de sugerencias en Productos ahora encuentra por **nombre** y por **código interno**. El placeholder de la UI ya lo prometía — ahora el código lo cumple."
 ---

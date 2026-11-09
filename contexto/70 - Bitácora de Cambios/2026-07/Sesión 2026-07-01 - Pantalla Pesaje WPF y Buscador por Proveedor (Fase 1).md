@@ -4,11 +4,12 @@ type: sesion
 status: vigente
 date: 2026-07-01
 updated: 2026-07-01
-autor: por-confirmar
-agente: humano
+autor: fernando
+autor_fuente: git
+agente: por-confirmar
 rama: feat/fase6-IntegracionWpf/MenuPrincipal
 tags: [bitácora, pesaje, buscador, wpf, xaml, rendimiento]
-summary: "Se convirtió un diseño de alta fidelidad (export HTML/React \\"BimboPesaje Standalone\\") a XAML nativo dentro del shell WPF actual: la pantalla **Recepci"
+summary: "Se convirtió un diseño de alta fidelidad (export HTML/React \"BimboPesaje Standalone\") a XAML nativo dentro del shell WPF actual: la pantalla **Recepci"
 ---
 
 # Sesión 2026-07-01 — Pantalla Pesaje (WPF) y Buscador por Proveedor (Fase 1)

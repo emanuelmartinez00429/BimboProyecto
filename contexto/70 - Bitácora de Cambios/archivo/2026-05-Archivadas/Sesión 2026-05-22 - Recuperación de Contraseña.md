@@ -5,7 +5,7 @@ status: vigente
 date: 2026-05-22
 updated: 2026-05-22
 autor: por-confirmar
-agente: humano
+agente: por-confirmar
 tags: [bitacora, wpf, supabase, autenticacion, implementacion]
 summary: "Los 3 paneles de recuperación de contraseña existían en `CapaUI` con la UI completa pero la lógica de Supabase estaba incompleta o ausente. El flujo r"
 ---

@@ -4,8 +4,9 @@ type: sesion
 status: vigente
 date: 2026-08-12
 updated: 2026-08-12
-autor: por-confirmar
-agente: humano
+autor: fernando
+autor_fuente: git
+agente: claude-code
 rama: feat/fase8-MaquetadodeRoles
 tags: [sesion, bimbo, wpf, rbac, productos]
 summary: "Corregido el conteo TOTAL de Productos, que quedaba contaminado por el filtro de estado, y reconstruidas las pastillas TOTAL/ACTIVOS/INACTIVOS de Roles con el mismo patrón de binding directo que usa Productos — antes no mostraban ningún número."

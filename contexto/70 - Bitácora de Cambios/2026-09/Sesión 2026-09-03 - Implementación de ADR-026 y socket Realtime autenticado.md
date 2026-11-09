@@ -5,7 +5,8 @@ status: vigente
 date: 2026-09-03
 updated: 2026-09-03
 autor: fernando
-agente: humano
+agente: claude-code
+modelo: opus-5
 rama: feat/fase8-MaquetadodeRoles
 tags: [sesion, cache, realtime, fusioncache]
 summary: "Implementado [[ADR-026 - Cache en memoria con FusionCache e invalidacion por Realtime]] completo (fases 0 a 4) y corregido un bug de producción por el que el socket de Realtime corría autenticado como `anon`. Una revisión posterior encontró y cerró una colisión de claves de caché introducida en la misma sesión (P-050). Build en 0 errores / 0 advertencias y 235/235 pruebas."

@@ -4,8 +4,10 @@ type: sesion
 status: vigente
 date: 2026-09-11
 updated: 2026-09-11
-autor: por-confirmar
-agente: humano
+autor: fernando
+autor_fuente: git
+agente: claude-code
+modelo: sonnet-5
 tags: [bitacora, sesion, wpf, refactor, dirty-tracking, change-tracker, qa]
 summary: "Durante la auditoría arquitectónica de los formularios de edición, se detectó una vulnerabilidad crítica de mantenimiento en el dirty tracking:"
 ---

@@ -4,8 +4,9 @@ type: sesion
 status: vigente
 date: 2026-11-08
 updated: 2026-11-08
-autor: por-confirmar
-agente: humano
+autor: emanuel
+autor_fuente: git
+agente: codex
 rama: main
 tags: [sesion, reportes, productos, velopack, actualizacion]
 summary: "- La búsqueda de actualización no fue inmediata; el usuario confirmó que terminó funcionando después de esperar."

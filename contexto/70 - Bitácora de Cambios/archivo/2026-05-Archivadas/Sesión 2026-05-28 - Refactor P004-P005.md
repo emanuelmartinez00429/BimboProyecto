@@ -5,7 +5,7 @@ status: vigente
 date: 2026-05-28
 updated: 2026-05-28
 autor: por-confirmar
-agente: humano
+agente: por-confirmar
 tags: [sesion, refactor, deuda-tecnica, wpf, productos, code-behind]
 summary: "`CapaUI` compila con **0 errores**."
 ---

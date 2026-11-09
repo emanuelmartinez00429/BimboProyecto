@@ -4,8 +4,9 @@ type: sesion
 status: vigente
 date: 2026-08-12
 updated: 2026-08-12
-autor: por-confirmar
-agente: humano
+autor: fernando
+autor_fuente: git
+agente: claude-code
 rama: feat/fase8-MaquetadodeRoles
 tags: [sesion, bimbo, wpf, rendimiento, rbac]
 summary: "Roles dejó de trabarse, de crashear y de duplicar la carga. Se alineó con la arquitectura del resto de los formularios: `ComboBox` estándar, sin scroll horizontal, sin bindings que recorran el árbol y con el encabezado visible desde el primer frame."

@@ -5,7 +5,7 @@ status: vigente
 date: 2026-05-24
 updated: 2026-05-24
 autor: por-confirmar
-agente: humano
+agente: por-confirmar
 tags: [sesion, bugfix, realtime, supabase]
 summary: "Fix Realtime: ExtraerCambio accedía al nivel equivocado"
 ---

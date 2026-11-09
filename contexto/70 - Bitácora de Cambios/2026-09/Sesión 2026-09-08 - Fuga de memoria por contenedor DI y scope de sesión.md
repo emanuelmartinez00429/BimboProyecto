@@ -4,8 +4,9 @@ type: sesion
 status: vigente
 date: 2026-09-08
 updated: 2026-09-08
-autor: por-confirmar
-agente: humano
+autor: fernando
+autor_fuente: git
+agente: claude-code
 rama: feat/fase8-MaquetadodeRoles
 commits: [a05f006, 404796c]
 tags: [sesion, rendimiento, memoria, wpf, di, auditoria]

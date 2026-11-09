@@ -5,7 +5,7 @@ status: vigente
 date: 2026-07-23
 updated: 2026-07-23
 autor: por-confirmar
-agente: humano
+agente: claude-code
 tags: [sesion, mantenimiento, obsidian, grafo]
 summary: "Escaneada la bóveda completa (87 notas) buscando archivos sin enlaces entrantes y mal ubicados. Conectados los 2 huérfanos reales, eliminado 1 duplicado vacío, y coloreado el grafo de Obsidian por carpeta (versionado, viaja con el repo)."
 ---

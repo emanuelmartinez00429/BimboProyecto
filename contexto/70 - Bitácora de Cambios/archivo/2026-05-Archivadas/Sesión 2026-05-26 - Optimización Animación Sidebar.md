@@ -5,7 +5,7 @@ status: vigente
 date: 2026-05-26
 updated: 2026-05-26
 autor: por-confirmar
-agente: humano
+agente: por-confirmar
 tags: [sesion, animacion, sidebar, ux, wpf]
 summary: "La animación del hamburger (colapsar/expandir sidebar) pasó de trabarse en el inicio a arrancar desde el primer frame. Se agregó fade cruzado de etiquetas para eliminar el salto visual. Sin cambios en XAML ni en posición de iconos."
 ---

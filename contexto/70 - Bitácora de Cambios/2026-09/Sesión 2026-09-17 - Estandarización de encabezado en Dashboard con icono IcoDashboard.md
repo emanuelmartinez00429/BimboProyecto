@@ -4,8 +4,9 @@ type: sesion
 status: vigente
 date: 2026-09-17
 updated: 2026-09-17
-autor: por-confirmar
-agente: humano
+autor: fernando
+autor_fuente: git
+agente: por-confirmar
 tags: [bitacora, sesion, wpf, ui, ux, estilos, dashboard, reporteria, iconos]
 summary: "Estandarización de encabezado en Dashboard con icono IcoDashboard"
 ---

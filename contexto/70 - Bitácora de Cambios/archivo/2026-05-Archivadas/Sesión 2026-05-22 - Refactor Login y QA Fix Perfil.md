@@ -5,7 +5,7 @@ status: vigente
 date: 2026-05-22
 updated: 2026-05-22
 autor: por-confirmar
-agente: humano
+agente: por-confirmar
 tags: [bitacora, wpf, clean-architecture, autenticacion, refactor, performance]
 summary: "Dos bloques de trabajo en esta sesión:"
 ---

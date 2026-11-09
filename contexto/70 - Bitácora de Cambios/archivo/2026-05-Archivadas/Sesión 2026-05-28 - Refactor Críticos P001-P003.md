@@ -5,7 +5,7 @@ status: vigente
 date: 2026-05-28
 updated: 2026-05-28
 autor: por-confirmar
-agente: humano
+agente: por-confirmar
 tags: [sesion, refactor, deuda-tecnica, productos, repositorio]
 summary: "Los 3 problemas críticos identificados en la auditoría pre-replicación están resueltos."
 ---

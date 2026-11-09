@@ -4,8 +4,9 @@ type: sesion
 status: vigente
 date: 2026-09-16
 updated: 2026-09-16
-autor: por-confirmar
-agente: humano
+autor: fernando
+autor_fuente: git
+agente: por-confirmar
 tags: [bitacora, sesion, wpf, ui, ux, sidebar, iconos, productos, pesajes]
 summary: "Homogeneización vectorial de iconos del sidebar, centrado en modo colapsado y ajuste de columnas en Productos"
 ---

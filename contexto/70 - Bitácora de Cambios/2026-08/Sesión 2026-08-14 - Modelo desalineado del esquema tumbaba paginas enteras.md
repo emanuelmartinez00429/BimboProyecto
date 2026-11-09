@@ -4,8 +4,9 @@ type: sesion
 status: vigente
 date: 2026-08-14
 updated: 2026-08-14
-autor: por-confirmar
-agente: humano
+autor: fernando
+autor_fuente: git
+agente: claude-code
 modelo: opus-5
 rama: feat/fase8-MaquetadodeRoles
 tags: [sesion, productos, paginacion, supabase, bugfix, modelado]

@@ -4,8 +4,9 @@ type: sesion
 status: vigente
 date: 2026-09-03
 updated: 2026-09-03
-autor: por-confirmar
-agente: humano
+autor: emanuel
+autor_fuente: git
+agente: codex
 rama: feat/fase8-MaquetadodeRoles
 tags: [sesion, bimbo, notificaciones, wpf, supabase, rpc]
 summary: "Se rediseñaron la campana, la bandeja completa y el diálogo de detalle, y se convirtió la acción masiva en una lectura y archivo atómicos de toda la Bandeja. Fernando aprobó la corrección visual el 2026-09-03; la solución quedó con compilación limpia, 240/240 pruebas y validación transaccional remota."

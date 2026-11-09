@@ -4,11 +4,12 @@ type: sesion
 status: vigente
 date: 2026-09-08
 updated: 2026-09-08
-autor: por-confirmar
-agente: humano
+autor: fernando
+autor_fuente: git
+agente: claude-code
 rama: feat/fase8-MaquetadodeRoles
 tags: [sesion, wpf, datagrid, layout, rendimiento, virtualizacion]
-summary: "Se corrigió el bug de **\\"se corren todas las columnas de la nada\\"** al hacer scroll"
+summary: "Se corrigió el bug de **\"se corren todas las columnas de la nada\"** al hacer scroll"
 ---
 
 # Sesión 2026-09-08 — Salto de columnas al scrollear y sombras sobre listas virtualizadas

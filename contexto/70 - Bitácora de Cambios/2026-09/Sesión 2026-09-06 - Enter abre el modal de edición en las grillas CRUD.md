@@ -9,7 +9,7 @@ agente: claude-code
 rama: feat/fase8-MaquetadodeRoles
 commits: [a05f006, 404796c]
 tags: [sesion, ux, wpf]
-summary: "`Enter`, con una fila seleccionada y el foco en la grilla, ahora abre el modal de edición en las 9 pantallas CRUD estándar — el mismo efecto que ya tenía el doble clic. Antes `Enter` solo disparaba la navegación de celda por defecto de WPF (mover el \\"cursor\\" de celda una fila hacia abajo), sin ningún efecto útil porque las grillas son `IsReadOnly=\\"True\\"`."
+summary: "`Enter`, con una fila seleccionada y el foco en la grilla, ahora abre el modal de edición en las 9 pantallas CRUD estándar — el mismo efecto que ya tenía el doble clic. Antes `Enter` solo disparaba la navegación de celda por defecto de WPF (mover el \"cursor\" de celda una fila hacia abajo), sin ningún efecto útil porque las grillas son `IsReadOnly=\"True\"`."
 ---
 
 # Sesión 2026-09-06 — Enter abre el modal de edición en las grillas CRUD

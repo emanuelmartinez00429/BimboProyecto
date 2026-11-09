@@ -4,8 +4,9 @@ type: sesion
 status: vigente
 date: 2026-09-16
 updated: 2026-09-16
-autor: por-confirmar
-agente: humano
+autor: fernando
+autor_fuente: git
+agente: por-confirmar
 tags: [bitacora, sesion, wpf, ui, ux, productos, estilos]
 summary: "Reorganización de cuadrícula y campos de auditoría estilo Pesajes en ProductoModal"
 ---

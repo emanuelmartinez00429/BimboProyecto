@@ -4,8 +4,9 @@ type: sesion
 status: vigente
 date: 2026-11-07
 updated: 2026-11-07
-autor: por-confirmar
-agente: humano
+autor: emanuel
+autor_fuente: git
+agente: codex
 rama: main
 tags: [sesion, velopack, despliegue, msi, github-actions]
 summary: "- Validar el MSI con el compañero y obtener el texto/código exacto del error previo."

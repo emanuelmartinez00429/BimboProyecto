@@ -5,7 +5,7 @@ status: vigente
 date: 2026-07-26
 updated: 2026-07-26
 autor: por-confirmar
-agente: humano
+agente: opencode
 rama: feat/fase7-GestióndeUsuarios
 tags: [sesion, qa, revision, estilos]
 summary: "Revisión QA Centralización Estilos Modales (opencode)"

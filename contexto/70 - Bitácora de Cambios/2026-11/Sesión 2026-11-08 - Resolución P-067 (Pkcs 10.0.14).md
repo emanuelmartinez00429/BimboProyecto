@@ -4,8 +4,9 @@ type: sesion
 status: vigente
 date: 2026-11-08
 updated: 2026-11-08
-autor: por-confirmar
-agente: humano
+autor: emanuel
+autor_fuente: git
+agente: opencode
 rama: main
 tags: [sesion, deuda-tecnica, nuget, seguridad, velopack]
 summary: "La resolución se hizo justo antes de publicar la próxima release desde `main` (workflow `publish-velopack-release.yml`, versión `1.0.<run_number>`, po"

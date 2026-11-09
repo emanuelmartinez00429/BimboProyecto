@@ -4,8 +4,9 @@ type: sesion
 status: vigente
 date: 2026-09-08
 updated: 2026-09-08
-autor: por-confirmar
-agente: humano
+autor: emanuel
+autor_fuente: git
+agente: codex
 rama: feat/fase8-MaquetadodeRoles
 tags: [sesion, plan, documentacion, cicd, despliegue]
 summary: "Se guardó el plan acordado para distribuir el instalador y futuras actualizaciones por Internet. Solo se editaron notas dentro de `contexto/`; no se implementó el actualizador ni CI/CD."

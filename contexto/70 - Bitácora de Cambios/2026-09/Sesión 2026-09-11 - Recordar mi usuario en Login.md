@@ -4,8 +4,10 @@ type: sesion
 status: vigente
 date: 2026-09-11
 updated: 2026-09-11
-autor: por-confirmar
-agente: humano
+autor: fernando
+autor_fuente: git
+agente: claude-code
+modelo: sonnet-5
 tags: [bitacora, sesion, wpf, auth, seguridad, clean-architecture, local-storage]
 summary: "1. **Terminales compartidas en planta (patrón de riesgo de [[Deuda Técnica - Pendientes"
 ---

@@ -4,8 +4,9 @@ type: sesion
 status: vigente
 date: 2026-07-01
 updated: 2026-07-01
-autor: por-confirmar
-agente: humano
+autor: fernando
+autor_fuente: git
+agente: por-confirmar
 rama: feat/fase6-IntegracionWpf/MenuPrincipal
 tags: [bitácora, pesaje, persistencia, supabase, trigger]
 summary: "Se quitó la **semilla en memoria** de la pantalla de Recepción de Materia Prima (ver [[Sesión 2026-07-01 - Pantalla Pesaje WPF y Buscador por Proveedo"

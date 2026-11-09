@@ -4,8 +4,9 @@ type: sesion
 status: vigente
 date: 2026-09-01
 updated: 2026-09-01
-autor: por-confirmar
-agente: humano
+autor: emanuel
+autor_fuente: git
+agente: codex
 rama: feat/fase8-MaquetadodeRoles
 tags: [sesion, bimbo, roles, rbac, supabase]
 summary: "Se implementó la administración del catálogo de roles y permisos con autorización específica, auditoría transaccional y un núcleo administrativo protegido para el rol Administrador."

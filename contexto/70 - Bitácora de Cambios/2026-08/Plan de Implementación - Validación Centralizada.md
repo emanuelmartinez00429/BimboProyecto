@@ -5,7 +5,8 @@ status: vigente
 date: 2026-08-15
 updated: 2026-08-15
 autor: fernando
-agente: humano
+agente: claude-code
+modelo: sonnet-5
 rama: feat/fase8-MaquetadodeRoles
 tags: [plan, validacion, wpf, modales, arquitectura]
 summary: "1. **El `DialogoConfirmacion` de la tanda anterior no funciona visualmente.** Se dibuja como ventana propia encima del modal y tapa el formulario a me"

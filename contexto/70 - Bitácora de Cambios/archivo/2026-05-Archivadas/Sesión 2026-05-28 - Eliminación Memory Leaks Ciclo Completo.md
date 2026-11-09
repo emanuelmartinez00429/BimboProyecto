@@ -5,7 +5,7 @@ status: vigente
 date: 2026-05-28
 updated: 2026-05-28
 autor: por-confirmar
-agente: humano
+agente: por-confirmar
 tags: [bitácora, memory-leak, wpf, dispose, lifecycle]
 summary: "En la sesión anterior se corrigió el leak principal: `ProductosViewModel` nunca se disponía al navegar entre formularios (fix en `ProductosView.Unload"
 ---

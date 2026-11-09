@@ -4,8 +4,9 @@ type: sesion
 status: vigente
 date: 2026-06-15
 updated: 2026-06-15
-autor: por-confirmar
-agente: humano
+autor: fernando
+autor_fuente: git
+agente: por-confirmar
 tags: [bitácora, UI, login, control-compartido]
 summary: "GhostTextBox: Autocompletado de Dominio en Login"
 ---
