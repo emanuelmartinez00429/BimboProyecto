@@ -26,7 +26,7 @@ La seguridad se evalúa y aplica en cada fase de desarrollo e integración, nunc
 
 | Capa | Qué se revisa | Cuándo | Herramienta / Mecanismo |
 | :--- | :--- | :--- | :--- |
-| **1. Código** | Límite de tamaño de PR (<500 recomendado, tope 1000), compilación con 0 advertencias, pruebas xUnit con skips explícitos, revisión de dependencias vulnerables y revisión humana obligatoria. | En cada Pull Request y push a `main`. | GitHub Actions (`ci.yml`), `dotnet build` (`TreatWarningsAsErrors=true`), `dotnet test`, `dotnet list package --vulnerable`, `.github/CODEOWNERS`, Dependabot. |
+| **1. Código** | Límite de tamaño de PR (~2000 recomendado, tope 2500), compilación con 0 advertencias, pruebas xUnit con skips explícitos, revisión de dependencias vulnerables y revisión humana obligatoria. | En cada Pull Request y push a `main`. | GitHub Actions (`ci.yml`), `dotnet build` (`TreatWarningsAsErrors=true`), `dotnet test`, `dotnet list package --vulnerable`, `.github/CODEOWNERS`, Dependabot. |
 | **2. Secretos** | Exclusión de claves `service_role`, credenciales de base de datos o tokens privados. Únicamente la clave pública `anon` está permitida en cliente (`CapaUI/App.config`), debidamente protegida por RLS. | Pre-commit y escaneo de todo el historial en CI. | Gitleaks 8.30.1 (`.gitleaks.toml`), `verificar.js`. |
 | **3. Base de Datos** | Row Level Security (RLS) habilitado en el 100 % de las tablas. Funciones almacenadas `SECURITY DEFINER` con `search_path` explícito y seguro. Modificaciones DDL y DML operadas exclusivamente por migraciones versionadas. | Revisión de cada archivo `.sql` en PR antes de aplicar a producción. | Revisión de código en PR, scripts en `supabase/migrations/` y `auditoria/migrations/`, trigger inmutable WORM en auditoría. |
 | **4. Agentes de IA** | Límites operativos y de permisos para agentes (Claude Code, Antigravity, Codex, etc.): solo lectura en BD de producción, prohibición de push/merge a `main`, sin secretos ni datos personales en notas o prompts. | En cada sesión multiagente y en revisión de PR. | Política de Agentes en `AGENTS.md` y este estándar, validador `verificar.js`. |
@@ -37,7 +37,7 @@ La seguridad se evalúa y aplica en cada fase de desarrollo e integración, nunc
 ## 2. Detalle de las Capas
 
 ### Capa 1: Seguridad del Código y Dependencias
-- **Tamaño de PRs:** Los Pull Requests deben ser pequeños y enfocados (objetivo: ~500 líneas de código; límite máximo estricto: 1000 líneas con pruebas). PRs mayores a 1000 líneas fallan el CI automáticamente en el job `cambios`.
+- **Tamaño de PRs:** Los Pull Requests deben ser pequeños y enfocados (objetivo: ~2000 líneas de código; tope estricto: 2500, igual que CITMec desde 2026-10-25). PRs de más de 2500 líneas fallan el CI automáticamente en el job `cambios`. No cuentan `contexto/`, `*.md`, lockfiles ni migraciones. Un apilado de PR se fusiona en orden con merge commit (no squash), para que cada PR mida solo su propio cambio.
 - **Cero Advertencias:** Compilación en modo Release con `/p:TreatWarningsAsErrors=true`. No se admiten advertencias de compilación ni analizadores omitidos.
 - **Auditoría de Vulnerabilidades NuGet:** El CI ejecuta `dotnet list package --vulnerable --include-transitive` y falla inmediatamente si detecta vulnerabilidades con severidad `High` o `Critical`.
 - **Pruebas de Integración Confiables:** Las pruebas que requieren base de datos viva (`BIMBO_POSTGRES_CONNECTION_STRING`) deben usar `[SkippableFact]` con motivo visible cuando no haya conexión, erradicando los falsos positivos por retornos silenciosos.

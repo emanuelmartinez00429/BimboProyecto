@@ -211,6 +211,20 @@ ON CONFLICT (email) DO NOTHING;
 
 ---
 
+## 5. Puesta en marcha del proyecto `bimbo-auditoria-dev`
+
+Los pasos los hace un integrador (Fernando) al crear el proyecto. Ningún agente los hace.
+
+1. Aplicar `auditoria/migrations/0001_esquema_auditoria.sql`.
+2. Agregar `auditoria` a **Settings → API → Exposed schemas**. Sin esto, el script de archivo falla con `Content-Profile: auditoria`.
+3. Cargar en GitHub los secretos `AUDIT_SUPABASE_URL` y `AUDIT_SUPABASE_SERVICE_KEY` (los carga Emanuel, que es admin del repo).
+4. Probar la inmutabilidad: un `UPDATE`, un `DELETE` y un `TRUNCATE` sobre `auditoria.sesiones` tienen que fallar con "Los registros de auditoria son inmutables".
+5. Correr primero `node scripts/contexto/archivar-bitacora.js --dry-run`, revisar la lista y recién después el workflow con `--aplicar`.
+
+El script sube con `resolution=ignore-duplicates`: si se reenvía una nota ya archivada, se ignora (no se intenta un UPDATE que el trigger rechazaría). La verificación consulta solo los hashes enviados, en lotes de 100.
+
+---
+
 ## Relaciones
 
 - [[INDEX]]
