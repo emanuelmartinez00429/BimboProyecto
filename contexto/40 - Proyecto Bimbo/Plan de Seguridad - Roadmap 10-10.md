@@ -29,14 +29,16 @@ Antes de lo que falta, es importante saber qué no hay que tocar:
 
 ---
 
-## Fase 1 — Secretos y Configuración ✅
+## Fase 1 — Secretos y Configuración ⏳
 **Esfuerzo: Bajo | Impacto: Alto**
 
-### 1.1 Anon key en el cliente — Mitigación parcial con allowlist en gitleaks `2026-11-09`
+### 1.1 Sacar la anon key del repositorio — Falso: sigue versionada, protegida por allowlist en gitleaks (2026-11-09)
 
-**Estado real:** La anon key continúa versionada en `CapaUI/App.config` (y residualmente en `SearchTest/App.config`). Es una clave pública por diseño de Supabase, protegida por autenticación y políticas RLS (Row Level Security). Se añade al allowlist de `.gitleaks.toml`.
+**Estado real:** La afirmación histórica de que la anon key fue retirada del repositorio es **falsa**. La clave permanece versionada en `CapaUI/App.config` (y residualmente en `SearchTest/App.config`).
 
-**Solución definitiva pendiente:** Leer la key desde variable de entorno o desde un archivo excluido del repo si se decide en el futuro.
+**Naturaleza y mitigación:** Al tratarse de la clave pública `anon` por diseño en Supabase, su exposición no otorga acceso administrativo alguno: todos los permisos están restringidos por autenticación y políticas estrictas de Row Level Security (RLS). Para prevenir falsos positivos y auditar su presencia, se incorporó formalmente al allowlist de `.gitleaks.toml`.
+
+**Solución definitiva:** La separación del código fuente a un repositorio privado ([[ADR-030 - Repo de código privado y repo público de binarios]]) o la inyección de configuración en runtime mediante variables de entorno.
 
 ```csharp
 // ConexionSupabase.cs
@@ -52,9 +54,9 @@ private static readonly string Key =
 **Archivos:** `CapaUI/App.config`, `.gitleaks.toml`
 
 > [!note] Mitigación adoptada (2026-11-09)
-> - La anon key permanece versionada para facilitar la distribución cliente WPF.
+> - La anon key permanece versionada para la distribución cliente WPF.
 > - Se protege con RLS estricto en todas las tablas y allowlist auditado en `.gitleaks.toml`.
-> - Prohibido commitear `service_role` o tokens JWT bajo cualquier circunstancia.
+> - Prohibido commitear `service_role` o tokens JWT administrativos bajo cualquier circunstancia.
 
 ---
 
@@ -336,7 +338,7 @@ Esto previene que alguien distribuya una versión modificada del ejecutable en l
 |---|---|---|---|---|
 | Fase | Tarea | Estado |
 |---|---|---|
-| 1.1 | Sacar anon key del repo | ✅ Completado |
+| 1.1 | Sacar anon key del repo | ⏳ Falso (versionada, protegida por allowlist) |
 | 1.2 | Verificar password policy Supabase | ⏳ Pendiente (config Supabase) |
 | 2.1 | Serilog (reemplazar Console.WriteLine) | ✅ Completado |
 | 2.2 | Tabla audit_log + IAuditoriaService | ⏳ Planificada |
@@ -364,3 +366,13 @@ Un 10/10 no es solo "sin vulnerabilidades en el código". Es:
 6. **Timeout de sesión** (Fase 4.1)
 7. **RLS auditado** (Fase 5.1)
 8. **Password policy server-side** (Fase 1.2)
+
+---
+
+## Relaciones
+
+- [[E-01 - Estándar DevSecOps]]
+- [[ADR-030 - Repo de código privado y repo público de binarios]]
+- [[Conocimiento Principal]]
+- [[Deuda - Abierta]]
+- [[Deuda - Resuelta]]

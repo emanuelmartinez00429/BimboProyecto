@@ -191,9 +191,9 @@ function lineaNota(n, sangria = "") {
     meta = [tipo, estado];
   }
   let sum = "";
-  if (fm.summary) {
+  if (fm.type === "sesion" && fm.summary) {
     let s = fm.summary.trim();
-    if (s.length > 20) s = s.slice(0, 17) + "...";
+    if (s.length > 25) s = s.slice(0, 22) + "...";
     sum = ` — ${s}`;
   }
   return `${sangria}- [[${n.nombre}]] · ${meta.join(" · ")}${sum}`;
@@ -262,8 +262,7 @@ function generarIndice(root) {
     "<!-- GENERADO por scripts/contexto/build-index.js — no editar a mano -->",
     "# Índice del contexto",
     "",
-    "Una línea por nota: `tipo · estado · actualizado` — resumen.",
-    "Lee este índice y abre solo las 3 a 6 notas necesarias para la tarea.",
+    "Una línea por nota: `tipo · estado`. Abre solo las 3 a 6 notas necesarias para la tarea.",
     `De bitácora, solo las ${SESIONES_AL_ARRANCAR} sesiones más recientes; el resto en contexto/INDEX-bitacora.md.`,
     "",
   ];

@@ -1,8 +1,7 @@
 <!-- GENERADO por scripts/contexto/build-index.js — no editar a mano -->
 # Índice del contexto
 
-Una línea por nota: `tipo · estado · actualizado` — resumen.
-Lee este índice y abre solo las 3 a 6 notas necesarias para la tarea.
+Una línea por nota: `tipo · estado`. Abre solo las 3 a 6 notas necesarias para la tarea.
 De bitácora, solo las 3 sesiones más recientes; el resto en contexto/INDEX-bitacora.md.
 
 ## 00 - MOC — Mapas de contenido y dashboard
@@ -13,7 +12,7 @@ De bitácora, solo las 3 sesiones más recientes; el resto en contexto/INDEX-bit
 
 - [[Capa de Dominio]] · arquitectura · vigente
 - [[Clean Architecture]] · arquitectura · vigente
-- [[Historial de Arquitectura 2026]] · arquitectura · vigente — Recopilación cron...
+- [[Historial de Arquitectura 2026]] · arquitectura · vigente
 - [[SOLID]] · arquitectura · vigente
 
 ## 20 - Patrones — Patrones de código y UI
@@ -26,7 +25,7 @@ De bitácora, solo las 3 sesiones más recientes; el resto en contexto/INDEX-bit
 - [[Columna de Numero de Fila en DataGrid]] · patron · vigente
 - [[Columnas de Auditoria Temporal en DataGrid - Estandarizacion Creado y Actualizado]] · patron · vigente
 - [[Convenciones de UI (WPF) — leer antes de tocar XAML]] · patron · vigente
-- [[Convenciones de código]] · patron · vigente — Convenciones de a...
+- [[Convenciones de código]] · patron · vigente
 - [[Empty State en DataGrid - Overlay centrado con encabezados visibles]] · patron · vigente
 - [[Guardado sin Refetch - Aplicar en memoria la respuesta del servidor]] · patron · vigente
 - [[Interceptar Cierre de Ventana]] · patron · vigente
@@ -50,11 +49,11 @@ De bitácora, solo las 3 sesiones más recientes; el resto en contexto/INDEX-bit
 
 ## 40 - Proyecto Bimbo — Estado vivo: módulos, arquitectura y deuda
 
-- [[Arquitectura Actual]] · arquitectura · vigente — Estado vivo del s...
+- [[Arquitectura Actual]] · arquitectura · vigente
 - [[Buscador Universal Bimbo]] · doc · vigente
 - [[Checklist - Replicar Módulo con Realtime]] · doc · vigente
-- [[Deuda - Abierta]] · deuda · vigente — Inventario de 9 í...
-- [[Deuda - Resuelta]] · deuda · vigente — Registro de 58 ít...
+- [[Deuda - Abierta]] · deuda · vigente
+- [[Deuda - Resuelta]] · deuda · vigente
 - [[Gestor Realtime - Diseño Arquitectónico]] · doc · vigente
 - [[Módulo Bitácora]] · doc · vigente
 - [[Módulo Configuración de Empresa]] · doc · vigente
@@ -108,16 +107,19 @@ _(1 nota retirada: reemplazadas o archivadas, no se listan)_
 - [[ADR-027 - Codigo privado y distribucion publica de actualizaciones]] · adr · vigente
 - [[ADR-028 - Previsualizacion de UserControls en el disenador de VS]] · adr · vigente
 - [[ADR-029 - Recepciones de pesaje planas con reglas en trigger de tabla]] · adr · vigente
+- [[ADR-030 - Repo de código privado y repo público de binarios]] · adr · borrador
+- [[E-01 - Estándar DevSecOps]] · estandar · vigente
 - [[Pendiente - Servicio Genérico de Validaciones y Pruebas Caja Negra]] · adr · vigente
 _(1 nota retirada: reemplazadas o archivadas, no se listan)_
 
 ## 50 - Referencia — Hechos externos, SDKs y APIs
 
 - [[Analisis de rendimiento - Buscadores, cache y paginacion (2026-09)]] · referencia · vigente
-- [[Auditoría - cómo consultar]] · referencia · vigente — Guía de consultas...
+- [[Auditoría - cómo consultar]] · referencia · vigente
 - [[Bug - CREATE OR REPLACE FUNCTION con distinta cantidad de parametros duplica en vez de reemplazar (Postgres)]] · referencia · vigente
 - [[Bug - Filter OR con Op.Equals en postgrest-csharp]] · referencia · vigente
 - [[CommunityToolkit.Mvvm]] · referencia · vigente
+- [[Configuración de GitHub para el admin]] · referencia · vigente
 - [[Convenciones C#]] · referencia · vigente
 - [[Detector-de-Conexion]] · referencia · vigente
 - [[Guia Maestra de Comandos Antigravity]] · referencia · vigente
@@ -139,7 +141,7 @@ _(1 nota retirada: reemplazadas o archivadas, no se listan)_
 
 ## 60 - Revisiones QA — Revisiones de calidad y auditorías
 
-- [[2026-11-09 - Pedido DevSecOps y contexto para Antigravity]] · qa · vigente — Revisión QA y ped...
+- [[2026-11-09 - Pedido DevSecOps y contexto para Antigravity]] · qa · vigente
 - [[Auditoría Externa — Optimizaciones WPF de Antigravity vs. Investigaciones QA]] · qa · vigente
 - [[Auditoría Técnica — Animaciones DWM, Maximizado Multi-DPI y Seguridad OWASP]] · qa · vigente
 - [[Fase 4 — Puertas de riesgo del escalado (guion de prueba)]] · qa · vigente
@@ -152,7 +154,7 @@ _(1 nota retirada: reemplazadas o archivadas, no se listan)_
 
 ## 70 - Bitácora de Cambios — Sesiones por mes y resúmenes
 
-- [[Sesión 2026-11-08 - Resolución P-067 (Pkcs 10.0.14)]] · sesion · emanuel · opencode · 2026-11-08 — La resolución se ...
-- [[Sesión 2026-11-08 - Fix reporte de productos y actualización remota]] · sesion · emanuel · codex · 2026-11-08 — - La búsqueda de ...
-- [[Sesión 2026-11-07 - Merge y MSI de actualizaciones Velopack]] · sesion · emanuel · codex · 2026-11-07 — - Validar el MSI ...
-- _(6 sesiones más y 4 resúmenes mensuales: ver contexto/INDEX-bitacora.md)_
+- [[Sesión 2026-11-08 - Resolución P-067 (Pkcs 10.0.14)]] · sesion · emanuel · opencode · 2026-11-08 — La resolución se hizo ...
+- [[Sesión 2026-11-08 - Fix reporte de productos y actualización remota]] · sesion · emanuel · codex · 2026-11-08 — - La búsqueda de actua...
+- [[Sesión 2026-11-07 - Merge y MSI de actualizaciones Velopack]] · sesion · emanuel · codex · 2026-11-07 — - Validar el MSI con e...
+- _(7 sesiones más y 4 resúmenes mensuales: ver contexto/INDEX-bitacora.md)_
