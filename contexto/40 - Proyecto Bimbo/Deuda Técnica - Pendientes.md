@@ -1464,9 +1464,9 @@ Eran **dos problemas encimados**, y el segundo era el grave:
 
 ---
 
-### P-067 — Paquete transitivo vulnerable: `System.Security.Cryptography.Pkcs` 8.0.1
+### ~~P-067 — Paquete transitivo vulnerable: `System.Security.Cryptography.Pkcs` 8.0.1~~ ✅ Resuelto 2026-11-08
 
-**Archivos:** `CapaDatos/CapaDatos.csproj` y `BimboProyecto.Tests/BimboProyecto.Tests.csproj`, ambos por vía **transitiva**. No hay `PackageReference` directo, así que no se corrige con una línea en esos `.csproj`: hay que trazar el árbol y actualizar el padre.
+**Archivos:** `CapaDatos/CapaDatos.csproj` y `BimboProyecto.Tests/BimboProyecto.Tests.csproj`, ambos por vía **transitiva**. No hay `PackageReference` directo, así que hubo que trazar el árbol antes de decidir (resolución al final de la nota).
 
 Dos advisories activos sobre la misma versión:
 
@@ -1477,9 +1477,15 @@ Dos advisories activos sobre la misma versión:
 
 **Riesgo:** no es de comportamiento. El proyecto compila y la app funciona; el riesgo es de cadena de suministro. Que el advisory sea "alta" no implica explotación automática en este uso concreto, pero deja un paquete con CVE conocidos dentro del grafo de un producto que se distribuye a estaciones de planta.
 
-**Solución:** `dotnet list CapaDatos\CapaDatos.csproj package --include-transitive --vulnerable` para identificar el padre y subirlo de versión. Si el padre todavía no publicó parche, fijar el transitivo con un `<PackageReference>` explícito a una versión corregida como parche temporal, dejando comentado el motivo.
+**Solución aplicada:** se identificó el padre doble — `PDFsharp` 6.2.4 y `PDFsharp-MigraDoc` 6.2.4 —, pero actualizarlo **no resuelve nada**: se verificó el `.nuspec` de `PDFsharp` 6.5.0 (última estable al 2026-11-08) y sigue declarando `8.0.1`. Por eso se aplicó el fallback que esta nota ya preveía: `<PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.14" />` directo en `CapaDatos/CapaDatos.csproj`, que por resolución de NuGet pisa el transitivo en `CapaUI` y `BimboProyecto.Tests`. Se eligió 10.x por el TFM `net10.0` y porque .NET 8 sale de soporte el 2026-11-10; los rangos corregidos son `>= 8.0.2`, `>= 9.0.21` y `>= 10.0.13`.
 
-**Estado:** `[ ]` Pendiente — detectado en [[Sesión 2026-11-06 - Integración inicial de Velopack en CapaUI]]
+**Evidencia de verificación:**
+- `dotnet build BimboProyecto.sln` → **0 errores, 0 advertencias**.
+- `dotnet list <proyecto> package --include-transitive --vulnerable` → **sin paquetes vulnerables** en `CapaDatos`, `BimboProyecto.Tests` y `CapaUI`.
+- `CapaDatos/obj/project.assets.json` resuelve `System.Security.Cryptography.Pkcs/10.0.14`.
+- `dotnet test` → **734/734** aprobadas, incluida `ReportStrategyTests.Pdf_GeneraDocumentoConFirmaValida`, que ejecuta PDFsharp en runtime y valida la cabecera `%PDF` (compatibilidad binaria 8.0.1 → 10.0.14).
+
+**Estado:** `[x]` Resuelto 2026-11-08 — ver [[Sesión 2026-11-08 - Resolución P-067 (Pkcs 10.0.14)]].
 
 ---
 
@@ -1554,7 +1560,7 @@ Dos advisories activos sobre la misma versión:
 | P-064 | Posible `Padding` duplicado en plantillas de `TextBox` con `PART_ContentHost Margin="{TemplateBinding Padding}"` | `[ ]` Pendiente — corregido solo en `ConfiguracionEmpresaView` | [[Sesión 2026-09-17 - Rediseño visual de Configuración de empresa]] |
 | P-065 | 19 tablas conceden `TRUNCATE` a `authenticated`; RLS no filtra `TRUNCATE` | `[x]` Resuelto 2026-09-20 — revocado en las 19 tablas con migración `revocar_truncate_19_tablas_p065` | [[Sesión 2026-09-20 - Preferencias por usuario (Fase 1 del escalado)]] |
 | P-066 | `ConstructionVM` y `ConstructionScreen` sin uso desde que `Mi Usuario` tiene pantalla real | `[ ]` Pendiente — borrar o declarar plantilla | [[Sesión 2026-09-20 - Preferencias por usuario (Fase 1 del escalado)]] |
-| P-067 | `System.Security.Cryptography.Pkcs` 8.0.1 transitivo con CVE alta y moderada (NU1903 / NU1902) | `[ ]` Pendiente — identificar padre y actualizar | [[Sesión 2026-11-06 - Integración inicial de Velopack en CapaUI]] |
+| P-067 | `System.Security.Cryptography.Pkcs` 8.0.1 transitivo con CVE alta y moderada (NU1903 / NU1902) | `[x]` Resuelto 2026-11-08 — pin 10.0.14 en `CapaDatos` | [[Sesión 2026-11-08 - Resolución P-067 (Pkcs 10.0.14)]] |
 
 ---
 

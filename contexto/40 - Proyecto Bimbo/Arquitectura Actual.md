@@ -10,6 +10,9 @@ aliases:
 
 # Arquitectura Actual — Bimbo
 
+> [!success] Actualizado 2026-11-08 — P-067 resuelto: `System.Security.Cryptography.Pkcs` 10.0.14
+> El transitivo vulnerable que arrastraban `PDFsharp` y `PDFsharp-MigraDoc` 6.2.4 (8.0.1, `NU1903` alta y `NU1902` moderada) quedó fijado en **10.0.14** con un `PackageReference` directo en `CapaDatos`, porque actualizar el padre no sirve: `PDFsharp` 6.5.0 —última estable— sigue declarando 8.0.1. Sin cambios de comportamiento: build 0/0, `dotnet list --vulnerable` limpio en `CapaDatos`, `BimboProyecto.Tests` y `CapaUI`, y 734/734 pruebas (incluida la generación real de PDF). Ver [[Sesión 2026-11-08 - Resolución P-067 (Pkcs 10.0.14)]].
+
 > [!success] Actualizado 2026-11-07 — Releases automáticos y MSI de Velopack
 > `main` integra runtime Velopack, el workflow `.github/workflows/publish-velopack-release.yml` (publicación al hacer push a `main`) y el empaquetado de Setup.exe/MSI mediante `scripts/publish-release.ps1`. Actions asigna `1.0.<run_number>` y usa `GITHUB_TOKEN`. Se generó localmente `Releases/BimboPesaje-win.msi` versión 1.0.2 con alcance `Either`; instalación y ejecución de Actions aún no verificadas en un equipo cliente. Ver [[Sesión 2026-11-07 - Merge y MSI de actualizaciones Velopack]].
 
