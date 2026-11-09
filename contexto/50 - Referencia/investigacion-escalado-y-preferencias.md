@@ -1,9 +1,10 @@
 ---
 title: "Escalado de la app y preferencias por usuario — investigación consolidada"
-type: plan
+type: investigacion
 status: vigente
 date: 2026-09-20
 updated: 2026-09-20
+autor: fernando
 summary: "Consolidación verificada de I-01, I-02 e I-01-R1: mecanismo de escalado con LayoutTransform aplicado en vivo, preferencias por usuario en Supabase con RLS y caché local, y el catálogo de remedios por área."
 summary_fijo: true
 scope:
