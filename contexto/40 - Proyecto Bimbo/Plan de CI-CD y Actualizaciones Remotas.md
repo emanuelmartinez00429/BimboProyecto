@@ -8,12 +8,14 @@ implementacion: parcial
 
 # Plan de CI-CD y Actualizaciones Remotas
 
-> [!info] Estado de implementación al 2026-11-07 — parcial; falta validación remota y en cliente
-> `main` integra runtime Velopack, el workflow `.github/workflows/publish-velopack-release.yml` que publica un Release ante cada push a `main`, y `scripts/publish-release.ps1` para generar Setup.exe y MSI. Actions asigna `1.0.<run_number>` y usa `GITHUB_TOKEN`. Se generó localmente `Releases/BimboPesaje-win.msi` versión 1.0.2 con alcance `Either`.
+> [!success] Estado de implementación al 2026-11-08 — ciclo remoto verificado en cliente
+> El ciclo completo funciona: push a `main` → run `42550903322` en verde (3m16s) → Release `v1.0.3` publicado con `full`/`delta`/`Setup.exe`/`.msi`/`Portable.zip`/`releases.win.json` → la instalación per-user detectó, descargó y aplicó la actualización sola, quedando `sq.version` en `1.0.3` y `CapaUI.exe` en `1.0.3+5239085`. Detalle en [[Sesión 2026-11-08 - Resolución P-067 (Pkcs 10.0.14)]].
 >
-> **Pendiente:** push remoto de los cambios finales del empaquetado, verificar una ejecución de Actions y su Release, prueba visual del banner, instalación del MSI en una máquina limpia y ciclo real de actualización. El MSI se generó sin firma; el publish reportó NU1900 al no poder consultar NuGet. P-067 se mantiene pendiente según decisión del usuario.
+> **Verificado:** publicación desde Actions, integridad de `releases.win.json`/`RELEASES`, y actualización real per-user (`%LOCALAPPDATA%`, HKCU, sin UAC).
 >
-> Decisiones tomadas en esa sesión: `packId = BimboPesaje`, `packTitle = "Bimbo Pesaje Honduras"`, `mainExe = CapaUI.exe`, canal único `win`, firma de código **diferida**.
+> **Pendiente:** instalación del MSI en una máquina limpia, prueba del alcance *per-machine* (requiere política de elevación de IT), firma de código (diferida) y salida HTTPS desde una estación de planta.
+>
+> Decisiones tomadas en la sesión del 11-07: `packId = BimboPesaje`, `packTitle = "Bimbo Pesaje Honduras"`, `mainExe = CapaUI.exe`, canal único `win`, firma de código **diferida**.
 >
 > Decisión vigente de distribución: repositorio público único para código y Releases, según [[ADR-027 - Codigo privado y distribucion publica de actualizaciones]]. El MSI permite seleccionar alcance (`Either`); validar la elección operativa en el piloto. Falta validar salida HTTPS desde una máquina de la planta.
 
