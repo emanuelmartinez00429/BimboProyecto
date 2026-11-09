@@ -572,8 +572,8 @@ public class DashboardUnitTests
             return Task.FromResult(ResultadoMermas);
         }
 
-        public Task<Result<IReadOnlyList<ProductoPruebaFila>>> ConsultarPrimerosProductosAsync(
-            int idUsuario, CancellationToken ct = default) =>
-            Task.FromResult(Result<IReadOnlyList<ProductoPruebaFila>>.Ok(Array.Empty<ProductoPruebaFila>()));
+        public Task<Result<IReadOnlyList<ProductoReporteFila>>> ConsultarProductosAsync(
+            ProductosReporteFiltro filtro, CancellationToken ct = default) =>
+            Task.FromResult(Result<IReadOnlyList<ProductoReporteFila>>.Ok(Array.Empty<ProductoReporteFila>()));
     }
 }

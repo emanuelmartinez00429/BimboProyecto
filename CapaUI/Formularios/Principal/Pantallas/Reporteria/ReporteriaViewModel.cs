@@ -15,7 +15,7 @@ using CapaAplicacion.Reportes;
 
 namespace CapaUI.Formularios.Principal.Pantallas.Reporteria;
 
-public enum ReporteOperativoTipo { EntradaMateriaPrima, PorProveedor, ProductosConMerma, PrimerosProductos }
+public enum ReporteOperativoTipo { EntradaMateriaPrima, PorProveedor, ProductosConMerma, Productos }
 
 public partial class ReporteriaViewModel : ObservableObject
 {
@@ -39,11 +39,11 @@ public partial class ReporteriaViewModel : ObservableObject
     public bool EsEntrada => TipoActual == ReporteOperativoTipo.EntradaMateriaPrima;
     public bool EsProveedor => TipoActual == ReporteOperativoTipo.PorProveedor;
     public bool EsMermas => TipoActual == ReporteOperativoTipo.ProductosConMerma;
-    public bool EsPrueba => TipoActual == ReporteOperativoTipo.PrimerosProductos;
+    public bool EsProductos => TipoActual == ReporteOperativoTipo.Productos;
     public bool RequiereProducto => EsEntrada;
     public bool RequiereProveedor => EsEntrada || EsProveedor;
     public bool RequiereFechas => EsEntrada || EsProveedor || EsMermas;
-    public bool PermiteCategoria => EsMermas;
+    public bool PermiteCategoria => EsMermas || EsProductos;
     public bool PuedeSeleccionarProducto => EsEntrada && ProveedorSeleccionado?.Id is not null && !IsBusy;
     public DateTime FechaMaxima => DateTime.Today;
     public bool PuedeExportar => _snapshot.Count > 0 && !IsBusy && SesionPermisos.Tiene(Permiso.GenerarReporte);
@@ -89,7 +89,7 @@ public partial class ReporteriaViewModel : ObservableObject
             ReporteOperativoTipo.EntradaMateriaPrima => "Reporte de entrada de materia prima",
             ReporteOperativoTipo.PorProveedor => "Reporte por proveedor",
             ReporteOperativoTipo.ProductosConMerma => "Reporte de productos con más merma",
-            _ => "Primeros 10 productos — Reporte de prueba",
+            _ => "Catálogo de productos",
         };
         LimpiarFiltrosInterno(); NotificarModo();
     }
@@ -154,8 +154,8 @@ public partial class ReporteriaViewModel : ObservableObject
                     await CargarProveedorAsync(sesion.IdUsuario); break;
                 case ReporteOperativoTipo.ProductosConMerma:
                     await CargarMermasAsync(sesion.IdUsuario); break;
-                case ReporteOperativoTipo.PrimerosProductos:
-                    await CargarPruebaAsync(sesion.IdUsuario); break;
+                case ReporteOperativoTipo.Productos:
+                    await CargarProductosAsync(sesion.IdUsuario); break;
             }
         }
         finally { IsBusy = false; OnPropertyChanged(nameof(PuedeExportar)); ExportarCommand.NotifyCanExecuteChanged(); }
@@ -224,12 +224,14 @@ public partial class ReporteriaViewModel : ObservableObject
         _totales=[new("Total de entradas",rows.Sum(x=>x.CantidadEntradas)),new("Peso teórico total (kg)",teorico,"N3"),new("Peso recibido total (kg)",recibido,"N3"),new("Diferencia total (kg)",diferencia,"N3"),new("Merma global (%)",teorico==0?null:diferencia/teorico*100m,"N2")]; FinalizarConsulta();
     }
 
-    private async Task CargarPruebaAsync(int usuario)
+    private async Task CargarProductosAsync(int usuario)
     {
-        var r=await _consultas.ConsultarPrimerosProductosAsync(usuario); if(!r.Success){Mensaje=r.Error;return;}var rows=r.Value!;
+        // Sin categoría seleccionada el RPC devuelve el catálogo activo completo.
+        var r=await _consultas.ConsultarProductosAsync(new(CategoriaSeleccionada?.Id,usuario)); if(!r.Success){Mensaje=r.Error;return;}var rows=r.Value!;
         _columnas=[new("ID"),new("Código"),new("Nombre"),new("Categoría"),new("Proveedor"),new("Estado")];
         _snapshot=rows.Select(x=>(IReadOnlyList<object?>)[x.IdProducto,x.Codigo,x.Nombre,x.Categoria,x.Proveedor,x.Estado]).ToList();
-        _ids=rows.Select(x=>x.IdProducto).ToList();_filtros=[new("Criterio","10 productos activos con menor ID")];_pie=[];_totales=[];FinalizarConsulta();
+        _ids=rows.Select(x=>x.IdProducto).ToList();
+        _filtros=[new("Categoría",CategoriaSeleccionada is null?"Todas las categorías":Etiqueta(CategoriaSeleccionada))];_pie=[];_totales=[];FinalizarConsulta();
     }
 
     public async Task ExportarAsync(ReportFormat formato, string ruta, CancellationToken ct=default)
@@ -313,7 +315,7 @@ public partial class ReporteriaViewModel : ObservableObject
         ReporteOperativoTipo.EntradaMateriaPrima => "Detalle - Entrada de Materia Prima",
         ReporteOperativoTipo.PorProveedor => "Entrada de productos por proveedor",
         ReporteOperativoTipo.ProductosConMerma => "Reporte de productos con más merma",
-        _ => "Primeros 10 productos — Reporte de prueba"
+        _ => "Catálogo de productos"
     };
 
     private string ClaveReporte() => TipoActual switch
@@ -321,7 +323,7 @@ public partial class ReporteriaViewModel : ObservableObject
         ReporteOperativoTipo.EntradaMateriaPrima => "entrada_materia_prima",
         ReporteOperativoTipo.PorProveedor => "por_proveedor",
         ReporteOperativoTipo.ProductosConMerma => "productos_con_mas_merma",
-        _ => "primeros_10_productos"
+        _ => "productos"
     };
 
     private string CrearParametrosRegistro()
@@ -342,12 +344,11 @@ public partial class ReporteriaViewModel : ObservableObject
             campos.Add(("Producto", Etiqueta(ProductoSeleccionado)));
             campos.Add(("Referencia de producto", ProductoSeleccionado?.Id));
         }
-        if (TipoActual == ReporteOperativoTipo.ProductosConMerma)
+        if (TipoActual is ReporteOperativoTipo.ProductosConMerma or ReporteOperativoTipo.Productos)
         {
             campos.Add(("Categoría", CategoriaSeleccionada is null ? "Todas" : Etiqueta(CategoriaSeleccionada)));
             campos.Add(("Referencia de categoría", CategoriaSeleccionada?.Id));
         }
-        if (!RequiereFechas) campos.Add(("Criterio", "10 productos activos con menor referencia"));
         return ParametrosReporteTexto.Crear(campos.ToArray());
     }
 
@@ -396,7 +397,7 @@ public partial class ReporteriaViewModel : ObservableObject
         OnPropertyChanged(nameof(EsEntrada));
         OnPropertyChanged(nameof(EsProveedor));
         OnPropertyChanged(nameof(EsMermas));
-        OnPropertyChanged(nameof(EsPrueba));
+        OnPropertyChanged(nameof(EsProductos));
         OnPropertyChanged(nameof(RequiereProducto));
         OnPropertyChanged(nameof(RequiereProveedor));
         OnPropertyChanged(nameof(RequiereFechas));

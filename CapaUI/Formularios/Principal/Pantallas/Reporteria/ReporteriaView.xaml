@@ -333,13 +333,13 @@
                                 <TextBlock Text="Diferencias entre peso teórico y recibido." FontSize="14" Foreground="#64748B" TextWrapping="Wrap"/>
                             </StackPanel>
                         </Button>
-                        <Button Grid.Row="2" Grid.Column="2" Style="{StaticResource ReportCard}" Command="{Binding SeleccionarReporteCommand}" CommandParameter="{x:Static local:ReporteOperativoTipo.PrimerosProductos}">
+                        <Button Grid.Row="2" Grid.Column="2" Style="{StaticResource ReportCard}" Command="{Binding SeleccionarReporteCommand}" CommandParameter="{x:Static local:ReporteOperativoTipo.Productos}">
                             <StackPanel>
                                 <Border Width="48" Height="48" CornerRadius="10" Background="{DynamicResource EmpresaPrimaryBrush}" HorizontalAlignment="Left">
                                     <TextBlock Text="&#xE8EF;" FontFamily="Segoe MDL2 Assets" FontSize="23" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 </Border>
-                                <TextBlock Text="Primeros 10 productos" FontSize="19" FontWeight="Bold" Foreground="#0F172A" Margin="0,16,0,5"/>
-                                <TextBlock Text="Reporte de prueba del catálogo activo." FontSize="14" Foreground="#64748B" TextWrapping="Wrap"/>
+                                <TextBlock Text="Catálogo de productos" FontSize="19" FontWeight="Bold" Foreground="#0F172A" Margin="0,16,0,5"/>
+                                <TextBlock Text="Todos los productos activos, filtrables por categoría." FontSize="14" Foreground="#64748B" TextWrapping="Wrap"/>
                             </StackPanel>
                         </Button>
                     </Grid>

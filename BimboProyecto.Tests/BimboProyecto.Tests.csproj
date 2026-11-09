@@ -49,5 +49,14 @@
              Link="Actualizacion\IActualizacionService.cs" />
     <Compile Include="..\CapaUI\Formularios\Principal\ActualizacionViewModel.cs"
              Link="Actualizacion\ActualizacionViewModel.cs" />
+    <!--
+      ReporteriaViewModel también se enlaza: su lógica de reportes (filtros, columnas,
+      paginación) no debe arrastrar tipos de WPF. Depende de la fachada de permisos y del
+      caché de logo, ambos C# plano.
+    -->
+    <Compile Include="..\CapaUI\Formularios\Principal\Pantallas\Reporteria\ReporteriaViewModel.cs"
+             Link="Reportes\ReporteriaViewModel.cs" />
+    <Compile Include="..\CapaUI\Core\Permisos\SesionPermisos.cs" Link="Core\Permisos\SesionPermisos.cs" />
+    <Compile Include="..\CapaUI\Core\Empresa\LogoEmpresaCache.cs" Link="Core\Empresa\LogoEmpresaCache.cs" />
   </ItemGroup>
 </Project>

@@ -8,6 +8,7 @@ public sealed record EntradaMateriaPrimaFiltro(
     int IdUsuario);
 public sealed record ProveedorReporteFiltro(int IdProveedor, DateTime FechaDesde, DateTime FechaHasta, int IdUsuario);
 public sealed record MermasReporteFiltro(DateTime FechaDesde, DateTime FechaHasta, int? IdCategoria, int IdUsuario);
+public sealed record ProductosReporteFiltro(int? IdCategoria, int IdUsuario);
 
 public sealed class EntradaMateriaPrimaFila
 {
@@ -47,7 +48,7 @@ public sealed class MermaReporteFila
     public decimal? MermaPorcentaje { get; init; }
 }
 
-public sealed class ProductoPruebaFila
+public sealed class ProductoReporteFila
 {
     public int IdProducto { get; init; }
     public string Codigo { get; init; } = string.Empty;

@@ -58,13 +58,15 @@ public sealed class ReporteConsultaRepository : RepositorioBase, IReporteConsult
             DiferenciaKg = Decimal(x, "diferencia_kg"), MermaPorcentaje = DecimalNulo(x, "merma_porcentaje"),
         }, "Consultar reporte de mermas", ct);
 
-    public Task<Result<IReadOnlyList<ProductoPruebaFila>>> ConsultarPrimerosProductosAsync(int idUsuario, CancellationToken ct = default) =>
-        ConsultarAsync("consultar_reporte_primeros_productos", new() { ["p_usuario_consultando"] = idUsuario },
-            x => new ProductoPruebaFila
-            {
-                IdProducto = Int(x, "id_producto"), Codigo = Texto(x, "codigo"), Nombre = Texto(x, "nombre"),
-                Categoria = Texto(x, "categoria"), Proveedor = Texto(x, "proveedor"), Estado = Texto(x, "estado"),
-            }, "Consultar primeros productos", ct);
+    public Task<Result<IReadOnlyList<ProductoReporteFila>>> ConsultarProductosAsync(ProductosReporteFiltro f, CancellationToken ct = default) =>
+        ConsultarAsync("consultar_reporte_productos", new()
+        {
+            ["p_id_categoria"] = f.IdCategoria, ["p_usuario_consultando"] = f.IdUsuario,
+        }, x => new ProductoReporteFila
+        {
+            IdProducto = Int(x, "id_producto"), Codigo = Texto(x, "codigo"), Nombre = Texto(x, "nombre"),
+            Categoria = Texto(x, "categoria"), Proveedor = Texto(x, "proveedor"), Estado = Texto(x, "estado"),
+        }, "Consultar catalogo de productos", ct);
 
     private Task<Result<IReadOnlyList<T>>> ConsultarAsync<T>(string funcion, Dictionary<string, object?> parametros,
         Func<JObject, T> map, string contexto, CancellationToken ct) => TryAsync(async () =>
