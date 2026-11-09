@@ -13,7 +13,9 @@ implementacion: parcial
 >
 > **Verificado:** publicación desde Actions, integridad de `releases.win.json`/`RELEASES`, y actualización real per-user (`%LOCALAPPDATA%`, HKCU, sin UAC).
 >
-> **Pendiente:** instalación del MSI en una máquina limpia, prueba del alcance *per-machine* (requiere política de elevación de IT), firma de código (diferida) y salida HTTPS desde una estación de planta.
+> **Separación CI/publicación (2026-11-08):** el disparador de release quedó con lista blanca de solo código (`BimboProyecto.sln`, `CapaUI`, `CapaDatos`, `CapaDominio`, `CapaAplicacion4`, `scripts/publish-release.ps1`) más `workflow_dispatch`. Documentación y configuración de agentes ya no publican. La validación vive en `ci.yml` (restore + build Release + tests), que sí corre con cambios de `.github/workflows/**`.
+>
+> **Pendiente:** instalación del MSI en una máquina limpia, prueba del alcance *per-machine* (requiere política de elevación de IT), firma de código (diferida), salida HTTPS desde una estación de planta y **canal de pruebas independiente** (p. ej. canal `beta`) para validar el ciclo completo sin emitir una versión estable.
 >
 > Decisiones tomadas en la sesión del 11-07: `packId = BimboPesaje`, `packTitle = "Bimbo Pesaje Honduras"`, `mainExe = CapaUI.exe`, canal único `win`, firma de código **diferida**.
 >

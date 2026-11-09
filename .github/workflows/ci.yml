@@ -1,0 +1,56 @@
+name: CI
+
+# Validación: compila y ejecuta pruebas. NO publica releases.
+# Separado a propósito de publish-velopack-release.yml para que un cambio en
+# documentación o en los propios workflows pueda verificarse sin emitir una versión
+# descendable para los clientes.
+on:
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - "BimboProyecto.sln"
+      - "CapaUI/**"
+      - "CapaDatos/**"
+      - "CapaDominio/**"
+      - "CapaAplicacion4/**"
+      - "BimboProyecto.Tests/**"
+      - ".github/workflows/**"
+  pull_request:
+    branches:
+      - main
+      - master
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-test:
+    name: Compilar y probar
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - name: Obtener código
+        uses: actions/checkout@v4
+
+      - name: Configurar .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restaurar
+        run: dotnet restore BimboProyecto.sln
+
+      - name: Compilar (Release)
+        run: dotnet build BimboProyecto.sln -c Release --no-restore
+
+      # Las pruebas de integración que dependen de Supabase se omiten si no existe
+      # BIMBO_POSTGRES_CONNECTION_STRING. Un verde aquí no certifica integración
+      # ejercitada: solo cubre las pruebas que se ejecutan de verdad.
+      - name: Probar
+        run: dotnet test BimboProyecto.Tests\BimboProyecto.Tests.csproj -c Release --no-build --logger "console;verbosity=normal"

@@ -74,6 +74,23 @@ Observación sobre P-067: la DLL `System.Security.Cryptography.Pkcs.dll` de la 1
 
 Existen dos artefactos distintos con el número `1.0.2`: el empaquetado localmente el 11-07 (74,091,909 B, SHA-256 `A47A304F…CC2A8C`, commit `33d9bbf`) y el publicado por Actions (74,124,427 B, SHA-256 `2598CC78…7D71C6`, commit `41bd2e0`). El updater compara números, no bytes, así que no rompió la prueba; pero para el piloto se recomienda tratar `Releases/` local como taller y el asset publicado como fuente de verdad, sin reutilizar un número de versión ya publicado.
 
+## Separación entre validación y publicación
+
+Con la release `v1.0.3` publicada, quedó visible un problema de disparo: `on: push` a `main` sin filtros significa que **cualquier commit** —incluida una nota de bitácora o un ajuste de skill de un agente— publica una versión descendable de ~74 MB.
+
+Decisión aplicada:
+
+| Archivo | Disparo |
+|---|---|
+| `publish-velopack-release.yml` | Lista blanca de solo código: `BimboProyecto.sln`, `CapaUI/**`, `CapaDatos/**`, `CapaDominio/**`, `CapaAplicacion4/**`, `scripts/publish-release.ps1`; más `workflow_dispatch` |
+| `ci.yml` (nuevo) | Push a `main`/`master` y PRs sobre esos mismos proyectos, `BimboProyecto.Tests/**` y `.github/workflows/**` |
+
+Así, un cambio en el propio YAML ejecuta validación (restore + build Release + 734 pruebas) sin emitir release, y la publicación solo ocurre ante cambios reales del binario o un disparo manual.
+
+Verificación local de los comandos exactos del CI antes de pushear: `dotnet restore` → `dotnet build -c Release --no-restore` (0 errores, 0 advertencias) → `dotnet test -c Release --no-build` (734/734).
+
+Limitación conocida: `workflow_dispatch` solo aparece en la UI cuando el archivo existe en la rama por defecto (`master`, hoy desactualizada respecto de `main`). Y el job de CI no certifica integración: las pruebas que dependen de Supabase se omiten sin `BIMBO_POSTGRES_CONNECTION_STRING`.
+
 ## Relaciones
 
 - [[Deuda Técnica - Pendientes]]

@@ -1,9 +1,24 @@
 name: Publicar actualización Velopack
 
 on:
+  # Publicación: solo cambios que alteran el binario distribuido (o el script que lo
+  # empaqueta) o un disparo manual explícito. La documentación (contexto/), la
+  # configuración de agentes (.claude/, .agents/, .codex/, .cursor/) y el propio YAML
+  # de CI no publican release: no cambian el ejecutable y generarían una versión
+  # descendable de ~74 MB por cada commit. Esos cambios los valida ci.yml.
   push:
     branches:
       - main
+    paths:
+      - "BimboProyecto.sln"
+      - "CapaUI/**"
+      - "CapaDatos/**"
+      - "CapaDominio/**"
+      - "CapaAplicacion4/**"
+      - "scripts/publish-release.ps1"
+  # Acción explícita de release. Requiere que este archivo exista también en la rama
+  # por defecto del repositorio (master) para aparecer en la UI de Actions.
+  workflow_dispatch:
 
 permissions:
   contents: write
