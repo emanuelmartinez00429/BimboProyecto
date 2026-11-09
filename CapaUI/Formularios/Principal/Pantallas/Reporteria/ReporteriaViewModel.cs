@@ -228,8 +228,8 @@ public partial class ReporteriaViewModel : ObservableObject
     {
         // Sin categoría seleccionada el RPC devuelve el catálogo activo completo.
         var r=await _consultas.ConsultarProductosAsync(new(CategoriaSeleccionada?.Id,usuario)); if(!r.Success){Mensaje=r.Error;return;}var rows=r.Value!;
-        _columnas=[new("ID"),new("Código"),new("Nombre"),new("Categoría"),new("Proveedor"),new("Estado")];
-        _snapshot=rows.Select(x=>(IReadOnlyList<object?>)[x.IdProducto,x.Codigo,x.Nombre,x.Categoria,x.Proveedor,x.Estado]).ToList();
+        _columnas=[new("Código"),new("Nombre"),new("Categoría"),new("Proveedor"),new("Estado")];
+        _snapshot=rows.Select(x=>(IReadOnlyList<object?>)[x.Codigo,x.Nombre,x.Categoria,x.Proveedor,x.Estado]).ToList();
         _ids=rows.Select(x=>x.IdProducto).ToList();
         _filtros=[new("Categoría",CategoriaSeleccionada is null?"Todas las categorías":Etiqueta(CategoriaSeleccionada))];_pie=[];_totales=[];FinalizarConsulta();
     }
