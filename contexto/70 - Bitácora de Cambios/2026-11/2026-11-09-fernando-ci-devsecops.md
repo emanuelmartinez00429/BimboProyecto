@@ -55,9 +55,10 @@ El repositorio carecía de un pipeline unificado de DevSecOps conforme a las pr�
    - Ejecución automatizada en Node 20 (`ubuntu-latest`) de `node scripts/contexto/verificar.js` y `node --test scripts/contexto/`.
 
 3. **Publicación y SBOM (`.github/workflows/publish-velopack-release.yml` y `scripts/publish-release.ps1`):**
-   - Disparo condicionado exclusivamente a `workflow_run` exitoso en `main` o `workflow_dispatch`.
+   - Disparo condicionado exclusivamente a `workflow_run` de `ci` con `conclusion == 'success'`, sobre `head_branch == 'main'` y con `event == 'push'`, o `workflow_dispatch`. Esto garantiza que una corrida de CI originada por un PR nunca dispare una publicación accidental.
+   - En el paso de checkout, se fija explícitamente `ref: ${{ github.event.workflow_run.head_sha }}` para compilar y empaquetar el commit exacto probado por el CI en lugar de la rama por defecto del repositorio (`master`).
    - Entorno `produccion` con aprobadores requeridos.
-   - Generación de SBOM estándar CycloneDX en formato JSON (`dotnet CycloneDX CapaUI/CapaUI.csproj -o Releases -fn sbom.json -F Json`).
+   - Generación de SBOM estándar CycloneDX fijando la versión de la herramienta en `6.3.1` (`dotnet tool install --global CycloneDX --version 6.3.1`).
    - `scripts/publish-release.ps1`: incorporación de carga automatizada del SBOM (`gh release upload "v$Version" $sbomPath --clobber`) al crear el release en GitHub.
 
 4. **Reglas de secretos (`.gitleaks.toml`):**

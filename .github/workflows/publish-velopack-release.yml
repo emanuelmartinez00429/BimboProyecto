@@ -23,7 +23,11 @@ concurrency:
 jobs:
   publish:
     name: Publicar Release
-    if: github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success')
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.head_branch == 'main' &&
+       github.event.workflow_run.event == 'push')
     runs-on: windows-latest
     environment: produccion
     permissions:
@@ -32,6 +36,7 @@ jobs:
       - name: Obtener código
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          ref: ${{ github.event.workflow_run.head_sha }}
           persist-credentials: false
 
       - name: Configurar .NET 10
@@ -46,7 +51,7 @@ jobs:
       - name: Generar SBOM CycloneDX
         shell: pwsh
         run: |
-          dotnet tool install --global CycloneDX
+          dotnet tool install --global CycloneDX --version 6.3.1
           New-Item -ItemType Directory -Force -Path Releases
           dotnet CycloneDX CapaUI/CapaUI.csproj -o Releases -fn sbom.json -F Json
 
