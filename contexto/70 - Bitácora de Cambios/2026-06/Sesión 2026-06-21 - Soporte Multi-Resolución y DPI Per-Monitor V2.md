@@ -1,13 +1,14 @@
 ---
 title: "Sesión 2026-06-21 — Soporte Multi-Resolución y DPI Per-Monitor V2"
-tags:
-  - sesion
-  - wpf
-  - dpi
-  - escalado
-  - rendering
+type: sesion
+status: vigente
 date: 2026-06-21
-branch: feat/fase6-IntegracionWpf/MenuPrincipal
+updated: 2026-06-21
+autor: por-confirmar
+agente: humano
+rama: feat/fase6-IntegracionWpf/MenuPrincipal
+tags: [sesion, wpf, dpi, escalado, rendering]
+summary: "Soporte Multi-Resolución y DPI Per-Monitor V2"
 ---
 
 # Sesión 2026-06-21 — Soporte Multi-Resolución y DPI Per-Monitor V2

@@ -1,16 +1,14 @@
-﻿---
+---
 title: "Sesión 2026-09-02 — Columnas Creado y Actualizado en tablas de catálogo"
-tags:
-  - sesion
-  - ui
-  - ux
-  - wpf
-  - datagrid
-  - catalogos
-  - auditoria
+type: sesion
+status: vigente
 date: 2026-09-02
-branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Antigravity (sesión gestionada por Fernando)
+updated: 2026-09-02
+autor: fernando
+agente: antigravity
+rama: feat/fase8-MaquetadodeRoles
+tags: [sesion, ui, ux, wpf, datagrid, catalogos, auditoria]
+summary: "Se incorporaron de manera estándar las columnas de auditoría **CREADO** y **ACTUALIZADO** en las tablas de los 5 submódulos de catálogo (**Productos**, **Proveedores**, **Fabricantes**, **Categorías** y **Presentaciones**), ubicadas inmediatamente antes de la columna **ESTADO**, con encabezados acordes a la jerarquía de cada tabla, celdas de fecha alineadas a la derecha (`CeldaDerecha`) en formato `dd/MM/yyyy HH:mm` y dimensionamiento dinámico (`Width=\\"Auto\\"` con `MinWidth=\\"130\\"`). Asimismo, se institucionalizó la **Regla 8** de traducción idiomática conceptual a WPF."
 ---
 
 # Sesión 2026-09-02 — Columnas Creado y Actualizado en tablas de catálogo
@@ -35,7 +33,7 @@ autor_cambios: Antigravity (sesión gestionada por Fernando)
 
 ### 1. Capa de Presentación (`CapaUI`)
 
-- **Estilos globales ([`Styles.xaml`](file:///d:/Proyectos/Proyecto%20de%20BIMBO/BimboProyecto/CapaUI/Resources/Styles.xaml)):**
+- **Estilos globales ([`Styles.xaml`](../../../CapaUI/Resources/Styles.xaml)):**
   - Creados los estilos reutilizables `HeaderDerecho` y `CeldaDerecha` (`DataGridCell` con `HorizontalAlignment="Right"`).
 - **Vistas XAML:**
   - Se añadieron las columnas `CREADO` y `ACTUALIZADO` justo antes de `ESTADO` con `Width="Auto"`, `MinWidth="130"`, `CellStyle="{StaticResource CeldaDerecha}"`, `StringFormat={}{0:dd/MM/yyyy HH:mm}` y fallback `TargetNullValue='—'` en:

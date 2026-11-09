@@ -1,14 +1,13 @@
 ---
 title: "Sesión 2026-05-29 — Fix Fuga de Timers Realtime (Keep-Open + Reset Total)"
+type: sesion
+status: vigente
 date: 2026-05-29
-tags:
-  - bitácora
-  - realtime
-  - memory-leak
-  - timers
-  - supabase
-  - arquitectura
-status: Completado
+updated: 2026-05-29
+autor: por-confirmar
+agente: humano
+tags: [bitácora, realtime, memory-leak, timers, supabase, arquitectura]
+summary: "Cita literal del usuario:"
 ---
 
 # Sesión 2026-05-29 — Fix Fuga de Timers Realtime (Keep-Open + Reset Total)

@@ -1,16 +1,13 @@
 ---
 title: "Sesión 2026-09-10 — Auditoría y refactorización técnica del módulo de Proveedores"
+type: sesion
+status: vigente
 date: 2026-09-10
-tags:
-  - bitacora
-  - sesion
-  - wpf
-  - mvvm
-  - refactor
-  - qa
-  - proveedores
-aliases:
-  - Auditoría Módulo Proveedores
+updated: 2026-09-10
+autor: por-confirmar
+agente: humano
+tags: [bitacora, sesion, wpf, mvvm, refactor, qa, proveedores]
+summary: "Auditoría y refactorización técnica del módulo de Proveedores"
 ---
 
 # Sesión 2026-09-10 — Auditoría y refactorización técnica del módulo de Proveedores

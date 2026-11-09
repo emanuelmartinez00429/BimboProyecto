@@ -1,13 +1,13 @@
 ---
 title: "Sesión 2026-09-11 — Fix: observaciones pisadas al editar la placa de un camión con varias recepciones"
+type: sesion
+status: vigente
 date: 2026-09-11
-tags:
-  - bitacora
-  - sesion
-  - fix
-  - pesajes
-aliases:
-  - Fix observaciones ActualizarPlacaCamionAsync
+updated: 2026-09-11
+autor: por-confirmar
+agente: humano
+tags: [bitacora, sesion, fix, pesajes]
+summary: "Fix: observaciones pisadas al editar la placa de un camión con varias recepciones"
 ---
 
 # Sesión 2026-09-11 — Fix: observaciones pisadas al editar la placa de un camión con varias recepciones

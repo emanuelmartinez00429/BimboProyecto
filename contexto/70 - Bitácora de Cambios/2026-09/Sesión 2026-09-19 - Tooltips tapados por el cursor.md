@@ -1,13 +1,14 @@
 ---
 title: "Sesión 2026-09-19 — Tooltips tapados por el cursor"
-tags:
-  - sesion
-  - wpf
-  - ui
-  - tooltip
+type: sesion
+status: vigente
 date: 2026-09-19
-branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Claude (agente) con Fernando
+updated: 2026-09-19
+autor: fernando
+agente: claude-code
+rama: feat/fase8-MaquetadodeRoles
+tags: [sesion, wpf, ui, tooltip]
+summary: "En toda la app, el puntero del mouse (la mano de los botones) ya no tapa el tooltip: sale pegado bajo la punta del cursor. Se resolvió con un desfase vertical global, verificado con hover real y aprobado visualmente por Fernando."
 ---
 
 # Sesión 2026-09-19 — Tooltips tapados por el cursor

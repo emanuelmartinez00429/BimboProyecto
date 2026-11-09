@@ -1,13 +1,14 @@
 ---
 title: "Sesión 2026-08-19 — Selector de proveedor por tabla y consolidación de estilos"
-tags:
-  - sesion
-  - pesaje
-  - modales
-  - estilos
+type: sesion
+status: vigente
 date: 2026-08-19
-branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Claude Fernando (agente)
+updated: 2026-08-19
+autor: fernando
+agente: claude-code
+rama: feat/fase8-MaquetadodeRoles
+tags: [sesion, pesaje, modales, estilos]
+summary: "Sesión larga, un solo hilo: el campo Proveedor del paso 1 pasó de `ComboBox` precargado a `SelectorCatalogoModal`. Eso destapó dos bugs de layout, una duplicación de estilos (auditoría completa de `PesajeModalStyles.xaml`), y terminó en un rediseño completo del paso 2 — modal cuadrado, tabla de productos como `DataGrid`, y reemplazo total de `SelectorProductosModal` por el mismo selector genérico, ahora con multiselección y filtro por proveedor. La multiselección salió rota en el primer intento (agregaba 1 de N marcados) — la causa y el fix están documentados en la sección 8, son el bug más importante de la sesión."
 ---
 
 # Sesión 2026-08-19 — Selector de proveedor por tabla y consolidación de estilos

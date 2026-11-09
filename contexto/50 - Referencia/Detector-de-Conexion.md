@@ -1,8 +1,8 @@
 ---
-titulo: Detector / Monitor de Conexión
-proyecto: Bimbo Honduras — Portal interno
-estado: implementado
-fecha: 2026-05-30
+title: "Detector / Monitor de Conexión"
+type: referencia
+status: vigente
+date: 2026-05-30
 tags: [arquitectura, conexion, realtime, wpf, supabase, mvvm]
 ---
 

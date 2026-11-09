@@ -1,13 +1,13 @@
 ---
 title: "Sesión 2026-05-22 — Refactor Login + QA Fix Perfil"
-tags:
-  - bitacora
-  - wpf
-  - clean-architecture
-  - autenticacion
-  - refactor
-  - performance
+type: sesion
+status: vigente
 date: 2026-05-22
+updated: 2026-05-22
+autor: por-confirmar
+agente: humano
+tags: [bitacora, wpf, clean-architecture, autenticacion, refactor, performance]
+summary: "Dos bloques de trabajo en esta sesión:"
 ---
 
 # Sesión 2026-05-22 — Refactor Login + QA Fix Perfil

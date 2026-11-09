@@ -1,14 +1,15 @@
 ---
 title: "Sesión 2026-08-14 — Catálogo real de unidad_medida con categoría (tipo_unidad), conectado a contenido y tara"
-tags:
-  - sesion
-  - productos
-  - tara
-  - esquema
-  - supabase
+type: sesion
+status: vigente
 date: 2026-08-14
-branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Claude Sonnet 5 (Claude Code)
+updated: 2026-08-14
+autor: por-confirmar
+agente: humano
+modelo: sonnet-5
+rama: feat/fase8-MaquetadodeRoles
+tags: [sesion, productos, tara, esquema, supabase]
+summary: "`unidad_medida` pasó de ser una tabla sembrada pero sin usar a un catálogo real con categoría (`tipo_unidad`: Masa/Volumen/Conteo) y estado. El combo \\"Unidad\\" del modal de Productos ya no es una lista fija en el XAML — consume la tabla real. `tara` tiene ahora una unidad explícita en vez de una convención de nombre de columna. Migración aplicada contra Supabase (`Bimbo_Pesaje`, project_id `bzmmrifjgzlvsphctais`). Build: `CapaDatos`/`CapaAplicacion` 0 errores 0 advertencias; `CapaUI` 0 errores `CS*` (falló solo la copia de DLL por tener `CapaUI.exe` abierto)."
 ---
 
 # Sesión 2026-08-14 — Catálogo real de unidad_medida con categoría, conectado a contenido y tara

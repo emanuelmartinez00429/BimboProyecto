@@ -1,13 +1,14 @@
 ---
 title: "Sesión 2026-08-30 — Documentación del plan offline-first de Pesaje"
-tags:
-  - sesion
-  - documentacion
-  - plan
-  - offline-first
+type: sesion
+status: vigente
 date: 2026-08-30
-branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Codex (sesión gestionada por Emanuel)
+updated: 2026-08-30
+autor: emanuel
+agente: codex
+rama: feat/fase8-MaquetadodeRoles
+tags: [sesion, documentacion, plan, offline-first]
+summary: "Se incorporó a la vault el plan arquitectónico revisado de funcionamiento offline-first, con estado `propuesto`, métricas de avance, decisiones pendientes, ADR y enlaces de navegación. No se implementó ninguna parte funcional."
 ---
 
 # Sesión 2026-08-30 — Documentación del plan offline-first de Pesaje

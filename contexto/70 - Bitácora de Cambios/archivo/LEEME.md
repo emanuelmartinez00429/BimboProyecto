@@ -1,6 +1,14 @@
 ---
-title: Bitácora Archivada
+title: "Bitácora Archivada"
+type: sesion
+status: vigente
+date: 2026-05-01
+updated: 2026-05-01
+autor: por-confirmar
+agente: humano
+commits: [f105047]
 tags: [bitácora, archivo, referencia]
+summary: "Bitácora Archivada"
 ---
 
 # 📦 Bitácora Archivada

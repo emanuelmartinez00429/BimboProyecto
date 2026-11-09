@@ -1,12 +1,13 @@
 ---
 title: "Sesión 2026-05-28 — Refactor Críticos P-001, P-002, P-003"
-tags:
-  - sesion
-  - refactor
-  - deuda-tecnica
-  - productos
-  - repositorio
+type: sesion
+status: vigente
 date: 2026-05-28
+updated: 2026-05-28
+autor: por-confirmar
+agente: humano
+tags: [sesion, refactor, deuda-tecnica, productos, repositorio]
+summary: "Los 3 problemas críticos identificados en la auditoría pre-replicación están resueltos."
 ---
 
 # Sesión 2026-05-28 — Refactor Críticos P-001, P-002, P-003

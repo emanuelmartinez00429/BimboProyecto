@@ -1,14 +1,14 @@
 ---
 title: "Sesión 2026-09-17 — Reversión de regresión en maximizado de MainWindow"
-tags:
-  - sesion
-  - wpf
-  - windowchrome
-  - win32
-  - regression-fix
+type: sesion
+status: vigente
 date: 2026-09-17
-branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Antigravity (agente) — Sesión Fernando
+updated: 2026-09-17
+autor: fernando
+agente: antigravity
+rama: feat/fase8-MaquetadodeRoles
+tags: [sesion, wpf, windowchrome, win32, regression-fix]
+summary: "Se corrigió la regresión visual ocurrida en `MainWindow` al maximizar: se eliminó la resta de bordes del sistema (`SM_CXSIZEFRAME` / `SM_CXPADDEDBORDER`) en `WM_GETMINMAXINFO` que dejaba una separación de 8px hacia el escritorio y activaba la barra de título clásica de Win32, y se restauró el `DataTrigger` con `Margin=\\"6\\"` sobre `RootBorder` al maximizar para evitar el recorte visual de elementos por overscan de DWM."
 ---
 
 # Sesión 2026-09-17 — Reversión de regresión en maximizado de MainWindow

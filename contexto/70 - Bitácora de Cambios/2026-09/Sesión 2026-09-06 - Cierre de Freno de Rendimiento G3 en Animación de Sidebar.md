@@ -1,3 +1,16 @@
+---
+title: "Sesión 2026-09-06 — Cierre de Freno de Rendimiento G3 en Animación de Sidebar (P-031)"
+type: sesion
+status: vigente
+date: 2026-09-06
+updated: 2026-09-06
+autor: por-confirmar
+agente: humano
+commits: [a05f006, 404796c]
+tags: [sesion]
+summary: "El hallazgo G3 de **P-031** señalaba el uso de `CacheMode=\\"BitmapCache\\"` sobre `Sidebar` y `BrandBlock` en `MainWindow.xaml` (líneas 127 y 528)."
+---
+
 # Sesión 2026-09-06 — Cierre de Freno de Rendimiento G3 en Animación de Sidebar (P-031)
 
 ## Contexto y Causa Raíz

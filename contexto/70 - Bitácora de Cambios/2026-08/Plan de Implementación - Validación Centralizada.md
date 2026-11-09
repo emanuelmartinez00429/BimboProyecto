@@ -1,15 +1,14 @@
 ---
 title: "Plan de Implementación — Validación Centralizada"
-tags:
-  - plan
-  - validacion
-  - wpf
-  - modales
-  - arquitectura
+type: sesion
+status: vigente
 date: 2026-08-15
-branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Fernando
-estado: ejecutado-con-desvios
+updated: 2026-08-15
+autor: fernando
+agente: humano
+rama: feat/fase8-MaquetadodeRoles
+tags: [plan, validacion, wpf, modales, arquitectura]
+summary: "1. **El `DialogoConfirmacion` de la tanda anterior no funciona visualmente.** Se dibuja como ventana propia encima del modal y tapa el formulario a me"
 ---
 
 # Plan de Implementación — Validación Centralizada

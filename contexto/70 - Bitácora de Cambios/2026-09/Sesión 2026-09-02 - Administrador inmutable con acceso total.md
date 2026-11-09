@@ -1,9 +1,14 @@
 ---
 title: "Sesión 2026-09-02 - Administrador inmutable con acceso total"
-tags: [sesion, bimbo, roles, rbac, supabase]
+type: sesion
+status: vigente
 date: 2026-09-02
-branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Codex (sesión gestionada por Emanuel)
+updated: 2026-09-02
+autor: emanuel
+agente: codex
+rama: feat/fase8-MaquetadodeRoles
+tags: [sesion, bimbo, roles, rbac, supabase]
+summary: "El rol Administrador quedó protegido contra cualquier edición y conserva todas las acciones actuales y futuras en UI y Supabase."
 ---
 
 # Sesión 2026-09-02 - Administrador inmutable con acceso total

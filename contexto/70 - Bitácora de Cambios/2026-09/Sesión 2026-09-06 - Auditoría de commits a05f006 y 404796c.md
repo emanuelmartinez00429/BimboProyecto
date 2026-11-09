@@ -1,13 +1,15 @@
 ---
 title: "Sesión 2026-09-06 — Auditoría de commits a05f006 y 404796c"
-tags:
-  - sesion
-  - auditoria
-  - deuda-tecnica
+type: sesion
+status: vigente
 date: 2026-09-06
-branch: feat/fase8-MaquetadodeRoles
-autor_cambios: otra sesión (Gemini, commits 404796c y a05f006), auditada y con dos hallazgos corregidos en esta
-revisor: Claude Fernando (agente)
+updated: 2026-09-06
+autor: por-confirmar
+agente: humano
+rama: feat/fase8-MaquetadodeRoles
+commits: [a05f006, 404796c]
+tags: [sesion, auditoria, deuda-tecnica]
+summary: "Otra sesión cerró P-044 (commit `404796c`) y P-034/P-037/P-039/P-042/P-047 (commit `a05f006`). Verificado cada uno contra código real, BD viva y build/tests. **La mayor parte se sostiene** — en particular P-037 (nuevo `PaginadorControl` compartido, con clamp real vía `CoerceValueCallback`) y P-039 (migración de tildes aplicada y verificada en las 8 tablas) son trabajo sólido. Dos hallazgos reales, ambos corregidos en esta sesión, y una marca de \\"resuelto\\" que no correspondía."
 ---
 
 # Sesión 2026-09-06 — Auditoría de commits a05f006 y 404796c

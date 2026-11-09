@@ -1,15 +1,13 @@
 ---
 title: "Sesión 2026-05-25 — Optimización de Carga y Paginación de Productos"
-tags:
-  - sesion
-  - optimizacion
-  - rendimiento
-  - paginacion
-  - productos
-  - supabase
-  - spinner
-  - timeout
+type: sesion
+status: vigente
 date: 2026-05-25
+updated: 2026-05-25
+autor: por-confirmar
+agente: humano
+tags: [sesion, optimizacion, rendimiento, paginacion, productos, supabase, spinner, timeout]
+summary: "Carga inicial reducida de ~1.5–2.0s a ~0.5–0.7s. Paginación de ~0.8–1.2s a ~0.3–0.4s. Clicks múltiples eliminados. Spinner visual. Timeout de 10s. **0 errores de compilación.**"
 ---
 
 # Sesión 2026-05-25 — Optimización de Carga y Paginación de Productos

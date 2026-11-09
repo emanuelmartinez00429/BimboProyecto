@@ -1,17 +1,13 @@
 ---
 title: "Sesión 2026-09-11 — Rediseño e integración del icono de Pesajes"
+type: sesion
+status: vigente
 date: 2026-09-11
-tags:
-  - bitacora
-  - sesion
-  - wpf
-  - ui
-  - vector
-  - xaml
-  - pesajes
-aliases:
-  - Rediseño icono pesajes
-  - Balanza vectorial unificada
+updated: 2026-09-11
+autor: por-confirmar
+agente: humano
+tags: [bitacora, sesion, wpf, ui, vector, xaml, pesajes]
+summary: "Rediseño e integración del icono de Pesajes"
 ---
 
 # Sesión 2026-09-11 — Rediseño e integración del icono de Pesajes

@@ -1,13 +1,14 @@
 ---
 title: "Sesión 2026-09-03 — Implementación de ADR-026 y socket Realtime autenticado"
-tags:
-  - sesion
-  - cache
-  - realtime
-  - fusioncache
+type: sesion
+status: vigente
 date: 2026-09-03
-branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Fernando (agente)
+updated: 2026-09-03
+autor: fernando
+agente: humano
+rama: feat/fase8-MaquetadodeRoles
+tags: [sesion, cache, realtime, fusioncache]
+summary: "Implementado [[ADR-026 - Cache en memoria con FusionCache e invalidacion por Realtime]] completo (fases 0 a 4) y corregido un bug de producción por el que el socket de Realtime corría autenticado como `anon`. Una revisión posterior encontró y cerró una colisión de claves de caché introducida en la misma sesión (P-050). Build en 0 errores / 0 advertencias y 235/235 pruebas."
 ---
 
 # Sesión 2026-09-03 — Implementación de ADR-026 y socket Realtime autenticado

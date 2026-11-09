@@ -1,11 +1,13 @@
 ---
 title: "Sesión 2026-05-24 — Fix Realtime: ExtraerCambio accedía al nivel equivocado"
-tags:
-  - sesion
-  - bugfix
-  - realtime
-  - supabase
+type: sesion
+status: vigente
 date: 2026-05-24
+updated: 2026-05-24
+autor: por-confirmar
+agente: humano
+tags: [sesion, bugfix, realtime, supabase]
+summary: "Fix Realtime: ExtraerCambio accedía al nivel equivocado"
 ---
 
 # Fix Realtime — ExtraerCambio accedía al nivel equivocado del payload

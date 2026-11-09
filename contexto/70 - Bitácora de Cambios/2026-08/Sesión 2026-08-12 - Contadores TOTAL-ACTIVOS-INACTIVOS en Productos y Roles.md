@@ -1,14 +1,14 @@
 ---
 title: "Sesión 2026-08-12 — Contadores TOTAL/ACTIVOS/INACTIVOS en Productos y Roles"
-tags:
-  - sesion
-  - bimbo
-  - wpf
-  - rbac
-  - productos
+type: sesion
+status: vigente
 date: 2026-08-12
-branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Claude
+updated: 2026-08-12
+autor: por-confirmar
+agente: humano
+rama: feat/fase8-MaquetadodeRoles
+tags: [sesion, bimbo, wpf, rbac, productos]
+summary: "Corregido el conteo TOTAL de Productos, que quedaba contaminado por el filtro de estado, y reconstruidas las pastillas TOTAL/ACTIVOS/INACTIVOS de Roles con el mismo patrón de binding directo que usa Productos — antes no mostraban ningún número."
 ---
 
 # Sesión 2026-08-12 — Contadores TOTAL/ACTIVOS/INACTIVOS en Productos y Roles

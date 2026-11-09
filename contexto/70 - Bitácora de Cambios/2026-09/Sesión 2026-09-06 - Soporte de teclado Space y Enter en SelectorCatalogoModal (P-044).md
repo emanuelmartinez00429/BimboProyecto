@@ -1,3 +1,15 @@
+---
+title: "Sesión 2026-09-06 — Soporte de teclado (Space y Enter) en SelectorCatalogoModal (P-044)"
+type: sesion
+status: vigente
+date: 2026-09-06
+updated: 2026-09-06
+autor: por-confirmar
+agente: humano
+tags: [sesion]
+summary: "El selector genérico `SelectorCatalogoModal` permite a los operadores elegir elementos de catálogos (productos, proveedores, etc.). En modo múltiple ("
+---
+
 # Sesión 2026-09-06 — Soporte de teclado (Space y Enter) en SelectorCatalogoModal (P-044)
 
 ## Contexto y Motivación

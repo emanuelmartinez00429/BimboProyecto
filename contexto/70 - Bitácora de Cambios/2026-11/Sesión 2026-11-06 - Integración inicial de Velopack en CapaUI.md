@@ -1,13 +1,14 @@
 ---
 title: "Sesión 2026-11-06 — Integración inicial de Velopack en CapaUI"
-tags:
-  - sesion
-  - velopack
-  - despliegue
-  - actualizaciones
+type: sesion
+status: vigente
 date: 2026-11-06
-branch: pruebas-remote-update
-autor_cambios: OpenCode (sesión gestionada por Emanuel)
+updated: 2026-11-06
+autor: emanuel
+agente: opencode
+rama: pruebas-remote-update
+tags: [sesion, velopack, despliegue, actualizaciones]
+summary: "`CapaUI` ya tiene el punto de entrada que Velopack exige y una versión de producto declarada. La app compila sin errores y arranca igual que antes. Todavía **no** consulta ni aplica actualizaciones: esta sesión solo prepara el terreno."
 ---
 
 # Sesión 2026-11-06 — Integración inicial de Velopack en CapaUI

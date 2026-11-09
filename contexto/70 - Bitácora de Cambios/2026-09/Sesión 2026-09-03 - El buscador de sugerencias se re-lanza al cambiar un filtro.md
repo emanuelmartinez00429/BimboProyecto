@@ -1,14 +1,14 @@
 ---
 title: "Sesión 2026-09-03 — El buscador de sugerencias se re-lanza al cambiar un filtro"
-tags:
-  - sesion
-  - ui
-  - wpf
-  - buscador
-  - mantenibilidad
+type: sesion
+status: vigente
 date: 2026-09-03
-branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Claude Fernando
+updated: 2026-09-03
+autor: fernando
+agente: claude-code
+rama: feat/fase8-MaquetadodeRoles
+tags: [sesion, ui, wpf, buscador, mantenibilidad]
+summary: "El `SuggestionSearchBox` de las 8 tablas de lista con filtros ahora **re-consulta"
 ---
 
 # Sesión 2026-09-03 — El buscador de sugerencias se re-lanza al cambiar un filtro

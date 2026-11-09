@@ -1,9 +1,14 @@
 ---
 title: "Sesión 2026-07-26 — Resolución Deuda Técnica P-013 a P-021"
-tags: [sesion, deuda-tecnica, usuarios, pesaje, seguridad, supabase]
+type: sesion
+status: vigente
 date: 2026-07-26
-branch: claude/en-que-estaba-78b882
-autor_cambios: Codex (sesión gestionada por Emanuel)
+updated: 2026-07-26
+autor: emanuel
+agente: codex
+rama: claude/en-que-estaba-78b882
+tags: [sesion, deuda-tecnica, usuarios, pesaje, seguridad, supabase]
+summary: "Resolución Deuda Técnica P-013 a P-021"
 ---
 
 # Sesión 2026-07-26 — Resolución Deuda Técnica P-013 a P-021

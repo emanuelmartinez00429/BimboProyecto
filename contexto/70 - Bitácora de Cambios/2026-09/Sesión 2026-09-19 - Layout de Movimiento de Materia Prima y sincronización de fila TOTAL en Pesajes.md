@@ -1,14 +1,14 @@
 ---
 title: "Sesión 2026-09-19 — Corrección de layout en Movimiento de Materia Prima y sincronización de fila TOTAL en Pesajes"
-tags:
-  - sesion
-  - pesaje
-  - wpf
-  - ui
-  - layout
+type: sesion
+status: vigente
 date: 2026-09-19
-branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Antigravity (agente) con Fernando
+updated: 2026-09-19
+autor: fernando
+agente: antigravity
+rama: feat/fase8-MaquetadodeRoles
+tags: [sesion, pesaje, wpf, ui, layout]
+summary: "Se corrigió el bug de layout en el panel de **Movimiento de Materia Prima** donde la barra de scroll horizontal aparecía pegada a la primera fila de producto y el overlay de carga salía pegado arriba. Además, se completó la sincronización de la fila **TOTAL** en Entradas mediante `ScrollViewer` acoplado (evitando recorte por layout clip de WPF) y se estandarizó la alineación a la izquierda de los encabezados de tabla en Pesajes."
 ---
 
 # Sesión 2026-09-19 — Corrección de layout en Movimiento de Materia Prima y sincronización de fila TOTAL en Pesajes

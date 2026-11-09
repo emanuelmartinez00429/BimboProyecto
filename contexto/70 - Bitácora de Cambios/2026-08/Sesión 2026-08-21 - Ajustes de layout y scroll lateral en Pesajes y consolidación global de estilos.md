@@ -1,15 +1,14 @@
 ---
 title: "Sesión 2026-08-21 — Ajustes de layout y scroll lateral en Pesajes y consolidación global de estilos"
-tags:
-  - sesion
-  - pesaje
-  - layout
-  - datagrid
-  - estilos
-  - wpf
+type: sesion
+status: vigente
 date: 2026-08-21
-branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Fernando / Antigravity (agente)
+updated: 2026-08-21
+autor: fernando
+agente: antigravity
+rama: feat/fase8-MaquetadodeRoles
+tags: [sesion, pesaje, layout, datagrid, estilos, wpf]
+summary: "Se ajustó la proporción horizontal y la simetría vertical en `PesajeView`. Se solucionó el problema de corte y compresión de columnas en las tablas de productos y pesajes mediante `MinWidth` explícitos, desplazamiento horizontal nativo y `Shift + Rueda`. Se reorganizaron los botones del pie de página y se centralizaron los estilos de botones de acción (`ToolPrimary`, `ToolSuccess`, `ToolWarn`, `ToolDanger`, `ToolBtn`) en `Styles.xaml` para su reutilización global en toda la aplicación. Se resolvió la advertencia CS8826 en `RolesViewModel`."
 ---
 
 # Sesión 2026-08-21 — Ajustes de layout y scroll lateral en Pesajes y consolidación global de estilos

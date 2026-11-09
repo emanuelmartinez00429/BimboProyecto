@@ -11,8 +11,6 @@ rama: chore/contrato-agentes
 commits: [c518122]
 tags: [sesion, devsecops, agentes, contexto]
 summary: "Unificación de AGENTS.md raíz en <= 8KB, protocolo de bóveda, stubs de agentes, equipo.json, desindexación de corridas y normalización de gitattributes"
-deuda: []
-adr: []
 ---
 
 # Sesión 2026-11-09 — Contrato único de agentes y protocolo de contexto

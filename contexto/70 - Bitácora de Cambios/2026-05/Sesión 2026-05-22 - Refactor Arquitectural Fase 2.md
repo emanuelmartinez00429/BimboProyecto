@@ -1,12 +1,13 @@
 ---
 title: "Sesión 2026-05-22 — Refactor Arquitectural Fase 2"
-tags:
-  - bitacora
-  - arquitectura
-  - clean-architecture
-  - refactor
-  - di
+type: sesion
+status: vigente
 date: 2026-05-22
+updated: 2026-05-22
+autor: por-confirmar
+agente: humano
+tags: [bitacora, arquitectura, clean-architecture, refactor, di]
+summary: "`ServicioPerfilUsuario` estaba en `CapaServicios` como clase estática global y referenciaba `RepositorioUsuario` de `CapaDatos` directamente. Esto era"
 ---
 
 # Sesión 2026-05-22 — Refactor Arquitectural Fase 2

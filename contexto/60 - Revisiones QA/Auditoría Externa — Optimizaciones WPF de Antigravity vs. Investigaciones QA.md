@@ -11,13 +11,13 @@ date: 2026-09-11
 branch: (working tree, ver commit auditado)
 autor_cambios: Antigravity (agente)
 revisor: Claude Code — auditor externo
-fuente_de_verdad: D:\Proyectos\Bimbo Documentos\Investigaciones para QA\*.md
+fuente_de_verdad: Investigaciones para QA/*.md
 commit_auditado: 55ca2ee "feat(wpf-render): optimizar renderizado directx, bindings enum x:static, cts lock-free y transacciones compensatorias en productos y proveedores"
 estado: Triado
 ---
 
 > [!warning] Encargo
-> Fernando contrató las 6 investigaciones técnicas en `D:\Proyectos\Bimbo Documentos\Investigaciones para QA\`
+> Fernando contrató las 6 investigaciones técnicas en `Investigaciones para QA/`
 > como fuente de verdad **más confiable que Antigravity** (aunque puedan tener errores) para auditar
 > externamente si las "optimizaciones WPF" que Antigravity viene aplicando (módulos Proveedores y
 > Productos, y ya generalizadas a `AGENTS.md`/Convenciones de UI como regla para todo el proyecto)

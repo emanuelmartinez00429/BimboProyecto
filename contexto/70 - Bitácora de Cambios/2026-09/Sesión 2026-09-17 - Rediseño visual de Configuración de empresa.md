@@ -1,13 +1,14 @@
 ---
 title: "Sesión 2026-09-17 — Rediseño visual de Configuración de empresa"
-tags:
-  - sesion
-  - configuracion
-  - ui
-  - xaml
+type: sesion
+status: vigente
 date: 2026-09-17
-branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Claude Code (agente)
+updated: 2026-09-17
+autor: por-confirmar
+agente: humano
+rama: feat/fase8-MaquetadodeRoles
+tags: [sesion, configuracion, ui, xaml]
+summary: "`ConfiguracionEmpresaView` pasó de una tarjeta única con dos columnas a un diseño de **dos tarjetas hermanas + barra de acciones**, siguiendo la captura de referencia de Fernando. Solo cambió el XAML y se sumó un converter; el ViewModel quedó intacto. Build limpio, 63/63 tests de Configuración, arné de instanciación OK y render comparado contra la referencia."
 ---
 
 # Sesión 2026-09-17 — Rediseño visual de Configuración de empresa

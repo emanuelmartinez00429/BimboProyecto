@@ -1,13 +1,14 @@
 ---
 title: "Sesión 2026-09-05 — Alta múltiple de camiones y topes de texto en movimientos"
-tags:
-  - sesion
-  - pesaje
-  - validacion
-  - supabase
+type: sesion
+status: vigente
 date: 2026-09-05
-branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Claude Fernando (agente)
+updated: 2026-09-05
+autor: fernando
+agente: claude-code
+rama: feat/fase8-MaquetadodeRoles
+tags: [sesion, pesaje, validacion, supabase]
+summary: "El alta de camiones pasó de un formulario de a uno a una tabla de hasta 5 en una sola pasada, con el proveedor elegido por fila. De paso Pesaje entró por fin al esquema de validación en tres capas: `ReglasCamion` en Dominio, `ValidadorFormulario` en la UI y una migración que le puso tope real a las dos columnas de texto de `movimientos` — [[Deuda Técnica - Pendientes|P-045]] queda parcialmente resuelta."
 ---
 
 # Sesión 2026-09-05 — Alta múltiple de camiones y topes de texto en movimientos

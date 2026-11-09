@@ -1,9 +1,14 @@
 ---
 title: "Sesión 2026-11-08 — Resolución P-067 (Pkcs 10.0.14)"
-tags: [sesion, deuda-tecnica, nuget, seguridad, velopack]
+type: sesion
+status: vigente
 date: 2026-11-08
-branch: main
-autor_cambios: opencode
+updated: 2026-11-08
+autor: por-confirmar
+agente: humano
+rama: main
+tags: [sesion, deuda-tecnica, nuget, seguridad, velopack]
+summary: "La resolución se hizo justo antes de publicar la próxima release desde `main` (workflow `publish-velopack-release.yml`, versión `1.0.<run_number>`, po"
 ---
 
 # Sesión 2026-11-08 — Resolución P-067 (Pkcs 10.0.14)

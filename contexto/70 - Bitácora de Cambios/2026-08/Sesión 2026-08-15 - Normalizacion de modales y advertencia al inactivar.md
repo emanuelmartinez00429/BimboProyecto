@@ -1,14 +1,14 @@
 ---
 title: "Sesión 2026-08-15 — Normalización de modales y advertencia al inactivar"
-tags:
-  - sesion
-  - wpf
-  - modales
-  - ux
-  - refactor
+type: sesion
+status: vigente
 date: 2026-08-15
-branch: feat/fase8-MaquetadodeRoles-B-Fernando
-autor_cambios: Fernando
+updated: 2026-08-15
+autor: fernando
+agente: humano
+rama: feat/fase8-MaquetadodeRoles-B-Fernando
+tags: [sesion, wpf, modales, ux, refactor]
+summary: "Normalización de modales y advertencia al inactivar"
 ---
 
 # Sesión 2026-08-15 — Normalización de modales y advertencia al inactivar

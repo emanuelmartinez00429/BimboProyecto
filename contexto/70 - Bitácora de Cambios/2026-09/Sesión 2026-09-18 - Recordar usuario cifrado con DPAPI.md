@@ -1,13 +1,14 @@
 ---
 title: "Sesión 2026-09-18 — «Recordar usuario» cifrado con DPAPI en LocalAppData"
-tags:
-  - sesion
-  - seguridad
-  - auth
-  - local-storage
+type: sesion
+status: vigente
 date: 2026-09-18
-branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Claude (agente) con Fernando
+updated: 2026-09-18
+autor: fernando
+agente: claude-code
+rama: feat/fase8-MaquetadodeRoles
+tags: [sesion, seguridad, auth, local-storage]
+summary: "El correo de «Recordar usuario», que **también es el usuario de login**, ya no se guarda en texto plano. Ahora queda cifrado con DPAPI (`ProtectedData`, `CurrentUser`) en `%LOCALAPPDATA%\BimboPesaje\Preferencias\ultimo_usuario.bin`. El `.txt` viejo de `%APPDATA%` se migra una vez y se borra."
 ---
 
 # Sesión 2026-09-18 — «Recordar usuario» cifrado con DPAPI en LocalAppData

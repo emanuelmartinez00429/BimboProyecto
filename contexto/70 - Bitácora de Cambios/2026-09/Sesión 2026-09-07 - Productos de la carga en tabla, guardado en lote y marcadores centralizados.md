@@ -1,15 +1,15 @@
 ---
 title: "Sesión 2026-09-07 — Productos de la carga en tabla, guardado en lote y marcadores centralizados"
-tags:
-  - sesion
-  - pesaje
-  - ux
-  - wpf
-  - supabase
+type: sesion
+status: vigente
 date: 2026-09-07
-branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Claude Fernando (agente)
-revisor: Fernando (prueba visual aprobada)
+updated: 2026-09-07
+autor: fernando
+agente: claude-code
+rama: feat/fase8-MaquetadodeRoles
+commits: [a05f006, 404796c]
+tags: [sesion, pesaje, ux, wpf, supabase]
+summary: "El alta de productos de una recepción pasó de un formulario de **un producto por vez** a una **tabla que gestiona toda la carga** y se guarda con un **RPC transaccional**. De paso se cerró el último camino de escritura sin auditar del módulo, se sacó el parpadeo al entrar a Pesaje, se le puso spinner al alta de camiones y se centralizó el marcador («placeholder») de los campos de texto."
 ---
 
 # Sesión 2026-09-07 — Productos de la carga en tabla, guardado en lote y marcadores centralizados

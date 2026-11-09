@@ -1,9 +1,14 @@
 ---
 title: "Sesión 2026-09-02 - Infraestructura de notificaciones internas"
-tags: [sesion, bimbo, notificaciones, supabase, realtime, rbac]
+type: sesion
+status: vigente
 date: 2026-09-02
-branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Codex (sesión gestionada por Emanuel)
+updated: 2026-09-02
+autor: emanuel
+agente: codex
+rama: feat/fase8-MaquetadodeRoles
+tags: [sesion, bimbo, notificaciones, supabase, realtime, rbac]
+summary: "Infraestructura de notificaciones internas"
 ---
 
 # Sesión 2026-09-02 - Infraestructura de notificaciones internas

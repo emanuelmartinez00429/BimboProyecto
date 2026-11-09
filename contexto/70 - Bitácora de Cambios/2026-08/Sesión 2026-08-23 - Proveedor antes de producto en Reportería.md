@@ -1,9 +1,14 @@
 ---
 title: "Sesión 2026-08-23 — Proveedor antes de producto en Reportería"
-tags: [sesion, reporteria, catalogos-encadenados, wpf]
+type: sesion
+status: vigente
 date: 2026-08-23
-branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Codex (sesión gestionada por Emanuel)
+updated: 2026-08-23
+autor: emanuel
+agente: codex
+rama: feat/fase8-MaquetadodeRoles
+tags: [sesion, reporteria, catalogos-encadenados, wpf]
+summary: "Proveedor antes de producto en Reportería"
 ---
 
 # Sesión 2026-08-23 — Proveedor antes de producto en Reportería

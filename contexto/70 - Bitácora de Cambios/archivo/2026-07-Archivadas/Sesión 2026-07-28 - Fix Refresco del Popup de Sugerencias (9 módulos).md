@@ -1,13 +1,14 @@
 ---
 title: "Sesión 2026-07-28 — Fix refresco del popup de sugerencias (9 módulos)"
-tags:
-  - sesion
-  - buscador
-  - mvvm
-  - bugfix
+type: sesion
+status: vigente
 date: 2026-07-28
-branch: fix/buscador-sugerencias
-autor_cambios: Claude (agente)
+updated: 2026-07-28
+autor: por-confirmar
+agente: humano
+rama: fix/buscador-sugerencias
+tags: [sesion, buscador, mvvm, bugfix]
+summary: "El popup de `SuggestionSearchBox` ahora refleja siempre el texto actual del buscador. Antes, con el popup abierto, seguir escribiendo no actualizaba la lista: quedaba congelada en el término anterior y solo se recuperaba borrando todo el texto. Corregido en las 9 pantallas que usan el control, sin cambios de arquitectura ni llamadas de red adicionales."
 ---
 
 # Sesión 2026-07-28 — Fix refresco del popup de sugerencias (9 módulos)

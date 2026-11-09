@@ -1,14 +1,14 @@
 ---
 title: "Sesión 2026-09-18 — Camiones en tabla plana y reglas de recepción en BD"
-tags:
-  - sesion
-  - pesaje
-  - supabase
-  - wpf
-  - reportes
+type: sesion
+status: vigente
 date: 2026-09-18
-branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Claude (agente) con Fernando
+updated: 2026-09-18
+autor: fernando
+agente: claude-code
+rama: feat/fase8-MaquetadodeRoles
+tags: [sesion, pesaje, supabase, wpf, reportes]
+summary: "El panel «Camiones de Entrega» dejó de agrupar por placa: ahora es un `DataGrid` plano donde **una fila es una recepción** (placa + proveedor). El tope de 5 y la regla «misma placa solo con otro proveedor» viven en Dominio **y** en la BD, con un trigger sobre `movimientos` y un índice único. El reporte se elige por placa y junta todas sus recepciones en un solo archivo. Fernando lo aprobó visualmente."
 ---
 
 # Sesión 2026-09-18 — Camiones en tabla plana y reglas de recepción en BD

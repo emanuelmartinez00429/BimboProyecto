@@ -1,9 +1,14 @@
 ---
 title: "Sesión 2026-11-07 — Merge y MSI de actualizaciones Velopack"
-tags: [sesion, velopack, despliegue, msi, github-actions]
+type: sesion
+status: vigente
 date: 2026-11-07
-branch: main
-autor_cambios: Codex
+updated: 2026-11-07
+autor: por-confirmar
+agente: humano
+rama: main
+tags: [sesion, velopack, despliegue, msi, github-actions]
+summary: "- Validar el MSI con el compañero y obtener el texto/código exacto del error previo."
 ---
 
 # Sesión 2026-11-07 — Merge y MSI de actualizaciones Velopack

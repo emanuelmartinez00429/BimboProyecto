@@ -1,16 +1,13 @@
 ---
 title: "Sesión 2026-09-12 — Contadores globales y EmptyStateOverlay en Proveedores"
+type: sesion
+status: vigente
 date: 2026-09-12
-tags:
-  - bitacora
-  - sesion
-  - wpf
-  - mvvm
-  - proveedores
-  - productos
-  - ui
-aliases:
-  - Contadores globales y EmptyStateOverlay en Proveedores
+updated: 2026-09-12
+autor: por-confirmar
+agente: humano
+tags: [bitacora, sesion, wpf, mvvm, proveedores, productos, ui]
+summary: "Contadores globales y EmptyStateOverlay en Proveedores"
 ---
 
 # Sesión 2026-09-12 — Contadores globales y EmptyStateOverlay en Proveedores

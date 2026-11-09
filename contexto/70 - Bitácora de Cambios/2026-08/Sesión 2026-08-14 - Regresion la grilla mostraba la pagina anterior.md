@@ -1,14 +1,15 @@
 ---
 title: "Sesión 2026-08-14 — Regresión: la grilla mostraba las filas de la página anterior con el número nuevo"
-tags:
-  - sesion
-  - paginacion
-  - regresion
-  - bugfix
-  - mvvm
+type: sesion
+status: vigente
 date: 2026-08-14
-branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Claude Opus 5 (Claude Code)
+updated: 2026-08-14
+autor: por-confirmar
+agente: humano
+modelo: opus-5
+rama: feat/fase8-MaquetadodeRoles
+tags: [sesion, paginacion, regresion, bugfix, mvvm]
+summary: "`RefrescarPaginacion()` dejó de rebindear la grilla; ahora reconstruye solo el árbol de botones. El rebind de filas quedó donde corresponde: el `case` de `PageRows`. Build: `0 errores`, 2 advertencias preexistentes (`RolesViewModel`, sin relación)."
 ---
 
 # Sesión 2026-08-14 — Regresión: la grilla mostraba las filas de la página anterior con el número nuevo

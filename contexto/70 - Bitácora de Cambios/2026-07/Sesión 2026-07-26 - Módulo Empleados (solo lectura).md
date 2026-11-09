@@ -1,9 +1,14 @@
 ---
 title: "Sesión 2026-07-26 — Módulo Empleados (solo lectura)"
-tags: [sesion, empleados, wip, ui]
+type: sesion
+status: vigente
 date: 2026-07-26
-branch: feat/fase7-GestióndeUsuarios
-autor_cambios: Codex (sesión gestionada por Emanuel)
+updated: 2026-07-26
+autor: emanuel
+agente: codex
+rama: feat/fase7-GestióndeUsuarios
+tags: [sesion, empleados, wip, ui]
+summary: "Al crear `namespace CapaDatos.Repositories.Empleados`, el build rompió con `CS0118` en dos archivos **que no toqué**: `EmpleadoRepository.cs` (reposit"
 ---
 
 # Sesión 2026-07-26 — Módulo Empleados (solo lectura)
@@ -38,7 +43,7 @@ Documentado en [[Módulo Empleados]] — agregar los 3 métodos de escritura a l
 
 ## Nota de proceso
 
-Este trabajo se hizo **directo en la carpeta principal** (`C:\Users\fbara\...\BimboProyecto`, la que Fernando tiene abierta en VS Code en esta misma rama) en vez del worktree separado de Claude — commit local hecho, **sin push**; Fernando lo sube cuando quiera.
+Este trabajo se hizo **directo en la carpeta principal** (`BimboProyecto`, la que Fernando tiene abierta en VS Code en esta misma rama) en vez del worktree separado de Claude — commit local hecho, **sin push**; Fernando lo sube cuando quiera.
 
 ## Relaciones
 

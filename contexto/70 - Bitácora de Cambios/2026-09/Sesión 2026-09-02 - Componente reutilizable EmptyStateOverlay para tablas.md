@@ -1,16 +1,14 @@
 ---
 title: "Sesión 2026-09-02 — Componente reutilizable EmptyStateOverlay para tablas"
-tags:
-  - sesion
-  - ui
-  - ux
-  - wpf
-  - datagrid
-  - controls
-  - productos
+type: sesion
+status: vigente
 date: 2026-09-02
-branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Antigravity (sesión gestionada por Fernando)
+updated: 2026-09-02
+autor: fernando
+agente: antigravity
+rama: feat/fase8-MaquetadodeRoles
+tags: [sesion, ui, ux, wpf, datagrid, controls, productos]
+summary: "Se creó el componente desacoplado `EmptyStateOverlay` en `CapaUI.Core.Controls` para mostrar mensajes y estados vacíos contextuales en medio de las tablas manteniendo visibles los encabezados de columna. Se integró y validó exitosamente en el Catálogo de Productos."
 ---
 
 # Sesión 2026-09-02 — Componente reutilizable EmptyStateOverlay para tablas

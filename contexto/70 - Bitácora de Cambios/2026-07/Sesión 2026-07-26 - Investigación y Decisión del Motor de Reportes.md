@@ -1,9 +1,15 @@
 ---
 title: "Sesión 2026-07-26 — Investigación y Decisión del Motor de Reportes"
-tags: [sesion, reportes, licencias, investigacion, fase9]
+type: sesion
+status: vigente
 date: 2026-07-26
-branch: feat/fase7-GestióndeUsuarios
-autor_cambios: Claude (Opus 5), dirigido por Fernando
+updated: 2026-07-26
+autor: fernando
+agente: claude-code
+modelo: opus-5
+rama: feat/fase7-GestióndeUsuarios
+tags: [sesion, reportes, licencias, investigacion, fase9]
+summary: "Investigación y Decisión del Motor de Reportes"
 ---
 
 # Sesión 2026-07-26 — Investigación y Decisión del Motor de Reportes

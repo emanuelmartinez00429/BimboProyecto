@@ -1,15 +1,14 @@
 ---
 title: "Sesión 2026-09-03 — Presentaciones migrado a RPC segura"
-tags:
-  - sesion
-  - supabase
-  - rpc
-  - rbac
-  - auditoria
-  - catalogos
+type: sesion
+status: vigente
 date: 2026-09-03
-branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Claude Fernando
+updated: 2026-09-03
+autor: fernando
+agente: claude-code
+rama: feat/fase8-MaquetadodeRoles
+tags: [sesion, supabase, rpc, rbac, auditoria, catalogos]
+summary: "Presentaciones dejó de ser el único catálogo sin migrar. Se aplicó la migración `presentaciones_rpc_segura` en Supabase (`bzmmrifjgzlvsphctais`): tres funciones `SECURITY DEFINER` idempotentes con RBAC por código, set de acciones `PRESENTACIONES_*`, retiro del trigger de auditoría legacy y cierre del DML directo. `CapaDatos` + `CapaAplicacion4` compilan 0/0 y **243/243 pruebas** pasan. La parte de UI (`PresentacionModal`) quedó escrita pero **sin compilar ni probar** por bloqueo de la app en ejecución."
 ---
 
 # Sesión 2026-09-03 — Presentaciones migrado a RPC segura

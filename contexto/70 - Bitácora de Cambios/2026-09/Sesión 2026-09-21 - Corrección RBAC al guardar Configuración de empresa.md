@@ -1,13 +1,14 @@
 ---
 title: "Sesión 2026-09-21 — Corrección RBAC al guardar Configuración de empresa"
-tags:
-  - sesion
-  - configuracion
-  - rbac
-  - fix
+type: sesion
+status: vigente
 date: 2026-09-21
-branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Codex (sesión gestionada por Emanuel)
+updated: 2026-09-21
+autor: emanuel
+agente: codex
+rama: feat/fase8-MaquetadodeRoles
+tags: [sesion, configuracion, rbac, fix]
+summary: "El Administrador vuelve a superar la validación local al guardar colores, datos e imágenes de la empresa. La corrección conserva las políticas RLS y no cambia asignaciones ni datos de Supabase."
 ---
 
 # Sesión 2026-09-21 — Corrección RBAC al guardar Configuración de empresa

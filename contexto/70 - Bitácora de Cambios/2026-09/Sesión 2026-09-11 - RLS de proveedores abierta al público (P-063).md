@@ -1,16 +1,13 @@
 ---
 title: "Sesión 2026-09-11 — RLS de proveedores abierta al público (P-063)"
+type: sesion
+status: vigente
 date: 2026-09-11
-tags:
-  - bitacora
-  - sesion
-  - seguridad
-  - rls
-  - supabase
-  - security-review
-aliases:
-  - P-063
-  - RLS proveedores publico
+updated: 2026-09-11
+autor: por-confirmar
+agente: humano
+tags: [bitacora, sesion, seguridad, rls, supabase, security-review]
+summary: "RLS de proveedores abierta al público (P-063)"
 ---
 
 # Sesión 2026-09-11 — RLS de proveedores abierta al público (P-063)

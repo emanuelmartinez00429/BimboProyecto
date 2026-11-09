@@ -1,14 +1,14 @@
 ---
 title: "Sesión 2026-09-20 — Compactación de Camiones a 5 ítems y expansión de Movimiento en Pesajes"
-tags:
-  - sesion
-  - pesaje
-  - wpf
-  - ui
-  - layout
+type: sesion
+status: vigente
 date: 2026-09-20
-branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Antigravity (agente) con Fernando
+updated: 2026-09-20
+autor: fernando
+agente: antigravity
+rama: feat/fase8-MaquetadodeRoles
+tags: [sesion, pesaje, wpf, ui, layout]
+summary: "Se eliminó el espacio blanco vacío debajo del quinto camión en la tarjeta superior izquierda de Pesajes. Se fijó la altura de `DgCamiones` a la capacidad física máxima exacta de 5 ítems (242 px), logrando que la botonera de acciones quede inmediatamente pegada a la última fila, y se transfirió todo el espacio vertical liberado a la tarjeta de **Movimiento de Materia Prima** para que albergue más productos sin requerir scroll prematuro."
 ---
 
 # Sesión 2026-09-20 — Compactación de Camiones a 5 ítems y expansión de Movimiento en Pesajes

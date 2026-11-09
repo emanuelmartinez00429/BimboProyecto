@@ -1,14 +1,14 @@
 ---
 title: "Sesión 2026-08-11 — Rediseño de Gestión de Roles"
-tags:
-  - sesion
-  - bimbo
-  - rbac
-  - wpf
-  - rendimiento
+type: sesion
+status: vigente
 date: 2026-08-11
-branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Codex (sesión gestionada por Emanuel)
+updated: 2026-08-11
+autor: emanuel
+agente: codex
+rama: feat/fase8-MaquetadodeRoles
+tags: [sesion, bimbo, rbac, wpf, rendimiento]
+summary: "La pantalla de Roles pasó de tardar ~3 s en blanco a cargar de una, y se rehízo por completo siguiendo un mockup externo. Quedaron un panel de layout reutilizable y un ADR sobre la estrategia de precarga."
 ---
 
 # Sesión 2026-08-11 — Rediseño de Gestión de Roles

@@ -1,11 +1,13 @@
 ---
 title: "Sesión 2026-06-15 — GhostTextBox: Autocompletado de Dominio en Login"
-tags:
-  - bitácora
-  - UI
-  - login
-  - control-compartido
+type: sesion
+status: vigente
 date: 2026-06-15
+updated: 2026-06-15
+autor: por-confirmar
+agente: humano
+tags: [bitácora, UI, login, control-compartido]
+summary: "GhostTextBox: Autocompletado de Dominio en Login"
 ---
 
 # Sesión 2026-06-15 — GhostTextBox: Autocompletado de Dominio en Login
@@ -102,17 +104,17 @@ _ = DebounceGhostAsync(input, _ghostDebounce.Token);
 // → muestra ghost solo si el usuario paró de escribir 300ms
 ```
 
-### Bug 3 — Overlap de dominio (`hola@gma@gmail.com`)
+### Bug 3 — Overlap de dominio (`hola@exa@example.com`)
 
-**Causa:** Al escribir `hola@gma`, el ghost concatenaba el sufijo completo `@gmail.com`, resultando en `hola@gma@gmail.com` superpuesto.
+**Causa:** Al escribir `hola@exa`, el ghost concatenaba el sufijo completo `@example.com`, resultando en `hola@exa@example.com` superpuesto.
 
 **Fix:** Método `GetRemainingSuffix(input)` que busca el overlap más largo entre el final del input y el inicio del sufijo, y solo devuelve lo que falta:
 
 ```
-input="hola"     → remaining="@gmail.com"  (sin overlap)
-input="hola@"    → remaining="gmail.com"   (overlap "@")
-input="hola@gma" → remaining="il.com"      (overlap "@gma")
-input="hola@gmail.com" → ghost oculto     (completado)
+input="hola"     → remaining="@example.com"  (sin overlap)
+input="hola@"    → remaining="example.com"   (overlap "@")
+input="hola@exa" → remaining="mple.com"      (overlap "@exa")
+input="hola@example.com" → ghost oculto     (completado)
 ```
 
 ```csharp

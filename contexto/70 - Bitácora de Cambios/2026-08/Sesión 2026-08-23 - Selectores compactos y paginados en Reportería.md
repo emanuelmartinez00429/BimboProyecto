@@ -1,9 +1,14 @@
 ---
 title: "Sesión 2026-08-23 — Selectores compactos y paginados en Reportería"
-tags: [sesion, reporteria, selector-catalogo, paginacion, wpf]
+type: sesion
+status: vigente
 date: 2026-08-23
-branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Codex (sesión gestionada por Emanuel)
+updated: 2026-08-23
+autor: emanuel
+agente: codex
+rama: feat/fase8-MaquetadodeRoles
+tags: [sesion, reporteria, selector-catalogo, paginacion, wpf]
+summary: "Selectores compactos y paginados en Reportería"
 ---
 
 # Sesión 2026-08-23 — Selectores compactos y paginados en Reportería

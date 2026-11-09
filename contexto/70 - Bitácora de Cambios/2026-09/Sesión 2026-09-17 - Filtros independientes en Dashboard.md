@@ -1,15 +1,14 @@
 ---
 title: "Sesión 2026-09-17 — Filtros independientes en Dashboard"
-tags:
-  - sesion
-  - dashboard
-  - wpf
-  - filtros
-  - merma
-  - realtime
+type: sesion
+status: vigente
 date: 2026-09-17
-branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Codex (agente) — Sesión Fernando
+updated: 2026-09-17
+autor: fernando
+agente: codex
+rama: feat/fase8-MaquetadodeRoles
+tags: [sesion, dashboard, wpf, filtros, merma, realtime]
+summary: "El selector desplegable del encabezado y los RadioButtons del Top 5 de mermas funcionan de manera independiente. Fernando probó el flujo en la aplicación y aprobó el resultado visual y funcional."
 ---
 
 # Sesión 2026-09-17 — Filtros independientes en Dashboard

@@ -1,13 +1,14 @@
 ---
 title: "Sesión 2026-08-15 — Módulo CRUD de Presentaciones"
-tags:
-  - sesion
-  - presentaciones
-  - crud
-  - catalogo
+type: sesion
+status: vigente
 date: 2026-08-15
-branch: feat/fase8-MaquetadodeRoles-B-Fernando
-autor_cambios: Osmany (Claude Code)
+updated: 2026-08-15
+autor: por-confirmar
+agente: humano
+rama: feat/fase8-MaquetadodeRoles-B-Fernando
+tags: [sesion, presentaciones, crud, catalogo]
+summary: "`presentacion_producto` dejó de ser un catálogo de solo lectura: ahora tiene pantalla propia con grilla, buscador, filtros de estado y orden, y modal de alta/edición. Resuelve la mitad de [[Deuda Técnica - Pendientes|P-036]] (queda pendiente la de Tara). Solo código — la migración SQL ya estaba aplicada de antes."
 ---
 
 # Sesión 2026-08-15 — Módulo CRUD de Presentaciones

@@ -1,16 +1,14 @@
 ---
 title: "Sesión 2026-09-17 — Homologación de Columnas, Ancho Completo y Scroll en EmpleadosView"
-tags:
-  - sesion
-  - wpf
-  - ui
-  - empleados
-  - datagrid
-  - estilos
-  - convencion
+type: sesion
+status: vigente
 date: 2026-09-17
-branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Antigravity (agente) — Sesión Fernando
+updated: 2026-09-17
+autor: fernando
+agente: antigravity
+rama: feat/fase8-MaquetadodeRoles
+tags: [sesion, wpf, ui, empleados, datagrid, estilos, convencion]
+summary: "Se homologó la vista `EmpleadosView.xaml` al estándar del sistema y a la distribución de `UsuariosView`, alineando todas las columnas de datos y cabeceras a la izquierda, retirando el estilo local redundante de `DataGridColumnHeader`, asignando dimensionamiento proporcional `Width=\\"*\\"` (`MinWidth=\\"220\\"`) a `EMPLEADO` y `CORREO` para aprovechar el 100% del ancho de pantalla sin dejar espacio vacío a la derecha, preservando `#` y `ESTADO` centrados, habilitando scroll lateral y sincronizándolo con `Shift + Rueda del mouse` vía `ScrollHorizontalConShift`, y añadiendo pruebas de caja blanca en `EmpleadosWhiteBoxTests.cs`."
 ---
 
 # Sesión 2026-09-17 — Homologación de Columnas, Ancho Completo y Scroll en EmpleadosView

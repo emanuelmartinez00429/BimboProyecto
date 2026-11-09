@@ -1,11 +1,13 @@
 ---
 title: "Sesión 2026-05-29 — Módulos Proveedores, Fabricantes, Categorías y Disolución CapaServicios"
-tags:
-  - bitácora
-  - módulos
-  - refactor
-  - arquitectura
+type: sesion
+status: vigente
 date: 2026-05-29
+updated: 2026-05-29
+autor: por-confirmar
+agente: humano
+tags: [bitácora, módulos, refactor, arquitectura]
+summary: "Módulos Proveedores, Fabricantes, Categorías y Disolución CapaServicios"
 ---
 
 # Sesión 2026-05-29 — Módulos Proveedores, Fabricantes, Categorías y Disolución CapaServicios

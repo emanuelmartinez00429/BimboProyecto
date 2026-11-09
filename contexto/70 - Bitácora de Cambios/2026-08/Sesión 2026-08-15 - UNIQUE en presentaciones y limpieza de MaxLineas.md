@@ -1,14 +1,14 @@
 ---
 title: "Sesión 2026-08-15 — UNIQUE en presentaciones y limpieza de MaxLineas"
-tags:
-  - sesion
-  - supabase
-  - wpf
-  - layout
-  - deuda-tecnica
+type: sesion
+status: vigente
 date: 2026-08-15
-branch: feat/fase8-MaquetadodeRoles-B-Fernando
-autor_cambios: Fernando
+updated: 2026-08-15
+autor: fernando
+agente: humano
+rama: feat/fase8-MaquetadodeRoles-B-Fernando
+tags: [sesion, supabase, wpf, layout, deuda-tecnica]
+summary: "UNIQUE en presentaciones y limpieza de MaxLineas"
 ---
 
 # Sesión 2026-08-15 — UNIQUE en presentaciones y limpieza de MaxLineas

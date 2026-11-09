@@ -1,13 +1,15 @@
 ---
 title: "Sesión 2026-08-14 — Scroll horizontal con Shift+rueda/trackpad en DataGrid"
-tags:
-  - sesion
-  - ui
-  - wpf
-  - datagrid
+type: sesion
+status: vigente
 date: 2026-08-14
-branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Claude Sonnet 5 (Claude Code)
+updated: 2026-08-14
+autor: por-confirmar
+agente: humano
+modelo: sonnet-5
+rama: feat/fase8-MaquetadodeRoles
+tags: [sesion, ui, wpf, datagrid]
+summary: "`Shift` + rueda del mouse (o `Shift` + gesto de dos dedos del trackpad) ahora mueve `DgProductos` en horizontal. Se armó como helper compartido (`ScrollHorizontalConShift.Habilitar(grid)`) para engancharlo en una línea a cualquier otro `DataGrid`. Build: `0 errores CS`."
 ---
 
 # Sesión 2026-08-14 — Scroll horizontal con Shift+rueda/trackpad en DataGrid

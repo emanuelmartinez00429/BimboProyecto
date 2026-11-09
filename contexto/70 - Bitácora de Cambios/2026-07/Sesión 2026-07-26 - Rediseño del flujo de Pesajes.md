@@ -1,9 +1,15 @@
 ---
 title: "Sesión 2026-07-26 — Rediseño del flujo de Pesajes (wizard + megamodal)"
-tags: [sesion, pesaje, ux, refactor, fase8]
+type: sesion
+status: vigente
 date: 2026-07-26
-branch: feat/fase7-GestióndeUsuarios
-autor_cambios: Claude (Opus 5), dirigido por Fernando
+updated: 2026-07-26
+autor: fernando
+agente: claude-code
+modelo: opus-5
+rama: feat/fase7-GestióndeUsuarios
+tags: [sesion, pesaje, ux, refactor, fase8]
+summary: "Rediseño del flujo de Pesajes (wizard + megamodal)"
 ---
 
 # Sesión 2026-07-26 — Rediseño del flujo de Pesajes

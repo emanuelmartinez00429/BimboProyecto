@@ -1,4 +1,16 @@
-﻿# Sesión 2026-09-06 — Cierre Integral de Deuda Técnica P-031 (G11) y P-042
+---
+title: "Sesión 2026-09-06 — Cierre Integral de Deuda Técnica P-031 (G11) y P-042"
+type: sesion
+status: vigente
+date: 2026-09-06
+updated: 2026-09-06
+autor: por-confirmar
+agente: humano
+tags: [sesion]
+summary: "Esta sesión resolvió de forma definitiva dos ítems de deuda técnica pendientes en la aplicación:"
+---
+
+# Sesión 2026-09-06 — Cierre Integral de Deuda Técnica P-031 (G11) y P-042
 
 ## Contexto y Motivación
 Esta sesión resolvió de forma definitiva dos ítems de deuda técnica pendientes en la aplicación:

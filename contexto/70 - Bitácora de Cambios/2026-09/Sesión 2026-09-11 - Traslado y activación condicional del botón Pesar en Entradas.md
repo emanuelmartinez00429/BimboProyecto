@@ -1,16 +1,13 @@
 ---
 title: "Sesión 2026-09-11 — Traslado y activación condicional del botón Pesar en Entradas"
+type: sesion
+status: vigente
 date: 2026-09-11
-tags:
-  - bitacora
-  - sesion
-  - wpf
-  - ui
-  - pesajes
-  - ux
-aliases:
-  - Traslado botón Pesar a Entradas
-  - Lógica condicional de pesaje
+updated: 2026-09-11
+autor: por-confirmar
+agente: humano
+tags: [bitacora, sesion, wpf, ui, pesajes, ux]
+summary: "Traslado y activación condicional del botón Pesar en Entradas"
 ---
 
 # Sesión 2026-09-11 — Traslado y activación condicional del botón Pesar en Entradas

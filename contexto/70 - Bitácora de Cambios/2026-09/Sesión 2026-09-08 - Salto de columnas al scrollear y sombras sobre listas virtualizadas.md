@@ -1,16 +1,14 @@
 ---
 title: "Sesión 2026-09-08 — Salto de columnas al scrollear y sombras sobre listas virtualizadas"
-tags:
-  - sesion
-  - wpf
-  - datagrid
-  - layout
-  - rendimiento
-  - virtualizacion
+type: sesion
+status: vigente
 date: 2026-09-08
-branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Claude (agente)
-revisor: pendiente — Fase 1 validada por Fernando en runtime; Fases 2 y 3 sin probar todavía
+updated: 2026-09-08
+autor: por-confirmar
+agente: humano
+rama: feat/fase8-MaquetadodeRoles
+tags: [sesion, wpf, datagrid, layout, rendimiento, virtualizacion]
+summary: "Se corrigió el bug de **\\"se corren todas las columnas de la nada\\"** al hacer scroll"
 ---
 
 # Sesión 2026-09-08 — Salto de columnas al scrollear y sombras sobre listas virtualizadas

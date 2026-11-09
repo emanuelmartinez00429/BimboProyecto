@@ -1,10 +1,14 @@
 ---
 title: "Sesión 2026-09-08 — Plan de CI-CD y actualizaciones remotas"
-tags: [sesion, plan, documentacion, cicd, despliegue]
+type: sesion
+status: vigente
 date: 2026-09-08
-branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Codex (agente)
-estado: solo_documentacion
+updated: 2026-09-08
+autor: por-confirmar
+agente: humano
+rama: feat/fase8-MaquetadodeRoles
+tags: [sesion, plan, documentacion, cicd, despliegue]
+summary: "Se guardó el plan acordado para distribuir el instalador y futuras actualizaciones por Internet. Solo se editaron notas dentro de `contexto/`; no se implementó el actualizador ni CI/CD."
 ---
 
 # Sesión 2026-09-08 — Plan de CI-CD y actualizaciones remotas

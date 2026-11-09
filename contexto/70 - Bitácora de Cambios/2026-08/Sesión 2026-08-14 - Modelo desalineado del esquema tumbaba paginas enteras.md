@@ -1,15 +1,15 @@
 ---
 title: "Sesión 2026-08-14 — El modelo C# desalineado del esquema tumbaba páginas enteras de Productos"
-tags:
-  - sesion
-  - productos
-  - paginacion
-  - supabase
-  - bugfix
-  - modelado
+type: sesion
+status: vigente
 date: 2026-08-14
-branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Claude Opus 5 (Claude Code)
+updated: 2026-08-14
+autor: por-confirmar
+agente: humano
+modelo: opus-5
+rama: feat/fase8-MaquetadodeRoles
+tags: [sesion, productos, paginacion, supabase, bugfix, modelado]
+summary: "Las cuatro FK de `productos` que son NULLABLE en la base (`id_presentacion`, `id_fabricante`, `id_categoria`, `id_pais`) pasaron a ser `int?` en el modelo C#, el DTO y el modal. Antes, cualquier fila con NULL en alguna de ellas hacía fallar la deserialización de **la consulta entera**, y la página no cargaba nunca. Build: `0 errores`, `0 advertencias`."
 ---
 
 # Sesión 2026-08-14 — El modelo C# desalineado del esquema tumbaba páginas enteras de Productos

@@ -1,13 +1,13 @@
-﻿---
+---
 title: "Sesión 2026-09-10 — Migración de la solución a .NET 10 (LTS)"
+type: sesion
+status: vigente
 date: 2026-09-10
-tags:
-  - bitacora
-  - sesion
-  - net10
-  - arquitectura
-aliases:
-  - Migración .NET 10
+updated: 2026-09-10
+autor: por-confirmar
+agente: humano
+tags: [bitacora, sesion, net10, arquitectura]
+summary: "Migración de la solución a .NET 10 (LTS)"
 ---
 
 # Sesión 2026-09-10 — Migración de la solución a .NET 10 (LTS)

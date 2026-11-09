@@ -1,15 +1,13 @@
 ---
 title: "Sesión 2026-09-02 - Validación de longitud máxima en campos de texto"
-tags:
-  - sesion
-  - validacion
-  - dominio
-  - wpf
-  - supabase
-  - ghosttextbox
-  - tests
+type: sesion
+status: vigente
 date: 2026-09-02
-estado: implementado
+updated: 2026-09-02
+autor: por-confirmar
+agente: humano
+tags: [sesion, validacion, dominio, wpf, supabase, ghosttextbox, tests]
+summary: "Se completó la implementación integral y sincronización de topes de longitud máxima en toda la aplicación: 10 entidades de dominio (34 reglas) alineadas con el esquema PostgreSQL de Supabase, derivación automática de `MaxLength` en UI mediante `ValidadorFormulario.Segun()`, limpieza de `MaxLength` redundante en XAML, estabilización completa de `GhostTextBox` (scroll horizontal sincronizado, detección de dominios externos y liberación de CTS), suite de pruebas de deriva y frontera, y documentación exhaustiva en la bóveda de conocimiento."
 ---
 
 # Sesión 2026-09-02 - Validación de longitud máxima en campos de texto
@@ -29,7 +27,7 @@ Antes de esta intervención, la validación de longitud máxima en la solución 
 4. **Defectos en `GhostTextBox` (Login):**
    - No exponía una `DependencyProperty` para `MaxLength`, impidiendo fijar límites a la caja de texto interna (`InnerBox`).
    - Al escribir más de 60 caracteres, el `ScrollViewer` interno de `InnerBox` desplazaba el texto pero `GhostDisplay` permanecía en offset 0, causando un desfase visual evidente.
-   - Si el usuario escribía un correo de un dominio ajeno (ej. `test@yahoo.com`), `GetRemainingSuffix` concatenaba indebidamente el sufijo de empresa, produciendo `test@yahoo.com@gmail.com`.
+   - Si el usuario escribía un correo de un dominio ajeno (ej. `test@example.org`), `GetRemainingSuffix` concatenaba indebidamente el sufijo de empresa, produciendo `test@example.org@example.com`.
    - Los debouncers de autocompletado acumulaban instancias de `CancellationTokenSource` sin llamar a `.Dispose()`.
    - `GetFullText()` no aplicaba recorte defensivo con base en `MaxLength`.
 5. **Carencia de Pruebas Automatizadas de Deriva de Esquema:** No existían pruebas que auditaran que las constantes de C# se mantuvieran sincronizadas con los tipos y longitudes de PostgreSQL.
