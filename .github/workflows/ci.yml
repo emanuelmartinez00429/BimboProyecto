@@ -1,26 +1,16 @@
-name: CI
+name: ci
 
-# Validación: compila y ejecuta pruebas. NO publica releases.
-# Separado a propósito de publish-velopack-release.yml para que un cambio en
-# documentación o en los propios workflows pueda verificarse sin emitir una versión
-# descendable para los clientes.
+# Pipeline de integración continua con DevSecOps (R5).
+# - cambios: analiza rutas tocadas, límite de tamaño del PR y escaneo de secretos con gitleaks 8.30.1.
+# - dotnet: compila en Release con 0 advertencias, corre pruebas xUnit y audita vulnerabilidades NuGet.
+# - CI completo: único check obligatorio agregador para branch protection rulesets.
+# Todas las acciones están fijadas por SHA de commit con versión en comentario.
+
 on:
-  push:
-    branches:
-      - main
-      - master
-    paths:
-      - "BimboProyecto.sln"
-      - "CapaUI/**"
-      - "CapaDatos/**"
-      - "CapaDominio/**"
-      - "CapaAplicacion4/**"
-      - "BimboProyecto.Tests/**"
-      - ".github/workflows/**"
   pull_request:
-    branches:
-      - main
-      - master
+  push:
+    branches: [main]
+  workflow_dispatch: # Corrida manual: revisa todo el historial y ejecuta todos los jobs
 
 permissions:
   contents: read
@@ -30,27 +20,135 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build-test:
-    name: Compilar y probar
+  cambios:
+    name: Cambios y secretos
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      dotnet: ${{ steps.rutas.outputs.dotnet }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Rutas tocadas
+        id: rutas
+        env:
+          EVENTO: ${{ github.event_name }}
+          BASE_PR: ${{ github.event.pull_request.base.sha }}
+          CABEZA_PR: ${{ github.event.pull_request.head.sha }}
+          ANTES: ${{ github.event.before }}
+        run: |
+          case "$EVENTO" in
+            pull_request) base="$BASE_PR"; cabeza="$CABEZA_PR" ;;
+            push) base="$ANTES"; cabeza="$GITHUB_SHA" ;;
+            *) base=""; cabeza="$GITHUB_SHA" ;;
+          esac
+          # Sin base conocida (corrida manual o rama nueva): se revisa todo
+          if [ -n "$base" ] && git cat-file -e "$base^{commit}" 2>/dev/null; then
+            archivos=$(git diff --name-only "$(git merge-base "$base" "$cabeza")" "$cabeza")
+            echo "rango=$base..$cabeza" >> "$GITHUB_OUTPUT"
+          else
+            archivos="(todo)"
+            echo "rango=" >> "$GITHUB_OUTPUT"
+          fi
+          printf 'Archivos:\n%s\n' "$archivos"
+          toca() { [ "$archivos" = "(todo)" ] || grep -qE "$1" <<< "$archivos"; }
+          if toca '^(BimboProyecto\.sln|CapaUI/|CapaDatos/|CapaDominio/|CapaAplicacion4/|BimboProyecto\.Tests/|\.github/workflows/ci\.yml$)'; then dotnet=true; else dotnet=false; fi
+          echo "dotnet=$dotnet" >> "$GITHUB_OUTPUT"
+          echo "dotnet=$dotnet"
+
+      - name: Tamaño del PR
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_PR: ${{ github.event.pull_request.base.sha }}
+          CABEZA_PR: ${{ github.event.pull_request.head.sha }}
+        run: |
+          # Líneas de código agregadas y quitadas con pruebas; sin contexto/, .md, lockfiles ni migraciones
+          base=$(git merge-base "$BASE_PR" "$CABEZA_PR")
+          lineas=$(git diff --numstat "$base" "$CABEZA_PR" -- . \
+            ':(exclude)contexto/**' \
+            ':(exclude)*.md' \
+            ':(exclude)*.lock' \
+            ':(exclude)*.jsonl' \
+            ':(exclude)supabase/migrations/**' \
+            ':(exclude)auditoria/migrations/**' | \
+            awk '$1 != "-" { s += $1 + $2 } END { print s + 0 }')
+          echo "Líneas de código del PR: $lineas (recomendado: unas 500; tope: 1000)"
+          if [ "$lineas" -gt 1000 ]; then
+            echo "::error::El PR tiene $lineas líneas de código; el tope es 1000. Pártelo en PR más chicos."
+            exit 1
+          fi
+          if [ "$lineas" -gt 500 ]; then
+            echo "::warning::El PR tiene $lineas líneas de código; lo recomendado son unas 500."
+          fi
+
+      - name: Secretos (gitleaks)
+        env:
+          VERSION: 8.30.1
+          SHA256: 551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
+          RANGO: ${{ steps.rutas.outputs.rango }}
+        run: |
+          curl -sSfL -o "$RUNNER_TEMP/gitleaks.tar.gz" \
+            "https://github.com/gitleaks/gitleaks/releases/download/v${VERSION}/gitleaks_${VERSION}_linux_x64.tar.gz"
+          echo "${SHA256}  $RUNNER_TEMP/gitleaks.tar.gz" | sha256sum --check --strict
+          tar -xzf "$RUNNER_TEMP/gitleaks.tar.gz" -C "$RUNNER_TEMP" gitleaks
+          opciones=()
+          if [ -n "$RANGO" ]; then opciones+=("--log-opts=$RANGO"); fi
+          # --redact: el secreto nunca se imprime en el log
+          "$RUNNER_TEMP/gitleaks" git --config .gitleaks.toml --no-banner --redact --verbose "${opciones[@]}" .
+
+  dotnet:
+    name: Compilar y probar .NET
+    needs: cambios
+    if: needs.cambios.outputs.dotnet == 'true' || github.event_name != 'pull_request'
     runs-on: windows-latest
     timeout-minutes: 30
     steps:
-      - name: Obtener código
-        uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Configurar .NET 10
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@3951f04f94416c3741b6530178323a677e4871e9 # v4.3.0
         with:
           dotnet-version: 10.0.x
 
-      - name: Restaurar
+      - name: Restaurar dependencias
         run: dotnet restore BimboProyecto.sln
 
-      - name: Compilar (Release)
-        run: dotnet build BimboProyecto.sln -c Release --no-restore
+      - name: Compilar (Release, 0 advertencias)
+        run: dotnet build BimboProyecto.sln -c Release --no-restore /p:TreatWarningsAsErrors=true
 
-      # Las pruebas de integración que dependen de Supabase se omiten si no existe
-      # BIMBO_POSTGRES_CONNECTION_STRING. Un verde aquí no certifica integración
-      # ejercitada: solo cubre las pruebas que se ejecutan de verdad.
-      - name: Probar
+      - name: Ejecutar pruebas unitarias
         run: dotnet test BimboProyecto.Tests\BimboProyecto.Tests.csproj -c Release --no-build --logger "console;verbosity=normal"
+
+      - name: Escanear vulnerabilidades de paquetes NuGet
+        shell: pwsh
+        run: |
+          $salida = dotnet list BimboProyecto.sln package --vulnerable --include-transitive
+          $salida | Write-Host
+          if ($salida -match '(?i)(High|Critical|Alta|Crítica)') {
+            Write-Error "Se encontraron paquetes NuGet con vulnerabilidades de severidad High o Critical."
+            exit 1
+          }
+
+  ci-completo:
+    name: CI completo
+    if: always()
+    needs: [cambios, dotnet]
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Resultado de los jobs
+        env:
+          RESULTADOS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "Resultados: $RESULTADOS"
+          case " $RESULTADOS " in
+            *" failure "* | *" cancelled "*)
+              echo "::error::Un job falló o se canceló."
+              exit 1
+              ;;
+          esac

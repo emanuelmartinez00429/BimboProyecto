@@ -44,11 +44,11 @@ public sealed class ContratoRbacTests
         Assert.Matches(new Regex(patron, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant), sql);
     }
 
-    [Fact]
+    [SkippableFact]
     public async Task IntegracionSupabase_ContratoRbacCoincideConAccionesRemotas_CuandoHayConexion()
     {
         var conexion = Environment.GetEnvironmentVariable("BIMBO_POSTGRES_CONNECTION_STRING");
-        if (string.IsNullOrWhiteSpace(conexion)) return;
+        Skip.If(string.IsNullOrWhiteSpace(conexion), "Se omite porque no está configurada la variable de entorno BIMBO_POSTGRES_CONNECTION_STRING.");
 
         await using var db = new NpgsqlConnection(conexion);
         await db.OpenAsync();
@@ -69,11 +69,11 @@ public sealed class ContratoRbacTests
         Assert.False(await lectorDuplicados.ReadAsync(), "public.acciones contiene codigo_accion duplicados.");
     }
 
-    [Fact]
+    [SkippableFact]
     public async Task IntegracionSupabase_CambiarEstadoUsuarioMantieneContratoRemoto_CuandoHayConexion()
     {
         var conexion = Environment.GetEnvironmentVariable("BIMBO_POSTGRES_CONNECTION_STRING");
-        if (string.IsNullOrWhiteSpace(conexion)) return;
+        Skip.If(string.IsNullOrWhiteSpace(conexion), "Se omite porque no está configurada la variable de entorno BIMBO_POSTGRES_CONNECTION_STRING.");
 
         await using var db = new NpgsqlConnection(conexion);
         await db.OpenAsync();

@@ -214,5 +214,20 @@ vpk upload github `
 
 Assert-LastExit 'vpk upload github'
 
+# Adjuntar SBOM CycloneDX al release si existe en Releases
+$sbomPath = Join-Path $releasePath 'sbom.json'
+if (Test-Path $sbomPath) {
+    Write-Host "==> Adjuntando SBOM CycloneDX ($sbomPath) al release..."
+    if (Get-Command 'gh' -ErrorAction SilentlyContinue) {
+        $env:GH_TOKEN = $Token
+        gh release upload "v$Version" $sbomPath --clobber
+        Assert-LastExit 'gh release upload sbom.json'
+        Write-Host "    OK: SBOM adjuntado al release v$Version."
+    }
+    else {
+        Write-Warning "No se encontró el comando 'gh' en el PATH para adjuntar el SBOM al release."
+    }
+}
+
 Write-Host ''
 Write-Host "==> Release v$Version publicado."

@@ -1,0 +1,11 @@
+# Dueños de código (R5 DevSecOps). GitHub solicita revisión automática cuando un PR toca sus rutas.
+# Requiere aprobación obligatoria de un integrador según las reglas de protección de rama.
+# Cada ruta crítica cuenta con 2 dueños: nadie aprueba su propio PR. La última regla prevalece.
+
+/.github/              @RedFer855 @emanuelmartinez00429
+/supabase/migrations/  @RedFer855 @emanuelmartinez00429
+/auditoria/            @RedFer855 @emanuelmartinez00429
+/scripts/              @RedFer855 @emanuelmartinez00429
+/AGENTS.md             @RedFer855 @emanuelmartinez00429
+/.gitleaks.toml        @RedFer855 @emanuelmartinez00429
+/contexto/.control/    @RedFer855 @emanuelmartinez00429

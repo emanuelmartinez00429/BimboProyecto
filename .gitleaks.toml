@@ -1,0 +1,26 @@
+# gitleaks para BimboProyecto (R5 DevSecOps). Lo usa el job "Cambios y secretos" de ci.yml.
+# Parte de las reglas por defecto y agrega las de secretos propios del backend de Supabase.
+# Si gitleaks marca un secreto real: se rota primero y se quita de la rama. Nunca se agrega una excepción para dejarlo pasar.
+
+title = "BimboProyecto"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Clave anon de Supabase en CapaUI/App.config: es pública por diseño y la protegen el login y las políticas RLS."
+regexes = [
+    '''eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9\.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ6bW1yaWZqZ3psdnNwaGN0YWlzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MDIwNjUsImV4cCI6MjA4OTM3ODA2NX0\.Ah6AYyb5UlLi2ihvsM_NfoYVFWe1aEHvYkVMQiADEpk'''
+]
+
+[[rules]]
+id = "supabase-service-role"
+description = "Clave service_role o token JWT con payload de role service_role de Supabase. Prohibido estrictamente en el cliente o repositorio."
+regex = '''(?i)(service_role[\w.\-]{0,30}["']?\s*[:=]\s*["']?([A-Za-z0-9_\-.]{20,})|eyJ[A-Za-z0-9-_=]+\.eyJ[A-Za-z0-9-_=]*yb2xlIjoic2VydmljZV9yb2xl[A-Za-z0-9-_=]*\.[A-Za-z0-9-_=]+)'''
+keywords = ["service_role", "yb2xlIjoic2VydmljZV9yb2xl"]
+
+[[rules]]
+id = "supabase-secret-key"
+description = "Clave secreta de Supabase tipo sb_secret_."
+regex = '''sb_secret_[A-Za-z0-9_\-.]{20,}'''
+keywords = ["sb_secret_"]

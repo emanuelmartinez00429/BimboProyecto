@@ -1,0 +1,33 @@
+# Dependabot (R5 DevSecOps). Revisa cada lunes y abre como máximo 3 PR por ecosistema.
+# Los PR pasan por el pipeline de CI completo y requieren aprobación de un integrador antes de fusionar.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: America/Tegucigalpa
+    open-pull-requests-limit: 3
+    groups:
+      acciones:
+        patterns: ["*"]
+    commit-message:
+      prefix: ci
+      include: scope
+
+  - package-ecosystem: nuget
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: America/Tegucigalpa
+    open-pull-requests-limit: 3
+    groups:
+      paquetes:
+        patterns: ["*"]
+    commit-message:
+      prefix: build
+      include: scope

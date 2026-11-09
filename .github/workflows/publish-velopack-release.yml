@@ -1,27 +1,20 @@
 name: Publicar actualización Velopack
 
+# Pipeline de publicación de releases con Velopack (R5).
+# - Disparo exclusivo: por workflow_run cuando 'ci' termina con 'success' en 'main', o por workflow_dispatch.
+# - Entorno: 'produccion' con aprobación humana obligatoria configurada por el admin.
+# - Genera y adjunta SBOM CycloneDX al release para trazabilidad de cadena de suministro.
+# - Permiso contents: write acotado estrictamente a este job.
+
 on:
-  # Publicación: solo cambios que alteran el binario distribuido (o el script que lo
-  # empaqueta) o un disparo manual explícito. La documentación (contexto/), la
-  # configuración de agentes (.claude/, .agents/, .codex/, .cursor/) y el propio YAML
-  # de CI no publican release: no cambian el ejecutable y generarían una versión
-  # descendable de ~74 MB por cada commit. Esos cambios los valida ci.yml.
-  push:
-    branches:
-      - main
-    paths:
-      - "BimboProyecto.sln"
-      - "CapaUI/**"
-      - "CapaDatos/**"
-      - "CapaDominio/**"
-      - "CapaAplicacion4/**"
-      - "scripts/publish-release.ps1"
-  # Acción explícita de release. Requiere que este archivo exista también en la rama
-  # por defecto del repositorio (master) para aparecer en la UI de Actions.
+  workflow_run:
+    workflows: ["ci"]
+    branches: [main]
+    types: [completed]
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: velopack-release-main
@@ -29,13 +22,20 @@ concurrency:
 
 jobs:
   publish:
+    name: Publicar Release
+    if: github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success')
     runs-on: windows-latest
+    environment: produccion
+    permissions:
+      contents: write
     steps:
       - name: Obtener código
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Configurar .NET 10
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@3951f04f94416c3741b6530178323a677e4871e9 # v4.3.0
         with:
           dotnet-version: 10.0.x
 
@@ -43,8 +43,15 @@ jobs:
         shell: pwsh
         run: dotnet tool install --global vpk --version 1.2.161
 
+      - name: Generar SBOM CycloneDX
+        shell: pwsh
+        run: |
+          dotnet tool install --global CycloneDX
+          New-Item -ItemType Directory -Force -Path Releases
+          dotnet CycloneDX CapaUI/CapaUI.csproj -o Releases -fn sbom.json -F Json
+
       - name: Publicar Release de Velopack
         shell: pwsh
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: .\scripts\publish-release.ps1 -Upload -Version "1.0.$env:GITHUB_RUN_NUMBER"
