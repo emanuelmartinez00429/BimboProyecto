@@ -94,6 +94,19 @@ BEFORE UPDATE OR DELETE ON auditoria.deuda_resuelta
 FOR EACH ROW
 EXECUTE FUNCTION auditoria.impedir_modificacion_o_borrado();
 
+-- Los triggers FOR EACH ROW no se disparan con TRUNCATE: se bloquea aparte.
+DROP TRIGGER IF EXISTS trg_sesiones_sin_truncate ON auditoria.sesiones;
+CREATE TRIGGER trg_sesiones_sin_truncate
+BEFORE TRUNCATE ON auditoria.sesiones
+FOR EACH STATEMENT
+EXECUTE FUNCTION auditoria.impedir_modificacion_o_borrado();
+
+DROP TRIGGER IF EXISTS trg_deuda_resuelta_sin_truncate ON auditoria.deuda_resuelta;
+CREATE TRIGGER trg_deuda_resuelta_sin_truncate
+BEFORE TRUNCATE ON auditoria.deuda_resuelta
+FOR EACH STATEMENT
+EXECUTE FUNCTION auditoria.impedir_modificacion_o_borrado();
+
 -- 7. Row Level Security (RLS)
 ALTER TABLE auditoria.sesiones ENABLE ROW LEVEL SECURITY;
 ALTER TABLE auditoria.deuda_resuelta ENABLE ROW LEVEL SECURITY;
@@ -133,7 +146,9 @@ USING (
 -- 8. Concesión de privilegios mínimos sobre el esquema auditoria
 GRANT USAGE ON SCHEMA auditoria TO authenticated, service_role;
 GRANT SELECT ON ALL TABLES IN SCHEMA auditoria TO authenticated;
-GRANT ALL ON ALL TABLES IN SCHEMA auditoria TO service_role;
+-- El pipeline de archivo solo inserta y verifica: nada de UPDATE, DELETE ni TRUNCATE.
+GRANT SELECT, INSERT ON ALL TABLES IN SCHEMA auditoria TO service_role;
+REVOKE UPDATE, DELETE, TRUNCATE ON ALL TABLES IN SCHEMA auditoria FROM service_role, authenticated;
 
 REVOKE ALL ON SCHEMA auditoria FROM anon;
 REVOKE ALL ON ALL TABLES IN SCHEMA auditoria FROM anon;
