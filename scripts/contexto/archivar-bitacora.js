@@ -373,6 +373,29 @@ function escribirBackups(backupDir, sesiones, deudas) {
 // Operaciones con Supabase (Modo --aplicar)
 // -----------------------------------------------------------------------------
 
+// Devuelve el conjunto de hashes (de los pedidos) que ya existen en la tabla.
+// Consulta solo esos hashes, en lotes, para no depender del límite de filas
+// por respuesta de PostgREST (1000 por defecto).
+async function leerHashesExistentes(cleanUrl, key, tabla, hashes, tamLote = 100) {
+  const encontrados = new Set();
+  for (let i = 0; i < hashes.length; i += tamLote) {
+    const lote = hashes.slice(i, i + tamLote);
+    const filtro = encodeURIComponent(`in.(${lote.join(",")})`);
+    const res = await fetch(`${cleanUrl}/rest/v1/${tabla}?select=sha256&sha256=${filtro}`, {
+      headers: {
+        apikey: key,
+        Authorization: `Bearer ${key}`,
+        "Accept-Profile": "auditoria",
+      },
+    });
+    if (!res.ok) {
+      throw new Error(`Error al verificar lectura de ${tabla}: ${res.status} ${await res.text()}`);
+    }
+    for (const fila of await res.json()) encontrados.add(fila.sha256);
+  }
+  return encontrados;
+}
+
 async function aplicarEnSupabase(url, key, sesiones, deudas) {
   if (!url || !key) {
     throw new Error(
@@ -409,7 +432,9 @@ async function aplicarEnSupabase(url, key, sesiones, deudas) {
       apikey: key,
       Authorization: `Bearer ${key}`,
       "Content-Type": "application/json",
-      Prefer: "resolution=merge-duplicates,return=representation",
+      // ignore-duplicates: las tablas son inmutables (trigger WORM rechaza UPDATE),
+      // así que un registro ya archivado se ignora en vez de intentar actualizarlo.
+      Prefer: "resolution=ignore-duplicates,return=minimal",
       "Accept-Profile": "auditoria",
       "Content-Profile": "auditoria",
     },
@@ -437,7 +462,7 @@ async function aplicarEnSupabase(url, key, sesiones, deudas) {
       apikey: key,
       Authorization: `Bearer ${key}`,
       "Content-Type": "application/json",
-      Prefer: "resolution=merge-duplicates,return=representation",
+      Prefer: "resolution=ignore-duplicates,return=minimal",
       "Accept-Profile": "auditoria",
       "Content-Profile": "auditoria",
     },
@@ -452,18 +477,12 @@ async function aplicarEnSupabase(url, key, sesiones, deudas) {
   // 3. Verificación de ida y vuelta: consulta de hashes
   console.log(`[APLICAR] Verificando conteo y hashes de ida y vuelta en Supabase...`);
 
-  const resCheckSesiones = await fetch(`${cleanUrl}/rest/v1/sesiones?select=sha256`, {
-    headers: {
-      apikey: key,
-      Authorization: `Bearer ${key}`,
-      "Accept-Profile": "auditoria",
-    },
-  });
-  if (!resCheckSesiones.ok) {
-    throw new Error(`Error al verificar lectura de sesiones: ${resCheckSesiones.status}`);
-  }
-  const dataSesiones = await resCheckSesiones.json();
-  const dbHashesSesiones = new Set(dataSesiones.map((x) => x.sha256));
+  const dbHashesSesiones = await leerHashesExistentes(
+    cleanUrl,
+    key,
+    "sesiones",
+    sesiones.map((s) => s.sha256)
+  );
 
   const sesionesFaltantes = sesiones.filter((s) => !dbHashesSesiones.has(s.sha256));
   if (sesionesFaltantes.length > 0) {
@@ -472,18 +491,12 @@ async function aplicarEnSupabase(url, key, sesiones, deudas) {
     );
   }
 
-  const resCheckDeuda = await fetch(`${cleanUrl}/rest/v1/deuda_resuelta?select=sha256`, {
-    headers: {
-      apikey: key,
-      Authorization: `Bearer ${key}`,
-      "Accept-Profile": "auditoria",
-    },
-  });
-  if (!resCheckDeuda.ok) {
-    throw new Error(`Error al verificar lectura de deuda_resuelta: ${resCheckDeuda.status}`);
-  }
-  const dataDeuda = await resCheckDeuda.json();
-  const dbHashesDeuda = new Set(dataDeuda.map((x) => x.sha256));
+  const dbHashesDeuda = await leerHashesExistentes(
+    cleanUrl,
+    key,
+    "deuda_resuelta",
+    deudas.map((d) => d.sha256)
+  );
 
   const deudasFaltantes = deudas.filter((d) => !dbHashesDeuda.has(d.sha256));
   if (deudasFaltantes.length > 0) {
@@ -494,7 +507,28 @@ async function aplicarEnSupabase(url, key, sesiones, deudas) {
 
   console.log(`[APLICAR] Verificación 100% exitosa: coinciden todos los hashes y conteos.`);
 
-  // 4. Actualizar resúmenes mensuales con lista de IDs archivados
+  // 4. git rm de las notas archivadas. Va antes de tocar los resúmenes: si una
+  //    nota no se puede retirar, se aborta y ningún resumen la lista como archivada.
+  console.log(`[APLICAR] Ejecutando git rm de ${sesiones.length} notas de sesión archivadas...`);
+  const fallidas = [];
+  for (const s of sesiones) {
+    try {
+      execFileSync("git", ["rm", "-f", "--", s.ruta_original], {
+        cwd: ROOT,
+        stdio: ["ignore", "pipe", "pipe"],
+      });
+    } catch (e) {
+      fallidas.push(`${s.ruta_original}: ${e.message}`);
+    }
+  }
+  if (fallidas.length > 0) {
+    throw new Error(
+      `git rm falló en ${fallidas.length} notas; no se actualizan los resúmenes. Revisar y restaurar con 'git restore --staged --worktree' antes de reintentar.\n  ` +
+        fallidas.join("\n  ")
+    );
+  }
+
+  // 5. Actualizar resúmenes mensuales con lista de IDs archivados
   const porMes = {};
   for (const s of sesiones) {
     const m = s.mes_grupo || s.date.slice(0, 7);
@@ -516,19 +550,6 @@ async function aplicarEnSupabase(url, key, sesiones, deudas) {
         contenidoResumen = contenidoResumen.trimEnd() + bloqueArchivadas;
         fs.writeFileSync(resumenPath, contenidoResumen, "utf8");
       }
-    }
-  }
-
-  // 5. git rm de las notas archivadas
-  console.log(`[APLICAR] Ejecutando git rm de ${sesiones.length} notas de sesión archivadas...`);
-  for (const s of sesiones) {
-    try {
-      execFileSync("git", ["rm", "-f", s.ruta_original], {
-        cwd: ROOT,
-        stdio: ["ignore", "pipe", "pipe"],
-      });
-    } catch (e) {
-      console.warn(`Aviso: git rm falló para ${s.ruta_original}:`, e.message);
     }
   }
 

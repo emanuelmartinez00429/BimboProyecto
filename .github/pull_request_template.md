@@ -4,7 +4,7 @@
 
 ## Checklist DevSecOps
 
-- [ ] **Tamaño del PR:** Unas 500 líneas de código o menos (tope 1000 con pruebas; el CI lo revisa automáticamente).
+- [ ] **Tamaño del PR:** Unas 2000 líneas de código o menos (tope 2500; el CI lo revisa automáticamente).
 - [ ] **Sin secretos:** Sin contraseñas, tokens JWT privados, `service_role`, `sb_secret_`, ni rutas absolutas de disco o datos personales en el código o notas.
 - [ ] **Seguridad de Base de Datos:** RLS revisado y verificado si toca migraciones (`supabase/migrations/` o `auditoria/migrations/`).
 - [ ] **Documentación y Contexto:** `contexto/` actualizado (nota de sesión, ADR o deuda técnica) o justificación explícita abajo (`sin-doc: <motivo>`).

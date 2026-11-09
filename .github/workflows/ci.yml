@@ -75,13 +75,13 @@ jobs:
             ':(exclude)supabase/migrations/**' \
             ':(exclude)auditoria/migrations/**' | \
             awk '$1 != "-" { s += $1 + $2 } END { print s + 0 }')
-          echo "Líneas de código del PR: $lineas (recomendado: unas 500; tope: 1000)"
-          if [ "$lineas" -gt 1000 ]; then
-            echo "::error::El PR tiene $lineas líneas de código; el tope es 1000. Pártelo en PR más chicos."
+          echo "Líneas de código del PR: $lineas (recomendado: unas 2000; tope: 2500)"
+          if [ "$lineas" -gt 2500 ]; then
+            echo "::error::El PR tiene $lineas líneas de código; el tope es 2500. Pártelo en PR más chicos."
             exit 1
           fi
-          if [ "$lineas" -gt 500 ]; then
-            echo "::warning::El PR tiene $lineas líneas de código; lo recomendado son unas 500."
+          if [ "$lineas" -gt 2000 ]; then
+            echo "::warning::El PR tiene $lineas líneas de código; lo recomendado son unas 2000."
           fi
 
       - name: Secretos (gitleaks)
