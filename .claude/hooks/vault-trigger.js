@@ -18,7 +18,7 @@
 // Cadena de lectura, de mas a menos confiable:
 //   1) fetch + origin/master  -> siempre lo ultimo pusheado, sin importar
 //      cuando arranco esta sesion/worktree (HEAD local queda congelado en
-//      el momento del checkout, origin/master no).
+//      el momento del checkout, origin/main no).
 //   2) HEAD local             -> si no hay red, usa el ultimo commit que
 //      esta sesion ya conoce.
 //   3) archivo vivo en disco  -> ultimo recurso; el archivo vive bajo
@@ -40,13 +40,13 @@ process.stdin.on("end", () => {
       let content;
       let source;
       try {
-        execFileSync("git", ["fetch", "origin", "master", "--quiet"], { encoding: "utf8", timeout: 8000 });
-        content = execFileSync("git", ["show", "origin/master:" + vaultPath], { encoding: "utf8", timeout: 5000 });
-        source = "origin/master (recien fetcheado)";
+        execFileSync("git", ["fetch", "origin", "main", "--quiet"], { encoding: "utf8", timeout: 8000 });
+        content = execFileSync("git", ["show", "origin/main:" + vaultPath], { encoding: "utf8", timeout: 5000 });
+        source = "origin/main (recien fetcheado)";
       } catch (fetchErr) {
         try {
           content = execFileSync("git", ["show", "HEAD:" + vaultPath], { encoding: "utf8" });
-          source = "HEAD local (no se pudo fetchear origin/master)";
+          source = "HEAD local (no se pudo fetchear origin/main)";
         } catch (gitErr) {
           content = fs.readFileSync(vaultPath, "utf8");
           source = "archivo en disco (git tampoco disponible)";

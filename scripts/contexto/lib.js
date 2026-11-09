@@ -12,14 +12,14 @@ const EXCLUIR = new Set([".obsidian", ".control", "_templates", "node_modules"])
 
 const CARPETAS = [
   ["00 - MOC", "Mapas de contenido y dashboard"],
-  ["10 - Arquitectura", "Directrices y conceptos arquitectónicos"],
-  ["20 - Patrones", "Patrones de código y UI reutilizables"],
-  ["30 - Casos de Uso", "Casos de uso y flujos operativos"],
-  ["40 - Proyecto Bimbo", "Estado vivo: módulos, arquitectura y deuda abierta"],
-  ["45 - Decisiones", "Registros de decisión de arquitectura (ADR)"],
-  ["50 - Referencia", "Hechos externos, SDKs, APIs y configuración"],
-  ["60 - Revisiones QA", "Auditorías de calidad y revisiones entre agentes"],
-  ["70 - Bitácora de Cambios", "Sesiones de trabajo por mes y resúmenes"],
+  ["10 - Arquitectura", "Directrices arquitectónicas"],
+  ["20 - Patrones", "Patrones de código y UI"],
+  ["30 - Casos de Uso", "Casos de uso y flujos"],
+  ["40 - Proyecto Bimbo", "Estado vivo: módulos, arquitectura y deuda"],
+  ["45 - Decisiones", "Registros de decisión (ADR)"],
+  ["50 - Referencia", "Hechos externos, SDKs y APIs"],
+  ["60 - Revisiones QA", "Revisiones de calidad y auditorías"],
+  ["70 - Bitácora de Cambios", "Sesiones por mes y resúmenes"],
 ];
 
 const TIPOS = new Set([
@@ -189,12 +189,11 @@ function lineaNota(n, sangria = "") {
     }
     const estado = fm.status || (fm.estado === "propuesto" ? "propuesto" : "vigente");
     meta = [tipo, estado];
-    if (fm.updated) meta.push(fm.updated);
   }
   let sum = "";
   if (fm.summary) {
     let s = fm.summary.trim();
-    if (s.length > 60) s = s.slice(0, 57) + "...";
+    if (s.length > 25) s = s.slice(0, 22) + "...";
     sum = ` — ${s}`;
   }
   return `${sangria}- [[${n.nombre}]] · ${meta.join(" · ")}${sum}`;
