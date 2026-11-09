@@ -10,6 +10,9 @@ aliases:
 
 # Arquitectura Actual — Bimbo
 
+> [!success] Actualizado 2026-11-08 — Fix de identificador en Reporte de productos
+> El preview del `DataGrid` y el reporte exportado de productos muestran ahora `Código` como primera columna y omiten `IdProducto`; el ID interno sigue disponible para identificar los registros. El commit `9f5bd21` se subió a `Fix/Reporte-productos` y se integró en `main`. El usuario confirmó que la aplicación encontró la actualización tras una demora; no se verificaron desde este entorno el run/release exactos ni las migraciones incluidas previamente en la rama. Ver [[Sesión 2026-11-08 - Fix reporte de productos y actualización remota]].
+
 > [!success] Actualizado 2026-11-08 — Ciclo de actualización remota verificado en cliente
 > El canal `main` → Actions → Release → cliente funcionó de punta a punta: el run `42550903322` publicó `v1.0.3` y una instalación **per-user** (`%LOCALAPPDATA%\BimboPesaje`, HKCU) detectó, descargó el paquete completo y se actualizó sola, sin UAC, quedando `sq.version` en `1.0.3`. Después se separó validación de publicación: `ci.yml` compila y prueba sin publicar, y `publish-velopack-release.yml` solo dispara con cambios de código o `workflow_dispatch`, así que documentación y configuración de agentes ya no generan versiones. Queda pendiente el alcance per-machine (elevación vía IT), la firma de código, la prueba en una máquina limpia y un canal de pruebas independiente. Ver [[Sesión 2026-11-08 - Resolución P-067 (Pkcs 10.0.14)]].
 
