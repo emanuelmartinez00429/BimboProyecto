@@ -1,17 +1,15 @@
 ---
 title: "Sesión 2026-09-11 — Dirty Tracking tipado con ChangeTracker<T> y optimizaciones de catálogo"
+type: sesion
+status: vigente
 date: 2026-09-11
-tags:
-  - bitacora
-  - sesion
-  - wpf
-  - refactor
-  - dirty-tracking
-  - change-tracker
-  - qa
-aliases:
-  - Rollout ChangeTracker
-  - Dirty Tracking Tipado Modales
+updated: 2026-09-11
+autor: fernando
+autor_fuente: git
+agente: claude-code
+modelo: sonnet-5
+tags: [bitacora, sesion, wpf, refactor, dirty-tracking, change-tracker, qa]
+summary: "Durante la auditoría arquitectónica de los formularios de edición, se detectó una vulnerabilidad crítica de mantenimiento en el dirty tracking:"
 ---
 
 # Sesión 2026-09-11 — Dirty Tracking tipado con ChangeTracker<T> y optimizaciones de catálogo

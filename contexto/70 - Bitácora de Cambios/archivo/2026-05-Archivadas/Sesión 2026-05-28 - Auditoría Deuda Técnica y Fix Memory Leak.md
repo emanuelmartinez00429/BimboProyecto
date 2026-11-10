@@ -1,13 +1,13 @@
 ---
 title: "Sesión 2026-05-28 — Auditoría Deuda Técnica y Fix Memory Leak"
-tags:
-  - bitácora
-  - deuda-técnica
-  - memory-leak
-  - wpf
-  - fix
-fecha: 2026-05-28
-estado: Completado
+type: sesion
+status: vigente
+date: 2026-05-28
+updated: 2026-05-28
+autor: por-confirmar
+agente: por-confirmar
+tags: [bitácora, deuda-técnica, memory-leak, wpf, fix]
+summary: "Auditoría Deuda Técnica y Fix Memory Leak"
 ---
 
 # Sesión 2026-05-28 — Auditoría Deuda Técnica y Fix Memory Leak

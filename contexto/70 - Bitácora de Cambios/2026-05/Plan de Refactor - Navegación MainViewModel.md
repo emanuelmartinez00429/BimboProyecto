@@ -1,13 +1,14 @@
 ---
-title: Plan de Refactor — Navegación MainViewModel
-tags:
-  - bimbo
-  - plan
-  - navegacion
-  - mvvm
-  - refactor
+title: "Plan de Refactor — Navegación MainViewModel"
+type: sesion
+status: borrador
 date: 2026-05-23
-status: pendiente
+updated: 2026-05-23
+autor: fernando
+autor_fuente: git
+agente: por-confirmar
+tags: [bimbo, plan, navegacion, mvvm, refactor]
+summary: "Plan de Refactor — Navegación MainViewModel"
 ---
 
 # Plan de Refactor — Navegación MainViewModel

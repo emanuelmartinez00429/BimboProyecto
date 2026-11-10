@@ -1,16 +1,14 @@
 ---
 title: "Sesión 2026-09-17 — Alineación de Columnas a la Izquierda en UsuariosView"
-tags:
-  - sesion
-  - wpf
-  - ui
-  - usuarios
-  - datagrid
-  - estilos
-  - convencion
+type: sesion
+status: vigente
 date: 2026-09-17
-branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Antigravity (agente) — Sesión Fernando
+updated: 2026-09-17
+autor: fernando
+agente: antigravity
+rama: feat/fase8-MaquetadodeRoles
+tags: [sesion, wpf, ui, usuarios, datagrid, estilos, convencion]
+summary: "Se homologó la vista `UsuariosView.xaml` al estándar de diseño del sistema, corrigiendo la alineación de todas las columnas de datos y metadatos hacia la izquierda, retirando el estilo local redundante de `DataGridColumnHeader` para heredar el estilo canónico centralizado en `Styles.xaml`, preservando `#` y `ESTADO` centrados, y agregando pruebas de caja blanca automáticas en `UsuariosWhiteBoxTests.cs`."
 ---
 
 # Sesión 2026-09-17 — Alineación de Columnas a la Izquierda en UsuariosView

@@ -1,9 +1,14 @@
 ---
 title: "Sesión 2026-07-26 - Migración ADRs de Vault y Creación Módulo Usuarios"
-tags: [sesion, bimbo, gestion-usuarios, adr, migracion]
+type: sesion
+status: vigente
 date: 2026-07-26
-branch: main
-autor_cambios: Codex (sesión gestionada por Emanuel)
+updated: 2026-07-26
+autor: emanuel
+agente: codex
+rama: main
+tags: [sesion, bimbo, gestion-usuarios, adr, migracion]
+summary: "El vault personal contenía 7 ADRs muy detallados sobre el módulo de gestión de usuarios que no existían en el repo compartido de contexto. Estos cubrí"
 ---
 
 # Sesión 2026-07-26 - Migración ADRs de Vault y Creación Módulo Usuarios

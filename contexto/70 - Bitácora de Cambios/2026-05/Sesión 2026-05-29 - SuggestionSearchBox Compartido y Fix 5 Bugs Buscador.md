@@ -1,3 +1,16 @@
+---
+title: "Sesión 2026-05-29 — SuggestionSearchBox Compartido y Fix 5 Bugs Buscador"
+type: sesion
+status: vigente
+date: 2026-05-29
+updated: 2026-05-29
+autor: fernando
+autor_fuente: git
+agente: por-confirmar
+tags: [sesion]
+summary: "El buscador con sugerencias estaba duplicado en los 4 formularios (Productos, Proveedores, Fabricantes, Categorías): cada uno tenía su propia clase `S"
+---
+
 # Sesión 2026-05-29 — SuggestionSearchBox Compartido y Fix 5 Bugs Buscador
 
 **Fecha:** 2026-05-29  

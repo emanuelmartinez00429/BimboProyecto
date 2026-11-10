@@ -1,12 +1,13 @@
 ---
 title: "Sesión 2026-05-28 — Fix Búsqueda Multi-Campo en Módulo Productos"
-tags:
-  - sesion
-  - busqueda
-  - supabase
-  - bug
-  - productos
+type: sesion
+status: vigente
 date: 2026-05-28
+updated: 2026-05-28
+autor: por-confirmar
+agente: por-confirmar
+tags: [sesion, busqueda, supabase, bug, productos]
+summary: "El buscador de sugerencias en Productos ahora encuentra por **nombre** y por **código interno**. El placeholder de la UI ya lo prometía — ahora el código lo cumple."
 ---
 
 # Sesión 2026-05-28 — Fix Búsqueda Multi-Campo en Módulo Productos

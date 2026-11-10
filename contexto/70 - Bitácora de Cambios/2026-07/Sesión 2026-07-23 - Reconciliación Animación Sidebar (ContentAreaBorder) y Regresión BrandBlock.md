@@ -1,14 +1,15 @@
 ---
 title: "Sesión 2026-07-23 — Reconciliación Animación Sidebar (ContentAreaBorder) y Regresión BrandBlock"
-tags:
-  - sesion
-  - animacion
-  - sidebar
-  - wpf
-  - deuda-tecnica
-  - regresion
+type: sesion
+status: vigente
 date: 2026-07-23
-branch: feat/fase6-IntegracionWpf/MenuPrincipal
+updated: 2026-07-23
+autor: fernando
+autor_fuente: git
+agente: por-confirmar
+rama: feat/fase6-IntegracionWpf/MenuPrincipal
+tags: [sesion, animacion, sidebar, wpf, deuda-tecnica, regresion]
+summary: "Reconciliación Animación Sidebar (ContentAreaBorder) y Regresión BrandBlock"
 ---
 
 # Sesión 2026-07-23 — Reconciliación documentación vs. código real

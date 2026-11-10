@@ -1,13 +1,16 @@
 ---
 title: "Sesión 2026-08-14 — Logo de empresa dinámico en el login"
-tags:
-  - sesion
-  - login
-  - storage
-  - cache
+type: sesion
+status: vigente
 date: 2026-08-14
-branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Claude Sonnet 5 (Claude Code)
+updated: 2026-08-14
+autor: fernando
+autor_fuente: git
+agente: claude-code
+modelo: sonnet-5
+rama: feat/fase8-MaquetadodeRoles
+tags: [sesion, login, storage, cache]
+summary: "El login ya no muestra un logo fijo empacado en el `.exe`: lee `empresa.logo_empresa`, lo baja del bucket público `empresa-logos` la primera vez y lo cachea localmente. Build (`dotnet build CapaUI/CapaUI.csproj`) sin errores `CS*` — solo falló la copia final de DLLs por tener `CapaUI.exe`/Visual Studio abiertos bloqueando los archivos (`MSB3027`/`MSB3021`, no son errores de código)."
 ---
 
 # Sesión 2026-08-14 — Logo de empresa dinámico en el login

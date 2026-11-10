@@ -1,14 +1,14 @@
 ---
 title: "Sesión 2026-07-26 — Revisión QA Centralización Estilos Modales (opencode)"
-tags:
-  - sesion
-  - qa
-  - revision
-  - estilos
+type: sesion
+status: vigente
 date: 2026-07-26
-branch: feat/fase7-GestióndeUsuarios
-autor_cambios: opencode (gentle-orchestrator)
-revisor: Claude Sonnet 5
+updated: 2026-07-26
+autor: por-confirmar
+agente: opencode
+rama: feat/fase7-GestióndeUsuarios
+tags: [sesion, qa, revision, estilos]
+summary: "Revisión QA Centralización Estilos Modales (opencode)"
 ---
 
 # Sesión 2026-07-26 — Revisión QA: Centralización Estilos Modales (opencode)

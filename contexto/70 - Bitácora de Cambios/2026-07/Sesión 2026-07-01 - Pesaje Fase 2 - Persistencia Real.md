@@ -1,14 +1,15 @@
 ---
 title: "Sesión 2026-07-01 — Pesaje Fase 2: Persistencia Real (movimientos/entradas)"
+type: sesion
+status: vigente
 date: 2026-07-01
-tags:
-  - bitácora
-  - pesaje
-  - persistencia
-  - supabase
-  - trigger
-branch: feat/fase6-IntegracionWpf/MenuPrincipal
-status: Fase 2 completada (falta verificación con login)
+updated: 2026-07-01
+autor: fernando
+autor_fuente: git
+agente: por-confirmar
+rama: feat/fase6-IntegracionWpf/MenuPrincipal
+tags: [bitácora, pesaje, persistencia, supabase, trigger]
+summary: "Se quitó la **semilla en memoria** de la pantalla de Recepción de Materia Prima (ver [[Sesión 2026-07-01 - Pantalla Pesaje WPF y Buscador por Proveedo"
 ---
 
 # Sesión 2026-07-01 — Pesaje Fase 2: Persistencia Real

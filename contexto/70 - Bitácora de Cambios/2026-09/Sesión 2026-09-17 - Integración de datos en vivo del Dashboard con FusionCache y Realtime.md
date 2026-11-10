@@ -1,16 +1,14 @@
-﻿---
+---
 title: "Sesión 2026-09-17 — Integración de datos en vivo del Dashboard con FusionCache y Realtime"
-tags:
-  - sesion
-  - dashboard
-  - wpf
-  - fusioncache
-  - realtime
-  - supabase
-  - rpc
+type: sesion
+status: vigente
 date: 2026-09-17
-branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Antigravity (agente) — Sesión Fernando
+updated: 2026-09-17
+autor: fernando
+agente: antigravity
+rama: feat/fase8-MaquetadodeRoles
+tags: [sesion, dashboard, wpf, fusioncache, realtime, supabase, rpc]
+summary: "Se conectó la vista existente del Dashboard (`DashboardView.xaml`) a datos reales en vivo desde Supabase, reemplazando el 100% de los datos mock en `DashboardVM.cs`. La arquitectura implementa el Approach A: repositorio dedicado `DashboardRepository` con caché L1 `FusionCache` etiquetada para catálogos (ADR-026), política zero-cache para pesajes/mermas, una función RPC PostgreSQL `consultar_kpis_pesajes` optimizada en una sola pasada con `FILTER (WHERE ...)`, y suscripción reactiva Realtime para el feed de pesajes recientes."
 ---
 
 # Sesión 2026-09-17 — Integración de datos en vivo del Dashboard con FusionCache y Realtime

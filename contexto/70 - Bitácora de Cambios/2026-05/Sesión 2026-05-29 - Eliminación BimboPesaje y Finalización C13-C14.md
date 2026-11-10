@@ -1,13 +1,14 @@
 ---
 title: "Sesión 2026-05-29 — Eliminación BimboPesaje y Finalización C13–C14"
+type: sesion
+status: vigente
 date: 2026-05-29
-tags:
-  - bitácora
-  - arquitectura
-  - limpieza
-  - c13
-  - c14
-status: Completado
+updated: 2026-05-29
+autor: fernando
+autor_fuente: git
+agente: por-confirmar
+tags: [bitácora, arquitectura, limpieza, c13, c14]
+summary: "Continuación de la auditoría del 2026-05-29. Dos ítem del plan de remediación habían quedado pendientes en la sesión anterior:"
 ---
 
 # Sesión 2026-05-29 — Eliminación BimboPesaje y Finalización C13–C14

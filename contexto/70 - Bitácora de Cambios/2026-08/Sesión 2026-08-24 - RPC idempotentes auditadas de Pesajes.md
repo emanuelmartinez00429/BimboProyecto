@@ -1,15 +1,14 @@
 ---
-type: session-log
-project: Bimbo Honduras
+title: "Sesión 2026-08-24 - RPC idempotentes auditadas de Pesajes"
+type: sesion
+status: vigente
 date: 2026-08-24
-branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Codex (sesión gestionada por Emanuel)
-tags:
-  - session
-  - pesaje
-  - supabase
-  - rpc
-  - idempotencia
+updated: 2026-08-24
+autor: emanuel
+agente: codex
+rama: feat/fase8-MaquetadodeRoles
+tags: [session, pesaje, supabase, rpc, idempotencia]
+summary: "RPC idempotentes auditadas de Pesajes"
 ---
 
 # Sesión 2026-08-24 - RPC idempotentes auditadas de Pesajes

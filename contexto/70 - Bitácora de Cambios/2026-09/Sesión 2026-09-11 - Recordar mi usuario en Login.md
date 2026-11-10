@@ -1,17 +1,15 @@
 ---
 title: "Sesión 2026-09-11 — Recordar mi usuario en Login (Persistencia Local Aislada)"
+type: sesion
+status: vigente
 date: 2026-09-11
-tags:
-  - bitacora
-  - sesion
-  - wpf
-  - auth
-  - seguridad
-  - clean-architecture
-  - local-storage
-aliases:
-  - Recordar mi usuario
-  - Persistencia de credenciales login
+updated: 2026-09-11
+autor: fernando
+autor_fuente: git
+agente: claude-code
+modelo: sonnet-5
+tags: [bitacora, sesion, wpf, auth, seguridad, clean-architecture, local-storage]
+summary: "1. **Terminales compartidas en planta (patrón de riesgo de [[Deuda Técnica - Pendientes"
 ---
 
 # Sesión 2026-09-11 — Recordar mi usuario en Login (Persistencia Local Aislada)

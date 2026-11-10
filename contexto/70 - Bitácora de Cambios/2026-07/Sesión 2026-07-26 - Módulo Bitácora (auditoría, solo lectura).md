@@ -1,9 +1,15 @@
 ---
 title: "Sesión 2026-07-26 — Módulo Bitácora (auditoría, solo lectura)"
-tags: [sesion, bitacora, auditoria, ui]
+type: sesion
+status: vigente
 date: 2026-07-26
-branch: feat/fase7-GestióndeUsuarios
-autor_cambios: Claude (Sonnet 5), dirigido por Fernando
+updated: 2026-07-26
+autor: fernando
+agente: claude-code
+modelo: sonnet-5
+rama: feat/fase7-GestióndeUsuarios
+tags: [sesion, bitacora, auditoria, ui]
+summary: "Módulo Bitácora (auditoría, solo lectura)"
 ---
 
 # Sesión 2026-07-26 — Módulo Bitácora (auditoría, solo lectura)

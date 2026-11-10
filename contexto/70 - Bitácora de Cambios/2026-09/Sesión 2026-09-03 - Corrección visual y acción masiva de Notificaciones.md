@@ -1,10 +1,15 @@
 ---
 title: "Sesión 2026-09-03 - Corrección visual y acción masiva de Notificaciones"
-tags: [sesion, bimbo, notificaciones, wpf, supabase, rpc]
+type: sesion
+status: vigente
 date: 2026-09-03
-branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Codex
-revisor: Fernando
+updated: 2026-09-03
+autor: emanuel
+autor_fuente: git
+agente: codex
+rama: feat/fase8-MaquetadodeRoles
+tags: [sesion, bimbo, notificaciones, wpf, supabase, rpc]
+summary: "Se rediseñaron la campana, la bandeja completa y el diálogo de detalle, y se convirtió la acción masiva en una lectura y archivo atómicos de toda la Bandeja. Fernando aprobó la corrección visual el 2026-09-03; la solución quedó con compilación limpia, 240/240 pruebas y validación transaccional remota."
 ---
 
 # Sesión 2026-09-03 - Corrección visual y acción masiva de Notificaciones

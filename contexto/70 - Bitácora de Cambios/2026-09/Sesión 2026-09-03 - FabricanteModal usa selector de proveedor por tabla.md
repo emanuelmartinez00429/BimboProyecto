@@ -1,14 +1,14 @@
 ---
 title: "Sesión 2026-09-03 — FabricanteModal usa el selector de proveedor por tabla"
-tags:
-  - sesion
-  - ui
-  - wpf
-  - catalogos
-  - selector
+type: sesion
+status: vigente
 date: 2026-09-03
-branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Claude Fernando
+updated: 2026-09-03
+autor: fernando
+agente: claude-code
+rama: feat/fase8-MaquetadodeRoles
+tags: [sesion, ui, wpf, catalogos, selector]
+summary: "En el modal de fabricantes, el campo **Proveedor** dejó de ser un `ComboBox`"
 ---
 
 # Sesión 2026-09-03 — FabricanteModal usa el selector de proveedor por tabla

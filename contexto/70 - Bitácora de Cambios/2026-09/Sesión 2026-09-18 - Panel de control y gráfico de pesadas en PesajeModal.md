@@ -1,14 +1,15 @@
 ---
 title: "Sesión 2026-09-18 — Panel de control y gráfico de pesadas en PesajeModal"
-tags:
-  - sesion
-  - pesaje
-  - wpf
-  - configuracion
+type: sesion
+status: vigente
 date: 2026-09-18
-branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Claude (agente)
-revisor: Fernando
+updated: 2026-09-18
+autor: fernando
+autor_fuente: git
+agente: claude-code
+rama: feat/fase8-MaquetadodeRoles
+tags: [sesion, pesaje, wpf, configuracion]
+summary: "`PesajeModal` tiene ahora un panel lateral con la diferencia, 4 tarjetas de acumulados, la barra de avance, el gráfico \"Pesadas (kg neto)\" con el punto \"Ahora\" en vivo y avisos en cascada. Las cuentas y la cascada viven en `CapaDominio` con 14 tests. Además se corrigieron dos detalles de `ConfiguracionEmpresaView`: los títulos logo/ícono estaban cruzados y el aviso del dominio pasó a mostrarse solo con foco. Fernando lo revisó visualmente y lo aprobó."
 ---
 
 # Sesión 2026-09-18 — Panel de control y gráfico de pesadas en PesajeModal
@@ -20,7 +21,7 @@ revisor: Fernando
 
 ## Problema / motivo
 
-Existía un plan externo (`D:\Proyectos\investigaciones\Plan_Panel_Control_y_Grafico_Pesadas_Modal.md`) y una imagen de referencia del modal. Al revisar el plan contra el código aparecieron errores que se corrigieron en la implementación en vez de copiarse:
+Existía un plan externo (`investigaciones/Plan_Panel_Control_y_Grafico_Pesadas_Modal.md`) y una imagen de referencia del modal. Al revisar el plan contra el código aparecieron errores que se corrigieron en la implementación en vez de copiarse:
 
 | Error del plan | Corrección aplicada |
 |---|---|

@@ -1,14 +1,15 @@
 ---
 title: "Sesión 2026-06-25 — Optimización de Rendimiento en Modales (DropShadowEffect)"
-tags:
-  - sesion
-  - wpf
-  - rendering
-  - rendimiento
-  - gpu
-  - dropshadoweffect
+type: sesion
+status: vigente
 date: 2026-06-25
-branch: feat/fase6-IntegracionWpf/MenuPrincipal
+updated: 2026-06-25
+autor: fernando
+autor_fuente: git
+agente: por-confirmar
+rama: feat/fase6-IntegracionWpf/MenuPrincipal
+tags: [sesion, wpf, rendering, rendimiento, gpu, dropshadoweffect]
+summary: "Optimización de Rendimiento en Modales (DropShadowEffect)"
 ---
 
 # Sesión 2026-06-25 — Optimización de Rendimiento en Modales (DropShadowEffect)

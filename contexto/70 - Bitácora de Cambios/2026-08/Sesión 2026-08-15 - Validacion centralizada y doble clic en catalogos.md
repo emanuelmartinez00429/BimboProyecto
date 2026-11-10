@@ -1,14 +1,15 @@
 ---
 title: "Sesión 2026-08-15 — Validación centralizada y doble clic en catálogos"
-tags:
-  - sesion
-  - validacion
-  - wpf
-  - modales
-  - refactor
+type: sesion
+status: vigente
 date: 2026-08-15
-branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Fernando
+updated: 2026-08-15
+autor: fernando
+agente: claude-code
+modelo: sonnet-5
+rama: feat/fase8-MaquetadodeRoles
+tags: [sesion, validacion, wpf, modales, refactor]
+summary: "Validación centralizada y doble clic en catálogos"
 ---
 
 # Sesión 2026-08-15 — Validación centralizada y doble clic en catálogos

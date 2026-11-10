@@ -1,15 +1,15 @@
 ---
 title: "Sesión 2026-09-03 — Conexión de RPCs seguras para cambio de estado en catálogos"
-tags:
-  - sesion
-  - catalogos
-  - rpc
-  - supabase
-  - bugfix
-  - rbac
+type: sesion
+status: vigente
 date: 2026-09-03
-branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Antigravity (agente)
+updated: 2026-09-03
+autor: fernando
+autor_fuente: git
+agente: antigravity
+rama: feat/fase8-MaquetadodeRoles
+tags: [sesion, catalogos, rpc, supabase, bugfix, rbac]
+summary: "Diagnóstico completo y resolución de la falla de activación/desactivación en los catálogos administrativos (**Categorías**, **Productos**, **Proveedores** y **Fabricantes**). Se descartó cualquier relación con el sistema de caché (FusionCache) y se conectaron las RPCs seguras `cambiar_estado_*_seguro` en los repositorios de C# y modales de edición. Compilación limpia (0 errores, 0 advertencias) y 243/243 pruebas unitarias superadas."
 ---
 
 # Sesión 2026-09-03 — Conexión de RPCs seguras para cambio de estado en catálogos

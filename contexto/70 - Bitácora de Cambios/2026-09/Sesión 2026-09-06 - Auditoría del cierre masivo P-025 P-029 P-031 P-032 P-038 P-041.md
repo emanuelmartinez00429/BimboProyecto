@@ -1,13 +1,15 @@
 ---
 title: "Sesión 2026-09-06 — Auditoría del cierre masivo P-025 P-029 P-031 P-032 P-038 P-041"
-tags:
-  - sesion
-  - auditoria
-  - deuda-tecnica
+type: sesion
+status: vigente
 date: 2026-09-06
-branch: feat/fase8-MaquetadodeRoles
-autor_cambios: otra sesión (Gemini, commit b4feb64), auditada y con un hallazgo corregido en esta
-revisor: Claude Fernando (agente)
+updated: 2026-09-06
+autor: fernando
+autor_fuente: git
+agente: por-confirmar
+rama: feat/fase8-MaquetadodeRoles
+tags: [sesion, auditoria, deuda-tecnica]
+summary: "Otra sesión (commit `b4feb64`, ya en la rama) declaró resueltos P-025, P-029, P-031 (G1, G2, G4, G5, G6, G7, G8, G9, G10), P-032, P-038 y P-041. Se verificó cada afirmación contra el código real y contra la base de datos viva (`bzmmrifjgzlvsphctais`), no contra el mensaje del commit. **Todo lo declarado se sostiene**, con un solo hallazgo real: G5 llamaba a un `Dispose()` que no existía (cast `as IDisposable` siempre `null`, no hacía nada). Corregido en esta sesión."
 ---
 
 # Sesión 2026-09-06 — Auditoría del cierre masivo P-025 P-029 P-031 P-032 P-038 P-041

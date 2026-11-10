@@ -1,13 +1,14 @@
 ---
 title: "Sesión 2026-09-21 — Detalle de Bitácora por doble clic y reporte individual"
-tags:
-  - sesion
-  - bitacora
-  - reportes
-  - wpf
+type: sesion
+status: vigente
 date: 2026-09-21
-branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Codex (sesión gestionada por Emanuel)
+updated: 2026-09-21
+autor: emanuel
+agente: codex
+rama: feat/fase8-MaquetadodeRoles
+tags: [sesion, bitacora, reportes, wpf]
+summary: "La tabla de Bitácora permite abrir el detalle completo de una fila mediante doble clic y exportar únicamente ese registro a PDF o Excel, sin alterar consulta, filtros, búsqueda, paginación, orden ni selección existentes."
 ---
 
 # Sesión 2026-09-21 — Detalle de Bitácora por doble clic y reporte individual

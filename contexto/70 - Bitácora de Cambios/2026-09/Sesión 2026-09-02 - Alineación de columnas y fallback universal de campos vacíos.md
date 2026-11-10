@@ -1,15 +1,14 @@
 ---
 title: "Sesión 2026-09-02 — Alineación de columnas y fallback universal de campos vacíos"
-tags:
-  - sesion
-  - ui
-  - ux
-  - wpf
-  - datagrid
-  - catalogos
+type: sesion
+status: vigente
 date: 2026-09-02
-branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Antigravity (sesión gestionada por Emanuel)
+updated: 2026-09-02
+autor: emanuel
+agente: antigravity
+rama: feat/fase8-MaquetadodeRoles
+tags: [sesion, ui, ux, wpf, datagrid, catalogos]
+summary: "Se estandarizó la alineación visual en los DataGrids (texto e identificadores a la izquierda, estado e iconos centrados) y se implementó un mecanismo universal de fallback (`TextoVacioConverter` y `TextoCeldaConFallback`) para reemplazar celdas vacías o nulas por `—` atenuado o `Sin descripción` / `Sin dirección` en cursiva, eliminando huecos en blanco y badges vacíos en todo el sistema."
 ---
 
 # Sesión 2026-09-02 — Alineación de columnas y fallback universal de campos vacíos

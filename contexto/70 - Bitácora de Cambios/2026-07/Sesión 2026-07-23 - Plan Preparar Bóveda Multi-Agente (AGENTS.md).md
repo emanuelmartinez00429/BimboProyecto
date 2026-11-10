@@ -1,13 +1,14 @@
 ---
 title: "Plan — Preparar Bóveda Multi-Agente (AGENTS.md + protocolo)"
-tags:
-  - plan
-  - multi-agente
-  - onboarding
-  - documentacion
-  - infraestructura
+type: sesion
+status: vigente
 date: 2026-07-23
-estado: ejecutado
+updated: 2026-07-23
+autor: fernando
+autor_fuente: git
+agente: por-confirmar
+tags: [plan, multi-agente, onboarding, documentacion, infraestructura]
+summary: "Fase 1 (aditiva) y Fase 2 (movimiento) completas. La bóveda vive ahora en `BimboProyecto/contexto/`. Creados `AGENTS.md` (raíz), `contexto/AGENTS.md` (protocolo), `_templates/`, y punteros para CLAUDE/Copilot/Cursor/Windsurf. `/Documentacion` absorbida, `CLAUDE.md` padre convertido en redirección, `.atl`/`.codegraph` desindexados (P-020 ✅). Build `dotnet build BimboProyecto.sln` → 0 errores. **Pendiente:** commit por el usuario."
 ---
 
 > [!success] Ejecutado 2026-07-23

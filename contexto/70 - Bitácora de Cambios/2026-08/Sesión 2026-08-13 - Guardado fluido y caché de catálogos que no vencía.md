@@ -1,15 +1,16 @@
 ---
 title: "Sesión 2026-08-13 — Guardado fluido en los modales y caché de catálogos que no vencía"
-tags:
-  - sesion
-  - productos
-  - modales
-  - cache
-  - realtime
-  - rendimiento
+type: sesion
+status: vigente
 date: 2026-08-13
-branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Claude Opus 5 (Claude Code)
+updated: 2026-08-13
+autor: fernando
+autor_fuente: git
+agente: claude-code
+modelo: opus-5
+rama: feat/fase8-MaquetadodeRoles
+tags: [sesion, productos, modales, cache, realtime, rendimiento]
+summary: "Se rediseñó el modal de Productos a tres columnas, se corrigieron cuatro bugs funcionales (tara con salto de línea, lupa de fabricantes sin acotar, guardado que parecía colgar, catálogos congelados en memoria) y se replicó el guardado fluido en los ocho modales de edición. Build: `0 errores`."
 ---
 
 # Sesión 2026-08-13 — Guardado fluido en los modales y caché de catálogos que no vencía

@@ -1,14 +1,14 @@
 ---
 title: "Sesión 2026-09-03 — ProductoModal crece con los errores de validación en vez de sacar barra"
-tags:
-  - sesion
-  - ui
-  - wpf
-  - validacion
-  - modales
+type: sesion
+status: vigente
 date: 2026-09-03
-branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Claude Fernando
+updated: 2026-09-03
+autor: fernando
+agente: claude-code
+rama: feat/fase8-MaquetadodeRoles
+tags: [sesion, ui, wpf, validacion, modales]
+summary: "Al validar en \"Crear/Editar producto\", los renglones de error (\"El código es"
 ---
 
 # Sesión 2026-09-03 — ProductoModal crece con los errores de validación en vez de sacar barra

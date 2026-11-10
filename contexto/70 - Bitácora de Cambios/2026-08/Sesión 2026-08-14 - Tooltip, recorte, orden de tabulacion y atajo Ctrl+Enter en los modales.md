@@ -1,14 +1,16 @@
 ---
 title: "Sesión 2026-08-14 — Tooltip + recorte de texto, orden de tabulación explícito y atajo Ctrl+Enter en los modales de edición"
-tags:
-  - sesion
-  - modales
-  - ux
-  - accesibilidad
-  - productos
+type: sesion
+status: vigente
 date: 2026-08-14
-branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Claude Opus 5 / Claude Sonnet 5 (Claude Code)
+updated: 2026-08-14
+autor: fernando
+autor_fuente: git
+agente: claude-code
+modelo: opus-5
+rama: feat/fase8-MaquetadodeRoles
+tags: [sesion, modales, ux, accesibilidad, productos]
+summary: "Tres comportamientos nuevos, todos reusables vía estilo/comportamiento compartido — sin tocar campo por campo: (1) tooltip + \"…\" cuando un valor no entra en su campo, en modales que se achican; (2) foco realmente visible en `TextBox`/`ComboBox` de modal, con el mismo verde de \"fila seleccionada\" que ya usan las tablas; (3) `Ctrl+Enter` guarda desde cualquier campo. Más orden de tabulación explícito en `ProductoModal` (único modal de 3 columnas) y foco automático en el primer campo al abrir, en los 8 modales. Build: `0 errores`."
 ---
 
 # Sesión 2026-08-14 — Tooltip, recorte de texto, tabulación y atajo Ctrl+Enter en los modales

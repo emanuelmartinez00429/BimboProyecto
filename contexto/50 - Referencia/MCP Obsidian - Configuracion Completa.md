@@ -1,4 +1,7 @@
 ---
+title: "MCP Obsidian — Configuración Completa"
+type: referencia
+status: vigente
 tags: [setup, mcp, obsidian, claude-code]
 ---
 
@@ -20,7 +23,7 @@ Que Claude Code pueda leer y escribir archivos del vault de Obsidian directament
 
 ### Paso 1 — Editar `.claude.json` directamente
 
-El archivo está en `C:\Users\<tuUsuario>\.claude.json` (no en `settings.json`).
+El archivo está en `%USERPROFILE%\.claude.json` (no en `settings.json`).
 
 Buscar la línea al final del archivo:
 ```json
@@ -33,7 +36,7 @@ Reemplazarla por:
   "obsidian": {
     "type": "stdio",
     "command": "cmd",
-    "args": ["/c", "npx", "-y", "@modelcontextprotocol/server-filesystem", "C:\\Users\\fbara\\OneDrive\\Desktop\\Proyecto de BIMBO\\ProyectoBimboContexto"],
+    "args": ["/c", "npx", "-y", "@modelcontextprotocol/server-filesystem", "<ruta-al-vault>"],
     "env": {}
   }
 }
@@ -77,9 +80,9 @@ Cerrar y abrir con `claude --continue` para retomar la conversación anterior.
 ---
 
 ### Error 2 — MCP configurado en `settings.json` no funciona
-**Síntoma:** Se agrega `mcpServers` en `C:\Users\<user>\.claude\settings.json` pero Claude Code no lo carga.  
+**Síntoma:** Se agrega `mcpServers` en `%USERPROFILE%\.claude\settings.json` pero Claude Code no lo carga.  
 **Causa:** Claude Code CLI guarda la configuración de MCP en `.claude.json` (en la raíz del home), **no** en `settings.json`.  
-**Solución:** Editar directamente `C:\Users\<user>\.claude.json`.
+**Solución:** Editar directamente `%USERPROFILE%\.claude.json`.
 
 ---
 
@@ -89,7 +92,7 @@ Cerrar y abrir con `claude --continue` para retomar la conversación anterior.
 claude mcp add obsidian -s user -- cmd /c npx -y ...
 ```
 El argumento `/c` se interpreta como path en lugar de flag.  
-**Resultado incorrecto:** `cmd C:/ npx -y ...`  
+**Resultado incorrecto:** `cmd (ruta C) npx -y ...`  
 **Solución:** No usar `claude mcp add` para este caso. Editar `.claude.json` directamente.
 
 ---
@@ -106,7 +109,7 @@ Luego editar `.claude.json` manualmente con la configuración completa.
 ---
 
 ### Error 5 — Ruta con espacios en PowerShell
-**Síntoma:** La ruta `C:\Users\fbara\OneDrive\Desktop\Proyecto de BIMBO\...` causa errores en PowerShell porque el espacio en "Proyecto de BIMBO" se interpreta como argumentos separados.  
+**Síntoma:** Rutas con espacios en el nombre de directorio causan errores en PowerShell porque los espacios se interpretan como argumentos separados.  
 **Solución:** Editar el JSON directamente evita este problema por completo.
 
 ---

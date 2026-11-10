@@ -1,33 +1,28 @@
-﻿---
+---
 title: "Sesión 2026-09-16 — Icono vectorial IcoFiltro y componente reutilizable BotonLimpiarFiltros"
+type: sesion
+status: vigente
 date: 2026-09-16
-tags:
-  - bitacora
-  - sesion
-  - wpf
-  - ui
-  - ux
-  - controles
-  - componentes
-  - filtros
-  - estilos
-aliases:
-  - Componente BotonLimpiarFiltros
-  - Icono IcoFiltro Material Symbols
+updated: 2026-09-16
+autor: fernando
+autor_fuente: git
+agente: por-confirmar
+tags: [bitacora, sesion, wpf, ui, ux, controles, componentes, filtros, estilos]
+summary: "Icono vectorial IcoFiltro y componente reutilizable BotonLimpiarFiltros"
 ---
 
 # Sesión 2026-09-16 — Icono vectorial IcoFiltro y componente reutilizable BotonLimpiarFiltros
 
 ## Resumen
 
-En esta sesión se completó la modernización de la iconografía de filtros y la refactorización arquitectónica del botón "Limpiar Filtros". Se incorporó al diccionario global de recursos la geometría oficial de Material Symbols (`IcoFiltro`) a partir del archivo SVG original `D:\Proyectos\Iconos\Filtros.svg`. Asimismo, se encapsuló la lógica y presentación del botón en un nuevo control reutilizable de WPF (`BotonLimpiarFiltros`), eliminando más de 120 líneas de código duplicado a través de 8 módulos del sistema y preservando la regla responsiva de colapso de texto por debajo del umbral de 760px.
+En esta sesión se completó la modernización de la iconografía de filtros y la refactorización arquitectónica del botón "Limpiar Filtros". Se incorporó al diccionario global de recursos la geometría oficial de Material Symbols (`IcoFiltro`) a partir del archivo SVG original `iconos/Filtros.svg`. Asimismo, se encapsuló la lógica y presentación del botón en un nuevo control reutilizable de WPF (`BotonLimpiarFiltros`), eliminando más de 120 líneas de código duplicado a través de 8 módulos del sistema y preservando la regla responsiva de colapso de texto por debajo del umbral de 760px.
 
 ---
 
 ## Intervenciones Realizadas
 
 ### 1. Vectorización e Integración de `IcoFiltro` en [`Styles.xaml`](../../../CapaUI/Resources/Styles.xaml)
-- A partir de `D:\Proyectos\Iconos\Filtros.svg` (Material Symbols *filter_alt*, coordenadas `viewBox="0 -960 960 960"`), se integró el recurso `IcoFiltro` con `FillRule="Nonzero"` y congelamiento de alto rendimiento (`po:Freeze="True"`), siguiendo la misma convención que los iconos del menú lateral (`IcoInventario`, `IcoScale`, etc.).
+- A partir de `iconos/Filtros.svg` (Material Symbols *filter_alt*, coordenadas `viewBox="0 -960 960 960"`), se integró el recurso `IcoFiltro` con `FillRule="Nonzero"` y congelamiento de alto rendimiento (`po:Freeze="True"`), siguiendo la misma convención que los iconos del menú lateral (`IcoInventario`, `IcoScale`, etc.).
 - Al tratarse de un glifo sólido relleno (embudo), se renderiza mediante `Fill="White"` garantizando bordes nítidos y uniformidad con la estética corporativa.
 
 ### 2. Creación del Componente Reutilizable [`BotonLimpiarFiltros`](../../../CapaUI/Core/Controls/BotonLimpiarFiltros.xaml)

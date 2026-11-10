@@ -1,12 +1,16 @@
 ---
 title: "Sesión 2026-08-13 — Campos completos en Productos"
-tags:
-  - sesion
-  - productos
-  - ui
+type: sesion
+status: vigente
 date: 2026-08-13
-branch: feat/fase8-MaquetadodeRoles
-autor_cambios: GPT-5 (Codex)
+updated: 2026-08-13
+autor: fernando
+autor_fuente: git
+agente: codex
+modelo: gpt-5
+rama: feat/fase8-MaquetadodeRoles
+tags: [sesion, productos, ui]
+summary: "El catálogo y modal de Productos ahora exponen los campos de producto que estaban ausentes de la UI y los cargan desde la consulta paginada."
 ---
 
 # Sesión 2026-08-13 — Campos completos en Productos

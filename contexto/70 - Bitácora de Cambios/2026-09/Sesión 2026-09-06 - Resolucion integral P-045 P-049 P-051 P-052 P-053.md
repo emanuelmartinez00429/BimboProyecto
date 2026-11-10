@@ -1,16 +1,14 @@
 ---
 title: "Sesión 2026-09-06 — Resolución integral P-045, P-049, P-051, P-052 y P-053"
-tags:
-  - sesion
-  - pesaje
-  - realtime
-  - rbac
-  - supabase
-  - revision
+type: sesion
+status: vigente
 date: 2026-09-06
-branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Claude Fernando (agente)
-revisor: Claude Fernando (agente)
+updated: 2026-09-06
+autor: fernando
+agente: claude-code
+rama: feat/fase8-MaquetadodeRoles
+tags: [sesion, pesaje, realtime, rbac, supabase, revision]
+summary: "Migración `20260906050000_resolucion_integral_p045_p049_p051_p052_p053.sql` aplicada y verificada contra la base viva: cierra las dos `observaciones` que le faltaban a P-045, publica Contactos en Realtime (P-049), acota la política de `usuarios` a fila propia o permiso (P-051), retira los triggers legacy que duplicaban bitácora (P-052), y agrega el RPC atómico que reemplaza los N `INSERT` sueltos del alta de camiones (P-053). Una revisión posterior encontró y corrigió un Service Locator innecesario, una llamada de caché redundante, un timestamp equivocado en un comentario, y — lo más importante — que los cinco ítems habían quedado sin actualizar en esta misma bóveda."
 ---
 
 # Sesión 2026-09-06 — Resolución integral P-045, P-049, P-051, P-052 y P-053

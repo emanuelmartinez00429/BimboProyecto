@@ -1,12 +1,15 @@
 ---
 title: "Sesión 2026-06-21 — Módulos Contactos Fabricantes y Contactos Proveedores"
-tags:
-  - sesion
-  - contactos
-  - drill-down
-  - realtime
+type: sesion
+status: vigente
 date: 2026-06-21
-branch: feat/fase6-IntegracionWpf/MenuPrincipal
+updated: 2026-06-21
+autor: fernando
+autor_fuente: git
+agente: por-confirmar
+rama: feat/fase6-IntegracionWpf/MenuPrincipal
+tags: [sesion, contactos, drill-down, realtime]
+summary: "Módulos Contactos Fabricantes y Contactos Proveedores"
 ---
 
 # Sesión 2026-06-21 — Módulos Contactos Fabricantes y Contactos Proveedores

@@ -1,14 +1,14 @@
 ---
 title: "Sesión 2026-07-28 — Refactor del buscador de sugerencias (P-026)"
-tags:
-  - sesion
-  - buscador
-  - refactor
-  - mvvm
-  - deuda-tecnica
+type: sesion
+status: vigente
 date: 2026-07-28
-branch: fix/buscador-sugerencias
-autor_cambios: Claude (agente)
+updated: 2026-07-28
+autor: por-confirmar
+agente: claude-code
+rama: fix/buscador-sugerencias
+tags: [sesion, buscador, refactor, mvvm, deuda-tecnica]
+summary: "El puente ViewModel → `SuggestionSearchBox`, que estaba copiado en 9 pantallas, quedó centralizado. Se borraron ~250 líneas duplicadas y las dos clases de bug del buscador pasaron a ser **imposibles por construcción**. Cierra **P-026**. Sin cambios de comportamiento ni de rendimiento."
 ---
 
 # Sesión 2026-07-28 — Refactor del buscador de sugerencias (P-026)

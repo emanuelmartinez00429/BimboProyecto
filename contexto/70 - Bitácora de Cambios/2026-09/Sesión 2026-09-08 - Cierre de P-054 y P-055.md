@@ -1,16 +1,15 @@
 ---
 title: "Sesión 2026-09-08 — Cierre de P-054 y P-055"
-tags:
-  - sesion
-  - rendimiento
-  - auth
-  - wpf
-  - refactor
-  - auditoria
+type: sesion
+status: vigente
 date: 2026-09-08
-branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Claude (agente)
-revisor: pendiente — falta la prueba de logout sin red
+updated: 2026-09-08
+autor: fernando
+autor_fuente: git
+agente: claude-code
+rama: feat/fase8-MaquetadodeRoles
+tags: [sesion, rendimiento, auth, wpf, refactor, auditoria]
+summary: "Se cerraron las dos deudas que habían quedado abiertas al arreglar la fuga de memoria del contenedor DI. **La investigación corrigió el enunciado de las dos**: ninguna era lo que yo había escrito. De paso aparecieron dos defectos concretos que nadie había registrado (un timeout decorativo en el logout y un proyecto huérfano que duplica el singleton de conexión) y una deuda nueva, P-056."
 ---
 
 # Sesión 2026-09-08 — Cierre de P-054 y P-055

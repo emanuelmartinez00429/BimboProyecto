@@ -1,7 +1,13 @@
 ---
+title: "Sesión 2026-05-21 — Análisis Segunda Opinión: RepositorioBase + TryAsync"
+type: sesion
+status: vigente
+date: 2026-05-21
+updated: 2026-05-21
+autor: por-confirmar
+agente: por-confirmar
 tags: [bitácora, análisis, decisión-técnica, manejo-errores]
-fecha: 2026-05-21
-estado: documentado
+summary: "Análisis Segunda Opinión: RepositorioBase + TryAsync"
 ---
 
 # Sesión 2026-05-21 — Análisis Segunda Opinión: RepositorioBase + TryAsync

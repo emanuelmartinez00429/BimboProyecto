@@ -1,13 +1,15 @@
 ---
 title: "Sesión 2026-08-13 — Pesaje: solo peso bruto y tara extra pesada"
-tags:
-  - sesion
-  - bimbo
-  - pesaje
-  - wpf
+type: sesion
+status: vigente
 date: 2026-08-13
-branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Claude
+updated: 2026-08-13
+autor: fernando
+autor_fuente: git
+agente: claude-code
+rama: feat/fase8-MaquetadodeRoles
+tags: [sesion, bimbo, pesaje, wpf]
+summary: "El modal de pesaje pasó a capturar **un solo dato**: el peso bruto. Los bultos ahora se estiman desde el peso, y la tara extra dejó de pedirse por adelantado en el wizard — se **pesa** (nunca se calcula) y se puede cargar en cualquier momento, por pesada o como total repartido entre las pesadas. Los camiones cerrados salieron de la pantalla."
 ---
 
 # Sesión 2026-08-13 — Pesaje: solo peso bruto y tara extra pesada

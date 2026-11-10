@@ -1,9 +1,15 @@
 ---
 title: "Sesión 2026-11-08 — Fix reporte de productos y actualización remota"
-tags: [sesion, reportes, productos, velopack, actualizacion]
+type: sesion
+status: vigente
 date: 2026-11-08
-branch: main
-autor_cambios: Codex
+updated: 2026-11-08
+autor: emanuel
+autor_fuente: git
+agente: codex
+rama: main
+tags: [sesion, reportes, productos, velopack, actualizacion]
+summary: "- La búsqueda de actualización no fue inmediata; el usuario confirmó que terminó funcionando después de esperar."
 ---
 
 # Sesión 2026-11-08 — Fix reporte de productos y actualización remota

@@ -1,17 +1,14 @@
 ---
 title: "Sesión 2026-09-16 — Reorganización de cuadrícula y campos de auditoría estilo Pesajes en ProductoModal"
+type: sesion
+status: vigente
 date: 2026-09-16
-tags:
-  - bitacora
-  - sesion
-  - wpf
-  - ui
-  - ux
-  - productos
-  - estilos
-aliases:
-  - Reorganización ProductoModal
-  - Auditoría estilo Pesajes
+updated: 2026-09-16
+autor: fernando
+autor_fuente: git
+agente: por-confirmar
+tags: [bitacora, sesion, wpf, ui, ux, productos, estilos]
+summary: "Reorganización de cuadrícula y campos de auditoría estilo Pesajes en ProductoModal"
 ---
 
 # Sesión 2026-09-16 — Reorganización de cuadrícula y campos de auditoría estilo Pesajes en ProductoModal

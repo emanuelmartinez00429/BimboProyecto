@@ -1,13 +1,16 @@
 ---
 title: "Sesión 2026-08-14 — Fix: botones de paginación desincronizados de Realtime"
-tags:
-  - sesion
-  - realtime
-  - paginacion
-  - bugfix
+type: sesion
+status: vigente
 date: 2026-08-14
-branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Claude Sonnet 5 (Claude Code)
+updated: 2026-08-14
+autor: fernando
+autor_fuente: git
+agente: claude-code
+modelo: sonnet-5
+rama: feat/fase8-MaquetadodeRoles
+tags: [sesion, realtime, paginacion, bugfix]
+summary: "Los botones numerados de paginación (Productos, Categorías, Fabricantes, Proveedores, ContactosFabricantes, ContactosProveedores) ahora se reconstruyen también cuando `TotalPages` cambia por Realtime sin que cambien las filas visibles — antes se quedaban con el árbol viejo hasta cerrar y reabrir el módulo. Fix de 1 línea por módulo, sin llamadas de red nuevas. Build: `0 errores`, `2 advertencias` preexistentes (`RolesViewModel`, sin relación)."
 ---
 
 # Sesión 2026-08-14 — Fix: botones de paginación desincronizados de Realtime

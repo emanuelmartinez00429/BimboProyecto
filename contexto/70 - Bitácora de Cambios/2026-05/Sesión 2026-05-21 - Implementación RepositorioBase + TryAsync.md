@@ -1,7 +1,14 @@
 ---
+title: "Sesión 2026-05-21 — Implementación RepositorioBase + TryAsync"
+type: sesion
+status: vigente
+date: 2026-05-21
+updated: 2026-05-21
+autor: fernando
+autor_fuente: git
+agente: por-confirmar
 tags: [bitácora, sesión, error-handling, repositorio, completado]
-fecha: 2026-05-21
-estado: completado
+summary: "Se detectó que el sistema tenía **dos estrategias de error coexistiendo**:"
 ---
 
 # Sesión 2026-05-21 — Implementación RepositorioBase + TryAsync

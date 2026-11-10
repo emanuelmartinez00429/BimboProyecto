@@ -1,16 +1,16 @@
 ---
 title: "Sesión 2026-09-08 — Fuga de memoria por el contenedor DI y scope de sesión"
-tags:
-  - sesion
-  - rendimiento
-  - memoria
-  - wpf
-  - di
-  - auditoria
+type: sesion
+status: vigente
 date: 2026-09-08
-branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Agente Antigravity (ejecución) sobre plan de Claude (investigación)
-revisor: Claude (auditoría de código) — falta prueba de runtime de Fernando
+updated: 2026-09-08
+autor: fernando
+autor_fuente: git
+agente: claude-code
+rama: feat/fase8-MaquetadodeRoles
+commits: [a05f006, 404796c]
+tags: [sesion, rendimiento, memoria, wpf, di, auditoria]
+summary: "La app dejaba de liberar memoria al cerrar sesión y acumulaba al volver a entrar (~280 MB contra ~150 MB normales). La causa no eran los datos: era que **el contenedor de DI retiene toda instancia `Transient` que implemente `IDisposable`**, y `App.Services` es un proveedor raíz estático que nunca se dispone. Se introdujo un **scope por sesión** y las 14 vistas pasaron a crear su ViewModel con `App.CrearVm<T>()`."
 ---
 
 # Sesión 2026-09-08 — Fuga de memoria por el contenedor DI y scope de sesión

@@ -1,9 +1,14 @@
 ---
 title: "Sesión 2026-09-02 - Auditoría Notificaciones y fix permiso fantasma USUARIOS_ACTIVAR"
-tags: [sesion, bimbo, notificaciones, rbac, supabase, bugfix]
+type: sesion
+status: vigente
 date: 2026-09-02
-branch: feat/fase8-MaquetadodeRoles
-autor_cambios: opencode (sesión gestionada por Emanuel)
+updated: 2026-09-02
+autor: emanuel
+agente: opencode
+rama: feat/fase8-MaquetadodeRoles
+tags: [sesion, bimbo, notificaciones, rbac, supabase, bugfix]
+summary: "Se auditó el submódulo de Notificaciones sobre el SQL y C# reales y se corrigió un bug crítico de backend: la reactivación de usuarios estaba bloqueada porque `cambiar_estado_usuario_seguro` validaba contra un permiso (`USUARIOS_ACTIVAR`) que no existe en `public.acciones`."
 ---
 
 # Sesión 2026-09-02 — Auditoría Notificaciones y fix permiso fantasma USUARIOS_ACTIVAR

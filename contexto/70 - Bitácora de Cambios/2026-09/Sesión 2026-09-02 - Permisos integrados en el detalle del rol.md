@@ -1,9 +1,14 @@
 ---
 title: "Sesión 2026-09-02 - Permisos integrados en el detalle del rol"
-tags: [sesion, bimbo, roles, rbac, wpf, supabase]
+type: sesion
+status: vigente
 date: 2026-09-02
-branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Codex (sesión gestionada por Emanuel)
+updated: 2026-09-02
+autor: emanuel
+agente: codex
+rama: feat/fase8-MaquetadodeRoles
+tags: [sesion, bimbo, roles, rbac, wpf, supabase]
+summary: "Gestión de Roles quedó como una sola ruta con cuadrícula y detalle interno. Los permisos se administran desde la tarjeta del rol, identificada siempre por `IdRol`, sin pestañas, selector duplicado ni consultas adicionales."
 ---
 
 # Sesión 2026-09-02 - Permisos integrados en el detalle del rol

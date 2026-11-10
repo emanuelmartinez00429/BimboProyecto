@@ -15,7 +15,7 @@ El Dashboard (`DashboardView.xaml`, ubicado en la navegación bajo el grupo `Rep
 ## Estructura de la Vista (`DashboardView.xaml`)
 
 1. **Encabezado Estándar de Módulo**:
-   - Tarjeta / insignia visual de 38×38 px con esquinas redondeadas (8 px), sombra de elevación del color corporativo primario (`EmpresaPrimaryColor`) e icono vectorial blanco `IcoDashboard` (extraído de `D:\Proyectos\Iconos\Dashboard.svg`).
+   - Tarjeta / insignia visual de 38×38 px con esquinas redondeadas (8 px), sombra de elevación del color corporativo primario (`EmpresaPrimaryColor`) e icono vectorial blanco `IcoDashboard` (extraído de `iconos/Dashboard.svg`).
    - Miga de pan unificada (`Reportería / Dashboard`) y título de módulo (`Dashboard`).
    - Pastilla de fecha actual localizada en formato largo (`DateLabel`).
    - Selector de período (`Hoy`, `Semana`, `Últimos 30 días`) que filtra exclusivamente los KPI transaccionales de pesajes: **Total Pesajes**, **Total Neto** y **% Merma**.

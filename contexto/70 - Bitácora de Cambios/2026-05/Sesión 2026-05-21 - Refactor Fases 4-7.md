@@ -1,8 +1,14 @@
 ---
+title: "Sesión 2026-05-21 — Refactor Fases 4-7"
+type: sesion
+status: vigente
+date: 2026-05-21
+updated: 2026-05-21
+autor: fernando
+autor_fuente: git
+agente: por-confirmar
 tags: [bitácora, sesión, refactor, productos, completado]
-fecha: 2026-05-21
-fases: [4, 5, 6, 7]
-estado: completado
+summary: "Se detectó que `BimboPesaje/Formularios/Productos/` era la ruta que cargaba la app, pero el refactor de Fases 1-3 estaba aplicado en `CapaUI/Formulari"
 ---
 
 # Sesión 2026-05-21 — Refactor Fases 4-7

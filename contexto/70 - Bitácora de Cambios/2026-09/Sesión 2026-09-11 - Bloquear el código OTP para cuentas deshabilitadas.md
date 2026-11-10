@@ -1,16 +1,15 @@
 ---
 title: "Sesión 2026-09-11 — Bloquear el código OTP para cuentas deshabilitadas"
+type: sesion
+status: vigente
 date: 2026-09-11
-tags:
-  - bitacora
-  - sesion
-  - seguridad
-  - auth
-  - supabase
-  - rpc
-aliases:
-  - Riesgo residual P-059 cerrado
-  - verificar_cuenta_habilitada_por_correo
+updated: 2026-09-11
+autor: fernando
+autor_fuente: git
+agente: claude-code
+modelo: sonnet-5
+tags: [bitacora, sesion, seguridad, auth, supabase, rpc]
+summary: "Bloquear el código OTP para cuentas deshabilitadas"
 ---
 
 # Sesión 2026-09-11 — Bloquear el código OTP para cuentas deshabilitadas

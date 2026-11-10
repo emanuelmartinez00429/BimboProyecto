@@ -1,15 +1,14 @@
-﻿---
+---
 title: "Sesión 2026-08-21 — Reporte de Pesaje de Insumos BES (PDF y Excel)"
-tags:
-  - sesion
-  - pesaje
-  - reportes
-  - pdf
-  - excel
-  - migraciones
+type: sesion
+status: vigente
 date: 2026-08-21
-branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Fernando / Antigravity (agente)
+updated: 2026-08-21
+autor: fernando
+agente: antigravity
+rama: feat/fase8-MaquetadodeRoles
+tags: [sesion, pesaje, reportes, pdf, excel, migraciones]
+summary: "Se implementó la generación real de reportes en PDF y Excel desde el botón **\"Imprimir reporte\"** del módulo de Recepción de Materia Prima (Pesaje), reproduciendo fielmente el formato institucional de **\"Pesado de Insumos BES\"** (Figura 28). Soporta exportación individual de camión o consolidada de múltiples camiones, cálculo consolidado de pesajes por producto frente a lo manifestado, diferencias absolutas y porcentuales, auditoría previa vía RPC y apertura automática del archivo."
 ---
 
 # Sesión 2026-08-21 — Reporte de Pesaje de Insumos BES (PDF y Excel)

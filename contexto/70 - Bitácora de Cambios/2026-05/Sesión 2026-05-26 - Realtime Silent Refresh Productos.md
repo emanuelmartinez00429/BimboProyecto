@@ -1,12 +1,14 @@
 ---
 title: "Sesión 2026-05-26 — Realtime Silent Refresh en ProductosViewModel"
-tags:
-  - sesion
-  - realtime
-  - ux
-  - productos
-  - fix
+type: sesion
+status: vigente
 date: 2026-05-26
+updated: 2026-05-26
+autor: fernando
+autor_fuente: git
+agente: por-confirmar
+tags: [sesion, realtime, ux, productos, fix]
+summary: "El spinner de carga ya no aparece para eventos Realtime. Los datos se actualizan silenciosamente en segundo plano. 0 errores de compilación."
 ---
 
 # Sesión 2026-05-26 — Realtime Silent Refresh en ProductosViewModel

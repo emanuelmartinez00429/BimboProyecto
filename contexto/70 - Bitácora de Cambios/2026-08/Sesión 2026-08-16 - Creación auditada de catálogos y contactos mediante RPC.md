@@ -1,12 +1,14 @@
 ---
 title: "Sesión 2026-08-16 — Creación auditada de catálogos y contactos mediante RPC"
-tags:
-  - sesion
-  - supabase
-  - auditoria
+type: sesion
+status: vigente
 date: 2026-08-16
-branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Codex (sesión gestionada por Emanuel)
+updated: 2026-08-16
+autor: emanuel
+agente: codex
+rama: feat/fase8-MaquetadodeRoles
+tags: [sesion, supabase, auditoria]
+summary: "Los seis submódulos dejaron de insertar directamente desde C# y ahora crean sus registros mediante funciones PostgreSQL que también reciben el usuario de auditoría."
 ---
 
 # Sesión 2026-08-16 — Creación auditada de catálogos y contactos mediante RPC

@@ -1,14 +1,14 @@
 ---
 title: "Sesión 2026-08-15 — Creación auditada de Empleados mediante RPC"
-tags:
-  - sesion
-  - empleados
-  - supabase
-  - rpc
-  - bitacora
+type: sesion
+status: vigente
 date: 2026-08-15
-branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Codex (sesión gestionada por Emanuel)
+updated: 2026-08-15
+autor: emanuel
+agente: codex
+rama: feat/fase8-MaquetadodeRoles
+tags: [sesion, empleados, supabase, rpc, bitacora]
+summary: "La creación de empleados dejó de ejecutar un `INSERT` directo desde C# y ahora"
 ---
 
 # Sesión 2026-08-15 — Creación auditada de Empleados mediante RPC

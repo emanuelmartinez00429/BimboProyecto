@@ -1,13 +1,16 @@
 ---
 title: "Sesión 2026-08-14 — Realtime en las columnas de join de Productos"
-tags:
-  - sesion
-  - productos
-  - realtime
-  - cache
+type: sesion
+status: vigente
 date: 2026-08-14
-branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Claude Opus 5 / Claude Sonnet 5 (Claude Code)
+updated: 2026-08-14
+autor: fernando
+autor_fuente: git
+agente: claude-code
+modelo: opus-5
+rama: feat/fase8-MaquetadodeRoles
+tags: [sesion, productos, realtime, cache]
+summary: "La grilla de Productos ahora refleja en vivo los cambios de fabricante, proveedor, categoría, país, presentación, tara y unidad — antes solo escuchaba la tabla `productos` y esas siete columnas, que salen de un join, se quedaban con el nombre viejo hasta recargar la pantalla. Se publicaron cinco tablas nuevas en Realtime y se conectó la suscripción existente. Build: `0 errores`."
 ---
 
 # Sesión 2026-08-14 — Realtime en las columnas de join de Productos

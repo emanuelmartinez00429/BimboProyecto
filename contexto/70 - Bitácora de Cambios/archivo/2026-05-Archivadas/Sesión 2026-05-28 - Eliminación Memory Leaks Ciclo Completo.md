@@ -1,13 +1,13 @@
 ---
 title: "Sesión 2026-05-28 — Eliminación Memory Leaks Ciclo Completo"
-tags:
-  - bitácora
-  - memory-leak
-  - wpf
-  - dispose
-  - lifecycle
-fecha: 2026-05-28
-estado: Completado
+type: sesion
+status: vigente
+date: 2026-05-28
+updated: 2026-05-28
+autor: por-confirmar
+agente: por-confirmar
+tags: [bitácora, memory-leak, wpf, dispose, lifecycle]
+summary: "En la sesión anterior se corrigió el leak principal: `ProductosViewModel` nunca se disponía al navegar entre formularios (fix en `ProductosView.Unload"
 ---
 
 # Sesión 2026-05-28 — Eliminación Memory Leaks Ciclo Completo

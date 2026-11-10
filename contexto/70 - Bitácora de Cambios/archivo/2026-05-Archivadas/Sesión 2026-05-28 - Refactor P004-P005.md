@@ -1,13 +1,13 @@
 ---
 title: "Sesión 2026-05-28 — Refactor P-004 (switch) y P-005 (ListBox)"
-tags:
-  - sesion
-  - refactor
-  - deuda-tecnica
-  - wpf
-  - productos
-  - code-behind
+type: sesion
+status: vigente
 date: 2026-05-28
+updated: 2026-05-28
+autor: por-confirmar
+agente: por-confirmar
+tags: [sesion, refactor, deuda-tecnica, wpf, productos, code-behind]
+summary: "`CapaUI` compila con **0 errores**."
 ---
 
 # Sesión 2026-05-28 — Refactor P-004 y P-005

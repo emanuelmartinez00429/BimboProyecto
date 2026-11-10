@@ -1,14 +1,15 @@
 ---
 title: "Sesión 2026-08-12 — Estabilización de la pantalla de Roles"
-tags:
-  - sesion
-  - bimbo
-  - wpf
-  - rendimiento
-  - rbac
+type: sesion
+status: vigente
 date: 2026-08-12
-branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Claude
+updated: 2026-08-12
+autor: fernando
+autor_fuente: git
+agente: claude-code
+rama: feat/fase8-MaquetadodeRoles
+tags: [sesion, bimbo, wpf, rendimiento, rbac]
+summary: "Roles dejó de trabarse, de crashear y de duplicar la carga. Se alineó con la arquitectura del resto de los formularios: `ComboBox` estándar, sin scroll horizontal, sin bindings que recorran el árbol y con el encabezado visible desde el primer frame."
 ---
 
 # Sesión 2026-08-12 — Estabilización de la pantalla de Roles

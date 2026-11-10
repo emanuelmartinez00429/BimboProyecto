@@ -1,11 +1,13 @@
 ---
 title: "Fix — LimpiarFiltros no reseteaba ComboBoxes"
-tags:
-  - bugfix
-  - productos
-  - mvvm
-  - eventos
+type: sesion
+status: vigente
 date: 2026-05-23
+updated: 2026-05-23
+autor: por-confirmar
+agente: por-confirmar
+tags: [bugfix, productos, mvvm, eventos]
+summary: "Fix — LimpiarFiltros no reseteaba ComboBoxes"
 ---
 
 # Fix — LimpiarFiltros no reseteaba los ComboBoxes

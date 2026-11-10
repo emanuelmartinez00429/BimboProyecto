@@ -1,14 +1,14 @@
 ---
 title: "Sesión 2026-09-21 — Homologación visual y nombres relacionados en Notificaciones"
-tags:
-  - sesion
-  - notificaciones
-  - wpf
-  - supabase
-  - rpc
+type: sesion
+status: vigente
 date: 2026-09-21
-branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Codex (sesión gestionada por Emanuel)
+updated: 2026-09-21
+autor: emanuel
+agente: codex
+rama: feat/fase8-MaquetadodeRoles
+tags: [sesion, notificaciones, wpf, supabase, rpc]
+summary: "La bandeja completa usa los mismos filtros que el resto del sistema y el detalle dejó de ser una ventana independiente: ahora es un modal sobre el overlay de `MainWindow`, con la anatomía visual de Bitácora y colores dinámicos de la empresa. «Registro relacionado» muestra el nombre del usuario o rol, nunca su identificador técnico. Emanuel solicitó guardar el resultado en contexto después de la implementación."
 ---
 
 # Sesión 2026-09-21 — Homologación visual y nombres relacionados en Notificaciones

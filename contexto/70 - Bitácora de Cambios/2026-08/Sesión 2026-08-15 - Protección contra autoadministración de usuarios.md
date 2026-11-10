@@ -1,9 +1,14 @@
 ---
 title: "Sesión 2026-08-15 - Protección contra autoadministración de usuarios"
-tags: [sesion, usuarios, seguridad, rls]
+type: sesion
+status: vigente
 date: 2026-08-15
-branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Codex (sesión gestionada por Emanuel)
+updated: 2026-08-15
+autor: emanuel
+agente: codex
+rama: feat/fase8-MaquetadodeRoles
+tags: [sesion, usuarios, seguridad, rls]
+summary: "- La política anterior `update_Usuarios` estaba abierta a `public` con condiciones verdaderas; se reemplazó por una política para `authenticated` con"
 ---
 
 # Sesión 2026-08-15 - Protección contra autoadministración de usuarios

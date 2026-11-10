@@ -13,7 +13,7 @@ estado: implementado
 
 ## Contexto
 
-Al iniciar sesión, el usuario debe escribir su correo completo (ej. `fabarahona280@gmail.com`). El dominio de correo es el mismo para todos los usuarios de la empresa. Se necesita:
+Al iniciar sesión, el usuario debe escribir su correo completo (ej. `operador@example.com`). El dominio de correo es el mismo para todos los usuarios de la empresa. Se necesita:
 
 1. **Auto-completar visualmente** el dominio mientras se escribe (ghost text gris, patrón Windows 11)
 2. **Tab / →** para aceptar la sugerencia
@@ -141,10 +141,10 @@ Estado: ✅ Aplicada
 1. LoginWindow se abre
 2. Loaded → RepositorioEmpresa.ObtenerAsync() → lee dominio_correo
 3. TxtEmail.GhostSuffix = "@gmail.com" (o lo que diga la tabla)
-4. Usuario escribe "fabarahona280" → 300ms después aparece ghost "@gmail.com"
+4. Usuario escribe "operador" → 300ms después aparece ghost "@example.com"
 5. Tab/→ acepta, o hace clic en Entrar sin aceptar
-6. IngresarAsync() → GetFullText() → "fabarahona280@gmail.com"
-7. AuthService.LoginAsync("fabarahona280@gmail.com", password)
+6. IngresarAsync() → GetFullText() → "operador@example.com"
+7. AuthService.LoginAsync("operador@example.com", password)
 ```
 
 ---
@@ -193,9 +193,9 @@ private async Task DebounceGhostAsync(string input, CancellationToken ct)
 
 ---
 
-### Fix 3 — Overlap de dominio (`hola@gma@gmail.com`)
+### Fix 3 — Overlap de dominio (`hola@exa@example.com`)
 
-**Problema:** Si el usuario escribía `hola@gma`, el ghost concatenaba el sufijo completo encima: `hola@gma@gmail.com`.
+**Problema:** Si el usuario escribía `hola@exa`, el ghost concatenaba el sufijo completo encima: `hola@exa@example.com`.
 
 **Causa raíz:** El ghost siempre añadía `GhostSuffix` completo sin detectar si el usuario ya había empezado a escribirlo.
 
@@ -203,10 +203,10 @@ private async Task DebounceGhostAsync(string input, CancellationToken ct)
 
 | Input escrito | GhostSuffix | Ghost muestra |
 |---|---|---|
-| `hola` | `@gmail.com` | `hola@gmail.com` |
-| `hola@` | `@gmail.com` | `hola@gmail.com` (overlap `@`) |
-| `hola@gma` | `@gmail.com` | `hola@gmail.com` (overlap `@gma`) |
-| `hola@gmail.com` | `@gmail.com` | _(oculto, ya completado)_ |
+| `hola` | `@example.com` | `hola@example.com` |
+| `hola@` | `@example.com` | `hola@example.com` (overlap `@`) |
+| `hola@exa` | `@example.com` | `hola@example.com` (overlap `@exa`) |
+| `hola@example.com` | `@example.com` | _(oculto, ya completado)_ |
 
 ```csharp
 private string GetRemainingSuffix(string input)
@@ -261,7 +261,7 @@ En la sesión del 2026-09-02 se implementó una serie de correcciones y mejoras 
   3. En `ShowGhostFor`, se despacha la sincronización con prioridad `DispatcherPriority.Loaded` para garantizar que el renderizado de layout de WPF refleje con exactitud la posición tras actualizar el texto del ghost.
 
 ### 3. Detección y Supresión de Dominios Foráneos en `GetRemainingSuffix`
-- **Problema previo:** Si el usuario ingresaba un correo con un dominio externo (ej. `usuario@yahoo.com`), `GetRemainingSuffix` no encontraba solapamiento con `@gmail.com` y retornaba el sufijo completo, produciendo concatenaciones inválidas como `usuario@yahoo.com@gmail.com` tanto en pantalla como en el payload enviado a Supabase Auth.
+- **Problema previo:** Si el usuario ingresaba un correo con un dominio externo (ej. `usuario@example.org`), `GetRemainingSuffix` no encontraba solapamiento con `@example.com` y retornaba el sufijo completo, produciendo concatenaciones inválidas como `usuario@example.org@example.com` tanto en pantalla como en el payload enviado a Supabase Auth.
 - **Solución:** Se agregó una guarda: si el texto ingresado contiene el carácter arroba (`@`) y no presenta solapamiento de prefijo con `GhostSuffix`, `GetRemainingSuffix` retorna `string.Empty`, evitando la adición indebida del dominio predeterminado:
   ```csharp
   if (input.Contains('@'))

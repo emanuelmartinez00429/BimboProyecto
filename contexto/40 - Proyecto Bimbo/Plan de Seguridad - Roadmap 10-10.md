@@ -5,7 +5,7 @@ tags:
   - seguridad
   - plan
   - bimbo
-status: en-progreso
+status: vigente
 ---
 
 # Plan de Seguridad — Roadmap hacia 10/10
@@ -32,11 +32,11 @@ Antes de lo que falta, es importante saber qué no hay que tocar:
 ## Fase 1 — Secretos y Configuración ✅
 **Esfuerzo: Bajo | Impacto: Alto**
 
-### 1.1 Sacar la anon key del repositorio ✅ `2026-05-23`
+### 1.1 Anon key en el cliente — Mitigación parcial con allowlist en gitleaks `2026-11-09`
 
-**Problema:** `CapaUI/App.config` contiene la anon key hardcodeada y se commitea al repo. Aunque la key es pública por diseño, no es buena práctica tenerla en el historial de git.
+**Estado real:** La anon key continúa versionada en `CapaUI/App.config` (y residualmente en `SearchTest/App.config`). Es una clave pública por diseño de Supabase, protegida por autenticación y políticas RLS (Row Level Security). Se añade al allowlist de `.gitleaks.toml`.
 
-**Solución:** Leer la key desde variable de entorno o desde un archivo excluido del repo.
+**Solución definitiva pendiente:** Leer la key desde variable de entorno o desde un archivo excluido del repo si se decide en el futuro.
 
 ```csharp
 // ConexionSupabase.cs
@@ -49,21 +49,12 @@ private static readonly string Key =
     ?? ConfigurationManager.AppSettings["SUPABASE_KEY"]!;
 ```
 
-Agregar al `.gitignore`:
-```
-CapaUI/App.config
-BimboPesaje/App.config
-```
+**Archivos:** `CapaUI/App.config`, `.gitleaks.toml`
 
-Y documentar en un `App.config.example` con valores placeholder.
-
-**Archivos:** `ServicioConexión/Conexion/ConexionSupabase.cs`, `.gitignore`
-
-> [!success] Completado
-> - `ConexionSupabase.cs` lee de env var con fallback a `App.config`
-> - `CapaUI/App.config` agregado al `.gitignore`
-> - Creado `CapaUI/App.config.example` con valores placeholder
-> - **Pendiente:** rotar la anon key en Supabase (`Settings → API → Regenerate anon key`) ya que el historial de git previo la contiene
+> [!note] Mitigación adoptada (2026-11-09)
+> - La anon key permanece versionada para facilitar la distribución cliente WPF.
+> - Se protege con RLS estricto en todas las tablas y allowlist auditado en `.gitleaks.toml`.
+> - Prohibido commitear `service_role` o tokens JWT bajo cualquier circunstancia.
 
 ---
 

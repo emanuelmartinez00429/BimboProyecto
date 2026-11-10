@@ -1,11 +1,13 @@
 ---
 title: "Sesión 2026-05-28 — Deuda Técnica P-006, P-007, P-008"
-tags:
-  - sesion
-  - deuda-tecnica
-  - realtime
-  - documentacion
+type: sesion
+status: vigente
 date: 2026-05-28
+updated: 2026-05-28
+autor: por-confirmar
+agente: por-confirmar
+tags: [sesion, deuda-tecnica, realtime, documentacion]
+summary: "Los tres ítems menores de deuda técnica resueltos. 0 errores de compilación en CapaDatos, CapaAplicacion y CapaUI."
 ---
 
 # Sesión 2026-05-28 — Deuda Técnica P-006, P-007, P-008

@@ -1,9 +1,14 @@
 ---
 title: "Sesión 2026-08-14 — Módulo de configuración de empresa y tema dinámico"
-tags: [sesion, configuracion, empresa, tema, storage, rls]
+type: sesion
+status: vigente
 date: 2026-08-14
-branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Codex (sesión gestionada por Emanuel)
+updated: 2026-08-14
+autor: emanuel
+agente: codex
+rama: feat/fase8-MaquetadodeRoles
+tags: [sesion, configuracion, empresa, tema, storage, rls]
+summary: "El engranaje abre un modal real para editar la empresa, reemplazar el logo y cambiar el color principal global. La escritura quedó protegida por permiso en UI, repositorio y RLS; la solución compila con cero errores."
 ---
 
 # Sesión 2026-08-14 — Módulo de configuración de empresa y tema dinámico

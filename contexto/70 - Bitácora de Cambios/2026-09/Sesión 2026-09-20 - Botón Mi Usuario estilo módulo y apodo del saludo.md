@@ -1,3 +1,16 @@
+---
+title: "Sesión 2026-09-20 — Botón Mi Usuario estilo módulo y apodo del saludo"
+type: sesion
+status: vigente
+date: 2026-09-20
+updated: 2026-09-20
+autor: carlos
+autor_fuente: git
+agente: por-confirmar
+tags: [sesion]
+summary: "Botón Mi Usuario estilo módulo y apodo del saludo"
+---
+
 # Sesión 2026-09-20 — Botón Mi Usuario estilo módulo y apodo del saludo
 
 Rama: `feat/mi-usuario-seguridad-preferencias` · Engram: proyecto `bimboproyecto`.

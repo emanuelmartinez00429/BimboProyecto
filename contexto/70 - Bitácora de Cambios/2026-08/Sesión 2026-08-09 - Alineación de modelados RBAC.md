@@ -1,13 +1,14 @@
 ---
 title: "Sesión 2026-08-09 — Alineación de modelados RBAC"
-tags:
-  - sesion
-  - bimbo
-  - rbac
-  - modelados
+type: sesion
+status: vigente
 date: 2026-08-09
-branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Codex (sesión gestionada por Emanuel)
+updated: 2026-08-09
+autor: emanuel
+agente: codex
+rama: feat/fase8-MaquetadodeRoles
+tags: [sesion, bimbo, rbac, modelados]
+summary: "Los cuatro modelos de persistencia del RBAC quedaron alineados con el esquema confirmado para `modulos`, `acciones`, `roles` y `acciones_roles`. La solución compila con 0 errores."
 ---
 
 # Sesión 2026-08-09 — Alineación de modelados RBAC

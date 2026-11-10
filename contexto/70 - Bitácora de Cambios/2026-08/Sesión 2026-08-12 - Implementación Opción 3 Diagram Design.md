@@ -1,9 +1,15 @@
 ---
 title: "Implementación Opción 3 — Diagram Design Automation"
-tags: [diagram-design, hooks, skills, automatización, inyección-contexto]
+type: sesion
+status: vigente
 date: 2026-08-12
-branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Claude Code
+updated: 2026-08-12
+autor: fernando
+autor_fuente: git
+agente: claude-code
+rama: feat/fase8-MaquetadodeRoles
+tags: [diagram-design, hooks, skills, automatización, inyección-contexto]
+summary: "Implementación Opción 3 — Diagram Design Automation"
 ---
 
 # Sesión 2026-08-12 — Implementación Opción 3: Diagram Design Automation

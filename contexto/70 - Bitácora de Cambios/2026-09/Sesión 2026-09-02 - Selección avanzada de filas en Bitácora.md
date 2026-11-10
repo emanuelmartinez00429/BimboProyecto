@@ -1,12 +1,14 @@
 ---
 title: "Sesión 2026-09-02 — Selección avanzada de filas en Bitácora"
-tags:
-  - sesion
-  - bitacora
-  - reportes
+type: sesion
+status: vigente
 date: 2026-09-02
-branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Codex (sesión gestionada por Emanuel)
+updated: 2026-09-02
+autor: emanuel
+agente: codex
+rama: feat/fase8-MaquetadodeRoles
+tags: [sesion, bitacora, reportes]
+summary: "La tabla de Bitácora oculta las casillas de selección y conserva la selección para reportes mediante clic, arrastre, `Shift` + clic y un botón para seleccionar o limpiar la página completa."
 ---
 
 # Sesión 2026-09-02 — Selección avanzada de filas en Bitácora

@@ -1,9 +1,15 @@
 ---
 title: "Sesión 2026-09-01 - Gestión auditable de roles"
-tags: [sesion, bimbo, roles, rbac, supabase]
+type: sesion
+status: vigente
 date: 2026-09-01
-branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Codex
+updated: 2026-09-01
+autor: emanuel
+autor_fuente: git
+agente: codex
+rama: feat/fase8-MaquetadodeRoles
+tags: [sesion, bimbo, roles, rbac, supabase]
+summary: "Se implementó la administración del catálogo de roles y permisos con autorización específica, auditoría transaccional y un núcleo administrativo protegido para el rol Administrador."
 ---
 
 # Sesión 2026-09-01 - Gestión auditable de roles

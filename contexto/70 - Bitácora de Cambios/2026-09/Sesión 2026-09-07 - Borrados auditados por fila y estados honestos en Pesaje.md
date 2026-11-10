@@ -1,15 +1,14 @@
 ---
 title: "Sesión 2026-09-07 — Borrados auditados por fila y estados honestos en Pesaje"
-tags:
-  - sesion
-  - pesaje
-  - ux
-  - wpf
-  - auditoria
+type: sesion
+status: vigente
 date: 2026-09-07
-branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Claude Fernando (agente)
-revisor: Fernando (prueba visual aprobada)
+updated: 2026-09-07
+autor: fernando
+agente: claude-code
+rama: feat/fase8-MaquetadodeRoles
+tags: [sesion, pesaje, ux, wpf, auditoria]
+summary: "Los borrados de producto y pesaje pasaron a RPC con bitácora (eran `Update` crudos), la acción de quitar se movió a un basurero en cada fila con sus reglas de bloqueo, y se corrigió un desfase entre lo que la tabla de entradas mostraba y lo que su encabezado decía. Además: numerador en vez de ID, estado vacío con icono propio, y el login dejó de sacar barra de scroll al mostrar un error."
 ---
 
 # Sesión 2026-09-07 — Borrados auditados por fila y estados honestos en Pesaje

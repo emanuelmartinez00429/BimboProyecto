@@ -1,19 +1,14 @@
 ---
 title: "Sesión 2026-09-16 — Homogeneización vectorial de iconos del sidebar, centrado en modo colapsado y ajuste de columnas en Productos"
+type: sesion
+status: vigente
 date: 2026-09-16
-tags:
-  - bitacora
-  - sesion
-  - wpf
-  - ui
-  - ux
-  - sidebar
-  - iconos
-  - productos
-  - pesajes
-aliases:
-  - Vectorización Iconos Sidebar
-  - Centrado Sidebar Colapsado
+updated: 2026-09-16
+autor: fernando
+autor_fuente: git
+agente: por-confirmar
+tags: [bitacora, sesion, wpf, ui, ux, sidebar, iconos, productos, pesajes]
+summary: "Homogeneización vectorial de iconos del sidebar, centrado en modo colapsado y ajuste de columnas en Productos"
 ---
 
 # Sesión 2026-09-16 — Homogeneización vectorial de iconos del sidebar, centrado en modo colapsado y ajuste de columnas en Productos
@@ -27,7 +22,7 @@ En esta sesión se completó la modernización integral del sistema de iconograf
 ## Intervenciones Realizadas
 
 ### 1. Vectorización e Integración de Iconos Material Icons en [`Styles.xaml`](../../../CapaUI/Resources/Styles.xaml)
-A partir de los SVG originales provistos en `D:\Proyectos\Iconos`, se incorporaron las rutas vectoriales exactas al diccionario global de recursos, aprovechando que WPF con `Stretch="Uniform"` procesa automáticamente el sistema de coordenadas de Material Icons (`viewBox="0 -960 960 960"`):
+A partir de los SVG originales provistos en `recursos/iconos`, se incorporaron las rutas vectoriales exactas al diccionario global de recursos, aprovechando que WPF con `Stretch="Uniform"` procesa automáticamente el sistema de coordenadas de Material Icons (`viewBox="0 -960 960 960"`):
 - **Pesajes (`IcoScale` / `MIcoScale`):** Basado en `Pesa.svg` (Material Icons *balance*), aplicado tanto en el sidebar como en las cabeceras de modales y tarjetas KPI del Dashboard.
 - **Reportería (`IcoReporte`):** Basado en `Barras.svg` (Material Icons *monitoring*), sustituyendo el glifo `&#xE9D2;`.
 - **Inventario / Productos (`IcoInventario`):** Basado en `Inventario.svg` (Material Icons *inventory_2*), sustituyendo el glifo `&#xE7B8;` en el sidebar y en la tarjeta KPI de Productos del Dashboard.

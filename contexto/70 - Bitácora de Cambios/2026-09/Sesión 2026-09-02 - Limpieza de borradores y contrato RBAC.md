@@ -1,9 +1,15 @@
 ---
 title: "Sesión 2026-09-02 - Limpieza de borradores y contrato RBAC"
-tags: [sesion, bimbo, rbac, supabase, pruebas]
+type: sesion
+status: vigente
 date: 2026-09-02
-branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Codex
+updated: 2026-09-02
+autor: emanuel
+autor_fuente: git
+agente: codex
+rama: feat/fase8-MaquetadodeRoles
+tags: [sesion, bimbo, rbac, supabase, pruebas]
+summary: "Limpieza de borradores y contrato RBAC"
 ---
 
 # Sesión 2026-09-02 - Limpieza de borradores y contrato RBAC

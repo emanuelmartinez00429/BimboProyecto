@@ -1,13 +1,14 @@
 ---
 title: "Sesión 2026-09-18 — Auditoría legible y parámetros de reportes en texto"
-tags:
-  - sesion
-  - bitacora
-  - reporteria
-  - supabase
+type: sesion
+status: vigente
 date: 2026-09-18
-branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Codex (sesión gestionada por Fernando)
+updated: 2026-09-18
+autor: fernando
+agente: codex
+rama: feat/fase8-MaquetadodeRoles
+tags: [sesion, bitacora, reporteria, supabase]
+summary: "Los datos visibles de auditoría dejan de persistirse y presentarse como objetos JSON. Las RPC y emisores de reportes guardan texto descriptivo, mientras que Bitácora conserva compatibilidad de lectura con filas históricas estructuradas sin reescribirlas."
 ---
 
 # Sesión 2026-09-18 — Auditoría legible y parámetros de reportes en texto

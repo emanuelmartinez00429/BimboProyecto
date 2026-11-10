@@ -1,9 +1,15 @@
 ---
 title: "Sesión 2026-07-26 — Fix Buscador Usuarios (SuggestionSearchBox)"
-tags: [sesion, usuarios, ui, wpf, disonancia-visual]
+type: sesion
+status: vigente
 date: 2026-07-26
-branch: feat/fase7-GestióndeUsuarios
-autor_cambios: Claude (Sonnet 5), dirigido por Fernando
+updated: 2026-07-26
+autor: fernando
+agente: claude-code
+modelo: sonnet-5
+rama: feat/fase7-GestióndeUsuarios
+tags: [sesion, usuarios, ui, wpf, disonancia-visual]
+summary: "Fix Buscador Usuarios (SuggestionSearchBox)"
 ---
 
 # Sesión 2026-07-26 — Fix Buscador Usuarios (SuggestionSearchBox)

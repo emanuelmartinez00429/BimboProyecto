@@ -1,14 +1,16 @@
 ---
 title: "Sesión 2026-08-14 — Logo del login sin parpadeo, spinner solo cuando hay descarga real"
-tags:
-  - sesion
-  - login
-  - ui
-  - wpf
-  - cache
+type: sesion
+status: vigente
 date: 2026-08-14
-branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Claude Sonnet 5 (Claude Code)
+updated: 2026-08-14
+autor: fernando
+autor_fuente: git
+agente: claude-code
+modelo: sonnet-5
+rama: feat/fase8-MaquetadodeRoles
+tags: [sesion, login, ui, wpf, cache]
+summary: "El logo del login ya no salta de \"empacado\" a \"real\" en cada apertura. Se pinta el cacheado al instante, sin esperar ningún viaje de red, y solo se reemplaza (con un spinner chico mientras dura) cuando de verdad hace falta descargar — primera vez en la máquina, o el logo cambió en la base. Build: `0 errores CS`."
 ---
 
 # Sesión 2026-08-14 — Logo del login sin parpadeo, spinner solo cuando hay descarga real

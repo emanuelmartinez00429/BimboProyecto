@@ -1,13 +1,14 @@
 ---
 title: "Sesión 2026-09-10 — Cierre de P-057 (previsualización de UI en el diseñador)"
-tags:
-  - sesion
-  - wpf
-  - xaml
-  - disenador
+type: sesion
+status: vigente
 date: 2026-09-10
-branch: (rama de trabajo actual)
-autor_cambios: Claude Fernando (agente)
+updated: 2026-09-10
+autor: fernando
+agente: claude-code
+rama: (rama de trabajo actual)
+tags: [sesion, wpf, xaml, disenador]
+summary: "Los 17 controles de tipo modal + 2 pantallas + 13 vistas se previsualizan en el diseñador de Visual Studio — **verificado por Fernando en el diseñador el 2026-09-10**. Arné de instanciación: **33/33 a tamaño real, 0 colapsos, 0 excepciones**. Los 6 converters salieron de `App.xaml`. Nodo nuevo de convenciones de UI + skill `ui-conventions`. Solución 0/0, suite 344/344. **P-057 cerrado.**"
 ---
 
 # Sesión 2026-09-10 — Cierre de P-057 (previsualización de UI en el diseñador)

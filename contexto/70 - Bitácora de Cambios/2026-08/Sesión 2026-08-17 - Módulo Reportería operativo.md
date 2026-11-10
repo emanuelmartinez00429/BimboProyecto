@@ -1,9 +1,14 @@
 ---
 title: "Sesión 2026-08-17 — Módulo Reportería operativo"
-tags: [sesion, reportes, pdf, excel, supabase]
+type: sesion
+status: vigente
 date: 2026-08-17
-branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Codex (sesión gestionada por Emanuel)
+updated: 2026-08-17
+autor: emanuel
+agente: codex
+rama: feat/fase8-MaquetadodeRoles
+tags: [sesion, reportes, pdf, excel, supabase]
+summary: "Módulo Reportería operativo"
 ---
 
 # Sesión 2026-08-17 — Módulo Reportería operativo

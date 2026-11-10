@@ -1,16 +1,14 @@
-﻿---
+---
 title: "Sesión 2026-08-21 — QA Login y migración de validaciones al dominio"
-tags:
-  - sesion
-  - qa
-  - login
-  - autenticacion
-  - dominio
-  - refactorizacion
-  - tests
+type: sesion
+status: vigente
 date: 2026-08-21
-branch: feat/fase8-MaquetadodeRoles
-autor_cambios: Fernando / Antigravity (agente)
+updated: 2026-08-21
+autor: fernando
+agente: antigravity
+rama: feat/fase8-MaquetadodeRoles
+tags: [sesion, qa, login, autenticacion, dominio, refactorizacion, tests]
+summary: "Se crearon 112 tests de QA para el inicio de sesión (P0–P3), se detectó y corrigió un bug en el medidor de fortaleza de contraseña, y se migró toda la lógica de validación desde la CapaUI al dominio mediante dos nuevas clases de C# puro: `ReglasContrasena` y `ReglasLogin`."
 ---
 
 # Sesión 2026-08-21 — QA Login y migración de validaciones al dominio

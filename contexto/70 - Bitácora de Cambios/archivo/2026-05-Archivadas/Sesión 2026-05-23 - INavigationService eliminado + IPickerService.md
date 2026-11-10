@@ -1,12 +1,13 @@
 ---
 title: "Sesión 2026-05-23 — INavigationService eliminado + IPickerService creado"
-tags:
-  - bitacora
-  - arquitectura
-  - navegacion
-  - picker
-  - refactor
+type: sesion
+status: vigente
 date: 2026-05-23
+updated: 2026-05-23
+autor: por-confirmar
+agente: por-confirmar
+tags: [bitacora, arquitectura, navegacion, picker, refactor]
+summary: "INavigationService eliminado + IPickerService creado"
 ---
 
 # Sesión 2026-05-23 — INavigationService eliminado + IPickerService creado

@@ -1,14 +1,13 @@
 ---
 title: "Sesión 2026-05-29 — Auditoría Profunda y Plan de Remediación Completo"
+type: sesion
+status: vigente
 date: 2026-05-29
-tags:
-  - bitácora
-  - seguridad
-  - memory-leak
-  - realtime
-  - optimización
-  - arquitectura
-status: Completado
+updated: 2026-05-29
+autor: por-confirmar
+agente: por-confirmar
+tags: [bitácora, seguridad, memory-leak, realtime, optimización, arquitectura]
+summary: "Sesión con dos partes:"
 ---
 
 # Sesión 2026-05-29 — Auditoría Profunda y Plan de Remediación Completo
