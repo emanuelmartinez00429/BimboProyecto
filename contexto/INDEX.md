@@ -9,13 +9,14 @@ De bitácora, solo las 3 sesiones más recientes; el resto en contexto/INDEX-bit
 
 - [[Conocimiento Principal]] · moc · vigente
 
-## 10 - Arquitectura — Directrices y conceptos arquitectónicos
+## 10 - Arquitectura — Directrices arquitectónicas
 
 - [[Capa de Dominio]] · arquitectura · vigente
 - [[Clean Architecture]] · arquitectura · vigente
+- [[Historial de Arquitectura 2026]] · arquitectura · vigente — Recopilación cronológi...
 - [[SOLID]] · arquitectura · vigente
 
-## 20 - Patrones — Patrones de código y UI reutilizables
+## 20 - Patrones — Patrones de código y UI
 
 - [[Anatomia compartida de los modales]] · patron · vigente
 - [[Animaciones WPF - Referencia de Easings]] · patron · vigente
@@ -25,7 +26,7 @@ De bitácora, solo las 3 sesiones más recientes; el resto en contexto/INDEX-bit
 - [[Columna de Numero de Fila en DataGrid]] · patron · vigente
 - [[Columnas de Auditoria Temporal en DataGrid - Estandarizacion Creado y Actualizado]] · patron · vigente
 - [[Convenciones de UI (WPF) — leer antes de tocar XAML]] · patron · vigente
-- [[Convenciones de código]] · patron · vigente · 2026-11-09 — Convenciones de arquitectura, MVVM, repositorios Supabase...
+- [[Convenciones de código]] · patron · vigente — Convenciones de arquit...
 - [[Empty State en DataGrid - Overlay centrado con encabezados visibles]] · patron · vigente
 - [[Guardado sin Refetch - Aplicar en memoria la respuesta del servidor]] · patron · vigente
 - [[Interceptar Cierre de Ventana]] · patron · vigente
@@ -39,7 +40,7 @@ De bitácora, solo las 3 sesiones más recientes; el resto en contexto/INDEX-bit
 - [[Validacion de formularios]] · patron · vigente
 - [[Vista Descargada Durante un await (async void Loaded)]] · patron · vigente
 
-## 30 - Casos de Uso — Casos de uso y flujos operativos
+## 30 - Casos de Uso — Casos de uso y flujos
 
 - [[Caso 01 - CRUD con Paginación]] · caso-uso · vigente
 - [[Caso 02 - Buscador Universal]] · caso-uso · vigente
@@ -47,12 +48,13 @@ De bitácora, solo las 3 sesiones más recientes; el resto en contexto/INDEX-bit
 - [[Caso 04 - WPF MVVM Clean Architecture]] · caso-uso · vigente
 - [[Caso 05 - CQRS Gestión Empleados]] · caso-uso · vigente
 
-## 40 - Proyecto Bimbo — Estado vivo: módulos, arquitectura y deuda abierta
+## 40 - Proyecto Bimbo — Estado vivo: módulos, arquitectura y deuda
 
-- [[Arquitectura Actual]] · doc · vigente
+- [[Arquitectura Actual]] · arquitectura · vigente — Estado vivo del sistem...
 - [[Buscador Universal Bimbo]] · doc · vigente
 - [[Checklist - Replicar Módulo con Realtime]] · doc · vigente
-- [[Deuda Técnica - Pendientes]] · doc · vigente
+- [[Deuda - Abierta]] · deuda · vigente — Inventario de 9 ítems ...
+- [[Deuda - Resuelta]] · deuda · vigente — Registro de 58 ítems r...
 - [[Gestor Realtime - Diseño Arquitectónico]] · doc · vigente
 - [[Módulo Bitácora]] · doc · vigente
 - [[Módulo Configuración de Empresa]] · doc · vigente
@@ -74,8 +76,9 @@ De bitácora, solo las 3 sesiones más recientes; el resto en contexto/INDEX-bit
 - [[Plan de Migración de Presentaciones a RPC segura]] · doc · vigente
 - [[Plan de Seguridad - Roadmap 10-10]] · doc · vigente
 - [[Plan de Tests Unitarios]] · doc · vigente
+_(1 nota retirada: reemplazadas o archivadas, no se listan)_
 
-## 45 - Decisiones — Registros de decisión de arquitectura (ADR)
+## 45 - Decisiones — Registros de decisión (ADR)
 
 - [[ADR-001 - Result Pattern en Repositorios]] · adr · vigente
 - [[ADR-002 - CQRS y Strategy para Buscador Universal]] · adr · vigente
@@ -108,7 +111,7 @@ De bitácora, solo las 3 sesiones más recientes; el resto en contexto/INDEX-bit
 - [[Pendiente - Servicio Genérico de Validaciones y Pruebas Caja Negra]] · adr · vigente
 _(1 nota retirada: reemplazadas o archivadas, no se listan)_
 
-## 50 - Referencia — Hechos externos, SDKs, APIs y configuración
+## 50 - Referencia — Hechos externos, SDKs y APIs
 
 - [[Analisis de rendimiento - Buscadores, cache y paginacion (2026-09)]] · referencia · vigente
 - [[Bug - CREATE OR REPLACE FUNCTION con distinta cantidad de parametros duplica en vez de reemplazar (Postgres)]] · referencia · vigente
@@ -133,9 +136,9 @@ _(1 nota retirada: reemplazadas o archivadas, no se listan)_
 - [[WPF - StaticResource en atributos del elemento raiz y el disenador de Visual Studio]] · referencia · vigente
 - [[WPF - Texto Dentado en Fondos de Color]] · referencia · vigente
 
-## 60 - Revisiones QA — Auditorías de calidad y revisiones entre agentes
+## 60 - Revisiones QA — Revisiones de calidad y auditorías
 
-- [[2026-11-09 - Pedido DevSecOps y contexto para Antigravity]] · qa · vigente · 2026-11-09 — Revisión QA y pedido DevSecOps y contexto para Antigravit...
+- [[2026-11-09 - Pedido DevSecOps y contexto para Antigravity]] · qa · vigente — Revisión QA y pedido D...
 - [[Auditoría Externa — Optimizaciones WPF de Antigravity vs. Investigaciones QA]] · qa · vigente
 - [[Auditoría Técnica — Animaciones DWM, Maximizado Multi-DPI y Seguridad OWASP]] · qa · vigente
 - [[Fase 4 — Puertas de riesgo del escalado (guion de prueba)]] · qa · vigente
@@ -146,9 +149,9 @@ _(1 nota retirada: reemplazadas o archivadas, no se listan)_
 - [[QA - Configuración de Empresa (Caché, Vista y Realtime)]] · qa · vigente
 - [[QA - Inicio de Sesión (Testing por niveles de importancia)]] · qa · vigente
 
-## 70 - Bitácora de Cambios — Sesiones de trabajo por mes y resúmenes
+## 70 - Bitácora de Cambios — Sesiones por mes y resúmenes
 
-- [[Sesión 2026-11-08 - Resolución P-067 (Pkcs 10.0.14)]] · sesion · emanuel · opencode · 2026-11-08 — La resolución se hizo justo antes de publicar la próxima ...
-- [[Sesión 2026-11-08 - Fix reporte de productos y actualización remota]] · sesion · emanuel · codex · 2026-11-08 — - La búsqueda de actualización no fue inmediata; el usuar...
-- [[Sesión 2026-11-07 - Merge y MSI de actualizaciones Velopack]] · sesion · emanuel · codex · 2026-11-07 — - Validar el MSI con el compañero y obtener el texto/códi...
-- _(3 sesiones más: ver contexto/INDEX-bitacora.md)_
+- [[Sesión 2026-11-08 - Resolución P-067 (Pkcs 10.0.14)]] · sesion · emanuel · opencode · 2026-11-08 — La resolución se hizo ...
+- [[Sesión 2026-11-08 - Fix reporte de productos y actualización remota]] · sesion · emanuel · codex · 2026-11-08 — - La búsqueda de actua...
+- [[Sesión 2026-11-07 - Merge y MSI de actualizaciones Velopack]] · sesion · emanuel · codex · 2026-11-07 — - Validar el MSI con e...
+- _(4 sesiones más y 4 resúmenes mensuales: ver contexto/INDEX-bitacora.md)_
