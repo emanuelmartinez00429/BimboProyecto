@@ -1,0 +1,73 @@
+name: Archivar Bitácora en Auditoría
+
+# Automatización semanal para archivar notas de sesión históricas y deuda técnica resuelta
+# en la base de datos inmutable de Supabase (bimbo-auditoria-dev).
+# Requisito R4 — devsecops y gobernanza de datos.
+#
+# Se ejecuta semanalmente los lunes a las 06:00 UTC (lo cual previene la pausa por
+# inactividad del plan Supabase Free) y bajo demanda manual (workflow_dispatch).
+# Si el script genera cambios en el árbol de trabajo, abre un Pull Request hacia main.
+# NUNCA empuja cambios directamente a main.
+
+on:
+  schedule:
+    # Lunes a las 06:00 UTC
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: archivar-bitacora-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  archivar:
+    name: Ingestión WORM y creación de PR
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Obtener código
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Configurar Node.js 20+
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "20"
+
+      - name: Ejecutar script de archivo de bitácora
+        env:
+          AUDIT_SUPABASE_URL: ${{ secrets.AUDIT_SUPABASE_URL }}
+          AUDIT_SUPABASE_SERVICE_KEY: ${{ secrets.AUDIT_SUPABASE_SERVICE_KEY }}
+        run: |
+          node scripts/contexto/archivar-bitacora.js --aplicar
+
+      - name: Crear Pull Request si hubo cambios
+        uses: peter-evans/create-pull-request@5e914681df9dc83aa4e4905692ca88beb2f9e91f # v7.0.5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "chore(auditoria): archivar sesiones historicas y deuda resuelta >60 dias"
+          title: "chore(auditoria): archivar notas de sesión históricas en Supabase"
+          body: |
+            ## Archivo Semanal de Auditoría (WORM)
+
+            Este Pull Request fue generado automáticamente por el workflow `.github/workflows/archivar-bitacora.yml`.
+
+            ### Acciones Realizadas:
+            1. **Ingestión en Supabase:** Notas de sesión de meses cerrados (>60 días) y deuda técnica resuelta (>60 días) cargadas mediante upsert idempotente en `auditoria.sesiones` y `auditoria.deuda_resuelta`.
+            2. **Verificación de Integridad:** Se verificó ida y vuelta el conteo y coincidencia exacta de `sha256`.
+            3. **Resúmenes Mensuales:** Actualizados con la tabla de hashes y títulos archivados.
+            4. **Retiro de Notas:** Notas individuales eliminadas del árbol de trabajo con `git rm` para mantener liviano el footprint de contexto.
+
+            > **Garantía Histórica:** Borrar las notas del repositorio local NO elimina nada del historial de Git. Todo el detalle permanece accesible en el log histórico.
+          branch: chore/archivo-auditoria-semanal
+          base: main
+          delete-branch: true
+          labels: |
+            auditoria
+            mantenimiento

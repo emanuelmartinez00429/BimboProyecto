@@ -193,7 +193,7 @@ function lineaNota(n, sangria = "") {
   let sum = "";
   if (fm.summary) {
     let s = fm.summary.trim();
-    if (s.length > 25) s = s.slice(0, 22) + "...";
+    if (s.length > 20) s = s.slice(0, 17) + "...";
     sum = ` — ${s}`;
   }
   return `${sangria}- [[${n.nombre}]] · ${meta.join(" · ")}${sum}`;
