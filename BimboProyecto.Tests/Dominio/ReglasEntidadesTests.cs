@@ -180,11 +180,11 @@ public sealed class ReglasEntidadesTests
     // TEST A: Deriva de Esquema contra PostgreSQL (information_schema.columns)
     // ========================================================================
 
-    [Fact]
+    [SkippableFact]
     public async Task TestA_DerivaEsquemaPostgres_ReglasDominioAlineadasConBaseDeDatos_CuandoHayConexion()
     {
         var conexion = Environment.GetEnvironmentVariable("BIMBO_POSTGRES_CONNECTION_STRING");
-        if (string.IsNullOrWhiteSpace(conexion)) return;
+        Skip.If(string.IsNullOrWhiteSpace(conexion), "Se omite porque no está configurada la variable de entorno BIMBO_POSTGRES_CONNECTION_STRING.");
 
         await using var db = new NpgsqlConnection(conexion);
         await db.OpenAsync();
