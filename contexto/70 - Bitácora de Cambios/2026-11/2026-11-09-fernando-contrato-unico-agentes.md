@@ -6,9 +6,9 @@ date: 2026-11-09
 updated: 2026-11-09
 autor: fernando
 agente: antigravity
-modelo: gemini-2.5-pro
+modelo: gemini-3.8-flash-high
 rama: chore/contrato-agentes
-commits: [c518122]
+commits: [47c53da]
 tags: [sesion, devsecops, agentes, contexto]
 summary: "Unificación de AGENTS.md raíz en <= 8KB, protocolo de bóveda, stubs de agentes, equipo.json, desindexación de corridas y normalización de gitattributes"
 ---

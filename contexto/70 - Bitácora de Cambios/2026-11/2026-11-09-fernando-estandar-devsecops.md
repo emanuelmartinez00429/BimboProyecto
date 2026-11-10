@@ -6,9 +6,9 @@ date: 2026-11-09
 updated: 2026-11-09
 autor: fernando
 agente: antigravity
-modelo: gemini-2.5-pro
+modelo: gemini-3.8-flash-high
 rama: docs/estandar-devsecops
-commits:
+commits: [a9fea52, baa2e14]
   - f137fef
 tags:
   - devsecops

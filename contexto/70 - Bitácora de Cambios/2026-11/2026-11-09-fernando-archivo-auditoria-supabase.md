@@ -6,9 +6,9 @@ date: 2026-11-09
 updated: 2026-11-09
 autor: fernando
 agente: antigravity
-modelo: claude-3-7-sonnet
+modelo: gemini-3.8-flash-high
 rama: feat/archivo-auditoria
-commits: [b5ae1b2]
+commits: [5d3dd46, aca0ff3]
 tags: [sesion, auditoria, supabase, worm, rls, devsecops]
 summary: "Implementación del archivo de auditoría inmutable en Supabase (R4): esquema DDL WORM, script de ingestión y verificación, workflow semanal y suite de pruebas."
 deuda: []

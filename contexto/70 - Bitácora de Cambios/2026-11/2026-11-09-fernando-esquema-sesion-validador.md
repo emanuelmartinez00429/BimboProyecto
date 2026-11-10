@@ -6,9 +6,9 @@ date: 2026-11-09
 updated: 2026-11-09
 autor: fernando
 agente: antigravity
-modelo: gemini-2.5-pro
+modelo: gemini-3.8-flash-high
 rama: chore/contexto-validador
-commits: [ca74dab]
+commits: [7c3e20c, de21c36]
 tags: [sesion, devsecops, contexto, validador]
 summary: "Portabilidad de lib.js, verificar.js y build-index.js, normalización de 178 notas de bitácora e índices INDEX.md e INDEX-bitacora.md"
 ---
