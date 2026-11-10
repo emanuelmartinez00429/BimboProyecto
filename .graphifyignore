@@ -1,0 +1,17 @@
+# Graphify: qué NO entra al grafo (sintaxis gitignore)
+bin/
+obj/
+analisis-muerto/
+.agents/
+contexto/.control/
+contexto/.obsidian/
+graphify-out/
+node_modules/
+
+# Generados, plantillas, apuntadores y templates
+contexto/INDEX*.md
+contexto/_templates/
+CLAUDE.md
+GEMINI.md
+.github/copilot-instructions.md
+.github/pull_request_template.md

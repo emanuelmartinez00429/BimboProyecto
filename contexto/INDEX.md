@@ -138,6 +138,7 @@ _(1 nota retirada: reemplazadas o archivadas, no se listan)_
 - [[WPF - StackPanel y columnas Auto no ceden espacio, no se achican de verdad]] · referencia · vigente
 - [[WPF - StaticResource en atributos del elemento raiz y el disenador de Visual Studio]] · referencia · vigente
 - [[WPF - Texto Dentado en Fondos de Color]] · referencia · vigente
+- [[graphify]] · referencia · vigente
 
 ## 60 - Revisiones QA — Revisiones de calidad y auditorías
 
@@ -154,7 +155,7 @@ _(1 nota retirada: reemplazadas o archivadas, no se listan)_
 
 ## 70 - Bitácora de Cambios — Sesiones por mes y resúmenes
 
-- [[Sesión 2026-11-08 - Resolución P-067 (Pkcs 10.0.14)]] · sesion · emanuel · opencode · 2026-11-08 — La resolución se hizo ...
-- [[Sesión 2026-11-08 - Fix reporte de productos y actualización remota]] · sesion · emanuel · codex · 2026-11-08 — - La búsqueda de actua...
-- [[Sesión 2026-11-07 - Merge y MSI de actualizaciones Velopack]] · sesion · emanuel · codex · 2026-11-07 — - Validar el MSI con e...
-- _(7 sesiones más y 4 resúmenes mensuales: ver contexto/INDEX-bitacora.md)_
+- [[Sesión 2026-11-08 - Resolución P-067 (Pkcs 10.0.14)]] · sesion · emanuel · opencode · 2026-11-08
+- [[Sesión 2026-11-08 - Fix reporte de productos y actualización remota]] · sesion · emanuel · codex · 2026-11-08
+- [[Sesión 2026-11-07 - Merge y MSI de actualizaciones Velopack]] · sesion · emanuel · codex · 2026-11-07
+- _(8 sesiones más y 4 resúmenes mensuales: ver contexto/INDEX-bitacora.md)_

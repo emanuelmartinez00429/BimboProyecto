@@ -168,7 +168,7 @@ function mesesAbiertos(notas) {
   return new Set([ultimo, mesAnterior(ultimo)]);
 }
 
-function lineaNota(n, sangria = "") {
+function lineaNota(n, sangria = "", conSummary = false) {
   const fm = n.fm || {};
   let meta;
   if (fm.type === "sesion") {
@@ -191,9 +191,9 @@ function lineaNota(n, sangria = "") {
     meta = [tipo, estado];
   }
   let sum = "";
-  if (fm.type === "sesion" && fm.summary) {
+  if (conSummary && fm.summary) {
     let s = fm.summary.trim();
-    if (s.length > 25) s = s.slice(0, 22) + "...";
+    if (s.length > 60) s = s.slice(0, 57) + "...";
     sum = ` — ${s}`;
   }
   return `${sangria}- [[${n.nombre}]] · ${meta.join(" · ")}${sum}`;
@@ -209,10 +209,10 @@ function lineasBitacora(notas) {
     const resumen = delMes.find((n) => (n.fm || {}).type === "resumen");
     const sesiones = delMes.filter((n) => (n.fm || {}).type !== "resumen").sort((a, b) => (a.nombre < b.nombre ? 1 : -1));
     if (abiertos.has(mes)) {
-      if (resumen) out.push(lineaNota(resumen));
-      sesiones.forEach((n) => out.push(lineaNota(n)));
+      if (resumen) out.push(lineaNota(resumen, "", true));
+      sesiones.forEach((n) => out.push(lineaNota(n, "", true)));
     } else if (resumen) {
-      out.push(lineaNota(resumen));
+      out.push(lineaNota(resumen, "", true));
     } else {
       const cuantas = sesiones.length === 1 ? "1 sesión" : `${sesiones.length} sesiones`;
       out.push(`- ${mes}: ${cuantas} sin resumen mensual (buscar en 70 - Bitácora de Cambios/${mes}/)`);
