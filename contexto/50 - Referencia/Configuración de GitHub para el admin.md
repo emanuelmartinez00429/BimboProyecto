@@ -20,6 +20,9 @@ tags:
 
 ---
 
+> [!danger] Orden obligatorio (corregido 2026-11-09)
+> Hacer **primero el paso 3 (entorno `produccion`)** y recién después el paso 1 (rama por defecto). El código de DevSecOps ya está en `main`: en cuanto `main` sea la rama por defecto, el siguiente merge que toque la app dispara la publicación, y si `produccion` no existe, GitHub lo crea vacío y publica sin aprobación. Orden: 3 → 1 → 2 → 4 → 5.
+
 ## 1. Cambio de Rama por Defecto a `main`
 
 La rama de integración estándar del proyecto se ha unificado en `main` (sustituyendo la histórica `master`).

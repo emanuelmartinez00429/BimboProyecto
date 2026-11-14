@@ -5,10 +5,15 @@ name: Publicar actualización Velopack
 # - Entorno: 'produccion' con aprobación humana obligatoria configurada por el admin.
 # - Genera y adjunta SBOM CycloneDX al release para trazabilidad de cadena de suministro.
 # - Permiso contents: write acotado estrictamente a este job.
+# - Solo publica si el merge cambió el binario (o el script que lo empaqueta): la
+#   documentación, contexto/, la configuración de agentes y el propio CI no generan
+#   una versión nueva de ~74 MB para los clientes (diseño original de Emanuel).
 
 on:
   workflow_run:
-    workflows: ["ci"]
+    # GitHub registra el nombre del workflow desde la rama por defecto: "CI" mientras
+    # sea master, "ci" cuando pase a main. Se listan los dos para no perder el disparo.
+    workflows: ["ci", "CI"]
     branches: [main]
     types: [completed]
   workflow_dispatch:
@@ -21,13 +26,48 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  publish:
-    name: Publicar Release
+  cambios-app:
+    name: ¿Cambió la app?
     if: >-
       github.event_name == 'workflow_dispatch' ||
       (github.event.workflow_run.conclusion == 'success' &&
        github.event.workflow_run.head_branch == 'main' &&
        github.event.workflow_run.event == 'push')
+    runs-on: ubuntu-latest
+    outputs:
+      app: ${{ steps.filtro.outputs.app }}
+    steps:
+      - name: Obtener código
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          fetch-depth: 2
+          persist-credentials: false
+
+      - name: Filtrar rutas del binario
+        id: filtro
+        env:
+          EVENTO: ${{ github.event_name }}
+        run: |
+          if [ "$EVENTO" = "workflow_dispatch" ]; then
+            echo "Disparo manual: se publica."
+            echo "app=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          # En main todo entra por PR, así que HEAD es el merge y HEAD^1 el main anterior.
+          cambios=$(git diff --name-only HEAD^1 HEAD)
+          echo "$cambios"
+          if echo "$cambios" | grep -q -E '^(BimboProyecto\.sln|CapaUI/|CapaDatos/|CapaDominio/|CapaAplicacion4/|scripts/publish-release\.ps1)'; then
+            echo "app=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Sin cambios en el binario: no se publica."
+            echo "app=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  publish:
+    name: Publicar Release
+    needs: cambios-app
+    if: needs.cambios-app.outputs.app == 'true'
     runs-on: windows-latest
     environment: produccion
     permissions:
