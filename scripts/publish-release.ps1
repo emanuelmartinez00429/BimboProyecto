@@ -60,6 +60,7 @@ $Runtime     = 'win-x64'
 
 $repoRoot    = Split-Path -Parent $PSScriptRoot
 $csprojPath  = Join-Path $repoRoot 'CapaUI\CapaUI.csproj'
+$iconPath    = Join-Path $repoRoot 'CapaUI\Resources\app.ico'
 $appConfig   = Join-Path $repoRoot 'CapaUI\App.config'
 $publishPath = Join-Path $repoRoot 'publish'
 $releasePath = Join-Path $repoRoot 'Releases'
@@ -82,6 +83,10 @@ if (-not (Test-Path $csprojPath)) {
 
 Assert-Command 'dotnet'
 Assert-Command 'vpk'
+
+if (-not (Test-Path -LiteralPath $iconPath -PathType Leaf)) {
+    throw "No se encontró el icono de la aplicación en '$iconPath'."
+}
 
 # --- Versión ----------------------------------------------------------------
 if (-not $Version) {
@@ -166,6 +171,7 @@ vpk pack `
     --mainExe $MainExe `
     --packTitle $PackTitle `
     --packAuthors $PackAuthors `
+    --icon $iconPath `
     --msi `
     --instLocation Either
 
