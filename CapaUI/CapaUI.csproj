@@ -14,6 +14,7 @@
       por eso se reemplazó por el manifest. Ver app.manifest.
     -->
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Resources\app.ico</ApplicationIcon>
 
     <!--
       Velopack: el punto de entrada tiene que ser el Main propio de App.xaml.cs,
@@ -23,7 +24,7 @@
     <StartupObject>CapaUI.App</StartupObject>
 
     <!-- Fuente única de verdad de la versión: vpk pack -v se alimenta de acá. -->
-    <Version>1.0.0</Version>
+    <Version>1.0.4</Version>
   </PropertyGroup>
 
   <ItemGroup>
